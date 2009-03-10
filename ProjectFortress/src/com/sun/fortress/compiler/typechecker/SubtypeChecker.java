@@ -70,128 +70,6 @@ public abstract class SubtypeChecker {
                                       _staticParamEnv.extend(params, whereClause));
     }
 
-    /**
-     * Convert the type to a normal form.
-     * A normalized type has the following properties:
-     *
-     * 1) The ArrowType and MatrixType are desugared into TraitType.
-     *
-     *    ArrayType ::= Type [ ExtentRange(, ExtentRange)* ]
-     *    ArrayType(Type element, Indicies indices)
-     *    Indices(List<ExtentRange> extents)
-     *    ExtentRange(Option<StaticArg> base, Option<StaticArg> size, Option<Op> op)
-     *    trait Array1[\T, nat b0, nat s0\]
-     *    trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
-     *    trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
-     *
-     *    MatrixType ::= Type ^ IntExpr
-     *                 | Type ^ ( ExtentRange (BY ExtentRange)* )
-     *    MatrixType(Type element, List<ExtentRange> dimensions)
-     *    trait Matrix[\T extends Number, nat s0, nat s1\]
-     *
-     *    TraitType(Id name, List<StaticArg> args)
-     *
-     */
-    public static Type normalize(Type t) {
-        if (isArray(t)) {
-            ArrayType tt = (ArrayType)t;
-            Span span = NodeUtil.getSpan(tt);
-            TypeArg elem = NodeFactory.makeTypeArg(tt.getElemType());
-            IntArg zero = NodeFactory.makeIntArgVal(NodeUtil.getSpan(t),"0");
-            List<ExtentRange> dims = tt.getIndices().getExtents();
-            try {
-                if (dims.size() == 1) {
-                    ExtentRange first = dims.get(0);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array1");
-                    StaticArg base;
-                    if (first.getBase().isSome())
-                         base = first.getBase().unwrap();
-                    else base = zero;
-                    if (first.getSize().isSome())
-                        return NodeFactory.makeTraitType(span, false, name,
-                                                         elem, base,
-                                                         first.getSize().unwrap());
-                    else return bug(t, "Missing size.");
-                } else if (dims.size() == 2) {
-                    ExtentRange first  = dims.get(0);
-                    ExtentRange second = dims.get(1);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array2");
-                    StaticArg base1;
-                    StaticArg base2;
-                    if (first.getBase().isSome())
-                         base1 = first.getBase().unwrap();
-                    else base1 = zero;
-                    if (second.getBase().isSome())
-                         base2 = second.getBase().unwrap();
-                    else base2 = zero;
-                    if (first.getSize().isSome()) {
-                        if (second.getSize().isSome()) {
-                            return NodeFactory.makeTraitType(span, false, name,
-                                                             elem, base1,
-                                                             first.getSize().unwrap(),
-                                                             base2,
-                                                             second.getSize().unwrap());
-                        } else return bug(second, "Missing size.");
-                    } else return bug(first, "Missing size.");
-                } else if (dims.size() == 3) {
-                    ExtentRange first  = dims.get(0);
-                    ExtentRange second = dims.get(1);
-                    ExtentRange third  = dims.get(2);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array3");
-                    StaticArg base1;
-                    StaticArg base2;
-                    StaticArg base3;
-                    if (first.getBase().isSome())
-                         base1 = first.getBase().unwrap();
-                    else base1 = zero;
-                    if (second.getBase().isSome())
-                         base2 = second.getBase().unwrap();
-                    else base2 = zero;
-                    if (third.getBase().isSome())
-                         base3 = third.getBase().unwrap();
-                    else base3 = zero;
-                    if (first.getSize().isSome()) {
-                        if (second.getSize().isSome()) {
-                            if (third.getSize().isSome()) {
-                                return NodeFactory.makeTraitType(span, false, name,
-                                                                 elem, base1,
-                                                                 first.getSize().unwrap(),
-                                                                 base2,
-                                                                 second.getSize().unwrap(),
-                                                                 base3,
-                                                                 third.getSize().unwrap());
-                            } else return bug(third, "Missing size.");
-                        } else return bug(second, "Missing size.");
-                    } else return bug(first, "Missing size.");
-                }
-                return error("Desugaring " + t + " to TraitType is not " +
-                             "yet supported.");
-            } catch (Exception x) {
-                return error("Desugaring " + t + " to TraitType is not " +
-                             "yet supported.");
-            }
-        } else if (isMatrix(t)) {
-            MatrixType tt = (MatrixType)t;
-            List<ExtentRange> dims = tt.getDimensions();
-            if (dims.size() == 2) {
-                ExtentRange first  = dims.get(0);
-                ExtentRange second = dims.get(1);
-                // Or first.getBase() == second.getBase() == 0
-                if (first.getBase().isNone() && second.getBase().isNone() &&
-                    first.getSize().isSome() && second.getSize().isSome()) {
-                    Span span = NodeUtil.getSpan(tt);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Matrix");
-                    return NodeFactory.makeTraitType(span, false, name,
-                                                     NodeFactory.makeTypeArg(tt.getElemType()),
-                                                     first.getSize().unwrap(),
-                                                     second.getSize().unwrap());
-                }
-            }
-            return error("Desugaring " + t + " to TraitType is not yet " +
-                         "supported.");
-        } return t;
-    }
-
     private Lambda<Type, Type> makeSubst(List<? extends StaticParam> params,
                                          List<? extends StaticArg> args) {
         if (params.size() != args.size()) {
@@ -640,7 +518,7 @@ public abstract class SubtypeChecker {
      * 5) For instantiated types, where clauses are not supported.
      */
     public Boolean subtype(Type s, Type t) {
-        return subtype(normalize(s), normalize(t), _emptyHistory);
+        return subtype(s, t, _emptyHistory);
     }
 
     private Boolean subtype(final Type s, final Type t, SubtypeHistory history) {
