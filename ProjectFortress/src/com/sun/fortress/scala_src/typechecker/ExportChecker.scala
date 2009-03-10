@@ -49,6 +49,7 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker._
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
@@ -60,10 +61,12 @@ import com.sun.fortress.useful.HasAt
  * in Section 20.2.2 "Export Statements"
  * in the Fortress language specification Version 1.0.
  *
- * The following top-level declarations are not checked yet:
+ * The following declarations are not checked yet:
  *     type aliases
  *     dimensions
  *     units
+ *     tests
+ *     properties
  *
  * The following types are ignored for now:
  *     TaggedDimType
@@ -233,7 +236,7 @@ object ExportChecker {
                      coverOverloading(fnsInComp.matchFirst(f))) match {
                         case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
                               DeclaredFunction(FnDecl(_,r,_,_,_))) =>
-                            if ( ! equalFnHeaders(l, r) )
+                            if ( ! equalFnHeaders(l, r, false) )
                                 missingDecls = fd :: missingDecls
                         // If they are not DeclaredFunction, skip.
                         case _ =>
@@ -265,18 +268,28 @@ object ExportChecker {
              */
             val typesInAPI  = api.typeConses
             val typesInComp = component.typeConses
-            /*
-            for ( t <- toSet(typesInAPI.firstSet) ;
-                  if isDeclaredName(t) ) {
+            for ( t <- toSet(typesInAPI.keySet) ;
+                  if NodeUtil.isTraitOrObject(typesInAPI.get(t)) ) {
                 // t should be in this component
-                if ( typesInComp.firstSet.contains(t) ) {
-                } else {
-                    for ( t <- toSet(typesInAPI.matchFirst(t)) ) {
-                        t match
-                    }
-                }
+                val declInAPI = NodeUtil.getDecl(typesInAPI.get(t))
+                if ( typesInComp.keySet.contains(t) ) {
+                    val traitOrObject = typesInComp.get(t)
+                    val declInComp = NodeUtil.getDecl(traitOrObject)
+                    if ( ! equalTraitTypeHeaders(declInAPI.getHeader,
+                                                 declInComp.getHeader) ||
+                         ( NodeUtil.isTrait(traitOrObject) &&
+                           ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
+                                              toList(NodeUtil.getExcludesClause(declInComp))) ||
+                             ! equalOptListTypes(toOptList(NodeUtil.getComprisesClause(declInAPI)),
+                                                 toOptList(NodeUtil.getComprisesClause(declInComp))) ||
+                             NodeUtil.isComprisesEllipses(declInAPI) !=
+                             NodeUtil.isComprisesEllipses(declInComp) ) ) ||
+                         ( NodeUtil.isObject(traitOrObject) &&
+                           ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
+                                                toOptList(NodeUtil.getParams(declInComp))) ) )
+                        missingDecls = declInAPI :: missingDecls
+                } else missingDecls = declInAPI :: missingDecls
             }
-            */
 
             // Collect the error messages for the missing declarations.
             if ( ! missingDecls.isEmpty ) {
@@ -418,13 +431,17 @@ object ExportChecker {
         }
 
     /* Returns true if two FnHeaders are same. */
-    private def equalFnHeaders(left: FnHeader, right: FnHeader): Boolean =
+    private def equalFnHeaders(left: FnHeader, right: FnHeader,
+                               ignoreAbstract: boolean): Boolean =
         (left, right) match {
             case (FnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
                            paramsL, retTyL),
                   FnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
                            paramsR, retTyR)) =>
-                equalListStaticParams(sparamsL, sparamsR) && modsL.equals(modsR) &&
+                equalListStaticParams(sparamsL, sparamsR) &&
+                ( if (ignoreAbstract)
+                      modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
+                  else modsL.equals(modsR) ) &&
                 equalOptListTypes(throwsL, throwsR) &&
                 equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR)
     }
@@ -458,7 +475,7 @@ object ExportChecker {
             case _ => false
         }
 
-    /* Returns true if two Params are same. */
+    /* Returns true if two parameters are same. */
     private def equalParams(left: Param, right: Param): Boolean =
         (left, right) match {
             case (Param(_, nameL, modsL, typeL, initL, varargsL),
@@ -467,10 +484,80 @@ object ExportChecker {
                 equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
         }
 
-    /* Returns true if two lists of Params are same. */
+    /* Returns true if two lists of parameters are same. */
     private def equalListParams(left: List[Param], right: List[Param]): Boolean =
         left.length == right.length &&
         List.forall2(left, right)((l,r) => equalParams(l,r))
+
+    /* Returns true if two optional lists of parameters are same. */
+    private def equalOptListParams(left: Option[List[Param]],
+                                   right: Option[List[Param]]): Boolean =
+        (left, right) match {
+            case (None, None) => true
+            case (Some(paramL), Some(paramR)) => equalListParams(paramL, paramR)
+            case _ => false
+        }
+
+    /* Returns true if two TraitTypeHeaders are same. */
+    private def equalTraitTypeHeaders(left: TraitTypeHeader,
+                                      right: TraitTypeHeader): Boolean =
+        (left, right) match {
+            case (TraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                                  extendsL, declsL),
+                  TraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                                  extendsR, declsR)) =>
+                equalListStaticParams(sparamsL, sparamsR) && modsL.equals(modsR) &&
+                equalOptListTypes(throwsL, throwsR) &&
+                equalListTraitTypeWheres(extendsL, extendsR) &&
+                equalListMembers(declsL, declsR)
+    }
+
+    /* Returns true if two lists of TraitTypeWheres are same. */
+    private def equalListTraitTypeWheres(left: List[TraitTypeWhere],
+                                         right: List[TraitTypeWhere]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalTraitTypeWheres(l,r))
+
+    /* Returns true if two TraitTypeWheres are same. */
+    private def equalTraitTypeWheres(left: TraitTypeWhere,
+                                     right: TraitTypeWhere): Boolean =
+        (left, right) match {
+            case (TraitTypeWhere(_, typeL, whereL),
+                  TraitTypeWhere(_, typeR, whereR)) =>
+                equalTypes(typeL, typeR)
+    }
+
+    /* Returns true if two lists of members in traits and objects are same. */
+    private def equalListMembers(left: List[Decl], right: List[Decl]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalMember(l,r))
+
+    /* Returns true if two members in traits and objects are same. */
+    private def equalMember(left: Decl, right: Decl): Boolean =
+        (left, right) match {
+            case (VarDecl(_, lhsL, _), VarDecl(_, lhsR, _)) =>
+                equalListLValues(lhsL, lhsR)
+            case (FnDecl(_,headerL,_,_,_), FnDecl(_,headerR,_,_,_)) =>
+                equalFnHeaders(headerL, headerR, true)
+    }
+
+    /* Returns true if two lists of LValues are same. */
+    private def equalListLValues(left: List[LValue], right: List[LValue]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalLValue(l,r))
+
+    /* Returns true if two LValues are same. */
+    private def equalLValue(left: LValue, right: LValue): Boolean =
+        (left, right) match {
+            case (LValue(_, nameL, modsL, typeL, _),
+                  LValue(_, nameR, modsR, typeR, _)) =>
+                equalIds(nameL, nameR) && modsL.equals(modsR)
+                equalOptTypes(typeL, typeR)
+    }
+
+    private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
+        if (ol.isNone) None
+        else Some(toList(ol.unwrap))
 }
 
 /* Extractor Objects
@@ -536,39 +623,3 @@ object FunctionalMethod {
     def apply(fndecl:FnDecl, id:Id) =
         new JavaFunctionalMethod(fndecl, id)
 }
-
-/* com.sun.fortress.compiler.index.TypeConsIndex
- *     comprises { TraitIndex, TypeAliasIndex, Dimension, Unit }
- * TraitIndex
- *     comprises { ProperTraitIndex, ObjectTraitIndex }
- */
-/*
-object ProperTraitIndex {
-    def unapply(type:JavaProperTraitIndex) =
-        Some(())
-    def apply() =
-        new JavaProperTraitIndex()
-}
-
-
-object ObjectTraitIndex {
-    def unapply(object:JavaObjectTraitIndex) =
-        Some((object.ast))
-    def apply(:TypeAlias) = new JavaTypeAliasIndex(typeAlias)
-}
-
-object TypeAliasIndex {
-    def unapply(type:JavaTypeAliasIndex) = Some((type.ast))
-    def apply(typeAlias:TypeAlias) = new JavaTypeAliasIndex(typeAlias)
-}
-
-object Dimension {
-    def unapply(dim:JavaDimension) = Some((dim.ast))
-    def apply(dimDecl:DimDecl) = new JavaDimension(dimDecl)
-}
-
-object Unit {
-    def unapply(unit:JavaUnit) = Some((unit.ast))
-    def apply(unitDecl:UnitDecl) = new JavaUnit(unitDecl)
-}
-*/
