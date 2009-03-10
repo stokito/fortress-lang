@@ -149,10 +149,17 @@ public class FileTests {
 
         private String generalTestFailed(String pfx, StringMap props,
                 String which, String contents) {
-            String what = pfx+which+"_contains";
-            String test = props.get(what);
+            String what;
+            String test;
+            
+            what = pfx+which+"_contains";
+            test = props.get(what);
+            test = ProjectProperties.get(test);
             if (test != null && test.length() > 0 && !contents.contains(test)) return what+"="+test;
-            test = props.get(pfx+which+"_matches");
+            
+            what = pfx+which+"_matches";
+            test = props.get(what);
+            test = ProjectProperties.get(test);
             if (test != null && test.length() > 0 && !contents.matches(test)) return what+"="+test;
             return null;
         }
@@ -194,18 +201,18 @@ public class FileTests {
             int rc = 0;
 
             try {
-                BufferedReader in = null;
+                //BufferedReader in = null;
                 try {
                     oldOut.print(" " + tag() + " ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
-                    in = Useful.utf8BufferedFileReader(fssFile);
+                    //in = Useful.utf8BufferedFileReader(fssFile);
 
                     rc = justTheTest();
                 }
                 finally {
                     System.setErr(oldErr);
                     System.setOut(oldOut);
-                    if (in != null)
-                        in.close();
+                    //if (in != null)
+                    //    in.close();
                 }
             }
             catch (Throwable ex) {

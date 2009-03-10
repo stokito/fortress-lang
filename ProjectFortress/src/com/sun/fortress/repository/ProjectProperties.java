@@ -178,6 +178,8 @@ public class ProjectProperties {
     );
 
     static final public String get(String s) {
+        if (s == null)
+            return s;
         String result = Useful.substituteVarsCompletely(s, allProps, 1000);
         return result;
     }
