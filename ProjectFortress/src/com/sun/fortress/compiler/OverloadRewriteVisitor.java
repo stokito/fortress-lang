@@ -21,18 +21,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.StringComparer;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
-    final private Map<String, List<IdOrOp>> overloadedFunctions = new HashMap<String, List<IdOrOp>>();
-    final private Map<String, List<IdOrOp>> overloadedOperators = new HashMap<String, List<IdOrOp>>();
+    final private Map<String, List<IdOrOp>> overloadedFunctions = new BATree<String, List<IdOrOp>>(StringComparer.Vreversed);
+    final private Map<String, List<IdOrOp>> overloadedOperators = new BATree<String, List<IdOrOp>>(StringComparer.Vreversed);
 
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,
