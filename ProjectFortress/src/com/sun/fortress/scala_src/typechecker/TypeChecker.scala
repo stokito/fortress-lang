@@ -53,7 +53,8 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
     case f@FnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
-    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),unambiguousName,Some(body),implementsUnambiguousName) => {
+    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
+                  unambiguousName,Some(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newSenv = senv.extend(statics,wheres)
 
@@ -70,7 +71,8 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         }
         case _ => returnType
       }
-      FnDecl(info, FnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), unambiguousName, Some(newBody), implementsUnambiguousName)
+      FnDecl(info, FnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), 
+             unambiguousName, Some(newBody), implementsUnambiguousName)
     }
     
     /* Matches if block is not an atomic block. */
@@ -88,21 +90,6 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
           inferredType(lastExpr)
         }
       Block(ExprInfo(span,parenthesized,newResultType),loc,false,withinDo,newExprs)
-    }
-      
-
-    /* Juxt, known function application, this was a hack to deal with desugaring generator expression
-     * For now we are going to see if we can solve this in a more elegant fashion
-     */
-    case j@Juxt(ExprInfo(span,parenthesized,typ), multi, infix, front::arg::Nil, true, true) => {
-      /*
-      val freshArrow = ArrowType(TypeInfo(span,false,List(),None),
-                                 _InferenceVarType(TypeInfo(span,false,List(),None), new _root_.java.lang.Object()),
-                                 _InferenceVarType(TypeInfo(span,false,List(),None),new _root_.java.lang.Object()),
-                                 Effect(SpanInfo(span),None,false))
-      checkExpr(_RewriteFnApp(ExprInfo(span,parenthesized,Some(freshArrow)),checkExpr(front,env,senv),checkExpr(arg,env,senv)),env,senv)
-      */
-      NI.nyi()
     }
 
     /* 
