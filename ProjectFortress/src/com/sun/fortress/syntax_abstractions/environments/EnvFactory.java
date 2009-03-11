@@ -77,9 +77,9 @@ public class EnvFactory {
         for (SyntaxSymbol sym : def.getSyntaxSymbols()) {
             sym.accept(new VariableCollector(varToDepth));
             sym.accept(new NodeDepthFirstVisitor_void() {
-                    @Override public void forPrefixedSymbolOnly(PrefixedSymbol that) {
-                        final Id name = that.getId();
-                        SyntaxSymbol inner = that.getSymbol();
+                    @Override public void forPrefixedSymbolOnly(PrefixedSymbol thatPrefixedSymbol) {
+                        final Id name = thatPrefixedSymbol.getId();
+                        SyntaxSymbol inner = thatPrefixedSymbol.getSymbol();
                         inner.accept(new NodeDepthFirstVisitor_void() {
                                 @Override
                                 public void forNonterminalSymbol(NonterminalSymbol that) {

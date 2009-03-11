@@ -227,10 +227,10 @@ public class ComposingSyntaxDefTranslator {
         }
 
         @Override
-        public void forCharacterClassSymbol(CharacterClassSymbol that) {
+        public void forCharacterClassSymbol(CharacterClassSymbol thatCharacterClassSymbol) {
             List<CharRange> crs = new LinkedList<CharRange>();
             final String mess = "Incorrect escape rewrite: ";
-            for (CharacterSymbol c: that.getCharacters()) {
+            for (CharacterSymbol c: thatCharacterClassSymbol.getCharacters()) {
                 // TODO: Error when begin < end
                 CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
                         @Override

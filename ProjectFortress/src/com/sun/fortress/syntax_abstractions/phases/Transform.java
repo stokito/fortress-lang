@@ -411,12 +411,12 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     @Override
-    public Node forLetFn(LetFn that) {
+    public Node forLetFn(LetFn thatLetFn) {
         if ( rename ){
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-            List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(thatLetFn));
+            List<FnDecl> fns_result = Useful.applyToAll(thatLetFn.getFns(), new Fn<FnDecl, FnDecl>(){
                 public FnDecl apply(FnDecl fn){
                     return (FnDecl) fn.accept(new TemplateUpdateVisitor(){
                         @Override
@@ -466,15 +466,15 @@ public class Transform extends TemplateUpdateVisitor {
                         });
                 }
             });
-            List<Expr> body_result = recurOnListOfExpr(that.getBody());
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
-                                                     NodeUtil.isParenthesized(that),
+            List<Expr> body_result = recurOnListOfExpr(thatLetFn.getBody());
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(thatLetFn),
+                                                     NodeUtil.isParenthesized(thatLetFn),
                                                      exprType_result);
-            Node ret = forLetFnOnly(that, info, body_result, fns_result);
+            Node ret = forLetFnOnly(thatLetFn, info, body_result, fns_result);
             setSyntaxEnvironment(save);
             return ret;
         } else {
-            return super.forLetFn(that);
+            return super.forLetFn(thatLetFn);
         }
     }
 

@@ -582,7 +582,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 new_constraint);
     }
 
-    private Option<Type> findFieldInTraitHierarchy(List<TraitType> supers, FieldRef that) {
+    private Option<Type> findFieldInTraitHierarchy(List<TraitType> supers, FieldRef thatFieldRef) {
 
         List<TraitType> new_supers = new ArrayList<TraitType>();
         for( TraitType my_super : supers ) {
@@ -600,8 +600,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             // check if trait has a getter
             Map<Id,Method> getters=index.getters();
-            if(getters.containsKey(that.getField())) {
-                Method field=(Method)getters.get(that.getField()).instantiate(trait_static_params, trait_static_args);
+            if(getters.containsKey(thatFieldRef.getField())) {
+                Method field=(Method)getters.get(thatFieldRef.getField()).instantiate(trait_static_params, trait_static_args);
                 return Option.some(field.getReturnType());
             }
             else {
@@ -610,8 +610,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     //Check if object has field
                     ObjectTraitIndex object_index=(ObjectTraitIndex)index;
                     Map<Id,Variable> fields=object_index.fields();
-                    if(fields.containsKey(that.getField())){
-                        Variable field=fields.get(that.getField());
+                    if(fields.containsKey(thatFieldRef.getField())){
+                        Variable field=fields.get(thatFieldRef.getField());
 
                         if( field instanceof ParamVariable ) {
                             ParamVariable param = (ParamVariable)field;
@@ -647,7 +647,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         if(!new_supers.isEmpty() ) {
             // recur
-            return this.findFieldInTraitHierarchy(new_supers, that);
+            return this.findFieldInTraitHierarchy(new_supers, thatFieldRef);
         }
         else {
             return Option.none();
@@ -1651,11 +1651,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     @Override
-    public TypeCheckerResult forCaseExpr(CaseExpr that) {
-        Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(that.getParam());
-        Option<TypeCheckerResult> compare_result = this.recurOnOptionOfFunctionalRef(that.getCompare());
-        TypeCheckerResult equalsOp_result = that.getEqualsOp().accept(this);
-        TypeCheckerResult inOp_result = that.getInOp().accept(this);
+    public TypeCheckerResult forCaseExpr(CaseExpr thatCaseExpr) {
+        Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(thatCaseExpr.getParam());
+        Option<TypeCheckerResult> compare_result = this.recurOnOptionOfFunctionalRef(thatCaseExpr.getCompare());
+        TypeCheckerResult equalsOp_result = thatCaseExpr.getEqualsOp().accept(this);
+        TypeCheckerResult inOp_result = thatCaseExpr.getInOp().accept(this);
         NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> temp = new NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>>() {
             @Override
             public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> forCaseClause(
@@ -1667,43 +1667,43 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return Triple.<CaseClause,TypeCheckerResult,TypeCheckerResult>make(new_node, match_result, body_result);
             }
         };
-        List<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> clauses_result = temp.recurOnListOfCaseClause(that.getClauses());
-        Option<TypeCheckerResult> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+        List<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> clauses_result = temp.recurOnListOfCaseClause(thatCaseExpr.getClauses());
+        Option<TypeCheckerResult> elseClause_result = recurOnOptionOfBlock(thatCaseExpr.getElseClause());
 
         // Checker that clauses all typechecked properly
         for(Triple<CaseClause, TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
             if(clause_result.second().type().isNone() || clause_result.third().type().isNone()) {
-                return TypeCheckerResult.compose(that, subtypeChecker,
-                        TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleSeconds(clauses_result))),
-                        TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleThirds(clauses_result))));
+                return TypeCheckerResult.compose(thatCaseExpr, subtypeChecker,
+                        TypeCheckerResult.compose(thatCaseExpr, subtypeChecker, CollectUtil.makeList(IterUtil.tripleSeconds(clauses_result))),
+                        TypeCheckerResult.compose(thatCaseExpr, subtypeChecker, CollectUtil.makeList(IterUtil.tripleThirds(clauses_result))));
             }
         }
 
         // Check that compare typechecked, if it exists
         if( compare_result.isSome()) {
             if(compare_result.unwrap().type().isNone()){
-                return TypeCheckerResult.compose(that, subtypeChecker, compare_result.unwrap());
+                return TypeCheckerResult.compose(thatCaseExpr, subtypeChecker, compare_result.unwrap());
             }
         }
         // Check elseClause
         if(elseClause_result.isSome()){
             if(elseClause_result.unwrap().type().isNone()){
-                return TypeCheckerResult.compose(that, subtypeChecker, elseClause_result.unwrap());
+                return TypeCheckerResult.compose(thatCaseExpr, subtypeChecker, elseClause_result.unwrap());
             }
         }
         // Check if we are dealing with a normal case (i.e. not an extremum)
-        if (that.getParam().isSome()) {
+        if (thatCaseExpr.getParam().isSome()) {
             if(param_result.unwrap().type().isNone()){
-                return TypeCheckerResult.compose(that, subtypeChecker, param_result.unwrap());
+                return TypeCheckerResult.compose(thatCaseExpr, subtypeChecker, param_result.unwrap());
             }
 
             if(equalsOp_result.type().isNone() || inOp_result.type().isNone()){
                 return bug("Equals or In does not have a type");
             }
 
-            return forCaseExprNormal(that);
+            return forCaseExprNormal(thatCaseExpr);
         } else {
-            return forExtremumOnly(that, compare_result.unwrap(), clauses_result);
+            return forExtremumOnly(thatCaseExpr, compare_result.unwrap(), clauses_result);
         }
     }
 
@@ -2468,7 +2468,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     @Override
-    public TypeCheckerResult forFnRefOnly(final FnRef that, TypeCheckerResult exprType_result,
+    public TypeCheckerResult forFnRefOnly(final FnRef thatFnRef, TypeCheckerResult exprType_result,
                                               List<TypeCheckerResult> staticArgs_result,
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> fns_result,
@@ -2478,7 +2478,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Could we give a type to each of our fns?
         for( TypeCheckerResult r : fns_result ) {
             if( !r.isSuccessful() )
-                return TypeCheckerResult.compose(that, subtypeChecker, fns_result);
+                return TypeCheckerResult.compose(thatFnRef, subtypeChecker, fns_result);
         }
 
         // Gather types of all overloadings
@@ -2491,7 +2491,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // if no static args are provided, and we have several overloadings, we
         // will create a FnRef with the overloadings field set
-        if( that.getStaticArgs().isEmpty()  && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
+        if( thatFnRef.getStaticArgs().isEmpty()  && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
             // if there is an overloading that requires static args, and we don't have any, we'll
             // create a _FnInstantitedOverloading
             List<FunctionalRef> fn_overloadings = new ArrayList<FunctionalRef>();
@@ -2507,7 +2507,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                     ArrowType gen_arr_type) {
                                 // If the arrow type is generic, it needs static args, so make up inference variables
                                 List<StaticArg> new_args =
-                                    TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(NodeUtil.getSpan(that), NodeUtil.getStaticParams(gen_arr_type).size()));
+                                    TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(NodeUtil.getSpan(thatFnRef), NodeUtil.getStaticParams(gen_arr_type).size()));
                                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args, TypeChecker.this.subtypeChecker);
 
                                 if( instantiated_type.isNone() )
@@ -2528,16 +2528,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     Type new_type = new_type_and_args_.unwrap().first().first();
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
                     // create new FnRef for this application of static params
-                    FnRef fn_ref = ExprFactory.makeFnRef(NodeUtil.getSpan(that),
-                                                                             NodeUtil.isParenthesized(that),
+                    FnRef fn_ref = ExprFactory.makeFnRef(NodeUtil.getSpan(thatFnRef),
+                                                                             NodeUtil.isParenthesized(thatFnRef),
                                                                              some(new_type),
                                                                              new_args,
-                                                                             that.getLexicalDepth(),
-                                                                             that.getOriginalName(),
-                                                                             that.getNames(),
-                                                                             that.getOverloadings(),
+                                                                             thatFnRef.getLexicalDepth(),
+                                                                             thatFnRef.getOriginalName(),
+                                                                             thatFnRef.getNames(),
+                                                                             thatFnRef.getOverloadings(),
                                                                              Option.<Type>none());
-                    fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(NodeUtil.getSpan(that), fn_ref, new_type));
+                    fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(NodeUtil.getSpan(thatFnRef), fn_ref, new_type));
                     arrow_types.add(new_type);
                     accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(), new SubtypeHistory(subtypeChecker));
                 }
@@ -2547,13 +2547,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     Option.<Type>none() :
                         Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
                     constraints = accumulated_constraints;
-                    new_node = ExprFactory.makeFnRef(NodeUtil.getSpan(that),
-                                                                         NodeUtil.isParenthesized(that),
+                    new_node = ExprFactory.makeFnRef(NodeUtil.getSpan(thatFnRef),
+                                                                         NodeUtil.isParenthesized(thatFnRef),
                                                                          type,
-                                                                         that.getStaticArgs(),
-                                                                         that.getLexicalDepth(),
-                                                                         that.getOriginalName(),
-                                                                         that.getNames(),
+                                                                         thatFnRef.getStaticArgs(),
+                                                                         thatFnRef.getLexicalDepth(),
+                                                                         thatFnRef.getOriginalName(),
+                                                                         thatFnRef.getNames(),
                                                                          Option.<List<FunctionalRef>>some(fn_overloadings),
                                                                          Option.<Type>none());
         }
@@ -2562,7 +2562,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             List<Type> arrow_types = new ArrayList<Type>();
             ConstraintFormula accumulated_constraints=trueFormula();
             for( Type ty : overloaded_types ) {
-                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(), this.subtypeChecker);
+                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, thatFnRef.getStaticArgs(), this.subtypeChecker);
                 if( instantiated_type.isSome() ){
                     arrow_types.add(instantiated_type.unwrap().first());
                     accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), new SubtypeHistory(subtypeChecker));
@@ -2580,13 +2580,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     Option.<Type>none() :
                         Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
                     constraints = accumulated_constraints;
-                    new_node = ExprFactory.makeFnRef(NodeUtil.getSpan(that),
-                                                                         NodeUtil.isParenthesized(that),
+                    new_node = ExprFactory.makeFnRef(NodeUtil.getSpan(thatFnRef),
+                                                                         NodeUtil.isParenthesized(thatFnRef),
                                                                          type,
-                                                                         that.getStaticArgs(),
-                                                                         that.getLexicalDepth(),
-                                                                         that.getOriginalName(),
-                                                                         that.getNames(),
+                                                                         thatFnRef.getStaticArgs(),
+                                                                         thatFnRef.getLexicalDepth(),
+                                                                         thatFnRef.getOriginalName(),
+                                                                         thatFnRef.getNames(),
                                                                          Option.<List<FunctionalRef>>none(),
                                                                          Option.<Type>none());
         }
@@ -3228,15 +3228,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     // Math primary, which is the more general case, is going to be called for both TightJuxt and MathPrimary
     @Override
-    public TypeCheckerResult forMathPrimary(MathPrimary that) {
+    public TypeCheckerResult forMathPrimary(MathPrimary thatMathPrimary) {
 
         // Base case of recursion: If there is no 'rest', return the Expr
-        Expr front = that.getFront();
-        if( that.getRest().isEmpty() ) {
+        Expr front = thatMathPrimary.getFront();
+        if( thatMathPrimary.getRest().isEmpty() ) {
             return front.accept(this);
         }
         // See if simple static errors exist
-        Option<TypeCheckerResult> static_result = exponentiationStaticCheck(that, that.getRest());
+        Option<TypeCheckerResult> static_result = exponentiationStaticCheck(thatMathPrimary, thatMathPrimary.getRest());
         if( static_result.isSome() ) {
             return static_result.unwrap();
         }
@@ -3244,13 +3244,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // HANDLE THE FRONT ITEM
         {
             // Create a new list of MathItems that is a copy of the old one
-            List<MathItem> new_items = new ArrayList<MathItem>(that.getRest());
+            List<MathItem> new_items = new ArrayList<MathItem>(thatMathPrimary.getRest());
             ListIterator<MathItem> item_iter = new_items.listIterator();
 
             TypeCheckerResult front_result = front.accept(this);
             MathItem first_of_rest = item_iter.next();
             if( front_result.type().isNone() )
-                return TypeCheckerResult.compose(that, subtypeChecker, front_result);
+                return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, front_result);
 
             // If front is a fn followed by an expr, we reassociate
             if( TypesUtil.isArrows(front_result.type().unwrap()) && isExprMI(first_of_rest) ) {
@@ -3258,24 +3258,24 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 // It is a static error if either the argument is not parenthesized,
                 Option<TypeCheckerResult> is_error = expectParenedExprItem(arg);
                 if( is_error.isSome() ) {
-                    return TypeCheckerResult.compose(that, subtypeChecker, is_error.unwrap());
+                    return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, is_error.unwrap());
                 }
                 item_iter.remove(); // remove arg from item list
                 // static error if the argument is immediately followed by a non-expression element.
                 if( item_iter.hasNext() ) {
                     Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
                     if( is_expr_error.isSome() ) {
-                        return TypeCheckerResult.compose(that, subtypeChecker, is_expr_error.unwrap());
+                        return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, is_expr_error.unwrap());
                     }
                 }
                 // Otherwise, make a new MathPrimary that is one element shorter, and recur
                 _RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front,
                                                                                  ((ExprMI)arg).getExpr());
-                MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
-                                                                                      NodeUtil.isParenthesized(that),
-                                                                                      NodeUtil.getExprType(that),
-                                                                                      that.getMultiJuxt(),
-                                                                                      that.getInfixJuxt(),
+                MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(thatMathPrimary),
+                                                                                      NodeUtil.isParenthesized(thatMathPrimary),
+                                                                                      NodeUtil.getExprType(thatMathPrimary),
+                                                                                      thatMathPrimary.getMultiJuxt(),
+                                                                                      thatMathPrimary.getInfixJuxt(),
                                                                                       fn,
                                                                                       new_items);
                 return new_primary.accept(this);
@@ -3287,7 +3287,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Expr last_expr_ = front;
             boolean last_expr_is_front = true;
             // Create a new list of MathItems that is a copy of the old one
-            List<MathItem> new_items = new ArrayList<MathItem>(that.getRest());
+            List<MathItem> new_items = new ArrayList<MathItem>(thatMathPrimary.getRest());
             ListIterator<MathItem> item_iter = new_items.listIterator();
 
             while( item_iter.hasNext() ) {
@@ -3297,7 +3297,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if( isExprMI(cur_item) ) {
                     TypeCheckerResult expr_result = ((ExprMI)cur_item).getExpr().accept(this);
                     if( expr_result.type().isNone() )
-                        return TypeCheckerResult.compose(that, subtypeChecker, expr_result);
+                        return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, expr_result);
 
                     Option<MathItem> next_item = item_iter.hasNext() ? Option.<MathItem>some(item_iter.next()) : Option.<MathItem>none();
                     if( TypesUtil.isArrows(expr_result.type().unwrap()) && next_item.isSome() && isExprMI(next_item.unwrap()) ) {
@@ -3306,7 +3306,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         // It is a static error if either the argument is not parenthesized,
                         Option<TypeCheckerResult> is_error = expectParenedExprItem(arg);
                         if( is_error.isSome() ) {
-                            return TypeCheckerResult.compose(that, subtypeChecker, is_error.unwrap());
+                            return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, is_error.unwrap());
                         }
                         item_iter.remove(); // remove arg from item list
                         item_iter.previous();
@@ -3318,16 +3318,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         if( item_iter.hasNext() ) {
                             Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
                             if( is_expr_error.isSome() ) {
-                                return TypeCheckerResult.compose(that, subtypeChecker, is_expr_error.unwrap());
+                                return TypeCheckerResult.compose(thatMathPrimary, subtypeChecker, is_expr_error.unwrap());
                             }
                         }
                         // Otherwise, make a new MathPrimary that is one element shorter, and recur
-                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
-                                                                                                      NodeUtil.isParenthesized(that),
-                                                                                                      NodeUtil.getExprType(that),
-                                                                                                      that.getMultiJuxt(),
-                                                                                                      that.getInfixJuxt(),
-                                                                                                      that.getFront(),
+                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(thatMathPrimary),
+                                                                                                      NodeUtil.isParenthesized(thatMathPrimary),
+                                                                                                      NodeUtil.getExprType(thatMathPrimary),
+                                                                                                      thatMathPrimary.getMultiJuxt(),
+                                                                                                      thatMathPrimary.getInfixJuxt(),
+                                                                                                      thatMathPrimary.getFront(),
                                                                                                       new_items);
                         return new_primary.accept(this);
                     } else {
@@ -3356,11 +3356,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     item_iter.remove(); // remove NonExprMI
                     if( last_expr_is_front ) {
                         // in our new MathPrimary, place this expression at the front
-                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
-                                                                                                      NodeUtil.isParenthesized(that),
-                                                                                                      NodeUtil.getExprType(that),
-                                                                                                      that.getMultiJuxt(),
-                                                                                                      that.getInfixJuxt(),
+                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(thatMathPrimary),
+                                                                                                      NodeUtil.isParenthesized(thatMathPrimary),
+                                                                                                      NodeUtil.getExprType(thatMathPrimary),
+                                                                                                      thatMathPrimary.getMultiJuxt(),
+                                                                                                      thatMathPrimary.getInfixJuxt(),
                                                                                                       new_expr, new_items);
                         return new_primary.accept(this);
                     }
@@ -3370,12 +3370,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         item_iter.remove(); // remove the previous expression in the list.
                         MathItem new_item = ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(new_expr),new_expr);
                         item_iter.add(new_item); // replace both item with new item
-                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
-                                                                                                      NodeUtil.isParenthesized(that),
-                                                                                                      NodeUtil.getExprType(that),
-                                                                                                      that.getMultiJuxt(),
-                                                                                                      that.getInfixJuxt(),
-                                                                                                      that.getFront(),
+                        MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(thatMathPrimary),
+                                                                                                      NodeUtil.isParenthesized(thatMathPrimary),
+                                                                                                      NodeUtil.getExprType(thatMathPrimary),
+                                                                                                      thatMathPrimary.getMultiJuxt(),
+                                                                                                      thatMathPrimary.getInfixJuxt(),
+                                                                                                      thatMathPrimary.getFront(),
                                                                                                       new_items);
                         return new_primary.accept(this);
                     }
@@ -3385,7 +3385,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // If you've made is this far, there are only expressions left in the math primary.
         // helper method handles the last two rules
-        return juxtaposeMathPrimary(that);
+        return juxtaposeMathPrimary(thatMathPrimary);
     }
 
 

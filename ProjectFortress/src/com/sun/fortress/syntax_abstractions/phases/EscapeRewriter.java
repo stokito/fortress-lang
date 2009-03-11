@@ -84,19 +84,19 @@ public class EscapeRewriter extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forCharacterClassSymbol(CharacterClassSymbol that) {
+    public Node forCharacterClassSymbol(CharacterClassSymbol thatCharacterClassSymbol) {
         List<CharacterSymbol> ls = new LinkedList<CharacterSymbol>();
-        for (CharacterSymbol cs: that.getCharacters()) {
+        for (CharacterSymbol cs: thatCharacterClassSymbol.getCharacters()) {
             List<CharacterSymbol> ncs = cs.accept(new NodeDepthFirstVisitor<List<CharacterSymbol>>() {
 
                 @Override
-                public List<CharacterSymbol> forCharacterInterval(CharacterInterval that) {
+                public List<CharacterSymbol> forCharacterInterval(CharacterInterval thatCharacterInterval) {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
-                    String begin = removeLeadingEscape(that.getBeginSymbol(), head);
+                    String begin = removeLeadingEscape(thatCharacterInterval.getBeginSymbol(), head);
                     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
-                    String end = removeTrailingEscape(NodeUtil.getSpan(that),
-                                                      that.getEndSymbol(), tail);
-                    head.add(new CharacterInterval(that.getInfo(), begin, end));
+                    String end = removeTrailingEscape(NodeUtil.getSpan(thatCharacterInterval),
+                                                      thatCharacterInterval.getEndSymbol(), tail);
+                    head.add(new CharacterInterval(thatCharacterInterval.getInfo(), begin, end));
                     head.addAll(tail);
                     return head;
                 }
@@ -112,7 +112,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
             });
             ls.addAll(ncs);
         }
-        return new CharacterClassSymbol(that.getInfo(), ls);
+        return new CharacterClassSymbol(thatCharacterClassSymbol.getInfo(), ls);
     }
 
     @Override

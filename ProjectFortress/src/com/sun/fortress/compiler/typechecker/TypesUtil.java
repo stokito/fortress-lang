@@ -321,8 +321,8 @@ public class TypesUtil {
     }
 
     /** Treat the given type as an intersection and get its elements. */
-    public static Iterable<Type> conjuncts(Type t) {
-        return t.accept(new NodeAbstractVisitor<Iterable<Type>>() {
+    public static Iterable<Type> conjuncts(Type type) {
+        return type.accept(new NodeAbstractVisitor<Iterable<Type>>() {
             @Override public Iterable<Type> forType(Type t) { return IterUtil.make(t); }
             @Override public Iterable<Type> forAnyType(AnyType t) { return IterUtil.empty(); }
             @Override public Iterable<Type> forIntersectionType(IntersectionType t) {
