@@ -17,6 +17,8 @@
 package com.sun.fortress.compiler
 
 import _root_.java.util.Arrays
+import _root_.java.util.LinkedList
+import junit.framework.TestCase
 import junit.framework.TestSuite
 import edu.rice.cs.plt.tuple.Option
 
@@ -26,16 +28,42 @@ import com.sun.fortress.compiler.phases.PhaseOrder
 import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.WrappedException
+import com.sun.fortress.exceptions.shell.UserError
 import com.sun.fortress.nodes_util.ASTIO
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.repository.ProjectProperties
+import com.sun.fortress.useful.Path
 import com.sun.fortress.useful.TestCaseWrapper
+import com.sun.fortress.useful.WireTappedPrintStream
 
 class CompilerJUTest() extends TestCaseWrapper {
 
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
+
+  def compilerResult(s:String):String = {
+    val s_ = STATIC_TESTS_DIR + "/" + s
+    val args = new Array[String](2)
+    args(0) = "compile"
+    args(1) = s_
+    compilerResult(args)
+  }
+
+  def compilerResult():String = { 
+    val args = new Array[String](1)
+    args(0) = "compile"
+    compilerResult(args)
+  }
+
+  def compilerResult(args:Array[String]):String = {
+    val stderr = WireTappedPrintStream.make(System.err)
+    System.setErr(stderr)
+
+    Shell.main(true, args) // Call main in test mode (indicated by boolean arg) 
+    stderr.getString()
+  }
+
 
   def compile(s:String) = {
     val s_ = STATIC_TESTS_DIR + "/" + s
@@ -43,9 +71,18 @@ class CompilerJUTest() extends TestCaseWrapper {
     val path = Shell.sourcePath(s_, name)
 
     WellKnownNames.useCompilerLibraries()
+    Types.useCompilerLibraries()
     Shell.setTypeChecking(true)
     Shell.setPhase(PhaseOrder.CODEGEN)
     Shell.compilerPhases(path, name + ".fss")
+  }
+
+
+  def testCompileNothing() = {
+    val expected = "The compile command must be given a file.\n"
+    val result = compilerResult()
+    println("OUT:" + result + ":OUT")
+    assert(expected.equals(result))
   }
 
   def testCompiled0a() = {
