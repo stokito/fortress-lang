@@ -42,11 +42,11 @@ import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class Reader extends NativeConstructor {
-    private static NativeConstructor con = null;
+    private static NativeConstructor _con = null;
 
     public Reader(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
-        con = this;
+        _con = this;
     }
 
     @Override
@@ -70,14 +70,14 @@ public class Reader extends NativeConstructor {
 		protected boolean consumed = false;
 
         public PrimReader(String name, BufferedReader reader) {
-			super(Reader.con);
+			super(Reader._con);
             this.reader = reader;
             this.name = name;
         }
 
         @Override
         public NativeConstructor getConstructor() {
-            return Reader.con;
+            return Reader._con;
         }
 
         @Override
@@ -276,7 +276,7 @@ public class Reader extends NativeConstructor {
     
     @Override
     protected void unregister() {
-        con = null;
+        _con = null;
     }
 
 }

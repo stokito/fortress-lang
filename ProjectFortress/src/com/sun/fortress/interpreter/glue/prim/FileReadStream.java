@@ -43,7 +43,7 @@ import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
 public class FileReadStream extends NativeConstructor {
-    private static NativeConstructor con = null;
+    private static NativeConstructor _con = null;
 
     public FileReadStream(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
@@ -51,7 +51,7 @@ public class FileReadStream extends NativeConstructor {
 
     protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
-        this.con = con;
+        this._con = con;
         String name = args.get(0).getString();
         try {
             BufferedReader r = Useful.utf8BufferedFileReader(name);
@@ -68,13 +68,13 @@ public class FileReadStream extends NativeConstructor {
         protected boolean consumed = false;
 
         public PrimReader(String name, BufferedReader reader) {
-            super(FileReadStream.con);
+            super(FileReadStream._con);
             this.reader = reader;
             this.name = name;
         }
 
         public NativeConstructor getConstructor() {
-            return FileReadStream.con;
+            return FileReadStream._con;
         }
 
         public String getString() {
@@ -223,6 +223,6 @@ public class FileReadStream extends NativeConstructor {
 
     @Override
     protected void unregister() {
-        con = null;
+        _con = null;
     }
 }
