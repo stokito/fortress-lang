@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -232,7 +232,7 @@ parseParameters(string:String):Parameters = do
     Parameters(widthLeft,widthRight,index,chars,charType,radix_,pad)
 end
 
-getArg(params,args,allArgs) = do
+getArg(params:Parameters,args,allArgs) = do
     if i <- params.index then
         allArgs[i]
     else
@@ -240,7 +240,7 @@ getArg(params,args,allArgs) = do
     end
 end
 
-getDelimiter(params,arg) = do
+getDelimiter(params:Parameters,arg):String = do
     if i <- params.chars then
         digitSeparator(arg,i,params.charType.get())
     else
@@ -248,7 +248,7 @@ getDelimiter(params,arg) = do
     end
 end
 
-getWidth(params,arg) = do
+getWidth(params:Parameters,arg):String = do
     if width <- params.widthLeft then
         padLeft(arg "",params.pad, width)
     elif width <- params.widthRight then
@@ -258,7 +258,7 @@ getWidth(params,arg) = do
     end
 end
 
-restArgs(params,args) = do
+restArgs(params:Parameters,args) = do
     if i <- params.index then
         args
     else
@@ -266,7 +266,7 @@ restArgs(params,args) = do
     end
 end
 
-getPlain(arg) = arg ""
+getPlain(arg):String = arg ""
 
 (* front:123 *)
 compileD(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
