@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -107,7 +107,7 @@ end
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
 opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\T,List[\T\]\](fn cc => list(cc.toImmutableArray()))
-opr BIG <|[\T\] g:Generator[\T\]|> =
+opr BIG <|[\T\] g:Generator[\T\]|>:List[\T\] =
     __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
 
 (** Convert generator into list; can be used to desugar list
@@ -983,18 +983,18 @@ private object Deep[\E\]
                 l.revMap(f))
 end
 
-deepL[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]) =
+deepL[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E\] =
     Deep[\E\](l,m,r)
-deepL[\E\](_:D0[\E\],_:D0[\D23[\E\]\],r:D14[\E\]) = r.toFinger()
-deepL[\E\](_:D0[\E\],m:NonEmptyFingerTree[\D23[\E\]\],r:D14[\E\]) = do
+deepL[\E\](_:D0[\E\],_:D0[\D23[\E\]\],r:D14[\E\]):FingerTree[\E\] = r.toFinger()
+deepL[\E\](_:D0[\E\],m:NonEmptyFingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E\] = do
     (ll,mm) = m.extractLeft()
     Deep[\E\](ll,mm,r)
   end
 
-deepR[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]) =
+deepR[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E\] =
     Deep[\E\](l,m,r)
-deepR[\E\](l:D14[\E\],_:D0[\D23[\E\]\],_:D0[\E\]) = l.toFinger()
-deepR[\E\](l:D14[\E\],m:NonEmptyFingerTree[\D23[\E\]\],_:D0[\E\]) = do
+deepR[\E\](l:D14[\E\],_:D0[\D23[\E\]\],_:D0[\E\]):FingerTree[\E\] = l.toFinger()
+deepR[\E\](l:D14[\E\],m:NonEmptyFingerTree[\D23[\E\]\],_:D0[\E\]):NonEmptyFingerTree[\E\] = do
     (mm,rr) = m.extractRight()
     Deep[\E\](l,mm,rr)
   end

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -148,7 +148,7 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
     getter isEmpty(): Boolean = false
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     getter asDebugString():String = "N(" k "," v "," sibs.asDebugString "," kids.asDebugString ")"
-    check() = do
+    check():Heap[\K,V\] = do
         if NOT sibs.isEmpty() then
             println( //"FAIL: Non-empty sibs in:" // self.asDebugString// )
             fail("dying")
@@ -233,7 +233,7 @@ object EmptyLP[\K,V\] extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = true
     getter minimum(): Nothing[\(K,V)\] = Nothing[\(K,V)\]
     getter asDebugString(): String = "EL"
-    check() = self
+    check():Heap[\K,V\] = self
     check(pk:K):Boolean = true
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:LazyPairing[\K,V\]): LazyPairing[\K,V\] = h
@@ -249,7 +249,7 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
     getter isEmpty(): Boolean = false
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     getter asDebugString():String = "NL(" k "," v "," pending.asDebugString "," kids.asDebugString ")"
-    check() = do
+    check():Heap[\K,V\] = do
         if NOT kids.check(k) then
             println( //"FAIL: heap structure violation in:" // self.asDebugString// )
         end

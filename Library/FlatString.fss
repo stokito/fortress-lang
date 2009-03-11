@@ -43,17 +43,17 @@ object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
     getter asExprString() : String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$ToString")
     getter asFlatString(): String = self
-    getter asStriing(): String = self
+    getter asString(): String = self
     getter asDebugString(): String = asDebugStringIndented(0)
-    getter depth() = 0
+    getter depth():ZZ32 = 0
 
     (* With the help of trait DelegatedIndex, this defines our generate method *)
     getter generator() : Generator⟦Char⟧ =
         self.indices.map⟦Char⟧(fn (i:ZZ32):Char ⇒ self.get(i))
 
-    getter isBalanced() = true
-    getter isAlmostBalanced() = true
-    getter isExtremelyUnbalanced() = false
+    getter isBalanced():Boolean = true
+    getter isAlmostBalanced():Boolean = true
+    getter isExtremelyUnbalanced():Boolean = false
 
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Size")
@@ -104,7 +104,7 @@ object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
         if i = -1 then Nothing⟦ZZ32⟧ else Just⟦ZZ32⟧(i) end
       end
 
-    verify() = do
+    verify():() = do
         assert(self.depth, 0, self)
     end
 
@@ -113,7 +113,7 @@ object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
 
     opr ∈(c:Char, self): Boolean = self.javaIndexOf(c) ≠ -1
 
-    rangeContains(r: Range⟦ZZ32⟧, c: Char) = self.javaIndexOf(c) ∈ self.bounds[r]
+    rangeContains(r: Range⟦ZZ32⟧, c: Char):Boolean = self.javaIndexOf(c) ∈ self.bounds[r]
 
     (** The operator %||% with at least one String argument converts to string and
         concatenates **)
@@ -144,8 +144,8 @@ object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
             flatConcat(self, b)
         end
 
-    splitWithOffsets() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
-    split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    splitWithOffsets():Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    split():Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
     writeOn(stream: WriteStream): () = stream.write(self)
 

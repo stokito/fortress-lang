@@ -125,7 +125,7 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
 
 end
 
-relation[\T\]() =
+relation[\T\]():Relation[\T\] =
   Relation[\T\]({[\T,Set[\T\]\]})
 
 relation[\T\](domain: Set[\T\], f: T -> Set[\T\]): Relation[\T\] =
@@ -143,19 +143,19 @@ opr BIG RELATION[\T\](): Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\],
     RelationReduction[\T\],
     fn(k:T,v:T):Map[\T,Set[\T\]\] => {[\T,Set[\T\]\] k |-> {[\T\] v } })
 
-opr BIG RELATION[\T\](g: Generator[\(T,T)\]) =
+opr BIG RELATION[\T\](g: Generator[\(T,T)\]):Relation[\T\] =
   __bigOperatorSugar[\(T,T),Relation[\T\],Map[\T,Set[\T\]\],Map[\T,Set[\T\]\]\](BIG RELATION[\T\](), g)
 
 object RelationReduction[\T\] extends CommutativeMonoidReduction[\Map[\T,Set[\T\]\]\]
-  getter asString() = "Relation reduction"
-  empty() = {[\T,Set[\T\]\]}
-  join(left: Map[\T,Set[\T\]\], right: Map[\T,Set[\T\]\]) =
+  getter asString():String = "Relation reduction"
+  empty():Map[\T,Set[\T\]\] = {[\T,Set[\T\]\]}
+  join(left: Map[\T,Set[\T\]\], right: Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
     relationUnion(left, right)
 end
 
 (* Helpers *)
 
-transitiveLoop[\T\](accum:Map[\T,Set[\T\]\], working:Map[\T,Set[\T\]\]) =
+transitiveLoop[\T\](accum:Map[\T,Set[\T\]\], working:Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
   if working.isEmpty() then accum else
     generated = relationCompose[\T\](working, accum)
     newAccum = relationUnion[\T\](accum, generated)
@@ -191,7 +191,7 @@ relationIntersection[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[
 
 (* Tests *)
 
-test testRelationUtilities() = do
+test testRelationUtilities():() = do
   zzs(x:ZZ32):Set[\ZZ32\] = {[\ZZ32\] x }
   underlying = {[\ZZ32,Set[\ZZ32\]\] 0 |-> zzs(0), 1 |-> zzs(-1), 2 |-> zzs(-2) }
   rel = Relation[\ZZ32\](underlying)
@@ -222,7 +222,7 @@ test testRelationUtilities() = do
 end
 
 (*
-test testRelationClosuresViaSets() = do
+test testRelationClosuresViaSets():() = do
   tconnect[\T\](p1, p2):Set[\(T,T)\] = do
     (xa, ya) = p1
     (xb, yb) = p2
@@ -242,7 +242,7 @@ test testRelationClosuresViaSets() = do
 end
 *)
 
-test testRelationClosures() = do
+test testRelationClosures():() = do
   universe = {[\ZZ32\] x | x <- 1:8 }
   rel = relation[\ZZ32\](universe, fn(n) => {[\ZZ32\] n-1})
 

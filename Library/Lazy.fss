@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -76,7 +76,7 @@ value object Lazy[\T\](var s : State[\T\])
       end
 end
 
-delay[\T\](f: ()->T) = Lazy[\T\](Thunk[\T\](f))
+delay[\T\](f: ()->T):Lazy[\T\] = Lazy[\T\](Thunk[\T\](f))
 noDelay[\T\](t:T):Thunk[\T\] = Lazy[\T\](Done[\T\](t))
 
 (*** Private data for representing evaluation state of thunk *)

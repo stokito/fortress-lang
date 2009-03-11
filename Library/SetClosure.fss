@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -82,7 +82,7 @@ end
 opr THEN[\T\](x: Generator[\T\], y: Generator[\T\]):Generator[\T\] =
   ConcatGenerator[\T\](x,y)
 
-test testClosurePredicates() = do
+test testClosurePredicates():() = do
   emptySet = set[\ZZ32\]()
   f(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] n, -n }
   input = {[\ZZ32\] 1,2,3}
@@ -99,7 +99,7 @@ test testClosurePredicates() = do
   println("Closed predicate tests pass")
 end
 
-test testClosure() = do
+test testClosure():() = do
   emptySet = set[\ZZ32\]()
   f(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] n, -n }
   g(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] j | j<-1:n, n MOD j = 0 }
@@ -115,7 +115,7 @@ test testClosure() = do
   println("Closure (unary generator) tests pass")
 end
 
-test testClosure2() = do
+test testClosure2():() = do
   emptySet = set[\ZZ32\]()
   f(x:ZZ32, y:ZZ32):Set[\ZZ32\] = {[\ZZ32\] |x-y| }
   set1 = {[\ZZ32\] 9, 6}
@@ -134,6 +134,6 @@ test testClosure2() = do
   println("Closure (binary generator) tests pass")
 end
 
-run(args: String...) = ()
+run(args: String...):() = ()
 
 end
