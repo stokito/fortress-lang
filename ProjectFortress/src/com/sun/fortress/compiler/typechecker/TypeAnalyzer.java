@@ -270,9 +270,9 @@ public class TypeAnalyzer {
     }
 
     /** Implementation of normalization parameterized by a history. */
-    private Type norm(Type t, final SubtypeHistory history) {
-        debug.logStart("t", t);
-        Type result = (Type) t.accept(new NodeUpdateVisitor() {
+    private Type norm(Type outer_t, final SubtypeHistory history) {
+        debug.logStart("t", outer_t);
+        Type outer_result = (Type) outer_t.accept(new NodeUpdateVisitor() {
 
                 @Override public BaseType forTraitTypeOnly(TraitType t,
                                                            TypeInfo i,
@@ -435,8 +435,8 @@ public class TypeAnalyzer {
             }
 
         });
-        debug.logEnd("result", result);
-        return result;
+        debug.logEnd("result", outer_result);
+        return outer_result;
     }
 
     /**
@@ -485,10 +485,10 @@ public class TypeAnalyzer {
      * Implementation of subtyping parameterized by a history.  Arguments must
      * be normalized.
      */
-    ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
-        debug.logStart(new String[]{"s", "t"}, s, t);
+    ConstraintFormula sub(final Type super_type, final Type sub_type, SubtypeHistory history) {
+        debug.logStart(new String[]{"s", "t"}, super_type, sub_type);
         ConstraintFormula result;
-        Option<ConstraintFormula> cached = _cache.get(s, t, history);
+        Option<ConstraintFormula> cached = _cache.get(super_type, sub_type, history);
         if (cached.isSome()) {
             result = cached.unwrap();
            debug.log("found in cache");
@@ -501,28 +501,28 @@ public class TypeAnalyzer {
             result = falseFormula();
             debug.logEnd("reached max subtype depth");
         }
-        else if (history.contains(s, t)) {
+        else if (history.contains(super_type, sub_type)) {
             result = falseFormula();
             debug.log("cyclic invocation");
         }
-        else if (s instanceof BottomType) { result = trueFormula(); }
-        else if (t instanceof AnyType) { result = trueFormula(); }
-        else if (s.equals(t)) { result = trueFormula(); }
-        else if (s instanceof _InferenceVarType) {
-            if (t instanceof _InferenceVarType) {
-                ConstraintFormula f1 = upperBound((_InferenceVarType) s, t, history);
-                ConstraintFormula f2 = lowerBound((_InferenceVarType) t, s, history);
+        else if (super_type instanceof BottomType) { result = trueFormula(); }
+        else if (sub_type instanceof AnyType) { result = trueFormula(); }
+        else if (super_type.equals(sub_type)) { result = trueFormula(); }
+        else if (super_type instanceof _InferenceVarType) {
+            if (sub_type instanceof _InferenceVarType) {
+                ConstraintFormula f1 = upperBound((_InferenceVarType) super_type, sub_type, history);
+                ConstraintFormula f2 = lowerBound((_InferenceVarType) sub_type, super_type, history);
                 result = f1.and(f2, history);
             }
-            else { result = upperBound((_InferenceVarType) s, t, history); }
+            else { result = upperBound((_InferenceVarType) super_type, sub_type, history); }
         }
-        else if (t instanceof _InferenceVarType) {
-            result = lowerBound((_InferenceVarType) t, s, history);
+        else if (sub_type instanceof _InferenceVarType) {
+            result = lowerBound((_InferenceVarType) sub_type, super_type, history);
         }
         else {
-            final SubtypeHistory h = history.extend(s, t);
+            final SubtypeHistory h = history.extend(super_type, sub_type);
             // a null result indicates that s should be used for dispatching instead
-            result = t.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+            result = sub_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
 
                 @Override public ConstraintFormula forType(Type t) { return null; }
 
@@ -530,7 +530,7 @@ public class TypeAnalyzer {
                 ConstraintFormula forTupleType(final TupleType t) {
                     if ( NodeUtil.hasVarargs(t) ) {
 
-                    return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    return super_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
                             // defer to handling of s
                             return null;
@@ -552,7 +552,7 @@ public class TypeAnalyzer {
                 }
 
                 @Override public ConstraintFormula forVarType(final VarType t) {
-                    return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    return super_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
                             return subVar(s, t, h);
                         }
@@ -571,7 +571,7 @@ public class TypeAnalyzer {
 
                 @Override public
                 ConstraintFormula forIntersectionType(final IntersectionType t) {
-                    return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    return super_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
                             return subIntersection(s, t, h);
                         }
@@ -589,7 +589,7 @@ public class TypeAnalyzer {
                 }
 
                 @Override public ConstraintFormula forUnionType(final UnionType t) {
-                    return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                    return super_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
                             return subUnion(s, t, h);
                         }
@@ -608,40 +608,40 @@ public class TypeAnalyzer {
 
             });
             if (result == null) {
-                result = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+                result = super_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                     @Override public ConstraintFormula forType(Type s) { return falseFormula(); }
                     @Override public ConstraintFormula forTraitType(TraitType s) {
-                        if (t instanceof TraitType) {
-                            return traitSubTrait(s, (TraitType) t, h);
+                        if (sub_type instanceof TraitType) {
+                            return traitSubTrait(s, (TraitType) sub_type, h);
                         }
                         else { return falseFormula(); }
                     }
                     @Override public ConstraintFormula forTupleType(TupleType s) {
-                        if (t instanceof TupleType) {
-                            return tupleSubTuple(s, (TupleType) t, h);
+                        if (sub_type instanceof TupleType) {
+                            return tupleSubTuple(s, (TupleType) sub_type, h);
                         }
                         else { return falseFormula(); }
                     }
                     @Override public ConstraintFormula forArrowType(ArrowType s) {
-                        if (t instanceof ArrowType) {
-                            return arrowSubArrow(s, (ArrowType) t, h);
+                        if (sub_type instanceof ArrowType) {
+                            return arrowSubArrow(s, (ArrowType) sub_type, h);
                         }
                         else { return falseFormula(); }
                     }
 
                     @Override public ConstraintFormula forVarType(VarType s) {
-                        return varSub(s, t, h);
+                        return varSub(s, sub_type, h);
                     }
                     @Override public
                     ConstraintFormula forIntersectionType(IntersectionType s) {
-                        return intersectionSub(s, t, h);
+                        return intersectionSub(s, sub_type, h);
                     }
                     @Override public ConstraintFormula forUnionType(UnionType s) {
-                        return unionSub(s, t, h);
+                        return unionSub(s, sub_type, h);
                     }
                 });
             }
-            _cache.put(s, t, history, result);
+            _cache.put(super_type, sub_type, history, result);
         }
         debug.logEnd("result", result);
         return result;
@@ -1096,10 +1096,10 @@ public class TypeAnalyzer {
     }
 
     /** Equivalence for StaticArgs. */
-    private ConstraintFormula equiv(StaticArg a1, final StaticArg a2,
+    private ConstraintFormula equiv(StaticArg a_1, final StaticArg a2,
                                     final SubtypeHistory history) {
 
-        return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
+        return a_1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
             @Override public ConstraintFormula forTypeArg(TypeArg a1) {
                 if (a2 instanceof TypeArg) {
                     return equiv(a1.getTypeArg(), ((TypeArg) a2).getTypeArg(), history);

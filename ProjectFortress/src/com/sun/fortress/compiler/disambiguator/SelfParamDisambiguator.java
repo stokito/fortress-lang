@@ -86,10 +86,10 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
      * Replaces Parameters whose name is 'self' with a parameter with
      * the explicit type given.
      *
-     * @param that
+     * @param thatNode
      * @param self_type
      */
-    private Node replaceSelfParamsWithType(Node that, final Type self_type) {
+    private Node replaceSelfParamsWithType(Node thatNode, final Type self_type) {
 
         NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
             int traitNestingDepth = 0;
@@ -128,6 +128,6 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
                 return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
             }
         };
-        return that.accept(replacer);
+        return thatNode.accept(replacer);
     }
 }

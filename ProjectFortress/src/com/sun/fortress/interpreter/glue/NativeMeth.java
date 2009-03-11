@@ -52,16 +52,16 @@ public abstract class NativeMeth extends NativeApp implements Method {
         return applyMethod(self, Collections.<FValue>emptyList());
     }
 
-    public FValue applyMethod(FObject self, FValue a) {
-        return applyMethod(self, Collections.singletonList(a));
+    public FValue applyMethod(FObject self, FValue arg) {
+        return applyMethod(self, Collections.singletonList(arg));
     }
 
-    public FValue applyMethod(FObject self, FValue a, FValue b) {
-        return applyMethod(self, Useful.list(a,b));
+    public FValue applyMethod(FObject self, FValue arg, FValue b) {
+        return applyMethod(self, Useful.list(arg,b));
     }
 
-    public FValue applyMethod(FObject self, FValue a, FValue b, FValue c) {
-        return applyMethod(self, Useful.list(a,b,c));
+    public FValue applyMethod(FObject self, FValue arg, FValue b, FValue c) {
+        return applyMethod(self, Useful.list(arg,b,c));
     }
 
 }

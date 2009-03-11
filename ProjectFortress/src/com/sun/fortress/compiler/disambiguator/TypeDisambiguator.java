@@ -353,17 +353,17 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 //    }
 
 
-    private StaticArg updateStaticArg(final StaticArg a, final StaticParam p) {
+    private StaticArg updateStaticArg(final StaticArg arg, final StaticParam param) {
         // return a;
         /* Commented out due to assumptions in the interpreter that this *isn't* implemented: */
-        StaticArg fixed = a.accept(new NodeAbstractVisitor<StaticArg>() {
+        StaticArg fixed = arg.accept(new NodeAbstractVisitor<StaticArg>() {
 
             @Override public StaticArg forTypeArg(final TypeArg a) {
                 final Type t = a.getTypeArg();
                 if (t instanceof VarType) {
                     final Span s = NodeUtil.getSpan(a);
                     final Id name = ((VarType) t).getName();
-                    return p.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
+                    return param.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
                             @Override public StaticArg forKindBool(KindBool k) {
                                 return NodeFactory.makeBoolArg(s, NodeFactory.makeBoolRef(s, name));
                             }
@@ -390,41 +390,41 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                         });
                 }
                 else {
-                    if ( ! NodeUtil.isTypeParam(p) ) { mismatch("a type"); }
+                    if ( ! NodeUtil.isTypeParam(param) ) { mismatch("a type"); }
                     return a;
                 }
             }
 
             @Override public StaticArg forIntArg(IntArg a) {
-                if (! NodeUtil.isIntParam(p) ) {
+                if (! NodeUtil.isIntParam(param) ) {
                     mismatch("an int expression");
                 }
                 return a;
             }
 
             @Override public StaticArg forBoolArg(BoolArg a) {
-                if (! NodeUtil.isBoolParam(p) ) { mismatch("a bool expression"); }
+                if (! NodeUtil.isBoolParam(param) ) { mismatch("a bool expression"); }
                 return a;
             }
 
             @Override public StaticArg forOpArg(OpArg a) {
-                if (! NodeUtil.isOpParam(p) ) { mismatch("an operator"); }
+                if (! NodeUtil.isOpParam(param) ) { mismatch("an operator"); }
                 return a;
             }
 
             @Override public StaticArg forDimArg(DimArg a) {
-                if (! NodeUtil.isDimParam(p)) { mismatch("a dimension"); }
+                if (! NodeUtil.isDimParam(param)) { mismatch("a dimension"); }
                 return a;
             }
 
             @Override public StaticArg forUnitArg(UnitArg a) {
                 // TODO: convert units to dimensions
-                if (! NodeUtil.isUnitParam(p)) { mismatch("a unit"); }
+                if (! NodeUtil.isUnitParam(param)) { mismatch("a unit"); }
                 return a;
             }
 
             private void mismatch(String given) {
-                String expected = p.getKind().accept(new NodeAbstractVisitor<String>() {
+                String expected = param.getKind().accept(new NodeAbstractVisitor<String>() {
                         @Override public String forKindBool(KindBool k) {
                             return "a bool expression";
                         }
@@ -447,7 +447,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                             return "an operator";
                         }
                     });
-                error("Type parameter mismatch: given " + given + ", expected " + expected, a);
+                error("Type parameter mismatch: given " + given + ", expected " + expected, arg);
             }
 
         });

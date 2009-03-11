@@ -61,10 +61,10 @@ public class TemplateParser {
         final Api raw = rewriteTemplateVars((Api) api.ast(), ntEnv);
         return (Api) raw.accept(new NodeUpdateVisitor() {
                 @Override
-                public Node forGrammarDecl(GrammarDecl that) {
-                    if (!that.isNativeDef()){
-                        final Class<?> parser = createParser(findGrammar(that));
-                        return that.accept(new NodeUpdateVisitor() {
+                public Node forGrammarDecl(GrammarDecl thatGrammarDecl) {
+                    if (!thatGrammarDecl.isNativeDef()){
+                        final Class<?> parser = createParser(findGrammar(thatGrammarDecl));
+                        return thatGrammarDecl.accept(new NodeUpdateVisitor() {
                                 @Override
                                 public Node forUnparsedTransformer(UnparsedTransformer that) {
                                     AbstractNode templateNode =
@@ -77,7 +77,7 @@ public class TemplateParser {
                                 }
                             });
                     } else {
-                        return that;
+                        return thatGrammarDecl;
                     }
                 }
                 private GrammarIndex findGrammar( GrammarDecl grammar ){
@@ -95,10 +95,10 @@ public class TemplateParser {
     private static Api rewriteTemplateVars(Api api, final NTEnv ntEnv) {
         return (Api) api.accept(new NodeUpdateVisitor() {
                 @Override
-                public Node forSyntaxDef(SyntaxDef that) {
-                    final GapEnv gapEnv = EnvFactory.makeGapEnv(that, ntEnv);
+                public Node forSyntaxDef(SyntaxDef thatSyntaxDef) {
+                    final GapEnv gapEnv = EnvFactory.makeGapEnv(thatSyntaxDef, ntEnv);
                     Debug.debug(Debug.Type.SYNTAX, 3, "Gap env: " + gapEnv);
-                    return that.accept(new NodeUpdateVisitor() {
+                    return thatSyntaxDef.accept(new NodeUpdateVisitor() {
                             @Override
                             public Node forNamedTransformerDef(NamedTransformerDef that) {
                                 TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);

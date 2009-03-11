@@ -98,11 +98,11 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     private Node updateNode(Node that, Id name) {
         if (name.getApiName().isSome()) { return that; }
-        StaticArg arg = parameterMap.get(name);
-        if (arg == null) { return that; }
+        StaticArg outer_arg = parameterMap.get(name);
+        if (outer_arg == null) { return that; }
         else {
             // unwrap the StaticArg
-            return arg.accept(new NodeAbstractVisitor<Node>() {
+            return outer_arg.accept(new NodeAbstractVisitor<Node>() {
                 @Override public Node forTypeArg(TypeArg arg) { return arg.getTypeArg(); }
                 @Override public Node forIntArg(IntArg arg) { return arg.getIntVal(); }
                 @Override public Node forBoolArg(BoolArg arg) { return arg.getBoolArg(); }
@@ -181,55 +181,55 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                     }
 
                     @Override
-                    public Option<ConstraintFormula> forStaticParam(StaticParam that) {
-                        return that.getKind().accept( new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+                    public Option<ConstraintFormula> forStaticParam(StaticParam thatStaticParam) {
+                        return thatStaticParam.getKind().accept( new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                 @Override
                                 public Option<ConstraintFormula> defaultCase(Node n) { return Option.none(); }
 
                                 @Override
                                 public Option<ConstraintFormula> forKindOp(KindOp that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forOpArg(OpArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
                                 @Override
                                 public Option<ConstraintFormula> forKindBool(KindBool k) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forBoolArg(BoolArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forBoolArg(BoolArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
                                 @Override
                                 public Option<ConstraintFormula> forKindDim(KindDim that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forDimArg(DimArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forDimArg(DimArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
                                 @Override
                                 public Option<ConstraintFormula> forKindInt(KindInt that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forIntArg(IntArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
                                 @Override
                                 public Option<ConstraintFormula> forKindNat(KindNat that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forIntArg(IntArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
                                 @Override
                                 public Option<ConstraintFormula> forKindType(final KindType that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
                                         @Override public Option<ConstraintFormula> forTypeArg(TypeArg arg) {
                                             Type upperbound = NodeFactory.makeIntersectionType(CollectUtil.asSet(param.getExtendsClause()));
                                             return Option.some(subtype_checker.subtype(arg.getTypeArg(),upperbound));
@@ -240,8 +240,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 @Override
                                 public Option<ConstraintFormula> forKindUnit(KindUnit that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forUnitArg(UnitArg that) {return Option.some(trueFormula());}
+                                        @Override public Option<ConstraintFormula> defaultCase(Node inner_that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forUnitArg(UnitArg inner_that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }

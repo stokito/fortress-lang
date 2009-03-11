@@ -33,7 +33,22 @@ abstract public class Unbox {
      * 
      */
     
+    /**
+     * How wide is this unboxed type, in bits?
+     */
     abstract public int bitWidth();
+    
+    /**
+     * What is the Java representation of this unboxed type?
+     * By default, integer types are used.
+     * Implementation types are
+     * V,B,S,I,J,JJ,JJJ, etc.
+     * 
+     * Note that zero-bit representations are possible; if a type has only one
+     * instance, ever, then it takes no bits to distinguish its members.
+     * 
+     * @return
+     */
     public String javaRep() {
         int b = bitWidth();
         if (b == 0)
@@ -53,6 +68,12 @@ abstract public class Unbox {
         return s;
     }
     
+    /**
+     * An unbox, that has been tagged with some identifier (a field name,
+     * a variant name).
+     * 
+     * @author dr2chase
+     */
     public static class TaggedUnbox extends Unbox {
         final Unbox item;
         final Object tag;
@@ -73,6 +94,10 @@ abstract public class Unbox {
         }
     }
     
+    /**
+     * Unboxing of the various integers.
+     * @author dr2chase
+     */
     public static class ZZ extends Unbox {
         final int width;
         
@@ -92,6 +117,10 @@ abstract public class Unbox {
 
     }
 
+    /**
+     * Unboxing of the various reals.
+     * @author dr2chase
+     */
     public static class RR extends Unbox {
         final int width;
         
@@ -112,7 +141,10 @@ abstract public class Unbox {
 
     }
 
-    
+    /**
+     * Unboxing a singleton type (e.g., an object-no-constructor type).
+     * @author dr2chase
+     */
     public static class Singleton extends Unbox {
         
         public Singleton() {
@@ -129,6 +161,14 @@ abstract public class Unbox {
         }
     }
     
+    /**
+     * Unboxing comprises -- one choice, of several, provided that each of the
+     * comprised items is also unboxable.  This uses a tag+data encoding;
+     * an alternate encoding is to use the size of the range, and encode
+     * the choice by biasing the stored values.
+     * 
+     * @author dr2chase
+     */
     public static class Comprises extends Unbox {
         final int tagWidth;
         final int maxChoicesWidth;
@@ -161,11 +201,34 @@ abstract public class Unbox {
             return tagWidth + maxChoicesWidth;
         }
         
+        public int tagWidth() {
+            return tagWidth;
+        }
+        public int tagOffset() {
+            return maxChoicesWidth;
+        }
+        public int dataWidth() {
+            return maxChoicesWidth;
+        }
+        public int dataOffset() {
+            return 0;
+        }
+        public TaggedUnbox itemForTag(int tag) {
+            return tagToItem[tag];
+        }
+        public int tagForItem(Object item) {
+            return itemToTag.get(item);
+        }
+        
         /* Need container type, container index, shift, mask */
         /* Need tag type, tag index, shift, mask */
         
     }
     
+    /**
+     * Unboxing "structs" -- a concatenation of unboxed values.
+     * @author dr2chase
+     */
     public static class Contains extends Unbox {
         final int bitWidth;
         final HashMap<Object, Integer> itemToOffset =
@@ -183,6 +246,9 @@ abstract public class Unbox {
         @Override
         public int bitWidth() {
             return bitWidth;
+        }
+        public int offsetForItem(Object item) {
+            return itemToOffset.get(item);
         }
     }
     

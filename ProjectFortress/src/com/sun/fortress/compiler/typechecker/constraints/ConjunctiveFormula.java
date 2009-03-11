@@ -57,7 +57,7 @@ import edu.rice.cs.plt.tuple.Option;
  * We maintain an invariant that if (i1,i2) is in uppers (12,i1) is in lowers.
  */
 public class ConjunctiveFormula extends ConstraintFormula {
-	final private SubtypeHistory history;
+	final private SubtypeHistory _history;
 
 	final private IMultiMap<_InferenceVarType,Type> ivarLowerBounds;
 
@@ -89,7 +89,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 
 		this.ivarLowerBounds = UsefulPLT.shrinkMultiMap(newlowers);
 		this.ivarUpperBounds = UsefulPLT.shrinkMultiMap(newuppers);
-		history = h;
+		_history = h;
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 			Set<Type> l_bounds = entry.getValue();
 			new_lowers.putItems((_InferenceVarType)sigma.value(ivar), CollectUtil.asSet(IterUtil.map(l_bounds, sigma)));
 		}
-		return new ConjunctiveFormula(new_uppers, new_lowers, this.history);
+		return new ConjunctiveFormula(new_uppers, new_lowers, this._history);
 	}
 
 	/** Find a cycle in naked inference variables starting at the given one, the cycle must have length greater than
@@ -273,7 +273,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 				return
 				(new_uppers.isEmpty() && new_lowers.isEmpty()) ?
 						trueFormula() :
-							new ReplacedConstraintFormula(new ConjunctiveFormula(new_uppers, new_lowers, this.history), new_ivar, to_remove);
+							new ReplacedConstraintFormula(new ConjunctiveFormula(new_uppers, new_lowers, this._history), new_ivar, to_remove);
 	}
 
 	
@@ -369,7 +369,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 			}
 			Type lub = lubs.get(ivar);
 			Type glb = glbs.get(ivar);
-			if( this.history.subtypeNormal(glb, lub).isFalse() ){
+			if( this._history.subtypeNormal(glb, lub).isFalse() ){
 				solvable = false;
 				//return FALSE;
 			}
@@ -378,10 +378,10 @@ public class ConjunctiveFormula extends ConstraintFormula {
 			}
 		}
 		if(solvable){
-			return new SolvedFormula(inferred_types, history);
+			return new SolvedFormula(inferred_types, _history);
 		}
 		else{
-			return new FailedSolvedFormula(inferred_types, history);
+			return new FailedSolvedFormula(inferred_types, _history);
 		}
 	}
 
@@ -472,7 +472,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 		}
 
 		return new PartiallySolvedFormula(solved_ivars,
-				new ConjunctiveFormula(new_uppers, new_lowers, history),
-				history);
+				new ConjunctiveFormula(new_uppers, new_lowers, _history),
+				_history);
 	}
 }

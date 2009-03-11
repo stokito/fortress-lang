@@ -617,7 +617,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                              body_result, implementsUnambiguousName_result);
     }
 
-    public String forFnDeclOnly(FnDecl that,
+    public String forFnDeclOnly(FnDecl thatFnDecl,
                                 final String name_result,
                                 List<String> staticParams_result,
                                 List<String> params_result,
@@ -629,10 +629,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                 Option<String> body_result,
                                 Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
-        showMods(s,NodeUtil.getMods(that));
+        showMods(s,NodeUtil.getMods(thatFnDecl));
         final String sparams = inOxfordBrackets(staticParams_result);
         final String vparams = inParentheses(params_result);
-        s.append( NodeUtil.getName(that).accept( new NodeDepthFirstVisitor<String>(){
+        s.append( NodeUtil.getName(thatFnDecl).accept( new NodeDepthFirstVisitor<String>(){
 
             @Override public String forId(final Id idThat) {
                 return name_result + sparams + inParentheses(inParentheses(vparams));
@@ -1814,13 +1814,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return result.toString();
     }
 
-    @Override public String forOpExprOnly(final OpExpr that, String info,
+    @Override public String forOpExprOnly(final OpExpr thatOpExpr, String info,
                                           final String op_result,
                                           final List<String> args_result) {
         StringBuilder s = new StringBuilder();
         final FortressAstToConcrete visitor = this;
 
-        s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
+        s.append( thatOpExpr.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
             @Override public String forOp(final Op opThat) {
                 final String oper = canonicalOp( opThat.getText() );
                 if ( opThat.isEnclosing() ) {
@@ -1828,7 +1828,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     String left  = op.split(" ")[0];
                     String right = op.substring(left.length()+1);
                     String staticArgs = "";
-                    List<StaticArg> sargs = that.getOp().getStaticArgs();
+                    List<StaticArg> sargs = thatOpExpr.getOp().getStaticArgs();
                     if ( ! sargs.isEmpty() ) {
                         List<String> _sargs = new ArrayList<String>();
                         for (StaticArg sarg : sargs) {
@@ -1842,15 +1842,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                         s.append( left.substring(0, left.length()-3) );
                         s.append( staticArgs );
                         s.append( " " );
-                        List<Expr> exprs = that.getArgs();
+                        List<Expr> exprs = thatOpExpr.getArgs();
                         if ( ! exprs.isEmpty() ) {
                             for ( Expr expr : IterUtil.skipLast(exprs) ) {
-                                s.append( handleMapElem(expr, that,
+                                s.append( handleMapElem(expr, thatOpExpr,
                                                         visitor) );
                                 s.append( ", " );
                             }
                             s.append( handleMapElem(IterUtil.last(exprs),
-                                                    that, visitor) );
+                                                    thatOpExpr, visitor) );
                         }
                         s.append( right );
                         return s.toString();
@@ -1899,7 +1899,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         return handleParen( s.toString(),
-                            NodeUtil.isParenthesized(that) );
+                            NodeUtil.isParenthesized(thatOpExpr) );
     }
 
     @Override public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, String info,

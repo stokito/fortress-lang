@@ -85,15 +85,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         }
     }
 
-    public static FType getFTypeFromOption(Option<Type> t, final Environment e, final FType ifMissing) {
-        return t.apply(new OptionVisitor<Type, FType>() {
+    public static FType getFTypeFromOption(Option<Type> opt_t, final Environment e, final FType ifMissing) {
+        return opt_t.apply(new OptionVisitor<Type, FType>() {
             public FType forSome(Type t) { return getFType(t, e); }
             public FType forNone() { return ifMissing; }
         });
     }
 
-    public  FType getFTypeFromOption(Option<Type> t, final FType ifMissing) {
-        return t.apply(new OptionVisitor<Type, FType>() {
+    public  FType getFTypeFromOption(Option<Type> opt_t, final FType ifMissing) {
+        return opt_t.apply(new OptionVisitor<Type, FType>() {
             public FType forSome(Type t) { return getFType(t); }
             public FType forNone() { return ifMissing; }
         });
