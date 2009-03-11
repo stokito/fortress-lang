@@ -117,12 +117,12 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         } else {
             return Option.<BaseType>none();
         }
-        Depth depth = gapEnv.getDepth(id);
-        if (depth == null) {
+        Depth outer_depth = gapEnv.getDepth(id);
+        if (outer_depth == null) {
             // FIXME
-            depth = new BaseDepth();
+            outer_depth = new BaseDepth();
         }
-        BaseType type = depth.accept(new Depth.Visitor<BaseType>() {
+        BaseType type = outer_depth.accept(new Depth.Visitor<BaseType>() {
                 public BaseType forBaseDepth(BaseDepth depth) {
                     return baseType;
                 }

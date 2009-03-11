@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
 public class FileWriteStream extends NativeConstructor {
-    private static NativeConstructor con = null;
+    private static NativeConstructor _con = null;
 
     public FileWriteStream(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
@@ -49,7 +49,7 @@ public class FileWriteStream extends NativeConstructor {
     @Override
     protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
-        FileWriteStream.con = con;
+        FileWriteStream._con = con;
         String name = args.get(0).getString();
         try {
             BufferedWriter r = Useful.utf8BufferedFileWriter(name);
@@ -64,14 +64,14 @@ public class FileWriteStream extends NativeConstructor {
         protected final String name;
 
         public PrimWriter(String name, BufferedWriter writer) {
-            super(FileWriteStream.con);
+            super(FileWriteStream._con);
             this.writer = writer;
             this.name = name;
         }
 
         @Override
         public NativeConstructor getConstructor() {
-            return FileWriteStream.con;
+            return FileWriteStream._con;
         }
 
         @Override
@@ -160,6 +160,6 @@ public class FileWriteStream extends NativeConstructor {
 
     @Override
     protected void unregister() {
-        con = null;
+        _con = null;
     }
 }

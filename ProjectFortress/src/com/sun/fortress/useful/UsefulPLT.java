@@ -88,9 +88,9 @@ public class UsefulPLT {
             return singletonMultiMap(key, Collections.singleton(value));
         }
         
-        public static <K,V> IMultiMap<K,V> singletonMultiMap(final K key, final Set<V> value) {
+        public static <K,V> IMultiMap<K,V> singletonMultiMap(final K the_key, final Set<V> the_value) {
             return new IMultiMap<K,V>() {
-                private final Map<K,Set<V>> singleton = Collections.singletonMap(key, value);
+                private final Map<K,Set<V>> singleton = Collections.singletonMap(the_key, the_value);
                 private <T> T error() { throw new IllegalStateException("Singleton IMultiMap is immutable."); }
                 public void clear() { singleton.clear(); }
                 public boolean containsKey(Object key) { return singleton.containsKey(key); }

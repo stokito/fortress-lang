@@ -34,12 +34,12 @@ import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class BufferedWriter extends NativeConstructor {
-    private static NativeConstructor con = null;
+    private static NativeConstructor _con = null;
 
     public BufferedWriter(Environment env, FTypeObject selfType,
             ObjectConstructor def) {
         super(env, selfType, def);
-        con = this;
+        _con = this;
     }
 
     @Override
@@ -55,13 +55,13 @@ public class BufferedWriter extends NativeConstructor {
         protected final java.io.BufferedWriter writer;
 
         public BuffWriter(java.io.BufferedWriter writer) {
-            super(BufferedWriter.con);
+            super(BufferedWriter._con);
             this.writer = writer;
         }
 
         @Override
         public NativeConstructor getConstructor() {
-            return BufferedWriter.con;
+            return BufferedWriter._con;
         }
 
         @Override
@@ -145,6 +145,6 @@ public class BufferedWriter extends NativeConstructor {
 
     @Override
     protected void unregister() {
-        con = null;
+        _con = null;
     }
 }
