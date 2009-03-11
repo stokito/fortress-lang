@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -79,7 +79,7 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
         "[" bounds() "] = [" (BIG ||[(i,v) <- indexValuePairs()] " " i "|->" v) " ]"
     getter asDebugStriing(): String = data.asString
     indexAndMask(i:ZZ32) : (ZZ32,ZZ64) = (i RSHIFT 6, widen(1) LSHIFT (i BITAND 63))
-    secondaryIndex(fe:ZZ64, mask:ZZ64) = popCount((mask-1) BITAND fe)
+    secondaryIndex(fe:ZZ64, mask:ZZ64):ZZ32 = popCount((mask-1) BITAND fe)
     isSet(i:ZZ32): Boolean = isSet0(offset(i))
     isSet0(i:ZZ32): Boolean = do
         (i1, m) = indexAndMask(i)
@@ -118,7 +118,7 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
             end
         end
       end
-    init00(fe:ZZ64,d:Array[\T,ZZ32\],i1:ZZ32,m:ZZ64,i2:ZZ32,v:T) = do
+    init00(fe:ZZ64,d:Array[\T,ZZ32\],i1:ZZ32,m:ZZ64,i2:ZZ32,v:T):() = do
         d1 = array[\T\](|d| + 1)
         d1.init(i,d[i]), i <- 0:(i2-1)
         d1.init(i2,v)

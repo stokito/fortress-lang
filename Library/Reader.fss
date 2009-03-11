@@ -20,8 +20,8 @@ import FlatString.FlatString
 import Stream.{...}
 export Reader
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+language:String = "java"
+package:String = "com.sun.fortress.interpreter.glue.prim"
 
 stdIn: Reader = InReader()
 

@@ -67,7 +67,7 @@ object FileReadStream(filename: FlatString)
         "com.sun.fortress.interpreter.glue.prim.FileReadStream$close")
 end
 
-FileWriteStream(fileName:String) = FileWriteStream(fileName.asFlatString)
+FileWriteStream(fileName:String):FileWriteStream = FileWriteStream(fileName.asFlatString)
 
 object FileWriteStream(fileName:FlatString) extends { FileStream }
     getter fileName(): String =

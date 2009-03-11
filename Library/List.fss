@@ -185,7 +185,7 @@ end
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
 opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\T,List[\T\]\](fn (cc) => fromImmutableArray(cc.toImmutableArray()))
-opr BIG <|[\T\] g:Generator[\T\]|> =
+opr BIG <|[\T\] g:Generator[\T\]|>:List[\T\] =
     __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
 
 (** Convert generator into list; can be used to desugar list
