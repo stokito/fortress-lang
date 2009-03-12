@@ -211,10 +211,10 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0l() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:25\n" +
-      "    Unmatched delimiter \"component\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:25\n" +
       "    Unmatched delimiter \"do\".\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:25\n" +
+      "    Unmatched delimiter \"component\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:21:25\n" +
       "    Unmatched delimiter \"\\\"\".\n" +
       "File Compiled0.l.fss has 3 errors.\n"
