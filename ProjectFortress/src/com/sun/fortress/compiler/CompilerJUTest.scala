@@ -43,7 +43,7 @@ import com.sun.fortress.useful.WireTappedPrintStream
  * Error messages are read via stderr.
  * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
  */
-class CompilerJUTest() extends TestCase {
+class CompilerJUTest() extends TestCaseWrapper {
 
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
@@ -91,7 +91,6 @@ class CompilerJUTest() extends TestCase {
 
   def assertErrorSignaled(error:String,file:String) = {
     val result = compilerResult(file)
-    println("OUT:" + result + ":OUT")
     assert(error.equals(result))
   }
 
