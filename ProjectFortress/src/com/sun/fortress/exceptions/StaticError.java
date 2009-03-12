@@ -17,10 +17,11 @@
 
 package com.sun.fortress.exceptions;
 
+import java.util.StringTokenizer;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
-public abstract class StaticError extends RuntimeException implements HasAt {
+public abstract class StaticError extends RuntimeException implements HasAt, Comparable<StaticError> {
 
     /**
      * Make Eclipse happy
@@ -41,6 +42,42 @@ public abstract class StaticError extends RuntimeException implements HasAt {
 
     public String toString() {
         return at() + "\n    " + description();
+    }
+
+    public int compareTo(StaticError that) { 
+        StringTokenizer thisTokenizer = new StringTokenizer(this.getMessage(), ":-\n\t\f\r ");
+        StringTokenizer thatTokenizer = new StringTokenizer(that.getMessage(), ":-\n\t\f\r ");
+    
+        int fileComparison = thisTokenizer.nextToken().compareTo(thatTokenizer.nextToken());
+        if (fileComparison != 0) { return fileComparison; }
+
+        // Unless there is a bug in the compiler, there will be at least one token in each tokenizer,
+        // indicating line information.
+        String thisLineString = thisTokenizer.nextToken();
+        String thatLineString = thatTokenizer.nextToken();
+
+        // System.err.println(thisLineString + " vs " + thatLineString);
+
+        if (thisLineString.equals("no line information")) { 
+            if (thatLineString.equals("no line information")) { return 0; }
+            else { return -1; }
+        } else if (thatLineString.equals("no line information")) { return 1; }
+
+        int thisLine = Integer.parseInt(thisLineString);
+        int thatLine = Integer.parseInt(thatLineString);
+
+
+        // If there is line information, there should be column information as well.
+        int thisColumn = Integer.parseInt(thisTokenizer.nextToken());
+        int thatColumn = Integer.parseInt(thatTokenizer.nextToken());
+        
+        // System.err.println(thisLine + ":" + thisColumn + " vs " + thatLine + ":" + thatColumn);
+
+        if (thisLine < thatLine) { return -1; }
+        else if (thisLine == thatLine && thisColumn < thatColumn) { return -1; }
+        else if (thisLine == thatLine && thisColumn == thatColumn) { return 0; }
+        else if (thisLine == thatLine && thisColumn > thatColumn) { return 1; }
+        else { return 1; } // thisLine > thatLine
     }
 
     /**
