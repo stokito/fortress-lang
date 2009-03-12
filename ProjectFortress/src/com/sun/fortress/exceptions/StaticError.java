@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -44,10 +44,10 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
         return at() + "\n    " + description();
     }
 
-    public int compareTo(StaticError that) { 
+    public int compareTo(StaticError that) {
         StringTokenizer thisTokenizer = new StringTokenizer(this.getMessage(), ":-\n\t\f\r ");
         StringTokenizer thatTokenizer = new StringTokenizer(that.getMessage(), ":-\n\t\f\r ");
-    
+
         int fileComparison = thisTokenizer.nextToken().compareTo(thatTokenizer.nextToken());
         if (fileComparison != 0) { return fileComparison; }
 
@@ -58,7 +58,7 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
 
         // System.err.println(thisLineString + " vs " + thatLineString);
 
-        if (thisLineString.equals("no line information")) { 
+        if (thisLineString.equals("no line information")) {
             if (thatLineString.equals("no line information")) { return 0; }
             else { return -1; }
         } else if (thatLineString.equals("no line information")) { return 1; }
@@ -70,7 +70,7 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
         // If there is line information, there should be column information as well.
         int thisColumn = Integer.parseInt(thisTokenizer.nextToken());
         int thatColumn = Integer.parseInt(thatTokenizer.nextToken());
-        
+
         // System.err.println(thisLine + ":" + thisColumn + " vs " + thatLine + ":" + thatColumn);
 
         if (thisLine < thatLine) { return -1; }

@@ -1,7 +1,7 @@
 /*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
-    Copyright 2008 Sun Microsystems, Inc.,
 
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
@@ -88,14 +88,14 @@ public class Reader extends NativeConstructor {
         public BufferedReader getReader() {
 			return reader;
         }
-        
+
         public void whenUnconsumed() {
 			if (consumed) {
 				error(errorMsg(
 						"Performed operation on consumed FileReadStream ", name));
 			}
 		}
-        
+
         @Override
         public boolean seqv(FValue v) {
             return (v==this);
@@ -174,7 +174,7 @@ public class Reader extends NativeConstructor {
             return r.name;
         }
     }
-    
+
     public static final class toString extends r2S {
 		@Override
 		protected final String f(PrimReader r) {
@@ -273,11 +273,10 @@ public class Reader extends NativeConstructor {
 			return FVoid.V;
         }
     }
-    
+
     @Override
     protected void unregister() {
         _con = null;
     }
 
 }
-

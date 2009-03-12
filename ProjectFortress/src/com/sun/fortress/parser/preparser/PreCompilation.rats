@@ -730,15 +730,14 @@ transient void NoNewlineExpr =
 
 transient void NoNewlineExprFront =
      openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
+   / StringLiteralExpr
    / Id
+   / Op
    ;
 
 transient void NoNewlineExprTail =
-     s Op s Id
-   / s StringLiteralExpr
-   / s NoNewlineExpr
+     s NoNewlineExpr
    / s as Id
-   / s openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
    ;
 
 transient void BlockElems =
