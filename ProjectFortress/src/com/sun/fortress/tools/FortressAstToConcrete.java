@@ -675,6 +675,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     @Override public String forBigFixityOnly(BigFixity that) {
                         return "opr " + oper + sparams + inParentheses(vparams);
                     }
+
+                    @Override public String forUnknownFixityOnly(UnknownFixity that) {
+                        return "opr " + oper + sparams + inParentheses(vparams) + " (* unknown fixity *)";
+                    }
                 });
             }
         }));
@@ -1894,6 +1898,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                     @Override public String forBigFixityOnly(BigFixity that) {
                         return oper + inParentheses( args_result );
                     }
+
+                    @Override public String forUnknownFixityOnly(UnknownFixity that) {
+                        switch ( args_result.size() ) {
+                        case 0:
+                            return oper + "(* unknown fixity *)";
+                        case 1:
+                            return oper + inParentheses("(* unknown fixity *)" + args_result.get(0));
+                        default:
+                            return join(args_result, " " + oper + "(* unknown fixity *) ");
+                        }
+                    }
                 });
             }
         }));
@@ -2803,31 +2818,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forInFixityOnly(InFixity that) {
-        return "";
-    }
-
-    @Override public String forPreFixityOnly(PreFixity that) {
-        return "";
-    }
-
-    @Override public String forPostFixityOnly(PostFixity that) {
-        return "";
-    }
-
-    @Override public String forNoFixityOnly(NoFixity that) {
-        return "";
-    }
-
-    @Override public String forMultiFixityOnly(MultiFixity that) {
-        return "";
-    }
-
-    @Override public String forEnclosingFixityOnly(EnclosingFixity that) {
-        return "";
-    }
-
-    @Override public String forBigFixityOnly(BigFixity that) {
+    @Override public String forFixityOnly(Fixity that) {
         return "";
     }
 
@@ -2839,11 +2830,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forKindTypeOnly(KindType that) { return ""; }
-    @Override public String forKindNatOnly (KindNat  that) { return ""; }
-    @Override public String forKindIntOnly (KindInt  that) { return ""; }
-    @Override public String forKindBoolOnly(KindBool that) { return ""; }
-    @Override public String forKindDimOnly (KindDim  that) { return ""; }
-    @Override public String forKindUnitOnly(KindUnit that) { return ""; }
+    @Override public String forStaticParamKindOnly(StaticParamKind that) { return ""; }
 
 }
