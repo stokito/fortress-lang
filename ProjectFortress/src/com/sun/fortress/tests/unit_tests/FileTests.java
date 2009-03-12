@@ -152,15 +152,34 @@ public class FileTests {
             String what;
             String test;
             
+            boolean any_check = false;
+            
             what = pfx+which+"_contains";
             test = props.get(what);
             test = ProjectProperties.get(test);
-            if (test != null && test.length() > 0 && !contents.contains(test)) return what+"="+test;
+            if (test != null && test.length() > 0) {
+                if (!contents.contains(test))
+                    return what+"="+test;
+                any_check = true;
+            }
             
             what = pfx+which+"_matches";
             test = props.get(what);
             test = ProjectProperties.get(test);
-            if (test != null && test.length() > 0 && !contents.matches(test)) return what+"="+test;
+            if (test != null && test.length() > 0) {
+                if (!contents.matches(test))
+                    return what+"="+test;
+                any_check = true;
+           }
+            
+            if (!any_check && pfx.equals("run_") && which.equals("out")) {
+                // If there is no check specified on run_out, demand that it
+                // contain "pass" or "PASS".
+                if (!(contents.contains("pass") || contents.contains("PASS"))) {
+                    return "default check run_out_contains=PASS";
+                }
+            }
+            
             return null;
         }
 
