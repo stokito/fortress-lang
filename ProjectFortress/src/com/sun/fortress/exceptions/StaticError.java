@@ -45,6 +45,8 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
     }
 
     public int compareTo(StaticError that) {
+        return this.getMessage().compareTo(that.getMessage());
+        /*
         StringTokenizer thisTokenizer = new StringTokenizer(this.getMessage(), ":-\n\t\f\r ");
         StringTokenizer thatTokenizer = new StringTokenizer(that.getMessage(), ":-\n\t\f\r ");
 
@@ -78,6 +80,7 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
         else if (thisLine == thatLine && thisColumn == thatColumn) { return 0; }
         else if (thisLine == thatLine && thisColumn > thatColumn) { return 1; }
         else { return 1; } // thisLine > thatLine
+        */
     }
 
     /**
