@@ -37,7 +37,13 @@ import com.sun.fortress.useful.Path
 import com.sun.fortress.useful.TestCaseWrapper
 import com.sun.fortress.useful.WireTappedPrintStream
 
-class CompilerJUTest() extends TestCaseWrapper {
+/**
+ * Tests for compiler error message quality. 
+ * These tests deliberately call the compiler just as it would be called by a user.
+ * Error messages are read via stderr. 
+ * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
+ */
+class CompilerJUTest() extends TestCase {
 
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
@@ -77,77 +83,89 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.compilerPhases(path, name + ".fss")
   }
 
+  def assertNormalCompletion(file:String) = {
+    val expected = ""
+    val result = compilerResult(file)
+    assert(expected.equals(result))
+  }
+
+  def assertErrorSignaled(error:String,file:String) = {
+    val result = compilerResult(file)
+    println("OUT:" + result + ":OUT")
+    assert(error.equals(result))
+  }
 
   def testCompileNothing() = {
     val expected = "The compile command must be given a file.\n"
     val result = compilerResult()
-    println("OUT:" + result + ":OUT")
     assert(expected.equals(result))
+  }
+
+  def testCompileCompilerLibraryApi() = {
+   assertNormalCompletion("../../Library/CompilerLibrary.fsi")
+  }
+
+  def testCompileCompilerLibraryComponent() = {
+   assertNormalCompletion("../../Library/CompilerLibrary.fss")
+  }
+
+  def testCompileCompilerBuiltinApi() = {
+   assertNormalCompletion("../LibraryBuiltin/CompilerBuiltin.fsi")    
+  }
+
+  def testCompileCompilerBuiltinComponent() = {
+   assertNormalCompletion("../LibraryBuiltin/CompilerBuiltin.fss")    
   }
 
   def testCompiled0a() = {
     val expected =
-      "\n" + STATIC_TESTS_DIR + "/Compiled0.a.fss:17:11-15\n" +
+      "\n" + 
+      STATIC_TESTS_DIR + "/Compiled0.a.fss:17:11-15\n" +
       "    Component/API names must match their enclosing file names.\n" +
       "    File name: " + STATIC_TESTS_DIR + "/Compiled0.a.fss\n" +
-      "    Component/API name: Hello"
-    try {
-      compile("Compiled0.a.fss").iterator()
-      assert(false, "Compilation should have signaled an error")
-    }
-    catch {
-      case e:ProgramError =>
-        assert (e.getMessage().equals(expected),
-                "Bad error message: " + e.getMessage() + "\n" +
-                "Should be: " + expected)
-    }
+      "    Component/API name: Hello\n" +
+      "Turn on \"-debug interpreter\" for Java-level stack trace.\n"
+    assertErrorSignaled(expected,"Compiled0.a.fss")
   }
 
   def testCompiled0b() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.b.fss:18:8-16\n" +
       "    Could not find API Runnable in file named Runnable.fsi on path\n    " +
-      STATIC_TESTS_DIR + ":" + ProjectProperties.SOURCE_PATH
-
-    try {
-      compile("Compiled0.b.fss").iterator()
-      assert(false, "Compilation should have signaled an error")
-    }
-    catch {
-      case e:WrappedException => {
-        assert (e.getMessage().equals(expected),
-                "Bad error message: " + e.getMessage() + "\n" +
-                "Should be: " + expected)
-      }
-    }
+      STATIC_TESTS_DIR + ":" + ProjectProperties.SOURCE_PATH + "\n"
+      assertErrorSignaled(expected,"Compiled0.b.fss")
   }
 
   def testCompiled0c() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.c.fss:20:28-39\n" +
-      "    Variable printlnSimple is not defined."
-    Shell.assertStaticErrors(compile("Compiled0.c.fss"), expected)
+      "    Variable printlnSimple is not defined.\n" + 
+      "File Compiled0.c.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.c.fss")
   }
 
   def testCompiled0d() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.d.fss:20:3-50\n" +
-      "    Unmatched delimiter \"component\"."
-    Shell.assertStaticErrors(compile("Compiled0.d.fss"), expected)
+      "    Unmatched delimiter \"component\".\n" + 
+      "File Compiled0.d.fss has 1 error.\n"
+     assertErrorSignaled(expected,"Compiled0.d.fss")
   }
 
   def testCompiled0e() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.e.fss:24:1-3\n" +
-      "    Unmatched delimiter \"end\"."
-    Shell.assertStaticErrors(compile("Compiled0.e.fss"), expected)
+      "    Unmatched delimiter \"end\".\n" + 
+      "File Compiled0.e.fss has 1 error.\n"
+     assertErrorSignaled(expected,"Compiled0.e.fss")
   }
 
   def testCompiled0f() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.f.fss:20:23\n" +
-      "    Unmatched delimiter \"(\"."
-    Shell.assertStaticErrors(compile("Compiled0.f.fss"), expected)
+      "    Unmatched delimiter \"(\".\n" + 
+      "File Compiled0.f.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.f.fss")
   }
 
   def testCompiled0g() = {
@@ -155,47 +173,53 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.g.fss:20:23\n" +
       "    Unmatched delimiter \"(\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.g.fss:24:1-3\n" +
-      "    Unmatched delimiter \"end\"."
-    Shell.assertStaticErrors(compile("Compiled0.g.fss"), expected)
+      "    Unmatched delimiter \"end\".\n" +
+      "File Compiled0.g.fss has 2 errors.\n"
+      assertErrorSignaled(expected,"Compiled0.g.fss")
   }
 
   def testCompiled0h() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.h.fss:20:25\n" +
-      "    Unmatched delimiter \")\"."
-    Shell.assertStaticErrors(compile("Compiled0.h.fss"), expected)
+      "    Unmatched delimiter \")\".\n" + 
+      "File Compiled0.h.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.h.fss")
   }
 
   def testCompiled0i() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.i.fss:20:6\n" +
-      "    Unmatched delimiter \"[\\\"."
-    Shell.assertStaticErrors(compile("Compiled0.i.fss"), expected)
+      "    Unmatched delimiter \"[\\\".\n" + 
+      "File Compiled0.i.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.i.fss")
   }
 
   def testCompiled0j() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.j.fss:20:6-7\n" +
-      "    Unmatched delimiter \"[\" and \"\\]\"."
-    Shell.assertStaticErrors(compile("Compiled0.j.fss"), expected)
+      "    Unmatched delimiter \"[\" and \"\\]\".\n" + 
+      "File Compiled0.j.fss has 1 error.\n"
+    assertErrorSignaled(expected,"Compiled0.j.fss")
   }
 
   def testCompiled0k() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.k.fss:20:37-50\n" +
-      "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("Compiled0.k.fss"), expected)
+      "    Unmatched delimiter \"\\\"\".\n" + 
+      "File Compiled0.k.fss has 1 error.\n"
+    assertErrorSignaled(expected,"Compiled0.k.fss")
   }
 
   def testCompiled0l() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:25\n" +
-      "    Unmatched delimiter \"do\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:25\n" +
       "    Unmatched delimiter \"component\".\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:25\n" +
+      "    Unmatched delimiter \"do\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:21:25\n" +
-      "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("Compiled0.l.fss"), expected)
+      "    Unmatched delimiter \"\\\"\".\n" + 
+      "File Compiled0.l.fss has 3 errors.\n"
+    assertErrorSignaled(expected,"Compiled0.l.fss")
   }
 
   def testCompiled0m() = {
@@ -203,22 +227,25 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.m.fss:20:3-22:3\n" +
       "    Unmatched delimiter \"component\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.m.fss:21:13-25\n" +
-      "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("Compiled0.m.fss"), expected)
+      "    Unmatched delimiter \"\\\"\".\n" + 
+      "File Compiled0.m.fss has 2 errors.\n"
+      assertErrorSignaled(expected,"Compiled0.m.fss")
   }
 
   def testCompiled0n() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.n.fss:20:3-17\n" +
-      "    Function body has type ()->(), but declared return type is ()"
-    Shell.assertStaticErrors(compile("Compiled0.n.fss"), expected)
+      "    Function body has type ()->(), but declared return type is ()\n" +
+      "File Compiled0.n.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.n.fss")
   }
 
   def testCompiled0o() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.o.fss:20:3-22:3\n" +
-      "    Missing function body."
-    Shell.assertStaticErrors(compile("Compiled0.o.fss"), expected)
+      "    Missing function body.\n" +
+      "File Compiled0.o.fss has 1 error.\n"
+      assertErrorSignaled(expected,"Compiled0.o.fss")
   }
 
   def testCompiled0p() = {
@@ -283,5 +310,7 @@ class CompilerJUTest() extends TestCaseWrapper {
       "    There are multiple declarations of run with the same signature: String -> ()"
     Shell.assertStaticErrors(compile("Compiled0.v.fss"), expected)
   }
+
+  def testCompiled1a() = {}
 
 }

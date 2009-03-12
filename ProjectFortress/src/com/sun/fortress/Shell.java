@@ -233,7 +233,14 @@ public final class Shell {
         compileProperties.getter_setter_desugar = desugar;
     }
 
-    /* Main entry point for the fortress shell.*/
+    /**
+     * Main entry point for the fortress shell. 
+     * In order to support accurate testing of error messages, this method immediately 
+     * forwards to its two parameter helper method. 
+     * *** Please do not directly add code to this method, as it will interfere with testing.
+     * *** Tests will silently fail.
+     * *** Instead, add code to its helper method. 
+     */
     public static void main(String[] tokens) throws InterruptedException, Throwable {
         main(false, tokens);
     }
@@ -328,9 +335,9 @@ public final class Shell {
                 printHelpMessage();
 
             } else { printUsageMessage(); }
-        } catch ( StaticError e ){
+        } catch (StaticError e) {
             System.err.println(e);
-            if ( Debug.isOn() ){
+            if (Debug.isOn()) {
                 e.printStackTrace();
             }
             return_code = -1;
@@ -683,7 +690,9 @@ public final class Shell {
                 Path path = sourcePath( s, name );
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-                Iterable<? extends StaticError> errors = compilerPhases(path, file_name, out, false);
+                Iterable<? extends StaticError> errors = 
+                    IterUtil.sort(compilerPhases(path, file_name, out, false), 
+                                  staticErrorComparator);
                 int num_errors = IterUtil.sizeOf(errors);
                 if ( !IterUtil.isEmpty(errors) ) {
                     for (StaticError error: errors) {
@@ -798,7 +807,8 @@ public final class Shell {
 
     private static class StaticErrorComparator implements Comparator<StaticError> {
         public int compare(StaticError left, StaticError right) {
-            return left.getMessage().compareTo(right.getMessage());
+            // System.err.println("compare");
+            return left.compareTo(right);
         }
     }
     private final static StaticErrorComparator staticErrorComparator = new StaticErrorComparator();
