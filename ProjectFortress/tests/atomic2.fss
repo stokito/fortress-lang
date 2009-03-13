@@ -19,7 +19,7 @@ component atomic2
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var count1 : ZZ32 = 0
    var count2 : ZZ32 = 1000
    var count3 : ZZ32 = 10000

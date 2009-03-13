@@ -60,7 +60,7 @@ object O4[\X extends String, S extends String\](x:X, s:S)
         end
 end
 
-run(args:String...):() = do
+run():() = do
     o4:O4[\String, String\] = O4[\String, String\]("str3", "str4")
     y2:Y = o4.foo[\ZZ32\](7)
 end

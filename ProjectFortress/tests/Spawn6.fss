@@ -26,7 +26,7 @@ makeWork(num:ZZ32):ZZ32 = do
    sum
 end
 
-run(args:String...):()=do
+run():()=do
    ft:Thread[\Any\] = spawn(makeWork(10000000));
    assert(ft.ready(), false, "Spawned thread can't be ready yet")
    ft.stop()

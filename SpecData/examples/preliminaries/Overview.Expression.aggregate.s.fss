@@ -21,7 +21,7 @@ component Overview.Expression.aggregate.s
 import Set.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
 s:Set[\ZZ32\]
 (** EXAMPLE **)
 s = {0, 1, 2, 3, 4}

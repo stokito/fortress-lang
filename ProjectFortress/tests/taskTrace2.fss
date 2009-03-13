@@ -19,7 +19,7 @@ component taskTrace2
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    a = (10 10, (20 20, (30 30, (40 40, (50 50, printTaskTrace())))))
    end
 end

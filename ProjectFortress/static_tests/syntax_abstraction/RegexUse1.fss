@@ -21,7 +21,7 @@ import Regex.{...}
 import List.{...}
 export Executable
 
-run(s:String...) = do
+run() = do
     (* println "// = " (//) *)
 
     println "/abc/ = " (/abc/)

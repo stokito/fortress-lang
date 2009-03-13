@@ -20,7 +20,7 @@ export Executable
 
 (* Check that tuple assignment to multiple vars on LHS works. *)
 
-run(args:String...):() = do
+run():() = do
   var t_b : Boolean
   var t_i : IntLiteral
   var t_f : IntLiteral->Boolean

@@ -32,6 +32,6 @@ object Cons[\T\](first:T, rest:List[\T\])
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

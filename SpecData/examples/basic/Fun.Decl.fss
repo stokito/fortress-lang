@@ -30,6 +30,6 @@ List[\T extends Object, nat length\](rest: T[length]) =
   end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

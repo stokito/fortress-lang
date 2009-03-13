@@ -28,5 +28,5 @@ component DXXLooseJuxt
     map (fn (a:ZZ32):String => "S") Foo
   end
 
-  run(args:String...):()= ()
+  run():()= ()
 end

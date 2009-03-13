@@ -79,7 +79,7 @@ chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
   assertStr(ll.isEmpty()," not empty after extractRight(); it's ",ll)
 end
 
-run(args:String...):() = do
+run():() = do
   start = nanoTime()
   (* Cause mild stress *)
   testLens : List[\ZZ32\] = <|0 asif ZZ32,1,2,3,7,10,25,75,175,900|>

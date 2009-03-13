@@ -22,6 +22,6 @@ object O(var v:ZZ32)
   foo(m:ZZ32):() = v := m
 end
 
-run(args:String...):() = ()
+run():() = ()
 
 end

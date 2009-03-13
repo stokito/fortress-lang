@@ -39,6 +39,6 @@ trait RationalQuantity[\unit U absorbs unit, bool ninf, bool lt, bool eq,
   coerce(x: Identity[\+\]) = 0
 end
 
-run(args:String...) = println "Conditional extension with where clauses can be parsed."
+run() = println "Conditional extension with where clauses can be parsed."
 
 end

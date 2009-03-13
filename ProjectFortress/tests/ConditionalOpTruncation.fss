@@ -22,7 +22,7 @@ opr OP(a:ZZ32, b:ZZ32) : ZZ32 = 1
 opr OP(a:ZZ32, b:()->ZZ32) : ZZ32 = 2
 opr OP(a:()->ZZ32, b:()->ZZ32) : ZZ32 = 3
 
-run(args) = do
+run() = do
     assert(3, 5 :OP: 6)
 end
 

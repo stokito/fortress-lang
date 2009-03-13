@@ -30,5 +30,5 @@ component ObjectExpr
     o := o + o
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

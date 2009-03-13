@@ -19,6 +19,6 @@ component SXXSyntaxGrammarImportsUse
 import SXXSyntaxGrammarImports.Hello
 export Executable
 
-run(args:String...) = println (hello)
+run() = println (hello)
 
 end

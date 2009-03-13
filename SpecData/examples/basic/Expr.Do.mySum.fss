@@ -31,6 +31,6 @@ mySum(i:ZZ64):ZZ64 = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = println mySum(3)
+run() = println mySum(3)
 
 end

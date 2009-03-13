@@ -34,7 +34,7 @@ printTree(node,space) = do
     end
 end
 
-run(args:String...) = do
+run() = do
 
     println "Answer is " (<aaa />)
     println "Answer is " (<aaa foo="bar">a</aaa>)

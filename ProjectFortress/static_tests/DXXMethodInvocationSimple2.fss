@@ -30,6 +30,6 @@ component DXXMethodInvocationSimple2
     s := f1.doFoo[\ZZ32\](a1,b1)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 
 end

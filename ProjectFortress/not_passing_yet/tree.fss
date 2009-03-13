@@ -774,7 +774,7 @@ testMe():() = do
   println(fpg.apply(rt2-1) " ~" // (ftv + gtv))
 end
 
-run(args:String...):() = do
+run():() = do
   testMe()
 end
 

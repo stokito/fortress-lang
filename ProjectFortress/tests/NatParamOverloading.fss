@@ -23,7 +23,7 @@ export Executable
 g[\nat n\]( a: ZZ32[n] ) : () = ()
 g[\nat n\]( b: RR64 ) : () = ()
 
-run(args:String...):() = do
+run():() = do
   a : ZZ32[2] = [ 5 7 ]
   g[\2\](a)
   g[\2\](3.0)

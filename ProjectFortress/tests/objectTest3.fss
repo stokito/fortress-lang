@@ -24,7 +24,7 @@ object A(i:ZZ32, j:ZZ32)
   getZ():ZZ32 = j
 end
 
-run(args:String...):()=do
+run():()=do
   a:A = A(3,4);
   println(
   if (a.id().getI() + a.id().getZ() = 7) then "pass" else "fail" end

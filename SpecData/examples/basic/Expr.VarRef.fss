@@ -25,7 +25,7 @@ export Executable
 double[\T\](x:T):(T,T) = (x,x)
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   (x,y) = double[\String\]("test")
   println x
 end

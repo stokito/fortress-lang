@@ -18,7 +18,7 @@
 component arrayWithTrailingSpaces
 export Executable
 
-run(args:String...) = do
+run() = do
   a:ZZ32[2,2] = [ 10 11 
                   12 13 ]
   assert(a[1,1], 13, "Array subscripting a[1,1] should be ", 13, " instead of ",

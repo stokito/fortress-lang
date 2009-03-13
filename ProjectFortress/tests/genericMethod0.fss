@@ -36,7 +36,7 @@ value object MyRange(l:ZZ32, h:ZZ32) extends Generator[\ ZZ32 \]
   end
 end
 
-run(args:String...):() = do
+run():() = do
   MyRange(1,10).generate[\()\](VoidReduction,
                                fn (x:ZZ32):() => println "Hello World")
 end

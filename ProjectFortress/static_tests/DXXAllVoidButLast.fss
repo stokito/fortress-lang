@@ -29,7 +29,7 @@ component DXXAllVoidButLast
     ()
   end
 
-  run(args:String...):() = do
+  run():() = do
     f(s:String) : String = s
     f("This should fail b/c it's not void!")
     ()

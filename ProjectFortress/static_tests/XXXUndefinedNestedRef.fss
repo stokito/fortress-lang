@@ -18,7 +18,7 @@
 component XXXUndefinedNestedRef
 export Executable
 
-run(args:String...):() = do
+run():() = do
   atomic do
     if true then 34
     elif

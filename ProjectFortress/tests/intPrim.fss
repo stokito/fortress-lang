@@ -22,7 +22,7 @@ tst(s:String,a:Boolean):() = assert(a,s)
 
 tstEq(s:String, a:ZZ32, b:ZZ32):() = assert(a,b,s)
 
-run(args:String...) = do
+run() = do
     a:ZZ32 = 0
     tstEq("Minimum", a.minimum() - 1, a.maximum())
     tstEq("Maximum", a.maximum() + 1, a.minimum())

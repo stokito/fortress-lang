@@ -22,7 +22,7 @@ component Expr.Map
 import Map.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   m: Map[\String, ZZ32\]
 (** EXAMPLE **)
 m = { "a" |-> 0, "b" |-> 1, "c" |-> 2 }

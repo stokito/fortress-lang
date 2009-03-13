@@ -19,7 +19,7 @@ component ProvokeTypecheckError
 import String.{...}
 export Executable
 
-  run(args:String...):() = do
+  run():() = do
     e = EmptyString
     stuff = "Hello "
     more = "World"

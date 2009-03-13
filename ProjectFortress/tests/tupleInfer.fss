@@ -21,7 +21,7 @@ export Executable
 (* Tests that we can instantiate generics inside tuples *)
 opr MAXMIN[\N extends Number, I extends AnyIntegral\](a:(N,I),b:(N,I)):(N,I) = a
 
-run(args:String...):()=do
+run():()=do
   d = (3,4)
   a:(RR64,ZZ32) := (1.0,2)
   (b:RR64,c:ZZ32) := a

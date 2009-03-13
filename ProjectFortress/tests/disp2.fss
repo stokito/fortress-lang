@@ -31,7 +31,7 @@ end
 
 
 
-run(args:String...):()= do
+run():()= do
    println(f(B[\String\], 17))
    println(g(B[\String\], "Cat"))
    

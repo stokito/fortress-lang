@@ -37,7 +37,7 @@ test_c[\T\](a:T, b:String):String = builtinPrimitive("com.sun.fortress.interpret
 test_d[\T\](a:T, b:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.TestFn");
 test_d[\T\](a:T, b:ZZ32):String = "test_d " a " and " b
 
-run(args:String...) = do
+run() = do
     println(testFn(32, pi))
     println(43 TESTOP 2.414)
     println(test_a(17,32))

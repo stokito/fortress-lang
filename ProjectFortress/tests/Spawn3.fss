@@ -19,7 +19,7 @@ component Spawn3
 export Executable
 
 
-run(args:String...):()=do
+run():()=do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
    pt:Thread[\Any\] = spawn do y := 1; while (x = 0) do end end

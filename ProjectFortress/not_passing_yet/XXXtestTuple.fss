@@ -22,7 +22,7 @@ export Executable
 f(x:ZZ32, y:ZZ32..., z:ZZ32 = 0) = ()
 s = { 1, 2, 3 }
 
-run(args:String...) = do
+run() = do
   a = (1, z = 5)        (* should be rejected *)
   b = (1, s..., z = 5)
   f(1)

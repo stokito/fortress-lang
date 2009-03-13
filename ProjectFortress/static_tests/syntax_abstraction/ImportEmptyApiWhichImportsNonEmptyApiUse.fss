@@ -21,6 +21,6 @@ import ImportEmptyApiWhichImportsNonEmptyApiEmpty.{...}
 
 export Executable
 
-run(args:String...) = println 42
+run() = println 42
 
 end

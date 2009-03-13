@@ -23,6 +23,6 @@ object O
   opr [i:ZZ32]: ZZ32 = 0
 end
 
-run(args:String...) = ()
+run() = ()
 
 end

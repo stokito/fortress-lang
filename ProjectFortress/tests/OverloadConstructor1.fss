@@ -24,7 +24,7 @@ end
 
 Thing():Thing = Thing(0)
 
-run(args:String...):()=do
+run():()=do
   Thing(1).check(1)
   Thing().check(0)
 end

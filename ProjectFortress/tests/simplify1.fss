@@ -31,7 +31,7 @@ object Mrr[\R\](j:(R,R)->R, z:R) extends Red[\R\]
     join(a:R, b:R): R = j(a,b)
 end
 
-run(args:String...):()=do
+run():()=do
   joinString(a:String, b:String):String = a b
   r1 = Mrr[\String\](joinString, "")
   catdog = r1.join("cat", "dog")

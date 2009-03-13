@@ -30,7 +30,7 @@ object G[\T\]
    n = getCounter()
 end
 
-run(args:String...):()= do
+run():()= do
    println(if G[\String\].n = G[\String\].n then "PASS" else "FAIL")
    println(if G[\String\].n = G[\ZZ32\].n then "FAIL" else "PASS")
 

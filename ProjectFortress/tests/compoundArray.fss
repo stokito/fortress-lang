@@ -19,7 +19,7 @@ component compoundArray
 export Executable
 
 (* Tests that we can write compound array constants *)
-run(args:String...):()= do
+run():()= do
   a : RR64[2,2] = [ (7.07106781186547462 10^(-1)) (7.07106781186547462 10^(-1))
                     (7.07106781186547462 10^(-1)) (-7.07106781186547462 10^(-1)) ]
   println(a[0,0] " " a[0,1] // a[1,0] " " a[1,1])

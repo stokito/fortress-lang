@@ -20,5 +20,5 @@ component XXXTypeArgUndefined
  object blah[\T\]
   foo():() = ()
  end
- run(args: String ...): () = blah[\ZZZ32\].foo()
+ run(): () = blah[\ZZZ32\].foo()
 end

@@ -123,7 +123,7 @@ testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
     timeDump(s,slgs,timeDiffMS(consume,gen))
   end
 
-run(args:String...):() = do
+run():() = do
     samples : List[\ZZ32\] = <|0 asif ZZ32,1,2,7,11|>
     print("n\tn lg n")
     timeHdr("lbuild")

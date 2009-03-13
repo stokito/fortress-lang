@@ -19,7 +19,7 @@ component XXXtypecaseShadow
 export Executable
 
 (* This typecase rebinds x and ought to give an error. *)
-run(args:String...):() = do
+run():() = do
   a : RR64 = 3.0 (4.0)
   x = a
   typecase x=a of

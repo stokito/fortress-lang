@@ -19,7 +19,7 @@ component nativeImmutableArrayTest
 import NativeArray.{...} (* For PrimImmutableArray *)
 export Executable
 
-run(args:String...):() = do
+run():() = do
   z:ImmutableArray1[\String, 0, 3\] = PrimImmutableArray[\String, 3\]()
   z.init(0,"cat")
   z.init(1,"dog")

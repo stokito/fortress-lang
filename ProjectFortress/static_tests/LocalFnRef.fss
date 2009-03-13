@@ -21,7 +21,7 @@ component LocalFnRef
   (* Tests that LetFn correctly binds the two local function definitions over its
    * enclosing Block. *)
   
-  run(args:String...):() = do
+  run():() = do
     f(x:RR64):IntLiteral = 23
     g(x:Any, y:Any):IntLiteral = 42
     ignore(g(f, g)) 

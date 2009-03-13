@@ -27,7 +27,7 @@ object A
   f(x:Any, y:ZZ32):() = println("Horrors!")
 end
 
-run(args: String...): () = do
+run(): () = do
   println("This should've f a i l ed statically with a bad overloading!")
   x: ZZ32 = 17
   A.f(x,x)

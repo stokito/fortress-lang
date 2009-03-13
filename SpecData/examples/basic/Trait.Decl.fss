@@ -28,6 +28,6 @@ trait Catalyst extends Object
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

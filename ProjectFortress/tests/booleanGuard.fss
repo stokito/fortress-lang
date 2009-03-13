@@ -19,7 +19,7 @@ component booleanGuard
 import List.{...}
 export Executable
 
-run(args:String...):() = do
+run():() = do
     a = <|0+0,1,2,3,5,6,7|>
     c = <| x | x <- a, true |>
     assert(c,a," true")

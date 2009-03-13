@@ -19,7 +19,7 @@ component TestImportExport
 import TestImports3.{...}
 export Executable
 
-run(args:String...):()= do
+run():()= do
    println Object4().f()
 end
 

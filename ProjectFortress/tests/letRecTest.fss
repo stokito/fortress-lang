@@ -18,7 +18,7 @@
 component letRecTest
 export Executable
 
-run(args:String...):()=do
+run():()=do
   inc4(x) = (inc2(inc2(x)));
   inc(x) = (1 + (x));
   inc2(x) = (inc(inc(x)));

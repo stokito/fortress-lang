@@ -56,7 +56,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\] extends
   opr[i:ZZ32, j:ZZ32, k:ZZ32]:= (v:T)
 end
 
-run(args:String...):()=do
+run():()=do
 
   z:Array1[\String, 0, 3\] = array1[\String, 0, 3\]()
   z[0]:="cat"

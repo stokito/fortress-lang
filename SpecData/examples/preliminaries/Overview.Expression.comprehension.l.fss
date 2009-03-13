@@ -23,7 +23,7 @@ import Set.{...}
 
 export Executable
 
-run(args:String...) = do
+run() = do
   v:Set[\ZZ32\] = {0, 1, 2, 3, 4}
 (** EXAMPLE **)
   l = <| 2 x | x <- v |>

@@ -38,5 +38,5 @@ component CrazyGenerators
     end
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

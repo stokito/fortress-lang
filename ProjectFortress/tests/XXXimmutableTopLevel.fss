@@ -32,7 +32,7 @@ w=e+g
 g=e
 
 
-run(args:String...):()=do
+run():()=do
   println("x = " x)
   println("y = " y)
   println("z = " z)

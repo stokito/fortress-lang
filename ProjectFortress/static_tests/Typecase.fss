@@ -50,5 +50,5 @@ component Typecase
     end
   end
 
-  run(args:String...) : () = ()
+  run() : () = ()
 end

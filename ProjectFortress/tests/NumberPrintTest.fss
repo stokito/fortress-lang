@@ -18,7 +18,7 @@
 component NumberPrintTest
 export Executable
 
-run(args: String...) = do
+run() = do
   assert("" 3.1415926535897932384000000000001, "3.1415926535897932384000000000001")
   assert("" 43, "43")
   assert("" 12367125, "12367125")

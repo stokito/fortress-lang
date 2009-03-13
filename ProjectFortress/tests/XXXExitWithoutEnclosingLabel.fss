@@ -18,6 +18,6 @@
 component XXXExitWithoutEnclosingLabel
 export Executable
 
-run(args:String...):() = exit quit (* This should be a static error *)
+run():() = exit quit (* This should be a static error *)
 
 end

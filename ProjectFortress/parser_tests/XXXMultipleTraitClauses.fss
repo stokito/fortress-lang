@@ -23,6 +23,6 @@ end
 
 object O extends T end
 
-run(args:String...):()=()
+run():()=()
 
 end

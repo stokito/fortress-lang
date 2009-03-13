@@ -21,6 +21,6 @@ export Executable
 (* Check that the type checker fails if the last expression does not have
    type (). *)
 
-run(args:String...):() = (5, true, 1.0)
+run():() = (5, true, 1.0)
 
 end

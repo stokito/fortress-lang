@@ -19,5 +19,5 @@ component XXXUndefinedTypeInExtendsClause
   export Executable
   object blah[\T extends blah[\D\]\]
   end
-  run(args:String ...):()=()
+  run():()=()
 end

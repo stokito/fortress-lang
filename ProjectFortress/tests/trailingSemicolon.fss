@@ -29,6 +29,6 @@ object O
   x = 3
 end;
 
-run(args:String...) = println "OK";
+run() = println "OK";
 
 end

@@ -18,6 +18,6 @@
 component XXXLabel
 export Executable
 
-run(args:String...) = label OPR () end OPR
+run() = label OPR () end OPR
 
 end

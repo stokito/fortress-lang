@@ -21,6 +21,6 @@ export Executable
 
 object G⟦T⟧ end
 
-run(args:String...):()= println "PASS";
+run():()= println "PASS";
 
 end

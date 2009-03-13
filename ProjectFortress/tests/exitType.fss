@@ -32,6 +32,6 @@ func(x:ZZ32):ZZ32 = do
    x
 end
 
-run(args:String...) = func(3)
+run() = func(3)
 
 end

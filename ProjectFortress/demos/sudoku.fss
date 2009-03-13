@@ -80,7 +80,7 @@ propagate(board:Set[\ZZ32\][9,9]):() = do
    assert(unsolved, 0, "Left stuff unsolved!\n",board)
 end
 
-run(args:String...):()=do
+run():()=do
    init = initialSet()
    board:Set[\ZZ32\][9,9] = [ {8}  init {6}  {1}  init {9}  {3}  init {5} ;
                              init {9}  init init {8}  init {4}  init init;

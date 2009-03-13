@@ -18,7 +18,7 @@
 component primeCharacter
 export Executable
 
-run(args:String...) = do
+run() = do
   msg‴ = "Hello, World!" 
 
 println msg‴

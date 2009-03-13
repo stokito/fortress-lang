@@ -23,5 +23,5 @@ component LooseJuxt
     n (n + one) sin 3 n x log log x
     
 
-  run(args:String...):()= ()
+  run():()= ()
 end

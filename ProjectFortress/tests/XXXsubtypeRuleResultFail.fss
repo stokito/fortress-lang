@@ -35,7 +35,7 @@ f(s:S):S = s
 g(x:T, y:T, z:S):S = z
 g(x:T, y:S, z:S):T = x
 
-run(args:String...):()= do
+run():()= do
   println("Overloading should f a i l, this should not run")  
 end
 

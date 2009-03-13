@@ -21,7 +21,7 @@ import a.b.c.d.NestedTwo.{...}
 
 export Executable
 
-run(args:String...) = do
+run() = do
   println "Testing top level env for nested imports."
 end
 

@@ -21,6 +21,6 @@
 component Blargh
   import Zeepf.{...}
   export Executable
-  run(args) = foo("whatever")
+  run() = foo("whatever")
 end
 (** END EXAMPLE **)

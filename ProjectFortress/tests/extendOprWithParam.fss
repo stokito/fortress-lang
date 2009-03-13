@@ -30,7 +30,7 @@ object Chicken[\T\](x:T) extends Monoidish[\ Chicken[\T\], EGG \]
   holds(y:T) = do println("OK"); (x=y) end
 end
 
-run(args:String...):() =
+run():() =
   assert( (Chicken[\ZZ32\](3) EGG Chicken[\ZZ32\](7)).holds(7),"Doesn't hold 7")
 
 end

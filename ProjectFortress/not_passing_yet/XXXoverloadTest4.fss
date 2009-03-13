@@ -44,7 +44,7 @@ a(x, y, z)=do
 end
 
 
-run(args:String...):()=do
+run():()=do
   println(a(1))
   println(a(1,2))
   println(a(1,2,3))

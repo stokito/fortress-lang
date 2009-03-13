@@ -23,6 +23,6 @@ component GeneralizedIf
     o_str := if s <- m then s else "This is a string" end
   end
 
-  run(arg:String...) : () = ()
+  run() : () = ()
 
 end

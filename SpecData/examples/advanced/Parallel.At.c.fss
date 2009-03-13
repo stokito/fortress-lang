@@ -34,7 +34,7 @@ t = spawn at region(s) do
 (** END EXAMPLE **)
 end
 
-run(args:String...) = do
+run() = do
   f()
 end
 

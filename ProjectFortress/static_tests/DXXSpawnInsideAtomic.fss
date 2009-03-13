@@ -20,7 +20,7 @@ export Executable
 
   (* A spawn expression should not occur inside an atomic expression. *)
 
-  run(args:String...):() = do
+  run():() = do
   
     atomic (spawn ())
     

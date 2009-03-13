@@ -21,7 +21,7 @@ import Map.{...}
 import List.{...}
 export Executable
 
-run(args:String...):()=do
+run():()=do
     a:ZZ32[2,2] = [[\ZZ32\] 11 12 ;
                             21 22 ]
 

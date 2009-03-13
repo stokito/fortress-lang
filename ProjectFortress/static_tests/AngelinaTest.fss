@@ -32,7 +32,7 @@ object O(v:ZZ32)
     quack() = self.v
 end
 
-run(args:String...):() = do
+run():() = do
     o:O = O(3);
     println o.v
     println o.bar().x()

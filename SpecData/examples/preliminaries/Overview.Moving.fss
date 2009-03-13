@@ -31,6 +31,6 @@ trait Moving extends { Tangible, Object }
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

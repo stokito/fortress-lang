@@ -152,7 +152,7 @@ testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
         timeDump(s,slgs,timeDiffMS(consume,gen)))
   end
 
-run(args:String...):() = do
+run():() = do
     samples: List[\ZZ32\] = <|0 asif ZZ32,1,2,4,16,64,256,1024,4096|>
     headers: List[\String\] = appending[\String\](
             <|[\String\]"" "n","n lg n"|>,

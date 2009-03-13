@@ -39,6 +39,6 @@ object Sol extends { Moving, Stellar }
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

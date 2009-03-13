@@ -42,7 +42,7 @@ check(x:Boolean) = do
   println(if x then "PASS" else "FAIL")
 end
 
-run(args:String...):()=do
+run():()=do
 
 m1 = shredMaker()
 m2 = shredMaker()

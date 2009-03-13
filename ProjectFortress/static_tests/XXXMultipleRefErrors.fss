@@ -18,7 +18,7 @@
 component XXXMultipleRefErrors
 export Executable
 
-run(args:String...):() = do
+run():() = do
     x
     if y then z else t end
 end

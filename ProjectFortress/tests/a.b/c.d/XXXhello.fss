@@ -18,6 +18,6 @@
 component a.b.c.d.hello
 export Executable
 
-run(args:String...) = println "Hello, a.b.c.d World!"
+run() = println "Hello, a.b.c.d World!"
 
 end

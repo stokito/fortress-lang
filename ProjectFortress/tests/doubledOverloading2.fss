@@ -58,7 +58,7 @@ end
 object P extends A[\ZZ32\] end
 *)
 
-run(args: String...): () = do
+run(): () = do
   t = O[\ZZ32\]
   f(t)
   ()

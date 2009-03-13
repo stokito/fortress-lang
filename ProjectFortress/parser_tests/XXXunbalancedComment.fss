@@ -19,6 +19,6 @@
 component XXXunbalancedComment
 export Executable
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

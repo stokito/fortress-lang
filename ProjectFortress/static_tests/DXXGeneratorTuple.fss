@@ -25,5 +25,5 @@ component DXXGeneratorTuple
     end
   end
 
-  run(args:String...):()=()
+  run():()=()
 end

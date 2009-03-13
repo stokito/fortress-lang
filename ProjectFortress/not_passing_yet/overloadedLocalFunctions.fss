@@ -17,7 +17,7 @@
 
 component overloadedLocalFunctions
   export Executable
-  run(args:String...) = do
+  run() = do
     printType(x: Any) = println (x ": " typeName x)
     typeName(_: ())      = "()"
     typeName(_: ZZ32)    = "ZZ32"

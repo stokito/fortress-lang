@@ -30,6 +30,6 @@ if j IN (a:b) then println "win" end
 (** END EXAMPLE **)
 end
 
-run(args:String...) = f()
+run() = f()
 
 end

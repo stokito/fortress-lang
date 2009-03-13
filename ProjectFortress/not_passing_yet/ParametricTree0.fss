@@ -36,6 +36,6 @@ object Leaf0 extends { Tree0[\ E \] }
     where [\E\]
 end
 
-run(args:String...) = ()
+run() = ()
 
 end

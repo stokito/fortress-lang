@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component AfterTypeChecking
-export SimpleExecutable
+export Executable
 
 f(x: ZZ32[3], y: ZZ32^(2 BY 4)): () = ()
 

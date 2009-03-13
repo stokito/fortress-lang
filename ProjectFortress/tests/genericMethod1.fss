@@ -18,7 +18,7 @@
 component genericMethod1
 export Executable
 
-run(args:String...):()=do
+run():()=do
   a:ZZ32[6] = [ 0 1 2 3 4 5 ]
   b:ZZ32[2] = a.subarray[\0, 2, 0\](1)
   assert(b[0],0)

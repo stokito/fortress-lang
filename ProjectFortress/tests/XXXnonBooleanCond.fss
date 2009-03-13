@@ -23,7 +23,7 @@ krs1() = do
     println "bar"
 end
 
-run(args:String...) = do
+run() = do
     while krs1() do
         println "baz"
     end

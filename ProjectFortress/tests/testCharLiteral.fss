@@ -19,7 +19,7 @@ component testCharLiteral
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
     foo = 'a'
     bar = 'a'
     baz = 'b'

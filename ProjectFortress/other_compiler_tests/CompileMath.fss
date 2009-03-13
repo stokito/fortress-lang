@@ -18,7 +18,7 @@
 component CompileMath
 import java java.lang.{Math.random as jrandom}
 import java com.sun.fortress.nativeHelpers.{simplePrintRR64.nativePrintRR64 as jPrintRR64}
-export SimpleExecutable
+export Executable
 
 run() = do
    jPrintRR64(jrandom());

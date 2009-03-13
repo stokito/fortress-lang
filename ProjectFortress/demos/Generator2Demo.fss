@@ -56,7 +56,7 @@ export Executable
 id(x) = x
 snd(x) = do (a, b) = x; b end
 
-run(args:String...) : () = do
+run() : () = do
 
   (* arrays *)
   xit = array[\Number\]( 400 ).fill(fn (x:ZZ32):Number => |\random(10)-5/|)

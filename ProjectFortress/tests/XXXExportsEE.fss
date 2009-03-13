@@ -19,7 +19,7 @@ component XXXExportsEE
 
 exports Executable
 
-    run(args: String ...) = do
+    run() = do
             println "a very long string"
     end
 

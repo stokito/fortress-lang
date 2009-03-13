@@ -28,7 +28,7 @@ It seems to be a very inconsistent problem.
 
 *)
 
-run(args:String...) = do
+run() = do
   r3 : RR64[4] = [ 9 14 18 ]
   r4 : RR64[3] = [ 2 3 5 31 ]
   r7 : Array1[\RR64,0,4\] = [ 9 14 18 ]

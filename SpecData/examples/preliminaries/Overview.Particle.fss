@@ -30,7 +30,7 @@ object Particle(position: RR^3, velocity: RR^3)
 end
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
 end
 
 end

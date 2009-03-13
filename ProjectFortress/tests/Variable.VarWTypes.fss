@@ -20,7 +20,7 @@ export Executable
 
 (a:ZZ32, b:ZZ32, c:ZZ32) = (3, 5, 7)
 
-run(args:String...) = do
+run() = do
   assert(a+b+c, 15)
 end
 

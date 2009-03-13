@@ -19,7 +19,7 @@ component LocalFnUse
 import LocalFn.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     println(foo 2, 0)
     println(foo)
 end

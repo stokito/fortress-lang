@@ -43,7 +43,7 @@ end
 
 t(b:Boolean) = println (if b then "pass" else "fail")
 
-run(args:String...):()=do
+run():()=do
 
   t( a(g[\ZZ32\]) = 2 )
   a(g[\String\])

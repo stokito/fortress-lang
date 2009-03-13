@@ -31,7 +31,7 @@ test1()=do
     assert(count,25, "Nested transactions");
 end
 
-run(args:String...):()=do
+run():()=do
     println("Starting test")
     recordTime(6.0)
     test1() 

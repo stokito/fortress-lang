@@ -33,6 +33,6 @@ f() = do
   println "OK"
 end
 
-run(args:String...) = f()
+run() = f()
 
 end

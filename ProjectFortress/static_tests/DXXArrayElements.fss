@@ -26,5 +26,5 @@ component DXXArrayElements
     a := [1 2 3; 4 5 6; "Nels ruined this array!" 8 9]
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

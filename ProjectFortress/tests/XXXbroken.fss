@@ -19,7 +19,7 @@ component XXXbroken
 
    export Executable
 
-   run(args:String...):() =
+   run():() =
    do
      x:ZZ32 = "hello"
      y:() = 3

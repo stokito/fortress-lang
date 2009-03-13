@@ -33,7 +33,7 @@ topFunc(): T = do
     end
 end
 
-run(args:String ... ) = do
+run() = do
     println topFunc().callFoo()
 end
 

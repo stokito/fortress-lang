@@ -18,7 +18,7 @@
 component XXXmutableWithoutType
 export Executable
 
-run(args:String...) = do
+run() = do
   var (x, y) = (1, 2)
 end
 

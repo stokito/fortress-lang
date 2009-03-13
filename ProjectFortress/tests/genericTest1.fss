@@ -21,7 +21,7 @@ export Executable
 f[\nat n\]():ZZ32 = n
 g[\nat n, nat m\]():ZZ32 = n+m
 
-run(args:String...):()=do
+run():()=do
 
   println(
   if (f[\1\]() + g[\2,3\]() = 6) then "pass" else "fail" end

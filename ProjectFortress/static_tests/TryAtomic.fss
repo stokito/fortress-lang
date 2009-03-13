@@ -18,7 +18,7 @@
 component TryAtomic
     export Executable
     object foo end
-    run(args:String...):() = do
+    run():() = do
         var a:foo
         a:= tryatomic foo
     end

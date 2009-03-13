@@ -20,5 +20,5 @@ component XXXGarbageExtendsClause
 
   trait C[\T extends C[\Garbage\]\] end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

@@ -22,7 +22,7 @@ component keywords
   f( x : ZZ32, y : ZZ32 = x, z : ZZ32 = x + y ) : ZZ32 = x + y + z
   g( x : Boolean, y : Boolean, z : Boolean ) : Boolean = x OR y AND z
 
-  run(args:String...):() = do
+  run():() = do
     println f(1)
     println f(1,y=7)
     println f(2,z=0)

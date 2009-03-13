@@ -40,7 +40,7 @@ job2(a:Array[\ZZ32,ZZ32\]):() = do
     println(pre " pre and " (1000-pre) " post")
   end
 
-run(args:String...):() = do
+run():() = do
     a = toArray(0#1000)
     (job2(a),job1(a),job2(a))
     ()

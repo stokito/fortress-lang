@@ -18,7 +18,7 @@
 component naturalsTest
 export Executable
 
-run(args:String...):() = do
+run():() = do
   a = Nothing[\ZZ32\]
   b = Just[\Boolean\](true)
   println(b)

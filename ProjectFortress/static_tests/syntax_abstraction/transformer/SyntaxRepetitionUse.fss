@@ -21,7 +21,7 @@ component SyntaxRepetitionUse
 
   export Executable
 
-  run(args:String...) = do
+  run() = do
                           println (SELECT a a  a from)
                           println (SELECT b b b b from)
                           println (SELECT world)

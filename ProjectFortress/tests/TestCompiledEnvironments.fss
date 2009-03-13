@@ -21,7 +21,7 @@ export Executable
 Aa:ZZ32 = 6
 BB:ZZ32 = 7
 
-run(args:String...) = println "Hello, World!"
+run() = println "Hello, World!"
 
 trait Emptyא end
 trait Emptyב end

@@ -18,7 +18,7 @@
 component XXXUndefinedRefInLoop
 export Executable
 
-run(args:String...):() = do
+run():() = do
     for i <- 0#9 do
         huh
     end

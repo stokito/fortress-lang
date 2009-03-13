@@ -3,7 +3,7 @@ component oneFormatTest
 import Format.{...}
 export Executable
 
-    run(args:String...) = do
+    run() = do
         s = format("hello %n=3&nn= d", 1024)
     end
 

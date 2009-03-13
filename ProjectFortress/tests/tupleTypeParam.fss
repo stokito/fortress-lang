@@ -26,7 +26,7 @@ end
 
 f(x:ZZ32, t:(ZZ32,ZZ32)):Obj[\ZZ32\] = Obj[\ZZ32\](t)
 
-run(args:String...):() = do
+run():() = do
   t : Tra[\(ZZ32,ZZ32)\] = Obj[\ZZ32\](3,4)
   u = Obj[\(ZZ32,ZZ32)\]((1,2),(3,4))
   v = f(3, (4,5))

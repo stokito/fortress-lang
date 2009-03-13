@@ -25,5 +25,5 @@ component DXXSubscriptAssign
 
   foo(i:ZZ32,s:Sub) : () = s[i] := "Failure!" 
 
-  run(args:String...):() = ()
+  run():() = ()
 end

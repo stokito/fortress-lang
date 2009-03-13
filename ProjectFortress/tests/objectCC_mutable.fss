@@ -80,7 +80,7 @@ object O(var v:ZZ32)
         end
 end
 
-run(args:String...):() = do
+run():() = do
     obj1:T = topFunc1()
     a1 := a1 + 1
     assert(a1, obj1.x(), "obj1.x() failed.")

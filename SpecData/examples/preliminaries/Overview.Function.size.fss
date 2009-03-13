@@ -34,6 +34,6 @@ size(x: Nil) = 0
 size(x: Cons) = 1 + size(rest(x))
 (** END EXAMPLE **)
 
-run(args:String...) = println (size list)
+run() = println (size list)
 
 end

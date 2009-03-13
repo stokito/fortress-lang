@@ -25,7 +25,7 @@ object WrapZZ(n : ZZ32)
   opr juxtaposition(self, o:WrapZZ) = WrapZZ(n o.n)
 end
 
-run(args:String...):() = do
+run():() = do
   x : WrapZZ = WrapZZ(5)
   y : WrapZZ = WrapZZ(7)
   z = x y

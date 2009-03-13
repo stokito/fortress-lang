@@ -20,7 +20,7 @@ export Executable
 
   (* Atomic expression has type of its body. *)
 
-  run(args:String...):() = do
+  run():() = do
     
     ignore((atomic true) as Boolean)
     ()

@@ -25,6 +25,6 @@ export Executable
 pi = 3.141592653589793238462643383279502884197169399375108209749445923078
 (** END EXAMPLE **)
 
-run(args:String...) = println pi
+run() = println pi
 
 end

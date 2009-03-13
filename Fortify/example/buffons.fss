@@ -19,7 +19,7 @@ component fortress.executable
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    needleLength = 20
    numRows = 10
    tableHeight = needleLength numRows

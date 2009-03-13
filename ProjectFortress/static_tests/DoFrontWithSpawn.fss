@@ -20,7 +20,7 @@ export Executable
 
   (* A spawn is allowed in a do front without atomic. *)
 
-  run(args:String...):() = do
+  run():() = do
     var s:String
     atomic do
       s:= "Can't spawn here."

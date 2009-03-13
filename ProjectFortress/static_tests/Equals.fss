@@ -25,5 +25,5 @@ component Equals
     opr =(self, t:Const) = n = t.n
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

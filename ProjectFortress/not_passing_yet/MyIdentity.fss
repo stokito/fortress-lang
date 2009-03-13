@@ -40,6 +40,6 @@ end
 object MyIdentity extends IdentityOp[\MyIdentity, IDENTITY\] end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

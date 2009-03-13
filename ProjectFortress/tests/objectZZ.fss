@@ -28,6 +28,6 @@ g(x: Rank[\3\]) : Any = do
     v
   end
 
-run(args:String...):() = ()
+run():() = ()
 
 end

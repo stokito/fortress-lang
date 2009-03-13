@@ -39,7 +39,7 @@ end
 
 t(b:Boolean) = println (if b then "pass" else "fail")
 
-run(args:String...):()=do
+run():()=do
   wun=End[\String\]("cat", "extraparameter") (* should fail here *)
   two=Cons[\String\]("dog", wun)
   println (two.head() " " two.tail().head())

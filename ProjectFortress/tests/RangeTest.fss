@@ -82,7 +82,7 @@ chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
       end
   end
 
-run(args:String...):() = do
+run():() = do
     mt : Range[\ZZ32\] = openRange[\ZZ32\]()
     llo : Range[\ZZ32\] = 0:
     hlo : Range[\ZZ32\] = 5#

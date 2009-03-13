@@ -19,7 +19,7 @@ component atomic3
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var count : ZZ32 = 0
    println("Starting test")     
    for i <- 1#300 do

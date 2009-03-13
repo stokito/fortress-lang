@@ -23,7 +23,7 @@ needleLength = 20
 numRows = 10
 tableHeight = needleLength numRows
 
-run(args:String...):()=do
+run():()=do
    var hits : RR64 := 0.0
    var n : RR64 := 0.0
 

@@ -19,7 +19,7 @@ component dimensionUnit
 
 export Executable
 
-run(args:String...) = do
+run() = do
   x: RR64 Length = 1.3 m
   t: RR64 Time = 5 s
   v: RR64 Velocity = x/t

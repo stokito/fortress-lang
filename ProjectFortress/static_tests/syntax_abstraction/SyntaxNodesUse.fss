@@ -20,7 +20,7 @@ import SyntaxNodes.{...}
 
 export Executable
 
-run(args:String...) = do
+run() = do
     println (b-a-d 7)
     (*
     b-a-d b

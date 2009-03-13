@@ -20,7 +20,7 @@ export Executable
 
 (* Test that supertype cannot be ascripted to a subtype. *)
 
-run(args:String...):() = do
+run():() = do
   x:Any = 5
   y:ZZ32 = x as ZZ32
 end

@@ -44,6 +44,6 @@ component OverloadedFunctions
     ignore(f(i, "hello", true, false))    
   end
 
-  run(args: String...):() = ()
+  run():() = ()
 
 end

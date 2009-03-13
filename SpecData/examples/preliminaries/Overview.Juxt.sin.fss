@@ -26,6 +26,6 @@ f(x) =
 sin x
 (** END EXAMPLE **)
 
-run(args:String...) = println (f 3.141592)
+run() = println (f 3.141592)
 
 end

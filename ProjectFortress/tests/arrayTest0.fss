@@ -18,7 +18,7 @@
 component arrayTest0
 export Executable
 
-run(args:String...):()=do
+run():()=do
   (* This used to use FlatStorageMaker, which no longer extends
      Array1. *)
   z:Array1[\String, 0, 3\] = array1[\String, 3\]()

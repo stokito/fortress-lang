@@ -32,5 +32,5 @@ component InheritedMethod
   object bar extends foo
     otherThing():String = doIt()
   end
-  run(args:String...):() = ignore(bar.doIt())
+  run():() = ignore(bar.doIt())
 end

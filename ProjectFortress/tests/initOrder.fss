@@ -43,6 +43,6 @@ end
 f(me:M, other:M):M = me
 f(other : RR64, me : V) : V = me
 
-run(args:String...) = println(f(13,14))
+run() = println(f(13,14))
 
 end

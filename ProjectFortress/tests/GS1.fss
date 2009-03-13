@@ -23,6 +23,6 @@ object G[\T\]
    p(s:String) = println(s)
 end
 
-run(args:String...):()= G[\String\].p("PASS");
+run():()= G[\String\].p("PASS");
 
 end

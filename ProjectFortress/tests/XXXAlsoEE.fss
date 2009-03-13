@@ -18,7 +18,7 @@
 component XXXAlsoEE
 export Executable
 
-    run(args: String ...) = do
+    run() = do
         do
             println "a very long string"
         also

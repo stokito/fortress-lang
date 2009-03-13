@@ -38,7 +38,7 @@ h(t:(ZZ32, ZZ32, ZZ32)) = do
   "h tupled"
 end
 
-run(args:String...):() = do
+run():() = do
    println B.f(3, 4)
    println g(10, 3)
    println g((10, 3))

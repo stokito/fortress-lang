@@ -44,7 +44,7 @@ tst(a:Any, b:Any, msg:String): () =
         println(b msg)
     end
 
-run(Args:String...) = do
+run() = do
   tst(<|2.5|>,"<|2.5|>","")
   tst(<<|2.5|>>,"<<|2.5|>>","")
 

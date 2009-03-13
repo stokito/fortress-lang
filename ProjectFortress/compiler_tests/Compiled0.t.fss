@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component Compiled0.t
-import SimpleExecutable.{...}
-export SimpleExecutable
+import Executable.{...}
+export Executable
 
   run():() = println "Hello, World!"
 

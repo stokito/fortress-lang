@@ -25,5 +25,5 @@ component DXXArrayElement3
 
 end
 
-  run(args:String...):()= ()
+  run():()= ()
 end

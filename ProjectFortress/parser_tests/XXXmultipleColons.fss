@@ -20,7 +20,7 @@ export Executable
 
 opr :::(x: Any, y: Any) = (x,y)
 
-run(args) = do
+run() = do
  1 ::: 2
  ()
 end

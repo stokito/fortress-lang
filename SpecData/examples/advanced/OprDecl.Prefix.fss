@@ -29,7 +29,7 @@ end
 opr INV(x: Widget): Widget = x.invert()
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   assert(INV Widget = 0)
   println("OprDecl.Prefix.fss passed.")
 end

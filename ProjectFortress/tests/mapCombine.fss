@@ -19,7 +19,7 @@ component mapCombine
 import Map.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   n: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 4, 2 |-> 8}
   f: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 9, 2 |-> 3}
   println n

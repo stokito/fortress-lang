@@ -88,7 +88,7 @@ object O4[\X extends String, S extends String\](x:X, s:S)
         end
 end *)
 
-run(args:String...):() = do
+run():() = do
     o1:O[\String, true, 7\] = O[\String, true, 7\](4, "Hello");
     o1.v := o1.v + 1
     t:T[\String\] = o1.bar()

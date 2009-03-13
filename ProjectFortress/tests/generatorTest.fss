@@ -25,7 +25,7 @@ tst(a:Number, b:Number, c:String): () =
         println(c " OK")
     end
 
-run(args:String...):() = do
+run():() = do
     r1 = 1#5
     r2 = 50#9
     r3 = 7#0

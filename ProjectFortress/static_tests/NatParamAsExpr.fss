@@ -19,5 +19,5 @@ component NatParamAsExpr
 
  foo[\nat n\]():ZZ32 = n+n
 
- run(args:String...):() = ()
+ run():() = ()
 end

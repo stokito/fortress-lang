@@ -32,6 +32,6 @@ test testFactorial1() = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

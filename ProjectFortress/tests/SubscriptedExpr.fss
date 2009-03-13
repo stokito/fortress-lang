@@ -28,7 +28,7 @@ object O
   opr[i:ZZ32]  :=(v:ZZ32) = flat[i] := v
 end
 
-run(args:String...) =
+run() =
   if O[0] = O(./0/.) then
     println "FAIL!"
     println O[0]

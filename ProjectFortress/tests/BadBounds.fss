@@ -17,7 +17,7 @@
 
 component BadBounds
 export Executable
-run(args:String...) :() = do
+run() :() = do
   b:ZZ32[3,2] = [1 2
                  3 4
                  5 6]

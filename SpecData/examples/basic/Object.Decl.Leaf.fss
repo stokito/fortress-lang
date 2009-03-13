@@ -29,6 +29,6 @@ object Leaf extends Tree
 end
 (** END EXAMPLE **)
 
-run(args:String...) = Leaf.printTree()
+run() = Leaf.printTree()
 
 end

@@ -20,7 +20,7 @@ export Executable
 
   (* Type of do block with multiple do fronts is union of block types. *)
 
-  run(args:String...):() = do
+  run():() = do
     var b:Boolean
 
     b:= do

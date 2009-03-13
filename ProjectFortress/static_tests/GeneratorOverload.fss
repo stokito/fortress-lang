@@ -32,5 +32,5 @@ component GeneratorOverload
     (ignore( (i+i) as ZZ32 )), i <- g
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

@@ -37,7 +37,7 @@ s(a:A, n:ZZ32) = println(
      "fail " a.id().getI() " "  a.id().getZ() " " n end
   )
 
-run(args:String...):()=do
+run():()=do
 
   a = A(3,4)
   s(a,7)

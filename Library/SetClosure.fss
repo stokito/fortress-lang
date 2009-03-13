@@ -134,6 +134,6 @@ test testClosure2():() = do
   println("Closure (binary generator) tests pass")
 end
 
-run(args: String...):() = ()
+run():() = ()
 
 end

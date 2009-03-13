@@ -47,7 +47,7 @@ object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
    count() = 1 + cdr().count()
 end
 
-run(args:String...):()=do
+run():()=do
    init:List[\ZZ32\] := Empty[\ZZ32\]
    for i<-1#10 do
       atomic do

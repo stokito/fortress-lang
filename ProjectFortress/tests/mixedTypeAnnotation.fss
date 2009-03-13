@@ -19,7 +19,7 @@ component mixedTypeAnnotation
 import List.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   (c:ZZ32,m:List[\ZZ32\],newinv) = (1, <|[\ZZ32\]1, 2|>, "test")
 (*
   assert(c, 1)

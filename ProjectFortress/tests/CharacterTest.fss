@@ -18,7 +18,7 @@
 component CharacterTest
 export Executable
 
-run(args:String...):() = do
+run():() = do
    assert('a' = 'a', true, "Failure of 'a' = 'a'")
    assert('a' = 'A', false, "Failure of 'a' = 'A'")
    assert('a' = 'b', false, "Failure of 'a' = 'b'")

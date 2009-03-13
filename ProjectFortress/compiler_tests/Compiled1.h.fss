@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Compiled1.h
-export SimpleExecutable
+export Executable
 
 run() = do
  println("Hello, "World!")

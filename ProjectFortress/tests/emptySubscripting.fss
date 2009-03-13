@@ -22,7 +22,7 @@ object O
   opr [] = "OK"
 end
 
-run(args:String...):() = do
+run():() = do
   a = O
   assert(a[], "OK")
 end

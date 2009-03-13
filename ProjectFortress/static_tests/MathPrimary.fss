@@ -17,7 +17,7 @@
 
 component MathPrimary
   export Executable
-  run(args: String...):() = ()
+  run():() = ()
   blah(arr: Array1[\ZZ32,0, 5 \],a:ZZ32,b:ZZ32): RR64 = do
     arr[a]^b
   end

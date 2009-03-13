@@ -449,7 +449,7 @@ MM2(a:ZZ32[2,2],b:ZZ32[2,2]):ZZ32[2,2] = do
    c
 end
 
-run(args:String...):()=do
+run():()=do
    var a:ZZ32[32,32] = matrix[\ZZ32, 32, 32\]() (* all 9 *)
    for i <- 0#32 do for j <- 0#32 do
      a[i,j] := 1

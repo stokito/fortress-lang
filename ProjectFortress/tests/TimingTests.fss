@@ -24,7 +24,7 @@ fib(x)=
     else fib(x-1) + fib(x-2)
     end
 
-run(args:String...):()=do
+run():()=do
     assert(Timing("",0).toString, "0ns")
     assert(Timing("boo",0).toString, "boo 0ns")
     assert(Timing("",500).toString, "0.5us")

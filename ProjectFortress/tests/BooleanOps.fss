@@ -45,7 +45,7 @@ binop(op:(Boolean,Boolean)->Boolean,
     asseq(s,ff,ff',false,false)
   end
 
-run(args:String...):() = do
+run():() = do
     binop(fn (a,b) => (a SEQV b)," SEQV ",true,false,false,true)
     binop(fn (a,b) => (a=b),"=",true,false,false,true)
     binop(fn (a,b) => (a<->b),"<->",true,false,false,true)

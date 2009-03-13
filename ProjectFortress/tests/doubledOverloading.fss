@@ -46,7 +46,7 @@ a(): () = fail("a()")
 b[\F\](v: F): A[\F\] = fail("b(v)")
 b(): () = fail("b()")
 
-run(args: String...): () = do
+run(): () = do
   println("OK, accepted statically.")
 end
 

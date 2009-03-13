@@ -30,7 +30,7 @@ object A extends B end
 f[\ U, V \] ( u:U, v:V, b:B) = 1
 f[\ U, V \] ( v:V, u:U, a:A) = 2
 
-run(args:String...):() = do
+run():() = do
   println("FAIL: should have failed in generic overloading of f" )
 
   g = f[\A, B\]

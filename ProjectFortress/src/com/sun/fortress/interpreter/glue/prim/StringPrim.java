@@ -18,14 +18,22 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /* import java.lang.String; /* SPARE COPY  */
 import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
+import java.util.List;
 
+import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
+import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 
 /**
@@ -94,4 +102,54 @@ public static final class GetEnvironment extends Util.SS2S {
         return com.sun.fortress.repository.ProjectProperties.get(name,defaultValue);
     }
 }
+
+public static final class GetProgramArgs extends NativeFn0 {
+    static volatile List<String> args = null;
+    // Must be volatile.  We're initing in one thread, running in another.
+    // Also we're now double-checked since we must initialize lazily after
+    // the universe has started up and is in a happy state.
+    static volatile FValue convertedArgs = null;
+
+    // See also NonPrimitive.buildEnvFromParams.
+    public static void registerProgramArgs(List<String> args) {
+        GetProgramArgs.convertedArgs = null;
+        GetProgramArgs.args = args;
+    }
+
+    private static FValue grindProgramArgs() {
+        FType stringType = FString.EMPTY.type();
+        int[] natParams = new int[1];
+        natParams[0] = args.size();
+        Simple_fcn mkArr =
+            Glue.instantiateGenericConstructor(Driver.getFortressLibrary(),
+                                               WellKnownNames.varargsFactoryName,
+                                               stringType, natParams);
+        FValue result = mkArr.applyToArgs();
+        if (!(result instanceof PrimImmutableArray.PrimImmutableArrayObject)) {
+            return bug("registerProgramArgs: unexpected varargs array type "+result);
+        }
+        PrimImmutableArray.PrimImmutableArrayObject arr =
+            (PrimImmutableArray.PrimImmutableArrayObject)result;
+        for (int i = 0; i < args.size(); i++) {
+            arr.init(i, FString.make(args.get(i)));
+        }
+        return result;
+    }
+
+    protected FValue applyToArgs() {
+        if (convertedArgs == null) {
+            if (args == null) {
+                return bug("No program args were registered by calling "+
+                           "StringPrim.GetProgramArgs.registerProgramArgs");
+            }
+            synchronized(args) {
+                if (convertedArgs == null) {
+                    convertedArgs = grindProgramArgs();
+                }
+            }
+        }
+        return convertedArgs;
+    }
+}
+
 }

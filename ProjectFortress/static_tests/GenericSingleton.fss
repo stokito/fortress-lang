@@ -22,7 +22,7 @@ object A end
 object B[\T\](t:T) end
 object C[\T\] end
   
-run(args:String...):() = do
+run():() = do
   v1 = A
   v2a = B[\ZZ32\]
   v2b = B[\IntLiteral\](0)

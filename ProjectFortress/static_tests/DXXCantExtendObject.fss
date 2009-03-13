@@ -25,5 +25,5 @@ component DXXCantExtendObject
 
   trait Loser extends DontExtendMe end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

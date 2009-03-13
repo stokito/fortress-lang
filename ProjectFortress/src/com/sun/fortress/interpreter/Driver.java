@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.ForeignComponentWrapper;
 import com.sun.fortress.interpreter.env.NonApiWrapper;
+import com.sun.fortress.interpreter.evaluator.values.FVoid;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
+import com.sun.fortress.interpreter.glue.prim.StringPrim;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
@@ -548,7 +550,7 @@ public class Driver {
     // This runs the program from inside a task.
     public static FValue
         runProgramTask(ComponentIndex p,
-                       List<String> args, String toBeRun,
+                       String toBeRun,
                        GraphRepository fr)
         throws IOException
     {
@@ -557,11 +559,7 @@ public class Driver {
 
         FunctionClosure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
-        ArrayList<FValue> fvalueArgs = new ArrayList<FValue>();
-        for (String s : args) {
-            fvalueArgs.add(FString.make(s));
-        }
-        FValue ret = run_fn.functionInvocation(fvalueArgs, toplevel);
+        FValue ret = run_fn.functionInvocation(Collections.<FValue>emptyList(), toplevel);
         // try {
         // e.dump(System.out);
         // } catch (IOException ioe) {
@@ -599,11 +597,12 @@ public class Driver {
         if (group == null)
             group = new FortressTaskRunnerGroup(getNumThreads());
 
+        StringPrim.GetProgramArgs.registerProgramArgs(Collections.<String>emptyList());
+
         for (String s : tests) {
-            List<String> args = new ArrayList<String>();
             if ( verbose )
                 System.err.print("starting " + s + "... ");
-            EvaluatorTask evTask = new EvaluatorTask(fr, p, s, args);
+            EvaluatorTask evTask = new EvaluatorTask(fr, p, s);
             group.invoke(evTask);
             if (evTask.causedException()) {
                 throw evTask.taskException();
@@ -621,7 +620,9 @@ public class Driver {
         if (group == null)
             group = new FortressTaskRunnerGroup(getNumThreads());
 
-        EvaluatorTask evTask = new EvaluatorTask(fr, p, "run", args);
+        StringPrim.GetProgramArgs.registerProgramArgs(args);
+
+        EvaluatorTask evTask = new EvaluatorTask(fr, p, "run");
         try {
             group.invoke(evTask);
             if (evTask.causedException()) {

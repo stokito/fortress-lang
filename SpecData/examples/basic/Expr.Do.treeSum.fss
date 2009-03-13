@@ -40,6 +40,6 @@ treeSum(t: TreeNode) = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = println treeSum(TreeLeaf)
+run() = println treeSum(TreeLeaf)
 
 end

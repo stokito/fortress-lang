@@ -19,7 +19,7 @@ component realArith
 import Constants.{...}
 export Executable
 
-run(ars:String...):()=do
+run():()=do
   x : RR64 = 14.0
   y : RR64 = 14.0
   z : RR64 = x y

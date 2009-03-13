@@ -44,7 +44,7 @@ x:ZZ32=sideeffect(1)
 y=sideeffect(2)
 z:ZZ32:=sideeffect(3)
 
-run(args:String...):()=do
+run():()=do
   println("x = " x)
   println("y = " y)
   println("z = " z)

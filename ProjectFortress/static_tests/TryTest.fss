@@ -22,7 +22,7 @@ component TryTest
 
   end
 
-  run(args:String...) : () = do
+  run() : () = do
     var z:String
     z := try
       throw FooExn

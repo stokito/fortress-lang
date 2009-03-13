@@ -22,7 +22,7 @@ import Set.{...}
 
 export Executable
 
-run(args:String...) = do
+run() = do
   t:Set[\ZZ32\] = {0, 1, 2, 3, 4}
 (** EXAMPLE **)
   s = { x DIV 2 | x <- t}

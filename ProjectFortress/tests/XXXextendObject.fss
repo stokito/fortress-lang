@@ -26,6 +26,6 @@ export Executable
     object Mumble extends { Foo }
     end
 
-run(args:String...) = ()
+run() = ()
 
 end

@@ -18,7 +18,7 @@
 component varTest
 export Executable
 
-run(args:String...):() = do
+run():() = do
   x:ZZ64 = 0
   println(x)
 end

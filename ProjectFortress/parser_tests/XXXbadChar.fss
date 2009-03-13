@@ -18,7 +18,7 @@
 component XXXbadChar
 export Executable
 
-run(args:String...) = do
+run() = do
   println "bad character: "
   end
 

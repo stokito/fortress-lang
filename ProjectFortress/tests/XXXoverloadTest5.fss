@@ -33,7 +33,7 @@ a(t:T, s:S)=do
   println("a2 called")
 end
 
-run(args:String...):()=do
+run():()=do
   println("fail") (* TEST SHOULD NOT RUN *)
 end
 

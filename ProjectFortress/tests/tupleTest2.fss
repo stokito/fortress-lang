@@ -19,7 +19,7 @@ component tupleTest2
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
     for i <- 1 # 10 do
        for j <- 1 # 10 do
         (min,max) = (i MIN j, i MAX j)

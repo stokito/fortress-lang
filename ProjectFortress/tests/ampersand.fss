@@ -18,7 +18,7 @@
 component ampersand
 export Executable
 
-run(args) = do
+run() = do
   println "OK &"&(* in comment & *)
 
   x = 3

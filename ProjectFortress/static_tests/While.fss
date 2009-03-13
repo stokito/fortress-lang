@@ -27,6 +27,6 @@ component While
     s_void := while b do () end
   end
 
-  run(arg:String...) : () = ()
+  run() : () = ()
 
 end

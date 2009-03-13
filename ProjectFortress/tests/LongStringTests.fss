@@ -20,6 +20,7 @@ import File.{...}
 import String.{...}
 import Timing.{...}
 import List.{...}
+import System.{getEnvironment}
 
 export Testable
 
@@ -139,7 +140,7 @@ tryGen(endpoints, f) = do
     end
 end
 
-run(args:String...):() = label runMethod
+run():() = label runMethod
     readFile(32)
     println fileContents
     miniTest()

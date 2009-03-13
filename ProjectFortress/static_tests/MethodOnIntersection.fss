@@ -23,7 +23,7 @@
     bar():()
   end
   
-  run(args: String ...):() = ()
+  run():() = ()
   
   quux(obj: A):() = typecase obj of
     B => do

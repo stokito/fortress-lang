@@ -37,7 +37,7 @@ component Multifix
      So overloading should be taken into account *)
   quux(a:Foo,b:Gnar) : Gnar = a+a+a+b
 
-  run(args:String...):() = do
+  run():() = do
     assert(foo(Foo), "Surprise!")
     assert(bar(Foo), Foo)
     assert(quux(Foo, Gnar), Gnar)

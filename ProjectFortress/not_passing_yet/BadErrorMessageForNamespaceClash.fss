@@ -17,7 +17,7 @@
 
 component BadErrorMessageForNamespaceClash
 
-  export Executable 
+  export Executable
 
   trait Element
   end

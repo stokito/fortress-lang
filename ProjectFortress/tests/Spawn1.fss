@@ -18,7 +18,7 @@
 component Spawn1
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var x:ZZ32 = 0
    pt:Thread[\Any\] = spawn do x:=1 end
    pt.wait()

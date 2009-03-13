@@ -25,7 +25,7 @@ object Infinity extends Any
   asString()="Infinity"
 end
 
-run(args:String...):() = do
+run():() = do
   println(Infinity)
 end
 

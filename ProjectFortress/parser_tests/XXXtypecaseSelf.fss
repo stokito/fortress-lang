@@ -16,9 +16,10 @@
  ******************************************************************************)
 
 component XXXtypecaseSelf
+import System.{args}
 export Executable
 
-run(args:String...) = do
+run() = do
   x = |args|
   typecase self of
     ZZ32 => println x

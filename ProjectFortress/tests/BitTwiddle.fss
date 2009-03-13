@@ -45,7 +45,7 @@ doit[\I extends Integral[\I\]\](n:I,sz:ZZ64) = do
   assert((n_bar RSHIFT sz), z_bar,"shiftR out neg")
 end
 
-run(args:String...) = do
+run() = do
   n : ZZ32 = 245
   n' : ZZ64 = 24579235987
   doit(n,32)

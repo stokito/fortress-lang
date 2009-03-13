@@ -29,7 +29,7 @@ end
 opr +(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n + o.n)
 opr juxtaposition(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n o.n)
 
-run(args:String...):() = do
+run():() = do
   x : WrapZZ = WrapZZ(5)
   y : WrapZZ = WrapZZ(7)
   z = x y

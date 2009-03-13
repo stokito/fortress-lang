@@ -31,7 +31,7 @@ object B extends A end
 
 foo(xs: PrefixSet[\A,List[\A\]\]) = ()
 
-run(args) = do
+run() = do
     xs = <|<|[\A\]|>, <|[\A\] B|>, <|[\A\] B, B|>|>
     ps = {/[\A,List[\A\]\] x | x <- xs /}
     foo(ps)

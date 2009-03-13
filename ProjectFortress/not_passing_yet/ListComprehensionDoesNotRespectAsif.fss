@@ -25,7 +25,7 @@ export Executable
 trait A end
 object B extends A end
 
-run(args:String...) = do
+run() = do
     ls:List[\A\] = <| (B asif A) |>
     cs:List[\A\] = <| ( x asif A ) | x <- ls |>
 end

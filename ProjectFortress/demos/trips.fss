@@ -27,6 +27,7 @@ Successive versions build ever more efficient approaches. *)
 component trips
 import List.{...}
 import Set.{...}
+import System.{args}
 export Executable
 
 printUsage() = do
@@ -284,7 +285,7 @@ for generation, but someone in the community has suggested the former
 for sequential generation and the later for parallel generation
 ... interesting!  *)
 
-run(args:String...) = do
+run() = do
     if |args| = 0 then printUsage() end
     n = if |args| = 0 then 100 else strToInt args[0] end
     totalTime := 0

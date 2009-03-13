@@ -18,7 +18,7 @@
 component Spawn2
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var x : ZZ32 = 0
    var y : ZZ32 = 0
    pt:Thread[\Any\] = spawn atomic do  x:=1; y := 1 end

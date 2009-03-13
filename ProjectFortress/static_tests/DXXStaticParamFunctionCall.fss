@@ -26,7 +26,7 @@
 
    foo[\T extends B\](x:T):T = x
 
-   run(args: String...):() = ignore(foo(A))
+   run():() = ignore(foo(A))
 
 
  end

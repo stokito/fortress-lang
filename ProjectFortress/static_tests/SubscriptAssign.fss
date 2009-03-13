@@ -25,5 +25,5 @@ component SubscriptAssign
     my_array[a]
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

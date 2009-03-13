@@ -231,7 +231,7 @@ object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
    deleteMinimum():Tree = delete(minimum())
 end
 
-run(args:String...):()=do
+run():()=do
    root:Tree := emptyNode()
    root := root.add(1)
    root := root.add(2)

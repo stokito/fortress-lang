@@ -51,7 +51,7 @@ t(s:String, expected:ZZ32, actual:ZZ32):() = do
   end
 end
 
-run(args:String...):()=do
+run():()=do
   o:O = O()
 
   t("o.a(s1, s2)=", 3, o.a(s1,s2))  (* O.a *)

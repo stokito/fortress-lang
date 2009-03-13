@@ -27,7 +27,7 @@ object Player
   arr:ZZ32[2] = array1[\ZZ32,2\](1)
 end
 
-run(args):() = do
+run():() = do
   player = Player
   player.indices := 5
   tuple' = (4, 9, 8)

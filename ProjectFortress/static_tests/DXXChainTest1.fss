@@ -23,5 +23,5 @@ component DXXChainTest1
     (a = b)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

@@ -30,6 +30,6 @@ component getterUsedNotApplied
       end
   end o
 
-  run(args: String ...) = o.verify()
+  run() = o.verify()
 
 end getterUsedNotApplied

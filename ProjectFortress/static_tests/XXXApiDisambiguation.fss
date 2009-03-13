@@ -19,5 +19,5 @@ component XXXApiDisambiguation
   import ApiDisambiguation.{...}
   export Executable
 
-  run(args:String...):() = ()
+  run():() = ()
 end

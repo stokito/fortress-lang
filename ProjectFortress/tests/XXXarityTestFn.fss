@@ -20,7 +20,7 @@ export Executable
 
 testFn(x:String):String = builtinPrimitive("glue.TestFn");
 
-run(args:String...) = do
+run() = do
     println(testFn("mumble"))
 end
 

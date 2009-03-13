@@ -20,6 +20,6 @@ export Executable
 
 object O(x: ZZ32...) end
 
-run(args:String...) = println "Fail!"
+run() = println "Fail!"
 
 end

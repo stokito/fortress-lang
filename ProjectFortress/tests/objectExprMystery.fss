@@ -25,7 +25,7 @@ export Executable
    things to work. *)
 mtest(a:Array2[\RR64,0,6,0,6\]):() = ()
 
-run(args:String...):() = do
+run():() = do
   a : RR64[6,6] = array2[\RR64,6,6\](0.0)
 end
 

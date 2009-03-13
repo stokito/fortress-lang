@@ -18,7 +18,7 @@
 component typecaseVarTest
 export Executable
 
-run(args:String...):()=do
+run():()=do
    typecase x = "One Two Three " of
       String => println "pass: " x
       ZZ32 => println "FAIL "

@@ -56,7 +56,7 @@ opr EEK(x:Bar, y:Bar): Boolean = true
 opr EEK(x:Baz, y:Baz): Boolean = true
 opr NEEK(x:Foo, y:Foo): Boolean = NOT (x EEK y)
 
-run(args:String...):() = do
+run():() = do
     (* Generic non-overloaded function *)
     x : List[\Foo\] = <| Bar asif Foo, Bar, Bar |>
     y : List[\Foo\] = <| Baz asif Foo, Baz |>

@@ -23,7 +23,7 @@ export Executable
 
 
 
-run(args:String...):() = do
+run():() = do
   assert("" 1/2, "1/2")
   assert("" (1/2 + 2/3), "7/6")
   assert("" (-364/113), "-364/113")

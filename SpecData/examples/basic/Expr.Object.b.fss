@@ -25,6 +25,6 @@ export Executable
 f[\T\](x: T) = object f': T = x end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

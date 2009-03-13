@@ -18,6 +18,6 @@
 component XXXtest.OPR.name
 export Executable
 
-run(args:String...) = ()
+run() = ()
 
 end

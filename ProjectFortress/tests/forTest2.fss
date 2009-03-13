@@ -30,7 +30,7 @@ b() = do
        end
 end
 
-run(args:String...):()=do
+run():()=do
    for i <- 1#2 do
       b()
    end

@@ -38,6 +38,6 @@ myNum.add(otherNum) (* NOT myNum.add otherNum *)
 (** END EXAMPLE **)
 end
 
-run(args:String...) = f()
+run() = f()
 
 end

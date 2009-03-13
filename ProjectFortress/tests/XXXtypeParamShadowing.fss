@@ -21,6 +21,6 @@ export Executable
 trait T end
 object O[\T\] end
 
-run(args:String...) = println "This program should be failed with a shadowing bug."
+run() = println "This program should be failed with a shadowing bug."
 
 end

@@ -19,7 +19,7 @@ component GeneratorClauseUse
 import GeneratorClause.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     (* for loop *)
     (foobar 1, 2, 3)
     (* while loop *)

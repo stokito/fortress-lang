@@ -27,7 +27,7 @@ add(database:SkipList[\String,ZZ32,2\], name:String, ranking: ZZ32) = database.a
 
 remove(database:SkipList[\String,ZZ32,2\], name:String) = database.remove(name)
 
-run(args:String...):() = do
+run():() = do
 
   database1 := add(database1, "David", 3)
   database1 := add(database1, "Emily", 2)

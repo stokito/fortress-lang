@@ -39,7 +39,7 @@ f(p:P) = do println("f(P) called"); x += 4; end
 f(y:RR64) = do println("f(RR64) called"); x += 2; end
 
 
-run(args:String...):() = do
+run():() = do
   f(1.0)
   f(O)
   f(P)

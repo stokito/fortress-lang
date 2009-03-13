@@ -29,6 +29,6 @@ printThreeWords() = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = printThreeWords()
+run() = printThreeWords()
 
 end

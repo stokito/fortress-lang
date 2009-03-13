@@ -25,6 +25,6 @@ export Executable
 (x: ZZ64, y: ZZ64, z: ZZ64) = (0, 1, 2)
 (** END EXAMPLE **)
 
-run(args:String...) = println (x + y + z)
+run() = println (x + y + z)
 
 end

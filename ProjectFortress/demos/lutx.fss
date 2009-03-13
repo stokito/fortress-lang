@@ -110,7 +110,7 @@ mtest(a(*:RR64[6,6]*)):() = do
   println(l u)
 end
 
-run(args:String...):() = do
+run():() = do
   a : RR64[6,6] = matrix[\RR64,6,6\]()
   a.fill(fn (i,j) => if j <= i then 7.0-i else 7 6 5 2.0 end)
   mtest(a)

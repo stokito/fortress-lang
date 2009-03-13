@@ -46,7 +46,7 @@ g[\U, V\](u:U, v:V)
      v.f()
    end
 
-run(args:String...):() = do
+run():() = do
   g(O,P)
   println( if x=3 then "PASS" else "FAIL" end )
 end

@@ -21,7 +21,7 @@ export Executable
 
 (* Causes null pointer exception during sum computation *)
 
-run(args:String...):() = do
+run():() = do
   testLens : List[\ZZ32\] = emptyList[\ZZ32\]()
   s0 = testLens.generate[\Number\](SumReduction, identity[\Number\])
   assert(s0,0,"Sum s0")

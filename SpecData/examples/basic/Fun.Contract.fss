@@ -40,6 +40,6 @@ mangle(input: List) ensures { sorted(outcome) provided sorted(input) } =
   end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

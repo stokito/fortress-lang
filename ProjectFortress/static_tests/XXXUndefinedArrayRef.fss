@@ -18,7 +18,7 @@
 component XXXUndefinedArrayRef
 export Executable
 
-run(args:String...):() = do
+run():() = do
   x:ZZ64 = 0
   y[x] := 23
 end

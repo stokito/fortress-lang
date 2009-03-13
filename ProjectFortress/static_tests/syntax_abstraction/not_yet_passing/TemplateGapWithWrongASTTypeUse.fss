@@ -21,6 +21,6 @@ component TemplateGapWithWrongASTTypeUse
 
   export Executable
 
-  run(args:String...) = print (hello world)
+  run() = print (hello world)
 
 end

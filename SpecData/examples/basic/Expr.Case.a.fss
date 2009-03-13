@@ -32,6 +32,6 @@ end
 (** END EXAMPLE **)
 end
 
-run(args:String...) = println f("Neptune")
+run() = println f("Neptune")
 
 end

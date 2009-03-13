@@ -21,7 +21,7 @@ export Executable
 (* We can't easilly test that the right stuff is output, but we can test that
    there is an overlaoding for each formulation *)
 
-  run(args:String...) = do
+  run() = do
     print ()
     print "Hello"
     print 1

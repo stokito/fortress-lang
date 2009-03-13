@@ -28,7 +28,7 @@ object MumbleD[\T\](s:String) extends Mumble[\T\]
   mutter():String = "MumbleD " s
 end
 
-run(args:String...):()=do
+run():()=do
   println(mumble(MumbleD[\ZZ32\]("Howdy")).mutter())
 end
 

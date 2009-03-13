@@ -36,7 +36,7 @@ value object Chicken extends Altoid[\ Chicken, EGG \]
   isChicken() = true
 end
 
-run(args:String...):() =
+run():() =
   println(if (Chicken EGG Chicken).isChicken() then "PASS" else "FAIL")
 
 end

@@ -28,6 +28,6 @@ a[i]
 (** END EXAMPLE **)
 end
 
-run(args:String...) = println (f 1)
+run() = println (f 1)
 
 end

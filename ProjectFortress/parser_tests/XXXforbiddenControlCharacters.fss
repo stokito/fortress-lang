@@ -18,7 +18,7 @@
 component XXXforbiddenControlCharacters
 export Executable
 
-run(args) = do
+run() = do
   println ""
 end
 

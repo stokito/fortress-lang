@@ -32,5 +32,5 @@ component ArrayElement
     a3 := [[\Any,0,1\]"NelsRulesSuckers"]
 end
 
-  run(args:String...):()= ()
+  run():()= ()
 end

@@ -87,7 +87,7 @@ opr (x:Op):: : Op = Op(x "::")
 
 
 (* TODO: CHECK RESULTS! *)
-run(args: String...) = do
+run() = do
     assert(("A":"B":"C").toString,  "((A:B):C)")
     assert(("A"#"B":"C").toString,  "((A#B):C)")
     assert(("A":"B"#"C").toString,  "((A:B)#C)")

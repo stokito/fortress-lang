@@ -27,7 +27,7 @@ object O(x : RR64)
   f(a:RR64):RR64 = a x
 end
 
-run(args:String...):() = do
+run():() = do
   v : ZZ32 := 0
   x = pi / 4
   y = 4.0

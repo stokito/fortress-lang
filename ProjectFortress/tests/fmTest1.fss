@@ -23,7 +23,7 @@ object xyzzy(i:ZZ32, j:ZZ32)
   getZ(self):ZZ32 = j
 end
 
-run(args:String...):()=do
+run():()=do
   a:xyzzy = xyzzy(3,4);
   println(
   if (getI(a) + getZ(a) = 7) then "pass" else "fail" end

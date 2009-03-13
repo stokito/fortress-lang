@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component gauntlet2
+import System.{args}
 export Executable
 
 (* Check that root is the integer square-root of x *)
@@ -37,7 +38,7 @@ timeIt (whatToTime) = do
     "average of "timingRuns" runs (ms) = " averageTime
 end
 
-run(args:String...) = do
+run() = do
     max = if |args| = 1 then strToInt args[0] else 100 TIMES 1000 end
     check (x) = assert (inrange (x, isqrt (widen x)))
 

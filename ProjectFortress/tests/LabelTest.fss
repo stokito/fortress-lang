@@ -29,7 +29,7 @@ topFunc():T =
         end
     end quit
 
-run(args:String...):() =
+run():() =
     try topFunc().m()
     catch e
         LabelException => println "Ok"

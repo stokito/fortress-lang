@@ -19,5 +19,5 @@
 
 (** EXAMPLE **)
 export Executable
-run(args) = print "Hello, world!"
+run() = print "Hello, world!"
 (** END EXAMPLE **)

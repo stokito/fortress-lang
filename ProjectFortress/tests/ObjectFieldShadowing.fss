@@ -25,6 +25,6 @@ object Obj()
     x():ZZ32 = tmp
 end
 
-run(args:String ... ):() = assert(Obj().x(), 0)
+run():() = assert(Obj().x(), 0)
 
 end

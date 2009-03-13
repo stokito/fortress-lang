@@ -20,6 +20,6 @@ export Executable
 
 f(x: ZZ32 = 0) = println x
 
-run(args:String...) = f(x = 3)
+run() = f(x = 3)
 
 end

@@ -43,7 +43,7 @@ a(x:ZZ32, y:ZZ32, z:ZZ32):ZZ32=do
   x+y+z
 end
 
-run(args:String...):()=do
+run():()=do
   println(a(1))
 
   println(a(1,2))

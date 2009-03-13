@@ -22,7 +22,7 @@ component SyntaxOptionUse
 
   f():() = println (world)
 
-  run(args:String...) = do 
+  run() = do 
     f()
     println (hello world)
     println (foo bar)

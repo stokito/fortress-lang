@@ -21,7 +21,7 @@ export Executable
 (* Tests that LocalVarDecl correctly binds each variable over successive
  * definitions and its enclosing Block. *)
   
-run(args:String...):() = do
+run():() = do
   x:IntLiteral = 23
   y:IntLiteral = x
   ignore(y)

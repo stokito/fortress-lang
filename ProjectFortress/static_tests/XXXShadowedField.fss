@@ -23,4 +23,4 @@ object O
   v = 2
 end
 
-run(args) = ()
+run() = ()

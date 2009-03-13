@@ -107,7 +107,7 @@ end
 
 (************************************************************)
 
-run(args:String...):() = do
+run():() = do
   testSparse(mkMatrix[\16\]())
   A = mkMatrix[\50\]()
   v = mkVector[\50\]()

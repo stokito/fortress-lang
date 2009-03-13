@@ -29,7 +29,7 @@ trait U
   g[\T\](t1:T, t2:T):T = t2
 end
 
-run(args:String...):()=do
+run():()=do
 
 
 

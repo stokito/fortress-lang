@@ -18,6 +18,6 @@
 component XXXtest.test
 export Executable
 
-run(args:String...) = ()
+run() = ()
 
 end

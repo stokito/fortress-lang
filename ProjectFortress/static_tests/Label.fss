@@ -19,7 +19,7 @@ component Label
 export Executable
 
   (* Test various properly formed label expressions. *)
-  run(args:String...):() = do
+  run():() = do
   
     (* type of outer should be Boolean OR Boolean *)
     ignore(label outer

@@ -23,7 +23,7 @@ f(x: ZZ32[3#2,2#3]) = ()
 
 opr :(left: String, right:String): () = println left ":" right
 
-run(args:String...) = do
+run() = do
   println "seq(0#3)"
   for i <- seq(0#3) do
     println i

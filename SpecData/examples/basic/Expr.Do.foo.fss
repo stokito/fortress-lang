@@ -29,6 +29,6 @@ foo(x:RR64) = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = println foo(3)
+run() = println foo(3)
 
 end

@@ -18,7 +18,7 @@
 component Spawn4
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var x : ZZ32 = 0
    ft:Thread[\Any\] = Thread[\Any\](fn()=>do x:=1 end)
    ft.wait()

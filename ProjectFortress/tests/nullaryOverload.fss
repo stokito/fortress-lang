@@ -22,7 +22,7 @@ f():() = println("Nullary")
 f(x:ZZ32):() = println("ZZ32: " x)
 f(x:String):() = println("String: " x)
 
-run(args:String...) = do
+run() = do
   f()
   f(15)
   f("Hello")

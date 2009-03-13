@@ -28,7 +28,7 @@ object Particle(position: RR^3, velocity: RR^3)
   extends Moving
 end
 
-run(args:String...) = do
+run() = do
 (** EXAMPLE **)
   pos: RR^3 = [3 2 5]
   vel: RR^3 = [1 0 0]

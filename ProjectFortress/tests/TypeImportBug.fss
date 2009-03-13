@@ -22,7 +22,7 @@ export Executable
 (* Very odd error behavior having something to do with how imported
    names found in an api are tied together with the entities imported. *)
 
-run(args:String...):() = do
+run():() = do
   b : Set[\String\] = set[\String\]().add("A").add("B").add("C").add("D")
   println(b)
   (* The call to String juxtaposition below is to convince the

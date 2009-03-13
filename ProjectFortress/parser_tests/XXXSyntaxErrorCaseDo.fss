@@ -18,7 +18,7 @@
 component XXXSyntaxErrorCaseDo
 export Executable
 
-run(args:String...):() = do
+run():() = do
   case 5 do
     3 => println "foo"
     5 => println "bar"

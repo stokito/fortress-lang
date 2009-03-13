@@ -28,7 +28,7 @@ test testFactorial() = do
    assert(fact(7) = 129)
 end
 
-run(args:String...):()=do
+run():()=do
         testFactorial()
 	end
 end

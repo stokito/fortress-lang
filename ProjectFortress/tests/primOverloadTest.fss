@@ -28,7 +28,7 @@ end
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (x:Array1[\ZZ32, 0, 3\], y:String):String = x[0] y x[1] y x[2]
 
-run(args:String...):()= do
+run():()= do
   "cat"-7
   x:ZZ32[3] = [4 5 6]
   y:String = "-"

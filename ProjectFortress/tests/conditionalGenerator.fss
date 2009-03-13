@@ -18,7 +18,7 @@
 component conditionalGenerator
 export Executable
 
-run(args:String...):() =
+run():() =
   do
     a = array[\Boolean\](10).fill(true)
     a[i] := false, i <- 0#10

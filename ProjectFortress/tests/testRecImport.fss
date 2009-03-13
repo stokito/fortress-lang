@@ -30,7 +30,7 @@ object MyEven extends Even
   asString():String = "MyEven"
 end
 
-run(args:String...):() = do
+run():() = do
     assert(even(0),"even(0)")
     assert(NOT odd(0),"odd(0)")
     assert(NOT even(5),"even(5)")

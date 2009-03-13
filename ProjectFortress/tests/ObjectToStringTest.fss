@@ -27,7 +27,7 @@ end
 object Bar(a: ZZ32, b:String)
 end
 
-run(args:String...) : () = do
+run() : () = do
     r = object end
     println(r.asString())
     println(Foo(17,"Hello there").asString())

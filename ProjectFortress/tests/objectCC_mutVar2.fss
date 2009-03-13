@@ -32,7 +32,7 @@ object O(var v:ZZ32)
               end
 end
 
-run(args:String...):() = do
+run():() = do
     println "Testing mix use of mutable and immutable VarRefs declared in enclosing ObjectDecl."
     o:O = O(3);
     assert(3, o.foo(), "o.foo() failed: returns ", o.foo(), " instead of 3.")

@@ -43,6 +43,6 @@ end
 object P extends A[\ZZ32\] end
 object Q extends A[\Boolean\] end
 
-run(args: String...): () = ()
+run(): () = ()
 
 end

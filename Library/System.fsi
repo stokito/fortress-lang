@@ -29,9 +29,12 @@ registry parameters, and the like.
     args does *not* include the program name.  Programmers should use
     programName to access this information.
 **)
-args : Array[\String,ZZ32\]
+args : ImmutableArray[\String,ZZ32\]
 
 (** programName is the name by which the Fortress program was invoked. **)
 programName : String
+
+(* A way to get environment information from inside of fortress *)
+getEnvironment(name:String, defaultValue:String):String
 
 end

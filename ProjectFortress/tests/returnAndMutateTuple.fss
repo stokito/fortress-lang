@@ -20,7 +20,7 @@ export Executable
 
 f(x:ZZ32) : (ZZ32, ZZ32) = (x + 1, 2 x)
 
-run(args:String...) = do
+run() = do
   (a:ZZ32,b:ZZ32) := f(5)
   println("a = " a " b = " b)
   (a,b) := f(a+b)

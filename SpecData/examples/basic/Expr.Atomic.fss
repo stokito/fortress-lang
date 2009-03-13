@@ -29,7 +29,7 @@ accumArray[\N extends Number, nat x\](a: Array1[\N,0,x\]): () =
   end
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   accumArray(array1[\ZZ32,3\]().fill(5))
   println sum
 end

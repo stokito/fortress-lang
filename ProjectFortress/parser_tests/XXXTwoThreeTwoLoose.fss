@@ -18,7 +18,7 @@
 component XXXTwoThreeTwoLoose
 export Executable
 
-run(args:String...):() = do
+run():() = do
     x = 2 ^ (3 ^ 2)
     println(x)
 end
