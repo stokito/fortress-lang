@@ -60,8 +60,8 @@ public class EmptyPhase extends Phase {
         IndexBuilder.ComponentResult componentIndex = IndexBuilder
             .buildComponents(components, lastModified);
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(),
-                                 IterUtil.<StaticError> empty(), Option
-                                 .<TypeCheckerOutput> none());
+                                 IterUtil.<StaticError>empty(),
+                                 Option.<TypeCheckerOutput> none());
     }
 
 }

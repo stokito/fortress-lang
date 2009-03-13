@@ -243,6 +243,8 @@ public class ProjectProperties {
      */
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_AUTOHOME}/ProjectFortress/");
 
+    public static final String ROOTDIR = searchDef("ROOTDIR", "ROOTDIR", "${FORTRESS_AUTOHOME}/");
+
     public static final String CACHES = get("fortress.caches", "${REPOSITORY}/caches");
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${CACHES}/interpreter_cache");

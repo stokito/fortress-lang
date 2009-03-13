@@ -105,7 +105,7 @@ public class NodeUtil {
         }
     }
 
-    /* Getters for ASTNode */
+    /* Methods for ASTNode */
 
     public static ASTNodeInfo getInfo(ASTNode n) {
         return n.getInfo();
@@ -113,6 +113,10 @@ public class NodeUtil {
 
     public static Span getSpan(ASTNode n) {
         return n.getInfo().getSpan();
+    }
+
+    public static boolean isTraitObjectDecl(ASTNode n) {
+        return (n instanceof TraitObjectDecl);
     }
 
     /* Getters for Expr */
