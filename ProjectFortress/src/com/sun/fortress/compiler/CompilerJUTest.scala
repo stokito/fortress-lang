@@ -324,13 +324,12 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.assertStaticErrors(compile("Compiled1.a.fss"), expected)
   }
 
-/*
   def testCompiled1b() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled1.b.fss:\n" +
+      STATIC_TESTS_DIR + "/Compiled1.b.fss:21:1-25:3\n" +
+      "    Missing = in a function declaration."
     Shell.assertStaticErrors(compile("Compiled1.b.fss"), expected)
   }
-*/
 
   def testCompiled1c() = {
     val expected =

@@ -477,12 +477,21 @@ transient private Option<String> DeclsRest =
      }
    / FnDeclHeader w NoNewlineExpr br a2:DeclsRest
      { yyValue = a2; }
+   / Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? !(FnHeaderBack) (_)+
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Missing = in a function declaration.");
+       yyValue = Option.<String>none();
+     }
    / FnDeclHeader (_)+
      { yyValue = Option.<String>none(); }
    / end w Extra
      { yyValue = Option.<String>none(); }
    / (_)+
      { yyValue = Option.<String>none(); };
+
+/* In between FnDeclHeader and the function body expression */
+transient private void FnHeaderBack =
+     w equals / w requires / w ensures / w invariant ;
 
 /* Unmatched leftover inputs */
 transient private void Extra =
@@ -510,6 +519,11 @@ transient private Option<String> DeclsRestWithoutEnd =
      { yyValue = Option.<String>none(); }
    / FnDeclHeader w NoNewlineExpr br a2:DeclsRestWithoutEnd
      { yyValue = a2; }
+   / Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? !(FnHeaderBack) (_)+
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Missing = in a function declaration.");
+       yyValue = Option.<String>none();
+     }
    / FnDeclHeader (_)+
      { yyValue = Option.<String>none(); }
    / Extra
