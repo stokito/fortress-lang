@@ -27,10 +27,17 @@ public interface StringMap {
    String get(String s);
    boolean isEmpty();
    String getCompletely(String s, int limit);
+   String getCompletely(String s);
    
    static abstract class FromBase implements StringMap {
        public String getCompletely(String s, int limit) {
+           if (s == null)
+               return s;
            return Useful.substituteVarsCompletely(s, this, limit);
+       }
+       
+       public String getCompletely(String s) {
+           return getCompletely(s, 1000);
        }
        abstract public String get(String s);
        abstract public boolean isEmpty();

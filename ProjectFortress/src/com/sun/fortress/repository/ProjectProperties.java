@@ -360,4 +360,9 @@ public class ProjectProperties {
         }
         return Long.parseLong(result, base);
     }
+
+
+    public static StringMap composedWith(StringMap props) {
+        return new StringMap.ComposedMaps(props, allProps);
+    }
 }
