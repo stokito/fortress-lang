@@ -48,6 +48,9 @@ class CompilerJUTest() extends TestCaseWrapper {
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
 
+  val LIBRARY_DIR =
+    ProjectProperties.ROOTDIR + "Library"
+
   def compilerResult(s:String):String = {
     val s_ = STATIC_TESTS_DIR + "/" + s
     val args = new Array[String](2)
@@ -252,7 +255,8 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.p.fss:17:11-21\n" +
       "    Component Compiled0.p exports API SimpleExecutable\n" +
       "    but does not define all declarations in SimpleExecutable.\n" +
-      "    Missing declarations: {run():()}"
+      "    Missing declarations: {run():() at " +
+      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.p.fss"), expected)
   }
 
@@ -261,7 +265,8 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.q.fss:17:11-21\n" +
       "    Component Compiled0.q exports API SimpleExecutable\n" +
       "    but does not define all declarations in SimpleExecutable.\n" +
-      "    Missing declarations: {run():()}"
+      "    Missing declarations: {run():() at " +
+      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.q.fss"), expected)
   }
 
@@ -270,7 +275,8 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.r.fss:17:11-21\n" +
       "    Component Compiled0.r exports API SimpleExecutable\n" +
       "    but does not define all declarations in SimpleExecutable.\n" +
-      "    Missing declarations: {run():()}"
+      "    Missing declarations: {run():() at " +
+      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.r.fss"), expected)
   }
 
@@ -303,7 +309,8 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.v.fss:17:1-20:24\n" +
       "    Component Compiled0.v exports API SimpleExecutable\n" +
       "    but does not define all declarations in SimpleExecutable.\n" +
-      "    Missing declarations: {run():()}\n" +
+      "    Missing declarations: {run():() at " +
+      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}\n" +
       STATIC_TESTS_DIR + "/Compiled0.v.fss:19:1-24\n" +
       STATIC_TESTS_DIR + "/Compiled0.v.fss:20:1-24\n" +
       "    There are multiple declarations of run with the same signature: String -> ()"

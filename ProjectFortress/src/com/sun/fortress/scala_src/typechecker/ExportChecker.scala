@@ -99,7 +99,7 @@ object ExportChecker {
                      repository: FortressRepository): JavaList[StaticError] = {
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
-        var missingDecls  = List[Node]()
+        var missingDecls  = List[ASTNode]()
         var multipleDecls = List[(String,String)]()
         var declaredVariables           = Map[IdOrOpOrAnonymousName,APIName]()
         var declaredFunctions           = Map[IdOrOpOrAnonymousName,APIName]()
@@ -293,9 +293,9 @@ object ExportChecker {
 
             // Collect the error messages for the missing declarations.
             if ( ! missingDecls.isEmpty ) {
-                var message = "" + missingDecls.head
+                var message = "" + getMessage(missingDecls.head)
                 for ( f <- missingDecls.tail )
-                    message += ",\n                           " + f
+                    message += ",\n                           " + getMessage(f)
                 error(errors, componentName,
                       "Component " + componentName + " exports API " + apiName +
                       "\n    but does not define all declarations in " + apiName +
@@ -314,6 +314,10 @@ object ExportChecker {
         }
         errors
     }
+
+    private def getMessage(n: ASTNode) =
+        if ( NodeUtil.isTraitObjectDecl(n) ) n.toString
+        else n.toString + " at " + NodeUtil.getSpan(n)
 
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
