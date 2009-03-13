@@ -19,7 +19,7 @@ component LineTerminatingComments
 
   export Executable
 
-  run(args:String...):()= do print "a" (* test
+  run():()= do print "a" (* test
   *) print "b" end
 
 end

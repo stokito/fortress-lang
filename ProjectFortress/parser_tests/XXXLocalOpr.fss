@@ -19,7 +19,7 @@ component XXXLocalOpr
 
 export Executable
 
-run(args:String...) = do
+run() = do
   opr LOCALOPR() = println "Local operator declarations are not allowed!"
   LOCALOPR()
   end

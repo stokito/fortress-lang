@@ -86,7 +86,7 @@ c[\T extends TotalOrder[\T,<,<=,=,>=,>\]\](x:T, y:T): () =
         println("= OK")
     end
 
-run(args:String...) = do
+run() = do
   n1 = Nn(1)
   n2 = Nn(2)
   println(n1.x " and " n2.x)

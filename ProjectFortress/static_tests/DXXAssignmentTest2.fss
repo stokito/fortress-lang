@@ -30,7 +30,7 @@ component DXXAssignmentTest2
 
   end
 
-  run(args:String...):() = do
+  run():() = do
     (* Make sure we cannot assign to non-assignable things *)
     a:Bar = Bar
     a:= Bar

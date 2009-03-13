@@ -26,5 +26,5 @@ component ExternalConstructor
 
   foo(file_name:String):FileReadStream = FileReadStream(file_name)
 
-  run(args:String...):() = ()
+  run():() = ()
 end

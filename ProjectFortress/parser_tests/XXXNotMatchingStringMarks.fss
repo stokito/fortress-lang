@@ -18,7 +18,7 @@
 component XXXNotMatchingStringMarks
 export Executable
 
-run(args:String...) = do
+run() = do
   println "Hello, World!”
   println “Hello, World!"
 end

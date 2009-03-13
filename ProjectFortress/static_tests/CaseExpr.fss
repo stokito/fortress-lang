@@ -31,7 +31,7 @@ foo(z:ZZ32,g:Generator[\ZZ32\]) : String = do
 end
 
 
-run(args:String...):() = do
+run():() = do
   ignore(case 5 of
            1=> "1"
            2=> "2"

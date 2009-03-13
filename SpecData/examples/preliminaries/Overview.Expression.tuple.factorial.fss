@@ -32,7 +32,7 @@ factorial(n: ZZ32) = do    (* factorial *)
   println result
 end
 
-run(args:String...) = do
+run() = do
   (a, b, c) = h()
   println (a " " b " " c)
 end

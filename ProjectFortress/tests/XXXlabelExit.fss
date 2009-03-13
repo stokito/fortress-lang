@@ -19,7 +19,7 @@ component XXXlabelExit
 export Executable
 
 (* Exit without matching label *)
-run(args:String...):()=do
+run():()=do
     barney:ZZ32 =
         label fred
             if true

@@ -23,7 +23,7 @@ end
 
 object O(f: ZZ64) extends T end
 
-run(args) = do
+run() = do
  t: T = O(1)
 end
 

@@ -224,7 +224,7 @@ test64() = do
    assert(signed(-x1) < signed(x0))
 end
 
-run(args: String...) = do
+run() = do
  test32()
  test64()
 end

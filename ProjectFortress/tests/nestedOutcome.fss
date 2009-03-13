@@ -24,6 +24,6 @@ f() ensures { do (outcome = 5)
                  true
               end } = 5
 
-run(args:String...) = println(f())
+run() = println(f())
 
 end

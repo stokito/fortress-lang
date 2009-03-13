@@ -19,7 +19,7 @@ component atomicArrayOps
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    a: Array[\ZZ32,ZZ32\] := array[\ZZ32\](100) 
    for i<-0#100 do
       atomic do 

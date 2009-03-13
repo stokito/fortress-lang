@@ -36,7 +36,7 @@ opr AXX[\T extends ZZ32\](a:T, b:T): ZZ32 = 0
 opr AXX[\T extends String\](a:T, b:T): ZZ32 = 1
 opr AXX[\A extends HasRank\](a:A,b:A): ZZ32 = 2
 
-run(args:String...):() = do
+run():() = do
   a : ZZ32[3] = [0 1 2]
   assert(a AXX a, 2, "array AXX array")
   assert("a" AXX "b", 1, "string AXX string")

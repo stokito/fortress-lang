@@ -16,9 +16,10 @@
  ******************************************************************************)
 
 component ParamRef
+import System.{args}
 export Executable
 
-run(args:String...):() = do
+run():() = do
     args
     ()
 end

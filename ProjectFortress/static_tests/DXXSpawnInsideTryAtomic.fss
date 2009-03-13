@@ -17,7 +17,7 @@
 
 component DXXSpawnInsideTryAtomic
     export Executable
-    run(args:String...):() = do
+    run():() = do
         tryatomic (spawn ())
     end
 end

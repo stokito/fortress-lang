@@ -19,7 +19,7 @@ component expTest
 export Executable
 
 (** Based on bug report by Evan McCorkle *)
-run(args:String...) = do
+run() = do
     xr : RR64 = 0.25
     xz : ZZ64 = 4
     rr : RR64 = 4.0

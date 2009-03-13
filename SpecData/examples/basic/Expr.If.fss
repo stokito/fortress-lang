@@ -29,6 +29,6 @@ elif x IN {3, 4, 5} then 3
 else 6 end
 (** END EXAMPLE **)
 
-run(args:String...) = println f(3)
+run() = println f(3)
 
 end

@@ -20,6 +20,6 @@ export Executable
 
 trait XML end
 
-run(args:String...) = ()
+run() = ()
 
 end

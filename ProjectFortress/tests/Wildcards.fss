@@ -32,7 +32,7 @@ object P
   var mutable:ZZ32 := 3
 end
 
-run(args:String...) = do
+run() = do
   println O(1).mutable
   println O(1).x
   var x:ZZ32 = 7

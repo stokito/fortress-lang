@@ -30,7 +30,7 @@ object Thing[\bool b\]
 
 end
 
-run(args:String...) = do
+run() = do
   println d[\true\]()
   println Thing[\true\]
 end

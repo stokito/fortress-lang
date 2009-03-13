@@ -21,7 +21,7 @@ import SyntaxTemplateVars.helloworld
 
 export Executable
 
-run(args:String...) = do
+run() = do
                         println (hello beautiful beautiful world)
                         println (hello foobar foobar world)
 (*                        println (a (x, y) x y foo) *)

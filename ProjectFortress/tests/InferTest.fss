@@ -24,7 +24,7 @@ f[\T\](init:T, succ:T->T, check:T->Boolean):T =
 c(x:Number):Boolean = (x x = 25)
 s(x:ZZ32):ZZ32 = x + 1
 
-run(args:String...):() = do
+run():() = do
   println("Result is " f(s(0), s, c))
 end
 end

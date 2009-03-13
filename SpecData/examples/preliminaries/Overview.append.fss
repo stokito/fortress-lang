@@ -34,7 +34,7 @@ object Empty extends List
   append(xs: List, self) = xs
 end
 
-run(args:String...) = do
+run() = do
   l1 = Empty
   l2 = Empty
 (** EXAMPLE **)

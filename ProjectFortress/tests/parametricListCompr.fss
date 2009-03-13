@@ -31,7 +31,7 @@ foo(xs: List[\A\]) = ()
 bar(xs: Set[\A\]) = ()
 baz(xs: Map[\A,A\]) = ()
 
-run(args) = do
+run() = do
     foo( <|[\A\] x | x <- <|B|> |> )
     bar( {[\A\] x | x <- {B} } )
     baz( {[\A,A\] x |-> x | x <- <|B|> } )

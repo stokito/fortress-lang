@@ -20,7 +20,7 @@ export Executable
 
   (* The target of an exit that occurs inside a spawn can be outside the spawn. *)
 
-  run(args:String...):() = do
+  run():() = do
     
     ignore((spawn do
       label l

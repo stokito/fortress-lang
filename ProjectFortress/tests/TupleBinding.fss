@@ -27,7 +27,7 @@ ick(a:String, b:String) = do
   println a; println b
 end
 
-run(args:String...) = do
+run() = do
   println key
   println val
   println foo

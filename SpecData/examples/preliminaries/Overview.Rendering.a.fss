@@ -25,6 +25,6 @@ export Executable
 f(x) = x^2 + sin x - cos 2 x
 (** END EXAMPLE **)
 
-run(args:String...) = println (f 3)
+run() = println (f 3)
 
 end

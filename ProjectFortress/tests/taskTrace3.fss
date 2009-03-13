@@ -19,7 +19,7 @@ component taskTrace3
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    for i <- 1 # 2 do printTaskTrace() end
 end
 end

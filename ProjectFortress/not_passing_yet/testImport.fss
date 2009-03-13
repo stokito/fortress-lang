@@ -25,7 +25,7 @@ export Executable
 y:ZZ32 = 17
 z:ZZ32 = 11
 
-run(args:String...) = do
+run() = do
     println("f(3) = " f(3))
     println("x = " x)
     println("y = " y)

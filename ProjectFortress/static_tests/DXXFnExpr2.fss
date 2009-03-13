@@ -25,5 +25,5 @@ component DXXFnExpr2
     s := (fn (arg:String):String throws Foo =>arg)("MyString")
   end
 
-  run(args:String...):()=()
+  run():()=()
 end

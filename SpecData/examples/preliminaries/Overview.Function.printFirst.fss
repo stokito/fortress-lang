@@ -40,6 +40,6 @@ printFirst(xs: ZZ32...) =
   else throw Error end
 (** END EXAMPLE **)
 
-run(args:String...) = printFirst(3, 2, 1)
+run() = printFirst(3, 2, 1)
 
 end

@@ -23,5 +23,5 @@ component DXXFnExpr
     s := (fn (arg:String):ZZ32=>arg)("MyString")
   end
 
-  run(args:String...):()=()
+  run():()=()
 end

@@ -17,6 +17,6 @@
 
 component Foo
 export Executable
-run(args:String...) = ()
+run() = ()
 
 end

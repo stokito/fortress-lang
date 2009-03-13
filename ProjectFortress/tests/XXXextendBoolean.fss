@@ -21,6 +21,6 @@ export Executable
     object Mumble() extends { Boolean }
     end
 
-run(args:String...) = ()
+run() = ()
 
 end

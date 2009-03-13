@@ -61,6 +61,7 @@ import List.{...}
 import Set.{...}
 import SetClosure.{...}
 import Map.{...}
+import System.{args}
 export Executable
 
 printUsage() = do
@@ -388,7 +389,7 @@ genParaffins4 (n:ZZ32) =
 
 genParaffins = genParaffins0
 
-run(args:String...) = do
+run() = do
     if |args| = 0 then printUsage() end
     n_p:ZZ32 = if |args| < 1 then 6   else strToInt args[0] end
     n_r:ZZ32 = if |args| < 2 then n_p else strToInt args[1] end

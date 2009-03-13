@@ -23,7 +23,7 @@ object O(x : ZZ32)
   z = y + 4   (* So does this. *)
 end
 
-run(args:String...):() = do
+run():() = do
   a : O = O(14)
 end
 

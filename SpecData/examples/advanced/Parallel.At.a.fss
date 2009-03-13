@@ -34,7 +34,7 @@ var w: ZZ32
 (** END EXAMPLE **)
 end
 
-run(args:String...) = do
+run() = do
   f()
 end
 

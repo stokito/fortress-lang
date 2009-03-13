@@ -31,7 +31,7 @@ opr +[\ T extends Number, nat n, nat m \]
 opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
      (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n o.n,s.a)
 
-run(args:String...):() = do
+run():() = do
   x : WrapZZ[\RR64\] = WrapZZ[\RR64\](5,17.0)
   y : WrapZZ[\RR64\] = WrapZZ[\RR64\](7,23.0)
   z = x y

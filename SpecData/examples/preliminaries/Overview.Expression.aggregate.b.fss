@@ -21,7 +21,7 @@ component Overview.Expression.aggregate.b
 
 export Executable
 
-run(args:String...) = do
+run() = do
 (** EXAMPLE **)
   b:ZZ32[2,2] = [3 4
                  5 6]

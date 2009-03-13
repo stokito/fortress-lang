@@ -23,7 +23,7 @@ fib(n:ZZ32): ZZ32 =
   else fib(n-1) + fib(n-2)
   end
 
-run(args:String...):()=do
+run():()=do
   assert(fib(20),6765,"fib(20) wrong")
   assert(fib(25),75025,"fib(25) wrong")
 end

@@ -39,6 +39,6 @@ component DXXMethodInvocationVarargs
     result := vat.takeMoreVararg(s,a,s)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 
 end

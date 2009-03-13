@@ -28,7 +28,7 @@ export Executable
     catStringFrom(args: String...): String =
         seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
     
-    run(args:String...):()=do
+    run():()=do
         cs = catStringFrom("This ", "is ", "a ", "longish ", "string ", "that ", 
         "reads ", "as ", "a ", "sentence ", "when ", "other " "strings ", "are ",
         "not ", "interleaved.")

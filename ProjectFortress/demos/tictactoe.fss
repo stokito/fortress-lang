@@ -263,7 +263,7 @@ playGame(name) = do
     end quit
 end
 
-run(args:String...) = do
+run() = do
     println "Welcome to Tic Tac Toe!"
     println "What's your name, friend?"
     name = readLine()

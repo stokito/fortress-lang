@@ -28,6 +28,6 @@ trait List
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

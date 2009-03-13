@@ -19,6 +19,6 @@ component XXXExportThenImport
 export Executable
 import Set.{...}
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

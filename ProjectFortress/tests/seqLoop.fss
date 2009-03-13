@@ -18,7 +18,7 @@
 component seqLoop
 export Executable
 
-run(args:String...) = do
+run() = do
   a = vector[\ZZ32,100\]()
   z : ZZ32 := 0
   for i <- seq(0#100) do

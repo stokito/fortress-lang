@@ -22,7 +22,7 @@ export Executable
     x + 3
     end
 
-    run(args:String...):()=do
+    run():()=do
     y = plus3(2 2 2 2 - 3 2 2)
     print(y)
     end

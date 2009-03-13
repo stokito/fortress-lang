@@ -91,7 +91,7 @@ object XObj(v:ZZ32) extends XTrait
     local():ZZ32 = 2 + self.v
 end
 
-run(args:String...):() = do
+run():() = do
     obj1:T = topFunc1()
     assert(a1, obj1.x(), "obj1.x() failed.")
     assert( a1 DOT a1, obj1.y(), "obj1.y() failed.")

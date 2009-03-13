@@ -20,7 +20,7 @@ component formatTest
 import Format.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     assert(padLeft("foo",' ',1),"foo")
     assert(padLeft("foo",' ',4)," foo")
     assert(padLeft("foo",' ',10),"       foo")

@@ -18,7 +18,7 @@
 component arrayComp
 export Executable
 
-run(args:String...):() = do
+run():() = do
   a : ZZ32[17] = [ i |-> i | i <- 0#17 ]
   for i <- 0#17 do
     print(a[i] " ")

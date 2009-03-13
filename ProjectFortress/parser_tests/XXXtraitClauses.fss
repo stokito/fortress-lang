@@ -24,6 +24,6 @@ trait T excludes W extends S comprises {U, V} end
 object U extends T end
 object V extends T end
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

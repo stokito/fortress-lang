@@ -21,7 +21,7 @@ component SimpleFunctionCall
   f(s:String):String = s
   g[\T extends Any\](x:T):T = x
 
-run(args:String...):() = do
+run():() = do
   var s:String
   
   s := f("asdad")

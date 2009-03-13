@@ -23,6 +23,7 @@ import QuickSort.{...}
 import File.{...}
 import Writer.{...}
 import Stream.{...}
+import System.{args}
 export Executable
 
 (* Tennis Ranking System
@@ -614,7 +615,7 @@ printUsage() =
     println "   Example: fortress demos/tennisRanking.fss demos/tennis050307 demos/tennis051707 demos/tennisGames && cat demos/tennis051707"
   end
 
-run(args:String...) = do
+run() = do
   if |args| =/= 3
   then printUsage()
   else (* initialize *)

@@ -20,7 +20,7 @@ export Executable
 
 (* Test that expression type <: ascripted type. *)
 
-run(args:String...):() = do
+run():() = do
   x:IntLiteral = 5
   y:Any = x as Any
 end

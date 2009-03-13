@@ -24,7 +24,7 @@ object Test(testField: ZZ32)
     internalGetter(): ZZ32 = self.testField
 end
 
-run(args:String...):() = do
+run():() = do
     t : Test = Test(7)
     assert(t.actualTestField(),7)
     assert(t.testField,15)

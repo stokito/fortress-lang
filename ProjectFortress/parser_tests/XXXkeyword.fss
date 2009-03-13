@@ -20,6 +20,6 @@ export Executable
 
 private() = ()
 
-run(args:String...) = println "Failed!"
+run() = println "Failed!"
 
 end

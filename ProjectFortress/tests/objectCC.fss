@@ -42,7 +42,7 @@ object O(v:ZZ32)
     local():ZZ32 = v
 end
 
-run(args:String...):() = do
+run():() = do
     var top:ZZ32 = 7
     obj:T = topFunc(top)
     assert(top, obj.x(), "obj.x() failed.")

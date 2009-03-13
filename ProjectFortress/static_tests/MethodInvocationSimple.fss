@@ -50,6 +50,6 @@ component MethodInvocationSimple
     s := f1.singleArg(b1)
   end
 
-  run(args:String...):() = Bar.doIt()
+  run():() = Bar.doIt()
 
 end

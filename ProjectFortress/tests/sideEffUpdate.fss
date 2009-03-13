@@ -19,7 +19,7 @@ component sideEffUpdate
 export Executable
 
 (* Tests that we can perform side effects within an update. *)
-run(args:String...):()=do
+run():()=do
   i : ZZ32 = 0
   a : ZZ32[3] = [5 6 7]
   ipp():ZZ32 = do

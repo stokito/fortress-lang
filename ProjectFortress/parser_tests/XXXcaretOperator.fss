@@ -19,7 +19,7 @@ component XXXcaretOperator
 
 export Executable
 
-run(args:String...) = do
+run() = do
    temp1 = 5 7^2
    if temp1 =/= 245 then
     println("FAIL temp1 = " temp1)

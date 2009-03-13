@@ -33,6 +33,6 @@ test factorialResultLarger() = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = println (factorial 5)
+run() = println (factorial 5)
 
 end

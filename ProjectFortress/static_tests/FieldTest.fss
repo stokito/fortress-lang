@@ -22,7 +22,7 @@ component FieldTest
     var b:String = "adsa"
   end
 
-  run(args:String...):()= do
+  run():()= do
     var some_string:String
     some_string := Foo.a
   end

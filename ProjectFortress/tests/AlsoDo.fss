@@ -77,7 +77,7 @@ testManyClauses() = do
     assert(res, 123456789, "Many atomic clauses failed")
 end
 
-run(args:String...):()=do
+run():()=do
     assert(fib(5), 8, "fib(5)=8")
     testAtomicAlso()
     testManyClauses()

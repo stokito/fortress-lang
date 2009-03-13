@@ -25,7 +25,7 @@ export Executable
 opr (n: ZZ32)! = PROD[i <- 1:n]i (* factorial *)
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   assert((5!) = 120)
   println("OprDecl.Postfix.fss passed.")
 end

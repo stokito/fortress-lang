@@ -27,6 +27,6 @@ fn(x: RR64) => if x < 0 then -x else x end
 (** END EXAMPLE **)
 end
 
-run(args:String...) = println (f() 3)
+run() = println (f() 3)
 
 end

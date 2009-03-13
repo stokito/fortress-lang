@@ -18,7 +18,7 @@
 component XXXforbiddenConnectingPunctuation
 export Executable
 
-run(args) = do
+run() = do
   id⁔test = 5
   println id⁔test
 end

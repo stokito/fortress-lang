@@ -19,7 +19,7 @@ component UnderscoreId
 
 export Executable
 
-run(args:String...) = do
+run() = do
     _ = println "OK"
   end
 

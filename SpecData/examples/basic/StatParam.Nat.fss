@@ -25,6 +25,6 @@ export Executable
 makeVector[\T extends Number, nat s0\]():Vector[\T,s0\] = vector[\T,s0\]
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

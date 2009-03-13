@@ -21,7 +21,7 @@ component DXXSetterTest
    z:String = "blah" (* Should be no setter, since z is not mutable
                       *)
  end
- run(args:String...):() = do
+ run():() = do
    Foo.z := "bar"
  end
 end

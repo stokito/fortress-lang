@@ -18,7 +18,7 @@
 component anyLenArray
 export Executable
 
-run(args:String...):()=do
+run():()=do
   (* arrayTest0 done with unknown array size. *)
   z:Array[\String, ZZ32\] = array[\String\](3)
   z[0]:="cat"

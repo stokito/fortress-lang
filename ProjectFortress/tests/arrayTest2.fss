@@ -18,7 +18,7 @@
 component arrayTest2
 export Executable
 
-run(args:String...):()=do
+run():()=do
 
   a:ZZ32[2,3,4] = [ 111 121 131;
                     211 221 231;;

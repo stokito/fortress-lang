@@ -20,7 +20,7 @@ import OverloadsA.{...}
 import OverloadsB.{...}
 export Executable
 
-  run(args: String ...): () = ()
+  run(): () = ()
   
   blah(a:ZZ32, b:ZZ32): () = do
     ignore(a * false)

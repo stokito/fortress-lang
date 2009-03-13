@@ -21,7 +21,7 @@ export Executable
 object A
 end
 
-run(args:String...):() = do
+run():() = do
   a = A^T
   b = A^TH
   c = A^TT

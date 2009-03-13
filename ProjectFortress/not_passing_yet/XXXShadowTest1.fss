@@ -36,7 +36,7 @@ object A() extends Bar
 end
 
 
-run(args:String...):()=do
+run():()=do
   a:A = A()
   x:T = a.m()
 

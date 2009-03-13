@@ -24,7 +24,7 @@ export Executable
     oddJuxtComp, rather than doing a function call.  This doesn't
     happen if the juxtaposition definition occurs locally. **)
 
-run(args) = do
+run() = do
     t = Nothing[\ZZ32\]
     println t
     println Nothing[\ZZ32\]

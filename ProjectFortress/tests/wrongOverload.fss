@@ -51,7 +51,7 @@ end
 mkMatrix[\nat n\]() : RR64[n,n] = do
 end
 
-run(args: String...): () = do
+run(): () = do
   l = Csr[\RR64,1,1\]()
   l l.t()
   ()

@@ -33,6 +33,6 @@ end
         end
 end
 
-run(args:String...) = O.m().printTree()
+run() = O.m().printTree()
 
 end

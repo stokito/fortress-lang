@@ -25,6 +25,6 @@ component DXXEqualityTesting
     ()
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 
 end

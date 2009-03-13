@@ -26,5 +26,5 @@ component GenericGetterInSuper
     foo():ZZ32 = self.myFirst
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

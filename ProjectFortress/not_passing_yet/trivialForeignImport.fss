@@ -19,7 +19,7 @@ component trivialForeignImport
 import java java.util.{Map, Map.Entry}
 export Executable
 
-run(args:String...) = do
+run() = do
  println("Hello, World!")
 end
 

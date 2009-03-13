@@ -20,5 +20,5 @@ component TightJuxt
 
   foo(a:ZZ32,b:ZZ32) = (a)(b)
 
-  run(args:String...):() = ()
+  run():() = ()
 end

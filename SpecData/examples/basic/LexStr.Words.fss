@@ -27,7 +27,7 @@ end
 
 phi456= 3
 
-run(args:String...) =
+run() =
 (** EXAMPLE **)
   A'bc_123a.def phi456
 (** END EXAMPLE **)

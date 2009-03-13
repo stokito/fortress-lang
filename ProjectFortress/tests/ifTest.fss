@@ -27,7 +27,7 @@ b()=do
 end
 
 
-run(args:String...):()=do
+run():()=do
   a()
   b()
   a()

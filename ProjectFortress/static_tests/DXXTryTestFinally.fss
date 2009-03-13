@@ -21,7 +21,7 @@ component DXXTryTestFinally
   object Something end
   object FooExn extends Exception end
 
-  run(args:String...) : () = do
+  run() : () = do
     var z:String
     z := try 
       throw FooExn

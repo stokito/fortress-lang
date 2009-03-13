@@ -25,5 +25,5 @@ component SingleImport
   (* I should be able to use this list with no problems. *)
   foo(l:List):() = ()
 
-  run(args:String...):() = ()
+  run():() = ()
 end

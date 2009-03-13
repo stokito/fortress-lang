@@ -29,7 +29,7 @@ object newKindOfString(me: String) extends String
 
 end newKindOfString
 
-run(args:String...) = do
+run() = do
     n = newKindOfString("Hello, World!")
     println(n)
 end

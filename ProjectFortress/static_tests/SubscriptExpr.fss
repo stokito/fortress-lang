@@ -27,5 +27,5 @@ component SubscriptExpr
     a[index]
   end
  
-  run(args:String...):()= ()
+  run():()= ()
 end

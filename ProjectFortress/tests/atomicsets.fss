@@ -30,7 +30,7 @@ initialSet():Set[\ZZ32\] = do
    init
 end
 
-run(args:String...):()=do
+run():()=do
    init:Set[\ZZ32\] = initialSet()
    assert(i IN init,true,i," NOTIN ",init), i <- 1#100
 end

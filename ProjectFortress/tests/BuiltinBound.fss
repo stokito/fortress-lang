@@ -28,7 +28,7 @@ export Executable
 object MyPara[\ T extends ZZ32 \](x : T)
 end
 
-run(args:String...):() = do
+run():() = do
   foo = MyPara[\ZZ32\](5)
   println(foo.x)
 end

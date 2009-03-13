@@ -20,7 +20,7 @@ export Executable
 
 t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
 
-run(args:String...) = do
+run() = do
 
 t ( 0 <= 0 < 1 = 1 > 2 <= 2 )   (* SHOULD NOT PARSE *)
 

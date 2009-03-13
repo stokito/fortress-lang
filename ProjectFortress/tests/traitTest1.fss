@@ -27,7 +27,7 @@ end
 trait V
 end
 
-run(args:String...):()=do
+run():()=do
   println("pass")
 end
 

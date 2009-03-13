@@ -24,6 +24,6 @@ export Executable
 factorial(n) = PROD[i <- 1:n] i
 (** END EXAMPLE **)
 
-run(args:String...) = assert(factorial(5) = 120)
+run() = assert(factorial(5) = 120)
 
 end

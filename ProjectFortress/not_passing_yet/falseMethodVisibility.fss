@@ -43,7 +43,7 @@ getT(i:ZZ32):T = do
     end
 end
 
-run(args:String...):() = do
+run():() = do
     o:T = getT(0)
     println o.b().foo()
 end

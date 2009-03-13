@@ -95,7 +95,7 @@ test9()=do
    end
 end
 
-run(args:String...):()=do
+run():()=do
    test1();
    test2();
    test3();

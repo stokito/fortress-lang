@@ -188,7 +188,7 @@ object Entity(var positivity: ZZ32,
       end
 end
 
-run(args:String...):() = do
+run():() = do
     for i <- 0#5000 do
         known: ZZ32[2] = [1 5]
         kfacts: ZZ32[2] = [0 0]

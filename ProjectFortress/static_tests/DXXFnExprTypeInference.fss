@@ -26,6 +26,6 @@ export Executable
  f(x:Any):() = ()
  blah = f(fn (reduction, unitt) => __generate(3 : 10, reduction, fn (a) => unitt(a)))
 
- run(args:String...):() = ()
+ run():() = ()
 
 end

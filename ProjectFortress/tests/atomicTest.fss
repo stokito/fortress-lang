@@ -19,7 +19,7 @@ component atomicTest
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var count : ZZ32 = 0
    for i <- 1#30000 do
       atomic do count+= 1 end

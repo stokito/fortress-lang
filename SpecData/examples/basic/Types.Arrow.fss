@@ -24,7 +24,7 @@ export Executable
 ff(x: RR64, y: RR64) = x + y
 gg(x: ZZ32) = (x, x)
 
-run(args:String...) = do
+run() = do
 (** EXAMPLE **)
   f: (RR64, RR64) -> RR64
   g: ZZ32 -> (ZZ32, ZZ32) throws IOFailure

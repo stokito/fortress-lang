@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component Compiled0.c
-export SimpleExecutable
+export Executable
 
-  run(args:String...):() = printlnSimple "Hello, world!"
+  run():() = printlnSimple "Hello, world!"
 
 end

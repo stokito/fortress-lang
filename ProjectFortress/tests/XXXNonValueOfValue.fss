@@ -27,6 +27,6 @@ end
 object O(x:ZZ32) extends T
 end
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

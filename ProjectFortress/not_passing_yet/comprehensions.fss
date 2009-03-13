@@ -21,7 +21,7 @@ import List.{...}
 import Map.{...}
 export Executable
 
-run(args:String...):() = ()
+run():() = ()
 
   set_comp_one = { i + j | i <- 1 # 10 , j <- 0 # 1 }
   set_comp_two = {a^b | a<-2#2,b<-1#4}

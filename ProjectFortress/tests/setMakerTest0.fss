@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component setMakerTest0
+import System.{args}
 export Executable
 
 (* This test ought to pass once we can correctly coerce IntLiteral to
@@ -78,7 +79,7 @@ object SetMaker[\T\] extends Set[\T\]
   add(x:T):() = println("add " x)
 end
 
-run(args:String...):()=do
+run():()=do
 
     a:ZZ32[2,2] = [ 11 12 ;
                   21 22 ]

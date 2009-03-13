@@ -18,7 +18,7 @@
 component XXXnumeralEndingWithApostrophe
 export Executable
 
-run(args:String...) = do
+run() = do
   x = 123'456'
 end
 

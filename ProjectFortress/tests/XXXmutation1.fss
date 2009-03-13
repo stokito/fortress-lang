@@ -30,7 +30,7 @@ object foo(var n:ZZ32)
 
 end
 
-run(args:String...) = do
+run() = do
 
     q = foo(2)
     q.f()

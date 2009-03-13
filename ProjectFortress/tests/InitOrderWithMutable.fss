@@ -18,7 +18,7 @@
 component InitOrderWithMutable
 export Executable
 
-run(args:String...) = do
+run() = do
  println(bvar)
 end
 

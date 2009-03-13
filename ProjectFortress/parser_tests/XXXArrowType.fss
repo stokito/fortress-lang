@@ -23,6 +23,6 @@ trait T
   f: ZZ32 -> () -> ()
 end
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

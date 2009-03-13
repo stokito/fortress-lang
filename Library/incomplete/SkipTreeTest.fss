@@ -108,7 +108,7 @@ export Executable
     end
 
 
-    run(args:String...):() = do
+    run():() = do
         testBinarySearch()
         testLeafInsert1()
         testLeafInsert2()

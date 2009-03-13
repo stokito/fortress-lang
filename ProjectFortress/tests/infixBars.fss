@@ -18,6 +18,6 @@
 component infixBars
 export Executable
 
-run(args:String...) = assert("bc", "b"||"c")
+run() = assert("bc", "b"||"c")
 
 end

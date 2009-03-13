@@ -34,7 +34,7 @@ object Right[\A,B\](datum: B) extends { Either[\A,B\] }
 either[\A,B,R\](it: Left[\A,B\], lefter: A -> R, _: B -> R): R = lefter(it.unLeft())
 either[\A,B,R\](it: Right[\A,B\], _: A -> R, righter: B -> R): R = righter(it.unRight())
 
-run(args:String...):() = do
+run():() = do
   l : Either[\ZZ32,RR64\] = Left[\ZZ32,RR64\](32)
   r : Either[\ZZ32,RR64\] = Right[\ZZ32,RR64\](64.0)
   (* Deleting the type instantiations in either of these will cause a

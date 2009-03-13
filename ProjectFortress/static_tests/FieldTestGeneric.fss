@@ -22,5 +22,5 @@ component FieldTestGeneric
     car():T = self.blah()
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

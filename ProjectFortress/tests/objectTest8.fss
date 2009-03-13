@@ -68,7 +68,7 @@ t(s:String, got:ZZ32, expected:ZZ32):() = do
   )
 end
 
-run(args:String...):()=do
+run():()=do
   a:A = A(1,2)
   b:T = a.b(3)
   c:U = a.b(3)

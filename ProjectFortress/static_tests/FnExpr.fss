@@ -25,5 +25,5 @@ component FnExpr
     s := (fn (arg:String):String=>arg)("MyString")
   end
 
-  run(args:String...):()=()
+  run():()=()
 end

@@ -30,7 +30,7 @@ object W extends T
   myname():String = "ImportLocalCollision.W"
 end
 
-run(args:String...):()=do
+run():()=do
   assert( V.s() = "s from ImportLocalCollision.U", "V's s() comes from local U")
   assert( W.s() = "s from TestImports1.S object ImportLocalCollision.W", "W's s() comes from TestImports1.S")
   assert( W.t() = "t from TestImports1.T ImportLocalCollision.W", "W's t() comes from TestImports1.T")

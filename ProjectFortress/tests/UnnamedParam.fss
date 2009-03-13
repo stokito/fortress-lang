@@ -27,7 +27,7 @@ object Bar[\T\] extends Foo[\T\]
   bar(x: T): ZZ64 = println x
 end
 
-run(args:String...)= do
+run()= do
   Bar[\ZZ64\].bar(42)
 end
 

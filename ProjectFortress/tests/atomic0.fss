@@ -18,7 +18,7 @@
 component atomic0
 export Executable
 
-run(args:String...):()=do
+run():()=do
    var count : ZZ32 = 0
    count := 1
    count := count + 1

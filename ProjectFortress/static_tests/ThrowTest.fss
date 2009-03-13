@@ -27,6 +27,6 @@ component ThrowTest
     throw FooExn (* Here throw takes on the value of () *)
   end
 
-  run (args:String...) : () = ()
+  run () : () = ()
 end
 

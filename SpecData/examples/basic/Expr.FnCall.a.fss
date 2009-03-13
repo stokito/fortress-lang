@@ -31,6 +31,6 @@ arctan(y,x)
 (** END EXAMPLE **)
 end
 
-run(args:String...) = f()
+run() = f()
 
 end

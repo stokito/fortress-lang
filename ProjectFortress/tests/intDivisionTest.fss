@@ -18,7 +18,7 @@
 component intDivisionTest
 export Executable
 
-run(args:String...) = do
+run() = do
   assert(3/2, 6/4)
   assert(5 DIV 2, 2)
   assert((-5) DIV 2, -2)

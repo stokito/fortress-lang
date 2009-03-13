@@ -34,7 +34,7 @@ object O extends U
   end
 end
 
-run(args:String...) = do
+run() = do
   t:T = O;
   println(if O.obar then "obar true" else "obar false" end)
   println(if t.foo then "foo true" else "foo false" end)

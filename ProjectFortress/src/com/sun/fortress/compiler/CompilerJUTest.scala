@@ -140,7 +140,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0c() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.c.fss:20:28-39\n" +
+      STATIC_TESTS_DIR + "/Compiled0.c.fss:20:14-25\n" +
       "    Variable printlnSimple is not defined.\n" +
       "File Compiled0.c.fss has 1 error.\n"
       assertErrorSignaled(expected,"Compiled0.c.fss")
@@ -148,7 +148,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0d() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.d.fss:20:3-50\n" +
+      STATIC_TESTS_DIR + "/Compiled0.d.fss:20:3-36\n" +
       "    Unmatched delimiter \"component\".\n" +
       "File Compiled0.d.fss has 1 error.\n"
      assertErrorSignaled(expected,"Compiled0.d.fss")
@@ -164,7 +164,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0f() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.f.fss:20:23\n" +
+      STATIC_TESTS_DIR + "/Compiled0.f.fss:20:9\n" +
       "    Unmatched delimiter \"(\".\n" +
       "File Compiled0.f.fss has 1 error.\n"
       assertErrorSignaled(expected,"Compiled0.f.fss")
@@ -172,7 +172,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0g() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.g.fss:20:23\n" +
+      STATIC_TESTS_DIR + "/Compiled0.g.fss:20:9\n" +
       "    Unmatched delimiter \"(\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.g.fss:24:1-3\n" +
       "    Unmatched delimiter \"end\".\n" +
@@ -182,7 +182,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0h() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.h.fss:20:25\n" +
+      STATIC_TESTS_DIR + "/Compiled0.h.fss:20:11\n" +
       "    Unmatched delimiter \")\".\n" +
       "File Compiled0.h.fss has 1 error.\n"
       assertErrorSignaled(expected,"Compiled0.h.fss")
@@ -206,7 +206,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0k() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.k.fss:20:37-50\n" +
+      STATIC_TESTS_DIR + "/Compiled0.k.fss:20:23-36\n" +
       "    Unmatched delimiter \"\\\"\".\n" +
       "File Compiled0.k.fss has 1 error.\n"
     assertErrorSignaled(expected,"Compiled0.k.fss")
@@ -214,7 +214,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0l() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:25\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:14-21:25\n" +
       "    Unmatched delimiter \"do\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:25\n" +
       "    Unmatched delimiter \"component\".\n" +
@@ -253,30 +253,30 @@ class CompilerJUTest() extends TestCaseWrapper {
   def testCompiled0p() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.p.fss:17:11-21\n" +
-      "    Component Compiled0.p exports API SimpleExecutable\n" +
-      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Component Compiled0.p exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run():() at " +
-      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
+      LIBRARY_DIR + "/Executable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.p.fss"), expected)
   }
 
   def testCompiled0q() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.q.fss:17:11-21\n" +
-      "    Component Compiled0.q exports API SimpleExecutable\n" +
-      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Component Compiled0.q exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run():() at " +
-      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
+      LIBRARY_DIR + "/Executable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.q.fss"), expected)
   }
 
   def testCompiled0r() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.r.fss:17:11-21\n" +
-      "    Component Compiled0.r exports API SimpleExecutable\n" +
-      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Component Compiled0.r exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run():() at " +
-      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}"
+      LIBRARY_DIR + "/Executable.fsi:22:3-23:1}"
     Shell.assertStaticErrors(compile("Compiled0.r.fss"), expected)
   }
 
@@ -291,8 +291,8 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0t() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.t.fss:20:8-24\n" +
-      "    Component Compiled0.t imports and exports API SimpleExecutable.\n" +
+      STATIC_TESTS_DIR + "/Compiled0.t.fss:20:8-18\n" +
+      "    Component Compiled0.t imports and exports API Executable.\n" +
       "    An API must not be imported and exported by the same component."
     Shell.assertStaticErrors(compile("Compiled0.t.fss"), expected)
   }
@@ -307,10 +307,10 @@ class CompilerJUTest() extends TestCaseWrapper {
   def testCompiled0v() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.v.fss:17:1-20:24\n" +
-      "    Component Compiled0.v exports API SimpleExecutable\n" +
-      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Component Compiled0.v exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run():() at " +
-      LIBRARY_DIR + "/SimpleExecutable.fsi:22:3-23:1}\n" +
+      LIBRARY_DIR + "/Executable.fsi:22:3-23:1}\n" +
       STATIC_TESTS_DIR + "/Compiled0.v.fss:19:1-24\n" +
       STATIC_TESTS_DIR + "/Compiled0.v.fss:20:1-24\n" +
       "    There are multiple declarations of run with the same signature: String -> ()"

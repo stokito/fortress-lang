@@ -18,7 +18,7 @@
 component roundBug
 export Executable
 
-run(args:String...) =
+run() =
   do
     a:ZZ32 = 3
     b:ZZ32 = 4

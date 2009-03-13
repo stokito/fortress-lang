@@ -158,7 +158,7 @@ object O2(var x:ZZ32)
 end
 
 
-run(args:String...):() = do
+run():() = do
     v0:ZZ32 = exitDefinedLabel()
     assert(5, v0, "exitDefinedLabel() failed.");
 

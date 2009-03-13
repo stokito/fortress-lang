@@ -27,7 +27,7 @@ object Filt(x:Boolean) extends SequentialGenerator[\()\]
        if x then body() else r.empty() end
 end
 
-run(args:String...):() = do
+run():() = do
     q = <| q | q <- Just(17,3) |>
     println(q)
     f = <| x | x <- Filt(true) |>

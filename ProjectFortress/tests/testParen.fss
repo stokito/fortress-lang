@@ -18,7 +18,7 @@
 component testParen
 export Executable
 
-run(args:String...):()=do
+run():()=do
   x = 3
   println ( x = 2 )
 end

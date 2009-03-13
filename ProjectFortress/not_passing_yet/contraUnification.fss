@@ -34,7 +34,7 @@ f[\V\](a:V):V = a
 
 g(x: T, o: T->T): T = o(x)
 
-run(args:String...):() = do
+run():() = do
   print(g(B,f).m())
 end
 

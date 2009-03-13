@@ -28,7 +28,7 @@ t(f:(ZZ32->ZZ32), i:ZZ32) = do
   println("g(" i ")=" f(i))
 end
 
-run(args:String...):()=do
+run():()=do
   var z:ZZ32 = 0
   var y:ZZ32 = 1
   f = fn (x:ZZ32):ZZ32 => do z+=2; x-y; end

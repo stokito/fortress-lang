@@ -22,6 +22,6 @@ trait A extends {Any}
   method1(x:ZZ32):ZZ32 = x
 end
 
-run(args:String...):() = ()
+run():() = ()
 
 end

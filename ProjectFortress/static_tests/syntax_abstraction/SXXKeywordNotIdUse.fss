@@ -19,7 +19,7 @@ component SXXKeywordNotIdUse
 import KeywordNotId.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   (*  println(one fish two fish) *)
   var fish:String := "mackerel"
   println(fish)

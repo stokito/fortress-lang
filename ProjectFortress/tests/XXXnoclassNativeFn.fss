@@ -21,7 +21,7 @@ export Executable
 
 testFn(x:String, y:RR64):String = builtinPrimitive("glue.NonexistentClass");
 
-run(args:String...) = do
+run() = do
     println(testFn("howdy", pi))
 end
 

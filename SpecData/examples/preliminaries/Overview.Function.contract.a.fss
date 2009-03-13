@@ -27,6 +27,6 @@ factorial(n) requires { n >= 0 }
     else n factorial(n-1) end
 (** END EXAMPLE **)
 
-run(args:String...) = println (factorial 5)
+run() = println (factorial 5)
 
 end

@@ -38,6 +38,6 @@ i = 1
 (** END EXAMPLE **)
 end
 
-run(args:String...) = ()
+run() = ()
 
 end

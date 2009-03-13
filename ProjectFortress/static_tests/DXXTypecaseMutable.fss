@@ -29,5 +29,5 @@ component DXXTypecaseMutable
     ()
   end
 
-  run(args:String...) : () = ()
+  run() : () = ()
 end

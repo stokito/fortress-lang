@@ -23,5 +23,5 @@ component ChainTest
     (a = b)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

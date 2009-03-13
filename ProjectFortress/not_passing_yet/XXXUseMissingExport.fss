@@ -21,7 +21,7 @@ export Executable
 
 g(u) = f(u)
 
-run(args:String...):() = do
+run():() = do
     if (17^2 < 25^3) then
         println("Should have caught missing f (which is even sorta used).")
     else

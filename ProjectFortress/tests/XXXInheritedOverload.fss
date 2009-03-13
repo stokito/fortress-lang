@@ -38,7 +38,7 @@ end
 object O() extends {T1, T2}
 end
 
-run(args:String...):()=do
+run():()=do
   o:O = O()
   println("o.b()=" o.b())
 end

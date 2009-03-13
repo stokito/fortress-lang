@@ -20,7 +20,7 @@ export Executable
 
 (* Tests that If expression correctly has union of its IfClauses' types. *)
   
-run(args:String...):() = do
+run():() = do
   x:IntLiteral = if true then
     1
   else

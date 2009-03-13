@@ -30,7 +30,7 @@ tst(rng:Range[\ZZ32\], isin:ZZ32, notin:ZZ32):() = do
     end
   end
 
-run(args:String...):() = do
+run():() = do
     tst(10:20, 17, 3)
     tst(10:, 17, 3)
     tst(:10, 3, 17)

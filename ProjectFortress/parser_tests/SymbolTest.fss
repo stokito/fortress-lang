@@ -68,6 +68,6 @@ opr <-/-() = -/->()
     DoubleStar case 1/1 (no name) never succeeded [28619-0-0]
 *)
 
-run(args:String...) = -/->()
+run() = -/->()
 
 end

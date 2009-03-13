@@ -19,7 +19,7 @@ component stringJuxt
 import Constants.{...}
 export Executable
 
-run(args:String...):() = do
+run():() = do
   a:String = "Hello "
   n:ZZ32 = 4
   f:String = a a

@@ -21,6 +21,6 @@ import ThisShouldBeANonExistingAPI.{...}
 
 export Executable
 
-run(args: String...) = ()
+run() = ()
 
 end

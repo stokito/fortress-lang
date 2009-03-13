@@ -3823,9 +3823,6 @@ opr (x:Any)// : String = x || newline
     standalone top-level function.  Infix and prefix versions are defined by String. **)
 opr (x:Any)/// : String = x || doubleNewline
 
-(* A way to get environment information from inside of fortress *)
-getEnvironment(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetEnvironment")
-
 (* These are useful temporary hacks for debugging multi-threaded programs *)
 printThreadInfo(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
 printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
@@ -3840,10 +3837,10 @@ throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.pr
 opr SEQV(a:Any, b:Any):Boolean =
     builtinPrimitive("com.sun.fortress.interpreter.glue.prim.AnyPrim$SEquiv")
 
-opr  XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
-opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
+opr OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
-opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
 opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
 opr NOT(a:Boolean):Boolean = if a then false else true end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end

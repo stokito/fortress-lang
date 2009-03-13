@@ -22,6 +22,6 @@ trait T
   io atomic io f():()
 end
 
-run(args:String...):()=()
+run():()=()
 
 end

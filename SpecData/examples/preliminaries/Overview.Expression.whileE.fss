@@ -31,6 +31,6 @@ f(n) = do
 (** END EXAMPLE **)
 end
 
-run(args:String...) = f 5
+run() = f 5
 
 end

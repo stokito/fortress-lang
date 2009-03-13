@@ -19,7 +19,7 @@ component conditionalOp
 
 export Executable
 
-run(args:String...) = do
+run() = do
     println (false AND: fail("executed second branch of short circuit AND"))
     println (true OR: fail("executed second branch of short circuit OR"))
     println (false ->: fail("executed second branch of short circut ->"))

@@ -26,5 +26,5 @@ component VarTypeAsReturn
     bar():ZZ32 = foo()
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

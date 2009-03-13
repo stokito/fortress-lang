@@ -20,7 +20,7 @@ export Executable
 
 (* Each IfClause should have type () if there is no corresponding 'else'. *)
 
-run(args:String...):() = do
+run():() = do
   
   (* test single if clause *)
   if true then

@@ -32,7 +32,7 @@ object C() extends T
   me()="C"
 end
 
-run(args:String...) = do
+run() = do
     t1 = f(B(),C())
     println(t1.me())
     t2 = f(13.0, 5)

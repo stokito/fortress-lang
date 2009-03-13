@@ -21,7 +21,7 @@ import List.{...}
 import Set.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     n = <|1,2,3|>
     b = <|100,101,102|>
 

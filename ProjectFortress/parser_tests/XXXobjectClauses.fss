@@ -23,6 +23,6 @@ trait T end
 object U throws Exn ensures { true } extends T end
 object V extends T end
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

@@ -39,6 +39,6 @@ component MethodInvocationVarargs
     result := vat.takeMoreVararg(s,s)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 
 end

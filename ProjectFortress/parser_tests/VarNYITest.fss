@@ -24,6 +24,6 @@ var z: ZZ32 = 5
 private v = 0
 test w = 1
 
-run(args:String...) = ()
+run() = ()
 
 end

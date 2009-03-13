@@ -20,7 +20,7 @@ export Executable
 
 foo(x:ZZ32...) = SUM x
 
-run(args:String...):() = do
+run():() = do
    assert(foo(1,2,3,4,5),15,"foo(1,2,3,4,5)")
 end
 

@@ -18,7 +18,7 @@
 component XXXNotMatchingCharacterMarks
 export Executable
 
-run(args:String...) = do
+run() = do
   println 'c’
   println `h'
   println ‘r'

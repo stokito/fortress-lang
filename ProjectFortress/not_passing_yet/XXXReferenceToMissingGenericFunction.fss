@@ -32,7 +32,7 @@ end
 object ExtendsABug() extends HasABug[\String\]
 end
 
-run(args:String...) = do
+run() = do
  println(ExtendsABug().bDefaultMethod())
 end
 

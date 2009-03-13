@@ -20,7 +20,7 @@ export Executable
 
 류:ZZ32 ≔ 3
 
-run(args:String...) = do
+run() = do
   류 += 5
   println 류
 end

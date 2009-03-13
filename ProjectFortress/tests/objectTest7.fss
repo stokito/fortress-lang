@@ -39,7 +39,7 @@ object A(i:ZZ32, j:ZZ32) extends T
 end
 
 
-run(args:String...):()=do
+run():()=do
   a:A = A(1,2)
   b:T = a.b(3)
   println("a.getI() = " a.getI())

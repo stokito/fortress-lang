@@ -22,7 +22,7 @@ component DXXTryTestCatchNotExn
   object SomethingElse extends Exception end
   object FooExn extends Exception end
 
-  run(args:String...) : () = do
+  run() : () = do
     var z:String
     z := try 
       throw FooExn

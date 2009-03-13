@@ -19,7 +19,7 @@ component DivPrecedence
 export Executable
 
 (* DIV ought to have a defined precedence wrt equality, plus, etc. *)
-run(Args:String...) = do
+run() = do
   println(3 + 5 DIV 4)
   println(3 + 5 / 4)
   println(3 + 5   4)

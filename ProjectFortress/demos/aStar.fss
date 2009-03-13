@@ -359,7 +359,7 @@ value object NanoInterval(i:ZZ64)
         NanoInterval(i+other.i)
 end
 
-run(args:String...):()=do
+run():()=do
     spuriousInconsistency : Boolean := false
     for problem <- seq(FileReadStream("demos/aStarSudokuData.txt").lines()) do
         println("************************************************************")

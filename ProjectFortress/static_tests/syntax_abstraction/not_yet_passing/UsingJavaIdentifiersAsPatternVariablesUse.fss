@@ -19,5 +19,5 @@ component UsingJavaIdentifiersAsPatternVariablesUse
   import UsingJavaIdentifiersAsPatternVariables.{...}
   export Executable
 
-  run(args:String...):() = println ( foo "foo" bar )
+  run():() = println ( foo "foo" bar )
 end

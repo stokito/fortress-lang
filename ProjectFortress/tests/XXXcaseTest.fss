@@ -26,7 +26,7 @@ test1()=do
     end
 end
 
-run(args:String...):()=do
+run():()=do
    test1()
 end
 end

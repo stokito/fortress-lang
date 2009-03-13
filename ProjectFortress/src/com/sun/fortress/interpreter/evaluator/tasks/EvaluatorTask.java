@@ -32,19 +32,15 @@ public class EvaluatorTask extends BaseTask {
 
     final ComponentIndex p;
 
-    final List<String> args;
-
     final String functionToRun;
 
     final GraphRepository fortressRepository;
 
     FValue theResult;
 
-    public EvaluatorTask(GraphRepository fr, ComponentIndex prog,
-                         String toRun, List<String> args_) {
+    public EvaluatorTask(GraphRepository fr, ComponentIndex prog, String toRun) {
         super();
         p = prog;
-        args = args_;
         functionToRun = toRun;
         fortressRepository = fr;
     }
@@ -57,7 +53,7 @@ public class EvaluatorTask extends BaseTask {
         FortressTaskRunner.setCurrentTask(this);
 
         try {
-            theResult =  Driver.runProgramTask(p, args, functionToRun,
+            theResult =  Driver.runProgramTask(p, functionToRun,
                                                fortressRepository);
         } catch (IOException e) {
             recordException(e);

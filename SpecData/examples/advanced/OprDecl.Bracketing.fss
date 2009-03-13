@@ -30,7 +30,7 @@ opr <|[\T extends Number, nat k\] x: Vector[\T,k\], y: Vector[\T,k\]|> =
 vector1 = vector[\ZZ32, 2\](2)
 vector2 = vector[\ZZ32, 2\](3)
 
-run(args:String...) = do
+run() = do
   assert( <|vector1, vector2|> = 12)
   println("OprDecl.Bracketing.fss passed.")
 end

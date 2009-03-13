@@ -20,6 +20,6 @@ export Executable
 
 trait Xml[\nat OPR\] end
 
-run(args:String...) = ()
+run() = ()
 
 end

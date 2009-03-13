@@ -43,7 +43,7 @@ object NewRange(lo:ZZ32,sz:ZZ32) extends Generator[\ZZ32\]
     end
 end
 
-run(args:String...):() = do
+run():() = do
     r1 = NewRange(1,11)
     s2 : ZZ32 := 0
     for i <- seq(r1) do

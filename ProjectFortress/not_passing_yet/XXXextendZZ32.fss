@@ -21,6 +21,6 @@ export Executable
     object Mumble() extends { ZZ32 }
     end
 
-run(args:String...) = ()
+run() = ()
 
 end

@@ -21,7 +21,7 @@ component SetterTest
    var z:String = "blah"
    setter z(newz:String):()=z:=newz
  end
- run(args:String...):() = do
+ run():() = do
    Foo.z := "bar"
  end
 end

@@ -37,6 +37,6 @@ f(a, t)
 (** END EXAMPLE **)
 end
 
-run(args:String...) = println h()
+run() = println h()
 
 end

@@ -20,7 +20,7 @@ export Executable
 
 opr *(x:ZZ32, y:ZZ32) = x DOT y
 
-run(args:String...) = do
+run() = do
   assert(5 - 3, 5 - 3)
   assert(2 * 3, 3 ∗ 2)
   assert(4 DOT 3, 3 ⋅ 4)

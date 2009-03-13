@@ -92,7 +92,7 @@ test6() = do
     assert(barney,false,"label 5 failed")
   end
 
-run(args:String...):()=do
+run():()=do
     test1()
     test2()
     test3()

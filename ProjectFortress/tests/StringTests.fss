@@ -283,7 +283,7 @@ test testStringification() = do
   assert(ran.asDebugString, "StridedFullParScalarRange(1,19,2)")
 end
 
-run(args:String...):() = do
+run():() = do
   testStringification()
   testDepth()
   testindexing()

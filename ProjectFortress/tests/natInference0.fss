@@ -30,7 +30,7 @@ g[\nat m\](x:T[\m\], y:T[\m\]) = do
   y.f();
 end
 
-run(args:String...) = do
+run() = do
   println "Hello, World!"
     g(O,O);
     g(P,P);

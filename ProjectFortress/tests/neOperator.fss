@@ -21,7 +21,7 @@ export Executable
 ok() = println("OK")
 not() = println("FAIL")
 
-run(args:String...) = do
+run() = do
   if 0 = 1 then not() else ok() end
   if 0+0 = 1+1 then not() else ok() end
   if 0 0 = 1 1 then not() else ok() end

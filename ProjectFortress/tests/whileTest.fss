@@ -26,7 +26,7 @@ neqOrMaybe(a: ReadableArray[\ZZ32,ZZ32\], i:ZZ32): Maybe[\(ZZ32,ZZ32)\] =
         Just[\(ZZ32,ZZ32)\](a[i],i+7)
     end
 
-run(args:String...):()=do
+run():()=do
     iters = 47
     i : ZZ32 := 0
     j : ZZ32 := 7

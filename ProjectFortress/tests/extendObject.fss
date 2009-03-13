@@ -21,6 +21,6 @@ export Executable
 object Foo extends Any
 end
 
-run(args:String...) = ()
+run() = ()
 
 end

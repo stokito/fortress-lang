@@ -21,7 +21,7 @@ trait t
   f(self):()
 end
 
-run(args) = do
+run() = do
    o = object extends t
        f(self):() = println "PASS"
    end

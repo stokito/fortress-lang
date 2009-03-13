@@ -40,6 +40,6 @@ end
 Cons[\T\](first:T) = Cons(first,Empty)
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

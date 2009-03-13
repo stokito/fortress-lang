@@ -20,5 +20,5 @@ component OpTest
 
   doIt(a:ZZ32, b:ZZ32):ZZ32 = a+b
 
-  run(args:String...):() =()
+  run():() =()
 end

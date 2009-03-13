@@ -23,7 +23,7 @@ object Point(x:RR64, y:RR64)
   getY():RR64 = y
 end
   
-run(args:String...):() = do
+run():() = do
   p1 = Point(0.0, 0.0)
   p2 = Point(1.0, 1.0)
 end

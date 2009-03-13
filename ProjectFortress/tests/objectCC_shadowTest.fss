@@ -118,7 +118,7 @@ end
 
 
 
-run(args:String...):()=do
+run():()=do
     a:A = A()
     x1:T1 = a.m1()
     x2:T1 = a.m2()

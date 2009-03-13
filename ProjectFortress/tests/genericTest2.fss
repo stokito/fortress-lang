@@ -21,7 +21,7 @@ export Executable
 f[\nat n\]():ZZ32 = n
 g[\nat n, nat m\]():ZZ32 = f[\n+m\]()
 
-run(args:String...):()=do
+run():()=do
 
   a = f[\1\]()
   b = g[\2,3\]()

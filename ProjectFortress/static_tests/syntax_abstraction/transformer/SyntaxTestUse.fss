@@ -20,6 +20,6 @@ import SyntaxTest.Helloworld
 
 export Executable
 
-run(args:String...) = Fortress is very cool, indeed very very cool
+run() = Fortress is very cool, indeed very very cool
 
 end

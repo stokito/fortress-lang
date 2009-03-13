@@ -21,6 +21,7 @@ import Map.{...}
 import Set.{...}
 import Syntax.{...}
 import DynamicSemantics.{...}
+import System.{args}
 export Executable
 
 (* Control flow analysis helper table ******************************************)
@@ -479,7 +480,7 @@ end
 
 printUsage() = println "Usage: fortress Cfa.fss [-[-]debug]"
 
-run(args:String...) =
+run() =
   if |args| > 1
   then printUsage()
   else if |args| = 1

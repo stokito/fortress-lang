@@ -26,5 +26,5 @@ component DXXField
     i := b.size
   end
 
-  run(args:String...):() =()
+  run():() =()
 end

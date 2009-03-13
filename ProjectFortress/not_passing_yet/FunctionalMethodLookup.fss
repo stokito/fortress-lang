@@ -145,7 +145,7 @@ object Foo extends StdPartialOrder[\Foo\]
     opr CMP(self, other:Foo):Comp = EqTo
 end
 
-run(args:String...):() = do
+run():() = do
 (*
     assert((Foo CMP Foo) EQL EqTo, "CMP")
     assert(Foo EQL Foo, "=")

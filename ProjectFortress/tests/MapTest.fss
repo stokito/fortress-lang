@@ -38,7 +38,7 @@ check(db: Map[\String,ZZ32\]): () = do
   end
 
 
-run(args:String...):() = do
+run():() = do
     db00 : Map[\String,ZZ32\] = { "Nathi" asif String |-> 3 asif ZZ32 }
     perm : ZZ32[5] = [ 3 4 1 0 2 ]
     expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]

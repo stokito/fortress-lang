@@ -35,6 +35,6 @@ f1(a:A, t:T) = a.internalF(t)
 f2(s:S, a:A) = a.internalF(s)
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

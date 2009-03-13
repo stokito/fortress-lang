@@ -51,7 +51,7 @@ object D0[\E\]() extends { Finger[\E\] }
   asString() = "0"
 end
 
-run(args:String...):() = do
+run():() = do
   println("Started")
   e = D0[\ZZ32\]()
   println("Instantiated")

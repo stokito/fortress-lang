@@ -21,7 +21,7 @@ import java java.util.{List}
 import java java.util.{Map.Entry}
 export Executable
 
-run(args:String...) = do
+run() = do
  println("Hello, World!")
 end
 

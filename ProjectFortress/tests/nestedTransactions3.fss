@@ -37,7 +37,7 @@ test1()=do
   assert(count, successes, "TryAtomic should be flattened to a noop")
 end
 
-run(args:String...):()=do
+run():()=do
     println("Starting test")
     recordTime(6.0)
     test1() 

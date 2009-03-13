@@ -27,7 +27,7 @@ object B extends A[\ (ZZ32, ZZ32) \]
 end
 
 
-run(args:String...):() = do
+run():() = do
    println B.f(3, 4)
 end
 

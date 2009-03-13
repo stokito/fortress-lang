@@ -18,7 +18,7 @@
 component emptyLoop
 export Executable
 
-run(args:String...):() = do
+run():() = do
   for i <- 0#0 do
     fail("First i loop, i=" i)
   end

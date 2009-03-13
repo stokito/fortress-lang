@@ -33,7 +33,7 @@ object rat(i:ZZ32, j:ZZ32)
   area():ZZ32 = i OTIMES j
 end
 
-run(args:String...):()=do
+run():()=do
   a:rat = rat(1,0)
   println a.asString()
 

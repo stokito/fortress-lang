@@ -25,7 +25,7 @@ export Executable
 opr SMAX[\T extends String\](x: T, y: T):T = if x > y then x else y end
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   assert(("2" SMAX "3") = "3")
   println("OprDecl.Infix.fss passed.")
 end

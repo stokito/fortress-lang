@@ -18,7 +18,7 @@
 component XXXequalityTesting
 export Executable
 
-run(args) = do
+run() = do
   a:ZZ32[2] = [ 3 5 ]
   a[0] = a[1]           (* should be parenthesized, should have type () *)
   println (a[0] = a[1])

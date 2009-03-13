@@ -18,7 +18,7 @@
 component XXXTwoThreeTwo
 export Executable
 
-run(args:String...):() = do
+run():() = do
     x = 2^3^2
     assert(x,64,"Complies with unintuitive semantics in F1.0Beta")
 end

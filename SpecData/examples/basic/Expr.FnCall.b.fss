@@ -30,6 +30,6 @@ log log n
 (** END EXAMPLE **)
 end
 
-run(args:String...) = ()
+run() = ()
 
 end

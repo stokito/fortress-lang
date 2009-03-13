@@ -29,5 +29,5 @@ component MethodInvocationStaticInfer2
     a2 := f.doIt(a,g)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

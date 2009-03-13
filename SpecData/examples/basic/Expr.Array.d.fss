@@ -30,6 +30,6 @@ f() = do
   A[1,0]
 end
 
-run(args:String...) = println f()
+run() = println f()
 
 end

@@ -30,7 +30,7 @@ end
 z = (1#100).generate[\ZZ32\](SumZZ32, fn (x) => 3 x + 2)
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
     y = SUM [x <- 1#100] 3 x + 2
     assert(z,y,"Sums unequal")
     println(z)

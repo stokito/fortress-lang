@@ -25,5 +25,5 @@ component TypesAreSame
     getABigObject() : BigObject = self
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

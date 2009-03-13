@@ -45,6 +45,6 @@ A: ZZ32[3,3,3] =
   A[1,2,1]
 end
 
-run(args:String...) = println f()
+run() = println f()
 
 end

@@ -20,7 +20,7 @@ import Set.{...}
 import List.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     gg = <| -n : n | n <- 0:4 |>
     outa = BIG ||| <| n^2 | n <- -4:4 |>
     assert(outa,"16 9 4 1 0 1 4 9 16")

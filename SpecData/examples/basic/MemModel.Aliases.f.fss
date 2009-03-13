@@ -28,7 +28,7 @@ f(x: ZZ64[2], y: ZZ64[2]): ZZ64 = do
 end
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   a = array1[\ZZ64, 2\]()
   f(a, a)
   println a[0]

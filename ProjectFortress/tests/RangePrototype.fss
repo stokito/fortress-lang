@@ -229,7 +229,7 @@ strideUnit[\I extends Integral[\I\]\](f:FullScalarRange[\I\]): I->Maybe[\(I,I,I)
     Just[\(I,I,I)\](e,1,e)
   end
 
-run(args:String...):() =
+run():() =
   if false then ()
   else
     (* Spot-test failures first *)

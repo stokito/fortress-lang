@@ -29,7 +29,7 @@ trait U
   f():() (* Cannot combine generic method  *)
 end
 
-run(args:String...):()=do
+run():()=do
 
 
 

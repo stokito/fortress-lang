@@ -19,7 +19,7 @@ component CaseUse
 import Case.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     (foo 1, 2, 3,)
     (foo)
 end

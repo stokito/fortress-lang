@@ -21,7 +21,7 @@ component Overview.Expression.atomicE
 
 export Executable
 
-run(args:String...) = do
+run() = do
   var x: ZZ32 = 0
   var y: ZZ32 = 5
 (** EXAMPLE **)

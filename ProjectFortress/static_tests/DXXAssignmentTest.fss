@@ -30,7 +30,7 @@ component DXXAssignmentTest
 
   end
 
-  run(args:String...):() = do
+  run():() = do
     (* Currently fails because IntLiteral <!: ZZ32
     var a : ZZ32
     a := 1

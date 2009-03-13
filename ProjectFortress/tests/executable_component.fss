@@ -19,6 +19,6 @@ component executable_component
 
 export Executable
 
-run(args:String...):()=do end
+run():()=do end
 
 end

@@ -19,7 +19,7 @@ component forTest
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
 for i <- 1#10 do
    println("Hello World")
 end

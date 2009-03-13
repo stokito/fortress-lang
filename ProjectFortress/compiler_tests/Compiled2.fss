@@ -17,7 +17,7 @@
 
 component Compiled2
 import System.{args}
-export SimpleExecutable
+export Executable
 
 run() = println("Hello, " || args[0] || "!")
 

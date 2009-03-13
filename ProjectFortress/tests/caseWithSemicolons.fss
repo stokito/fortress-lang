@@ -20,7 +20,7 @@ import List.{...}
 import Set.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   n = 10
   sameAcross =
             <| i | i <- <|0,2,5,7|>,

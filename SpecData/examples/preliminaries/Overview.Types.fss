@@ -25,6 +25,6 @@ export Executable
 halve(x: RR64): RR64 = x/2
 (** END EXAMPLE **)
 
-run(args:String...) = println (halve(3.5))
+run() = println (halve(3.5))
 
 end

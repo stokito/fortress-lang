@@ -29,7 +29,7 @@ end
 opr @(): ImplicitRange = ImplicitRange
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   println(@)
 end
 

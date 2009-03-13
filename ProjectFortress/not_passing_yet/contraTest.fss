@@ -40,7 +40,7 @@ end
 object ToBo() extends ThingOf[\B\]
 end
 
-run(args:String...):() = do
+run():() = do
 
   tob:ThingOf[\B\] = ToBo()
 

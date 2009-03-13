@@ -18,7 +18,7 @@
 component Region
 export Executable
 
-run(args:String...):()=do
+run():()=do
     all = array1[\Any,7\]()
     all[0] := Nothing[\ZZ32\]
     all[1] := Nothing[\RR64\]

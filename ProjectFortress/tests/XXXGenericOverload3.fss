@@ -28,7 +28,7 @@ f[\ U, V extends U \](x:U, y:V) = 1
 f[\ U, V extends U \](x:V, y:U) = 2
 f[\ U, V extends U \](x:V, y:V) = 3
 
-run(args:String...):() = do
+run():() = do
   g = f[\B, A\]
 
   println( g(A,A) )

@@ -22,7 +22,7 @@ import AsciiVal.{...}
 
 export Executable
 
-run(args:String...) = do
+run() = do
   println "Hello, World!"
   println "A is " A
   A := 66

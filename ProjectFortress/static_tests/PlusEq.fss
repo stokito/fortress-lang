@@ -25,5 +25,5 @@ component PlusEq
     b
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

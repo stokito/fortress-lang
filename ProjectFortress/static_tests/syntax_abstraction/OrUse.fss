@@ -19,7 +19,7 @@ component OrUse
 import Or.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
     println (or 9 = 4, 2 > 1, false)
 end
 

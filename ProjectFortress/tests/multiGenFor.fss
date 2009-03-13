@@ -20,7 +20,7 @@ export Executable
 
 (* Tests that we can write multi-generator for loops *)
 
-run(args:String...):()=do
+run():()=do
   a : ZZ32[10,10] = matrix[\ZZ32,10,10\]()
   for i <- 0#10, j <- 10#10 do
     a[i,j-10] := i + i j

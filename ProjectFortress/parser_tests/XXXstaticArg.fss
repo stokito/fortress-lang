@@ -37,7 +37,7 @@ export Executable
 
   end
 
-  run(args:String...) :() = do
+  run() :() = do
 
     t1[\RR64,200,3.0\]()
 

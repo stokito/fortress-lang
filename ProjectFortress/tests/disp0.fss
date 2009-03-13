@@ -29,7 +29,7 @@ object B extends A
  override   g(other:Number):String = "g PASS"
 end
 
-run(args:String...):()= do
+run():()= do
    println(f(B, 17))
    println(B.g(17))
    end

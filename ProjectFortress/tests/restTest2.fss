@@ -25,7 +25,7 @@ foo(y:ZZ32, z:ZZ32, x:ZZ32...) =
 foo(y:ZZ32) = y
 
 
-run(args:String...):() = do
+run():() = do
    assert(foo(1,2,3,4,5),15,"foo(1,2,3,4,5)")
    assert(foo(17),17,"foo(17)")
 end

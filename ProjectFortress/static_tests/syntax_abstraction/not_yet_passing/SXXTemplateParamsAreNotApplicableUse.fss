@@ -21,7 +21,7 @@ component SXXTemplateParamsAreNotApplicableUse
 
   export Executable
 
-  run(args:String...) = 42
+  run() = 42
 
 end
 

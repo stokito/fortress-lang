@@ -27,7 +27,7 @@ component PureListBehavior
         ensureEqual(l1.left, "apple", "PureLists appear to suffer from side-effects")
     end
     
-    run(args:String...) = 
+    run() = 
     do
         println "Checking PureListBehavior"
         l = <| 2, 3, 5, 7 |> 

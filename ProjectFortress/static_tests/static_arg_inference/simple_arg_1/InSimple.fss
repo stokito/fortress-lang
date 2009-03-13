@@ -29,5 +29,5 @@ component InSimple
     topLevelFn(a)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

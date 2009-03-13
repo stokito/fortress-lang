@@ -20,7 +20,7 @@ import Set.{...}
 import Constants.{ pi }
 export Executable
 
-run(args:String...) = do
+run() = do
   assert(17, f_SIXTEEN + 2)
   assert(7fff_16, strToInt("7fff", 16))
   assert(0fff_SIXTEEN, strToInt("fff", 16))

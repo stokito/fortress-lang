@@ -18,7 +18,7 @@
 component ToTheEOLComment
 export Executable
 
-run(args:String...):()= do
+run():()= do
   println "test1" (*) to-the-end of line comment
   println "test2" (*) nested (*) to-the-end of line comment
   println "test3" (*) with (* enclosed comment *) test

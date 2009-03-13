@@ -43,7 +43,7 @@ j(v:V):V = v
 k(v:V):U = v
 l(v:V):T = v
 
-run(args:String... ):() = do
+run():() = do
   f(ot, g)
 
   f(ou, g)

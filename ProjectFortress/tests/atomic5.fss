@@ -38,7 +38,7 @@ testNonAtomicsWithAtomics() = do
 end
 
 
-run(args:String...):()=do
+run():()=do
     for i <- 1#300 do
        testNonAtomicsWithAtomics()
     end

@@ -50,6 +50,6 @@ end
 
 opr CUP(x, y) = x+y
 
-run(args:String...) = ()
+run() = ()
 
 end

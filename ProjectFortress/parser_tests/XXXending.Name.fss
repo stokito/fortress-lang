@@ -42,6 +42,6 @@ object O end P
 object O end object P
 *)
 
-run(args:String...) = ()
+run() = ()
 
 end component XxXending.Name

@@ -19,7 +19,7 @@ component atomic4
 
 export Executable
 
-run(args:String...):()=do
+run():()=do
     var count : ZZ32 = 0
     atomic do
         for i <- 1#300 do

@@ -21,7 +21,7 @@ export Executable
 object O(x:String)
 end
 
-run(args:String...) = do
+run() = do
   o = O("Should never print this")
   r : ZZ32 := 0
   s : ZZ32 := 0

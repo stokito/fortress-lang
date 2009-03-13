@@ -17,6 +17,6 @@
 
 component XXXnoExport
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

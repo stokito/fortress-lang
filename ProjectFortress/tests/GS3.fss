@@ -23,7 +23,7 @@ object G[\T\] extends Equality[\G[\T\]\]
    opr =(self, other: G[\T\]): Boolean = true
 end
 
-run(args:String...):()= do
+run():()= do
    println(if G[\String\] = G[\String\] then "PASS" else "FAIL")
    println(if G[\String\] = G[\ZZ32\] then "FAIL" else "PASS")
 

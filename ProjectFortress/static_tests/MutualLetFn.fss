@@ -20,7 +20,7 @@ export Executable
 
 (* Tests that mutually recursive local function definitions work as intended. *)
 
-  run(args:String...):() = ()
+  run():() = ()
 
   blah(b:ZZ32, one:ZZ32):Boolean = do
     myOdd(x:ZZ32, one': ZZ32):Boolean = if x = 1 then true else myEven(x-one',one') end

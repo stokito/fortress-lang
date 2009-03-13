@@ -30,6 +30,6 @@ trait Boolean
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

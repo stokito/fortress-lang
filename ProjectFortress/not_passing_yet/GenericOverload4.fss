@@ -31,7 +31,7 @@ object A extends B end
 f[\ U, V \] ( u:U, v:V, b:B) = 1
 f[\ U, V \] ( u:U, v:V, a:A) = 2
 
-run(args:String...):() = do
+run():() = do
 
   x = 1
 

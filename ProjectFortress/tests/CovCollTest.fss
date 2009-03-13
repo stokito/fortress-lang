@@ -20,6 +20,7 @@ import CovariantCollection.{...}
 import List.{...}
 import Timing.{...}
 import File.{...}
+import System.{args}
 export Executable
 
 (**
@@ -50,7 +51,7 @@ isTriangular(n:ZZ32): Boolean = do
     (r = |\r/|)
   end
 
-run(args:String...):() = do
+run():() = do
     (sz, warm) = if |args| = 1 then (strToInt(args[0]),100) else (11,10) end
     c'n'p : String := ""
     for i <- seq(0:sz) do

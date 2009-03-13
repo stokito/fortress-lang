@@ -27,6 +27,6 @@ trait IdentityOp[\T extends IdentityOp[\T,ODOT\], opr ODOT\]
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

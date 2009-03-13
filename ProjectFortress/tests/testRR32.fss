@@ -18,7 +18,7 @@
 component testRR32
 export Executable
 
-run(ars:String...):() = do
+run():() = do
   x : RR32 = narrow(14.0)
   y : RR32 = narrow(14.0)
   z : RR32 = x y

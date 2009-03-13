@@ -44,7 +44,7 @@ a(x:ZZ32, f:(ZZ32, ZZ32, ZZ32...)->ZZ32):ZZ32=do
   x
 end
 
-run(args:String...):()=do
+run():()=do
   println(a(1))
 
   if restImplemented then

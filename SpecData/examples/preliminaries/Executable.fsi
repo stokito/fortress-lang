@@ -19,6 +19,6 @@
 
 (** EXAMPLE **)
 api Executable
-  run(args: String...): ()
+  run(): ()
 end
 (** END EXAMPLE **)

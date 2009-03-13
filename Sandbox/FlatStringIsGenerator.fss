@@ -4,7 +4,7 @@ import FlatString.{...}
 *)
 export Executable
 
-  run(args:String...):() = do
+  run():() = do
     for ch <- "H" do
         println ch
     end

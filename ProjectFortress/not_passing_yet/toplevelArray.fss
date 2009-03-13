@@ -20,6 +20,6 @@ export Executable
 
 a:ZZ32[3] = [ 1 2 3 ]
 
-run(args:String...) = assert(a[1],2,"a[1]")
+run() = assert(a[1],2,"a[1]")
 
 end

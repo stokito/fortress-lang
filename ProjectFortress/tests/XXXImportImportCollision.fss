@@ -34,7 +34,7 @@ object W extends T
   myname():String = "ImportImportCollision.W"
 end
 
-run(args:String...):()=do
+run():()=do
   println V.s()
   println W.s()
   println W.t()

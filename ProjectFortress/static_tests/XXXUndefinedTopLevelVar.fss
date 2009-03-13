@@ -20,6 +20,6 @@ export Executable
 
 a = b
 
-run(args:String...):() = ()
+run():() = ()
 
 end

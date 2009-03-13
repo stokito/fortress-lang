@@ -190,7 +190,7 @@ opr ->(t1: Expr, t2: Expr) = EvalThunk(t1, t2)
 opr <(typ1: Type, typ2: Type) = SubtypeThunk(typ1, typ2)
 
 (* Testing *)
-run(args) = do
+run() = do
   obj = Type("Object")
   newObj = New(obj, emptyList[\Expr\]())
   x = Var("x")

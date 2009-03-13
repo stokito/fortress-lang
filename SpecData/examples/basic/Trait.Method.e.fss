@@ -36,6 +36,6 @@ trait Enzyme extends { OrganicMolecule, Catalyst }
 end
 (** END EXAMPLE **)
 
-run(args:String...) = ()
+run() = ()
 
 end

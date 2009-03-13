@@ -21,5 +21,5 @@ component DXXWhileVoid
   foo( m : Maybe[\ZZ32\] ) : () =
     while x <- m do x end
 
-  run(args:String...):()=()
+  run():()=()
 end

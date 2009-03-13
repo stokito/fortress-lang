@@ -18,7 +18,7 @@
 component singletonArray
 export Executable
 
-run(Args:String...) = do
+run() = do
     a : RR64[1] = [ 3.14159]
     println(a[1])
 end

@@ -18,7 +18,7 @@
 component generatedExpr
 export Executable
 
-run(args:String...):() =
+run():() =
   do
     print (i " "), i <- 0#10
     println "OK"

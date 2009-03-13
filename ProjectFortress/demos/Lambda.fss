@@ -335,7 +335,7 @@ object Parser(f:FileReadStream)
         end
 end
 
-run(args:String...):() = do
+run():() = do
     rs = FileReadStream("demos/Lambda.tests")
     p = Parser(rs)
     while NOT rs.eof() do

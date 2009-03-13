@@ -20,6 +20,6 @@
 (** EXAMPLE **)
 component HelloWorld
   export Executable
-  run(args) = print "Hello, world!"
+  run() = print "Hello, world!"
 end
 (** END EXAMPLE **)

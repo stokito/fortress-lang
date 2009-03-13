@@ -33,7 +33,7 @@ object SubscriptingTest
 (** END EXAMPLE **)
 end
 
-run(args:String...) = do
+run() = do
   assert(SubscriptingTest[BizarroIndex] = 2)
   println("OprDecl.Subscripting.fss passed.")
 end

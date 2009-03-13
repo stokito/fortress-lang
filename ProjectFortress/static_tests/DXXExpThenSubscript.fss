@@ -17,7 +17,7 @@
  
 component DXXExpThenSubscript
   export Executable
-  run(args:String ...):() = ()
+  run():() = ()
   blah(a:ZZ32,b:ZZ32,c:ZZ32): ZZ32 = do
    (a^b[c])
   end

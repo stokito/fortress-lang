@@ -19,7 +19,7 @@ component bigEncloserCall
 import List.{...}
 export Executable
 
-run(args:String...) = do
+run() = do
   println <| i | i <- 1#2 |>
   println (BIG <| |> (1#2))
 end

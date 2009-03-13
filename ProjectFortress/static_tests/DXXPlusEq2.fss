@@ -27,5 +27,5 @@ component DXXPlusEq2
     f.s += a
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

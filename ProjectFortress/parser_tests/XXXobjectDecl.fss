@@ -23,6 +23,6 @@ object O
   f: String = "field f"
 end
 
-run(args:String...) = println "OK"
+run() = println "OK"
 
 end

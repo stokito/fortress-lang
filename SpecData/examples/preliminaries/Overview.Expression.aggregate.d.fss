@@ -21,7 +21,7 @@ component Overview.Expression.aggregate.d
 
 export Executable
 
-run(args:String...) = do
+run() = do
   theta:RR64 = 0
 (** EXAMPLE **)
   d:RR64[2,2] = [(cos theta) (- sin theta)

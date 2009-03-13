@@ -20,6 +20,6 @@ export Executable
 
 var (x, y) = (1, 2)
 
-run(args:String...) = ()
+run() = ()
 
 end

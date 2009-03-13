@@ -18,7 +18,7 @@
 component XXXoutcome
 export Executable
 
-run(args:String...) = do
+run() = do
   outcome = 5
   println outcome
 end

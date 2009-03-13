@@ -20,6 +20,6 @@ export Executable
 
 x : ZZ32 = "hello"
 
-run(args:String...) = ()
+run() = ()
 
 end

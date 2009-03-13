@@ -33,7 +33,7 @@ f(x:ZZ32):ZZ32=11
 
 t(b:Boolean) = println (if b then "pass" else "fail")
 
-run(args:String...):()=do
+run():()=do
   a1:A[\String\] = A[\String\](3,4)
   a2:A[\ZZ32\] = A[\ZZ32\](5,9)
 

@@ -24,7 +24,7 @@ fib13[\I\](n:I): I requires { n >= 0 } = do
     |\ phi^n / SQRT 5 + 1/2 /|
   end
 
-run(args:String...):()=do
+run():()=do
   assert(fib13(20),6765,"fib(20) wrong")
   assert(fib13(25),75025,"fib(25) wrong")
   assert(fib13[\ZZ\](20),6765,"fib(20) wrong")

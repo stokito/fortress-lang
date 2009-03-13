@@ -20,7 +20,7 @@ export Executable
 
   (* An exit with an invalid target label should generate error. *)
 
-  run(args:String...):() = do
+  run():() = do
     
     x = 5
     label l

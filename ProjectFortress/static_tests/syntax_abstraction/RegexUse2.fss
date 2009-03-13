@@ -33,7 +33,7 @@ testnotit(r:Regexp, s:String) = do
     end
 end
 
-run(args:String...) = do
+run() = do
     testit( (/a/), "a" )
     testnotit( (/a/), "b" )
     testit( (/ab/), "ab" )

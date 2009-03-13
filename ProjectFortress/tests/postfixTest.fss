@@ -20,6 +20,6 @@ export Executable
 
 opr (s: String)MYOPR = println "postfix operator"
 
-run(args:String...) = ""MYOPR
+run() = ""MYOPR
 
 end

@@ -37,7 +37,7 @@ unary[\T\](x:T):T = x
 asString():String = "false"
 end
 
-run(args:String...):() = do
+run():() = do
 tr:true = true
 fl:false = false
 println "true: " tr.unary(4)

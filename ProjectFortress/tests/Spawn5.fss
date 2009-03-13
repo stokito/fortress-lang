@@ -26,7 +26,7 @@ makeWork(num:ZZ32):ZZ32 = do
    sum
 end
 
-run(args:String...):()=do
+run():()=do
    ft:Thread[\Any\] = spawn(makeWork(10));
    assert(ft.val(),10, "Spawned thread returned wrong result " )
    ft.stop()

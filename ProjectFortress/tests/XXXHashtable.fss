@@ -108,7 +108,7 @@ object Foo(x:ZZ32) extends Hashable
 end
 
 
-run(args:String...):() = do
+run():() = do
   ht:HashTable[\Foo\] = SimpleHashTable[\Foo,100\]()
   ht.add(Foo(10))
   hasFoo:Boolean = ht.member(Foo(10))

@@ -19,7 +19,7 @@ component ImportNonparamObject
 import TestImports1.{...}
 export Executable
 
-run(args:String...):()=do
+run():()=do
   assert(V.myname(),"TestImports1.V","V.myname() looks wrong.")
 end
 

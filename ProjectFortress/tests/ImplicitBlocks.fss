@@ -19,7 +19,7 @@ component ImplicitBlocks
 
 export Executable
 
-run(args:String...):()= do
+run():()= do
     typecase x = "test" of
       String => row(i: ZZ32):() = "PASS"
                 println(x ": String (" row(17) ")")

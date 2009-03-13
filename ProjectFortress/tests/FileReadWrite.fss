@@ -76,7 +76,7 @@ createTestFile(closeit: Boolean, fout: WriteStream): String = do
       s
   end
 
-run(args:String...) = do
+run() = do
   (* This used to crash on the second set of output because we were
      accidentally closing stdout!  Closing stdout also silently dropped
      all subsequent attempts to use System.out. *)

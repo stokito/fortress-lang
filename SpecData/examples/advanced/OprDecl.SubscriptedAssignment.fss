@@ -40,7 +40,7 @@ foo = SubscriptedAssignmentTest
 p = BizarroIndex
 myWidget = Widget
 
-run(args:String...) = do
+run() = do
   assert(SubscriptedAssignmentTest[BizarroIndex] = 2)
   foo[p] := myWidget
   println("OprDecl.SubscriptedAssignment.fss passed.")

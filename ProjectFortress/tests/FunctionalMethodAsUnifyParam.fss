@@ -38,7 +38,7 @@ i(x:O): List[\O\] = <| O |>
 hof[\T\](xs:List[\T\], f: T -> List[\T\]): List[\T\] =
     <|[\T\] e | x <- xs, e <- f(x) |>
 
-run(args:String...):() = do
+run():() = do
     xs : List[\O\] = <|O,O,O|>
     (* BROKEN *)
     r3i = hof(xs,h)

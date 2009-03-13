@@ -22,6 +22,6 @@ object O[\opr OPLUS\]
   asString() = "O"
 end
 
-run(args:String...) = println O[\(+)\]
+run() = println O[\(+)\]
 
 end

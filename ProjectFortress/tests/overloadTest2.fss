@@ -42,7 +42,7 @@ a(x:Boolean):Boolean=do
   x
 end
 
-run(args:String...):()=do
+run():()=do
   println(a(1))
 
   println(a("Foo"))

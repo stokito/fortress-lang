@@ -21,7 +21,7 @@ component Overview.Expression.forLoop
 
 export Executable
 
-run(args:String...) =
+run() =
 (** EXAMPLE **)
   for i <- 1:10 do
     print(i " ")

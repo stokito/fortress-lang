@@ -116,7 +116,7 @@ showHist():() = do
     end
   end
 
-run(args:String...): () = do
+run(): () = do
     trial(init.lose())
     showHist()
   end

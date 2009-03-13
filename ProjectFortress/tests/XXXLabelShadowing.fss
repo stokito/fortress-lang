@@ -17,7 +17,7 @@
 
 component XXXLabelShadowing
 export Executable
-run(args: String...) =
+run() =
 do
     println (do
         label blah exit blah with do

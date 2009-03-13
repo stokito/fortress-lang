@@ -23,6 +23,6 @@ x: Foo = Bar
 object Foo end
 object Bar end
 
-run(args:String...):() = do end
+run():() = do end
 
 end

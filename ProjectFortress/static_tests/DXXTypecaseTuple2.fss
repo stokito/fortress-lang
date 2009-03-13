@@ -28,5 +28,5 @@ component DXXTypecaseTuple2
     ()
   end
 
-  run(args:String...) : () = ()
+  run() : () = ()
 end

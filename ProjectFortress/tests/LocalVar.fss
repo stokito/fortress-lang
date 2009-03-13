@@ -27,6 +27,6 @@ g(x) =
     fx + 3 x fx
   end
 
-run(args:String...) = assert(g(2) = 14)
+run() = assert(g(2) = 14)
 
 end

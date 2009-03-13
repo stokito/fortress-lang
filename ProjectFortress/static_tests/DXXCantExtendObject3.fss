@@ -26,5 +26,5 @@ component DXXCantExtendObject3
   foo() : () =
     ignore( object extends DontExtendMe end )
 
-  run(args:String...):() = ()
+  run():() = ()
 end

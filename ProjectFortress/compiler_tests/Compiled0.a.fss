@@ -17,6 +17,6 @@
 component Hello
 export Runnable
 
-  run(args:String...):() = printlnSimple "Hello, world!"
+  run():() = printlnSimple "Hello, world!"
 
 end

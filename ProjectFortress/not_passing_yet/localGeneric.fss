@@ -27,7 +27,7 @@ Unexpected FnRef value, f[\nat n\](a:ZZ32) ZZ32->Dynamic @"not_passing_yet/local
  @"not_passing_yet/localGeneric.fss",31:32~33: Missing type n
 *)
 
-run(args:String...):() = do
+run():() = do
   f[\ nat n \](a : ZZ32) (* : ZZ32[n] *) = do
     r : ZZ32[n] = DefaultArray1[\ZZ32, n\]()
     r[1] := a

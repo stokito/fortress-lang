@@ -19,7 +19,7 @@ component typecaseSelf
 export Executable
 
 (* We used to get shadowing errors when a was rebound in typecase. *)
-run(args:String...):() = do
+run():() = do
   a : RR64 = 3.0 (4.0)
   typecase a of
     RR64 => ()

@@ -14,7 +14,7 @@ a: Blank[\FortressLibrary.String\] = Blank[\FortressLibrary.String\]("Some strin
 topLevelFn[\FortressLibrary.String\](a)
 end
 
-run(args: FortressLibrary.String...): () =
+run(): () =
 ()
 
 end

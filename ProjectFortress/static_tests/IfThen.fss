@@ -20,7 +20,7 @@ export Executable
 
 (* Each 'if' clause should have type () if there is no corresponding 'else'. *)
 
-run(args:String...):() = do
+run():() = do
   if false then
     x = 0
     ()

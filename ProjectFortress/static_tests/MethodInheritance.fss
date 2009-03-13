@@ -22,5 +22,5 @@ component MethodInheritance
   end
   object bar extends foo
   end
-  run(args:String...):() = ignore(bar.doIt())
+  run():() = ignore(bar.doIt())
 end

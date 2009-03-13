@@ -35,7 +35,7 @@ end
 
 object S end
 
-run(args:String...):()=do
+run():()=do
   a:rat[\S\] = rat[\S\](1,0)
   println a.asString()
 

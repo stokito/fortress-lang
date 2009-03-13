@@ -30,7 +30,7 @@ trait RR
 end
 (** END EXAMPLE **)
 
-run(args:String...) = do
+run() = do
   println("Overloading.fss passed.")
 end
 

@@ -37,7 +37,7 @@ object A(var i:ZZ32) extends T
 end
 
 
-run(args:String...):()=do
+run():()=do
   a:A = A(1)
   b:T = a.b()
   println("a.getI() = " a.getI())

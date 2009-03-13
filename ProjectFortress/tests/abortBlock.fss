@@ -18,7 +18,7 @@
 component abortBlock
 export Executable
 
-run(args:String...):()=do
+run():()=do
     iters : ZZ32 = 3000
     flag : Boolean := true
     t = spawn do

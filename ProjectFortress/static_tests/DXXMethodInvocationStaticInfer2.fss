@@ -28,5 +28,5 @@ component DXXMethodInvocationStaticInfer2
     a2 := f.doIt(a,a)
   end
 
-  run(args:String...):() = ()
+  run():() = ()
 end

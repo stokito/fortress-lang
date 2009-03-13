@@ -31,7 +31,7 @@ nequiv(a:Any, b:Any, other: Any...): () =
         fail(a " SEQV " b ": " res)
     end
 
-run(args:String...) = do
+run() = do
     a : ZZ32 = 45
     b : RR64 = 45.0
     c : RR64 = 5.0 + 40.0

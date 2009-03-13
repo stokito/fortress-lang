@@ -24,6 +24,6 @@ end
 trait S comprises { T, ... }
 end
 
-run(args:String...):()=()
+run():()=()
 
 end
