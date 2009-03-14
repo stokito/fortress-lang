@@ -36,7 +36,7 @@ chdir $path;
 my $checkRev=3300;	 # Only examine files from versions greater than this.
 my $checkDate = 2009;    # Only examine files in this year.
 my $rootDir = $path;
-my $copyright = "Copyright $checkDate Sun Microsystems, Inc."; # The message to look for.
+my $copyright = "Copyright $checkDate "; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
 my $ignoreThese = 'ant|UserDictionary|README.txt|README$|\.fsg$|\.NW$|fortress.vim|\.ods|\.jar$|\.tgz$|\/\.|^\.|^Sandbox';
 my $tempFile = '/tmp/svnInfo.xml';

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,21 +28,21 @@ public interface StringMap {
    boolean isEmpty();
    String getCompletely(String s, int limit);
    String getCompletely(String s);
-   
+
    static abstract class FromBase implements StringMap {
        public String getCompletely(String s, int limit) {
            if (s == null)
                return s;
            return Useful.substituteVarsCompletely(s, this, limit);
        }
-       
+
        public String getCompletely(String s) {
            return getCompletely(s, 1000);
        }
        abstract public String get(String s);
        abstract public boolean isEmpty();
    }
-   
+
    static public class FromEnv extends FromBase implements StringMap {
        public String get(String s) {
            s = asEnvOrReflect(s);
@@ -50,7 +50,7 @@ public interface StringMap {
            return t;
        }
        public boolean isEmpty() { return false; }
-       
+
     public static String asEnvOrReflect(String s) {
         s = s.toUpperCase();
         s = s.replace('.', '_');
@@ -67,16 +67,16 @@ public interface StringMap {
            return p.getProperty(s);
        }
        public boolean isEmpty() { return p == null; }
-      
+
    }
-   
+
    static public class FromSysProps extends FromBase implements StringMap {
        public String get(String s) {
     	   return System.getProperty(s);
        }
        public boolean isEmpty() { return false; }
    }
-   
+
    static public class FromFileProps extends FromProps implements StringMap {
        static Properties fromFile(String filename) {
            Properties p = null;
@@ -86,30 +86,30 @@ public interface StringMap {
                tmp_p.load(bis);
                p = tmp_p; // Assign if no exception.
            } catch (IOException ex) {
-               
+
            }
            return p;
        }
        public FromFileProps(String filename) {
            super(fromFile(filename));
        }
-        
+
    }
    static public class FromReflection extends FromBase implements StringMap {
 
        private final Class mapClass;
        private final String optionalPrefix;
-       
+
        public FromReflection(Class cl) {
            mapClass = cl;
            optionalPrefix = null;
        }
-       
+
        public FromReflection(Class cl, String optional_prefix) {
            mapClass = cl;
            optionalPrefix = optional_prefix;
        }
-    
+
        public String get(String s) {
            String result = getOne(s);
            if (result == null &&
@@ -118,9 +118,9 @@ public interface StringMap {
                result = getOne(s.substring(optionalPrefix.length()));
            }
            return result;
-           
+
        }
-       
+
     private String getOne(String s) {
         try {
             s = FromEnv.asEnvOrReflect(s);
@@ -137,16 +137,16 @@ public interface StringMap {
         } catch (NullPointerException e) {
             return null;
         }
-    
+
     }
 
     public boolean isEmpty() {
         // TODO Auto-generated method stub
         return false;
     }
-       
+
    }
-   
+
    static public class ComposedMaps extends FromBase implements StringMap {
        private final StringMap[] ma;
        public String get(String s) {
@@ -172,7 +172,7 @@ public interface StringMap {
                    ne++;
                }
            }
-          
+
        }
    }
 }

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,7 +22,7 @@ object Point(x:RR64, y:RR64)
   getX():RR64 = x
   getY():RR64 = y
 end
-  
+
 run():() = do
   p1 = Point(0.0, 0.0)
   p2 = Point(1.0, 1.0)

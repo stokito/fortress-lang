@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,7 +25,7 @@ component ArrayElements
 
     var a:Array2[\IntLiteral,0,3,0,3\]
     a := [1 2 3; 4 5 6; 7 8 9]
-  
+
     var b:Array2[\IntLiteral,0,2,0,2\]
     b := [ 3 4
            5 6 ]
@@ -36,12 +36,12 @@ component ArrayElements
     b := [3 4; 5 6]
 
     var c:Array3[\IntLiteral,0,3,0,3,0,3\]
-    c := [ 1 0 0 
-           0 1 0 
-           0 0 1;;  0 1 0 
-                    1 0 1 
-                    0 1 0;; 1 0 1 
-                            0 1 0 
+    c := [ 1 0 0
+           0 1 0
+           0 0 1;;  0 1 0
+                    1 0 1
+                    0 1 0;; 1 0 1
+                            0 1 0
                             1 0 1]
 
     var d:Array1[\FakeTrait,0,2\]

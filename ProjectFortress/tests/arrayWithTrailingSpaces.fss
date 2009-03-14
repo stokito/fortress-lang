@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,7 +19,7 @@ component arrayWithTrailingSpaces
 export Executable
 
 run() = do
-  a:ZZ32[2,2] = [ 10 11 
+  a:ZZ32[2,2] = [ 10 11
                   12 13 ]
   assert(a[1,1], 13, "Array subscripting a[1,1] should be ", 13, " instead of ",
          a[1,1])
