@@ -47,7 +47,6 @@ import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
-import com.sun.fortress.scala_src.typechecker.OverloadingChecker._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeFactory
@@ -97,6 +96,7 @@ object ExportChecker {
     def checkExports(component: ComponentIndex,
                      globalEnv: GlobalEnvironment,
                      repository: FortressRepository): JavaList[StaticError] = {
+        val overloadingChecker = new OverloadingChecker(component, globalEnv, repository)
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
         var missingDecls  = List[ASTNode]()
@@ -115,7 +115,9 @@ object ExportChecker {
          *  satisfying any exported declaration (i.e., a declaration of
          *  any exported API)."
          */
-        for ( e <- toSet(component.exports) ) {
+        var exports = List[APIName]()
+        for ( e <- toSet(component.exports) ) exports = e :: exports
+        for ( e <- exports.sort((a1,a2) => (a1.getText compareTo a2.getText) < 0) ) {
             val api = try { globalEnv.api(e) }
                       catch { case _ => repository.getApi(e) }
             val apiName = api.ast.getName
@@ -226,21 +228,17 @@ object ExportChecker {
             val fnsInAPI  = api.functions
             val fnsInComp = component.functions
             for ( f <- toSet(fnsInAPI.firstSet) ;
-                  if isDeclaredName(f) ) {
+                  if overloadingChecker.isDeclaredName(f) ) {
                 // f should be in this component
                 if ( fnsInComp.firstSet.contains(f) ) {
-                    // Assumes that coverOverloading returns
-                    // a function declaration that covers
-                    // the given set of overloaded function declarations.
-                    (coverOverloading(fnsInAPI.matchFirst(f)),
-                     coverOverloading(fnsInComp.matchFirst(f))) match {
-                        case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
-                              DeclaredFunction(FnDecl(_,r,_,_,_))) =>
-                            if ( ! equalFnHeaders(l, r, false) )
-                                missingDecls = fd :: missingDecls
-                        // If they are not DeclaredFunction, skip.
-                        case _ =>
-                    }
+                    val overloadingInAPI =
+                        overloadingChecker.coverOverloading(toSet(fnsInAPI.matchFirst(f)))
+                    val overloadingInComp =
+                        overloadingChecker.coverOverloading(toSet(fnsInComp.matchFirst(f)))
+                    for ( g <- overloadingInAPI ) {
+                        if ( ! existsMatching(g, overloadingInComp) )
+                             missingDecls = g :: missingDecls
+                     }
                 } else {
                     for ( d <- toSet(fnsInAPI.matchFirst(f)) ) {
                         d match {
@@ -313,6 +311,15 @@ object ExportChecker {
             }
         }
         errors
+    }
+
+    private def existsMatching(g: FnDecl, set: Set[FnDecl]) = {
+        var result = false
+        for ( f <- set ) {
+            if ( equalFnHeaders(g.getHeader, f.getHeader, false) )
+                result = true
+        }
+        result
     }
 
     private def getMessage(n: ASTNode) =
@@ -476,8 +483,17 @@ object ExportChecker {
     private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
         (left, right) match {
             case (TypeArg(_, typeL), TypeArg(_, typeR)) => equalTypes(typeL, typeR)
+            case (IntArg(_, intL), IntArg(_, intR)) => equalIntExprs(intL,intR)
             case _ => false
         }
+
+    /* Returns true if two IntExprs are same. */
+    private def equalIntExprs(left: IntExpr, right: IntExpr): Boolean = false
+        /*
+        (left, right) match {
+            case (_, nameL, modsL, typeL, initL, varargsL),
+        }
+        */
 
     /* Returns true if two parameters are same. */
     private def equalParams(left: Param, right: Param): Boolean =

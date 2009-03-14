@@ -20,11 +20,13 @@ package com.sun.fortress.scala_src.typechecker
 import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
-import scala.collection.jcl.Conversions
 
+import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
+import com.sun.fortress.compiler.typechecker.TraitTable
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
@@ -35,23 +37,27 @@ import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.useful._
+import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.nodes._
 
 /* Check the set of overloadings in this component. */
-object OverloadingChecker {
+class OverloadingChecker(component: ComponentIndex,
+                         globalEnv: GlobalEnvironment,
+                         repository: FortressRepository) {
+
+    val typeAnalyzer = TypeAnalyzer.make(new TraitTable(component, globalEnv))
+    var errors = List[StaticError]()
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
-    def checkOverloading(component: ComponentIndex,
-                         globalEnv: GlobalEnvironment,
-                         repository: FortressRepository): JavaList[StaticError] = {
-        val errors = new ArrayList[StaticError]()
+    def checkOverloading(): JavaList[StaticError] = {
         val fnsInComp = component.functions
-        for ( f <- Conversions.convertSet(fnsInComp.firstSet) ;
+        for ( f <- toSet(fnsInComp.firstSet) ;
               if isDeclaredName(f) ) {
-            checkOverloading(f, fnsInComp.matchFirst(f), errors)
+            checkOverloading(f, fnsInComp.matchFirst(f))
         }
-        errors
+        toJavaList(errors)
     }
 
     /* Returns the function declaration covering the given set of
@@ -59,7 +65,32 @@ object OverloadingChecker {
      * Invariant: set.size > 1
      * Nothing fancy here yet.  Returns the first element for now.
      */
-    def coverOverloading(set: JavaSet[JavaFunction]) = set.iterator.next
+    def coverOverloading(set: Set[JavaFunction]) = {
+        var result = Set[JavaFunction]()
+        for ( f <- set ) {
+            if ( ! coveredBy(f, result) ) result = result + f
+        }
+        result = result.filter(f => f match { case DeclaredFunction(_) => true
+                                              case _ => false } )
+        result.map(f => f match { case DeclaredFunction(fd) => fd })
+    }
+
+    private def coveredBy(f: JavaFunction, set: Set[JavaFunction]): Boolean = {
+        var result = false
+        for ( g <- set ) {
+            if ( coveredBy(f, g) ) result = true
+        }
+        result
+    }
+
+    /* Whether the signature of f is covered by the signature of g */
+    private def coveredBy(f: JavaFunction, g: JavaFunction): Boolean =
+        subtype(paramsToType(g.parameters, g.getSpan),
+                paramsToType(f.parameters, f.getSpan)) &&
+        subtype(f.getReturnType, g.getReturnType)
+
+    private def subtype(sub_type: Type, super_type: Type): Boolean =
+        typeAnalyzer.subtype(sub_type, super_type).isTrue
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
@@ -77,16 +108,15 @@ object OverloadingChecker {
      * Signals errors only for the declarations with the same types for now.
      */
     private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: JavaSet[JavaFunction],
-                                 errors: JavaList[StaticError]) = {
+                                 set: JavaSet[JavaFunction]) = {
         var signatures = List[((Type,Type),Span)]()
-        for ( f <- Conversions.convertSet(set) ;
+        for ( f <- toSet(set) ;
               if isDeclaredFunction(f) ) {
             val result = f.getReturnType
             val param = paramsToType(f.parameters, f.getSpan)
             signatures.find(p => p._1 == (param,result)) match {
                 case Some((_,span)) =>
-                    error(errors, mergeSpan(span, f.getSpan),
+                    error(mergeSpan(span, f.getSpan),
                           "There are multiple declarations of " +
                           name + " with the same signature: " +
                           param + " -> " + result)
@@ -122,6 +152,6 @@ object OverloadingChecker {
                                          "Type checking couldn't infer the type of " + param)
         }
 
-    private def error(errors: JavaList[StaticError], loc: String, msg: String) =
-        errors.add(TypeError.make(msg, loc.toString()))
+    private def error(loc: String, msg: String) =
+        errors = errors ::: List(TypeError.make(msg, loc.toString()))
 }
