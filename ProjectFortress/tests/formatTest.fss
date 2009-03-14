@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -64,7 +64,7 @@ run() = do
     catch e
         Exception => fail("Test error for 'hello 5'. " e)
     end
-    
+
     try
         assert(format("hello %%"), "hello %")
     catch e
@@ -76,50 +76,50 @@ run() = do
     catch e
         Exception => fail("Test error for 'hello 5 6 7'. " e)
     end
-    
+
     try
         assert(format("hello %w=5d", 2), "hello     2")
     catch e
         Exception => fail("Test error for 'hello     2'. " e)
     end
-    
+
     try
         assert(format("hello %r=2d", 3), "hello 11")
     catch e
         Exception => fail("Test error for 'hello 11'. " e)
     end
 
-    assert(format("hello %ww=5d", 2), "hello 2    ")    
+    assert(format("hello %ww=5d", 2), "hello 2    ")
     try
         assert(format("hello %ww=5d", 2), "hello 2    ")
     catch e
         Exception => fail("Test error for 'hello 2    '. " e)
     end
-    
+
     try
         assert(format("hello %w=3&p=0d", 7), "hello 007")
     catch e
         Exception => fail("Test error for 'hello 007'. " e)
     end
-    
+
     try
         assert(format("hello %n=3d", 1024), "hello 1,024")
     catch e
         Exception => fail("Test error for 'hello 1,024'. " e)
     end
-    
+
     try
         assert(format("hello %n=3&nn= d", 1024), "hello 1 024")
     catch e
         Exception => fail("Test error for 'hello 1 024'. " e)
     end
-    
+
     try
         assert(format("hello %n=3&nn=\\'d", 1024), "hello 1'024")
     catch e
         Exception => fail("Test error for 'hello 1'024'. " e)
     end
-    
+
     try
         assert(format("hello %n=3&nn=\\'x", 64250), "hello f'afa")
     catch e
@@ -143,61 +143,61 @@ run() = do
     catch e
         Exception => fail("Test error for 'hello 2 1'. " e)
     end
-    
+
     try
         assert(format("hello %i=2d %i=1d %d", 1, 2),"hello 2 1 1")
     catch e
         Exception => fail("Test error for 'hello 2 1'. " e)
     end
-    
+
     try
         assert(format("hello %i=2d %i=1d %d %d", 1, 2),"hello 2 1 1 2")
     catch e
         Exception => fail("Test error for 'hello 2 1 1 2'. " e)
     end
-    
+
     try
         assert(format("hello %w=5s", "hi"), "hello    hi")
     catch e
         Exception => fail("Test error for 'hello    hi'. " e)
     end
-    
+
     try
         assert(format("hello %b", true), "hello true")
     catch e
         Exception => fail("Test error for 'hello true'. " e)
     end
-    
+
     try
         assert(format("hello %b", 1 > 2), "hello false")
     catch e
         Exception => fail("Test error for 'hello false'. " e)
     end
-    
+
     try
         assert(format("hello %m", Just[\ZZ32\](12)), "hello 12")
     catch e
         Exception => fail("Test error for 'hello 12'. " e)
     end
-    
+
     try
         assert(format("hello %m", Nothing[\ZZ32\]), "hello ")
     catch e
         Exception => fail("Test error for 'hello '. " e)
     end
-    
+
     try
         assert(format("hello %e", 345.123), "hello 3.451230e+02")
     catch e
         Exception => fail("Test error for 'hello 3.451230+e02'. " e)
     end
-    
+
     try
         assert(format("hello %x", 23545), "hello 5bf9")
     catch e
         Exception => fail("Test error for 'hello 5bf9'. " e)
     end
-    
+
     try
         assert(format("hello %x", fab3_16), "hello fab3")
     catch e

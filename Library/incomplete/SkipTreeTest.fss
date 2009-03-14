@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -31,7 +31,7 @@ export Executable
         assert(binarySearch[\ZZ32\](testList, 15), 2)
         assert(binarySearch[\ZZ32\](testList, 17), -4)
         assert(binarySearch[\ZZ32\](testList, 20), 3)
-        assert(binarySearch[\ZZ32\](testList, 23), -5)    
+        assert(binarySearch[\ZZ32\](testList, 23), -5)
     end
 
     testLeafInsert1():() = do
@@ -40,14 +40,14 @@ export Executable
 
         keys = <| 7 |>
         values = <| "foo" |>
-        children = <|[\Maybe[\Node[\ZZ32,String\]\]\] 
-            Just[\Node[\ZZ32,String\]\](LeafNode[\ZZ32,String\](5,"bar",2)), 
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
+            Just[\Node[\ZZ32,String\]\](LeafNode[\ZZ32,String\](5,"bar",2)),
             Nothing[\Node[\ZZ32,String\]\] |>
-        
+
         expected = Node[\ZZ32,String\](keys,values,children,3)
-        
+
         assert(observed,expected)
-            
+
     end
 
     testLeafInsert2():() = do
@@ -56,15 +56,15 @@ export Executable
 
         keys = <| 5,7 |>
         values = <| "bar","foo" |>
-        children = <|[\Maybe[\Node[\ZZ32,String\]\]\] 
-            Nothing[\Node[\ZZ32,String\]\], 
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
+            Nothing[\Node[\ZZ32,String\]\],
             Nothing[\Node[\ZZ32,String\]\],
             Nothing[\Node[\ZZ32,String\]\] |>
-        
+
         expected = Node[\ZZ32,String\](keys,values,children,3)
-        
+
         assert(observed,expected)
-            
+
     end
 
     testLeafInsert3():() = do
@@ -73,15 +73,15 @@ export Executable
 
         keys = <| 5 |>
         values = <| "bar" |>
-        children = <|[\Maybe[\Node[\ZZ32,String\]\]\] 
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
              Nothing[\Node[\ZZ32,String\]\],
              Just[\Node[\ZZ32,String\]\](LeafNode[\ZZ32,String\](7,"foo",3)) |>
 
-        
+
         expected = Node[\ZZ32,String\](keys,values,children,4)
-        
+
         assert(observed,expected)
-            
+
     end
 
 

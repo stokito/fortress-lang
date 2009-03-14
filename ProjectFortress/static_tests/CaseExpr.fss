@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,7 +20,7 @@ import Set.{...}
 export Executable
 
 (* Tests that various normal (not extemum) case expressions type check ok. *)
-  
+
 foo(z:ZZ32,g:Generator[\ZZ32\]) : String = do
   ignore(case z IN of
            g => "this?" end as String)
@@ -38,7 +38,7 @@ run():() = do
          end as String)
 
 (*
-  
+
   (* No operator *)
   ignore(case 5:10 of
     2:10 => 0
@@ -61,9 +61,9 @@ run():() = do
     (* Operator *)
     (*
     planet = "Saturn"
-    ignore(case planet IN of 
-      {"Mercury", "Venus", "Earth", "Mars"} => "inner" 
-      {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer" 
+    ignore(case planet IN of
+      {"Mercury", "Venus", "Earth", "Mars"} => "inner"
+      {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
       else => "remote"
     end as String)
 

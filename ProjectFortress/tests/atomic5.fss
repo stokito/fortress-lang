@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,10 +25,10 @@ testNonAtomicsWithAtomics() = do
     var i:ZZ32 := 0
 
     do
-        atomic do 
+        atomic do
             x := 1
             while i < 1000 do i := i + 1 end
-            y := 1 
+            y := 1
         end
     also do
        if x = 1 then z := y else z := 2 end

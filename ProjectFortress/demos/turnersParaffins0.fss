@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -153,7 +153,7 @@ end
 (*
 Construct an array of lists of all radicals from size 0 to size n.
 Array position i contains a list of all radicals of size i.
-  
+
 Radicals are defined by strong induction over smaller radicals.
 Partition the weight (n-1) among the children in all combinations.
 Move toward a canonical order by insisting i<=j<=k.
@@ -169,7 +169,7 @@ genRadicals0 (n:ZZ32) = do
             i+j+k=m-1,   i<=j<=k,
             ri<-rads[i], rj<-rads[j], rk<-rads[k] |>
     rads[0] := <|[\Radical\] H|>
-    rads[i] := genRads(i), i<-seq(1:n)        
+    rads[i] := genRads(i), i<-seq(1:n)
     rads
 end
 
@@ -183,7 +183,7 @@ genRadicals00 (n:ZZ32) = do
             (i,j,k)<-partition3 m,
             ri<-rads[i], rj<-rads[j], rk<-rads[k] |>
     rads[0] := <|[\Radical\] H|>
-    rads[i] := genRads(i), i<-seq(1:n)        
+    rads[i] := genRads(i), i<-seq(1:n)
     rads
 end
 
@@ -196,7 +196,7 @@ genRadicals000 (n:ZZ32) = do
             (ri,rj,rk)<-threeRads (i,j,k)
             |>
     rads[0] := <|[\Radical\] H|>
-    rads[i] := genRads(i), i<-seq(1:n)        
+    rads[i] := genRads(i), i<-seq(1:n)
     rads
 end
 
@@ -232,7 +232,7 @@ genRadicalsTurner (n:ZZ32) = do
          j<-i:((m-1-i) DIV 2),
          ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j] |>
     rads[0] := <|[\Radical\] H|>
-    rads[i] := genRads i, i<-seq(1:n)        
+    rads[i] := genRads i, i<-seq(1:n)
     rads
 end
 
@@ -265,7 +265,7 @@ end
 genRadicals = genRadicalsTurner
 
 (* When we have array comprehesions, it will be interesting to revisit this code ...
-Maybe something like this ... . 
+Maybe something like this ... .
 genRadicals9 (n:ZZ32) =
     [ [0]           = <|[\Radical\] H|>
       [m<-seq(1:n)] = <|[\Radical\] Rad (ri,rj,rk) |
@@ -301,12 +301,12 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
         self IN equivClass other
 
     (* The following are for debugging and for testing. *)
-    opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4| 
+    opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4|
     asString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
 end Paraffin
 
 (*
-Given a list of paraffins containing duplicates (equivalent representations), 
+Given a list of paraffins containing duplicates (equivalent representations),
 keep one witness from each equivalence class.
 *)
 quotientQuadratic (pars:List[\Paraffin\]):List[\Paraffin\] =
@@ -326,7 +326,7 @@ clever compiler will translate quotientQuadratic into quotientLinear:
 *)
 quotientLinear (pars:List[\Paraffin\]):List[\Paraffin\] =
     if   (p1,p2s)<-pars.extractLeft()
-    then 
+    then
         p1closure = closure ({[\Paraffin\] p1}, generators)
         <|p1|> || quotientLinear <|[\Paraffin\] p2 | p2<-p2s, p2 NOTIN p1closure|>
     else pars
@@ -336,7 +336,7 @@ quotient = quotientLinear
 
 (* Construct a list  of lists of all Paraffins from size 1 to size n.
 Outer list position i is a list of all Paraffins of size i.
-  
+
 Generate paraffins by adding CH3 to all radicals with one fewer
 carbon.  Then call quotient to eliminate duplicates (equivalent
 molecules).
@@ -353,7 +353,7 @@ which I found fascinating: *)
 
 genParaffins1 (n:ZZ32) =
                 <| quotient
-            <| Paraffin (H,H,H,r) 
+            <| Paraffin (H,H,H,r)
         | r<-radList |>
     | radList<-genRadicals (n-1) |>
 
@@ -563,7 +563,7 @@ test testParaffinGenerators () = do
     assert (methane, rotate methane);    assert (ethane  =/= rotate ethane)
     assert (ethane,  rotate rotate rotate rotate ethane)
     println ("----- Simple rotate tests pass. -----")
-    
+
     assert (butane1,  swap butane1);    assert (butane2  =/= swap butane2)
     assert (pentane1, swap pentane1);   assert (pentane2 =/= swap pentane2)
     assert (hexane1,  swap hexane1);    assert (hexane2  =/= swap hexane2)

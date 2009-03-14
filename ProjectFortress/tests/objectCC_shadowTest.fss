@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -34,7 +34,7 @@ trait Bar extends T1
 
     m1():T1 = object extends T1
                 (* This should call the one defined in T1 *)
-                callFoo(): String = foo() 
+                callFoo(): String = foo()
             end
 
     m2():T1 = object extends T1
@@ -101,7 +101,7 @@ end
 topFunc6(): T2 = do
     object extends T2
         foo(x:ZZ32) = 3   (* Illegal shadowing *)
-        callFoo(): String = foo()  
+        callFoo(): String = foo()
     end
 end
 
@@ -144,9 +144,7 @@ run():()=do
     assert("Foo at the top level", y4.callFoo(), "y4.callFoo() failed.")
     assert("The value is: 3", y5.callFoo(), "y5.callFoo() failed.")
 
-    println ("Testing object closure conversion with shawdowing: passed.") 
+    println ("Testing object closure conversion with shawdowing: passed.")
 end
 
 end
-
-

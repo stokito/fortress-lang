@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -189,7 +189,7 @@ end
 
 (* Computer player. Returns a move. *)
 smartAi(board) = do
-    label answer 
+    label answer
         if board.isGameOver() then
             exit answer with board
         end

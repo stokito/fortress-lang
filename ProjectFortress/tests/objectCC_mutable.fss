@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,13 +26,13 @@ end
 var a1:ZZ32 = 7
 
 (* objExpr not capturing anything, but use mutable top level var *)
-topFunc1():T = 
+topFunc1():T =
     object extends T
-        x():ZZ32 = a1 
+        x():ZZ32 = a1
         y():ZZ32 = x() DOT a1
     end
 (* objExpr capturing param *)
-topFunc2(top:ZZ32):T = 
+topFunc2(top:ZZ32):T =
     object extends T
         x():ZZ32 = top
         y():ZZ32 = x() + 1
@@ -50,11 +50,11 @@ end
 
 (* objExpr capturing local vars in nested LocaVarDecls *)
 topFunc4(top:ZZ32):T = do
-    var a2:ZZ32 = 12 
-    var a3:ZZ32 = 9 
+    var a2:ZZ32 = 12
+    var a3:ZZ32 = 9
     a3 := a3 + 2
     object extends T
-        x():ZZ32 = do a2 := a2 - 1; a3 end 
+        x():ZZ32 = do a2 := a2 - 1; a3 end
         y():ZZ32 = a2 DOT a3
     end
 end
@@ -73,7 +73,7 @@ object O(var v:ZZ32)
             end
     quack(self, t:ZZ32):T = do
             var enclosing:O = self
-            object extends T 
+            object extends T
                 x():ZZ32 = enclosing.v + t
                 y():ZZ32 = enclosing.tmp2
             end
@@ -113,13 +113,13 @@ run():() = do
     assert(o1.tmp2, newTmp2, "o1.incTmp2() failed.")
     assert(o1.v + o1.tmp2, o2.x(), "o2.x() failed.")
     assert(o1.tmp + o1.v, o2.y(), "o2.y() failed.")
-        
+
     o2':T = o1.bar()
     newTmp2 := o1.incTmp2()
     o1.v := 7
     assert(o1.v + o1.tmp2, o2'.x(), "o2'.x() failed.")
     assert(o1.tmp + o1.v, o2'.y(), "o2'.y() failed.")
-        
+
     o3:T = quack(o1, 11)
     assert( o1.v + 11, o3.x(), "o3.x() failed" )
     assert( o1.tmp2, o3.y(), "o3.y() failed" )
@@ -129,5 +129,3 @@ run():() = do
 end
 
 end
-
-

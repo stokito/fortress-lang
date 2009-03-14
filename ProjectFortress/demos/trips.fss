@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -213,7 +213,7 @@ In this context, = indicates a predicate. *)
 
 (* Promoting the quadratic filters above to the range upper bounds below in a
 compiler is a challenge, perhaps a good thesis. I think about it this way:
-m^2 + n^2 <= max all by itself implies 
+m^2 + n^2 <= max all by itself implies
 m^2 <= max - n^2 which can be rearranged m <= SQRT(max - n^2)
 When can also combine m^2 + n^2 <= max with n<m, which imply
 2n^2 <= max which can be rearranged
