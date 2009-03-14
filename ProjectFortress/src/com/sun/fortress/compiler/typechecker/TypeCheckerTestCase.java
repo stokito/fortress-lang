@@ -82,22 +82,6 @@ public abstract class TypeCheckerTestCase extends TestCase {
         }
     }
 
-    public static Boolean sub(SubtypeChecker ta, String s, String t) {
-        return ta.subtype(parseType(s), parseType(t));
-    }
-
-    public static Boolean sub(SubtypeChecker ta, String s, Type t) {
-        return ta.subtype(parseType(s), t);
-    }
-
-    public static Boolean sub(SubtypeChecker ta, Type s, String t) {
-        return ta.subtype(s, parseType(t));
-    }
-
-    public static Boolean sub(SubtypeChecker ta, Type s, Type t) {
-        return ta.subtype(s, t);
-    }
-
     public static ProperTraitIndex makeTrait(String name,
                                               List<StaticParam> sparams,
                                               String... supers) {

@@ -238,7 +238,7 @@ public class TypesUtil {
      * {@code TypeAnalyzer} rather than a Subtype checker. Accordingly,
      * we may have to (in the future)
      * return a ConstraintFormula instead of a type.
-     * @param checker the SubtypeChecker to use for any type comparisons
+     * @param checker the TypeAnalyzer to use for any type comparisons
      * @param fn the type of the function, which can be some ArrowType,
      *           or an intersection of such (in the case of an overloaded
      *           function)
@@ -255,69 +255,6 @@ public class TypesUtil {
         // Just a convenience method
         return applicationType(checker,fn,args,
                                Collections.<StaticArg>emptyList(), existingConstraint);
-    }
-
-    /**
-     * Figure out the static type of a non-generic function application.
-     * @param checker the SubtypeChecker to use for any type comparisons
-     * @param fn the type of the function, which can be some ArrowType,
-     *           or an intersection of such (in the case of an overloaded
-     *           function)
-     * @param arg the argument to apply to this function
-     * @return the return type of the most applicable arrow type in {@code fn},
-     *         or {@code Option.none()} if no arrow type matched the args
-     * @deprecated Deprecated along with the entire SubtypeChecker class.
-     */
-    @Deprecated
-    public static Option<Type> applicationType(final SubtypeChecker checker,
-                                               final Type fn,
-                                               final ArgList args) {
-        // Get a list of the arrow types that match these arguments
-        List<ArrowType> matchingArrows = new ArrayList<ArrowType>();
-        for (Type arrow : conjuncts(fn)) {
-
-            // Try to form a non-generic ArrowType from this arrow, if it matches the args
-            Option<ArrowType> newArrow = arrow.accept(new NodeAbstractVisitor<Option<ArrowType>>() {
-                @Override public Option<ArrowType> forArrowType(ArrowType that) {
-                    boolean valid = false;
-                    if (checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()))) {
-                        Map<Id, Type> argMap = args.keywordTypes();
-                        Map<Id, Type> paramMap = Types.extractKeywords(that.getDomain());
-                        if (paramMap.keySet().containsAll(argMap.keySet())) {
-                            valid = true;
-                            for (Map.Entry<Id, Type> entry : argMap.entrySet()) {
-                                Type sup = paramMap.get(entry.getKey());
-                                valid &= checker.subtype(entry.getValue(), sup);
-                                if (!valid) { break; }
-                            }
-                        }
-                    }
-                    return valid ? some(that) : Option.<ArrowType>none();
-                }
-                @Override public Option<ArrowType> defaultCase(Node that) {
-                    return none();
-                }
-            });
-            if (newArrow.isSome()) {
-                matchingArrows.add(newArrow.unwrap());
-            }
-        }
-        if (matchingArrows.isEmpty()) {
-            return none();
-        }
-
-        // Find the most applicable arrow type
-        // TODO: there's not always a single minimum -- the meet rule may have
-        // allowed a declaration that has a minimum at run time, but that doesn't
-        // statically (when the runtime type of the argument is not precisely known).
-        ArrowType minType = matchingArrows.get(0);
-        for (int i=1; i<matchingArrows.size(); ++i) {
-            ArrowType t = matchingArrows.get(i);
-            if (checker.subtype(t, minType)) {
-                minType = t;
-            }
-        }
-        return some(minType.getRange());
     }
 
     /** Treat the given type as an intersection and get its elements. */
