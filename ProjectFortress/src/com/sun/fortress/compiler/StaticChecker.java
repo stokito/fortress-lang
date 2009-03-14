@@ -165,7 +165,7 @@ public class StaticChecker {
                     result.ast());
             // Check overloadings in this component.
             List<StaticError> errors =
-                OverloadingChecker.checkOverloading(component, env, repository);
+                new OverloadingChecker(component, env, repository).checkOverloading();
             result = addErrors(errors, result);
             // Check the set of exported APIs in this component.
             errors = ExportChecker.checkExports(component, env, repository);

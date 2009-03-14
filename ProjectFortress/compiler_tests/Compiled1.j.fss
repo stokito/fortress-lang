@@ -15,11 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXMissingExport
-  export XXXMissingExport
+component Compiled1.j
+  export Compiled1.j
 
-  x:ZZ32 = 3
-  y:ZZ32 = 1
-  z:ZZ32 = 99
+  x:String = ""
+  y:String = ""
+  z:String = ""
 
 end
