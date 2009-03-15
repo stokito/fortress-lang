@@ -81,19 +81,19 @@ public class TypeAnalyzerJUTest extends TestCase {
       junit.textui.TestRunner.run(TypeAnalyzerJUTest.class);
     }
 
-    private static ConstraintFormula sub(TypeAnalyzer ta, String s, String t) {
+    public static ConstraintFormula sub(TypeAnalyzer ta, String s, String t) {
         return ta.subtype(parseType(s), parseType(t));
     }
 
-    private static ConstraintFormula sub(TypeAnalyzer ta, String s, Type t) {
+    public static ConstraintFormula sub(TypeAnalyzer ta, String s, Type t) {
         return ta.subtype(parseType(s), t);
     }
 
-    private static ConstraintFormula sub(TypeAnalyzer ta, Type s, String t) {
+    public static ConstraintFormula sub(TypeAnalyzer ta, Type s, String t) {
         return ta.subtype(s, parseType(t));
     }
 
-    private static ConstraintFormula sub(TypeAnalyzer ta, Type s, Type t) {
+    public static ConstraintFormula sub(TypeAnalyzer ta, Type s, Type t) {
         return ta.subtype(s, t);
     }
 
