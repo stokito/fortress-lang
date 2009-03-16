@@ -123,6 +123,8 @@ public class TypeAnalyzer {
              enclosing._cache);
     }
 
+    public TraitTable traitTable() { return _table; }
+
     private TypeAnalyzer(TraitTable table, TypeEnv typeEnv,
             SubtypeCache parentCache) {
         _table = table;
@@ -758,7 +760,8 @@ public class TypeAnalyzer {
         Option<StaticParam> param = _typeEnv.staticParam(s.getName());
 
         if( param.isNone() )
-            return bug("We are being asked about some type that is not in scope: " + s + " @ " + NodeUtil.getSpan(s));
+            return bug("We are being asked about some type that is not in scope: " +
+                       s + " @ " + NodeUtil.getSpan(s));
 
         StaticParam that = param.unwrap();
         ConstraintFormula result = falseFormula();
@@ -785,7 +788,9 @@ public class TypeAnalyzer {
             Option<StaticParam> s_param_ = _typeEnv.staticParam(s.getName());
 
             if( t_param_.isNone() || s_param_.isNone() )
-                return bug("We are being asked about types that are not in scope.");
+                return bug("We are being asked about types that are not in scope:\n(" +
+                           s + " @ " + NodeUtil.getSpan(s) + ",\n " +
+                           t + " @ " + NodeUtil.getSpan(s) + ")");
 
             if( NodeUtil.isTypeParam(t_param_.unwrap()) &&
                 NodeUtil.isTypeParam(s_param_.unwrap()) ) {

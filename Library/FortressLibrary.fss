@@ -1125,16 +1125,16 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
                gg: Generator[\F\],
                innerBody: E->I1):O0 = do
     o = outer.reduction
-    i = inner.reduction 
+    i = inner.reduction
     resolvedouterBody=__resolveBottomArgumentType[\O1, I0, R0\](outer.body)
     typecase (gg,outer,inner) of
         (Generator2[\E\],BigOperator[\I0,I0,I0,L0\],BigOperator[\I1,I0,I0,L1\]) =>
-        (* Assumes that outer.body COMPOSE inner.unwrap is id 
-         * Often the assumption is satisfied, 
+        (* Assumes that outer.body COMPOSE inner.unwrap is id
+         * Often the assumption is satisfied,
          * but some types are necesary to guarantee it.
          *)
         (outer.unwrap)(gg.generate2[\I0,L0,L1\](o, i, fn x => (inner.body)(innerBody(x))))
-        else => 
+        else =>
           ((outer.unwrap)(o.unlift(
             gg.generate[\L0\](o,fn (xs) =>
             o.lift((resolvedouterBody)(((inner.unwrap)(i.unlift(
@@ -1143,11 +1143,11 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
   end
 
 (* This checks whether the given function f accepts an arguemnt of type O1.
- * 
+ *
  *)
-__resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 = 
-typecase f of O1 -> R0 => fn (x:O1) : R0  => f(x)  
-else => throw CastError 
+__resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 =
+typecase f of O1 -> R0 => fn (x:O1) : R0  => f(x)
+else => throw CastError
 end
 
 
@@ -2790,7 +2790,7 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
         end
 end
 
-(** The lifting of operators to be fused with identity-less operators 
+(** The lifting of operators to be fused with identity-less operators
     Nothing becomes zero
 **)
 object LiftedCommutativeMonoidReduction[\R\](org : CommutativeMonoidReduction[\R\]) extends ActualReduction[\R,AnyMaybe\]
@@ -2869,7 +2869,7 @@ trait DistributesOver[\E\] end
 
 object SumProdReductionPair extends ReductionPair[\Number,Number\]
     getter outer() = SumReduction
-    getter inner() = ProdReduction 
+    getter inner() = ProdReduction
 end
 
 object MaxSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
@@ -2893,7 +2893,7 @@ object MinNSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
-object SumReduction extends { 
+object SumReduction extends {
   CommutativeMonoidReduction[\Number\],
   DistributesOver[\MaxReductionN\],
   DistributesOver[\MinReductionN\],
@@ -2903,13 +2903,13 @@ object SumReduction extends {
     getter asString(): String = "SumReduction"
     empty(): Number = 0
     join(a: Number, b: Number): Number = a+b
-    distribute(r: MaxReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] = 
+    distribute(r: MaxReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] =
     MaxSumReductionPair
-    distribute(r: MinReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] = 
+    distribute(r: MinReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] =
     MinSumReductionPair
-    distribute(r: MaxReductionN): PossibleReductionPair[\AnyMaybe\] = 
+    distribute(r: MaxReductionN): PossibleReductionPair[\AnyMaybe\] =
     MaxNSumReductionPair
-    distribute(r: MinReductionN): PossibleReductionPair[\AnyMaybe\] = 
+    distribute(r: MinReductionN): PossibleReductionPair[\AnyMaybe\] =
     MaxNSumReductionPair
 end
 
@@ -2919,14 +2919,14 @@ opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
 opr SUM[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](SUM[\T\](), g)
 
-object ProdReduction extends { 
+object ProdReduction extends {
   CommutativeMonoidReduction[\Number\],
   DistributesOver[\SumReduction\]
  }
     getter asString(): String = "ProdReduction"
     empty(): Number = 1
     join(a:Number, b:Number): Number = a b
-    distribute(r: SumReduction): PossibleReductionPair[\Number\] = 
+    distribute(r: SumReduction): PossibleReductionPair[\Number\] =
     SumProdReductionPair
 end
 
@@ -3168,7 +3168,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
         self.g.generate[\E\](r, fn(e:E):E => if (self.p)(e).holds then e else r.empty() end)
     filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
         SimpleFilterGenerator[\E\](self.g, self.p ANDCOND p')
-    seq(self) = SimpleSeqFilterGenerator[\E\](seq(self.g),self.p)
+    seq(self): SequentialGenerator[\E\] = SimpleSeqFilterGenerator[\E\](seq(self.g),self.p)
 end
 
 object SimpleFilterGenerator[\E\](g0:Generator[\E\], p0: E->Condition[\()\])
@@ -3662,7 +3662,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     allButLast(): String = self[0#(|self| - 1)]
     allButFirst(): String = self[1:]
 
-    (** The operator %||% with at least one String argument converts 
+    (** The operator %||% with at least one String argument converts
         to String and concatenates **)
     opr ||(self, b:String):String
     opr ||(self, b:Number):String = self || b.asString
@@ -3698,7 +3698,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     (** opr %//% appends a single line separator.  Note that as
         with %||% and %|||% at least one argument must be a String.
-        There is a postfix version defined as a top-level operator in 
+        There is a postfix version defined as a top-level operator in
         FortressLibrary that performs string conversion, but the prefix
          version must occur before a String. **)
     opr //(self) : String = newline || self
@@ -3708,7 +3708,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     (** opr %///% appends a double line separator.  Note that, as
         with %||% and %|||%, at least one argument must be a String.
-        There is a postfix version defined as a top-level operator in 
+        There is a postfix version defined as a top-level operator in
         FortressLibrary that performs string conversion, but the prefix
          version must occur before a String. **)
     opr ///(self) : String = doubleNewline || self
@@ -3974,7 +3974,7 @@ dispatchingEnabled() : Boolean = enableDispatching
 trait SomeGenerator2 end  (* marking for GG *)
 
 (* non-filtered GG *)
-trait Generator2[\ E \] 
+trait Generator2[\ E \]
   extends {Generator[\ Generator[\ E \] \], SomeGenerator2}
   getter seed() : Generator[\ E \]
 
@@ -4029,7 +4029,7 @@ trait Generator2[\ E \]
 end
 
 (* filtered GG *)
-trait FilterGenerator2[\ E \] 
+trait FilterGenerator2[\ E \]
   extends { Generator2[\ E \], FilterGenerator[\ Generator[\ E \] \] }
   filter(p': Generator[\ E \] -> Condition[\()\]): SimpleFilterGenerator2[\E\] =
   SimpleFilterGenerator2[\E\](g(), p() ANDCOND p')
@@ -4057,7 +4057,7 @@ trait RelationalPredicateCondition[\E\] extends { Condition[\()\] } excludes Con
   cond[\G\](t: () -> G, e: () -> G) : G = do
     (* println("condition is evaluated...") *)
     x = target()
-    if x.size()<=1 then 
+    if x.size()<=1 then
       t()
     else
       sz = x.size() - 1

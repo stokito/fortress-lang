@@ -20,6 +20,7 @@ package com.sun.fortress.scala_src.typechecker
 import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
+import edu.rice.cs.plt.tuple.{Option => JavaOption}
 
 import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
@@ -84,13 +85,31 @@ class OverloadingChecker(component: ComponentIndex,
     }
 
     /* Whether the signature of f is covered by the signature of g */
-    private def coveredBy(f: JavaFunction, g: JavaFunction): Boolean =
-        subtype(paramsToType(g.parameters, g.getSpan),
+    private def coveredBy(f: JavaFunction, g: JavaFunction): Boolean = {
+        val staticParameters = new ArrayList[StaticParam]()
+        staticParameters.addAll(f.staticParameters)
+        if ( NodeUtil.isFunctionalMethod(f) ) {
+            val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(f))
+            if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
+                staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
+            }
+        }
+        if ( NodeUtil.isFunctionalMethod(g) ) {
+            val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(g))
+            if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
+                staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
+            }
+        }
+        for ( s <- toList(g.staticParameters) ) staticParameters.add(s)
+        val newTypeAnalyzer = typeAnalyzer.extend(staticParameters,
+                                                  none[WhereClause])
+        subtype(newTypeAnalyzer, paramsToType(g.parameters, g.getSpan),
                 paramsToType(f.parameters, f.getSpan)) &&
-        subtype(f.getReturnType, g.getReturnType)
+        subtype(newTypeAnalyzer, f.getReturnType, g.getReturnType)
+    }
 
-    private def subtype(sub_type: Type, super_type: Type): Boolean =
-        typeAnalyzer.subtype(sub_type, super_type).isTrue
+    private def subtype(newTypeAnalyzer: TypeAnalyzer, sub_type: Type, super_type: Type): Boolean =
+        newTypeAnalyzer.subtype(sub_type, super_type).isTrue
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
