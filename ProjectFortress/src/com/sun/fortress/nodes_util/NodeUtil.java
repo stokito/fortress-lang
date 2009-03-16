@@ -36,6 +36,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
@@ -1443,4 +1445,28 @@ public class NodeUtil {
             return bug("TraitIndex expected, but got " + t);
     }
 
+    public static List<StaticParam> getStaticParameters(TypeConsIndex t) {
+        if ( isTraitOrObject(t) )
+            return ((TraitIndex)t).staticParameters();
+        else
+            return bug("TraitIndex expected, but got " + t);
+    }
+
+    public static boolean isFunctionalMethod(Function f) {
+        return (f instanceof FunctionalMethod);
+    }
+
+    public static Id getDeclaringTrait(Function f) {
+        if ( isFunctionalMethod(f) )
+            return ((FunctionalMethod)f).declaringTrait();
+        else
+            return bug("Function expected, but got " + f);
+    }
+
+    public static FnDecl getDecl(Function f) {
+        if ( isFunctionalMethod(f) )
+            return ((FunctionalMethod)f).ast();
+        else
+            return bug("Function expected, but got " + f);
+    }
 }
