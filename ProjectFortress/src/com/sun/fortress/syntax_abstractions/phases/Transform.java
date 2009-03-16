@@ -124,6 +124,15 @@ public class Transform extends TemplateUpdateVisitor {
                                   RatsUtil.getFreshName(original.getText() + "-g"));
     }
 
+    /* generate a new unique id. a.k.a gensym, if the first parameter is not a TemplateGapId */
+    private Id generateId(IdOrOpOrAnonymousName maybeTemplateGap, Id original){
+        if ( maybeTemplateGap instanceof TemplateGapId )
+            return original;
+        else
+            return NodeFactory.makeId(original,
+                                      RatsUtil.getFreshName(original.getText() + "-g"));
+    }
+
     /* hygiene */
     @Override
     public Node forVarRef(VarRef that){
@@ -246,7 +255,7 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
             Id name_result = (Id) recur(that.getName());
-            Id newId = generateId(name_result);
+            Id newId = generateId(that.getName(), name_result);
             extendSyntaxEnvironment(name_result, newId);
             List<CatchClause> clauses_result = recurOnListOfCatchClause(that.getClauses());
             setSyntaxEnvironment(save);
@@ -280,7 +289,7 @@ public class Transform extends TemplateUpdateVisitor {
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             Id name_result = (Id) recur(that.getName());
-            Id newId = generateId(name_result);
+            Id newId = generateId(that.getName(), name_result);
             extendSyntaxEnvironment(name_result, newId);
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
@@ -370,7 +379,7 @@ public class Transform extends TemplateUpdateVisitor {
                                      "Varargs param id hash code " +
                                      name_result.generateHashCode() );
                         Id old = (Id) name_result.accept(transformer);
-                        Id generatedId = generateId(old);
+                        Id generatedId = generateId(name_result, old);
                         Debug.debug( Debug.Type.SYNTAX, 2,
                                      "Generate new binding for " + old +
                                      " = " + generatedId );
@@ -400,7 +409,7 @@ public class Transform extends TemplateUpdateVisitor {
             @Override
             public Node forId(Id id){
                 Id old = (Id) id.accept(Transform.this);
-                Id generatedId = generateId(old);
+                Id generatedId = generateId(id, old);
                 Debug.debug( Debug.Type.SYNTAX, 2,
                              "Generate new binding for " + old +
                              " = " + generatedId );
@@ -427,7 +436,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                   Option<Expr> body_result,
                                                   Option<Id> implementsUnambiguousName_result) {
                             Id old = (Id) ((Id)name_result).accept(transformer);
-                            final Id generatedId = generateId(old);
+                            final Id generatedId = generateId(name_result, old);
                             extendSyntaxEnvironment(old, generatedId);
 
                             FnHeader new_fnHeader =
@@ -442,7 +451,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                             List<Param> params_result,
                                                             Option<Type> returnType_result) {
                                     Id oldName = (Id) ((Id)name_result).accept(transformer);
-                                    final Id generatedName = generateId(oldName);
+                                    final Id generatedName = generateId(name_result, oldName);
                                     extendSyntaxEnvironment(oldName, generatedName);
                                     List<Param> new_params_result = Useful.applyToAll(params_result,
                                                                                       renameParam);
@@ -494,7 +503,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                   Id name_result,
                                                   Option<Type> type_result) {
                             Id old = (Id) name_result.accept(transformer);
-                            Id generatedId = generateId(old);
+                            Id generatedId = generateId(name_result, old);
                             Debug.debug( Debug.Type.SYNTAX, 2,
                                          "Generate new binding for " + old +
                                          " = " + generatedId );

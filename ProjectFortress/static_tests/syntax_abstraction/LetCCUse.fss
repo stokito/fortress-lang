@@ -14,9 +14,12 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
+component LetCCUse
+import LetCC.{...}
+export Executable
 
-api Compiled1.j
-  f(x':String): String
-  x:String
-  z:String
+run(args:String...) = do
+  println (letcc cont do println "before"; cont("continuation"); println "after" end)
+end
+
 end

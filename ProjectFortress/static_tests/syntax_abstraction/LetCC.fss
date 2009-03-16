@@ -14,9 +14,6 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-
-api Compiled1.j
-  f(x':String): String
-  x:String
-  z:String
+component LetCC
+export LetCC
 end

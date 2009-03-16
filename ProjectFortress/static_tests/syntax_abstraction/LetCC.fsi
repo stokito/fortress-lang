@@ -14,9 +14,19 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
+api LetCC
 
-api Compiled1.j
-  f(x':String): String
-  x:String
-  z:String
+import FortressAst.{...}
+import FortressSyntax.{...}
+
+grammar LetCC extends {Expression, Identifier}
+    Expr |:=
+        letcc k:Id e:Expr =>
+        <[ label L
+               k(v) = exit L with v
+               e
+           end L
+        ]>
+end
+
 end

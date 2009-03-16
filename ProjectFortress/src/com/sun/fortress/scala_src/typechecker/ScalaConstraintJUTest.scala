@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.compiler.typechecker.TypeAnalyzerJUTest._
@@ -6,7 +23,7 @@ import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 
 class ScalaConstraintJUTest extends TestCase {
-  
+
   def testAnd() = {
     var analyzer = makeAnalyzer()
     var history = new SubtypeHistory(analyzer)
@@ -33,9 +50,9 @@ class ScalaConstraintJUTest extends TestCase {
     val alternateFalse = CnOr(List(),history)
     assert(alternateFalse.isFalse,"CnOr(Empty).isFalse")
     assert(alternateFalse.and(CnTrue,history)==CnFalse, "AND(alternateFalse,CnTrue) =/= CnTrue")
-    assert(alternateFalse.and(CnFalse,history)==CnFalse, "AND(alternateFalse,CnFalse) =/= CnFalse")    
+    assert(alternateFalse.and(CnFalse,history)==CnFalse, "AND(alternateFalse,CnFalse) =/= CnFalse")
     assert(CnTrue.and(alternateFalse,history)==CnFalse, "AND(CnFalse, alternateFalse) =/= CnFalse")
-    assert(CnFalse.and(alternateFalse,history)==CnFalse, "AND(CnFalse, alternateFalse) =/= CnFalse") 
+    assert(CnFalse.and(alternateFalse,history)==CnFalse, "AND(CnFalse, alternateFalse) =/= CnFalse")
     //Test test that all alternate forms are eliminated
     assert(alternateTrue.and(alternateTrue,history) == CnTrue, "AND(alternateTrue,alternateTrue) =/= CnTrue")
     assert(alternateTrue.and(alternateTrue2,history) == CnTrue, "AND(alternateTrue,alternateTrue2) =/= CnTrue")
@@ -47,7 +64,7 @@ class ScalaConstraintJUTest extends TestCase {
     assert(alternateFalse.and(alternateTrue2,history) == CnFalse, "AND(alternateFalse,alternateTrue2) =/= CnFalse")
     assert(alternateFalse.and(alternateFalse,history) == CnFalse, "AND(alternateFalse,alternateFalse) =/= CnFalse")
   }
-  
+
   def testOr() = {
     var analyzer = makeAnalyzer()
     var history = new SubtypeHistory(analyzer)
@@ -74,9 +91,9 @@ class ScalaConstraintJUTest extends TestCase {
     val alternateFalse = CnOr(List(),history)
     assert(alternateFalse.isFalse,"CnOr(Empty).isFalse")
     assert(alternateFalse.or(CnTrue,history)==CnTrue, "OR(alternateFalse,CnTrue) == CnTrue")
-    assert(alternateFalse.or(CnFalse,history)==CnFalse, "OR(alternateFalse,CnFalse) == CnFalse")    
+    assert(alternateFalse.or(CnFalse,history)==CnFalse, "OR(alternateFalse,CnFalse) == CnFalse")
     assert(CnTrue.or(alternateFalse,history)==CnTrue, "OR(CnFalse, alternateFalse) == CnTrue")
-    assert(CnFalse.or(alternateFalse,history)==CnFalse, "OR(CnFalse, alternateFalse) == CnFalse") 
+    assert(CnFalse.or(alternateFalse,history)==CnFalse, "OR(CnFalse, alternateFalse) == CnFalse")
     //Test test that all alternate forms are eliminated
     assert(alternateTrue.or(alternateTrue,history) == CnTrue, "OR(alternateTrue,alternateTrue) =/= CnTrue")
     assert(alternateTrue.or(alternateTrue2,history) == CnTrue, "OR(alternateTrue,alternateTrue2) =/= CnTrue")
@@ -89,7 +106,7 @@ class ScalaConstraintJUTest extends TestCase {
     assert(alternateFalse.or(alternateFalse,history) == CnFalse, "OR(alternateFalse,alternateFalse) =/= CnFalse")
 
   }
-  
+
   def testImplies() = {
     var analyzer = makeAnalyzer()
     var history = new SubtypeHistory(analyzer)
