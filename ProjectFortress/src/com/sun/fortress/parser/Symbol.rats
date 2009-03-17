@@ -123,8 +123,22 @@ String OpName =
      opn:id &{NodeUtil.validOp(opn) };
 
 Op Op =
-     a1:(condOp / op !(equalsOp) / compOp)
-     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
+    a1:(condOp / op !(equalsOp) / compOp) !(Symbol)
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); }
+   / a1:Symbols
+     { log(createSpan(yyStart,yyCount),
+           a1 + " is not a valid operator in Fortress.");
+       yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1);
+     };
+
+transient private String Symbols =
+     a1s:Symbol+
+     { yyValue = "";
+       for (String n: a1s.list()) yyValue += n;
+     };
+
+transient private String Symbol = [+] ;
+//transient private String Symbol = [!-/:-@[-`{-~] ;
 
 transient private String compOp =
      "==="
