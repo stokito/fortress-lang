@@ -19,6 +19,7 @@ package com.sun.fortress.astgen;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collections;
 
 import edu.rice.cs.astgen.ASTModel;
 import edu.rice.cs.astgen.CodeGenerator;
@@ -93,6 +94,7 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
                  !nodeClass.name().startsWith("_SyntaxTransformation")){
                 List<TypeName> interfaces = new LinkedList<TypeName>();
                 interfaces.add(templateGapName);
+                interfaces.add(Types.parse(nodeClass.name(), ast));
                 String infoType;
                 List<Field> fields;
                 if ( ast.isDescendent(exprNode, nodeClass) ) {
@@ -105,15 +107,21 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
                     infoType = "ASTNodeInfo";
                     fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
                 }
+                fields = Collections.<Field>emptyList();
                 TypeName superName = Types.parse(nodeClass.name(), ast);
+
+                NodeType child = new NodeClass("TemplateGap" + ((NodeClass) nodeClass).name(), false, fields, null, interfaces);
+                /*
                 NodeType templateGap = new TemplateGapClass("TemplateGap"+nodeClass.name(),
-                                                            fields, superName, interfaces,
+                                                            fields, null, interfaces,
                                                             infoType);
-                templateGaps.add(new Pair<NodeType, NodeType>(templateGap, nodeClass));
+                                                            */
+                templateGaps.add(new Pair<NodeType, NodeType>(child, nodeClass));
 	    }
         }
         for (Pair<NodeType, NodeType> p: templateGaps) {
-            ast.addType(p.first(), false, p.second());
+            // ast.addType(p.first(), false, p.second());
+            ast.addTopType(p.first(), false);
         }
     }
 

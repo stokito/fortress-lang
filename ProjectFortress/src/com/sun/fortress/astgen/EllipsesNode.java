@@ -38,8 +38,16 @@ public class EllipsesNode extends NodeClass {
     private String nodeField = "repeatedNode";
     private String infoType;
 
+    private static List<TypeName> implementing(NodeClass parent, ASTModel ast){
+        List<TypeName> foo = new ArrayList<TypeName>();
+        foo.add(Types.parse("_Ellipses",ast));
+        foo.add(Types.parse(parent.name(), ast));
+        return foo;
+    }
+
     public EllipsesNode( NodeClass parent, ASTModel ast, String in_infoType ){
-        super( "_Ellipses" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_Ellipses",ast)) );
+        // super( "_Ellipses" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_Ellipses",ast)) );
+        super( "_Ellipses" + parent.name(), false, fields(ast), null, implementing(parent, ast));
         infoType = in_infoType;
     }
 
@@ -53,10 +61,11 @@ public class EllipsesNode extends NodeClass {
     }
 
     private static List<Field> fields( ASTModel ast ){
-        return new ArrayList<Field>();
+        // return new ArrayList<Field>();
+        return Collections.<Field>singletonList(new Field(Types.parse("AbstractNode", ast), "repeatedNode", Option.<String>none(), false, false, true));
     }
 
-    public void output(ASTModel ast, Iterable<CodeGenerator> gens) {
+    public void output1(ASTModel ast, Iterable<CodeGenerator> gens) {
         TabPrintWriter writer = ast.options().createJavaSourceInOutDir(this.name());
 
         // Class header
@@ -74,8 +83,17 @@ public class EllipsesNode extends NodeClass {
         writer.startLine("@SuppressWarnings(value={\"unused\"})");
         // Class header
         writer.startLine("public class " + this.name());
-        writer.print(" extends " + this.superClass().name());
-        writer.print(" implements _Ellipses");
+        // writer.print(" extends " + this.superClass().name());
+        writer.print(" implements ");
+        boolean first = true;
+        for (TypeName i : interfaces()){
+            if (!first){
+                writer.print(", ");
+            } else {
+                first = false;
+            }
+            writer.print(i.name());
+        }
         writer.print(" {");
         writer.indent();
 
@@ -156,18 +174,20 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
+        /*
         writer.startLine(String.format("public %s(" + infoType + " info, AbstractNode %s){", className, nodeField));
         writer.indent();
         writer.startLine("super(info);");
         writer.startLine(String.format("this._%s = %s;", nodeField, nodeField));
         writer.unindent();
         writer.startLine("}");
+        */
     }
 
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
         writer.startLine("public " + className+"() {");
         writer.indent();
-        writer.startLine("super(NodeFactory.make" + infoType + "(NodeFactory.macroSpan));");
+        // writer.startLine("super(NodeFactory.make" + infoType + "(NodeFactory.macroSpan));");
         writer.startLine(String.format("this._%s = null;", nodeField));
         /*
         writer.startLine(String.format("this._%s = null;", fieldTransformer));

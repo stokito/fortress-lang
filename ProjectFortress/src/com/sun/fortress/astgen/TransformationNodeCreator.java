@@ -112,13 +112,21 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
                     fields = astFields;
                 }
 
+                fields = Collections.<Field>emptyList();
+
+                ArrayList<TypeName> names = new ArrayList<TypeName>();
+                names.add(Types.parse("_SyntaxTransformation",ast));
+                names.add(Types.parse(n.name(), ast));
+
                 // NodeType child = new TransformationNode((NodeClass) n,ast,infoType);
-                NodeType child = new NodeClass("_SyntaxTransformation" + ((NodeClass) n).name(), false, fields, Types.parse((n).name(), ast), Collections.singletonList(Types.parse("_SyntaxTransformation",ast)));
+                // NodeType child = new NodeClass("_SyntaxTransformation" + ((NodeClass) n).name(), false, fields, Types.parse((n).name(), ast), names);
+                NodeType child = new NodeClass("_SyntaxTransformation" + ((NodeClass) n).name(), false, fields, null, names);
                 all.add( new Pair<NodeType,NodeType>( child, n ) );
             }
         }
         for (Pair<NodeType, NodeType> p: all) {
-            ast.addType( p.first(), false, p.second() );
+            // ast.addType( p.first(), false, p.second() );
+            ast.addTopType( p.first(), false);
         }
     }
 

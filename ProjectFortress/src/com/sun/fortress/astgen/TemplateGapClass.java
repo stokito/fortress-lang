@@ -69,7 +69,7 @@ public class TemplateGapClass extends NodeClass {
             return TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
     }
 
-    public void output(ASTModel ast, Iterable<CodeGenerator> gens) {
+    public void output1(ASTModel ast, Iterable<CodeGenerator> gens) {
         TabPrintWriter writer = ast.options().createJavaSourceInOutDir(this.name());
 
         // Class header
@@ -87,7 +87,7 @@ public class TemplateGapClass extends NodeClass {
         writer.startLine("@SuppressWarnings(value={\"unused\"})");
         // Class header
         writer.startLine("public class " + this.name());
-        writer.print(" extends " + this.superClass().name());
+        // writer.print(" extends " + this.superClass().name());
         writer.print(" implements TemplateGap");
         writer.print(" {");
         writer.indent();
