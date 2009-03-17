@@ -59,7 +59,7 @@ public class TransformationNode extends NodeClass {
         return new ArrayList<Field>();
     }
 
-    public void output(ASTModel ast, Iterable<CodeGenerator> gens) {
+    public void output1(ASTModel ast, Iterable<CodeGenerator> gens) {
         TabPrintWriter writer = ast.options().createJavaSourceInOutDir(this.name());
 
         // Class header

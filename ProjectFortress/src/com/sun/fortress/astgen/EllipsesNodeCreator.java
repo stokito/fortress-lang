@@ -75,7 +75,8 @@ public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
             }
         }
         for (Pair<NodeType, NodeType> p: all) {
-            ast.addType( p.first(), false, p.second() );
+            // ast.addType( p.first(), false, p.second() );
+            ast.addTopType(p.first(), false);
         }
     }
 
