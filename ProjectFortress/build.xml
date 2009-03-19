@@ -418,7 +418,8 @@ maintain proper indentation.
         srcdir="${astgen.generators.src}"
         destdir="${build}"
         classpathref="astgen.classpath"
-        addparams="">
+        addparams=""
+        deprecation="yes">
       <include name="**/*.scala"/>
       <exclude name="${usefulPackage}/*.scala"/>
       <exclude name="${unicodePackage}/*.scala"/>
@@ -499,7 +500,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        deprecation="yes">
       <include name="**/*.java"/>
       <include name="**/*.scala"/>
       <exclude name="${usefulPackage}/*.java"/>

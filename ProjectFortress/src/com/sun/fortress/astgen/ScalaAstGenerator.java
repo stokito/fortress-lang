@@ -146,6 +146,97 @@ public class ScalaAstGenerator extends CodeGenerator {
         return buffer.toString();
     }
 
+    /**
+     * Given a TypeName, return a string representation of the corresponding
+     * type in Java.
+     */
+    private String javaFieldType(TypeName type) { 
+        return type.accept(new TypeNameVisitor<String>() {
+
+                // A type declared in the AST.  Has 0 type arguments.
+                public String forTreeNode(ClassName t) {
+                    return "com.sun.fortress.nodes." + t.name();
+                }
+
+                // A primitive type
+                public String forPrimitive(PrimitiveName t) {
+                    String name = t.name();
+
+                    if (name.equals("int")) {
+                        return "Int";
+                    }
+                    if (name.equals("boolean")) {
+                        return "Boolean";
+                    }
+                    throw new RuntimeException("Unknown primitive " + name);
+                }
+
+                // A String.  Has 0 type arguments.
+                public String forString(ClassName t) {
+                    return "String";
+                }
+
+                // An array of primitives.
+                public String forPrimitiveArray(PrimitiveArrayName t) {
+                    throw new RuntimeException("Can't handle primitive array");
+                }
+
+                // An array of reference types (non-primitives).
+                public String forReferenceArray(ReferenceArrayName t) {
+                    throw new RuntimeException("Can't handle reference array");
+                }
+
+                // A list, set, or other subtype of java.lang.Iterable.
+                public String forSequenceClass(SequenceClassName t) {
+                    return sub("_root_.java.util.List[@type]", "@type", t.elementType().accept(this));
+                }
+
+                // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument.
+                public String forOptionClass(OptionClassName t) {
+                    return sub("edu.rice.cs.plt.tuple.Option[@type]", "@type", t.elementType().accept(this));
+                }
+
+                // A tuple (see definition in TupleName documentation).
+                public String forTupleClass(TupleClassName t) {
+                    throw new RuntimeException("Can't handle tuple");
+                }
+
+                // A type for which none of the other cases apply.
+                public String forGeneralClass(ClassName t) {
+                    StringBuffer name = new StringBuffer();
+
+                    // Handle types for which ASTGen provides no hooks,
+                    // but that we still want to treat specially.
+                    if (t.className().equals("Map")) { name.append("_root_.java.util.Map"); }
+                    else if (t.className().equals("BigInteger")) { name.append("_root_.java.math." + t.className()); }
+                    else if (t.className().equals("Object")) { name.append("_root_.java.lang." + t.className()); }
+                    else if (t.className().equals("Span")) { name.append("com.sun.fortress.nodes_util." + t.className()); }
+                    else if (t.className().equals("Modifiers")) { name.append("com.sun.fortress.nodes_util." + t.className()); }
+                    else { name.append("com.sun.fortress.nodes." + t.className()); }
+
+                    // Handle type arguments.
+                    // Note: This will not work with nested generic types.
+                    // ASTGen does not provide a facility for recursive deconstruction
+                    // of nested generic type arguments.
+                    boolean first = true;
+                    for (TypeArgumentName arg : t.typeArguments()) {
+                        if (first) {
+                            name.append("[");
+                            first = false;
+                        } else {
+                            name.append(", ");
+                        }
+                        if (arg.name().equals("String")) { name.append(arg.name()); }
+                        else { name.append("com.sun.fortress.nodes." + arg.name()); }
+                    }
+                    if (! first) { name.append("]"); }
+
+                    return name.toString();
+                }
+
+            });
+    }
+
 
     /**
      * Given a TypeName, return a string representation of the corresponding
@@ -346,7 +437,7 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("javaify(@name).asInstanceOf", "@name", field.getGetterName()));
+                buffer.append(sub("javaify(@name).asInstanceOf[@type]", "@name", field.getGetterName(), "@type", javaFieldType(field.type())));
             }
             buffer.append(")");
             return buffer.toString();
