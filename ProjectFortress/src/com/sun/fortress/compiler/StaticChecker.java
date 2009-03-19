@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
+import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -142,6 +143,12 @@ public class StaticChecker {
                                                    GlobalEnvironment env,
                                                    FortressRepository repository) {
         if (Shell.getTypeChecking() == true) {
+            // Check type hierarchy to ensure acyclicity.
+            List<StaticError> errors = new TypeHierarchyChecker(component, env, repository).checkHierarchy();
+            if (! errors.isEmpty()) { 
+                return new TypeCheckerResult(component.ast(), errors);
+            }
+
             Node component_ast = component.ast();
             ConstraintUtil.useJavaFormulas();
             // Replace implicit types with explicit ones.
@@ -164,8 +171,7 @@ public class StaticChecker {
                 bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                     result.ast());
             // Check overloadings in this component.
-            List<StaticError> errors =
-                new OverloadingChecker(component, env, repository).checkOverloading();
+            errors = new OverloadingChecker(component, env, repository).checkOverloading();
             result = addErrors(errors, result);
             // Check the set of exported APIs in this component.
             errors = ExportChecker.checkExports(component, env, repository);

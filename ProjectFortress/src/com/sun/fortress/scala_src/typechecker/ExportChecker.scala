@@ -443,7 +443,7 @@ object ExportChecker {
 
     /* Returns true if two FnHeaders are same. */
     private def equalFnHeaders(left: FnHeader, right: FnHeader,
-                               ignoreAbstract: boolean): Boolean =
+                               ignoreAbstract: Boolean): Boolean =
         (left, right) match {
             case (FnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
                            paramsL, retTyL),

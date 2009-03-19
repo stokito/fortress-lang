@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import java.util.*;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.StaticParam;
 
@@ -30,6 +31,7 @@ import com.sun.fortress.useful.NI;
  */
 public abstract class TypeConsIndex {
 
+    public abstract Node ast();
     public abstract List<StaticParam> staticParameters();
     
     /**
