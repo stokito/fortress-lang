@@ -22,12 +22,17 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.codegen.*;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Debug;
 
 public class CodeGenerationPhase extends Phase {
+
+    public static Symbols symbolTable = new Symbols();
 
     public CodeGenerationPhase(Phase parentPhase) {
         super(parentPhase);
@@ -37,17 +42,28 @@ public class CodeGenerationPhase extends Phase {
     public AnalyzeResult execute() throws StaticError {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
         AnalyzeResult previous = parentPhase.getResult();
+        FortressRepository respository = getRepository();
 
-        // Generate bytecodes for as much as we can.
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "Before invoking Compile: components=" + previous.components());
+                    "CodeGenerationPhase: components " + previous.components() + 
+                    " apis = " + previous.apis().keySet());
 
-        for (Component comp : previous.componentIterator()) {
+        for ( APIName api : previous.apis().keySet() ) 
+            symbolTable.addApi(api, previous.apis().get(api));
+
+        for (Component component : previous.componentIterator()) {
+            APIName api = component.getName();
+            symbolTable.addComponent(api, previous.components().get(api));
+        }
+
+        Debug.debug(Debug.Type.CODEGEN, 1, 
+                    "SymbolTable=" + symbolTable.toString());
+
+        for (Component component : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1,
-                        "CodeGenerationPhase: Compile(" + comp.getName() + ")");
-            String compName = comp.getName().getText();
-            Compile c = new Compile(comp.getName().getText());
-            comp.accept(c);
+                        "CodeGenerationPhase: Compile(" + component.getName() + ")");
+            CodeGen c = new CodeGen(component.getName().getText(), symbolTable);
+            component.accept(c);
         }
 
         return new AnalyzeResult(previous.apis(), previous.components(),

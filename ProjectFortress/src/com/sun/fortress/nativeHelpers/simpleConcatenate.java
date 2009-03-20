@@ -13,24 +13,15 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs;
+ ******************************************************************************/
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nativeHelpers.*;
-import com.sun.fortress.compiler.runtimeValues.*;
+package com.sun.fortress.nativeHelpers;
 
-import java.util.*;
-import org.objectweb.asm.*;
-import edu.rice.cs.plt.tuple.Option;
+public class simpleConcatenate {
+	
+	public static String nativeConcatenate(String s1, String s2) {
+        System.out.println("Got to call of nativeConcatenate with : " + s1 + " and " + s2);
+        return s1 + s2;
+	}
 
-public class CompilerBuiltinStub {
-
-    public static String twoArgs(String a, String b) {
-        return a + b;
-    }
-
-    public static void println(FString s) {
-        simplePrintln.nativePrintln(s.toString());
-    }
 }

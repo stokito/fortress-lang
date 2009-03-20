@@ -15,36 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component CompilerBuiltin
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
-import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate as jConcatenate}
-export CompilerBuiltin
+component Compiled2PreTest
+export SimpleExecutable
 
-trait Object extends Any
-end Object
-
-trait String
-(* opr ||(self, b:String): String =  jConcatenate(self, b) *)
-end
-
-object FlatString extends String
-end FlatString
-
-println(s:String):() = jPrintln(s)
-
-trait Number
-end
-
-object ZZ32 extends Number
-end
-
-object ZZ64 extends Number
-end
-
-object RR32 extends Number
-end
-
-object RR64 extends Number
-end
+run() = println("Hello, " || "world" || "!")
 
 end
