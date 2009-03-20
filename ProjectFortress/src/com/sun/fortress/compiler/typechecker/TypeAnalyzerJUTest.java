@@ -104,88 +104,88 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testNormalize() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "B"),
-                                      trait("E"),
-                                      trait("F"),
-                                      trait("G"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "B"),
+                                      makeTrait("E"),
+                                      makeTrait("F"),
+                                      makeTrait("G"));
 
-        assertEquals(type("A"), norm(t, "A"));
-        assertEquals(type("Any"), norm(t, "Any"));
-        assertEquals(type("Bottom"), norm(t, "Bottom"));
-        assertEquals(type("()"), norm(t, "()"));
+        assertEquals(makeType("A"), norm(t, "A"));
+        assertEquals(makeType("Any"), norm(t, "Any"));
+        assertEquals(makeType("Bottom"), norm(t, "Bottom"));
+        assertEquals(makeType("()"), norm(t, "()"));
 
-        assertEquals(type("(A,B)"), norm(t, "(A,B)"));
-        assertEquals(type("Bottom"), norm(t, "(A,Bottom)"));
-        assertEquals(type("(A,Any)"), norm(t, "(A,Any)"));
-        assertEquals(type("|{(A,E),(A,F),(A,G)}"), norm(t, "(A, |{E,F,G})"));
-        assertEquals(type("|{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
+        assertEquals(makeType("(A,B)"), norm(t, "(A,B)"));
+        assertEquals(makeType("Bottom"), norm(t, "(A,Bottom)"));
+        assertEquals(makeType("(A,Any)"), norm(t, "(A,Any)"));
+        assertEquals(makeType("|{(A,E),(A,F),(A,G)}"), norm(t, "(A, |{E,F,G})"));
+        assertEquals(makeType("|{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
                      norm(t, "(C|D, C|D, C|D)"));
-        assertEquals(type("&{(A,E),(A,F),(A,G)}"), norm(t, "(A, &{E,F,G})"));
-        assertEquals(type("&{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
+        assertEquals(makeType("&{(A,E),(A,F),(A,G)}"), norm(t, "(A, &{E,F,G})"));
+        assertEquals(makeType("&{(C,C,C),(C,C,D),(C,D,C),(C,D,D),(D,C,C),(D,C,D),(D,D,C),(D,D,D)}"),
                      norm(t, "(C&D, C&D, C&D)"));
-        assertEquals(type("|{(C,E)&(C,F), (D,E)&(D,F)}"), norm(t, "(C|D,E&F)"));
+        assertEquals(makeType("|{(C,E)&(C,F), (D,E)&(D,F)}"), norm(t, "(C|D,E&F)"));
 
-        assertEquals(type("(A,B...)"), norm(t, "(A,B...)"));
-        assertEquals(type("A"), norm(t, "(A,Bottom...)"));
-        assertEquals(type("(A,Any...)"), norm(t, "(A,Any...)"));
-        assertEquals(type("|{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, |{E,F,G}...)"));
-        assertEquals(type("&{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, &{E,F,G}...)"));
-        assertEquals(type("|{(C,E...)&(C,F...), (D,E...)&(D,F...)}"), norm(t, "(C|D,E&F...)"));
+        assertEquals(makeType("(A,B...)"), norm(t, "(A,B...)"));
+        assertEquals(makeType("A"), norm(t, "(A,Bottom...)"));
+        assertEquals(makeType("(A,Any...)"), norm(t, "(A,Any...)"));
+        assertEquals(makeType("|{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, |{E,F,G}...)"));
+        assertEquals(makeType("&{(A,E...),(A,F...),(A,G...)}"), norm(t, "(A, &{E,F,G}...)"));
+        assertEquals(makeType("|{(C,E...)&(C,F...), (D,E...)&(D,F...)}"), norm(t, "(C|D,E&F...)"));
 
-        assertEquals(type("A->Any"), norm(t, "A->Any"));
-        assertEquals(type("Any->A"), norm(t, "Any->A"));
-        assertEquals(type("A->Bottom"), norm(t, "A->Bottom"));
-        assertEquals(type("Any"), norm(t, "Bottom->A"));
-        assertEquals(type("A->B"), norm(t, "A->(B|C)"));
-        assertEquals(type("A->(C|D)"), norm(t, "A->(C|D)"));
-        assertEquals(type("A->C"), norm(t, "A->(B&C)"));
-        assertEquals(type("(A->C)&(A->D)"), norm(t, "A->(C&D)"));
-        assertEquals(type("B->A"), norm(t, "(B|C)->A"));
-        assertEquals(type("(C->A)&(D->A)"), norm(t, "(C|D)->A"));
-        assertEquals(type("C->A"), norm(t, "(B&C)->A"));
-        assertEquals(type("C&D->A"), norm(t, "C&D->A"));
-        assertEquals(type("&{C->C,C->D,D->C,D->D}"), norm(t, "(C|D)->(C&D)"));
-        assertEquals(type("&{A->(C|E),A->(C|F),A->(D|E),A->(D|F)}"), norm(t, "A->(C&D)|(E&F)"));
-        assertEquals(type("A->C throws E io"), norm(t, "A->C throws E io"));
-        assertEquals(type("Any"), norm(t, "Bottom->C throws E io"));
-        assertEquals(type("&{(A,C...)->E,(A,D...)->E}"), norm(t, "(A, (C|D)...)->E"));
-        assertEquals(type("(A,C...)&(A,D...)->E"), norm(t, "(A, (C&D)...)->E"));
-        assertEquals(type("(C&D, foo=E&F, bar=G)->A"), norm(t, "(C&D, foo=E&F, bar=G)->A"));
-        assertEquals(type("&{(C,foo=E,bar=G)->A,(C,foo=F,bar=G)->A,(D,foo=E,bar=G)->A,(D,foo=F,bar=G)->A}"),
+        assertEquals(makeType("A->Any"), norm(t, "A->Any"));
+        assertEquals(makeType("Any->A"), norm(t, "Any->A"));
+        assertEquals(makeType("A->Bottom"), norm(t, "A->Bottom"));
+        assertEquals(makeType("Any"), norm(t, "Bottom->A"));
+        assertEquals(makeType("A->B"), norm(t, "A->(B|C)"));
+        assertEquals(makeType("A->(C|D)"), norm(t, "A->(C|D)"));
+        assertEquals(makeType("A->C"), norm(t, "A->(B&C)"));
+        assertEquals(makeType("(A->C)&(A->D)"), norm(t, "A->(C&D)"));
+        assertEquals(makeType("B->A"), norm(t, "(B|C)->A"));
+        assertEquals(makeType("(C->A)&(D->A)"), norm(t, "(C|D)->A"));
+        assertEquals(makeType("C->A"), norm(t, "(B&C)->A"));
+        assertEquals(makeType("C&D->A"), norm(t, "C&D->A"));
+        assertEquals(makeType("&{C->C,C->D,D->C,D->D}"), norm(t, "(C|D)->(C&D)"));
+        assertEquals(makeType("&{A->(C|E),A->(C|F),A->(D|E),A->(D|F)}"), norm(t, "A->(C&D)|(E&F)"));
+        assertEquals(makeType("A->C throws E io"), norm(t, "A->C throws E io"));
+        assertEquals(makeType("Any"), norm(t, "Bottom->C throws E io"));
+        assertEquals(makeType("&{(A,C...)->E,(A,D...)->E}"), norm(t, "(A, (C|D)...)->E"));
+        assertEquals(makeType("(A,C...)&(A,D...)->E"), norm(t, "(A, (C&D)...)->E"));
+        assertEquals(makeType("(C&D, foo=E&F, bar=G)->A"), norm(t, "(C&D, foo=E&F, bar=G)->A"));
+        assertEquals(makeType("&{(C,foo=E,bar=G)->A,(C,foo=F,bar=G)->A,(D,foo=E,bar=G)->A,(D,foo=F,bar=G)->A}"),
                           norm(t, "(C|D, foo=E|F, bar=G)->A"));
 
-        assertEquals(type("Any"), norm(t, "&{}"));
-        assertEquals(type("()"), norm(t, "&{()}"));
-        assertEquals(type("B"), norm(t, "A&B"));
-        assertEquals(type("&{C,D}"), norm(t, "&{A,B,C,D}"));
-        assertEquals(type("&{E,C,D}"), norm(t, "(A&E)&(C&(D&E))"));
-        assertEquals(type("|{C&E,C&F,C&G,D&E,D&F,D&G}"), norm(t, "(C|D)&(E|F|G)"));
+        assertEquals(makeType("Any"), norm(t, "&{}"));
+        assertEquals(makeType("()"), norm(t, "&{()}"));
+        assertEquals(makeType("B"), norm(t, "A&B"));
+        assertEquals(makeType("&{C,D}"), norm(t, "&{A,B,C,D}"));
+        assertEquals(makeType("&{E,C,D}"), norm(t, "(A&E)&(C&(D&E))"));
+        assertEquals(makeType("|{C&E,C&F,C&G,D&E,D&F,D&G}"), norm(t, "(C|D)&(E|F|G)"));
 
-        assertEquals(type("Bottom"), norm(t, "|{}"));
-        assertEquals(type("()"), norm(t, "|{()}"));
-        assertEquals(type("A"), norm(t, "A|B"));
-        assertEquals(type("A"), norm(t, "|{A,B,C,D}"));
-        assertEquals(type("|{A,E}"), norm(t, "(A|E)|(C|(D|E))"));
-        assertEquals(type("(C&D)|(&{E,F,G})"), norm(t, "(C&D)|(E&F&G)"));
+        assertEquals(makeType("Bottom"), norm(t, "|{}"));
+        assertEquals(makeType("()"), norm(t, "|{()}"));
+        assertEquals(makeType("A"), norm(t, "A|B"));
+        assertEquals(makeType("A"), norm(t, "|{A,B,C,D}"));
+        assertEquals(makeType("|{A,E}"), norm(t, "(A|E)|(C|(D|E))"));
+        assertEquals(makeType("(C&D)|(&{E,F,G})"), norm(t, "(C&D)|(E&F&G)"));
 
         } finally { debug.logEnd(); }
     }
 
     public void testUnionAndIntersection() {
-    	TypeAnalyzer t=makeAnalyzer(trait("A"));
+    	TypeAnalyzer t=makeAnalyzer(makeTrait("A"));
      	assertEquals(falseFormula(), sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
     }
 
     public void testBasicTraitSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "B"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "B"));
 
         assertEquals(trueFormula(), sub(t, "A", "A"));
         assertEquals(falseFormula(), sub(t, "A", "B"));
@@ -213,10 +213,10 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testArrowSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "B"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "B"));
 
         assertEquals(trueFormula(), sub(t, "A->A", "A->A"));
         assertEquals(trueFormula(), sub(t, "A->B", "A->A"));
@@ -237,11 +237,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testSimpleUnionSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "A"),
+                                      makeTrait("E", "D"));
 
         assertEquals(falseFormula(), sub(t, "A", "B|D"));
         assertEquals(trueFormula(), sub(t, "B", "B|D"));
@@ -281,11 +281,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testSimpleIntersectionSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "A"),
+                                      makeTrait("E", "D"));
 
         assertEquals(trueFormula(), sub(t, "B&D", "A"));
         assertEquals(trueFormula(), sub(t, "B&D", "B"));
@@ -326,11 +326,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testVoidSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "A"),
+                                      makeTrait("E", "D"));
 
         assertEquals(falseFormula(), sub(t, "A", VOID));
         assertEquals(trueFormula(), sub(t, VOID, VOID));
@@ -345,11 +345,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testTupleSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "A"),
+                                      makeTrait("E", "D"));
 
         assertEquals(trueFormula(), sub(t, "(A, B)", "(A, B)"));
         assertEquals(falseFormula(), sub(t, "(A, B)", "(B, A)"));
@@ -363,11 +363,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     public void testVarargSubtyping() {
         debug.logStart(); try {
 
-        TypeAnalyzer t = makeAnalyzer(trait("A"),
-                                      trait("B", "A"),
-                                      trait("C", "B"),
-                                      trait("D", "A"),
-                                      trait("E", "D"));
+        TypeAnalyzer t = makeAnalyzer(makeTrait("A"),
+                                      makeTrait("B", "A"),
+                                      makeTrait("C", "B"),
+                                      makeTrait("D", "A"),
+                                      makeTrait("E", "D"));
 
         assertEquals(trueFormula(), sub(t, "()", "(A...)"));
         assertEquals(trueFormula(), sub(t, "A", "(A...)"));
@@ -483,7 +483,7 @@ public class TypeAnalyzerJUTest extends TestCase {
      * @param name  A simple name.
      * @param supers  Type strings (parsed by parseType()); must parse to TraitTypes.
      */
-    public static ProperTraitIndex trait(String name, String... supers) {
+    public static ProperTraitIndex makeTrait(String name, String... supers) {
         return traitHelper(name, supers, false);
     }
 
@@ -522,7 +522,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     }
 
     /** Shortcut for parseType */
-    public static Type type(String s) { return parseType(s); }
+    public static Type makeType(String s) { return parseType(s); }
 
     /**
      * Parse the given string as a type.  This is a permissive algorithm: many strings that
