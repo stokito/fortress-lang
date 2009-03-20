@@ -136,7 +136,7 @@ JAVA_HOME and ANT_HOME, it is preferred that you set them manually.)
 Once all of these environment variables are set, build the interpreter
 by going to the directory FORTRESS_HOME and typing the command:
 
-    ./ant clean test
+    ./ant clean compile
 
 If that doesn't work, there's a bug in the interpreter; please issue a
 bug report.
