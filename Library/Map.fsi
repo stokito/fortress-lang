@@ -31,7 +31,7 @@ trait Map[\Key,Val\]
       extends { Generator[\(Key,Val)\], Equality[\Map[\Key,Val\]\] }
       comprises { ... }
     getter isEmpty():Boolean
-    getter showTree():String
+    getter asDebugString():String
     dom(self):Set[\Key\]
     opr | self | : ZZ32
     opr[k:Key]: Val throws NotFound
