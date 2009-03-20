@@ -17,7 +17,6 @@
 
 package com.sun.fortress.scala_src.typechecker
 
-import scala.collection.immutable.HashMap
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.compiler.Types.ANY
@@ -159,7 +158,8 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
 
   override def implies(c2: ScalaConstraint, newHistory: SubtypeHistory): Boolean = c2 match{
     case CnTrue => true
-    case CnFalse => compareBounds(lowers,uppers,BOTTOM,ANY,(t1: Type,t2:Type) => newHistory.subtypeNormal(t1,t2).isTrue)
+    //the CnFalse case is almost certainly wrong
+    case CnFalse => !compareBounds(lowers,uppers,BOTTOM,ANY,(t1: Type,t2:Type) => newHistory.subtypeNormal(t1,t2).isTrue)
     case CnAnd(u2,l2,h2) =>
       val impliesUppers = compareBounds(uppers, u2, ANY , ANY,
                                         (t1:Type, t2:Type) => newHistory.subtypeNormal(t1,t2).isTrue)
@@ -189,13 +189,13 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   }
   
   override def applySubstitution(substitution: Lambda[Type,Type]): CnAnd = {
-    val newUppers = new HashMap[_InferenceVarType,Type]
+    var newUppers = Map.empty[_InferenceVarType,Type]
     for(key <- uppers.keys){
-      newUppers.update(substitution.value(key).asInstanceOf, substitution.value(uppers.apply(key)))
+      newUppers=newUppers.update(substitution.value(key).asInstanceOf, substitution.value(uppers.apply(key)))
     }
-    val newLowers = new HashMap[_InferenceVarType,Type]
+    var newLowers = Map.empty[_InferenceVarType,Type]
     for(key <- lowers.keys){
-      newLowers.update(substitution.value(key).asInstanceOf, substitution.value(lowers.apply(key)))
+      newLowers=newLowers.update(substitution.value(key).asInstanceOf, substitution.value(lowers.apply(key)))
     }
     CnAnd(newUppers,newLowers,history)
   }  
@@ -207,15 +207,15 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
                   bounds2: Map[_InferenceVarType,Type],
                   merge:(Type,Type)=>Type): Map[_InferenceVarType,Type] = {
       val boundKeys = bounds1.keySet ++ bounds2.keySet
-      val newBounds = new HashMap[_InferenceVarType, Type]
+      var newBounds = Map.empty[_InferenceVarType,Type]
       for(ivar <- boundKeys){
         val bound1 = bounds1.get(ivar)
         val bound2 = bounds2.get(ivar)
         (bound1,bound2) match{
           case (None, None) => ()
-          case (Some(b1), Some(b2)) => newBounds.update(ivar, merge(b1,b2))
-          case (Some(b), None) => newBounds.update(ivar,b)
-          case (None, Some(b)) => newBounds.update(ivar,b)
+          case (Some(b1), Some(b2)) => newBounds=newBounds.update(ivar, merge(b1,b2))
+          case (Some(b), None) => newBounds=newBounds.update(ivar,b)
+          case (None, Some(b)) => newBounds=newBounds.update(ivar,b)
         }
       }
       newBounds
@@ -295,7 +295,7 @@ case class CnOr(conjuncts: List[CnAnd], history: SubtypeHistory) extends ScalaCo
     None
   }
 
-  override def implies(c2: ScalaConstraint, newHistory: SubtypeHistory) = conjuncts.forall((c: ScalaConstraint) => c.implies(c,newHistory))
+  override def implies(c2: ScalaConstraint, newHistory: SubtypeHistory) = conjuncts.forall((c: ScalaConstraint) => c.implies(c2,newHistory))
   
   override def isFalse(): Boolean = this.implies(CnFalse, history)
   
