@@ -454,9 +454,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         else {
             if ( comprises_result.isSome() ){
                 List<String> throws_ = comprises_result.unwrap();
-                if ( ! throws_.isEmpty() )
+                if ( ! throws_.isEmpty() ) {
+                    if ( that.isComprisesEllipses() )
+                        throws_.add("...");
                     inCurlyBraces(s, " comprises ", throws_);
-                else
+                } else
                     s.append( " comprises { ... }" );
             }
         }

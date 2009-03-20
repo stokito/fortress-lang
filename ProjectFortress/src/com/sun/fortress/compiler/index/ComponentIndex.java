@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -44,7 +44,7 @@ public class ComponentIndex extends CompilationUnitIndex {
                           Map<Id, Dimension> dimensions,
                           Map<Id, Unit> units,
                           long modifiedDate) {
-        super(ast, variables, functions, parametricOperators, 
+        super(ast, variables, functions, parametricOperators,
               typeConses, dimensions, units, modifiedDate);
         _initializers = initializers;
     }

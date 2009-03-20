@@ -292,8 +292,15 @@ public class NodeFactory {
                                                      Option.<List<BaseType>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
-        return new TraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
+        return makeTraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
                              comprisesEllipses);
+    }
+
+    public static TraitDecl makeTraitDecl(ASTNodeInfo info, TraitTypeHeader header,
+                                          List<BaseType> excludesC,
+                                          Option<List<BaseType>> comprisesC,
+                                          boolean comprisesEllipses) {
+        return new TraitDecl(info, header, excludesC, comprisesC, comprisesEllipses);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
@@ -909,7 +916,7 @@ public class NodeFactory {
         return makeUnionType(span, false,
                              CollectUtil.makeList(types));
     }
-    
+
     public static UnionType makeUnionType(scala.collection.Set<Type> types){
     	return makeUnionType(Sets.toJavaSet(types));
     }
@@ -1006,7 +1013,7 @@ public class NodeFactory {
             span = NodeUtil.spanAll(types);
         return makeIntersectionType(span, false, CollectUtil.makeList(types));
     }
-    
+
     public static IntersectionType makeIntersectionType(scala.collection.Set<Type> types){
     	return makeIntersectionType(Sets.toJavaSet(types));
     }
