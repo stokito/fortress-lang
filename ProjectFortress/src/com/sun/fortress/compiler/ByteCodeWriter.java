@@ -14,30 +14,30 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.nativeInterface;
 
-import java.lang.reflect.Method;
-import java.io.FileOutputStream;
-import org.objectweb.asm.*;
-import com.sun.fortress.compiler.ByteCodeWriter;
+package com.sun.fortress.compiler;
+
 import com.sun.fortress.repository.ProjectProperties;
+import java.io.FileOutputStream;
 
-public class FortressTransformer {
-    static String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
+public class ByteCodeWriter {
+    static Character dot = '.';
+    static Character slash = '/';
 
+    public static void writeClass(String repository, String file, byte[] bytes) {
+        String fileName = repository + file.replace(dot, slash) + ".class";
+        writeClass(bytes, fileName);
+    }
 
-    @SuppressWarnings("unchecked")
-    public static void transform(String inputClassName) {
-        String outputClassName;
+    public static void writeClass(byte[] bytes, String fileName) {
+        String directoryName = fileName.substring(0, fileName.lastIndexOf(slash));
         try {
-            ClassReader cr = new ClassReader(inputClassName);
-            ClassWriter cw = new ClassWriter(1);
-            FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName);
-            cr.accept(fa, 0);
-            byte[] b2 = cw.toByteArray();
-            ByteCodeWriter.writeClass(repository, inputClassName, b2);
-        } catch (Throwable e) {
-            e.printStackTrace();
+            ProjectProperties.ensureDirectoryExists(directoryName);
+            FileOutputStream out = new FileOutputStream(fileName);
+            out.write(bytes);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
         }
     }
 }
+

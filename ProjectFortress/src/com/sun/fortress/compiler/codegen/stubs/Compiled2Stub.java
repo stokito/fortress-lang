@@ -16,21 +16,34 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen.stubs;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nativeHelpers.*;
-import com.sun.fortress.compiler.runtimeValues.*;
-
-import java.util.*;
-import org.objectweb.asm.*;
-import edu.rice.cs.plt.tuple.Option;
-
-public class CompilerBuiltinStub {
-
-    public static String twoArgs(String a, String b) {
-        return a + b;
+public class Compiled2Stub {
+    
+    private class Object { 
+        int x;
+    }
+ 
+   private interface String {
+       public void setX(int val);
+       public int getX();
     }
 
-    public static void println(FString s) {
-        simplePrintln.nativePrintln(s.toString());
+    private interface SillyString extends String {
+        public void printX();
+    }
+
+    private class MySillyString extends Object implements SillyString {
+        public void setX(int val) {x = val;}
+        public int getX() {return x;}
+        public void printX() {System.out.println("X=" + x);}
+    }
+
+    public static void run() {
+        Compiled2Stub foo = new Compiled2Stub();
+        MySillyString bar = foo.new MySillyString();
+        bar.setX(7);
+        bar.printX();
+    }
+    public static void main(String args[]) {
+        run();
     }
 }

@@ -22,7 +22,7 @@ import java.util.*;
 import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.compiler.codegen.Compile;
+import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.nodes.APIName;
@@ -53,7 +53,7 @@ public class ClosureMaker  implements Opcodes {
         String classname_for_our_wrapper = pkg_slashes +"/"+ aClass+ "$$closure";
         // As far as I can imagine at this point, all Java names are Ids
         byte[] bytecodes = forTopLevelFunction(apiname, fd, classname_for_our_wrapper, aClass, aMethod);
-        Compile.writeClass(bytecodes, ProjectProperties.BYTECODE_CACHE_DIR + "/" + classname_for_our_wrapper + ".class");
+        ByteCodeWriter.writeClass(bytecodes, ProjectProperties.BYTECODE_CACHE_DIR + "/" + classname_for_our_wrapper + ".class");
         return (Applicable) SimpleClassLoader.defineAsNecessaryAndAllocate(
                 classname_for_our_wrapper,
                 bytecodes

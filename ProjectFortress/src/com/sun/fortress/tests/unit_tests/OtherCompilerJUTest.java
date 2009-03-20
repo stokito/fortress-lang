@@ -15,14 +15,30 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.runtimeValues;
+package com.sun.fortress.tests.unit_tests;
+import java.io.IOException;
 
-public class FString {
-    String val;
+import junit.framework.Test;
+import junit.framework.TestSuite;
+import com.sun.fortress.repository.ProjectProperties;
 
-    FString(String x) { val = x; }
-    public String getValue() { return val;}
-    public String toString() { return val;}
-    public static FString make(String s) { return new FString(s);}
-    public static FString concatenate(FString s1, FString s2) { return new FString(s1.toString() + s2.toString());}
+
+// This is for tests that don't fit in the CompiledX.fss group.
+
+public class OtherCompilerJUTest {
+
+
+    public static void main(String[] args) throws IOException {
+
+        junit.textui.TestRunner.run(suite());
+    }
+
+    public static Test suite() throws IOException {
+        String testDir = ProjectProperties.BASEDIR + "other_compiler_tests";
+        
+        boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
+        
+         return FileTests.compilerSuite(testDir, failsOnly, false);
+    }
+
 }

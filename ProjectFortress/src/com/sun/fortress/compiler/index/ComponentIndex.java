@@ -53,6 +53,18 @@ public class ComponentIndex extends CompilationUnitIndex {
         return Collections.unmodifiableSet(_initializers);
     }
 
+    public String toString() {
+        return "Component Index" +
+            "\nVariables: " + variables() +
+            "\ninitializers: " + initializers() +
+            "\nFunctions: " + functions() +
+            "\nparametricOperators:" + parametricOperators() +
+            "\nTypeConses: " + typeConses() +
+            "\nDimensions: " + dimensions() +
+            "\nUnits: " + units();
+    }
+
+
     @Override
     public Set<APIName> exports() {
         List<APIName> exports = ((Component)ast()).getExports();

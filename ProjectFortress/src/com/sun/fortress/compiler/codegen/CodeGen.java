@@ -23,6 +23,9 @@ import org.objectweb.asm.Type;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.ByteCodeWriter;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -31,12 +34,13 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Debug;
 
-public class Compile extends NodeAbstractVisitor_void {
+public class CodeGen extends NodeAbstractVisitor_void {
     ClassWriter cw;
     FieldVisitor fv;
     MethodVisitor mv;
     AnnotationVisitor av0;
     String className;
+    Symbols symbols;
     HashMap<String, String> aliasTable;
     static String dollar = "$";
     static Character dot = '.';
@@ -62,6 +66,14 @@ public class Compile extends NodeAbstractVisitor_void {
     }
     private String makeMethodDesc(String param, String result) {
         return "(" + param + ")" + result;
+    }
+    private String makeMethodDesc(List<String> params, String result) {
+        String desc ="(";
+        for (String param : params) {
+            desc = desc + param;
+        }
+        desc = desc + "(" + result;
+        return desc;
     }
     private String makeArrayDesc(String element) {
         return "[" + element;
@@ -126,8 +138,24 @@ public class Compile extends NodeAbstractVisitor_void {
                                       emitDesc(t.getRange()));
             }
             public String forTupleType(TupleType t) {
-                if ( NodeUtil.isVoidType(t) ) return descFortressVoid;
-                else                          return sayWhat( t );
+                if ( NodeUtil.isVoidType(t) ) 
+                    return descFortressVoid;
+                else {
+                    if (t.getVarargs().isSome())
+                        sayWhat(t, "Can't compile VarArgs yet");
+                    else if (!t.getKeywords().isEmpty()) 
+                        sayWhat(t, "Can't compile Keyword args yet");
+                    else {
+                        List<com.sun.fortress.nodes.Type> elements = t.getElements();
+                        Iterator<com.sun.fortress.nodes.Type> it = elements.iterator();
+                        String res = "";
+                        while (it.hasNext()) {
+                            res = res + emitDesc(it.next());
+                        }
+                        return res;
+                    }
+                    return sayWhat( t );
+                }
             }
             public String forTraitType(TraitType t) {
                 if ( t.getName().getText().equals("String") )
@@ -154,34 +182,12 @@ public class Compile extends NodeAbstractVisitor_void {
         return packageName + className + dollar + NodeUtil.getName(t).getText();
     }
 
-    @SuppressWarnings("unchecked")
-    public void writeClass(String repository, String file, byte[] bytes) {
-        String fileName = repository + file.replace(dot, slash) + ".class";
-        writeClass(bytes, fileName);
-    }
-
-    /**
-     * @param bytes
-     * @param fileName
-     */
-    public static void writeClass(byte[] bytes, String fileName) {
-        String directoryName = fileName.substring(0, fileName.lastIndexOf(slash));
-        try {
-            ProjectProperties.ensureDirectoryExists(directoryName);
-            FileOutputStream out = new FileOutputStream(fileName);
-            out.write(bytes);
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-    }
-
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             stringArrayToVoid, null, null);
         mv.visitCode();
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(0, 1);
         mv.visitEnd();
     }
 
@@ -191,25 +197,20 @@ public class Compile extends NodeAbstractVisitor_void {
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, internalObject, "<init>", voidToVoid);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
 
-    public Compile() {
-        // Should be called only by
-        // com.sun.fortress.compiler.nativeInterface.FortressTransformer.transform
-        // Should be deleted after moving Compile.writeClass to a better place.
-    }
 
-    public Compile(String n) {
+    public CodeGen(String n, Symbols s) {
         className = n;
+        symbols = s;
         aliasTable = new HashMap<String, String>();
-        Debug.debug( Debug.Type.COMPILER, 1, "Compile: Compiling " + className );
+        Debug.debug( Debug.Type.CODEGEN, 1, "Compile: Compiling " + className );
     }
 
     public void dumpClass( String file ) {
         cw.visitEnd();
-        writeClass(cache, file, cw.toByteArray());
+        ByteCodeWriter.writeClass(cache, file, cw.toByteArray());
     }
 
     private <T> T sayWhat(ASTNode x) {
@@ -217,7 +218,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     private <T> T sayWhat(ASTNode x, String message) {
-        throw new CompilerError(NodeUtil.getSpan(x), message);
+        throw new CompilerError(NodeUtil.getSpan(x), message + " node = " + x);
     }
 
     public void defaultCase(ASTNode x) {
@@ -226,7 +227,8 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forComponent(Component x) {
-        cw = new ClassWriter(0);
+        Debug.debug(Debug.Type.CODEGEN, 1, "forComponent" + x);
+        cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
         for ( APIName export : x.getExports() ) {
@@ -270,22 +272,29 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forImportNames(ImportNames x) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "forImportNames" + x);
         Option<String> foreign = x.getForeignLanguage();
         if ( foreign.isSome() ) {
             if ( foreign.unwrap().equals("java") ) {
                 String apiName = x.getApiName().getText();
                 for ( AliasedSimpleName n : x.getAliasedNames() ) {
                     Option<IdOrOpOrAnonymousName> aliasId = n.getAlias();
-                    if (aliasId.isSome())
+                    if (aliasId.isSome()) {
+                        Debug.debug(Debug.Type.CODEGEN,1,"forImportNames " + x + 
+                                    " aliasing " + NodeUtil.nameString(aliasId.unwrap()) +
+                                    " to " + NodeUtil.nameString(n.getName()));
+ 
                         aliasTable.put(NodeUtil.nameString(aliasId.unwrap()),
                                        apiName + dot +
                                        NodeUtil.nameString(n.getName()));
+                    }
                 }
             }
         }
     }
 
     public void forDecl(Decl x) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "forImportNames" + x);
         if (x instanceof TraitDecl)
             ((TraitDecl) x).accept(this);
         else if (x instanceof FnDecl)
@@ -295,6 +304,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forTraitDecl(TraitDecl x) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "forTraitDecl" + x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
@@ -329,15 +339,18 @@ public class Compile extends NodeAbstractVisitor_void {
                     sayWhat( parentType, "Invalid type in an extends clause." );
             }
             String classFile = makeClassName(x);
-            cw = new ClassWriter(0);
+            ClassWriter prev = cw;
+            cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visit( Opcodes.V1_5,
                       Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
                       classFile, null, internalObject, new String[] { parent });
             dumpClass( classFile );
+            cw = prev;
         } else sayWhat( x );
     }
 
     public void forObjectDecl(ObjectDecl x) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "forObjectDecl" + x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
@@ -371,15 +384,18 @@ public class Compile extends NodeAbstractVisitor_void {
                     sayWhat( parentType, "Invalid type in an extends clause." );
             }
             String classFile = makeClassName(x);
-            cw = new ClassWriter(0);
+            ClassWriter prev = cw;
+            cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                       classFile, null, internalObject, new String[] { parent });
+            generateInitMethod();
             dumpClass( classFile );
+            cw = prev;
         } else sayWhat( x );
     }
 
     public void forFnDecl(FnDecl x) {
-        Debug.debug( Debug.Type.COMPILER, 1,"forFnDecl " + x);
+        Debug.debug( Debug.Type.CODEGEN, 1,"forFnDecl " + x);
         FnHeader header = x.getHeader();
         int paramsSize = header.getParams().size();
         boolean canCompile =
@@ -417,13 +433,14 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forDo(Do x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forDo " + x);
         for ( Block b : x.getFronts() ) {
             b.accept(this);
         }
     }
 
     public void forBlock(Block x) {
-        Debug.debug( Debug.Type.COMPILER, 1,"forBlock " + x);
+        Debug.debug( Debug.Type.CODEGEN, 1,"forBlock " + x);
         for ( Expr e : x.getExprs() ) {
             e.accept(this);
         }
@@ -431,7 +448,7 @@ public class Compile extends NodeAbstractVisitor_void {
 
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
-        Debug.debug( Debug.Type.COMPILER, 1,"forFnRef " + x);
+        Debug.debug( Debug.Type.CODEGEN, 1,"forFnRef " + x);
         String name = x.getOriginalName().getText();
         if ( aliasTable.containsKey(name) ) {
             String n = aliasTable.get(name);
@@ -439,7 +456,7 @@ public class Compile extends NodeAbstractVisitor_void {
             int lastDot = n.lastIndexOf(dot);
             String internal_class = n.substring(0, lastDot).replace(dot, slash);
             String _method = n.substring(lastDot+1);
-            Debug.debug( Debug.Type.COMPILER, 1,
+            Debug.debug( Debug.Type.CODEGEN, 1,
                          "class = " + internal_class + " method = " + _method );
             Option<com.sun.fortress.nodes.Type> type = x.getInfo().getExprType();
             if ( type.isNone() )
@@ -450,7 +467,7 @@ public class Compile extends NodeAbstractVisitor_void {
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                        _method, emitDesc(arrow));
                 else {  // if ( ! arrow instanceof ArrowType ) 
-                    Debug.debug( Debug.Type.COMPILER, 1,
+                    Debug.debug( Debug.Type.CODEGEN, 1,
                                  "class = " + internal_class + " method = " + _method +
                                  " type = " + arrow);
 
@@ -478,36 +495,23 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void for_RewriteFnApp(_RewriteFnApp x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"for_RewriteFnApp " + x);
         x.getArgument().accept(this);
         x.getFunction().accept(this);
     }
 
-//     public void forIntLiteralExpr(IntLiteralExpr x) {
-//         mv.visitLdcInsn(x.getText());
-//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
-//                            makeMethodDesc(descString, descInt));
-//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressZZ32, "make",
-//                            makeMethodDesc(descInt, descFortressZZ32));
-//     }
-
-//     public void forFloatLiteralExpr(FloatLiteralExpr x) {
-//         mv.visitLdcInsn(x.getText());
-//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFloat, "parseFloat",
-//                            makeMethodDesc(descString, descFloat));
-//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressRR64, "make",
-//                            makeMethodDesc(descFloat, descFortressFloat));
-
-//     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
         // We make a FString and push it on the stack.
+        Debug.debug( Debug.Type.CODEGEN, 1,"forStringLiteral " + x);
         mv.visitLdcInsn(x.getText());
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressString, "make",
                            makeMethodDesc(descString, descFortressString));
     }
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forVoidLiteral " + x);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressVoid, "make",
                            makeMethodDesc("", descFortressVoid));
     }
