@@ -17,6 +17,8 @@
  ******************************************************************************)
 (** END COPYRIGHT **)
 
+(* Depracated.  Please do not use this! *)
+
 (** EXAMPLE **)
 api SimpleExecutable
   run(): ()

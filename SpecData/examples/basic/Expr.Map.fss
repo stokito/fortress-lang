@@ -27,7 +27,7 @@ run() = do
 (** EXAMPLE **)
 m = { "a" |-> 0, "b" |-> 1, "c" |-> 2 }
 (** END EXAMPLE **)
-  println(m.showTree())
+  println(m.asDebugString())
   println m["b"]
 end
 

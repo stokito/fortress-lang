@@ -38,7 +38,7 @@ trait Map[\Key,Val\]
       extends { Generator[\(Key,Val)\], Equality[\Map[\Key,Val\]\] }
       comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
     getter isEmpty():Boolean
-    getter showTree():String
+    getter asDebugString():String
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
     seq(self): SequentialGenerator[\(Key,Val)\] =
         SeqMapGenerator[\Key,Val\](self)
@@ -227,7 +227,7 @@ end
 object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
-    getter showTree():String = "[]"
+    getter asDebugString():String = "[]"
     getter asString():String = "{}"
     opr |self| : ZZ32 = 0
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
@@ -280,8 +280,8 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     sz:ZZ32 = 1 + |left| + |right|
     getter isEmpty():Boolean = false
     getter size():ZZ32 = sz
-    getter showTree():String =
-      "[" left.showTree() " (" key "," val ") " right.showTree() "]"
+    getter asDebugString():String =
+      "[" left.asDebugString() " (" key "," val ") " right.asDebugString() "]"
     getter asString():String = do
       (km, vm, delmin) = extractMinimum().get()
       ("{" km "|->" vm
@@ -518,7 +518,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
      end
 
     double_R(k:Key,v:Val, l:NodeMap[\Key,Val\], r:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
-        (* println("double_R " NodeMap[\Key,Val\](c,l,r).showTree()) *)
+        (* println("double_R " NodeMap[\Key,Val\](c,l,r).asDebugString()) *)
         (ak,av) = l.getPair()
         x = l.getLeftChild()
         (bk,bv) = l.getRightChild().getPair()
