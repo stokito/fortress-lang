@@ -18,8 +18,9 @@ package com.sun.fortress.nodes_util;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -35,6 +36,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     private boolean inTrait = false;
     private boolean inObject = false;
     private BufferedWriter writer;
+    private HashSet<String> privates = new HashSet<String>();
 
     public ApiMaker( String file ) {
         try {
@@ -57,7 +59,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
 
     private Boolean isPrivate(Decl decl) {
         if (decl instanceof TraitObjectDecl) {
-            return ((TraitObjectDecl)decl).getHeader().getMods().isPrivate();
+            boolean result = ((TraitObjectDecl)decl).getHeader().getMods().isPrivate();
+            if ( result ) privates.add(NodeUtil.getName((TraitObjectDecl)decl).getText());
+            return result;
         } else if (decl instanceof VarDecl) {
             List<LValue> lhs = ((VarDecl)decl).getLhs();
             for (LValue lv : lhs) {
@@ -82,9 +86,41 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
 
     public Option<Node> forComponent(Component that) {
         Node result = NodeFactory.makeApi(NodeUtil.getSpan(that),
-                              that.getName(),
-                              that.getImports(),
-                              declsToDecls(that.getDecls()));
+                                          that.getName(),
+                                          that.getImports(),
+                                          declsToDecls(that.getDecls()));
+        result = result.accept(new NodeAbstractVisitor<Node>() {
+                @Override
+                public Node defaultCase(Node x) { return x; }
+                @Override
+                public Node forApi(Api that) {
+                    List<Decl> decls = new ArrayList<Decl>(that.getDecls().size());
+                    for ( Decl d : that.getDecls() ) decls.add((Decl)d.accept(this));
+                    return NodeFactory.makeApi(NodeUtil.getSpan(that), that.getName(),
+                                               that.getImports(), decls);
+                }
+                @Override
+                public Node forTraitDecl(TraitDecl that) {
+                    Option<List<BaseType>> comprisesClause = that.getComprisesClause();
+                    boolean comprisesEllipses = that.isComprisesEllipses();
+                    if ( comprisesClause.isSome() ) {
+                        List<BaseType> comprises = new ArrayList<BaseType>();
+                        for ( BaseType t : comprisesClause.unwrap() ) {
+                            if ( t instanceof NamedType ) {
+                                if ( privates.contains( ((NamedType)t).getName().getText() ) )
+                                    comprisesEllipses = true;
+                                else comprises.add(t);
+                            }
+                        }
+                        comprisesClause = Option.wrap(comprises);
+                    }
+                    return NodeFactory.makeTraitDecl(that.getInfo(),
+                                                     that.getHeader(),
+                                                     that.getExcludesClause(),
+                                                     comprisesClause,
+                                                     comprisesEllipses);
+                }
+            });
         try {
             writer.close();
         } catch (IOException error) {
