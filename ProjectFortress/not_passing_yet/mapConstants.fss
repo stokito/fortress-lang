@@ -36,6 +36,11 @@ run():() = do
     a = {[\String,ZZ32\] }
     b = {[\String,ZZ32\] "Hi" |-> 3, "Lois" |-> 23}
     c = {[\String,ZZ32\] "Snoopy" |-> 17}
+    d = {[\(String,ZZ32),(String,ZZ32)\] ("Hi",3) |-> ("Lois",23)}
+    (* Note that without explicit type parameterization we get the wrong answer. *)
+    e = {("Hi",3) |-> ("Lois",23)}
+    println("" a // b // c // d // e)
+    assert(d,e,"\n ie ",d," =/= ",e)
 end
 
 end
