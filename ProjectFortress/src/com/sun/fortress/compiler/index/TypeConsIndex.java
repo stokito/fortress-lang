@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -33,12 +33,12 @@ public abstract class TypeConsIndex {
 
     public abstract Node ast();
     public abstract List<StaticParam> staticParameters();
-    
+
     /**
      * Accepts the given node on every {@code Node} that the index contains.
      * Note that because this method returns new TypeConsIndex-es, this visitor
      * is required to return the same type of node for top-level nodes.
      */
     public abstract TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
-    
+
 }

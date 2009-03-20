@@ -17,6 +17,6 @@
 component Compiled0.r
 export Executable
 
-  run(args:String...):() = ()
+  run(_:String):() = ()
 
 end

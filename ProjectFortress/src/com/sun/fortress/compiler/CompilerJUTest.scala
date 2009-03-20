@@ -306,13 +306,13 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0v() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.v.fss:17:1-20:24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:17:1-20:18\n" +
       "    Component Compiled0.v exports API Executable\n" +
       "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run():() at " +
       LIBRARY_DIR + "/Executable.fsi:22:3-23:1}\n" +
-      STATIC_TESTS_DIR + "/Compiled0.v.fss:19:1-24\n" +
-      STATIC_TESTS_DIR + "/Compiled0.v.fss:20:1-24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:19:1-18\n" +
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:20:1-18\n" +
       "    There are multiple declarations of run with the same signature: String -> ()"
     Shell.assertStaticErrors(compile("Compiled0.v.fss"), expected)
   }

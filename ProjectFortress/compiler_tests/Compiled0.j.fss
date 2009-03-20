@@ -17,6 +17,6 @@
 component Compiled0.j
 export Executable
 
-  run[ \](args:String...):() = println "Hello, world!"
+  run[ \]():() = println "Hello, world!"
 
 end

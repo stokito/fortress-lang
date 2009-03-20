@@ -21,7 +21,6 @@ import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
-
 import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -43,7 +42,19 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.nodes._
 
-/* Check the set of overloadings in this component. */
+/* Check the set of overloadings in this component.
+ *
+ * The following functionals are not checked yet:
+ *     functional methods
+ *     dotted methods
+ *     object constructors
+ *
+ * The following features are not (fully) checked yet:
+ *     static parameters
+ *     exclusion relationships
+ *     varargs parameters
+ *     keyword parameters
+ */
 class OverloadingChecker(component: ComponentIndex,
                          globalEnv: GlobalEnvironment,
                          repository: FortressRepository) {
@@ -54,23 +65,19 @@ class OverloadingChecker(component: ComponentIndex,
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
     def checkOverloading(): JavaList[StaticError] = {
         val fnsInComp = component.functions
-        for ( f <- toSet(fnsInComp.firstSet) ;
-              if isDeclaredName(f) ) {
+        for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
             checkOverloading(f, fnsInComp.matchFirst(f))
         }
         toJavaList(errors)
     }
 
-    /* Returns the function declaration covering the given set of
-     * the overloaded declarations.
+    /* Returns the set of overloaded function declarations
+     * covering the given set of the overloaded declarations.
      * Invariant: set.size > 1
-     * Nothing fancy here yet.  Returns the first element for now.
      */
     def coverOverloading(set: Set[JavaFunction]) = {
         var result = Set[JavaFunction]()
-        for ( f <- set ) {
-            if ( ! coveredBy(f, result) ) result = result + f
-        }
+        for ( f <- set ) { if ( ! coveredBy(f, result) ) result = result + f }
         result = result.filter(f => f match { case DeclaredFunction(_) => true
                                               case _ => false } )
         result.map(f => f match { case DeclaredFunction(fd) => fd })
@@ -78,31 +85,38 @@ class OverloadingChecker(component: ComponentIndex,
 
     private def coveredBy(f: JavaFunction, set: Set[JavaFunction]): Boolean = {
         var result = false
-        for ( g <- set ) {
-            if ( coveredBy(f, g) ) result = true
-        }
+        for ( g <- set ; if ! result ) { if ( coveredBy(f, g) ) result = true }
         result
     }
 
     /* Whether the signature of f is covered by the signature of g */
     private def coveredBy(f: JavaFunction, g: JavaFunction): Boolean = {
         val staticParameters = new ArrayList[StaticParam]()
+        // Add static parameters of "f"
         staticParameters.addAll(f.staticParameters)
+        // If "f" is a functional method,
+        // add static parameters of "f"'s enclosing trait or object
         if ( NodeUtil.isFunctionalMethod(f) ) {
             val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(f))
             if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
                 staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
             }
         }
+        // If "g" is a functional method,
+        // add static parameters of "g"'s enclosing trait or object
         if ( NodeUtil.isFunctionalMethod(g) ) {
             val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(g))
             if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
                 staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
             }
         }
+        // Add static parameters of "g"
         for ( s <- toList(g.staticParameters) ) staticParameters.add(s)
+        // Extend the type analyzer with the collected static parameters
         val newTypeAnalyzer = typeAnalyzer.extend(staticParameters,
                                                   none[WhereClause])
+        // Whether "g"'s parameter type is a subtype of "f"'s parameter type
+        // and "f"'s return type is a subtype of "g"'s return type
         subtype(newTypeAnalyzer, paramsToType(g.parameters, g.getSpan),
                 paramsToType(f.parameters, f.getSpan)) &&
         subtype(newTypeAnalyzer, f.getReturnType, g.getReturnType)
@@ -110,6 +124,9 @@ class OverloadingChecker(component: ComponentIndex,
 
     private def subtype(newTypeAnalyzer: TypeAnalyzer, sub_type: Type, super_type: Type): Boolean =
         newTypeAnalyzer.subtype(sub_type, super_type).isTrue
+
+    private def subtype(sub_type: Type, super_type: Type): Boolean =
+        typeAnalyzer.subtype(sub_type, super_type).isTrue
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
@@ -129,8 +146,7 @@ class OverloadingChecker(component: ComponentIndex,
     private def checkOverloading(name: IdOrOpOrAnonymousName,
                                  set: JavaSet[JavaFunction]) = {
         var signatures = List[((Type,Type),Span)]()
-        for ( f <- toSet(set) ;
-              if isDeclaredFunction(f) ) {
+        for ( f <- toSet(set) ; if isDeclaredFunction(f) ) {
             val result = f.getReturnType
             val param = paramsToType(f.parameters, f.getSpan)
             signatures.find(p => p._1 == (param,result)) match {
@@ -143,6 +159,14 @@ class OverloadingChecker(component: ComponentIndex,
                     signatures = ((param, result), f.getSpan) :: signatures
             }
         }
+        /*
+        var index = 1
+        for ( ((p,r), s) <- signatures ) {
+            signatures.slice(index++, signatures.length)
+            .foreach(i => if (subtype())
+                                   error)
+        }
+        */
     }
 
     private def mergeSpan(first: Span, second: Span): String = {
@@ -164,9 +188,8 @@ class OverloadingChecker(component: ComponentIndex,
 
     /* Returns the type of the given parameter. */
     private def paramToType(param: Param): Type =
-        (toOption(param.getIdType), toOption(param.getVarargsType)) match {
-            case (Some(ty), _) => ty
-            case (_, Some(ty)) => ty
+        toOption(param.getIdType) match {
+            case Some(ty) => ty
             case _ => InterpreterBug.bug(param,
                                          "Type checking couldn't infer the type of " + param)
         }

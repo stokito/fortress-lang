@@ -23,6 +23,5 @@ component DXXThrowTest1
 
   foo () : () = throw FooExn
 
-  run (args:String...) : () = ()
+  run() : () = ()
 end
-
