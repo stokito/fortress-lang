@@ -151,9 +151,9 @@ public class FileTests {
                 String which, String contents) {
             String what;
             String test;
-            
+
             boolean any_check = false;
-            
+
             what = pfx+which+"_contains";
             test = props.get(what);
             test = ProjectProperties.get(test);
@@ -162,7 +162,7 @@ public class FileTests {
                     return what+"="+test;
                 any_check = true;
             }
-            
+
             what = pfx+which+"_matches";
             test = props.get(what);
             test = ProjectProperties.get(test);
@@ -171,7 +171,7 @@ public class FileTests {
                     return what+"="+test;
                 any_check = true;
            }
-            
+
             what = pfx+which+"_WCIequals";
             test = props.get(what);
             test = props.getCompletely(test);
@@ -182,12 +182,12 @@ public class FileTests {
                     return what+"="+test;
                 any_check = true;
             }
-                
+
             what = pfx+which+"_equals";
             test = props.get(what);
             test = props.getCompletely(test);
             if (test != null && test.length() > 0) {
-                
+
                 String wi_contents = contents.replaceAll("[ \\\t]+", " ");
                 String wi_test = test.replaceAll("[ \\\t]+", " ");
                 // Convert Windows CRLF to UNIX LF
@@ -196,7 +196,7 @@ public class FileTests {
                 // Convert Mac CR to UNIX LF
                 wi_contents = wi_contents.replaceAll("\\\r","\n");
                 wi_test = wi_test.replaceAll("\\\r","\n");
-                
+
                 if (!wi_contents.equals(wi_test)) {
                     if (wi_contents.trim().equals(wi_test.trim())) {
                         // It is a leading/trailing whitespace problem....
@@ -207,7 +207,7 @@ public class FileTests {
                         String problem = "";
                         if (c0 == ' ' || c0 == '\n') {
                             if (t0 == ' ' || t0 == '\n') {
-                                
+
                             } else {
                                 problem += "text began with unexpected whitespace";
                             }
@@ -215,15 +215,15 @@ public class FileTests {
                             if (t0 == ' ' || t0 == '\n') {
                                 problem += "text began without expected whitespace";
                             } else {
-                                
+
                             }
                         }
-                        
+
                         String problemAnd = problem.length() > 0 ? problem + " and " : problem;
-                        
+
                         if (cN == ' ' || cN == '\n') {
                             if (tN == ' ' || tN == '\n') {
-                                
+
                             } else {
                                 problem = problemAnd + "text ended with unexpected whitespace";
                             }
@@ -231,7 +231,7 @@ public class FileTests {
                             if (tN == ' ' || tN == '\n') {
                                 problem = problemAnd + "text ended without expected whitespace";
                             } else {
-                                
+
                             }
                         }
 
@@ -241,23 +241,23 @@ public class FileTests {
                         String cT = wi_contents.replaceAll("[ \t]+\n", "\n").trim();
                         String tL = wi_test.replaceAll("\n[ \t]+", "\n").trim();
                         String tT = wi_test.replaceAll("[ \t]+\n", "\n").trim();
-                        
+
                         if (cL.equals(tL))
                             return what + ": different LEADING whitespace on some line(s)";
-                        
+
                         else if (cT.equals(tT))
                             return what + ": different TRAILING whitespace on some line(s)";
-                        
+
                         else if (wi_contents.replaceAll("[ \\\t]*\\\n[ \\\t]*", "\n").trim().equals(wi_test.replaceAll("[ \\\t]*\\\n[ \\\t]*", "\n").trim()))
                             return what + ": different LEADING AND TRAILING whitespace on some line(s)";
-                        
-                        return what + ": some sort of an internal whitespace problem (linebreaks?)";                 
+
+                        return what + ": some sort of an internal whitespace problem (linebreaks?)";
                     }
                     return what+"="+test;
                 }
                 any_check = true;
            }
-            
+
             if (!any_check && pfx.equals("run_") && which.equals("out")) {
                 // If there is no check specified on run_out, demand that it
                 // contain "pass" or "PASS".
@@ -265,7 +265,7 @@ public class FileTests {
                     return "default check run_out_contains=PASS";
                 }
             }
-            
+
             return null;
         }
 
@@ -368,7 +368,7 @@ public class FileTests {
                     wt_err.flush(printSuccess);
                     wt_out.flush(printSuccess);
                     // Saw a failure, that is good.
-                    System.out.println(" Saw expected failure " );
+                    System.out.println(" Saw expected failure" );
                 } else {
                     if (printFailure) System.out.println();
                     wt_err.flush(printFailure);
@@ -573,6 +573,12 @@ public class FileTests {
         }
     }
 
+    private static String makeTestFileName(String name) {
+        if (name.endsWith(".fss") || name.endsWith(".fsi") ) {
+            return name;
+        } else return name+".fss";
+    }
+
     public static class CompileTest extends SourceFileTest {
 
         private final StringMap props;
@@ -590,7 +596,7 @@ public class FileTests {
         @Override
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = {"compile", dir+"/"+name+".fss"};
+            String[] tokens = {"compile", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -622,7 +628,7 @@ public class FileTests {
         protected int justTheTest()
             throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = {"desugar", dir+"/"+name+".fss"};
+            String[] tokens = {"desugar", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
         }
@@ -653,7 +659,7 @@ public class FileTests {
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = {"link", dir+"/"+name+".fss"};
+            String[] tokens = {"link", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -845,7 +851,7 @@ public class FileTests {
               }
               boolean decrement = true;
               boolean shouldFail = s.startsWith("XXX");
-              
+
               if (s.endsWith(".fss") || s.endsWith(".fsi") ) {
                   // do nothing
                   decrement = false;
@@ -855,11 +861,11 @@ public class FileTests {
                       String testname = s.substring(0, l);
                       suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else if (s.endsWith(".test")) { // need to define the test of tests.
-                      
-                      
+
+
                       StringMap props = new StringMap.FromFileProps(dirname+"/"+s);
                       props = ProjectProperties.composedWith(props);
-                      
+
                       int l = s.lastIndexOf(".test");
                       String testname = s.substring(0, l);
 
@@ -997,14 +1003,14 @@ public class FileTests {
     }
 
     private static long default_seed = System.currentTimeMillis();
-    
+
     /**
      * @param files
      * @return
      */
     private static Iterable<String> shuffledFileList(File dir) {
         String[] files = dir.list();
-        
+
         long seed = default_seed;
         try {
             seed = ProjectProperties.getLong("fortress.unittests.seed",
