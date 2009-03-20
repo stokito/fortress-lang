@@ -16,5 +16,5 @@
  ******************************************************************************)
 export Executable
 
-run(args:String...) = ()
-run(args:String...) = ()
+run(_:String) = ()
+run(_:String) = ()
