@@ -558,8 +558,30 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean hasVarargs(Type t) {
+        if ( isTupleType(t) )
+            return hasVarargs((TupleType)t);
+        else {
+            bug("TupleType expected, but got " + t);
+            return false;
+        }
+    }
+
+    public static boolean hasKeywords(Type t) {
+        if ( isTupleType(t) )
+            return hasKeywords((TupleType)t);
+        else {
+            bug("TupleType expected, but got " + t);
+            return false;
+        }
+    }
+
     public static boolean hasVarargs(TupleType t) {
         return t.getVarargs().isSome();
+    }
+
+    public static boolean hasKeywords(TupleType t) {
+        return ! t.getKeywords().isEmpty();
     }
 
     public static boolean isVarargsParam(Param p) {
@@ -586,6 +608,40 @@ public class NodeUtil {
                      _t.getKeywords().isEmpty() );
         } else
             return false;
+    }
+
+    public static boolean isTupleType(Type t) {
+        return ( t instanceof TupleType );
+    }
+
+    public static int getTupleTypeSize(Type t) {
+        if ( isTupleType(t) )
+            return ((TupleType)t).getElements().size();
+        else {
+            bug("TupleType expected, but got " + t);
+            return 0;
+        }
+    }
+
+    public static Type getTupleTypeElem(Type t, int i) {
+        if ( isTupleType(t) )
+            return ((TupleType)t).getElements().get(i);
+        else
+            return bug("TupleType expected, but got " + t);
+    }
+
+    public static boolean differentArity(Type first, Type second) {
+        return ( isVoidType(first) && ! isVoidType(second) ) ||
+               ( isVoidType(second) && ! isVoidType(first) ) ||
+               ( isTupleType(first) && ! isTupleType(second) ) ||
+               ( isTupleType(second) && ! isTupleType(first) ) ||
+               ( isTupleType(first) && isTupleType(second) &&
+                 ((TupleType)first).getVarargs().isNone() &&
+                 ((TupleType)second).getVarargs().isNone() &&
+                 ((TupleType)first).getKeywords().isEmpty() &&
+                 ((TupleType)second).getKeywords().isEmpty() &&
+                 ((TupleType)first).getElements().size() !=
+                 ((TupleType)second).getElements().size() );
     }
 
     /* for Param ***********************************************************/

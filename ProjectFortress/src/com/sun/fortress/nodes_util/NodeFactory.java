@@ -1026,6 +1026,11 @@ public class NodeFactory {
     public static IntersectionType makeIntersectionType(Span span, boolean parenthesized,
                                                         List<Type> elems) {
         TypeInfo info = makeTypeInfo(span, parenthesized);
+        return makeIntersectionType(info, elems);
+    }
+
+    public static IntersectionType makeIntersectionType(TypeInfo info,
+                                                        List<Type> elems) {
         return new IntersectionType(info, elems);
     }
 
@@ -1428,7 +1433,11 @@ public class NodeFactory {
     }
 
     public static BottomType makeBottomType(Span span) {
-        return new BottomType(makeTypeInfo(span));
+        return makeBottomType(makeTypeInfo(span));
+    }
+
+    public static BottomType makeBottomType(TypeInfo info) {
+        return new BottomType(info);
     }
 
     public static LabelType makeLabelType(Span span) {

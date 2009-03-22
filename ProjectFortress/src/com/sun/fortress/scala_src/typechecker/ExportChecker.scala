@@ -346,7 +346,7 @@ object ExportChecker {
      *     LabelType        : not in APIs
      *     TraitType with non-type static arguments : not supported yet
      */
-    private def equalTypes(left: Type, right: Type): Boolean =
+    def equalTypes(left: Type, right: Type): Boolean =
         (left, right) match {
             case (AnyType(_), AnyType(_)) => true
             case (BottomType(_), BottomType(_)) => true

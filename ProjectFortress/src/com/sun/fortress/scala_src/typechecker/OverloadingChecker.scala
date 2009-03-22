@@ -71,6 +71,112 @@ class OverloadingChecker(component: ComponentIndex,
         toJavaList(errors)
     }
 
+    /* Checks the validity of the overloaded function declarations. */
+    private def checkOverloading(name: IdOrOpOrAnonymousName,
+                                 set: JavaSet[JavaFunction]) = {
+        var signatures = List[((Type,Type),Span)]()
+        for ( f <- toSet(set) ; if isDeclaredFunction(f) ) {
+            val result = f.getReturnType
+            val param = paramsToType(f.parameters, f.getSpan)
+            signatures.find(p => p._1 == (param,result)) match {
+                case Some((_,span)) =>
+                    error(mergeSpan(span, f.getSpan),
+                          "There are multiple declarations of " +
+                          name + " with the same signature: " +
+                          param + " -> " + result)
+                case _ =>
+                    signatures = ((param, result), f.getSpan) :: signatures
+            }
+        }
+        var index = 1
+        for ( first <- signatures ) {
+            signatures.slice(index, signatures.length)
+            .foreach(second => if (! validOverloading(first, second, signatures) ) {
+                                   val firstO = toString(first)
+                                   val secondO = toString(second)
+                                   val mismatch = if (firstO < secondO)
+                                                      firstO + "\n and " + secondO
+                                                  else
+                                                      secondO + "\n and " + firstO
+                                   error(mergeSpan(first, second),
+                                         "Invalid overloading of " + name +
+                                         ":\n     " + mismatch)
+                               })
+            index += 1
+        }
+    }
+
+    /* Checks the overloading rules: subtype / exclusion / meet */
+    private def validOverloading(first: ((Type,Type),Span),
+                                 second: ((Type,Type),Span),
+                                 set: List[((Type,Type),Span)]) =
+        subtype(first, second) || subtype(second, first) ||
+        exclusion(first, second) || meet(first, second, set)
+
+    /* Checks the overloading rule: subtype */
+    private def subtype(newTypeAnalyzer: TypeAnalyzer, f: JavaFunction,
+                        g: JavaFunction): Boolean =
+        subtype(newTypeAnalyzer, paramsToType(g.parameters, g.getSpan),
+                paramsToType(f.parameters, f.getSpan)) &&
+        subtype(newTypeAnalyzer, f.getReturnType, g.getReturnType)
+
+    private def subtype(newTypeAnalyzer: TypeAnalyzer, sub_type: Type,
+                        super_type: Type): Boolean =
+        newTypeAnalyzer.subtype(sub_type, super_type).isTrue
+
+    private def subtype(sub_type: Type, super_type: Type): Boolean =
+        subtype(typeAnalyzer, sub_type, super_type)
+
+    private def subtype(sub_type: ((Type,Type),Span),
+                        super_type: ((Type,Type),Span)): Boolean =
+        subtype(super_type._1._1, sub_type._1._1) &&
+        subtype(sub_type._1._2, super_type._1._2)
+
+    /* Checks the overloading rule: exclusion */
+    /* Not yet fully implemented... */
+    private def exclusion(first: ((Type,Type),Span),
+                          second: ((Type,Type),Span)): Boolean =
+        NodeUtil.differentArity(first._1._1, second._1._1)
+
+    /* Checks the overloading rule: meet */
+    /* Not yet fully implemented... */
+    private def meet(first: ((Type,Type),Span), second: ((Type,Type),Span),
+                     set: List[((Type,Type),Span)]) = {
+        var result = false
+        val meet = (reduce(typeAnalyzer.meet(first._1._1, second._1._1)),
+                    reduce(typeAnalyzer.meet(first._1._2, second._1._2)))
+        for ( f <- set ; if ! result )
+            if ( subtype(f._1._1, meet._1) &&
+                 subtype(meet._1, f._1._1) &&
+                 subtype(meet._2, f._1._2) &&
+                 subtype(f._1._2, meet._2))
+                result = true
+        result
+    }
+
+    private def reduce(t: Type): Type = t match {
+        case IntersectionType(info, elements) =>
+            val (tuples, nots) = elements.partition(ty => NodeUtil.isTupleType(ty))
+            if ( ! tuples.isEmpty && ! nots.isEmpty ) NodeFactory.makeBottomType(info)
+            else if ( tuples.isEmpty ) t
+            else {
+                val size = NodeUtil.getTupleTypeSize(tuples.head)
+                if ( tuples.forall(ty => NodeUtil.getTupleTypeSize(ty) == size &&
+                                         ! NodeUtil.hasVarargs(ty) &&
+                                         ! NodeUtil.hasKeywords(ty)) ) {
+                    var elems = List[Type]()
+                    var i = 0
+                    while ( i < size ) {
+                        elems = elems ::: List(typeAnalyzer.meet(toJavaList(tuples.map(ty => NodeUtil.getTupleTypeElem(ty, i)))))
+                        i += 1
+                    }
+                    val mt = NodeFactory.makeTupleType(NodeUtil.getSpan(t), toJavaList(elems))
+                    NodeFactory.makeIntersectionType(info, toJavaList(mt :: tuples))
+                } else t
+            }
+        case _ => t
+    }
+
     /* Returns the set of overloaded function declarations
      * covering the given set of the overloaded declarations.
      * Invariant: set.size > 1
@@ -117,16 +223,8 @@ class OverloadingChecker(component: ComponentIndex,
                                                   none[WhereClause])
         // Whether "g"'s parameter type is a subtype of "f"'s parameter type
         // and "f"'s return type is a subtype of "g"'s return type
-        subtype(newTypeAnalyzer, paramsToType(g.parameters, g.getSpan),
-                paramsToType(f.parameters, f.getSpan)) &&
-        subtype(newTypeAnalyzer, f.getReturnType, g.getReturnType)
+        subtype(newTypeAnalyzer, f, g)
     }
-
-    private def subtype(newTypeAnalyzer: TypeAnalyzer, sub_type: Type, super_type: Type): Boolean =
-        newTypeAnalyzer.subtype(sub_type, super_type).isTrue
-
-    private def subtype(sub_type: Type, super_type: Type): Boolean =
-        typeAnalyzer.subtype(sub_type, super_type).isTrue
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
@@ -139,42 +237,18 @@ class OverloadingChecker(component: ComponentIndex,
         case _ => false
     }
 
-    /* Checks the validity of the overloaded function declarations.
-     * Nothing fancy here yet.
-     * Signals errors only for the declarations with the same types for now.
-     */
-    private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: JavaSet[JavaFunction]) = {
-        var signatures = List[((Type,Type),Span)]()
-        for ( f <- toSet(set) ; if isDeclaredFunction(f) ) {
-            val result = f.getReturnType
-            val param = paramsToType(f.parameters, f.getSpan)
-            signatures.find(p => p._1 == (param,result)) match {
-                case Some((_,span)) =>
-                    error(mergeSpan(span, f.getSpan),
-                          "There are multiple declarations of " +
-                          name + " with the same signature: " +
-                          param + " -> " + result)
-                case _ =>
-                    signatures = ((param, result), f.getSpan) :: signatures
-            }
-        }
-        /*
-        var index = 1
-        for ( ((p,r), s) <- signatures ) {
-            signatures.slice(index++, signatures.length)
-            .foreach(i => if (subtype())
-                                   error)
-        }
-        */
-    }
+    private def mergeSpan(sub_type: ((Type,Type),Span),
+                          super_type: ((Type,Type),Span)): String =
+        mergeSpan(sub_type._2, super_type._2)
 
-    private def mergeSpan(first: Span, second: Span): String = {
+    private def mergeSpan(first: Span, second: Span): String =
         if (first.toString < second.toString)
             first.toString + "\n" + second.toString
         else
             second.toString + "\n" + first.toString
-    }
+
+    private def toString(ty: ((Type,Type), Span)): String =
+        ty._1._1 + " -> " + ty._1._2 + " @ " + ty._2
 
     /* Returns the type of the given list of parameters. */
     private def paramsToType(params: JavaList[Param], span: Span): Type =
