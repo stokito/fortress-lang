@@ -194,6 +194,13 @@ abstract public class Fcn extends FValue implements FortressClosure {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
             return this.applyToArgs(args);
+        } catch (UnificationError ue) {
+            // If we propagate these, they get misinterpreted by enclosing calls,
+            // and we lose calling context information.  This leads to really confusing
+            // failures!
+            // So we need to wrap them instead.
+            // cf Evaluator.invokeGenericMethod and Evaluator.invokeMethod.
+            return error(site,errorMsg("Unification error: ",ue.getMessage()),ue);
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {
