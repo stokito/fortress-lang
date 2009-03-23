@@ -252,7 +252,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                                    " param ", i, " (",
                                    param.getName(), ":",
                                    paramType, ") got arg ", arg,
-                                   "of type ", arg.type()));
+                                   " of type ", arg.type()));
                 }
                 arg = arg.getValue(); // Strip asif
                 try {

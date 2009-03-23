@@ -33,6 +33,7 @@ import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.NamedLabelException;
 import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.env.BetterEnv;
@@ -1192,6 +1193,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                HasAt site) {
         try {
             return DottedMethodApplication.invokeMethod(receiver,mname,mname,args);
+        } catch (UnificationError ue) {
+            // If we propagate these, they get misinterpreted by enclosing calls,
+            // and we lose calling context information.  This leads to really confusing
+            // failures!
+            // So we need to wrap them instead.
+            // See also Fcn.functionInvocation and invokeGenericMethod
+            return error(site,errorMsg("Unification error: ",ue.getMessage()),ue);
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {
@@ -1213,6 +1221,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 DottedMethodApplication.make(receiver,mname,mname);
             DottedMethodApplication app = app0.typeApply(sargs,e,site);
             return app.functionInvocation(args,site);
+        } catch (UnificationError ue) {
+            // If we propagate these, they get misinterpreted by enclosing calls,
+            // and we lose calling context information.  This leads to really confusing
+            // failures!
+            // So we need to wrap them instead.
+            // See also Fcn.functionInvocation and invokeMethod
+            return error(site,errorMsg("Unification error: ",ue.getMessage()),ue);
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {

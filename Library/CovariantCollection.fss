@@ -131,7 +131,7 @@ private object Append[\T,A extends T, B extends T\](a:NonEmpty[\A\], b:NonEmpty[
     sz = |a| + |b|
     opr |self|: ZZ32 = sz
     unapp[\R\](k:(NonEmpty[\A\], NonEmpty[\B\])->R): R = k(a,b)
-    cata[\R\](e:R, s:T->R, app:(ZZ32,R,R)->R): R = a(sz,a.cata[\R\](e,s,app),b.cata[\R\](e,s,app))
+    cata[\R\](e:R, s:T->R, app:(ZZ32,R,R)->R): R = app(sz,a.cata[\R\](e,s,app),b.cata[\R\](e,s,app))
     dirtyIAF[\R\](arr:ImmutableArray[\R,ZZ32\], i:ZZ32): () = do
         a.dirtyIAF[\R\](arr,i)
       also do
