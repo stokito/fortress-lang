@@ -26,7 +26,8 @@ import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import edu.rice.cs.plt.lambda.Lambda
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula
 import com.sun.fortress.exceptions.InterpreterBug.bug
-import com.sun.fortress.scala_src.useful.Maps
+import com.sun.fortress.scala_src.useful.Maps._
+import com.sun.fortress.scala_src.useful.Sets._
 
 /**
  * This class represents the constraints accummulated on inference variables. All
@@ -56,7 +57,10 @@ sealed abstract class ScalaConstraint extends ConstraintFormula{
   /**
    * 
    */
-  def reduce(): ScalaConstraint = this
+  def reduce(): ScalaConstraint
+  
+  
+  override def toString:String
   
    /**
    * If the constraints are satisfiable then this returns a substitution of types for
@@ -99,6 +103,10 @@ object CnTrue extends ScalaConstraint{
   override def isTrue():Boolean = true
   
   override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
+
+  override def reduce():ScalaConstraint = this
+
+  override def toString():String = "CnTrue"
 }
 
 /**
@@ -116,6 +124,10 @@ case object CnFalse extends ScalaConstraint{
   override def isFalse():Boolean = true
   
   override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
+
+  override def reduce():ScalaConstraint = this
+
+  override def toString():String = "CnFalse"
 }
 
 
@@ -170,7 +182,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   }
 
   override def scalaSolve(bounds: Map[_InferenceVarType,Type]): Option[Map[_InferenceVarType,Type]] = {
-    if(inbounds(lowers,bounds))
+    if(!isFalse && inbounds(lowers,bounds))
       Some(lowers)
     else
       None
@@ -206,7 +218,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   private def mergeBounds(bounds1: Map[_InferenceVarType,Type],
                   bounds2: Map[_InferenceVarType,Type],
                   merge:(Type,Type)=>Type): Map[_InferenceVarType,Type] = {
-      val boundKeys = bounds1.keySet ++ bounds2.keySet
+      val boundKeys = union(bounds1.keySet,bounds2.keySet)
       var newBounds = Map.empty[_InferenceVarType,Type]
       for(ivar <- boundKeys){
         val bound1 = bounds1.get(ivar)
@@ -229,7 +241,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
                     defaultBound1: Type,
                     defaultBound2: Type,
                     compare: (Type,Type)=>Boolean): Boolean = {
-    val boundKeys = bounds1.keySet ++ bounds2.keySet
+    val boundKeys = union(bounds1.keySet,bounds2.keySet)
     val pred = (ivar: _InferenceVarType) => {
       val bound1 = bounds1.get(ivar)
       val bound2 = bounds2.get(ivar)
@@ -250,7 +262,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   private def inbounds(substitutions: Map[_InferenceVarType,Type],bounds: Map[_InferenceVarType,Type]): Boolean = {
     val pred = (ivar: _InferenceVarType) => {
       val bound  = bounds.apply(ivar)
-      val replacer=new InferenceVarReplacer(Maps.toJavaMap(substitutions))
+      val replacer=new InferenceVarReplacer(toJavaMap(substitutions))
       val newBound=bound.asInstanceOf[Node].accept(replacer).asInstanceOf[Type]
       substitutions.get(ivar) match {
         case None => history.subtypeNormal(ANY,newBound).isTrue;
@@ -260,6 +272,28 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
     bounds.keys.forall(pred)
   }
 
+  override def toString():String = {
+    val result = new StringBuffer("[") 
+    val allKeys = union(uppers.keySet,lowers.keySet)
+    var counter = 1
+    for(ivar <- allKeys){
+      val upperBound = uppers.get(ivar)
+      val lowerBound = lowers.get(ivar)
+      val upperString = if(upperBound.isDefined) upperBound.get.toString else "AnyType"
+      val lowerString = if(lowerBound.isDefined) lowerBound.get.toString else "BottomType"
+      result.append(lowerString)
+      result.append("<:")
+      result.append(ivar)
+      result.append("<:")
+      result.append(upperString)
+      if(counter<allKeys.size)
+        result.append(", ")
+      counter += 1  
+    }
+    result.append("]")
+    result.toString
+  }
+  
 }
 
 
@@ -282,7 +316,7 @@ case class CnOr(conjuncts: List[CnAnd], history: SubtypeHistory) extends ScalaCo
     case CnTrue => CnTrue
     case CnAnd(u,l,h) => c2.scalaOr(this,newHistory)
     case CnOr(conjuncts2,h2) =>
-      val newConjuncts = conjuncts ++ conjuncts2
+      val newConjuncts = conjuncts.union(conjuncts2)
       newConjuncts.foldRight(CnFalse.asInstanceOf[ScalaConstraint])((c1: ScalaConstraint, c2: ScalaConstraint) => c1.scalaOr(c2,newHistory))
   }
 
@@ -314,6 +348,17 @@ case class CnOr(conjuncts: List[CnAnd], history: SubtypeHistory) extends ScalaCo
     this
   }
   
+  override def toString():String = {
+    val result = new StringBuffer()
+    var counter = 1
+    for(conjunct <-conjuncts){
+      result.append(conjunct)
+      if(counter < conjuncts.size)
+        result.append(" OR ")
+      counter += 1
+    }
+    result.toString
+  }
 }
 
 
