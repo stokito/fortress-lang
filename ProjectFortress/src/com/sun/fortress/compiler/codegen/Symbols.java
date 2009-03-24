@@ -32,7 +32,6 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.*;
 
 public class Symbols {
-    ComponentIndex ci;
     Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
     // Hopefully there is only one of these, but why not be general.
     Map<APIName, ComponentIndex> components = new HashMap<APIName, ComponentIndex>();
@@ -98,7 +97,8 @@ public class Symbols {
             Id i = fm.declaringTrait();
             return i.getText();
         } 
-        throw new RuntimeException("WTF");
+
+        throw new CompilerError(NodeUtil.getSpan(fnName), "Get Java Class For Symbol Not yet implemented");
     }
 
     public String toString() {
