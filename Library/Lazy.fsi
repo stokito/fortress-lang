@@ -19,12 +19,19 @@ api Lazy
 
 (* A Lazy[\T\] is a lazily evaluated T with memoization.
    It can eventually be started in parallel. *)
-value trait Lazy[\T\] comprises { ... }
-  getter val(): T
-  run(): ()
+value object Lazy[\T\](s:State[\T\])
+    getter val(): T
+    run(): ()
+    attempt(): (State[\T\], Boolean)
 end
 
-delay[\T\](f: ()->T):Thunk[\T\]
-noDelay[\T\](t:T):Thunk[\T\]
+delay[\T\](f: ()->T):State[\T\]
+noDelay[\T\](t:T):State[\T\]
+
+trait State[\T\]
+    getter isDone(): Boolean
+    getter isPending(): Boolean
+    getter val(): T
+end
 
 end

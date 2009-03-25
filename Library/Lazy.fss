@@ -65,7 +65,6 @@ value object Lazy[\T\](var s : State[\T\])
   attempt():(State[\T\],Boolean) =
       atomic do
           old = s
-          computed := old.isDone()
           if NOT old.isDone() then
               if old.isPending() then abort() end
               s := Pending[\T\]
