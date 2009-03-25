@@ -20,6 +20,5 @@ export Executable
 
 run() = do
  println("Hello, World!")
-end
 
 end
