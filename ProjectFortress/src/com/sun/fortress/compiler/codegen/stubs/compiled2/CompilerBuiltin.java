@@ -27,8 +27,15 @@ import edu.rice.cs.plt.tuple.Option;
 public class CompilerBuiltin {
 
     public interface Object {}
-    public interface String extends Object {}
-    public class FlatString implements String {}
+    public interface String extends Object {
+        public class SpringBoard implements String{
+            public static FString concatenate(FString a, FString b) {
+                return FString.make(simpleConcatenate.nativeConcatenate(a.toString(), b.toString()));
+            }
+        }
+    }
+    public class FlatString extends String.SpringBoard {}
+
     public interface Number {}
     public class RR32 implements Number {}
     public class RR64 implements Number {}

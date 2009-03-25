@@ -15,33 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen.stubs.compiled2;
+import com.sun.fortress.nativeHelpers.*;
+import com.sun.fortress.compiler.runtimeValues.*;
+
 
 public class Compiled2 {
-    
-    private class Object { 
-        int x;
-    }
- 
-   private interface String {
-       public void setX(int val);
-       public int getX();
-    }
-
-    private interface SillyString extends String {
-        public void printX();
-    }
-
-    private class MySillyString extends Object implements SillyString {
-        public void setX(int val) {x = val;}
-        public int getX() {return x;}
-        public void printX() {System.out.println("X=" + x);}
-    }
 
     public static void run() {
-        Compiled2 foo = new Compiled2();
-        MySillyString bar = foo.new MySillyString();
-        bar.setX(7);
-        bar.printX();
+        CompilerBuiltin.println(CompilerBuiltin.FlatString.concatenate(CompilerBuiltin.FlatString.concatenate(FString.make("Hello"), 
+                                                                                              FString.make(" World")), 
+                                                       FString.make("!")));
     }
     public static void main(String args[]) {
         run();
