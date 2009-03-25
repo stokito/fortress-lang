@@ -14,17 +14,28 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs;
+package com.sun.fortress.compiler.codegen.stubs.compiled1;
 
-import com.sun.fortress.nativeHelpers.simplePrintln;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nativeHelpers.*;
+import com.sun.fortress.compiler.runtimeValues.*;
 
-public class Compiled0Stub {
+import java.util.*;
+import org.objectweb.asm.*;
+import edu.rice.cs.plt.tuple.Option;
 
-    public static void main(String args[]) {
-        run();
-    }
+public class CompilerBuiltin {
 
-    public static void run() {
-        simplePrintln.nativePrintln("Hello World\n");
+    public interface Object {}
+    public interface String extends Object {}
+    public class FlatString implements String {}
+    public interface Number {}
+    public class RR32 implements Number {}
+    public class RR64 implements Number {}
+    public class ZZ32 implements Number {}
+    public class ZZ64 implements Number {}
+
+    public static void println(FString s) {
+        simplePrintln.nativePrintln(s.toString());
     }
 }
