@@ -305,8 +305,9 @@ object ExportChecker {
                 var message = "" + multipleDecls.head
                 for ( f <- multipleDecls.tail )
                     message += ",\n                           " + f
-                error(errors, componentName, "Component " + componentName +
-                      " defines multiple declarations.\n" +
+                error(errors, componentName, 
+                      "Multiple exported API declarations must not be satisfied by a " +
+                      "single definition.\n" +
                       "    Multiple declarations: {" + message + "}")
             }
         }

@@ -18,7 +18,9 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled1.i.fss:18:11-21\n\
-\ Component Compiled1.i defines multiple declarations.\n\
+\ Multiple exported API declarations must not be satisfied by a single definition.\n\
 \ Multiple declarations: {(FirstAPI.T,SecondAPI.T)}\n\
 File Compiled1.i.fss has 1 error.\n
 compile_out_equals=
+
+

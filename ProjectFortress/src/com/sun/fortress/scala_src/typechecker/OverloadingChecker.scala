@@ -82,7 +82,7 @@ class OverloadingChecker(component: ComponentIndex,
                 case Some((_,span)) =>
                     error(mergeSpan(span, f.getSpan),
                           "There are multiple declarations of " +
-                          name + " with the same signature: " +
+                          name + " with the same type: " +
                           param + " -> " + result)
                 case _ =>
                     signatures = ((param, result), f.getSpan) :: signatures
