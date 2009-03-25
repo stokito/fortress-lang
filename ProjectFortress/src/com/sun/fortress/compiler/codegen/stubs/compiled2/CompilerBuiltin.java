@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs;
+package com.sun.fortress.compiler.codegen.stubs.compiled2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nativeHelpers.*;
@@ -24,11 +24,16 @@ import java.util.*;
 import org.objectweb.asm.*;
 import edu.rice.cs.plt.tuple.Option;
 
-public class CompilerBuiltinStub {
+public class CompilerBuiltin {
 
-    public static String twoArgs(String a, String b) {
-        return a + b;
-    }
+    public interface Object {}
+    public interface String extends Object {}
+    public class FlatString implements String {}
+    public interface Number {}
+    public class RR32 implements Number {}
+    public class RR64 implements Number {}
+    public class ZZ32 implements Number {}
+    public class ZZ64 implements Number {}
 
     public static void println(FString s) {
         simplePrintln.nativePrintln(s.toString());

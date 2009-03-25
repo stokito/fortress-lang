@@ -14,17 +14,17 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs;
+package com.sun.fortress.compiler.codegen.stubs.compiled1;
 
 import com.sun.fortress.compiler.runtimeValues.FString;
 
-public class Compiled1Stub {
+public class Compiled1 {
 
     public static void main(String args[]) {
         run();
     }
 
     public static void run() {
-        CompilerBuiltinStub.println(FString.make("Hello Word\n"));
+        CompilerBuiltin.println(FString.make("Hello Word\n"));
     }
 }

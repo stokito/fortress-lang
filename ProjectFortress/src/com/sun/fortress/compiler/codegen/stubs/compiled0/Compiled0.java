@@ -14,36 +14,17 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs;
+package com.sun.fortress.compiler.codegen.stubs.compiled0;
 
-public class Compiled2Stub {
-    
-    private class Object { 
-        int x;
-    }
- 
-   private interface String {
-       public void setX(int val);
-       public int getX();
-    }
+import com.sun.fortress.nativeHelpers.simplePrintln;
 
-    private interface SillyString extends String {
-        public void printX();
-    }
+public class Compiled0 {
 
-    private class MySillyString extends Object implements SillyString {
-        public void setX(int val) {x = val;}
-        public int getX() {return x;}
-        public void printX() {System.out.println("X=" + x);}
+    public static void main(String args[]) {
+        run();
     }
 
     public static void run() {
-        Compiled2Stub foo = new Compiled2Stub();
-        MySillyString bar = foo.new MySillyString();
-        bar.setX(7);
-        bar.printX();
-    }
-    public static void main(String args[]) {
-        run();
+        simplePrintln.nativePrintln("Hello World\n");
     }
 }
