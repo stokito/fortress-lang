@@ -26,17 +26,26 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class CompilerBuiltin {
 
-    public interface Object {}
+    public interface Object {
+        public class SpringBoard implements Object {
+        }
+    }
+
     public interface String extends Object {
-        public class SpringBoard implements String{
+        public class SpringBoard implements String {
             public static FString concatenate(FString a, FString b) {
                 return FString.make(simpleConcatenate.nativeConcatenate(a.toString(), b.toString()));
             }
         }
     }
-    public class FlatString extends String.SpringBoard {}
 
-    public interface Number {}
+    public static class FlatString implements String {
+        public static FString concatenate(FString a, FString b) {
+            return String.SpringBoard.concatenate(a,b);
+        }
+    }
+
+    public interface Number extends Object {}
     public class RR32 implements Number {}
     public class RR64 implements Number {}
     public class ZZ32 implements Number {}
