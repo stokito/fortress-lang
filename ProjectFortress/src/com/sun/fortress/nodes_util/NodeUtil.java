@@ -494,14 +494,16 @@ public class NodeUtil {
             // line is the first non-comment/non-blank line
             String[] split = line.split(" ");
             String name;
+            String absolutePath = new File(path).getCanonicalPath();
             if ( split[0].equals("component") || split[0].equals("api") ) {
-                Span span = NodeFactory.makeSpan(path, lineNo, split[0].length()+2,
+                Span span = NodeFactory.makeSpan(absolutePath,
+                                                 lineNo, split[0].length()+2,
                                                  split[0].length()+split[1].length()+1);
                 name = split[1];
                 if ( ! name.equals(filename) )
                     return error(ExprFactory.makeVoidLiteralExpr(span),
                                  "    Component/API names must match their enclosing file names." +
-                                 "\n    File name: " + path +
+                                 "\n    File name: " + absolutePath +
                                  "\n    Component/API name: " + name);
             }
            else

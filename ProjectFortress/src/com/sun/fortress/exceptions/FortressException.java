@@ -130,7 +130,6 @@ public abstract class FortressException extends RuntimeException {
         }
         if (where.size() > 0) {
             StringBuffer res = new StringBuffer();
-            res.append('\n');
             res.append(where.get(0).at());
             if (where2 != null) {
                 res.append(": and\n");

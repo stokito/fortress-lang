@@ -13,13 +13,16 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled0.a
+tests=Compiled2.n
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
 compile
+
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.a.fss:17:11-15\n\
-\ Component/API names must match their enclosing file names.\n\
-\ File name: ${STATIC_TESTS_DIR}/Compiled0.a.fss\n\
-\ Component/API name: Hello\n\
-Turn on \"-debug interpreter\" for Java-level stack trace.\n
+${STATIC_TESTS_DIR}/Compiled2.n.fss:22:1-26:3\n\
+\ Missing = in a function declaration.\n\
+${STATIC_TESTS_DIR}/Compiled2.n.fss:22:6\n\
+\ Unmatched delimiter ")".\n\
+File Compiled2.n.fss has 2 errors.\n\
+
 compile_out_equals=
