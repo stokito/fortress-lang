@@ -76,7 +76,7 @@ value object Lazy[\T\](var s : State[\T\])
 end
 
 delay[\T\](f: ()->T):Lazy[\T\] = Lazy[\T\](Thunk[\T\](f))
-noDelay[\T\](t:T):Thunk[\T\] = Lazy[\T\](Done[\T\](t))
+noDelay[\T\](t:T):Lazy[\T\] = Lazy[\T\](Done[\T\](t))
 
 (*** Private data for representing evaluation state of thunk *)
 
