@@ -300,7 +300,7 @@ public class ExprFactory {
         return make_RewriteFnRef(info, expr, sargs);
     }
 
-    public static _RewriteFnRef make_RewriteFnRef(ExprInfo info,
+    private static _RewriteFnRef make_RewriteFnRef(ExprInfo info,
                                                   Expr expr,
                                                   List<StaticArg> sargs) {
         return new _RewriteFnRef(info, expr, sargs);

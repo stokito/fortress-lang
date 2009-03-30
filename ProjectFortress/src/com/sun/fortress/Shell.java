@@ -685,39 +685,57 @@ public final class Shell {
                 invalidFlag(s, phase);
             return_code = compilerPhases(rest, out, phase);
         } else {
-            try {
-                APIName name = NodeUtil.apiName( s );
-                Path path = sourcePath( s, name );
+            return_code = compileWithErrorHandling(s, out, false);
+        }
+        return return_code;
+    }
 
-                String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-                Iterable<? extends StaticError> errors = 
-                    IterUtil.sort(compilerPhases(path, file_name, out, false), 
-                                  staticErrorComparator);
-                int num_errors = IterUtil.sizeOf(errors);
-                if ( !IterUtil.isEmpty(errors) ) {
-                    for (StaticError error: errors) {
-                        System.err.println(error);
-                    }
-                    String err_string;
-                    if (num_errors == 0) {
-                        err_string = "File " + file_name + " compiled successfully.";
-                    } else {
-                        err_string = "File " + file_name + " has " + num_errors + " error" +
-                            (num_errors == 1 ? "." : "s.");
-                    }
-                    System.err.println(err_string);
-                    return_code = -1;
+    /**
+     * @param out
+     * @param path
+     * @param file_name
+     * @param doLink
+     * @return
+     * @throws UserError
+     * @throws IOException 
+     */
+    private static int compileWithErrorHandling(String s, Option<String> out,
+            boolean doLink)
+            throws UserError, IOException {
+        int return_code = 0;
+        try {
+            APIName name = NodeUtil.apiName( s );
+            Path path = sourcePath( s, name );
+            String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
+
+            
+            Iterable<? extends StaticError> errors = 
+                IterUtil.sort(compilerPhases(path, file_name, out, doLink), 
+                              staticErrorComparator);
+            int num_errors = IterUtil.sizeOf(errors);
+            if ( !IterUtil.isEmpty(errors) ) {
+                for (StaticError error: errors) {
+                    System.err.println(error);
                 }
-            } catch (ProgramError e) {
-                System.err.println(e.getMessage());
-                e.printInterpreterStackTrace(System.err);
-                if (Debug.isOn()) {
-                    e.printStackTrace();
+                String err_string;
+                if (num_errors == 0) {
+                    err_string = "File " + file_name + " compiled successfully.";
                 } else {
-                    System.err.println(turnOnDebugMessage);
+                    err_string = "File " + file_name + " has " + num_errors + " error" +
+                        (num_errors == 1 ? "." : "s.");
                 }
-                return_code = 1;
+                System.err.println(err_string);
+                return_code = -1;
             }
+        } catch (ProgramError e) {
+            System.err.println(e.getMessage());
+            e.printInterpreterStackTrace(System.err);
+            if (Debug.isOn()) {
+                e.printStackTrace();
+            } else {
+                System.err.println(turnOnDebugMessage);
+            }
+            return_code = 1;
         }
         return return_code;
     }
@@ -829,7 +847,7 @@ public final class Shell {
     /**
      * Link compiled components implementing APIs imported by the given component.
      */
-    private static void link(List<String> args) throws UserError, IOException {
+    private static int link(List<String> args) throws UserError, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to link.");
         }
@@ -842,21 +860,14 @@ public final class Shell {
             }
             else
                 invalidFlag(s, "link");
-            link(rest);
+            return link(rest);
         } else {
             if (! s.endsWith(".fss")) {
                 s = s + ".fss";
             }
 
-            APIName name = NodeUtil.apiName( s );
-            Path path = sourcePath( s, name );
-            String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-
-            String file = args.get(0) + ".fss" ;
- //           compilerPhases( sourcePath(file, cuName(file)), file,
- //                   Option.<String>none(), true );
-            compilerPhases( path, file_name,
-                    Option.<String>none(), true );
+            return compileWithErrorHandling( s, Option.<String>none(), 
+                    true );
         }
     }
 
