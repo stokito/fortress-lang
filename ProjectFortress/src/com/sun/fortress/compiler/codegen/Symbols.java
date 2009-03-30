@@ -46,22 +46,22 @@ public class Symbols {
 
     public Function getFunctionForSymbol(IdOrOp fnName) {
         Option<APIName> maybe_api = fnName.getApiName();
-        
+
         if (maybe_api.isSome()) {
             APIName apiName = maybe_api.unwrap();
-            Debug.debug(Debug.Type.CODEGEN, 1, 
+            Debug.debug(Debug.Type.CODEGEN, 1,
                         "getFunctionForSymbol" + apiName + ":" + fnName);
             if (apis.containsKey(apiName)) {
-                ApiIndex ind = apis.get(apiName);            
-                Debug.debug(Debug.Type.CODEGEN, 1, 
+                ApiIndex ind = apis.get(apiName);
+                Debug.debug(Debug.Type.CODEGEN, 1,
                             "getFunctionForSymbol" + apiName + ":" + fnName + "::" + ind);
-            
+
                 PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
 
                 // The following code is meant to work a known issue.
                 // The IdOrOp added when processing an api, is not the same IdOrOp
                 // we are searching for when processing a component.  We need to
-                // match on the strings, not on the objects. 
+                // match on the strings, not on the objects.
                 IdOrOp matchingFnName = fnName;
 
                 for (IdOrOpOrAnonymousName name : first) {
@@ -72,14 +72,14 @@ public class Symbols {
                         }
                     }
                 }
-                PredicateSet<Function> functions = ind.functions().matchFirst(matchingFnName);                
+                PredicateSet<Function> functions = ind.functions().matchFirst(matchingFnName);
                 for (Function f : functions) {
-                    Debug.debug(Debug.Type.CODEGEN, 1, 
+                    Debug.debug(Debug.Type.CODEGEN, 1,
                                 "getJavaClassForSymbol contains key" + apiName + " f = " + f);
                     return f;
                 }
             }
-            throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function: " + fnName + 
+            throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function: " + fnName +
                                     " in api " + apiName);
         }
 
@@ -88,7 +88,7 @@ public class Symbols {
 
 
     public String getJavaClassForSymbol(IdOrOp fnName) {
-        Debug.debug(Debug.Type.CODEGEN, 1, 
+        Debug.debug(Debug.Type.CODEGEN, 1,
                     "getJavaClassForSymbo:" + fnName);
         Function f = getFunctionForSymbol(fnName);
 
@@ -96,7 +96,7 @@ public class Symbols {
             FunctionalMethod fm = (FunctionalMethod) f;
             Id i = fm.declaringTrait();
             return i.getText();
-        } 
+        }
 
         throw new CompilerError(NodeUtil.getSpan(fnName), "Get Java Class For Symbol Not yet implemented");
     }
@@ -113,5 +113,4 @@ public class Symbols {
         }
         return result;
     }
-}        
-        
+}

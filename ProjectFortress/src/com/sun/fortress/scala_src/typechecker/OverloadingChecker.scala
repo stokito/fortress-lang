@@ -243,9 +243,9 @@ class OverloadingChecker(component: ComponentIndex,
 
     private def mergeSpan(first: Span, second: Span): String =
         if (first.toString < second.toString)
-            first.toString + "\n" + second.toString
+            first.toString + ":\n" + second.toString
         else
-            second.toString + "\n" + first.toString
+            second.toString + ":\n" + first.toString
 
     private def toString(ty: ((Type,Type), Span)): String =
         ty._1._1 + " -> " + ty._1._2 + " @ " + ty._2

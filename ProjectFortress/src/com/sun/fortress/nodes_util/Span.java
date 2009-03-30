@@ -20,11 +20,12 @@ package com.sun.fortress.nodes_util;
 import java.io.IOException;
 import java.io.Serializable;
 
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 
 
-public class Span implements Serializable {
+public class Span implements Serializable, HasAt {
     public final SourceLoc begin;
     public final SourceLoc end;
 
@@ -97,6 +98,14 @@ public class Span implements Serializable {
         } catch (IOException ex) {
             return NI.np();
         }
+    }
+
+    public String at() {
+        return toString();
+    }
+
+    public String stringName() {
+        return "";
     }
 
     public Appendable appendTo(Appendable w, boolean do_files)

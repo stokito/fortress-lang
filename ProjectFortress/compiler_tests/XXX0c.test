@@ -17,7 +17,7 @@ tests=Compiled0.c
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.c.fss:20:14-25\n\
+${STATIC_TESTS_DIR}/Compiled0.c.fss:20:14-25:\n\
 \ Variable printlnSimple is not defined.\n\
 File Compiled0.c.fss has 1 error.\n
 compile_out_equals=

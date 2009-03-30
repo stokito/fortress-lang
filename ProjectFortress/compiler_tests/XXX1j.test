@@ -17,7 +17,7 @@ tests=Compiled1.j
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.j.fss:18:11-21\n\
+${STATIC_TESTS_DIR}/Compiled1.j.fss:18:11-21:\n\
 \ Component Compiled1.j exports API Compiled1.j\n\
 \ but does not define all declarations in Compiled1.j.\n\
 \ Missing declarations: {f(x':String):String at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled1.j.fsi:19:3-22}\n\

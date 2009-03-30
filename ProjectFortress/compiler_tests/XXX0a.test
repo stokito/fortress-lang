@@ -17,7 +17,7 @@ tests=Compiled0.a
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.a.fss:17:11-15\n\
+${STATIC_TESTS_DIR}/Compiled0.a.fss:17:11-15:\n\
 \ Component/API names must match their enclosing file names.\n\
 \ File name: ${STATIC_TESTS_DIR}/Compiled0.a.fss\n\
 \ Component/API name: Hello\n\

@@ -17,7 +17,7 @@ tests=Compiled2.a
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled2.a.fss:18:11-21\n\
+${STATIC_TESTS_DIR}/Compiled2.a.fss:18:11-21:\n\
 \ Component Compiled2.a exports API Compiled2.a\n\
 \ but does not define all declarations in Compiled2.a.\n\
 \ Missing declarations: {f(s:String):() at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled2.a.fsi:21:1-23:1}\n\

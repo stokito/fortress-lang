@@ -18,12 +18,13 @@
 package com.sun.fortress.nodes_util;
 
 import java.io.Serializable;
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MagicNumbers;
 
 // /
 // / type 'a node = 'a Node.node
 // /
-abstract public class SourceLoc implements Serializable {
+abstract public class SourceLoc implements Serializable, HasAt {
     public abstract int column();
 
     @Override
@@ -44,6 +45,10 @@ abstract public class SourceLoc implements Serializable {
 
     public final String at() {
         return getFileName() + ":" + getLine() + "." + column();
+    }
+
+    public final String stringName() {
+        return "";
     }
 
     /**

@@ -227,7 +227,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forComponent(Component x) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "forComponent" + x);
+        Debug.debug(Debug.Type.CODEGEN, 1, "forComponent " + x.getName() + NodeUtil.getSpan(x));
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;

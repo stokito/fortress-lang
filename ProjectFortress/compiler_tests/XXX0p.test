@@ -17,7 +17,7 @@ tests=Compiled0.p
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.p.fss:17:11-21\n\
+${STATIC_TESTS_DIR}/Compiled0.p.fss:17:11-21:\n\
 \ Component Compiled0.p exports API Executable\n\
 \ but does not define all declarations in Executable.\n\
 \ Missing declarations: {run():() at ${FORTRESS_AUTOHOME}/Library/Executable.fsi:22:3-23:1}\n\

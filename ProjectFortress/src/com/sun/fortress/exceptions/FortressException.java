@@ -135,7 +135,7 @@ public abstract class FortressException extends RuntimeException {
                 res.append(": and\n");
                 res.append(where2.at());
             }
-            res.append("\n");
+            res.append(":\n");
             res.append(msg);
             if (where.size() > 1) {
                 /* If additional location information was provided while
@@ -143,7 +143,7 @@ public abstract class FortressException extends RuntimeException {
                 res.append("\nContext:\n");
                 for (HasAt loc : where) {
                     res.append(loc.at());
-                    res.append("\n");
+                    res.append(":\n");
                 }
             }
             return res.toString();
