@@ -32,16 +32,22 @@ println(s:String):()
 trait Number
 end
 
-object ZZ32 extends Number
+trait ZZ64 extends Number
 end
 
-object ZZ64 extends Number
+trait ZZ32 extends ZZ64
 end
 
-object RR32 extends Number
+object IntLiteral extends ZZ32
 end
 
-object RR64 extends Number
+trait RR64 extends Number
+end
+
+trait RR32 extends RR64
+end
+
+object FloatLiteral extends RR32
 end
 
 end

@@ -289,7 +289,7 @@ public final class Shell {
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
-                link(args);
+                return_code = link(args);
             } else if (what.equals("walk")) {
                 setPhase( PhaseOrder.ENVGEN );
                 walk(args);

@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.compiler;
 
@@ -58,162 +58,162 @@ public class NamingCzar {
 
     public static String deCaseName(PathTaggedApiName ptan) {
         return deCaseName(ptan.name, ptan.source_path);
-        
     }
+
     public static String deCaseName(APIName s, String sourcePath) {
         return s + "-" + Integer.toString(sourcePath.hashCode()&0x7fffffff,16);
     }
 
     public static String cachedPathNameForApiAst(String passedPwd, String sourcePath, APIName name) {
-       return ProjectProperties.apiFileName(passedPwd,  deCaseName(name, sourcePath));
-   }
-   
-     public static String cachedPathNameForCompAst(String passedPwd, String sourcePath, APIName name) {
+        return ProjectProperties.apiFileName(passedPwd,  deCaseName(name, sourcePath));
+    }
+
+    public static String cachedPathNameForCompAst(String passedPwd, String sourcePath, APIName name) {
         return ProjectProperties.compFileName(passedPwd,  deCaseName(name, sourcePath));
     }
 
-     public static String dependenceFileNameForCompAst(APIName name, String sourcePath) {
-         return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
-     }
+    public static String dependenceFileNameForCompAst(APIName name, String sourcePath) {
+        return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
+    }
 
-     public static String dependenceFileNameForApiAst(APIName name, String sourcePath) {
-         return ProjectProperties.apiFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
-     }
+    public static String dependenceFileNameForApiAst(APIName name, String sourcePath) {
+        return ProjectProperties.apiFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
+    }
 
-     /* Converting names of Fortress entities into Java entities.
-      *
-        1. FortressLibrary.ZZ32
-           what we call it in Fortress
+    /* Converting names of Fortress entities into Java entities.
+     *
+     1. FortressLibrary.ZZ32
+     what we call it in Fortress
 
-        2. L/com/sun/fortress/compiler/runtimeValues/FZZ32
-           the signature encoding of the Java type that we use to represent that.
+     2. L/com/sun/fortress/compiler/runtimeValues/FZZ32
+     the signature encoding of the Java type that we use to represent that.
 
-        3. I
-           the signature encoding of Java int.
+     3. I
+     the signature encoding of Java int.
 
-        4. int
-           Java int.
+     4. int
+     Java int.
 
-        5. org.objectweb.asm.Type.INT_TYPE
-           The asm representation of the type of Java int.
+     5. org.objectweb.asm.Type.INT_TYPE
+     The asm representation of the type of Java int.
 
-        6. java.lang.Integer.TYPE
-           The name of that "class" (int) in a running Java program.
+     6. java.lang.Integer.TYPE
+     The name of that "class" (int) in a running Java program.
 
-      *
-      * For foreign interfaces, there's two translations.  From the foreign
-      * type, to the Fortress type we choose for the Fortress interfaces,
-      * and then (same as other types) from the Fortress type to the type
-      * of its bytecode encoding.
-      *
-      */
+     *
+     * For foreign interfaces, there's two translations.  From the foreign
+     * type, to the Fortress type we choose for the Fortress interfaces,
+     * and then (same as other types) from the Fortress type to the type
+     * of its bytecode encoding.
+     *
+     */
 
-     static Span span = NodeFactory.internalSpan;
+    static Span span = NodeFactory.internalSpan;
 
-     static APIName fortLib =
-         NodeFactory.makeAPIName(span, "FortressLibrary");
+    static APIName fortLib =
+        NodeFactory.makeAPIName(span, "FortressLibrary");
 
-     /**
-      * Given an ASM Type t from foreign Java, what is the corresponding type
-      * in Fortress (expressed as an AST Type node)?
-      *
-      * If it is not defined in the current foreign interface implementation,
-      * null is returned.
-      */
-     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
-         return fortressTypeForForeignJavaType(t.getDescriptor());
-     }
+    /**
+     * Given an ASM Type t from foreign Java, what is the corresponding type
+     * in Fortress (expressed as an AST Type node)?
+     *
+     * If it is not defined in the current foreign interface implementation,
+     * null is returned.
+     */
+    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
+        return fortressTypeForForeignJavaType(t.getDescriptor());
+    }
 
-     /**
-      * Given a Java type String descriptor ("Ljava/lang/Object;", V, [J, etc),
-      * what is the corresponding type in Fortress
-      * (expressed as an AST Type node)?
-      *
-      * If it is not defined in the current foreign interface implementation,
-      * null is returned.
-      */
-     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
-         return specialForeignJavaTranslations.get(s);
-     }
+    /**
+     * Given a Java type String descriptor ("Ljava/lang/Object;", V, [J, etc),
+     * what is the corresponding type in Fortress
+     * (expressed as an AST Type node)?
+     *
+     * If it is not defined in the current foreign interface implementation,
+     * null is returned.
+     */
+    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
+        return specialForeignJavaTranslations.get(s);
+    }
 
-     static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
+    static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
 
-     /* Minor hackery here -- because we know these types are already loaded
-      * and not eligible for ASM-wrapping, we just go ahead and refer to the
-      * loaded class.
-      */
-     static void s(Class cl, APIName api, String str) {
-         s(Type.getType(cl), api, str);
-     }
+    /* Minor hackery here -- because we know these types are already loaded
+     * and not eligible for ASM-wrapping, we just go ahead and refer to the
+     * loaded class.
+     */
+    static void s(Class cl, APIName api, String str) {
+        s(Type.getType(cl), api, str);
+    }
 
-     static void s(Type cl, APIName api, String str) {
-         s(cl.getDescriptor(), api, str);
-     }
+    static void s(Type cl, APIName api, String str) {
+        s(cl.getDescriptor(), api, str);
+    }
 
-     static void s(String cl, APIName api, String str) {
-         specialForeignJavaTranslations.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
-     }
+    static void s(String cl, APIName api, String str) {
+        specialForeignJavaTranslations.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
+    }
 
-     static {
-         s(Boolean.class, fortLib, "Boolean");
-         s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
-         s(Integer.class, fortLib, "ZZ32");
-         s(Type.INT_TYPE, fortLib, "ZZ32");
-         s(Long.class, fortLib, "ZZ64");
-         s(Type.LONG_TYPE, fortLib, "ZZ64");
-         s(Float.class, fortLib, "RR32");
-         s(Type.FLOAT_TYPE, fortLib, "RR32");
-         s(Double.class, fortLib, "RR64");
-         s(Type.DOUBLE_TYPE, fortLib, "RR64");
-         s(Object.class, fortLib, "Any");
-         s(String.class, fortLib, "String");
-         s(BigInteger.class, fortLib, "ZZ");
-         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
-     }
+    static {
+        s(Boolean.class, fortLib, "Boolean");
+        s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
+        s(Integer.class, fortLib, "ZZ32");
+        s(Type.INT_TYPE, fortLib, "ZZ32");
+        s(Long.class, fortLib, "ZZ64");
+        s(Type.LONG_TYPE, fortLib, "ZZ64");
+        s(Float.class, fortLib, "RR32");
+        s(Type.FLOAT_TYPE, fortLib, "RR32");
+        s(Double.class, fortLib, "RR64");
+        s(Type.DOUBLE_TYPE, fortLib, "RR64");
+        s(Object.class, fortLib, "Any");
+        s(String.class, fortLib, "String");
+        s(BigInteger.class, fortLib, "ZZ");
+        specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
+    }
 
     static final String runtimeValues = "Lcom/sun/fortress/compiler/runtimeValues/";
 
 
-     /**
-      * Given a Fortress type (expressed as AST node for a Type),
-      * what is the descriptor ("Ljava/lang/Object;", V, I, [J, etc)
-      * of the type implementing it in boxed form?
-      *
-      * @param t
-      * @return
-      */
-     static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
-         return specialFortressTypes.get(t);
-     }
+    /**
+     * Given a Fortress type (expressed as AST node for a Type),
+     * what is the descriptor ("Ljava/lang/Object;", V, I, [J, etc)
+     * of the type implementing it in boxed form?
+     *
+     * @param t
+     * @return
+     */
+    static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
+        return specialFortressTypes.get(t);
+    }
 
-     static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
+    static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
 
-     static void bl(APIName api, String str, String cl) {
-         b(api,str, runtimeValues+cl+";");
-     }
+    static void bl(APIName api, String str, String cl) {
+        b(api,str, runtimeValues+cl+";");
+    }
 
-     static void bl(com.sun.fortress.nodes.Type t, String cl) {
-         b(t, runtimeValues+cl+";");
-     }
+    static void bl(com.sun.fortress.nodes.Type t, String cl) {
+        b(t, runtimeValues+cl+";");
+    }
 
-     static void b(APIName api, String str, String cl) {
-         b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)), cl);
-     }
+    static void b(APIName api, String str, String cl) {
+        b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)), cl);
+    }
 
-     static void b(com.sun.fortress.nodes.Type t, String cl) {
-         specialFortressTypes.put(t, cl);
-     }
+    static void b(com.sun.fortress.nodes.Type t, String cl) {
+        specialFortressTypes.put(t, cl);
+    }
 
-     static {
-         bl(fortLib, "Boolean", "FBoolean");
-         bl(fortLib, "Char", "FChar");
-         bl(fortLib, "RR32", "FRR32");
-         bl(fortLib, "RR64", "FRR64");
-         bl(fortLib, "ZZ32", "FZZ32");
-         bl(fortLib, "ZZ64", "FZZ64");
-         bl(fortLib, "String", "FString");
-         bl(NodeFactory.makeVoidType(span), "FVoid");
-     }
+    static {
+        bl(fortLib, "Boolean", "FBoolean");
+        bl(fortLib, "Char", "FChar");
+        bl(fortLib, "RR32", "FRR32");
+        bl(fortLib, "RR64", "FRR64");
+        bl(fortLib, "ZZ32", "FZZ32");
+        bl(fortLib, "ZZ64", "FZZ64");
+        bl(fortLib, "String", "FString");
+        bl(NodeFactory.makeVoidType(span), "FVoid");
+    }
 
 
     /**
@@ -227,53 +227,53 @@ public class NamingCzar {
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
-     public String boxedImplDesc(com.sun.fortress.nodes.Type t) {
-         String desc = javaDescriptorImplementingFortressType(t);
+    public String boxedImplDesc(com.sun.fortress.nodes.Type t) {
+        String desc = javaDescriptorImplementingFortressType(t);
 
-         if (desc != null)
-             return desc;
+        if (desc != null)
+            return desc;
 
-         if (t instanceof ArrowType) {
+        if (t instanceof ArrowType) {
 
-         } else if (t instanceof BaseType) {
-             if (t instanceof AnyType) {
-                 return runtimeValues + "FValue;";
-             } else if (t instanceof BottomType) {
-                 return bug("Not sure how bottom type translates into Java");
-             } else if (t instanceof NamedType) {
-                 if (t instanceof TraitType) {
-                     return runtimeValues + "FValue;";
-                 } else if (t instanceof VarType) {
-                     return bug("Need a binding to translate a VarType into Java");
-                 }
-             }
-         }
-         return bug ("unhandled type translation, Fortress type " + t);
+        } else if (t instanceof BaseType) {
+            if (t instanceof AnyType) {
+                return runtimeValues + "FValue;";
+            } else if (t instanceof BottomType) {
+                return bug("Not sure how bottom type translates into Java");
+            } else if (t instanceof NamedType) {
+                if (t instanceof TraitType) {
+                    return runtimeValues + "FValue;";
+                } else if (t instanceof VarType) {
+                    return bug("Need a binding to translate a VarType into Java");
+                }
+            }
+        }
+        return bug ("unhandled type translation, Fortress type " + t);
 
-     }
-     
-     public String apiNameToPackageName(APIName name) {
-         if (fj.definesApi(name)) {
-             return name.getText();
-         } else {
-             return "fortress."+name.getText();
-         }
-     }
+    }
+
+    public String apiNameToPackageName(APIName name) {
+        if (fj.definesApi(name)) {
+            return name.getText();
+        } else {
+            return "fortress."+name.getText();
+        }
+    }
 
     /**
      * @param componentName
      * @return the name of the class implementing the compiled top-level
      *         environment for component componentName.
      */
-     public static String classNameForComponentEnvironment(APIName componentName) {
-         return classNameForComponentEnvironment(NodeUtil.nameString(componentName));
-     }
-     
-     /**
-      * @param componentName
-      * @return the name of the class implementing the compiled top-level
-      *         environment for component componentName.
-      */
+    public static String classNameForComponentEnvironment(APIName componentName) {
+        return classNameForComponentEnvironment(NodeUtil.nameString(componentName));
+    }
+
+    /**
+     * @param componentName
+     * @return the name of the class implementing the compiled top-level
+     *         environment for component componentName.
+     */
     public static String classNameForComponentEnvironment(String componentName) {
         componentName = componentName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
         componentName = mangleClassIdentifier(componentName);  // Need to mangle the name if it contains "."
@@ -281,7 +281,7 @@ public class NamingCzar {
     }
 
     /**
-     * 
+     *
      * @param apiName
      * @return the name of the class implementing the compiled top-level
      *         environment for api apiName
@@ -289,14 +289,14 @@ public class NamingCzar {
     public static String classNameForApiEnvironment(APIName apiName) {
         return classNameForApiEnvironment(NodeUtil.nameString(apiName));
     }
-    
+
     /**
-     * 
+     *
      * @param apiName
      * @return the name of the class implementing the compiled top-level
      *         environment for apiName
      */
-   public static String classNameForApiEnvironment(String apiName) {
+    public static String classNameForApiEnvironment(String apiName) {
         apiName = apiName + TopLevelEnvGen.API_ENV_SUFFIX;
         apiName = mangleClassIdentifier(apiName);  // Need to mangle the name if it contains "."
         return apiName;
@@ -310,20 +310,20 @@ public class NamingCzar {
     /**
      * Convert a string identifier into something that will be legal in a
      * JVM.
-     * 
+     *
      * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
      * Dangerous characters are the union of all characters forbidden
      * or otherwise restricted by the JVM specification, plus their mates,
      * if they are brackets.
-    
+
      * @param identifier
      * @return
      */
     public static String mangleIdentifier(String identifier) {
-    
+
         // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
         String mangledString = identifier.replaceAll("\\\\", "\\\\-");
-    
+
         // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
         mangledString = mangledString.replaceAll("/", "\\\\|");
         mangledString = mangledString.replaceAll("\\.", "\\\\,");
@@ -334,10 +334,10 @@ public class NamingCzar {
         mangledString = mangledString.replaceAll("\\[", "\\\\{");
         mangledString = mangledString.replaceAll("\\]", "\\\\}");
         mangledString = mangledString.replaceAll(":", "\\\\!");
-    
+
         // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
         mangledString = mangledString.replaceAll("\\ ", "\\\\~");
-    
+
         // 3. If the first two steps introduced any change, <em>and</em> if the
         // string does not already begin with a backslash, prepend a null prefix (\=)
         if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {

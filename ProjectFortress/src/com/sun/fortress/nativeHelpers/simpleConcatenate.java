@@ -18,10 +18,10 @@
 package com.sun.fortress.nativeHelpers;
 
 public class simpleConcatenate {
-	
-	public static String nativeConcatenate(String s1, String s2) {
+
+    public static String nativeConcatenate(String s1, String s2) {
         System.out.println("Got to call of nativeConcatenate with : " + s1 + " and " + s2);
         return s1 + s2;
-	}
+    }
 
 }

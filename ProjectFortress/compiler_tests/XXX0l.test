@@ -17,11 +17,11 @@ tests=Compiled0.l
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.l.fss:20:14-21:25\n\
+${STATIC_TESTS_DIR}/Compiled0.l.fss:20:14-21:25:\n\
 \ Unmatched delimiter \"do\".\n\
-${STATIC_TESTS_DIR}/Compiled0.l.fss:20:3-21:25\n\
+${STATIC_TESTS_DIR}/Compiled0.l.fss:20:3-21:25:\n\
 \ Unmatched delimiter \"component\".\n\
-${STATIC_TESTS_DIR}/Compiled0.l.fss:21:25\n\
+${STATIC_TESTS_DIR}/Compiled0.l.fss:21:25:\n\
 \ Unmatched delimiter \"\\\"\".\n\
 File Compiled0.l.fss has 3 errors.\n
 compile_out_equals=

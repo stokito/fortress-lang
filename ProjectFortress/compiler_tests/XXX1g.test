@@ -19,11 +19,11 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:10-13\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:22:10-13:\n\
 \ Variable Hello is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:17-20\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:22:17-20:\n\
 \ Variable World is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:22\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:22:22:\n\
 \ Operator postfix ! is not defined.\n\
 File Compiled1.g.fss has 3 errors.\n
 

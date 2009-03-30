@@ -17,7 +17,7 @@ tests=Compiled1.c
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.c.fss:25:1-3\n\
+${STATIC_TESTS_DIR}/Compiled1.c.fss:25:1-3:\n\
 \ Unmatched delimiter \"end\".\n\
 File Compiled1.c.fss has 1 error.\n
 compile_out_equals=

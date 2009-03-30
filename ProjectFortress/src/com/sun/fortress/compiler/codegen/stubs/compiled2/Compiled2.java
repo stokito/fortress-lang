@@ -22,8 +22,8 @@ import com.sun.fortress.compiler.runtimeValues.*;
 public class Compiled2 {
 
     public static void run() {
-        CompilerBuiltin.println(CompilerBuiltin.FlatString.concatenate(CompilerBuiltin.FlatString.concatenate(FString.make("Hello"), 
-                                                                                              FString.make(" World")), 
+        CompilerBuiltin.println(CompilerBuiltin.FlatString.concatenate(CompilerBuiltin.FlatString.concatenate(FString.make("Hello"),
+                                                                                              FString.make(" World")),
                                                        FString.make("!")));
     }
     public static void main(String args[]) {

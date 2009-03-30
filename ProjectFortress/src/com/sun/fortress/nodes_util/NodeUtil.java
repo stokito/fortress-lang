@@ -55,7 +55,7 @@ public class NodeUtil {
 
     public static void log(BufferedWriter writer, Span span, String msg) {
         try {
-            writer.write( span + "\n    " + msg + "\n" );
+            writer.write( span + ":\n    " + msg + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the parser failed!");
         }
@@ -501,7 +501,7 @@ public class NodeUtil {
                                                  split[0].length()+split[1].length()+1);
                 name = split[1];
                 if ( ! name.equals(filename) )
-                    return error(ExprFactory.makeVoidLiteralExpr(span),
+                    return error(span,
                                  "    Component/API names must match their enclosing file names." +
                                  "\n    File name: " + absolutePath +
                                  "\n    Component/API name: " + name);

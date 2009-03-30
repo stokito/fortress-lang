@@ -19,9 +19,9 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4\n\
+${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4-23:20:\n\
 \ Unmatched delimiter "(".\n\
-${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4-23:20\n\
+${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4:\n\
 \ Unmatched delimiter "(".\n\
 File Compiled2.o.fss has 2 errors.\n\
 
