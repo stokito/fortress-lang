@@ -32,7 +32,7 @@ import Spacing;
    | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
    | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
-public CompilationUnit File = initParser yyValue:Program closeParser ;
+public void File = initParser void:Program closeParser ;
 void initParser  = w { initParser(); };
 void closeParser = w EndOfFile
      { try {

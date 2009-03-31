@@ -17,6 +17,7 @@
 
 package com.sun.fortress.exceptions;
 
+import java.util.Comparator;
 import java.util.StringTokenizer;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
@@ -82,6 +83,14 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
         else { return 1; } // thisLine > thatLine
         */
     }
+
+    private static class StaticErrorComparator implements Comparator<StaticError> {
+        public int compare(StaticError left, StaticError right) {
+            // System.err.println("compare");
+            return left.compareTo(right);
+        }
+    }
+    public final static StaticErrorComparator comparator = new StaticErrorComparator();
 
     /**
      * Make a simple static error with the given location.
