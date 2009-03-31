@@ -26,12 +26,6 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-/* File ::=
-     w CompilationUnit w EndOfFile
-   | (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w EndOfFile
-   | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
-   | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
- */
 public void File = initParser void:Program closeParser ;
 void initParser  = w { initParser(); };
 void closeParser = w EndOfFile
@@ -42,407 +36,57 @@ void closeParser = w EndOfFile
        }
      };
 
-CompilationUnit Program =
-     yyValue:CompilationUnit
-     { Span span = createSpan(yyStart,yyCount);
-       String file = span.getBegin().getFileName();
-       String cuname = yyValue.getName().toString();
-       if (!Shell.checkCompilationUnitName(file, cuname))
-           log(NodeUtil.getSpan(yyValue.getName()),
-               "    Component/API names must match their enclosing file names." +
-               "\n    File name: " + file +
-               "\n    Component/API name: " + cuname);
-     }
-   / a1:ImportOrExports (w semicolon)? w DeclsRestWithoutEnd
-     { Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       List<Import>  imports = a1.getA();
-       List<APIName> exports = a1.getB();
-       List<Decl> a2 = Collections.<Decl>emptyList();
-       if ( ! exports.isEmpty() )
-           yyValue = NodeFactory.makeComponent(span, name, imports, a2, exports);
-       else {
-           log(span, "Components should have at least one export statement.");
-           yyValue = NodeFactory.makeComponent(span, name, imports, a2,
-                                               Collections.<APIName>emptyList());
-       }
-     }
-   / a1:ImportOrExports (w semicolon)? w AbsDeclsRest (w semicolon)?
-     { List<Decl> a2 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       if ( ! a1.getB().isEmpty() )
-           log(span, "APIs should not have export statements.");
-       yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
-     }
-   / a1:(yyValue:ImportOrExports (w semicolon)? w)? AbsDeclsRest (w semicolon)?
-     { List<Import> imports = (a1 == null) ? Collections.<Import>emptyList()
-                                           : a1.getA();
-       List<Decl> a2 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       if ( a1 != null && ! a1.getB().isEmpty() )
-           log(span, "APIs should not have export statements.");
-       yyValue = NodeFactory.makeApi(span, name, imports, a2);
-     };
+void Program =
+     CompilationUnit
+   / ImportOrExports (w semicolon)? w DeclsRestWithoutEnd
+   / ImportOrExports (w semicolon)? w AbsDeclsRest (w semicolon)?
+   / (ImportOrExports (w semicolon)? w)? AbsDeclsRest (w semicolon)?
+   ;
 
-/* CompilationUnit ::=
-     Component
-   | Api
- */
-private CompilationUnit CompilationUnit =
-     Component
-   / Api ;
+private void CompilationUnit =
+     (native w)? component w APIName (w ImportOrExports (w semicolon)?)?
+     w DeclsRest
+   / (native w)? api w APIName (w ImportOrExports (w semicolon)?)? w (_)*
+   ;
 
-/* Component ::=
-     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
-     (w Decls w ;?)? w end ((s component)? s APIName)?
- */
-private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)?
-     w a4:DeclsRest
-     { Span span = createSpan(yyStart,yyCount);
-       if ( a3 == null ||
-            a3 != null && a3.getB().isEmpty() )
-           log(span, "Components should have at least one export statement.");
-       List<Import>  imports = ( a3 == null ) ? Collections.<Import>emptyList()
-                                              : a3.getA();
-       List<APIName> exports = ( a3 == null ) ? Collections.<APIName>emptyList()
-                                              : a3.getB();
-       List<Decl> decls = Collections.<Decl>emptyList();
-       if ( a4.isSome() && a4.equals(NodeUtil.nameString(a2)) )
-           log(span, "A component declaration of " + a2 +
-               " has the different name " + a4.unwrap() + " at the end.");
-       if ( a1 == null )
-           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, exports);
-       else
-           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, true, exports);
-     };
-
-/* Api ::= api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
-           ((s api)? s APIName)?
-   Imports ::= Import (br Import)*
- */
-private Api Api =
-     a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
-     { Span span = createSpan(yyStart,yyCount);
-       if ( a0 != null )
-           log(span, "The native modifier is only for components not for APIs.");
-       if ( a2 != null && ! a2.getB().isEmpty() )
-           log(span, "APIs should not have export statements.");
-       List<Import> imports = (a2 == null) ? Collections.<Import>emptyList()
-                                           : a2.getA();
-       List<Decl> a3 = Collections.<Decl>emptyList();
-       yyValue = NodeFactory.makeApi(span, a1, imports, a3);
-     };
-
-/* ImportOrExports ::= ImportOrExport (br ImportOrExport)* */
-private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExports =
-     a1:ImportOrExport a2s:(br ImportOrExport)*
-     { List<Import>  imports = a1.getA();
-       List<APIName> exports = a1.getB();
-       for ( com.sun.fortress.useful.Pair<List<Import>,List<APIName>> pair : a2s.list()) {
-           imports.addAll(pair.getA());
-           exports.addAll(pair.getB());
-       }
-       yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(imports, exports);
-     };
-
-/* ImportOrExport ::= Import / Export */
-private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExport =
-    a1:Import
-    { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(Useful.list(a1),
-                                                                             new ArrayList<APIName>());
-    }
-  / a1:Export
-    { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(new ArrayList<Import>(),
-                                                                             Useful.list(a1));
-    };
-
-/* Import ::=
+private void ImportOrExports = ImportOrExport (br ImportOrExport)*;
+private void ImportOrExport = Import / Export;
+private void Import =
      import (w ForeignLang)? w api w AliasedAPINames
-   | import w ImportedNames
- */
-private List<Import> Import =
-     import a1:(w ForeignLang)? w api w a2:AliasedAPINames
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
-       Import imp = NodeFactory.makeImportApi(createSpan(yyStart, yyCount), fl, a2);
-       yyValue = Useful.list(imp);
-     }
    / import w ImportedNames;
-
-/* ForeignLang ::= Id | StringLiteralExpr */
-private String ForeignLang =
-     !(Id w dot) a1:Id { yyValue = a1.getText(); }
-   / a1:StringLiteralExpr { yyValue = a1.getText(); };
-
-StringLiteralExpr StringLiteralExpr =
-     <FIRST> ["] a1:StringLiteralContents? ["]
-     { if (a1 == null) a1 = "";
-       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), a1);
-     }
-   / "\u201c" a1:StringLiteralContents? "\u201d"
-     { if (a1 == null) a1 = "";
-       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), a1);
-     }
-   / <ErrorProduction1> ["] a1:StringLiteralContents? "\u201d"
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "The opening and closing marks of a string literal must match.");
-       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
-     }
-   / <ErrorProduction2> "\u201c" a1:StringLiteralContents? ["]
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "The opening and closing marks of a string literal must match.");
-       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
-     }
-   / <ErrorProduction3> ["] a1:StringLiteralContents
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
-     }
-   / <ErrorProduction4> "\u201c" a1:StringLiteralContents
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
-     }
+private void ForeignLang = !(Id w dot) Id / StringLiteralExpr;
+private void ImportedNames =
+     (ForeignLang w)? APIName dot w opencurly w ellipses w closecurly
+     (w except w SimpleNames)?
+   / ForeignLang w APIName dot w opencurly w AliasedQualifiedNameList
+     (w comma w ellipses)? w closecurly
+   / (ForeignLang w)? APIName dot w opencurly w AliasedSimpleNameList
+     (w comma w ellipses)? w closecurly
+   / (ForeignLang w)? Id dot QualifiedName (w as w Id)?
    ;
-
-private String StringLiteralContents =
-     StringLiteralContent* a1:[\n\f\r]+ &( w EndOfFile )
-     { yyValue = ""; }
-   / StringLiteralContent* a1:[\n\f\r]+
-     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
-       yyValue = "";
-     }
-   / a1:StringLiteralContent+
-     { String str = "";
-       for (String c : (List<String>)a1.list()) {
-           str = str.concat(c);
-       }
-       yyValue = str;
-     }
-   ;
-
-private String StringLiteralContent =
-     EscapeSequence
-   / a1:(!InvalidStringLiteralContent _) &( w EndOfFile )
-     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
-       yyValue = String.valueOf(a1);
-     }
-   / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); }
-   ;
-
-private void InvalidStringLiteralContent =
-     void:["\u201c\u201d]
-   / [\n\f\r]
-   / a1:[\\]
-     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
-   / a1:[\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
-     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
-   / c:_ &{ Character.getType(c) == Character.CONTROL }
-     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + c); };
-
-private String EscapeSequence =
-     '\\' a1:[btnfr"\\]
-     { switch (a1) {
-           case 'b': { yyValue = "\b"; break; }
-           case 't': { yyValue = "\t"; break; }
-           case 'n': { yyValue = "\n"; break; }
-           case 'f': { yyValue = "\f"; break; }
-           case 'r': { yyValue = "\r"; break; }
-           case '"': { yyValue = "\""; break; }
-           case '\\': { yyValue = "\\"; break; }
-           default: { yyValue = ""; }
-       }
-     }
-   / '\\' a1:[\u201c] { yyValue = "\u201c"; }
-   / '\\' a1:[\u201d] { yyValue = "\u201d"; };
-/* '*/
-
-/* ImportedNames ::=
-     (ForeignLang w)? APIName . w { w ... w } (w except w SimpleNames)?
-   |  ForeignLang w   APIName . w { w AliasedQualifiedNameList (w , w ...)? w }
-   | (ForeignLang w)? APIName . w { w AliasedSimpleNameList (w , w ...)? w }
-   | (ForeignLang w)? QualifiedName (w as w Id)?
- */
-private List<Import> ImportedNames =
-     a1:(ForeignLang w)? a2:APIName dot w opencurly w ellipses w closecurly
-     a3:(w except w SimpleNames)?
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
-       if (a3 == null) a3 = Collections.<IdOrOpOrAnonymousName>emptyList();
-       yyValue = Useful.list((Import)NodeFactory.makeImportStar(
-                                             createSpan(yyStart,yyCount),fl,a2,a3));
-     }
-   / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
-     a4:(w comma w ellipses)? w closecurly
-     { Option<String> fl = Option.<String>some(a1);
-       Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span,fl,
-                                                                         a2,a3));
-       if (a4 != null)
-           imports.add((Import)NodeFactory.makeImportStar(span, fl,a2,
-                               Collections.<IdOrOpOrAnonymousName>emptyList()));
-       yyValue = imports;
-     }
-   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
-     a4:(w comma w ellipses)? w closecurly
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
-       Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span,fl,
-                                                                         a2,a3));
-       if (a4 != null)
-           imports.add((Import)NodeFactory.makeImportStar(span, fl,a2,
-                               Collections.<IdOrOpOrAnonymousName>emptyList()));
-       yyValue = imports;
-     }
-   / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w as w Id)?
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
-       APIName api;
-       Id id;
-       if (a3.getApiName().isNone()) {
-           api = NodeFactory.makeAPIName(a2);
-           id = a3;
-       } else {
-           api = NodeFactory.makeAPINameSkipLast(a2, a3);
-           id  = NodeFactory.makeIdFromLast(a3);
-       }
-       AliasedSimpleName an;
-       if (a4 == null) an = NodeFactory.makeAliasedSimpleName(id);
-       else            an = NodeFactory.makeAliasedSimpleName(id, a4);
-       Import imp = NodeFactory.makeImportNames(createSpan(yyStart,yyCount), fl, api,
-                                                Useful.list(an));
-       yyValue = Useful.list(imp);
-     }
-   / <ErrorProduction>
+private void SimpleNames =
+     SimpleName / opencurly w SimpleNameList w closecurly ;
+private void SimpleNameList = SimpleName (w comma w SimpleName)*;
+private void AliasedSimpleName =
      Id (w as w Id)?
-     { log(createSpan(yyStart,yyCount),
-           "Syntax Error: Try \"import api APIName\"");
-       yyValue = Collections.<Import>emptyList();
-     };
-
-/* SimpleNames ::= SimpleName | { w SimpleNameList w } */
-private List<IdOrOpOrAnonymousName> SimpleNames =
-     a1:SimpleName { yyValue = Useful.list(a1); }
-   / void:opencurly w SimpleNameList w void:closecurly ;
-
-/* SimpleNameList ::= SimpleName (w , w SimpleName)* */
-private List<IdOrOpOrAnonymousName> SimpleNameList =
-     a1:SimpleName a2s:(w comma w SimpleName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* AliasedSimpleName ::=
-     Id (w as w Id)?
-   | opr (w BIG)? w (Encloser / Op) (w as w (Encloser / Op))?
-   | opr (w BIG)? w EncloserPair (w as w EncloserPair)?
- */
-private AliasedSimpleName AliasedSimpleName =
-     a1:Id a2:(w as w Id)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(a1);
-       else
-           yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
-     }
-   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
-     { if (big != null) {
-           a1 = NodeFactory.makeBig(a1);
-       }
-       if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(a1);
-       else {
-           if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(a1,
-                                                           NodeFactory.makeBig(a2));
-           else
-               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
-       }
-     }
-   / opr big:(w BIG)? w a1:EncloserPair a2:(w as w EncloserPair)?
-     { if (big != null) {
-           a1 = NodeFactory.makeBig(a1);
-       }
-       if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(a1);
-       else {
-           if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(a1,
-                                                           NodeFactory.makeBig(a2));
-           else
-               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
-       }
-     };
-
-/* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
-private List<AliasedSimpleName> AliasedSimpleNameList =
-     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* AliasedQualifiedName ::= QualifiedName (w as w QualifiedName)? */
-private AliasedSimpleName AliasedQualifiedName =
-     a1:QualifiedName a2:(w as w QualifiedName)?
-     { a1 = NodeFactory.makeDottedId(a1);
-       if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(a1);
-       else {
-           a2 = NodeFactory.makeDottedId(a2);
-           yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
-       }
-     };
-
-/* AliasedQualifiedNameList ::= AliasedQualifiedName (w , w AliasedQualifiedName)* */
-private List<AliasedSimpleName> AliasedQualifiedNameList =
-     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* AliasedAPINames ::=
+   / opr (w BIG)? w (Encloser / Op) (w as w (Encloser / Op))?
+   / opr (w BIG)? w EncloserPair (w as w EncloserPair)?
+   ;
+private void AliasedSimpleNameList =
+     AliasedSimpleName (w comma w AliasedSimpleName)*;
+private void AliasedQualifiedName =
+     QualifiedName (w as w QualifiedName)?;
+private void AliasedQualifiedNameList =
+     AliasedQualifiedName (w comma w AliasedQualifiedName)*;
+private void AliasedAPINames =
      AliasedAPIName
-   | { w AliasedAPINameList w }
- */
-private List<AliasedAPIName> AliasedAPINames =
-     a1:AliasedAPIName { yyValue = Useful.list(a1); }
-   / void:opencurly w AliasedAPINameList w void:closecurly ;
+   / opencurly w AliasedAPINameList w closecurly ;
+private void AliasedAPIName = APIName (w as w Id)?;
+private void AliasedAPINameList = AliasedAPIName (w comma w AliasedAPIName)*;
+private void Export = export w APINames ;
+private void APINames = APIName / opencurly w APINameList w closecurly ;
+private void APINameList = APIName (w comma w APIName)*;
 
-/* AliasedAPIName ::= APIName (w as w Id)? */
-private AliasedAPIName AliasedAPIName =
-     a1:APIName a2:(w as w Id)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeAliasedAPIName(a1);
-       else
-           yyValue = NodeFactory.makeAliasedAPIName(a1, a2);
-     };
-
-/* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
-private List<AliasedAPIName> AliasedAPINameList =
-     a1:AliasedAPIName a2s:(w comma w AliasedAPIName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* Export ::= export w APINames */
-private List<APIName> Export = export w APINames ;
-
-/* APINames ::=
-     APIName
-   | { w APINameList w }
- */
-List<APIName> APINames =
-     a1:APIName { yyValue = Useful.list(a1); }
-   / void:opencurly w APINameList w void:closecurly ;
-
-/* APINameList ::= APIName (w , w APIName)* */
-private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* Declarations within component/end.
-   Do not handle the following declarations yet:
-     trait/object/var/dimension/unit/test/property/type alias
- */
 /* Decls ::= Decl (br Decl)* */
 transient private Option<String> DeclsRest =
      component (_)*
@@ -505,31 +149,18 @@ transient private void Extra =
        log(createSpan(yyStart,yyCount), "Unmatched input \"" + input + "\".");
      };
 
-/* Declarations without component/end.
-   Do not handle the following declarations yet:
-     trait/object/var/dimension/unit/test/property/type alias
- */
-/* Decls ::= Decl (br Decl)* */
-transient private Option<String> DeclsRestWithoutEnd =
+transient private void DeclsRestWithoutEnd =
      Mods? (trait/object) (_)*
-     { yyValue = Option.<String>none(); }
    / (dim / unit / SI_unit / type / test / property) (_)*
-     { yyValue = Option.<String>none(); }
    / FnDeclHeader w NoNewlineExpr (w semicolon)? &( w EndOfFile )
-     { yyValue = Option.<String>none(); }
-   / FnDeclHeader w NoNewlineExpr br a2:DeclsRestWithoutEnd
-     { yyValue = a2; }
+   / FnDeclHeader w NoNewlineExpr br DeclsRestWithoutEnd
    / Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? !(FnHeaderBack) (_)+
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Missing = in a function declaration.");
-       yyValue = Option.<String>none();
      }
    / FnDeclHeader (_)+
-     { yyValue = Option.<String>none(); }
    / Extra
-     { yyValue = Option.<String>none(); }
-   / (_)+
-     { yyValue = Option.<String>none(); };
+   / (_)+;
 
 transient private void FnDeclHeader =
      Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w equals w
@@ -561,50 +192,19 @@ transient private void FnDeclHeader =
 transient private Expr ExtraOpenparen =
      openparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); } ;
-
 transient private Expr ExtraCloseparen =
      closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); } ;
-
-/* AbsDecls ::= AbsDecl (br AbsDecl)* */
-transient Option<String> AbsDeclsRest = AbsDecl (br AbsDecl)*
-     { yyValue = Option.<String>none(); };
-
-/* Declarations in APIs.
-   Do not handle any declarations yet.
- */
-/* AbsDecl ::=
-     AbsTraitDecl
-   | AbsObjectDecl
-   | AbsVarDecl
-   | AbsFnDecl
-   | DimUnitDecl
-   | TypeAlias
-   | TestDecl
-   | PropertyDecl
-   | GrammarDef
- */
-transient List<Decl> AbsDecl =
+transient void AbsDeclsRest = AbsDecl (br AbsDecl)*;
+transient void AbsDecl =
      Mods? (trait/object) (_)*
-     { yyValue = Collections.<Decl>emptyList(); }
    / (dim / unit / SI_unit / type / test / property / grammar) (_)*
-     { yyValue = Collections.<Decl>emptyList(); }
-   / (_)*
-     { yyValue = Collections.<Decl>emptyList(); };
-
-/* Each modifier cannot appear more than once. */
-/* Mods ::= (Mod w)+ */
-transient void Mods = (Mod w)+ ;
-
-/* Mod ::=
-   atomic | hidden | io | override | private | settable | test | value | var | wrapped
- */
+   / (_)*;
+transient void Mods = (Mod w)+;
 transient void Mod =
      atomic / hidden / io / override / private
    / settable / test / value / var / wrapped
    ;
-
-/* ValParam ::= BindId | ( (w Params)? w ) */
 transient void ValParam =
      BindId
    / openparen w closeparen
@@ -768,3 +368,84 @@ private Expr BlockElem =
 
 private void DeclKeywords =
      trait / object / dim / unit / SI_unit / type / test / property ;
+
+StringLiteralExpr StringLiteralExpr =
+     <FIRST> ["] a1:StringLiteralContents? ["]
+     { if (a1 == null) a1 = "";
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), a1);
+     }
+   / "\u201c" a1:StringLiteralContents? "\u201d"
+     { if (a1 == null) a1 = "";
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), a1);
+     }
+   / <ErrorProduction1> ["] a1:StringLiteralContents? "\u201d"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   / <ErrorProduction2> "\u201c" a1:StringLiteralContents? ["]
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   / <ErrorProduction3> ["] a1:StringLiteralContents
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   / <ErrorProduction4> "\u201c" a1:StringLiteralContents
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   ;
+
+private String StringLiteralContents =
+     StringLiteralContent* a1:[\n\f\r]+ &( w EndOfFile )
+     { yyValue = ""; }
+   / StringLiteralContent* a1:[\n\f\r]+
+     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
+       yyValue = "";
+     }
+   / a1:StringLiteralContent+
+     { String str = "";
+       for (String c : (List<String>)a1.list()) {
+           str = str.concat(c);
+       }
+       yyValue = str;
+     }
+   ;
+
+private String StringLiteralContent =
+     EscapeSequence
+   / a1:(!InvalidStringLiteralContent _) &( w EndOfFile )
+     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
+       yyValue = String.valueOf(a1);
+     }
+   / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); }
+   ;
+
+private void InvalidStringLiteralContent =
+     void:["\u201c\u201d]
+   / [\n\f\r]
+   / a1:[\\]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / a1:[\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + c); };
+
+private String EscapeSequence =
+     '\\' a1:[btnfr"\\]
+     { switch (a1) {
+           case 'b': { yyValue = "\b"; break; }
+           case 't': { yyValue = "\t"; break; }
+           case 'n': { yyValue = "\n"; break; }
+           case 'f': { yyValue = "\f"; break; }
+           case 'r': { yyValue = "\r"; break; }
+           case '"': { yyValue = "\""; break; }
+           case '\\': { yyValue = "\\"; break; }
+           default: { yyValue = ""; }
+       }
+     }
+   / '\\' a1:[\u201c] { yyValue = "\u201c"; }
+   / '\\' a1:[\u201d] { yyValue = "\u201d"; };
+/* '*/
