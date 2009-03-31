@@ -148,7 +148,7 @@ public class Span implements Serializable, HasAt {
                 if (printer) w.append("\"");
                 w.append(":");
             }
-            if (begin.getLine() != end.getLine()) {
+            if (file_names_differ || begin.getLine() != end.getLine()) {
                 w.append(String.valueOf(end.getLine()));
                 w.append(":");
             }
