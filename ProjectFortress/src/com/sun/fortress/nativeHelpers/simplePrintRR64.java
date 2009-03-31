@@ -18,8 +18,8 @@
 package com.sun.fortress.nativeHelpers;
 
 public class simplePrintRR64 {
-	
-	public static void nativePrintRR64(double x) {
-		System.out.println(x);
-	}
+
+    public static void nativePrintRR64(double x) {
+        System.out.println(x);
+    }
 }
