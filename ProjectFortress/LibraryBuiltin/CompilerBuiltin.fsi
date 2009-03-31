@@ -21,7 +21,7 @@ trait Object extends Any
 end Object
 
 trait String
-(* opr || (self, b:String): String  *)
+opr || (self, b:String):String 
 end
 
 object FlatString extends String

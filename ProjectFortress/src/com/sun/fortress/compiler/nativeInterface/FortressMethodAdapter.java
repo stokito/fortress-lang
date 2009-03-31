@@ -76,8 +76,8 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FRR64",   "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
         initializeEntry("FBool",   "getValue", "()Z", "make", "(Z)L" + prefix + "FBool;");
         initializeEntry("FVoid",   "getValue", "()",  "make", "()L" + prefix + "FVoid;");
-        initializeEntry("FString", "getValue", "()Ljava/lang/String;", "make", "L(java/lang/String;)L" + 
-                        prefix + "Fstring;");
+        initializeEntry("FString", "getValue", "()Ljava/lang/String;", "make", "(Ljava/lang/String;)L" + 
+                        prefix + "FString;");
     }
 
     // Strip off the leading L + prefix, and trailing ;"

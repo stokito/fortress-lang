@@ -32,17 +32,31 @@ public class CompilerBuiltin {
     }
 
     public interface String extends Object {
+
+        public Integer foo(Integer a, Integer b);
+
         public class SpringBoard implements String {
             public static FString concatenate(FString a, FString b) {
                 return FString.make(simpleConcatenate.nativeConcatenate(a.toString(), b.toString()));
+            }
+            public Integer foo(Integer a, Integer b) {
+                return a + b;
             }
         }
     }
 
     public static class FlatString implements String {
+        public Integer foo(Integer a, Integer b) {
+            return a + b;
+        }
+
         public static FString concatenate(FString a, FString b) {
             return String.SpringBoard.concatenate(a,b);
         }
+    }
+
+    public static FString concatenate(FString a, FString b) {
+        return FString.make(simpleConcatenate.nativeConcatenate(a.toString(), b.toString()));
     }
 
     public interface Number extends Object {}
