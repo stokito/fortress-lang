@@ -27,6 +27,7 @@ public class Compiled2 {
                                                        FString.make("!")));
     }
     public static void main(String args[]) {
+        simpleSystem.registerArgs(args);
         run();
     }
 }

@@ -34,7 +34,7 @@ else
 fi
 
 if [ -z "$JAVA_FLAGS" ] ; then
-  JAVA_FLAGS=-Xmx256m
+  JAVA_FLAGS=-Xmx768m
 fi
 
 # echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"

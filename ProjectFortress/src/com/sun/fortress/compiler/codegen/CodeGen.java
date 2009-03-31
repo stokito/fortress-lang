@@ -29,7 +29,7 @@ import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Debug;
 
-// Note we have a name clash with org.objectweb.asm.Type 
+// Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
 // solution than writing out their entire types, please
 // shout out.
@@ -44,9 +44,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             Naming.stringArrayToVoid, null, null);
         mv.visitCode();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/simpleSystem", "registerArgs", Naming.stringArrayToVoid);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", Naming.voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(Naming.ignore, Naming.ignore);
+        mv.visitMaxs(1,1);      // Accurate for above boilerplate.
         mv.visitEnd();
     }
 
@@ -56,7 +58,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Naming.internalObject, "<init>", Naming.voidToVoid);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(Naming.ignore, Naming.ignore);
+        mv.visitMaxs(1,1);      // Accurate for above boilerplate.
         mv.visitEnd();
     }
 
@@ -102,7 +104,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             packageName = Naming.fortressPackage + Naming.slash;
         else
             packageName = Naming.emptyString;
-        
+
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                  packageName + className, null, Naming.internalObject, null);
 
@@ -118,11 +120,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         // generate code only for top-level functions and variables
         for ( Decl d : x.getDecls() ) {
-            if ( d instanceof VarDecl || d instanceof FnDecl || 
+            if ( d instanceof VarDecl || d instanceof FnDecl ||
                  d instanceof ObjectDecl || d instanceof TraitDecl )
                 d.accept(this);
             else sayWhat(d);
-        } 
+        }
         dumpClass( packageName + className );
     }
 
@@ -135,10 +137,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 for ( AliasedSimpleName n : x.getAliasedNames() ) {
                     Option<IdOrOpOrAnonymousName> aliasId = n.getAlias();
                     if (aliasId.isSome()) {
-                        Debug.debug(Debug.Type.CODEGEN,1,"forImportNames " + x + 
+                        Debug.debug(Debug.Type.CODEGEN,1,"forImportNames " + x +
                                     " aliasing " + NodeUtil.nameString(aliasId.unwrap()) +
                                     " to " + NodeUtil.nameString(n.getName()));
- 
+
                         aliasTable.put(NodeUtil.nameString(aliasId.unwrap()),
                                        apiName + Naming.dot +
                                        NodeUtil.nameString(n.getName()));
@@ -192,8 +194,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 IdOrOpOrAnonymousName xname = h.getName();
                 IdOrOp name = (IdOrOp) xname;
                 String desc = generateTypeDescriptor(f);
-                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() + 
-                            " and desc " + desc);                
+                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() +
+                            " and desc " + desc);
                 mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC, name.getText(), desc, null, null);
                 mv.visitMaxs(Naming.ignore, Naming.ignore);
                 mv.visitEnd();
@@ -214,19 +216,19 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 IdOrOp name = (IdOrOp) xname;
                 String desc = generateTypeDescriptor(f);
                 List<Param> params = h.getParams();
-                
-                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() + 
-                            " and desc " + desc + " current cw = " + cw);                
+
+                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() +
+                            " and desc " + desc + " current cw = " + cw);
                 mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name.getText(), desc, null, null);
-                Debug.debug(Debug.Type.CODEGEN, 1, "after call to visitMethod with" + name.getText() + 
-                            " and desc " + desc + " current cw = " + cw);                
-                for (int i = 0; i<params.size(); i++) 
+                Debug.debug(Debug.Type.CODEGEN, 1, "after call to visitMethod with" + name.getText() +
+                            " and desc " + desc + " current cw = " + cw);
+                for (int i = 0; i<params.size(); i++)
                     mv.visitVarInsn(Opcodes.ALOAD, i);
                 Option<Expr> body = f.getBody();
                 if (body.isSome()) {
                      Expr expr = body.unwrap();
                      expr.accept(this);
-                 } 
+                 }
                  mv.visitInsn(Opcodes.ARETURN);
                  mv.visitMaxs(Naming.ignore,Naming.ignore);
                  mv.visitEnd();
@@ -253,7 +255,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             String parent = Naming.emptyString;
             if ( extendsC.isEmpty() ) {
                 parent = Naming.internalObject;
-            } else { 
+            } else {
                 Debug.debug(Debug.Type.CODEGEN,1,"forTraitDecl extends size = " + extendsC.size());
                 BaseType parentType = extendsC.get(0).getBaseType();
                 if ( parentType instanceof AnyType )
@@ -283,23 +285,23 @@ public class CodeGen extends NodeAbstractVisitor_void {
             dumpSigs(header.getDecls());
             dumpClass( classFile );
             // Now lets do the springboard inner class that implements this interface.
-            
+
             String springBoardClass = classFile + Naming.dollar + Naming.springBoard;
             cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visitSource(classFile, null);
             cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, springBoardClass,
                      null, Naming.internalObject, new String[]{parent + Naming.springBoard} );
-            Debug.debug(Debug.Type.CODEGEN, 1, "Start writing springboard class " + springBoardClass);            
+            Debug.debug(Debug.Type.CODEGEN, 1, "Start writing springboard class " + springBoardClass);
             generateInitMethod();
-            Debug.debug(Debug.Type.CODEGEN, 1, "Finished init method " + springBoardClass);            
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished init method " + springBoardClass);
             dumpDecls(header.getDecls());
-            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls " + springBoardClass);            
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls " + springBoardClass);
             dumpClass(springBoardClass);
             // Now lets dump out the functional methods at top level.
             cw = prev;
             dumpDecls(header.getDecls());
-            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls for parent");            
-            
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls for parent");
+
         } else sayWhat( x );
     }
 
@@ -349,12 +351,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forOp(Op x) {
-        Debug.debug( Debug.Type.CODEGEN, 1,"forOp " + x + " infixity = " + x.getFixity() + " isEnclosing = " + x.isEnclosing() + " class = " + Naming.getJavaClassForSymbol(x));   
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOp " + x + " infixity = " + x.getFixity() + " isEnclosing = " + x.isEnclosing() + " class = " + Naming.getJavaClassForSymbol(x));
         sayWhat(x);
     }
 
     public void forOpExpr(OpExpr x) {
-        Debug.debug( Debug.Type.CODEGEN, 1,"forOpExpr " + x + " op = " + x.getOp() + " of class " + x.getOp().getClass() +  " args = " + x.getArgs());   
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOpExpr " + x + " op = " + x.getOp() + " of class " + x.getOp().getClass() +  " args = " + x.getArgs());
         FunctionalRef op = x.getOp();
         List<Expr> args = x.getArgs();
         for (Expr arg : args) {
@@ -372,18 +374,18 @@ public class CodeGen extends NodeAbstractVisitor_void {
         List<IdOrOp> names = x.getNames();
         Option<List<FunctionalRef>> overloadings = x.getOverloadings();
         Option<com.sun.fortress.nodes.Type> overloadingType = x.getOverloadingType();
-        Debug.debug( Debug.Type.CODEGEN, 1,"forOpRef " + x + 
-                     " info = " + info + "staticArgs = " + staticArgs + " exprType = " + exprType + 
-                     " lexicalDepth = " + lexicalDepth + " originalName = " + originalName + 
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOpRef " + x +
+                     " info = " + info + "staticArgs = " + staticArgs + " exprType = " + exprType +
+                     " lexicalDepth = " + lexicalDepth + " originalName = " + originalName +
                      " overloadings = " + overloadings + " overloadingType = " + overloadingType +
                      " names = " + names);
 
-        boolean canCompile = 
+        boolean canCompile =
             x.getStaticArgs().isEmpty() &&
             x.getOverloadings().isNone() &&
             exprType.isSome() &&
             names.size() == 1;
-        
+
         if (canCompile) {
             String name = originalName.getText();
             IdOrOp newName = names.get(0);
@@ -391,11 +393,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if (api.isSome()) {
                 APIName apiName = api.unwrap();
                 Debug.debug( Debug.Type.CODEGEN,1,"forOpRef name = " + name + " api = " + apiName);
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName), newName.getText(), 
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName), newName.getText(),
                                    Naming.emitDesc(exprType.unwrap()));
             } else {
                 Debug.debug(Debug.Type.CODEGEN,1,"forOpRef name = " + name);
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name, 
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name,
                                    Naming.emitDesc(exprType.unwrap()));
             }
         } else
@@ -437,9 +439,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 }
                 mv.visitCode();
                 body.unwrap().accept(this);
-                // Fix this 
+                // Fix this
                 if (NodeUtil.isVoidType(returnType.unwrap())) {
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make, 
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make,
                                        Naming.makeMethodDesc(Naming.emptyString, Naming.descFortressVoid));
                     mv.visitInsn(Opcodes.ARETURN);
                 } else {
@@ -485,7 +487,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 if ( arrow instanceof ArrowType )
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                        _method, Naming.emitDesc(arrow));
-                else {  // if ( ! arrow instanceof ArrowType ) 
+                else {  // if ( ! arrow instanceof ArrowType )
                     Debug.debug( Debug.Type.CODEGEN, 1,
                                  "class = " + internal_class + " method = " + _method +
                                  " type = " + arrow);
@@ -531,7 +533,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
         Debug.debug( Debug.Type.CODEGEN, 1,"forVoidLiteral " + x);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make, 
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make,
                            Naming.makeMethodDesc(Naming.emptyString, Naming.descFortressVoid));
     }
 }
