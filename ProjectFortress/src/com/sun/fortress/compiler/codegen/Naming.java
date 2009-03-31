@@ -45,7 +45,7 @@ public class Naming extends NodeAbstractVisitor<String> {
 
     //Asm requires you to call visitMaxs for every method
     // but ignores the arguments.
-    public static int ignore = 1;  
+    public static int ignore = 1;
 
     // Classes: internal names
     // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
@@ -127,55 +127,55 @@ public class Naming extends NodeAbstractVisitor<String> {
                               emitDesc(range));
     }
 
-    public static String emitDesc(com.sun.fortress.nodes.Type type) { 
-        return type.accept(new NodeAbstractVisitor<String>() { 
-            public void defaultCase(ASTNode x) { 
-                sayWhat( x ); 
-            } 
-            public String forArrowType(ArrowType t) { 
-                if (NodeUtil.isVoidType(t.getDomain())) 
-                    return makeMethodDesc("", emitDesc(t.getRange())); 
-                else return makeMethodDesc(emitDesc(t.getDomain()), 
-                                      emitDesc(t.getRange())); 
-            } 
-            public String forTupleType(TupleType t) { 
-                if ( NodeUtil.isVoidType(t) ) 
-                    return descFortressVoid; 
-                else { 
-                    if (t.getVarargs().isSome()) 
-                        sayWhat(t, "Can't compile VarArgs yet"); 
-                    else if (!t.getKeywords().isEmpty()) 
-                        sayWhat(t, "Can't compile Keyword args yet"); 
-                    else { 
-                        List<com.sun.fortress.nodes.Type> elements = t.getElements(); 
-                        Iterator<com.sun.fortress.nodes.Type> it = elements.iterator(); 
-                        String res = ""; 
-                        while (it.hasNext()) { 
-                            res = res + emitDesc(it.next()); 
-                        } 
-                        return res; 
-                    } 
-                    return sayWhat( t ); 
-                } 
-            } 
-            public String forTraitType(TraitType t) { 
-                if ( t.getName().getText().equals("String") ) 
-                    return descFortressString; 
-                else if ( t.getName().getText().equals("ZZ32") ) 
-                    return descFortressZZ32; 
-                else if ( t.getName().getText().equals("ZZ64") ) 
-                    return descFortressZZ64; 
-                else if ( t.getName().getText().equals("RR32") ) 
-                    return descFortressRR32; 
-                else if ( t.getName().getText().equals("RR64") ) 
-                    return descFortressRR64; 
-                else if ( t.getName().getText().equals("Bool")) 
-                    return descFortressBool; 
-                else if ( t.getName().getText().equals("Char")) 
-                    return descFortressChar; 
-                else 
-                    return sayWhat( t ); 
-            } 
+    public static String emitDesc(com.sun.fortress.nodes.Type type) {
+        return type.accept(new NodeAbstractVisitor<String>() {
+            public void defaultCase(ASTNode x) {
+                sayWhat( x );
+            }
+            public String forArrowType(ArrowType t) {
+                if (NodeUtil.isVoidType(t.getDomain()))
+                    return makeMethodDesc("", emitDesc(t.getRange()));
+                else return makeMethodDesc(emitDesc(t.getDomain()),
+                                      emitDesc(t.getRange()));
+            }
+            public String forTupleType(TupleType t) {
+                if ( NodeUtil.isVoidType(t) )
+                    return descFortressVoid;
+                else {
+                    if (t.getVarargs().isSome())
+                        sayWhat(t, "Can't compile VarArgs yet");
+                    else if (!t.getKeywords().isEmpty())
+                        sayWhat(t, "Can't compile Keyword args yet");
+                    else {
+                        List<com.sun.fortress.nodes.Type> elements = t.getElements();
+                        Iterator<com.sun.fortress.nodes.Type> it = elements.iterator();
+                        String res = "";
+                        while (it.hasNext()) {
+                            res = res + emitDesc(it.next());
+                        }
+                        return res;
+                    }
+                    return sayWhat( t );
+                }
+            }
+            public String forTraitType(TraitType t) {
+                if ( t.getName().getText().equals("String") )
+                    return descFortressString;
+                else if ( t.getName().getText().equals("ZZ32") )
+                    return descFortressZZ32;
+                else if ( t.getName().getText().equals("ZZ64") )
+                    return descFortressZZ64;
+                else if ( t.getName().getText().equals("RR32") )
+                    return descFortressRR32;
+                else if ( t.getName().getText().equals("RR64") )
+                    return descFortressRR64;
+                else if ( t.getName().getText().equals("Bool"))
+                    return descFortressBool;
+                else if ( t.getName().getText().equals("Char"))
+                    return descFortressChar;
+                else
+                    return sayWhat( t );
+            }
             });
     }
 
@@ -190,7 +190,7 @@ public class Naming extends NodeAbstractVisitor<String> {
             APIName apiName = maybe_api.unwrap();
             result = result + apiName.getText();
         }
-        Debug.debug(Debug.Type.CODEGEN, 1, 
+        Debug.debug(Debug.Type.CODEGEN, 1,
                     "getJavaClassForSymbol(" + fnName +")=" + result);
         return result;
     }
@@ -205,4 +205,3 @@ public class Naming extends NodeAbstractVisitor<String> {
 
 
 }
-    

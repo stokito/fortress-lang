@@ -295,7 +295,7 @@ private object SingletonIM[\Val\](key:ZZ64, val:Val) extends NonEmptyIntMap[\Val
         if s.key=key then self else addU(s) end
     (** As %add%, but throws %KeyOverlap% if %k% is already mapped. **)
     addNew(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
-        if s.key=key then throw KeyOverlap(key,val,s.val)
+    if s.key=key then throw KeyOverlap(key,val,s.val)
         else addU(s) end
     (** Internal: update with given singleton node **)
     update(n:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
