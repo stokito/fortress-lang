@@ -24,17 +24,13 @@ trait Object extends Any
 end Object
 
 trait String
-(* opr ||(self, b:String): String =  jConcatenate(self, b) *)
+opr ||(self, b:String): String =  jConcatenate(self, b)
 end
 
 object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-
-(*
-concat(t:String, o:String):String = jConcatenate(t,o)
-*)
 
 trait Number
 end

@@ -19,198 +19,56 @@ package com.sun.fortress.compiler.codegen;
 import java.io.FileOutputStream;
 import java.util.*;
 import org.objectweb.asm.*;
-import org.objectweb.asm.Type;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.ByteCodeWriter;
-import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.Modifiers;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Debug;
 
+// Note we have a name clash with org.objectweb.asm.Type 
+// and com.sun.fortress.nodes.Type.  If anyone has a better
+// solution than writing out their entire types, please
+// shout out.
 public class CodeGen extends NodeAbstractVisitor_void {
     ClassWriter cw;
-    FieldVisitor fv;
     MethodVisitor mv;
-    AnnotationVisitor av0;
     String className;
-    Symbols symbols;
+    String packageName;
     HashMap<String, String> aliasTable;
-    static String dollar = "$";
-    static Character dot = '.';
-    static Character slash = '/';
-    static String packageName = "";
-    String cache = ProjectProperties.BYTECODE_CACHE_DIR + slash;
-
-    // Classes: internal names
-    // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
-    String internalFloat  = Type.getInternalName(float.class);
-    String internalInt    = Type.getInternalName(int.class);
-    String internalDouble    = Type.getInternalName(double.class);
-    String internalLong    = Type.getInternalName(long.class);
-    String internalBoolean    = Type.getInternalName(boolean.class);
-    String internalChar    = Type.getInternalName(char.class);
-    String internalObject = Type.getInternalName(Object.class);
-    String internalString = Type.getInternalName(String.class);
-
-    // Classes: type descriptors
-    // (Section 2.1.3 in ASM 3.0: A Java bytecode engineering library)
-    private String internalToDesc(String type) {
-        return "L" + type + ";";
-    }
-    private String makeMethodDesc(String param, String result) {
-        return "(" + param + ")" + result;
-    }
-    private String makeMethodDesc(List<String> params, String result) {
-        String desc ="(";
-        for (String param : params) {
-            desc = desc + param;
-        }
-        desc = desc + "(" + result;
-        return desc;
-    }
-    private String makeArrayDesc(String element) {
-        return "[" + element;
-    }
-    String descFloat  = Type.getDescriptor(float.class);
-    String descInt    = Type.getDescriptor(int.class);
-    String descDouble = Type.getDescriptor(double.class);
-    String descLong = Type.getDescriptor(long.class);
-    String descBoolean = Type.getDescriptor(boolean.class);
-    String descChar = Type.getDescriptor(char.class);
-    String descString = internalToDesc(internalString);
-    String descVoid   = Type.getDescriptor(void.class);
-    String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
-    String voidToVoid        = makeMethodDesc("", descVoid);
-
-    // fortress types
-    String fortressPackage = "fortress";
-    String fortressAny = fortressPackage + slash + WellKnownNames.anyTypeLibrary() +
-                         dollar + WellKnownNames.anyTypeName;
-
-    // fortress interpreter types: internal names
-    private String makeFortressInternal(String type) {
-        return "com/sun/fortress/compiler/runtimeValues/F" + type;
-    }
-
-    String internalFortressZZ32  = makeFortressInternal("ZZ32");
-    String internalFortressZZ64  = makeFortressInternal("ZZ64");
-    String internalFortressRR32  = makeFortressInternal("RR32");
-    String internalFortressRR64  = makeFortressInternal("RR64");
-    String internalFortressBool  = makeFortressInternal("Bool");
-    String internalFortressChar  = makeFortressInternal("Char");
-    String internalFortressString = makeFortressInternal("String");
-    String internalFortressVoid   = makeFortressInternal("Void");
-
-    // fortress interpreter types: type descriptors
-    String descFortressZZ32  = internalToDesc(internalFortressZZ32);
-    String descFortressZZ64  = internalToDesc(internalFortressZZ64);
-    String descFortressRR32  = internalToDesc(internalFortressRR32);
-    String descFortressRR64  = internalToDesc(internalFortressRR64);
-    String descFortressBool  = internalToDesc(internalFortressBool);
-    String descFortressChar  = internalToDesc(internalFortressChar);
-    String descFortressString = internalToDesc(internalFortressString);
-    String descFortressVoid   = internalToDesc(internalFortressVoid);
-
-    String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
-
-    private String emitFnDeclDesc(com.sun.fortress.nodes.Type domain,
-                                  com.sun.fortress.nodes.Type range) {
-        return makeMethodDesc(NodeUtil.isVoidType(domain) ? "" : emitDesc(domain),
-                              emitDesc(range));
-    }
-
-    private String emitDesc(com.sun.fortress.nodes.Type type) {
-        return type.accept(new NodeAbstractVisitor<String>() {
-            public void defaultCase(ASTNode x) {
-                sayWhat( x );
-            }
-            public String forArrowType(ArrowType t) {
-                if (NodeUtil.isVoidType(t.getDomain()))
-                    return makeMethodDesc("", emitDesc(t.getRange()));
-                else return makeMethodDesc(emitDesc(t.getDomain()),
-                                      emitDesc(t.getRange()));
-            }
-            public String forTupleType(TupleType t) {
-                if ( NodeUtil.isVoidType(t) ) 
-                    return descFortressVoid;
-                else {
-                    if (t.getVarargs().isSome())
-                        sayWhat(t, "Can't compile VarArgs yet");
-                    else if (!t.getKeywords().isEmpty()) 
-                        sayWhat(t, "Can't compile Keyword args yet");
-                    else {
-                        List<com.sun.fortress.nodes.Type> elements = t.getElements();
-                        Iterator<com.sun.fortress.nodes.Type> it = elements.iterator();
-                        String res = "";
-                        while (it.hasNext()) {
-                            res = res + emitDesc(it.next());
-                        }
-                        return res;
-                    }
-                    return sayWhat( t );
-                }
-            }
-            public String forTraitType(TraitType t) {
-                if ( t.getName().getText().equals("String") )
-                    return descFortressString;
-                else if ( t.getName().getText().equals("ZZ32") )
-                    return descFortressZZ32;
-                else if ( t.getName().getText().equals("ZZ64") )
-                    return descFortressZZ64;
-                else if ( t.getName().getText().equals("RR32") )
-                    return descFortressRR32;
-                else if ( t.getName().getText().equals("RR64") )
-                    return descFortressRR64;
-                else if ( t.getName().getText().equals("Bool"))
-                    return descFortressBool;
-                else if ( t.getName().getText().equals("Char"))
-                    return descFortressChar;
-                else
-                    return sayWhat( t );
-            }
-        });
-    }
-
-    private String makeClassName(TraitObjectDecl t) {
-        return packageName + className + dollar + NodeUtil.getName(t).getText();
-    }
 
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
-                            stringArrayToVoid, null, null);
+                            Naming.stringArrayToVoid, null, null);
         mv.visitCode();
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", voidToFortressVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", Naming.voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(Naming.ignore, Naming.ignore);
         mv.visitEnd();
     }
 
     private void generateInitMethod() {
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", voidToVoid, null, null);
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Naming.voidToVoid, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, internalObject, "<init>", voidToVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Naming.internalObject, "<init>", Naming.voidToVoid);
         mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(Naming.ignore, Naming.ignore);
         mv.visitEnd();
     }
 
-
-    public CodeGen(String n, Symbols s) {
+    public CodeGen(String n) {
         className = n;
-        symbols = s;
         aliasTable = new HashMap<String, String>();
         Debug.debug( Debug.Type.CODEGEN, 1, "Compile: Compiling " + className );
     }
 
     public void dumpClass( String file ) {
         cw.visitEnd();
-        ByteCodeWriter.writeClass(cache, file, cw.toByteArray());
+        ByteCodeWriter.writeClass(Naming.cache, file, cw.toByteArray());
     }
 
     private <T> T sayWhat(ASTNode x) {
@@ -229,6 +87,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void forComponent(Component x) {
         Debug.debug(Debug.Type.CODEGEN, 1, "forComponent " + x.getName() + NodeUtil.getSpan(x));
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw.visitSource(className, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
         for ( APIName export : x.getExports() ) {
@@ -240,35 +99,31 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // If this component implements a default library,
         // generate "package fortress;"
         if ( exportsDefaultLibrary )
-            packageName = fortressPackage + slash;
+            packageName = Naming.fortressPackage + Naming.slash;
         else
-            packageName = "";
+            packageName = Naming.emptyString;
+        
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageName + className, null, internalObject, null);
+                 packageName + className, null, Naming.internalObject, null);
 
         // Always generate the init method
         generateInitMethod();
 
         // If this component exports an executable API,
-        // generate the main and run methods.
+        // generate a main method.
         if ( exportsExecutable ) {
             generateMainMethod();
         }
         for ( Import i : x.getImports() ) i.accept(this);
+
         // generate code only for top-level functions and variables
         for ( Decl d : x.getDecls() ) {
-            if ( d instanceof VarDecl || d instanceof FnDecl )
+            if ( d instanceof VarDecl || d instanceof FnDecl || 
+                 d instanceof ObjectDecl || d instanceof TraitDecl )
                 d.accept(this);
-        }
+            else sayWhat(d);
+        } 
         dumpClass( packageName + className );
-
-        // generate code only for traits and objects
-        for ( Decl d : x.getDecls() ) {
-            if ( d instanceof ObjectDecl || d instanceof TraitDecl )
-                d.accept(this);
-            else if ( ! (d instanceof VarDecl || d instanceof FnDecl) )
-                sayWhat(d);
-        }
     }
 
     public void forImportNames(ImportNames x) {
@@ -285,7 +140,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                                     " to " + NodeUtil.nameString(n.getName()));
  
                         aliasTable.put(NodeUtil.nameString(aliasId.unwrap()),
-                                       apiName + dot +
+                                       apiName + Naming.dot +
                                        NodeUtil.nameString(n.getName()));
                     }
                 }
@@ -294,13 +149,91 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forDecl(Decl x) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "forImportNames" + x);
+        Debug.debug(Debug.Type.CODEGEN, 1, "forDecl" + x);
         if (x instanceof TraitDecl)
             ((TraitDecl) x).accept(this);
         else if (x instanceof FnDecl)
             ((FnDecl) x).accept(this);
         else
             sayWhat(x);
+    }
+
+    private String generateTypeDescriptor(FnDecl f) {
+        FnHeader h = f.getHeader();
+        IdOrOpOrAnonymousName xname = h.getName();
+        IdOrOp name = (IdOrOp) xname;
+        List<Param> params = h.getParams();
+        Option<com.sun.fortress.nodes.Type> optionReturnType = h.getReturnType();
+        String desc = Naming.openParen;
+        for (Param p : params) {
+            Id paramName = p.getName();
+            Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
+            if (optionType.isNone())
+                sayWhat(f);
+            else {
+                com.sun.fortress.nodes.Type t = optionType.unwrap();
+                desc = desc + Naming.emitDesc(t);
+            }
+        }
+        if (optionReturnType.isNone())
+            desc = desc + Naming.closeParen + Naming.descFortressVoid;
+        else desc = desc + Naming.closeParen +  Naming.emitDesc(optionReturnType.unwrap());
+        Debug.debug(Debug.Type.CODEGEN, 1, "generateTypeDescriptor" + f + " = " + desc);
+        return desc;
+    }
+
+    private void dumpSigs(List<Decl> decls) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "dumpSigs" + decls);
+        for (Decl d : decls) {
+            Debug.debug(Debug.Type.CODEGEN, 1, "dumpSigs decl =" + d);
+            if (d instanceof FnDecl) {
+                FnDecl f = (FnDecl) d;
+                FnHeader h = f.getHeader();
+                IdOrOpOrAnonymousName xname = h.getName();
+                IdOrOp name = (IdOrOp) xname;
+                String desc = generateTypeDescriptor(f);
+                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() + 
+                            " and desc " + desc);                
+                mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC, name.getText(), desc, null, null);
+                mv.visitMaxs(Naming.ignore, Naming.ignore);
+                mv.visitEnd();
+            } else {
+                sayWhat(d);
+            }
+        }
+    }
+
+    private void dumpDecls(List<Decl> decls) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "dumpDecls" + decls);
+        for (Decl d : decls) {
+            if (d instanceof FnDecl) {
+                // Why can't we just call accept on the FnDecl?
+                FnDecl f = (FnDecl) d;
+                FnHeader h = f.getHeader();
+                IdOrOpOrAnonymousName xname = h.getName();
+                IdOrOp name = (IdOrOp) xname;
+                String desc = generateTypeDescriptor(f);
+                List<Param> params = h.getParams();
+                
+                Debug.debug(Debug.Type.CODEGEN, 1, "about to call visitMethod with" + name.getText() + 
+                            " and desc " + desc + " current cw = " + cw);                
+                mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name.getText(), desc, null, null);
+                Debug.debug(Debug.Type.CODEGEN, 1, "after call to visitMethod with" + name.getText() + 
+                            " and desc " + desc + " current cw = " + cw);                
+                for (int i = 0; i<params.size(); i++) 
+                    mv.visitVarInsn(Opcodes.ALOAD, i);
+                Option<Expr> body = f.getBody();
+                if (body.isSome()) {
+                     Expr expr = body.unwrap();
+                     expr.accept(this);
+                 } 
+                 mv.visitInsn(Opcodes.ARETURN);
+                 mv.visitMaxs(Naming.ignore,Naming.ignore);
+                 mv.visitEnd();
+            } else {
+                sayWhat(d);
+            }
+        }
     }
 
     public void forTraitDecl(TraitDecl x) {
@@ -314,17 +247,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getDecls().isEmpty() &&        // no members
-            header.getMods().isEmpty()         && // no modifiers
-            ( extendsC.isEmpty() || extendsC.size() == 1); // 0 or 1 super trait
+            header.getMods().isEmpty(); // no modifiers
+        Debug.debug(Debug.Type.CODEGEN, 1, "forTraitDecl" + x + " decls = " + header.getDecls() + " extends = " + extendsC);
         if ( canCompile ) {
-            String parent = "";
+            String parent = Naming.emptyString;
             if ( extendsC.isEmpty() ) {
-                parent = internalObject;
-            } else { // if ( extendsC.size() == 1 )
+                parent = Naming.internalObject;
+            } else { 
+                Debug.debug(Debug.Type.CODEGEN,1,"forTraitDecl extends size = " + extendsC.size());
                 BaseType parentType = extendsC.get(0).getBaseType();
                 if ( parentType instanceof AnyType )
-                    parent = fortressAny;
+                    parent = Naming.fortressAny;
                 else if ( parentType instanceof TraitType ) {
                     Id name = ((TraitType)parentType).getName();
                     Option<APIName> apiName = name.getApiName();
@@ -332,20 +265,41 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     else { // if ( apiName.isSome() )
                         String api = apiName.unwrap().getText();
                         if ( WellKnownNames.exportsDefaultLibrary( api ) )
-                            parent += fortressPackage + dot;
-                        parent += api + dollar + name.getText();
+                            parent += Naming.fortressPackage + Naming.dot;
+                        parent += api + Naming.dollar + name.getText();
                     }
                 } else
                     sayWhat( parentType, "Invalid type in an extends clause." );
             }
-            String classFile = makeClassName(x);
+
+            // First lets do the interface class
+            String classFile = Naming.makeClassName(packageName, className, x);
             ClassWriter prev = cw;
             cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            cw.visitSource(classFile, null);
             cw.visit( Opcodes.V1_5,
                       Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
-                      classFile, null, internalObject, new String[] { parent });
+                      classFile, null, Naming.internalObject, new String[] { parent });
+            dumpSigs(header.getDecls());
             dumpClass( classFile );
+            // Now lets do the springboard inner class that implements this interface.
+            
+            String springBoardClass = classFile + Naming.dollar + Naming.springBoard;
+            cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            cw.visitSource(classFile, null);
+            cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, springBoardClass,
+                     null, Naming.internalObject, new String[]{parent + Naming.springBoard} );
+            Debug.debug(Debug.Type.CODEGEN, 1, "Start writing springboard class " + springBoardClass);            
+            generateInitMethod();
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished init method " + springBoardClass);            
+            dumpDecls(header.getDecls());
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls " + springBoardClass);            
+            dumpClass(springBoardClass);
+            // Now lets dump out the functional methods at top level.
             cw = prev;
+            dumpDecls(header.getDecls());
+            Debug.debug(Debug.Type.CODEGEN, 1, "Finished dumpDecls for parent");            
+            
         } else sayWhat( x );
     }
 
@@ -363,13 +317,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
             header.getMods().isEmpty()         && // no modifiers
             ( extendsC.isEmpty() || extendsC.size() == 1 ); // 0 or 1 super trait
         if ( canCompile ) {
-            String parent = "";
+            String parent = Naming.emptyString;
             if ( extendsC.isEmpty() ) {
-                parent = internalObject;
+                parent = Naming.internalObject;
             } else { // if ( extendsC.size() == 1 )
                 BaseType parentType = extendsC.get(0).getBaseType();
                 if ( parentType instanceof AnyType )
-                    parent = fortressAny;
+                    parent = Naming.fortressAny;
                 else if ( parentType instanceof TraitType ) {
                     Id name = ((TraitType)parentType).getName();
                     Option<APIName> apiName = name.getApiName();
@@ -377,21 +331,75 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     else { // if ( apiName.isSome() )
                         String api = apiName.unwrap().getText();
                         if ( WellKnownNames.exportsDefaultLibrary( api ) )
-                            parent += fortressPackage + dot;
-                        parent += api + dollar + name.getText();
+                            parent += Naming.fortressPackage + Naming.dot;
+                        parent += api + Naming.dollar + name.getText();
                     }
                 } else
                     sayWhat( parentType, "Invalid type in an extends clause." );
             }
-            String classFile = makeClassName(x);
+            String classFile = Naming.makeClassName(packageName, className, x);
             ClassWriter prev = cw;
             cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                      classFile, null, internalObject, new String[] { parent });
+                      classFile, null, Naming.internalObject, new String[] { parent });
             generateInitMethod();
             dumpClass( classFile );
             cw = prev;
         } else sayWhat( x );
+    }
+
+    public void forOp(Op x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOp " + x + " infixity = " + x.getFixity() + " isEnclosing = " + x.isEnclosing() + " class = " + Naming.getJavaClassForSymbol(x));   
+        sayWhat(x);
+    }
+
+    public void forOpExpr(OpExpr x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOpExpr " + x + " op = " + x.getOp() + " of class " + x.getOp().getClass() +  " args = " + x.getArgs());   
+        FunctionalRef op = x.getOp();
+        List<Expr> args = x.getArgs();
+        for (Expr arg : args) {
+            arg.accept(this);
+        }
+        op.accept(this);
+    }
+
+    public void forOpRef(OpRef x) {
+        ExprInfo info = x.getInfo();
+        Option<com.sun.fortress.nodes.Type> exprType = info.getExprType();
+        List<StaticArg> staticArgs = x.getStaticArgs();
+        int lexicalDepth = x.getLexicalDepth();
+        IdOrOp originalName = x.getOriginalName();
+        List<IdOrOp> names = x.getNames();
+        Option<List<FunctionalRef>> overloadings = x.getOverloadings();
+        Option<com.sun.fortress.nodes.Type> overloadingType = x.getOverloadingType();
+        Debug.debug( Debug.Type.CODEGEN, 1,"forOpRef " + x + 
+                     " info = " + info + "staticArgs = " + staticArgs + " exprType = " + exprType + 
+                     " lexicalDepth = " + lexicalDepth + " originalName = " + originalName + 
+                     " overloadings = " + overloadings + " overloadingType = " + overloadingType +
+                     " names = " + names);
+
+        boolean canCompile = 
+            x.getStaticArgs().isEmpty() &&
+            x.getOverloadings().isNone() &&
+            exprType.isSome() &&
+            names.size() == 1;
+        
+        if (canCompile) {
+            String name = originalName.getText();
+            IdOrOp newName = names.get(0);
+            Option<APIName> api = newName.getApiName();
+            if (api.isSome()) {
+                APIName apiName = api.unwrap();
+                Debug.debug( Debug.Type.CODEGEN,1,"forOpRef name = " + name + " api = " + apiName);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName), newName.getText(), 
+                                   Naming.emitDesc(exprType.unwrap()));
+            } else {
+                Debug.debug(Debug.Type.CODEGEN,1,"forOpRef name = " + name);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name, 
+                                   Naming.emitDesc(exprType.unwrap()));
+            }
+        } else
+            Debug.debug(Debug.Type.CODEGEN,1,"forOpRef can't compile staticArgs " + x.getStaticArgs().isEmpty() + " overloadings " + x.getOverloadings().isNone());
     }
 
     public void forFnDecl(FnDecl x) {
@@ -417,16 +425,27 @@ public class CodeGen extends NodeAbstractVisitor_void {
             } else if ( name instanceof Id ) {
                 mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
                                     ((Id)name).getText(),
-                                    emitFnDeclDesc(NodeUtil.getParamType(x),
+                                    Naming.emitFnDeclDesc(NodeUtil.getParamType(x),
                                                    returnType.unwrap()),
                                     null, null);
-                // For now, only support zero or one parameter.
+                // For now, only support zero, one, or two parameters.
                 if ( paramsSize == 1 )
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
+                else if (paramsSize == 2) {
+                    mv.visitVarInsn(Opcodes.ALOAD,0);
+                    mv.visitVarInsn(Opcodes.ALOAD,1);
+                }
                 mv.visitCode();
                 body.unwrap().accept(this);
-                mv.visitInsn(Opcodes.RETURN);
-                mv.visitMaxs(2, 1);
+                // Fix this 
+                if (NodeUtil.isVoidType(returnType.unwrap())) {
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make, 
+                                       Naming.makeMethodDesc(Naming.emptyString, Naming.descFortressVoid));
+                    mv.visitInsn(Opcodes.ARETURN);
+                } else {
+                    mv.visitInsn(Opcodes.RETURN);
+                }
+                mv.visitMaxs(Naming.ignore,Naming.ignore);
                 mv.visitEnd();
             } else sayWhat(x, "Operator declarations are not supported.");
         } else sayWhat( x );
@@ -453,8 +472,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if ( aliasTable.containsKey(name) ) {
             String n = aliasTable.get(name);
             // Cheating by assuming class is everything before the dot.
-            int lastDot = n.lastIndexOf(dot);
-            String internal_class = n.substring(0, lastDot).replace(dot, slash);
+            int lastDot = n.lastIndexOf(Naming.dot);
+            String internal_class = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
             String _method = n.substring(lastDot+1);
             Debug.debug( Debug.Type.CODEGEN, 1,
                          "class = " + internal_class + " method = " + _method );
@@ -465,7 +484,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 com.sun.fortress.nodes.Type arrow = type.unwrap();
                 if ( arrow instanceof ArrowType )
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                       _method, emitDesc(arrow));
+                                       _method, Naming.emitDesc(arrow));
                 else {  // if ( ! arrow instanceof ArrowType ) 
                     Debug.debug( Debug.Type.CODEGEN, 1,
                                  "class = " + internal_class + " method = " + _method +
@@ -483,10 +502,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 Option<APIName> apiName = fnName.getApiName();
                 if ( apiName.isSome() ) {
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                       fortressPackage + slash + apiName.unwrap().getText(),
+                                       Naming.fortressPackage + Naming.slash + apiName.unwrap().getText(),
                                        fnName.getText(),
-                                       makeMethodDesc(descFortressString,
-                                                      descFortressVoid));
+                                       Naming.makeMethodDesc(Naming.descFortressString,
+                                                      Naming.descFortressVoid));
                 } else // if ( apiName.isNone() )
                     sayWhat( x, "API name is not disambiguated." );
             } else // if ( names.size() != 1 )
@@ -495,7 +514,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void for_RewriteFnApp(_RewriteFnApp x) {
-        Debug.debug( Debug.Type.CODEGEN, 1,"for_RewriteFnApp " + x);
+        Debug.debug( Debug.Type.CODEGEN, 1,"for_RewriteFnApp " + x + " args = " + x.getArgument() + " function = " + x.getFunction());
         x.getArgument().accept(this);
         x.getFunction().accept(this);
     }
@@ -506,13 +525,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // We make a FString and push it on the stack.
         Debug.debug( Debug.Type.CODEGEN, 1,"forStringLiteral " + x);
         mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressString, "make",
-                           makeMethodDesc(descString, descFortressString));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressString, Naming.make,
+                           Naming.makeMethodDesc(Naming.descString, Naming.descFortressString));
     }
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
         Debug.debug( Debug.Type.CODEGEN, 1,"forVoidLiteral " + x);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressVoid, "make",
-                           makeMethodDesc("", descFortressVoid));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressVoid, Naming.make, 
+                           Naming.makeMethodDesc(Naming.emptyString, Naming.descFortressVoid));
     }
 }
