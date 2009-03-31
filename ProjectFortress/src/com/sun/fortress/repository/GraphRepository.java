@@ -114,7 +114,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-    
+
     static private Map<String, DerivedFiles<CompilationUnit>> otherCaches = new HashMap<String, DerivedFiles<CompilationUnit>>();
 
     ForeignJava foreignJava = ForeignJava.only;
@@ -134,24 +134,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         String key=path+"//"+cache_path;
         DerivedFiles<CompilationUnit> derived_cache = otherCaches.get(key);
         if (derived_cache == null) {
-            
+
             Fn<PathTaggedApiName, String> toCompFileName = new Fn<PathTaggedApiName, String>() {
                 @Override
                 public String apply(PathTaggedApiName x) {
                     return ProjectProperties.compFileName(cache_path, NamingCzar.deCaseName(x));
                 }
             };
-            
+
             IOAst componentReaderWriter = new IOAst(toCompFileName);
-            
+
             derived_cache =
                 new DerivedFiles<CompilationUnit>(componentReaderWriter);
-            
+
             otherCaches.put(key, derived_cache);
         }
         return derived_cache;
     }
-    
+
     private static String[] roots() {
         /* files that are dependencies of everything */
         return defaultLibrary();
@@ -927,7 +927,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private CompilationUnit readCUFor(GraphNode node, String sourceSuffix) throws FileNotFoundException {
         APIName name = node.getName();
         File fdot = findFile(name, sourceSuffix);
-        return Parser.preparseFileConvertExn(fdot);
+        return Parser.importCollector(fdot);
     }
 
     public String getComponentSourcePath(APIName name) {
@@ -935,7 +935,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
         return node.getSourcePath();
     }
-    
+
     public PathTaggedApiName pathTaggedComponent(APIName name) {
         return new PathTaggedApiName(getComponentSourcePath(name), name);
     }

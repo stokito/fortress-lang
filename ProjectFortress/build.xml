@@ -96,6 +96,7 @@ maintain proper indentation.
   <!-- Parser packages -->
   <property name="parser"  location="${src}/${packagePrefix}/parser"/>
   <property name="preparser" location="${src}/${packagePrefix}/parser/preparser"/>
+  <property name="importcollector" location="${src}/${packagePrefix}/parser/import_collector"/>
   <property name="templateparser"
             location="${src}/${packagePrefix}/parser/templateparser"/>
   <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
@@ -301,6 +302,7 @@ maintain proper indentation.
     <delete file="${parser}/Fortress.java"/>
     <delete file="${parser}/FortressInstrumented.java"/>
     <delete file="${preparser}/PreFortress.java"/>
+    <delete file="${importcollector}/ImportCollector.java"/>
     <delete file="${templateparser}/TemplateParser.java"/>
     <delete file="${precedenceResolver}/Operators.java"/>
     <!-- No longer needed, but eases the upgrade-->
@@ -1000,6 +1002,10 @@ maintain proper indentation.
           <srcfiles dir="${parser}" includes="**/*.rats"/>
           <srcfiles dir="${preparser}" includes="**/*.rats"/>
         </uptodate>
+        <uptodate targetfile="${importcollector}/ImportCollector.java">
+          <srcfiles dir="${parser}" includes="**/*.rats"/>
+          <srcfiles dir="${importcollector}" includes="**/*.rats"/>
+        </uptodate>
         <uptodate targetfile="${templateparser}/TemplateParser.java">
           <srcfiles dir="${parser}" includes="**/*.rats"/>
           <srcfiles dir="${templateparser}" includes="**/*.rats"/>
@@ -1024,6 +1030,15 @@ maintain proper indentation.
       <srcfiles dir="${preparser}" includes="**/*.rats"/>
     </uptodate>
     <echo>Preparser up to date? ${preparser.uptodate}</echo>
+  </target>
+
+  <target name="checkImportCollectorUptodate" depends="init">
+    <uptodate property="importcollector.uptodate"
+              targetfile="${importcollector}/ImportCollector.java">
+      <srcfiles dir="${parser}" includes="**/*.rats"/>
+      <srcfiles dir="${importcollector}" includes="**/*.rats"/>
+    </uptodate>
+    <echo>ImportCollector up to date? ${importcollector.uptodate}</echo>
   </target>
 
   <target name="checkTemplateparserUptodate" depends="init">
@@ -1075,6 +1090,12 @@ maintain proper indentation.
     <buildparser name="preparser" dir="${preparser}" file="PreFortress.rats" />
   </target>
 
+  <target name="importcollector" unless="importcollector.uptodate"
+          depends="checkImportCollectorUptodate"
+          description="ImportCollector">
+    <buildparser name="importcollector" dir="${importcollector}" file="ImportCollector.rats" />
+  </target>
+
   <target name="templateparser" unless="templateparser.uptodate"
           depends="checkTemplateparserUptodate"
           description="Templateparser">
@@ -1115,6 +1136,7 @@ maintain proper indentation.
           description="Fortress Parser">
     <ant target="fortressparser" />
     <ant target="preparser" />
+    <ant target="importcollector" />
     <ant target="templateparser" />
   </target>
 

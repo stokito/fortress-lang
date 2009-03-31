@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
-import edu.rice.cs.plt.iter.IterUtil;
 
 public class MultipleStaticError extends StaticError implements Iterable<StaticError> {
 
@@ -62,7 +61,8 @@ public class MultipleStaticError extends StaticError implements Iterable<StaticE
         for ( StaticError error : errors ){
             buffer.append(error).append("\n");
         }
-        return buffer.toString();
+        String string = buffer.toString();
+        return string.substring(0,string.length()-1);
     }
 
     @Override

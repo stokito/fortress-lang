@@ -201,8 +201,8 @@ public final class Shell {
         );
     }
 
-    public static boolean getPreparse() {
-        return compileProperties.preparse;
+    public static boolean withMacro() {
+        return compileProperties.macro;
     }
 
     public static boolean getTypeChecking() {
@@ -217,8 +217,8 @@ public final class Shell {
         return compileProperties.getter_setter_desugar;
     }
 
-    public static void setPreparse(boolean preparse) {
-        compileProperties.preparse = preparse;
+    public static void setMacro(boolean macro) {
+        compileProperties.macro = macro;
     }
 
     public static void setTypeChecking(boolean type_check) {
@@ -234,19 +234,19 @@ public final class Shell {
     }
 
     /**
-     * Main entry point for the fortress shell. 
-     * In order to support accurate testing of error messages, this method immediately 
-     * forwards to its two parameter helper method. 
+     * Main entry point for the fortress shell.
+     * In order to support accurate testing of error messages, this method immediately
+     * forwards to its two parameter helper method.
      * *** Please do not directly add code to this method, as it will interfere with testing.
      * *** Tests will silently fail.
-     * *** Instead, add code to its helper method. 
+     * *** Instead, add code to its helper method.
      */
     public static void main(String[] tokens) throws InterruptedException, Throwable {
         main(false, tokens);
     }
 
     /* Helper method that allows main to be called from tests
-     * (without having to worry about System.exit). 
+     * (without having to worry about System.exit).
      */
     public static void main(boolean runFromTests, String[] tokens) throws InterruptedException, Throwable {
         if (tokens.length == 0) {
@@ -258,7 +258,7 @@ public final class Shell {
         int return_code = subMain(tokens);
 
 
-        if (return_code != 0) { 
+        if (return_code != 0) {
             if (! runFromTests) { System.exit(return_code); }
             else { return; }
         }
@@ -697,10 +697,10 @@ public final class Shell {
      * @param doLink
      * @return
      * @throws UserError
-     * @throws IOException 
+     * @throws IOException
      */
     private static int compileWithErrorHandling(String s, Option<String> out,
-            boolean doLink)
+                                                boolean doLink)
             throws UserError, IOException {
         int return_code = 0;
         try {
@@ -708,10 +708,10 @@ public final class Shell {
             Path path = sourcePath( s, name );
             String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
 
-            
-            Iterable<? extends StaticError> errors = 
-                IterUtil.sort(compilerPhases(path, file_name, out, doLink), 
-                              staticErrorComparator);
+
+            Iterable<? extends StaticError> errors =
+                IterUtil.sort(compilerPhases(path, file_name, out, doLink),
+                              StaticError.comparator);
             int num_errors = IterUtil.sizeOf(errors);
             if ( !IterUtil.isEmpty(errors) ) {
                 for (StaticError error: errors) {
@@ -783,26 +783,18 @@ public final class Shell {
             }
         } catch (ProgramError pe) {
             Iterable<? extends StaticError> se = pe.getStaticErrors();
-            if (se == null) {
+            if (se == null)
                 return IterUtil.singleton(new WrappedException(pe, Debug.isOn()));
-            }
-            else {
-                return se;
-            }
+            else
+                return flattenErrors(se);
         } catch (RepositoryError ex) {
             throw ex;
         } catch (FileNotFoundException ex) {
             throw new WrappedException(ex);
         } catch (IOException e) {
             throw new WrappedException(e);
-        } catch (MultipleStaticError ex) {
-            List<StaticError> result = new LinkedList<StaticError>();
-            for( StaticError err : ex ) {
-                result.add(new WrappedException(err, Debug.isOn()));
-            }
-            return result;
         } catch (StaticError ex) {
-             return IterUtil.singleton(new WrappedException(ex, Debug.isOn()));
+            return flattenErrors(ex);
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
@@ -823,17 +815,26 @@ public final class Shell {
         return IterUtil.empty();
     }
 
-    private static class StaticErrorComparator implements Comparator<StaticError> {
-        public int compare(StaticError left, StaticError right) {
-            // System.err.println("compare");
-            return left.compareTo(right);
+    private static List<? extends StaticError> flattenErrors(Iterable<? extends StaticError> ex) {
+        List<StaticError> result = new LinkedList<StaticError>();
+        for ( StaticError err : ex ) {
+            result.addAll( flattenErrors(err) );
         }
+        return result;
     }
-    private final static StaticErrorComparator staticErrorComparator = new StaticErrorComparator();
+
+    private static List<? extends StaticError> flattenErrors(StaticError ex) {
+        List<StaticError> result = new LinkedList<StaticError>();
+        if ( ex instanceof MultipleStaticError ) {
+            for ( StaticError err : (MultipleStaticError)ex )
+                result.addAll( flattenErrors(err) );
+        } else result.add(new WrappedException(ex, Debug.isOn()));
+        return result;
+    }
 
     public static void assertStaticErrors(Iterable<? extends StaticError> errors,
                                          String expected) throws UserError {
-        errors = IterUtil.sort(errors, staticErrorComparator);
+        errors = IterUtil.sort(errors, StaticError.comparator);
         String message = "";
         for ( StaticError error : errors ) {
             message += error.getMessage() + "\n";
@@ -866,8 +867,7 @@ public final class Shell {
                 s = s + ".fss";
             }
 
-            return compileWithErrorHandling( s, Option.<String>none(), 
-                    true );
+            return compileWithErrorHandling( s, Option.<String>none(), true );
         }
     }
 
@@ -1062,7 +1062,7 @@ public final class Shell {
      * The fields of this class serve as temporary switches used for testing.
      */
     private static class CompileProperties {
-        boolean preparse = ProjectProperties.getBoolean("fortress.compile.preparse", true);    // run syntax abstraction or not
+        boolean macro = ProjectProperties.getBoolean("fortress.compile.macro", true);    // run syntax abstraction or not
         boolean type_check = ProjectProperties.getBoolean("fortress.compile.typecheck", false); // run type checker or not
         boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.objexpr", false); // run obj expression desugaring or not
         boolean getter_setter_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.getset", true); // run getter/setter desugaring or not

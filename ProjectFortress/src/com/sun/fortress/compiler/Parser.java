@@ -22,8 +22,8 @@ import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -36,6 +36,7 @@ import xtc.parser.ParseError;
 //import xtc.parser.Result; // Not imported to prevent name clash.
 import com.sun.fortress.parser.Fortress; // Shadows Fortress in this package
 import com.sun.fortress.parser.preparser.PreFortress;
+import com.sun.fortress.parser.import_collector.ImportCollector;
 import com.sun.fortress.parser_util.SyntaxChecker;
 
 import com.sun.fortress.Shell;
@@ -112,13 +113,14 @@ public class Parser {
         public long lastModified() { return _lastModified; }
     }
 
-    /** Parses a single file. */
+    /** Parse a single file. */
     public static Result macroParse(File f,
                                     final GlobalEnvironment env,
                                     boolean verbose) {
         try {
-            if ( Shell.getPreparse() ) { // if not bypass the syntactic abstraction
-                CompilationUnit cu = preparseFileConvertExn(f); // preparse
+            if ( Shell.withMacro() ) { // if not bypass the syntactic abstraction
+                // parse only the import statements
+                CompilationUnit cu = importCollector(f);
                 List<GrammarIndex> grammars; // directly imported grammars
                 if (cu instanceof Component) {
                     Component c = (Component) cu;
@@ -145,6 +147,55 @@ public class Parser {
         } catch (StaticError se) {
             return new Result(se);
         }
+    }
+
+    /**
+     * Return a partial compilation unit including import statements.
+     */
+    public static CompilationUnit importCollector(File file) {
+        try {
+            String filename = file.getCanonicalPath();
+            BufferedReader in = Useful.utf8BufferedFileReader(file);
+            reportSyntaxErrors( preParser(in, filename) );
+            in.close();
+            in = Useful.utf8BufferedFileReader(file);
+            ImportCollector collector = new ImportCollector(in, filename);
+            xtc.parser.Result collectorResult = collector.pFile(0);
+            CompilationUnit cu = checkResultCU(collectorResult, collector, filename);
+            in.close();
+            return cu;
+        } catch (FileNotFoundException fnfe) {
+            throw convertExn(fnfe, file);
+        } catch (IOException ioe) {
+            throw convertExn(ioe, file);
+        }
+    }
+
+    /**
+     * Checks that a xtc.parser.Result contains a CompilationUnit,
+     * and checks the filename for the appropriate suffix.
+     * Throws a ParserError (note, subtype of StaticError) if the parse fails.
+     * Throws a StaticError if the filename has the wrong suffix.
+     */
+    private static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
+                                                 ParserBase parser,
+                                                 String filename) throws IOException {
+        if ( parseResult.hasValue() ) {
+            CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
+            if ( cu instanceof Api ) {
+                if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX))
+                    return (Api)cu;
+                else throw StaticError.make("API files must have suffix "
+                                            + ProjectProperties.API_SOURCE_SUFFIX,
+                                            (Api)cu);
+            } else if ( cu instanceof Component ) {
+                if (filename.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX))
+                    return (Component)cu;
+                else throw StaticError.make("Component files must have suffix "
+                                            + ProjectProperties.COMP_SOURCE_SUFFIX,
+                                            (Component)cu);
+            } else throw new RuntimeException("Unexpected parse result: " + cu);
+        } else throw new ParserError((ParseError) parseResult, parser);
     }
 
     /* Returns a list of grammars imported by a component.
@@ -218,6 +269,7 @@ public class Parser {
             /* call the parser on the component and checks the validity,
              * get back a component AST
              */
+            reportSyntaxErrors(getSyntaxErrors( f.getName() + ".macroError.log" ));
             CompilationUnit original = checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
             // dump(original, "original-" + f.getName());
             /* Transform the syntax abstraction nodes into core Fortress */
@@ -237,6 +289,7 @@ public class Parser {
             return new Result(StaticError.make(desc, f.toString()));
         } finally {
             try {
+                Files.rm( f.getCanonicalPath() + ".preparserError.log" );
                 Files.rm( f.getCanonicalPath() + ".macroError.log" );
                 if (in != null) in.close();
             } catch (IOException ioe) {}
@@ -255,24 +308,18 @@ public class Parser {
     }
 
     /**
-     * Parses a file as a compilation unit. Validates the parse by calling
-     * checkResultCU (see also description of exceptions there).
+     * Parses a file as a compilation unit.
      * Converts checked exceptions like IOException and FileNotFoundException
      * to StaticError with appropriate error message.
+     * Validates the parse by calling
+     * parseCU (see also description of exceptions there).
      */
     public static CompilationUnit parseFileConvertExn(File file) {
         try {
-            preparseFileConvertExn(file);
-            BufferedReader in = Useful.utf8BufferedFileReader(file);
             String filename = file.getCanonicalPath();
-            try {
-                Fortress parser = new Fortress(in, filename);
-                xtc.parser.Result parseResult = parser.pFile(0);
-                return checkResultCU(parseResult, parser, filename);
-            } finally {
-                Files.rm( filename + ".parserError.log" );
-                in.close();
-            }
+            return parseCU(Useful.utf8BufferedFileReader(file), filename,
+                           preParser(Useful.utf8BufferedFileReader(file),
+                                     filename));
         } catch (FileNotFoundException fnfe) {
             throw convertExn(fnfe, file);
         } catch (IOException ioe) {
@@ -281,147 +328,72 @@ public class Parser {
     }
 
     /**
-     * Parses a string as a compilation unit. See parseFile above.
+     * Parses a string as a compilation unit. See parseFileConvertExn above.
      */
-    public static CompilationUnit parseString(APIName api_name, String buffer) throws IOException {
-        // Also throws StaticError, ParserError
-        BufferedReader in = Useful.bufferedStringReader(buffer);
+    public static CompilationUnit parseString(APIName api_name,
+                                              String buffer) throws IOException {
+        String filename = api_name.getText();
+        return parseCU(Useful.bufferedStringReader(buffer), filename,
+                       preParser(Useful.bufferedStringReader(buffer),
+                                 filename));
+    }
+
+    private static CompilationUnit parseCU(BufferedReader in,
+                                           String filename,
+                                           List<StaticError> errors) throws IOException {
+        String parserLogFile = filename + ".parserError.log";
+        String syntaxLogFile = filename + ".syntaxError.log";
         try {
-            Fortress parser = new Fortress(in, api_name.getText());
+            Fortress parser = new Fortress(in, filename);
             xtc.parser.Result parseResult = parser.pFile(0);
-            return checkResultCU(parseResult, parser, api_name.getText());
+            errors.addAll( getSyntaxErrors( parserLogFile ) );
+            if ( parseResult.hasValue() ) {
+                CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
+                cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
+                File syntaxLog = new File( syntaxLogFile );
+                errors.addAll(getSyntaxErrors(syntaxLogFile));
+            }
+            reportSyntaxErrors( errors );
+            return checkResultCU(parseResult, parser, filename);
         } finally {
-            in.close();
+            try {
+                Files.rm( parserLogFile );
+                Files.rm( syntaxLogFile );
+                in.close();
+            } catch (IOException ioe) {}
         }
+    }
+
+    private static List<StaticError> getSyntaxErrors(String parserLogFile)
+        throws IOException {
+        List<StaticError> errors = new ArrayList<StaticError>();
+        File parserLog = new File( parserLogFile );
+        if ( parserLog.length() != 0 ) {
+            BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
+            String line = reader.readLine();
+            String message = "";
+            while ( line != null ) {
+                if ( beginError(line) && !message.equals("") ) {
+                    errors.add(StaticError.make(message.substring(0,message.length()-1)));
+                    message = line + "\n";
+                } else
+                    message += line + "\n";
+                line = reader.readLine();
+            }
+            if ( ! message.equals("") )
+                errors.add(StaticError.make(message.substring(0,message.length()-1)));
+        }
+        return errors;
     }
 
     private static boolean beginError(String line) {
         return (! line.startsWith(" "));
     }
 
-    /**
-     * Checks that a xtc.parser.Result is contains a CompilationUnit,
-     * and checks the filename for the appropriate suffix.
-     * Throws a ParserError (note, subtype of StaticError) if the parse fails.
-     * Throws a StaticError if the filename has the wrong suffix.
-     */
-    public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
-                                                ParserBase parser,
-                                                String filename) throws IOException {
-        String parserLogFile;
-        boolean isParse = false;
-        if ( parser instanceof Fortress ) {
-            parserLogFile = filename + ".parserError.log";
-            isParse = true;
-        } else if ( parser instanceof PreFortress ) {
-            parserLogFile = filename + ".preparserError.log";
-        } else {
-            parserLogFile = filename + ".macroError.log";
-        }
-        File parserLog = new File( parserLogFile );
-
-        if (parseResult.hasValue()) {
-            CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
-            if ( isParse ) {
-                String syntaxLogFile = filename + ".syntaxError.log";
-                cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
-                File syntaxLog = new File( syntaxLogFile );
-                if ( parserLog.length() + syntaxLog.length() != 0 ) {
-                    BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
-                    String line = reader.readLine();
-                    ArrayList<StaticError> errors = new ArrayList<StaticError>();
-                    String message = "";
-                    while ( line != null ) {
-                        if ( beginError(line) && !message.equals("") ) {
-                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                            message = line + "\n";
-                        } else
-                            message += line + "\n";
-                        line = reader.readLine();
-                    }
-                    if ( !message.equals("") )
-                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                    reader = Useful.filenameToBufferedReader( syntaxLogFile );
-                    line = reader.readLine();
-                    while ( line != null ) {
-                        if ( beginError(line) && !message.equals("") ) {
-                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                            message = line + "\n";
-                        } else
-                            message += line + "\n";
-                        line = reader.readLine();
-                    }
-                    if ( !message.equals("") )
-                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                    Files.rm( parserLogFile );
-                    Files.rm( syntaxLogFile );
-                    throw new MultipleStaticError(errors);
-                } else {
-                    Files.rm( parserLogFile );
-                    Files.rm( syntaxLogFile );
-                }
-            }
-            else {
-                if ( parserLog.length() != 0 ) {
-                    BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
-                    String line = reader.readLine();
-                    ArrayList<StaticError> errors = new ArrayList<StaticError>();
-                    String message = "";
-                    while ( line != null ) {
-                        if ( beginError(line) && !message.equals("") ) {
-                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                            message = line + "\n";
-                        } else
-                            message += line + "\n";
-                        line = reader.readLine();
-                    }
-                    if ( !message.equals("") )
-                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                    Files.rm( parserLogFile );
-                    throw new MultipleStaticError(errors);
-                } else {
-                    Files.rm( parserLogFile );
-                }
-            }
-
-            if (cu instanceof Api) {
-                if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
-                    return (Api)cu;
-                } else {
-                    throw StaticError.make("Api files must have suffix "
-                                           + ProjectProperties.API_SOURCE_SUFFIX,
-                                           (Api)cu);
-                }
-            } else if (cu instanceof Component) {
-                if (filename.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
-                    return (Component)cu;
-                } else {
-                    throw StaticError.make("Component files must have suffix "
-                                           + ProjectProperties.COMP_SOURCE_SUFFIX,
-                                           (Component)cu);
-                }
-            } else {
-                throw new RuntimeException("Unexpected parse result: " + cu);
-            }
-        } else {
-            if ( parserLog.length() != 0 ) {
-                System.err.println("Syntax error(s):");
-                BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
-                String line = reader.readLine();
-                while ( line != null ) {
-                    System.err.println( line );
-                    line = reader.readLine();
-                }
-                Files.rm( parserLogFile );
-                throw new ParserError(new xtc.parser.ParseError("", 0), parser);
-            } else {
-                Files.rm( parserLogFile );
-            }
-            throw new ParserError((ParseError) parseResult, parser);
-        }
+    private static void reportSyntaxErrors(List<StaticError> errors) {
+        if ( ! errors.isEmpty() )
+            throw new MultipleStaticError( errors );
     }
-
-    // Pre-parser
 
     /**
      * Preparses a file as a compilation unit. Validates the parse by calling
@@ -429,22 +401,17 @@ public class Parser {
      * Converts checked exceptions like IOException and FileNotFoundException
      * to StaticError with appropriate error message.
      */
-    public static CompilationUnit preparseFileConvertExn(File file) {
+    private static List<StaticError> preParser(BufferedReader in,
+                                               String filename) throws IOException {
+        String preparserLogFile = filename + ".preparserError.log";
         try {
-            BufferedReader in = Useful.utf8BufferedFileReader(file);
-            String filename = file.getCanonicalPath();
-            try {
-                PreFortress parser = new PreFortress(in, filename);
-                xtc.parser.Result parseResult = parser.pFile(0);
-                return checkResultCU(parseResult, parser, filename);
-            } finally {
-                Files.rm( filename + ".preparserError.log" );
-                in.close();
-            }
-        } catch (FileNotFoundException fnfe) {
-            throw convertExn(fnfe, file);
-        } catch (IOException ioe) {
-            throw convertExn(ioe, file);
+            PreFortress preparser = new PreFortress(in, filename);
+            preparser.pFile(0);
+            List<StaticError> errors = getSyntaxErrors( preparserLogFile );
+            in.close();
+            return errors;
+        } finally {
+            Files.rm( preparserLogFile );
         }
     }
 
