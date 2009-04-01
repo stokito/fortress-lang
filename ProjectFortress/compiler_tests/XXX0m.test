@@ -17,9 +17,13 @@ tests=Compiled0.m
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:20:3-22:3:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:17:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:21:13-25:\n\
-\ Unmatched delimiter \"\\\"\".\n\
-File Compiled0.m.fss has 2 errors.\n
+${STATIC_TESTS_DIR}/Compiled0.m.fss:20:14:\n\
+\ Unmatched delimiter \"do\".\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:21:12-22:2:\n\
+\ Unmatched delimiters \"\\\"\"\ and \"end\".\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:21:26:\n\
+\ Invalid string literal content: \n\
+File Compiled0.m.fss has 4 errors.\n
 compile_out_equals=

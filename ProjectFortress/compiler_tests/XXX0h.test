@@ -17,7 +17,9 @@ tests=Compiled0.h
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.h.fss:20:11:\n\
-\ Unmatched delimiter \")\".\n\
-File Compiled0.h.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled0.h.fss:17:1-20:11:\n\
+\ Unmatched delimiters \"component\" and \")\".\n\
+${STATIC_TESTS_DIR}/Compiled0.h.fss:22:1-2:\n\
+\ Unmatched delimiter \"end\".\n\
+File Compiled0.h.fss has 2 errors.\n
 compile_out_equals=

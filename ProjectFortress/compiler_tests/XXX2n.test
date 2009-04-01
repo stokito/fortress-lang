@@ -19,10 +19,10 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled2.n.fss:22:1-26:3:\n\
-\ Missing = in a function declaration.\n\
-${STATIC_TESTS_DIR}/Compiled2.n.fss:22:6:\n\
-\ Unmatched delimiter ")".\n\
+${STATIC_TESTS_DIR}/Compiled2.n.fss:18:1-22:6:\n\
+\ Unmatched delimiters \"component\" and \")\".\n\
+${STATIC_TESTS_DIR}/Compiled2.n.fss:26:1-2:\n\
+\ Unmatched delimiter \"end\".\n\
 File Compiled2.n.fss has 2 errors.\n\
 
 compile_out_equals=

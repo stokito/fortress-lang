@@ -40,7 +40,8 @@ FnDecl FnDecl =
      { if (a1 == null) a1 = Modifiers.None;
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);
      }
-   / AbsFnDecl ;
+   / AbsFnDecl
+   ;
 
 /* AbsFnDecl ::=
      Mods? AbsFnHeaderFront FnHeaderClause

@@ -17,7 +17,7 @@ tests=Compiled0.j
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.j.fss:20:6-7:\n\
-\ Unmatched delimiter \"[\" and \"\\]\".\n\
+${STATIC_TESTS_DIR}/Compiled0.j.fss:20:6-8:\n\
+\ Unmatched delimiters \"[\" and \"\\]\".\n\
 File Compiled0.j.fss has 1 error.\n
 compile_out_equals=

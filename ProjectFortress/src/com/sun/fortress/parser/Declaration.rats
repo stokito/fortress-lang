@@ -19,12 +19,13 @@
  * Definition of Fortress top-level declarations.
  */
 module com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
-                                           Other, Spacing, Syntax);
+                                           Other, NoNewlineExpr, Spacing, Syntax);
 
 import TraitObject;
 import Function;
 import Variable;
 import Other;
+import NoNewlineExpr;
 import Spacing;
 import Syntax;
 
@@ -49,10 +50,16 @@ List<Decl> Decl =
    / a1:ObjectDecl   { yyValue = Useful.list((Decl)a1); }
    / a1:VarDecl      { yyValue = Useful.list((Decl)a1); }
    / a1:FnDecl       { yyValue = Useful.list((Decl)a1); }
+   / FnHeaderFront w NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Invalid top-level declaration.");
+       yyValue = Useful.list();
+     }
    / DimUnitDecl
    / a1:TypeAlias    { yyValue = Useful.list((Decl)a1); }
    / a1:TestDecl     { yyValue = Useful.list((Decl)a1); }
-   / a1:PropertyDecl { yyValue = Useful.list((Decl)a1); };
+   / a1:PropertyDecl { yyValue = Useful.list((Decl)a1); }
+   ;
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*

@@ -1,0 +1,193 @@
+/*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals.
+ */
+module com.sun.fortress.parser.preparser.PreLiteral(Symbol, Spacing, Identifier);
+
+import Symbol;
+import Spacing;
+import Identifier;
+
+/* LiteralExpr ::=
+     ( w )
+   | NumericLiteralExpr
+   | CharLiteralExpr
+   | StringLiteralExpr
+ */
+Expr LiteralExpr =
+     <VOID> VoidLiteralExpr
+   / <NUMERICAL> NumericLiteralExpr
+   / <CHAR> CharLiteralExpr
+   / <STRING> StringLiteralExpr
+   ;
+
+Expr VoidLiteralExpr =
+     <FIRST> openparen w closeparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
+
+transient IntLiteralExpr IntLiteralExpr =
+     <FIRST> a1:NumericLiteralExpr &{ (a1 instanceof IntLiteralExpr) }
+     { yyValue = (IntLiteralExpr)a1; };
+
+NumberLiteralExpr NumericLiteralExpr =
+     NumericLiteralWithRadix
+   / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
+     { String numeral = a1;
+       for (String n: a2s.list()) numeral += n;
+       Span span = createSpan(yyStart,yyCount);
+       NodeUtil.validNumericLiteral(writer, span, numeral);
+       if ( NodeUtil.validIntLiteral(numeral) )
+           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+     };
+
+private NumberLiteralExpr NumericLiteralWithRadix =
+     a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
+     { String numeral = a1;
+       for (String n: a2s.list()) numeral += n;
+       Span span = createSpan(yyStart,yyCount);
+       NodeUtil.validNumericLiteral(writer, span, numeral, a3);
+       numeral += "_"+NodeUtil.radix2Number(a3);
+       if ( NodeUtil.validIntLiteral(numeral) )
+           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+     };
+
+private transient String NumericWord =
+     a1s:NumericCharacter+
+     { yyValue = "";
+       for (String n: a1s.list()) yyValue += n;
+     };
+private transient String NumericCharacter = [0-9a-zA-Z];
+
+private transient String RestNumericWord =
+    a1:NumericSeparator a2:NumericWord { yyValue = a1+a2; };
+
+private transient String NumericSeparator = NumericSpace / "." ;
+private transient String NumericSpace = "'" / "\u202f" ;
+
+private transient String RadixSpecifier =
+     a1:DigitString !([a-zA-Z]) &{ NodeUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
+   / RadixNames ;
+
+private transient String DigitString = [0-9]+;
+
+private transient String RadixNames =
+     "SIXTEEN"
+   / "FIFTEEN"
+   / "FOURTEEN"
+   / "THIRTEEN"
+   / "TWELVE"
+   / "ELEVEN"
+   / "TEN"
+   / "NINE"
+   / "EIGHT"
+   / "SEVEN"
+   / "SIX"
+   / "FIVE"
+   / "FOUR"
+   / "THREE"
+   / "TWO" ;
+
+CharLiteralExpr CharLiteralExpr =
+     <FIRST> "'" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / "`" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / "\u2018" a1:CharLiteralContent "\u2019"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / <ErrorProduction1> "'" a1:CharLiteralContent "\u2019"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     }
+   / <ErrorProduction2> "`" a1:CharLiteralContent "\u2019"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     }
+   / <ErrorProduction3> "\u2018" a1:CharLiteralContent "'"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     };
+
+StringLiteralExpr StringLiteralExpr =
+     <FIRST> ["] a1:StringLiteralContent* ["]
+     { String str = "";
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
+     }
+   / "\u201c" a1:StringLiteralContent* "\u201d"
+     { String str = "";
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
+     }
+   / <ErrorProduction1> ["] a1:StringLiteralContent* "\u201d"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   / <ErrorProduction2> "\u201c" a1:StringLiteralContent* ["]
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     };
+private String StringLiteralContent =
+     EscapeSequence
+   / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); };
+
+private void InvalidStringLiteralContent =
+     void:["\u201c\u201d]
+   / a1:[\\]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / a1:[\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + c); };
+
+private String EscapeSequence =
+     '\\' a1:[btnfr"\\]
+     { switch (a1) {
+           case 'b': { yyValue = "\b"; break; }
+           case 't': { yyValue = "\t"; break; }
+           case 'n': { yyValue = "\n"; break; }
+           case 'f': { yyValue = "\f"; break; }
+           case 'r': { yyValue = "\r"; break; }
+           case '"': { yyValue = "\""; break; }
+           case '\\': { yyValue = "\\"; break; }
+           default: { yyValue = ""; }
+       }
+     }
+   / '\\' a1:[\u201c] { yyValue = "\u201c"; }
+   / '\\' a1:[\u201d] { yyValue = "\u201d"; };
+
+private String CharLiteralContent =
+     EscapeSequence
+   / a1:(!InvalidCharLiteralContent _) { yyValue = String.valueOf(a1); };
+
+private String InvalidCharLiteralContent =
+     a1:[\\\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f"\u201c\u201d\u2028\u2029]
+     { log(createSpan(yyStart,yyCount), "Invalid character literal: " + a1);
+       yyValue = "";
+     }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { log(createSpan(yyStart,yyCount), "Invalid character literal: " + c);
+       yyValue = "";
+     };
