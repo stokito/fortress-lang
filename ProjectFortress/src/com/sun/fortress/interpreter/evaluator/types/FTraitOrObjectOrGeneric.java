@@ -82,7 +82,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
     public final void initializeFunctionalMethods(Environment topLevel) {
         if (isSymbolic)
             return;
-        FTraitOrObjectOrGeneric x = this;
+        FTraitOrObjectOrGeneric tooog = this;
         // List<Decl> defs = members;
 
         SortedSet<FnDecl> defs = Useful
@@ -96,7 +96,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                             }
                         }, NodeComparator.fnAbsDeclOrDeclComparer);
 
-        if (x instanceof FTypeGeneric) {
+        if (tooog instanceof FTypeGeneric) {
 
             for (FnDecl dod : defs) {
 
@@ -113,7 +113,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // empty top-level overloading, to be filled in as
                     // the container is instantiated.
                     Fcn cl = new GenericFunctionalMethod(getWithin(), fndod,
-                                                         spi, (FTypeGeneric)x);
+                                                         spi, (FTypeGeneric)tooog);
 
                     topLevel.putValueNoShadowFn(fndodname, cl);
                     // TODO test and other modifiers
@@ -131,8 +131,8 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     FnDecl fndod = (FnDecl) dod;
                     String fndodname = NodeUtil.nameString(NodeUtil.getName(fndod));
 
-                    Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, x);
-                    if (x instanceof GenericTypeInstance) {
+                    Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, tooog);
+                    if (tooog instanceof GenericTypeInstance) {
                         topLevel.putFunctionalMethodInstance(fndodname, cl);
                     } else {
                         topLevel.putValueNoShadowFn(fndodname, cl);

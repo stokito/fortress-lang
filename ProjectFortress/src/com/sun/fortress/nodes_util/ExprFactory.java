@@ -43,7 +43,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
 
-    public static int lexicalDepth = -2147483648;
+    public static int defaultLexicalDepth = -2147483648;
 
     public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that,
                                                                       boolean parenthesized) {
@@ -325,7 +325,7 @@ public class ExprFactory {
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
         return makeFnRef(span, false, Option.<Type>none(), sargs,
-                         lexicalDepth, name,
+                         defaultLexicalDepth, name,
                          Collections.<IdOrOp>singletonList(name),
                          Option.<List<FunctionalRef>>none(),
                          Option.<Type>none());
@@ -335,7 +335,7 @@ public class ExprFactory {
                                   Id original_fn, List<IdOrOp> fns,
                                   List<StaticArg> sargs) {
         return makeFnRef(span, paren, Option.<Type>none(), sargs,
-                         lexicalDepth, original_fn, fns,
+                         defaultLexicalDepth, original_fn, fns,
                          Option.<List<FunctionalRef>>none(),
                          Option.<Type>none());
     }
@@ -347,7 +347,7 @@ public class ExprFactory {
     public static FnRef makeFnRef(Id orig, List<IdOrOp> names){
         return makeFnRef(NodeUtil.getSpan(orig), false, Option.<Type>none(),
                          Collections.<StaticArg>emptyList(),
-                         lexicalDepth, orig, names,
+                         defaultLexicalDepth, orig, names,
                          Option.<List<FunctionalRef>>none(),
                          Option.<Type>none());
     }
@@ -374,7 +374,7 @@ public class ExprFactory {
                                   List<IdOrOp> ids, List<StaticArg> sargs,
                                   Option<List<FunctionalRef>> overloadings) {
         return makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), ty,
-                         sargs, lexicalDepth, name, ids,
+                         sargs, defaultLexicalDepth, name, ids,
                          overloadings, Option.<Type>none());
     }
 
@@ -416,7 +416,7 @@ public class ExprFactory {
 
     public static FunctionalRef makeOpRef(Op op, List<StaticArg> staticArgs) {
         return makeOpRef(NodeUtil.getSpan(op), false, Option.<Type>none(), staticArgs,
-                         lexicalDepth, op, Collections.<IdOrOp>singletonList(op),
+                         defaultLexicalDepth, op, Collections.<IdOrOp>singletonList(op),
                          Option.<List<FunctionalRef>>none(),
                          Option.<Type>none());
     }
@@ -449,7 +449,7 @@ public class ExprFactory {
     public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj,
                                              List<StaticArg> static_args) {
     	return makeVarRef(NodeUtil.getSpan(in_obj), parenthesized, Option.<Type>none(),
-                          in_obj, static_args, lexicalDepth);
+                          in_obj, static_args, defaultLexicalDepth);
     }
 
     public static VarRef makeVarRef(Span span, String s) {
@@ -472,7 +472,7 @@ public class ExprFactory {
 
     public static VarRef makeVarRef(Span span, Id id, List<StaticArg> sargs) {
         return makeVarRef(span, false, Option.<Type>none(), id, sargs,
-                          lexicalDepth);
+                          defaultLexicalDepth);
     }
 
     public static VarRef makeVarRef(Span span, Iterable<Id> apiIds, Id name) {
@@ -513,7 +513,7 @@ public class ExprFactory {
     public static VarRef makeVarRef(Span span, boolean isParenthesized,
                                     Option<Type> exprType, Id varId) {
         return makeVarRef(span, isParenthesized, exprType, varId,
-                          Collections.<StaticArg>emptyList(), lexicalDepth);
+                          Collections.<StaticArg>emptyList(), defaultLexicalDepth);
     }
 
     public static VarRef makeVarRef(Span span, boolean parenthesized,

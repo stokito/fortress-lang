@@ -111,6 +111,7 @@ public class SignatureParser {
             switch(ch) {
             case 'B':
             case 'S': error(s);
+            break; // Superfluous, but just in case you thought error returned.
             case '[': error(s);
             break; // Superfluous, but just in case you thought error returned.
             case 'C': 
@@ -147,7 +148,9 @@ public class SignatureParser {
 
         switch(ch) {
         case 'B': error(s);
+        break; // Superfluous, but just in case you thought error returned.
         case 'S': error(s);
+        break; // Superfluous, but just in case you thought error returned.
         case '[': error(s);
         break; // Superfluous, but just in case you thought error returned.
         case 'C':

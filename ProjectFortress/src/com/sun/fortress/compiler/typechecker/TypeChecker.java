@@ -3825,7 +3825,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     @Override
-    public TypeCheckerResult forOpRefOnly(final OpRef that, TypeCheckerResult exprType_result,
+    public TypeCheckerResult forOpRefOnly(final OpRef thatOpRef, TypeCheckerResult exprType_result,
                                               List<TypeCheckerResult> staticArgs_result,
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> ops_result,
@@ -3834,7 +3834,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // Did all ops typecheck?
         for( TypeCheckerResult o_r : ops_result ) {
             if( !o_r.isSuccessful() )
-                return TypeCheckerResult.compose(that, subtypeChecker, ops_result);
+                return TypeCheckerResult.compose(thatOpRef, subtypeChecker, ops_result);
         }
 
         List<Type> overloaded_types = CollectUtil.makeList(IterUtil.map(ops_result, new Lambda<TypeCheckerResult, Type>() {
@@ -3847,7 +3847,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // If no static args are given, but overloadings require them, we'll create an,
         // OpRef with the overloading field set.
-        if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
+        if( thatOpRef.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
             List<FunctionalRef> overloadings = new ArrayList<FunctionalRef>();
             List<Type> arrow_types = new ArrayList<Type>();
             ConstraintFormula accumulated_constraints = trueFormula();
@@ -3861,7 +3861,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                     ArrowType gen_arr_type) {
                                 // If the arrow type is generic, it needs static args, so make up inference variables
                                 List<StaticArg> new_args =
-                                    TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(NodeUtil.getSpan(that), NodeUtil.getStaticParams(gen_arr_type).size()));
+                                    TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(NodeUtil.getSpan(thatOpRef), NodeUtil.getStaticParams(gen_arr_type).size()));
                                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args,TypeChecker.this.subtypeChecker);
                                 if( instantiated_type.isNone() )
                                     return none();
@@ -3884,17 +3884,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(), new SubtypeHistory(subtypeChecker));
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 
-                    FunctionalRef new_op_ref = ExprFactory.makeOpRef(NodeUtil.getSpan(that),
-                                                                                         NodeUtil.isParenthesized(that),
-                                                                                         NodeUtil.getExprType(that),
+                    FunctionalRef new_op_ref = ExprFactory.makeOpRef(NodeUtil.getSpan(thatOpRef),
+                                                                                         NodeUtil.isParenthesized(thatOpRef),
+                                                                                         NodeUtil.getExprType(thatOpRef),
                                                                                          new_args,
-                                                                                         that.getLexicalDepth(),
-                                                                                         that.getOriginalName(),
-                                                                                         that.getNames(),
-                                                                                         that.getOverloadings(),
+                                                                                         thatOpRef.getLexicalDepth(),
+                                                                                         thatOpRef.getOriginalName(),
+                                                                                         thatOpRef.getNames(),
+                                                                                         thatOpRef.getOverloadings(),
                                                                                          Option.<Type>none());
 
-                    overloadings.add(ExprFactory.make_RewriteOpRefOverloading(NodeUtil.getSpan(that), new_op_ref, new_type));
+                    overloadings.add(ExprFactory.make_RewriteOpRefOverloading(NodeUtil.getSpan(thatOpRef), new_op_ref, new_type));
                     arrow_types.add(new_type);
                 }
             }
@@ -3902,13 +3902,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             type = (arrow_types.isEmpty()) ?
                     Option.<Type>none() :
                         Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
-                    new_node = ExprFactory.makeOpRef(NodeUtil.getSpan(that),
-                                                                         NodeUtil.isParenthesized(that),
+                    new_node = ExprFactory.makeOpRef(NodeUtil.getSpan(thatOpRef),
+                                                                         NodeUtil.isParenthesized(thatOpRef),
                                                                          type,
-                                                                         that.getStaticArgs(),
-                                                                         that.getLexicalDepth(),
-                                                                         that.getOriginalName(),
-                                                                         that.getNames(),
+                                                                         thatOpRef.getStaticArgs(),
+                                                                         thatOpRef.getLexicalDepth(),
+                                                                         thatOpRef.getOriginalName(),
+                                                                         thatOpRef.getNames(),
                                                                          Option.<List<FunctionalRef>>some(overloadings),
                                                                          Option.<Type>none());
                     constraints = accumulated_constraints;
@@ -3918,7 +3918,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             List<Type> arrow_types = new ArrayList<Type>();
             ConstraintFormula accumulated_constraints=trueFormula();
             for( Type ty : overloaded_types ) {
-                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(),this.subtypeChecker);
+                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, thatOpRef.getStaticArgs(),this.subtypeChecker);
                 if( instantiated_type.isSome()){
                     arrow_types.add(instantiated_type.unwrap().first());
                     accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), new SubtypeHistory(subtypeChecker));
@@ -3930,12 +3930,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 
                     constraints = accumulated_constraints;
-                    new_node = ExprFactory.makeOpRef(NodeUtil.getSpan(that),
-                                                                         NodeUtil.isParenthesized(that),
+                    new_node = ExprFactory.makeOpRef(NodeUtil.getSpan(thatOpRef),
+                                                                         NodeUtil.isParenthesized(thatOpRef),
                                                                          type,
                                                              (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
-                                                             that.getLexicalDepth(),
-                                                             that.getOriginalName(),
+                                                             thatOpRef.getLexicalDepth(),
+                                                             thatOpRef.getOriginalName(),
                                                              (List<IdOrOp>)TypeCheckerResult.astFromResults(ops_result),
                                                                          Option.<List<FunctionalRef>>none(),
                                                              Option.<Type>none());
@@ -4261,15 +4261,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
     }
 
-    private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,
+    private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr thatTypeAnnotatedExpr,
             final TypeCheckerResult expr_result,
             String errorMsg) {
 
         if( expr_result.type().isNone() ) {
-            return new TypeCheckerResult(that);
+            return new TypeCheckerResult(thatTypeAnnotatedExpr);
         }
 
-        final Type annotatedType = that.getAnnType();
+        final Type annotatedType = thatTypeAnnotatedExpr.getAnnType();
         Type exprType = expr_result.type().unwrap();
 
         // Check that expression type <: annotated type.
@@ -4279,7 +4279,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 errorMsg);
 
         Node new_node =
-            that.accept(new NodeAbstractVisitor<Node>(){
+            thatTypeAnnotatedExpr.accept(new NodeAbstractVisitor<Node>(){
 
                 @Override
                 public Node forAsExpr(AsExpr that) {
