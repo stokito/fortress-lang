@@ -17,19 +17,12 @@
 
 package com.sun.fortress.nativeHelpers;
 
-public class simpleSystem {
+public class systemHelper {
 
-    public static int nativeArgcount() {
-        if (systemHelper.cmdline != null) {
-            return systemHelper.cmdline.length;
-        } else {
-            return 0;
-        }
+    public static volatile String[] cmdline = null;
+
+    public static void registerArgs(String[] args) {
+        cmdline = args;
     }
 
-    public static String nativeArg(int n) {
-        if (systemHelper.cmdline.length >= n)
-            return systemHelper.cmdline[n];
-        else throw new RuntimeException("Can't get a command line arg because none was provided");
-    }
 }
