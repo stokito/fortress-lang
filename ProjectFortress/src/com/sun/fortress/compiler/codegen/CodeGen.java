@@ -40,6 +40,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     String className;
     String packageName;
     HashMap<String, String> aliasTable;
+    Symbols symbols;
 
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
@@ -63,9 +64,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    public CodeGen(String n) {
+    public CodeGen(String n, Symbols s) {
         className = n;
         aliasTable = new HashMap<String, String>();
+        symbols = s;
         Debug.debug( Debug.Type.CODEGEN, 1, "Compile: Compiling " + className );
     }
 
