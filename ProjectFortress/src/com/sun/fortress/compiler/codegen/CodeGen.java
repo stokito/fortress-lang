@@ -17,6 +17,7 @@
 package com.sun.fortress.compiler.codegen;
 
 import java.io.FileOutputStream;
+import java.math.BigInteger;
 import java.util.*;
 import org.objectweb.asm.*;
 import edu.rice.cs.plt.tuple.Option;
@@ -45,7 +46,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                             Naming.stringArrayToVoid, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/simpleSystem", "registerArgs", Naming.stringArrayToVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper", "registerArgs", Naming.stringArrayToVoid);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", Naming.voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(1,1);      // Accurate for above boilerplate.
@@ -521,6 +522,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
         x.getFunction().accept(this);
     }
 
+
+    public void forIntLiteralExpr(IntLiteralExpr x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forIntLiteral " + x);
+        BigInteger bi = x.getIntVal();
+        // This might not work.
+        int y = bi.intValue();
+        mv.visitLdcInsn(y);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressZZ32, Naming.make,
+                           Naming.makeMethodDesc(Naming.descInt, Naming.descFortressZZ32));
+    }
+        
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
