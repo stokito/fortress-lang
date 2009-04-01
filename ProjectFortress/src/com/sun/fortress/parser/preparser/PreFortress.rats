@@ -19,13 +19,14 @@
  * A PreFortress grammar which can parse the component name, imports, and delimiters.
  */
 module      com.sun.fortress.parser.preparser.PreFortress;
-modify      com.sun.fortress.parser.preparser.PreCompilation (Identifier, Keyword, PreSymbol, Spacing);
+modify      com.sun.fortress.parser.preparser.PreCompilation (PreLiteral, Identifier, Keyword, PreSymbol, Spacing);
 
 instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
 instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing) as Identifier;
 instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
 instantiate com.sun.fortress.parser.Unicode as Unicode;
 instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
+instantiate com.sun.fortress.parser.preparser.PreLiteral(PreSymbol, Spacing, Identifier) as PreLiteral;
 
 header {
 import com.sun.fortress.exceptions.ProgramError;
@@ -34,9 +35,10 @@ import com.sun.fortress.parser_util.precedence_resolver.*;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.*;
-import com.sun.fortress.useful.PureList;
-import com.sun.fortress.useful.Empty;
 import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Empty;
+import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.Shell;
 import edu.rice.cs.plt.tuple.Option;
@@ -73,18 +75,17 @@ body {
    }
 
     private BufferedWriter writer;
-    private boolean withError = false;
 
     void initParser() {
         try {
+            Debug.debug( Debug.Type.PARSER, 1, "Preparsing " + column(0).file + "...");
             writer = Useful.filenameToBufferedWriter( column(0).file + ".preparserError.log" );
         } catch (IOException error) {
             error("Creating a log file for the parser failed!");
         }
     }
 
-    private void log(Span span, String message) {
-        withError = true;
+    void log(Span span, String message) {
         NodeUtil.log(writer, span, message);
     }
 

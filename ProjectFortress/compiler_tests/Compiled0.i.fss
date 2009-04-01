@@ -17,6 +17,6 @@
 component Compiled0.i
 export Executable
 
-  run⟦():() = println "Hello, world!"
+  run[\():() = println "Hello, world!"
 
 end

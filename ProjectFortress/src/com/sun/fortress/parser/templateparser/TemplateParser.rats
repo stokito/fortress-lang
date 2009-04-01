@@ -22,7 +22,7 @@ module com.sun.fortress.parser.templateparser.TemplateParser;
 modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Literal, Identifier, Keyword,
                                                           Symbol, Spacing);
 instantiate com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
-                                                               OtherDecl, Spacing, Syntax)
+                                                               OtherDecl, NoNewlineExpr, Spacing, Syntax)
             as Declaration;
 instantiate com.sun.fortress.parser.templateparser.TraitObject(Method, Variable, Parameter,
                                                                OtherDecl, NoNewlineHeader,

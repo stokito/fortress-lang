@@ -17,7 +17,7 @@ tests=Compiled0.s
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.s.fss:18:1-24:3:\n\
+${STATIC_TESTS_DIR}/Compiled0.s.fss:18:1-8:\n\
 \ Nested component definitions are not allowed.\n\
 File Compiled0.s.fss has 1 error.\n
 compile_out_equals=

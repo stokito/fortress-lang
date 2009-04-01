@@ -318,8 +318,7 @@ public class Parser {
         try {
             String filename = file.getCanonicalPath();
             return parseCU(Useful.utf8BufferedFileReader(file), filename,
-                           preParser(Useful.utf8BufferedFileReader(file),
-                                     filename));
+                           preParser(Useful.utf8BufferedFileReader(file), filename));
         } catch (FileNotFoundException fnfe) {
             throw convertExn(fnfe, file);
         } catch (IOException ioe) {

@@ -710,9 +710,12 @@ public final class Shell {
             String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
 
 
-            Iterable<? extends StaticError> errors =
-                IterUtil.sort(compilerPhases(path, file_name, out, doLink),
-                              StaticError.comparator);
+            List<StaticError> errors = new ArrayList<StaticError>();
+            for ( StaticError error : IterUtil.sort(compilerPhases(path, file_name, out, doLink),
+                                                    StaticError.comparator) ) {
+                if ( ! error.toString().equals("") )
+                    errors.add( error );
+            }
             int num_errors = IterUtil.sizeOf(errors);
             if ( !IterUtil.isEmpty(errors) ) {
                 for (StaticError error: errors) {

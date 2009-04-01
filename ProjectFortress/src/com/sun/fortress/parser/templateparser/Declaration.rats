@@ -19,14 +19,15 @@
  * Definition of Fortress top-level declarations.
  */
 module com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
-                                           Other, Spacing, Syntax);
+                                                          Other, NoNewlineExpr, Spacing, Syntax);
 
 import TraitObject;
 import Function;
 import Variable;
 import Other;
+import NoNewlineExpr;
 import Spacing;
 import Syntax;
 
 modify com.sun.fortress.parser.Declaration(TraitObject, Function,
-Variable, Other, Spacing, Syntax);
+Variable, Other, NoNewlineExpr, Spacing, Syntax);
