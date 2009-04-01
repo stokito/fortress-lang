@@ -331,8 +331,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIntArg(com.sun.fortress.interpreter.nodes.IntArg)
      */
     @Override
-    public FType forBoolArg(BoolArg x) {
-        BoolExpr i = x.getBoolArg();
+    public FType forBoolArg(BoolArg boolArg) {
+        BoolExpr i = boolArg.getBoolArg();
         return i.accept(new NodeAbstractVisitor<FType>() {
             private boolean boolify(BoolExpr ie) {
                 FType t = ie.accept(this);
@@ -431,8 +431,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIntArg(com.sun.fortress.interpreter.nodes.IntArg)
      */
     @Override
-    public FType forIntArg(IntArg x) {
-        IntExpr i = x.getIntVal();
+    public FType forIntArg(IntArg intArg) {
+        IntExpr i = intArg.getIntVal();
         return i.accept(new NodeAbstractVisitor<FType>() {
             private long longify(IntExpr ie) {
                 FType t = ie.accept(this);

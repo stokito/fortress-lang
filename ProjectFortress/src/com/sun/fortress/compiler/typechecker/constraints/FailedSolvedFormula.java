@@ -45,7 +45,7 @@ public class FailedSolvedFormula extends ConstraintFormula {
 
 	@Override
 	public ConstraintFormula and(ConstraintFormula c,
-			SubtypeHistory history) {
+			SubtypeHistory _history) {
 		return bug("Once constraint has been solved, this should not be called");
 	}
 
@@ -78,7 +78,7 @@ public class FailedSolvedFormula extends ConstraintFormula {
 
 	@Override
 	public ConstraintFormula or(ConstraintFormula c,
-			SubtypeHistory history) {
+			SubtypeHistory _history) {
 		return bug("Once constraint has been solved, this should not be called");
 	}
 
