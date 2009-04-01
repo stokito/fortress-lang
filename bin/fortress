@@ -25,7 +25,11 @@ else
   SEP=":"
 fi
 
-CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-tree-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/astgen/astgen.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-2.7.2.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-2.7.2.jar${SEP}$CP"
+if [ "$1" = "run" ] ; then
+    CP="$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$FORTRESS_HOME/default_repository/caches/nativewrapper_cache${SEP}$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-tree-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/astgen/astgen.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-2.7.2.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-2.7.2.jar${SEP}$CP"
+else 
+    CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-tree-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/astgen/astgen.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-2.7.2.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-2.7.2.jar${SEP}$CP"
+fi
 
 if [ -z "$JAVA_HOME" ] ; then
   JAVACMD=java
@@ -37,4 +41,8 @@ if [ -z "$JAVA_FLAGS" ] ; then
   JAVA_FLAGS=-Xmx256m
 fi
 
-"$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
+if [ "$1" = "run" ] ; then
+    "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP${@#run}"
+else
+    "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
+fi

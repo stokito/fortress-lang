@@ -121,6 +121,7 @@ public final class Shell {
         System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" link [-debug [type]* [#]] somecomponent");
+        System.err.println(" run somecomponent");
         System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
