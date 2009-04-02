@@ -78,6 +78,13 @@ public class Span implements Serializable, HasAt {
     }
 
     /**
+     * @return Returns the file name.
+     */
+    public String getFileName() {
+        return begin.getFileName();
+    }
+
+    /**
      * @return Returns the begin.
      */
     public SourceLoc getBegin() {

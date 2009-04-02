@@ -32,8 +32,8 @@ transient private void Whitespace =
      Space
    / Newline ;
 transient private void Space      =
-     void: " "
-   / void: "\f"
+     void:" "
+   / void:"\f"
    / "&" s Whitespace
    / InvalidSpace
    / NoNewlineComment ;
@@ -50,7 +50,7 @@ transient private void Newline =
      void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
    / !("&") NewlineComment ;
 private void Comment =
-     a1:"(*" CommentContents a3:"*)"
+     "(*" CommentContents "*)"
    / <ErrorProduction> "(*" CommentContents w EndOfFile
      { log(createSpan(yyStart,yyCount),
            "Unbalanced comment: '*)' is expected.");
@@ -65,7 +65,7 @@ private void NoNewlineComment =
            "Unbalanced comment: '*)' is expected.");
      };
 
-transient private void CommentContents =
+transient void CommentContents =
      CommentContent*;
 
 transient private void NNCommentContents =
@@ -81,7 +81,7 @@ transient private void NoNewlineWhitespaceCharacters =
 transient private void CommentContent =
      "(*)"
    / Comment
-   / c:'*' !')'
+   / '*' !')'
    / WhitespaceCharacters
    / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
    ;
@@ -89,7 +89,7 @@ transient private void CommentContent =
 transient private void NNCommentContent =
      "(*)"
    / NoNewlineComment
-   / c:'*' !')'
+   / '*' !')'
    / NoNewlineWhitespaceCharacters
    / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
    ;

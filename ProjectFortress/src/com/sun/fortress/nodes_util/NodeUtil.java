@@ -55,6 +55,10 @@ public class NodeUtil {
 
     public static void log(BufferedWriter writer, Span span, String msg) {
         try {
+            if ( writer == null ) {
+                String file = span.getFileName();
+                writer = Useful.filenameToBufferedWriter( file + ".preparserError.log" );
+            }
             writer.write( span + ":\n    " + msg + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the parser failed!");
@@ -459,58 +463,61 @@ public class NodeUtil {
 
     /* get the declared name of a component or api */
     public static APIName apiName( String path ) throws UserError, IOException {
+        String absolutePath = new File(path).getCanonicalPath();
         try {
             File file = new File(path).getCanonicalFile();
-            String filename = new File(path).getName();
-            filename = filename.substring(0, filename.length()-4);
-            BufferedReader br = Useful.utf8BufferedFileReader(file);
-            // skip comments and blank lines
-            int lineNo = 0;
-            int commentDepth = 0;
-            String line = br.readLine(); lineNo++;
-            while ( blankOrComment(line) || commentDepth != 0 ) {
-                if ( line.equals("") ) {
-                    line = br.readLine(); lineNo++;
-                } else {
-                    String[] split = line.split(" ");
-                    for ( String token : split ) {
-                        if ( lineComment(token) ) {
-                            line = "";
-                            break;
-                        } else if ( beginComment(token) ) {
-                            commentDepth++; line = "";
-                        } else if ( endComment(token) ) {
-                            commentDepth--; line = "";
-                        } else if ( commentDepth == 0 ) {
-                            line += token;
-                            line += " ";
+            try {
+                String filename = new File(path).getName();
+                filename = filename.substring(0, filename.length()-4);
+                BufferedReader br = Useful.utf8BufferedFileReader(file);
+                // skip comments and blank lines
+                int lineNo = 0;
+                int commentDepth = 0;
+                String line = br.readLine(); lineNo++;
+                while ( blankOrComment(line) || commentDepth != 0 ) {
+                    if ( line.equals("") ) {
+                        line = br.readLine(); lineNo++;
+                    } else {
+                        String[] split = line.split(" ");
+                        for ( String token : split ) {
+                            if ( lineComment(token) ) {
+                                line = "";
+                                break;
+                            } else if ( beginComment(token) ) {
+                                commentDepth++; line = "";
+                            } else if ( endComment(token) ) {
+                                commentDepth--; line = "";
+                            } else if ( commentDepth == 0 ) {
+                                line += token;
+                                line += " ";
+                            }
                         }
+                        if ( commentDepth == 0 && ! line.equals("") ) break;
+                        else line = br.readLine(); lineNo++;
                     }
-                    if ( commentDepth == 0 && ! line.equals("") ) break;
-                    else line = br.readLine(); lineNo++;
                 }
+                br.close();
+                // line is the first non-comment/non-blank line
+                String[] split = line.split(" ");
+                String name;
+                //String absolutePath = new File(path).getCanonicalPath();
+                if ( split[0].equals("component") || split[0].equals("api") ) {
+                    Span span = NodeFactory.makeSpan(absolutePath,
+                                                     lineNo, split[0].length()+2,
+                                                     split[0].length()+split[1].length()+1);
+                    name = split[1];
+                    if ( ! name.equals(filename) )
+                        return error(span,
+                                     "    Component/API names must match their enclosing file names." +
+                                     "\n    File name: " + absolutePath +
+                                     "\n    Component/API name: " + name);
+                } else name = filename;
+                return NodeFactory.makeAPIName(NodeFactory.parserSpan, name);
+            } catch (NullPointerException ex) {
+                return Parser.importCollector(file).getName();
             }
-            br.close();
-            // line is the first non-comment/non-blank line
-            String[] split = line.split(" ");
-            String name;
-            String absolutePath = new File(path).getCanonicalPath();
-            if ( split[0].equals("component") || split[0].equals("api") ) {
-                Span span = NodeFactory.makeSpan(absolutePath,
-                                                 lineNo, split[0].length()+2,
-                                                 split[0].length()+split[1].length()+1);
-                name = split[1];
-                if ( ! name.equals(filename) )
-                    return error(span,
-                                 "    Component/API names must match their enclosing file names." +
-                                 "\n    File name: " + absolutePath +
-                                 "\n    Component/API name: " + name);
-            }
-           else
-               name = filename;
-            return NodeFactory.makeAPIName(NodeFactory.parserSpan, name);
         } catch (FileNotFoundException ex) {
-            throw new UserError("Can't find file " + path);
+            throw new UserError("Cannot find file " + absolutePath);
         }
     }
 
