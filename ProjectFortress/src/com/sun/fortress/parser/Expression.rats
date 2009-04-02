@@ -20,8 +20,8 @@
  */
 module com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
                                           MayNewlineHeader, Type, DelimitedExpr,
-                                          Literal, Identifier, Keyword, Symbol,
-                                          Spacing);
+                                          Literal, NoSpaceLiteral, Identifier,
+                                          Keyword, Symbol, Spacing);
 
 import Param;
 import NoNewlineHeader;
@@ -29,6 +29,7 @@ import MayNewlineHeader;
 import Type;
 import DelimitedExpr;
 import Literal;
+import NoSpaceLiteral;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -434,7 +435,7 @@ Expr PrimaryFront =
    / a1:self
      { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
-/* ArrayExpr is defined in Literal.rats */
+/* ArrayExpr is defined in NoNewlineHeader.rats because it uses NoSpaceExpr. */
 
 /* VarOrFnRef ::= Id StaticArgs? */
 Expr VarOrFnRef =

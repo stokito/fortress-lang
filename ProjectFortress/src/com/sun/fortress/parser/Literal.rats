@@ -18,16 +18,10 @@
 /*
  * Definition of Fortress literals.
  */
-module com.sun.fortress.parser.Literal(MayNewlineHeader, DelimitedExpr,
-                                       NoSpaceExpr, Symbol, Spacing,
-                                       Identifier);
+module com.sun.fortress.parser.Literal(Symbol, Spacing);
 
-import MayNewlineHeader;
-import DelimitedExpr;
-import NoSpaceExpr;
 import Symbol;
 import Spacing;
-import Identifier;
 
 /* LiteralExpr ::=
      ( w )
@@ -41,30 +35,6 @@ Expr LiteralExpr =
    / <CHAR> CharLiteralExpr
    / <STRING> StringLiteralExpr
    ;
-
-/* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
-/* RectElements ::= NoSpaceExpr MultiDimCons* */
-ArrayElements ArrayExpr =
-     void:opensquare a1:StaticArgs? w a2:NoSpaceExpr a3s:MultiDimCons* w
-     void:closesquare
-     { ArrayElements rectElements;
-       if (a3s == null || a3s.isEmpty()) {
-           List<ArrayExpr> list = new ArrayList<ArrayExpr>();
-           list.add(ExprFactory.makeArrayElement(a2));
-           rectElements = ExprFactory.makeArrayElements(NodeUtil.getSpan(a2),
-                                                        1, list);
-       } else
-           rectElements = ExprFactory.multiDimCons(writer, a2, a3s.list());
-       if (a1 == null)
-           yyValue = ExprFactory.finalizeArrayExpr(rectElements);
-       else
-           yyValue = ExprFactory.addStaticArgsToArrayExpr(a1, rectElements);
-     };
-
-/* MultiDimCons ::= RectSeparator NoSpaceExpr */
-com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
-     a1:RectSeparator a2:NoSpaceExpr
-     { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
 
 Expr VoidLiteralExpr =
      <FIRST> openparen w closeparen

@@ -19,9 +19,9 @@
  * Definition of Fortress expressions.
  */
 module com.sun.fortress.parser.templateparser.Expression(Param, NoNewlineHeader,
-                                          MayNewlineHeader, Type, DelimitedExpr,
-                                          Literal, Identifier, Keyword, Symbol,
-                                          Spacing, Gaps);
+                                                         MayNewlineHeader, Type, DelimitedExpr,
+                                                         Literal, NoSpaceLiteral, Identifier,
+                                                         Keyword, Symbol, Spacing, Gaps);
 
 import Param;
 import NoNewlineHeader;
@@ -29,6 +29,7 @@ import MayNewlineHeader;
 import Type;
 import DelimitedExpr;
 import Literal;
+import NoSpaceLiteral;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -36,7 +37,7 @@ import Spacing;
 import Gaps;
 
 modify com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
-MayNewlineHeader, Type, DelimitedExpr, Literal, Identifier, Keyword,
+MayNewlineHeader, Type, DelimitedExpr, Literal, NoSpaceLiteral, Identifier, Keyword,
 Symbol, Spacing);
 
 

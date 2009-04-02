@@ -19,14 +19,14 @@
  * A PreFortress grammar which can parse the component name, imports, and delimiters.
  */
 module      com.sun.fortress.parser.preparser.PreFortress;
-modify      com.sun.fortress.parser.preparser.PreCompilation (PreLiteral, Identifier, Keyword, PreSymbol, Spacing);
+modify      com.sun.fortress.parser.preparser.PreCompilation (Literal, Identifier, Keyword, PreSymbol, Spacing);
 
-instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
 instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing) as Identifier;
 instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
+instantiate com.sun.fortress.parser.Literal(PreSymbol, Spacing) as Literal;
+instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
 instantiate com.sun.fortress.parser.Unicode as Unicode;
 instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
-instantiate com.sun.fortress.parser.preparser.PreLiteral(PreSymbol, Spacing, Identifier) as PreLiteral;
 
 header {
 import com.sun.fortress.exceptions.ProgramError;

@@ -16,18 +16,15 @@
  ******************************************************************************/
 
 /*
- * Definition of Fortress top-level declarations.
+ * Definition of Fortress literals using NoSpaceExpr.
  */
-module com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
-                                                          Other, NoNewlineExpr, Spacing, Syntax);
+module com.sun.fortress.parser.templateparser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr,
+                                                             Symbol, Spacing, Gaps);
 
-import TraitObject;
-import Function;
-import Variable;
-import Other;
-import NoNewlineExpr;
+import MayNewlineHeader;
+import NoSpaceExpr;
+import Symbol;
 import Spacing;
-import Syntax;
+import Gaps;
 
-modify com.sun.fortress.parser.Declaration(TraitObject, Function,
-Variable, Other, NoNewlineExpr, Spacing, Syntax);
+modify com.sun.fortress.parser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr, Symbol, Spacing);
