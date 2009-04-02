@@ -30,7 +30,6 @@ import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.compiler.Types
-import scala.collection.mutable.LinkedList
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.useful.NI
