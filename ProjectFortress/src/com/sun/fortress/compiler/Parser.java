@@ -421,7 +421,7 @@ public class Parser {
     }
 
     private static StaticError convertExn(FileNotFoundException fnfe, File f) {
-        return StaticError.make("Cannot find file " + f.getName(), f.toString());
+        return StaticError.make("Cannot find file " + f.getAbsolutePath(), f.toString());
     }
 
 }

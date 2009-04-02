@@ -14,5 +14,5 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 compile
-compile_err_contains=Can't find file \
+compile_err_contains=Cannot find file \
 ${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests/XXXMissingcompile.fss

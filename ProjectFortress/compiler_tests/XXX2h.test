@@ -13,6 +13,14 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-link
-link_err_contains=Cannot find file \
-${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests/XXXMissinglink.fss
+tests=Compiled2.h
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled2.h.fss:1:1-24:3:\n\
+\ Unbalanced comment: '*)' is expected.\n\
+File Compiled2.h.fss has 1 error.\n\
+
+compile_out_equals=

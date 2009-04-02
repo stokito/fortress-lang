@@ -29,7 +29,14 @@ import Spacing;
 
 option stateful(PreParserState), setOfString(FORTRESS_KEYWORDS);
 
-public resetting void File = initParser Program closeParser ;
+public resetting void File =
+     "(*" CommentContents EndOfFile
+     { initParser();
+       log(createSpan(yyStart,yyCount), "Unbalanced comment: '*)' is expected.");
+       writer.close();
+     }
+   / initParser Program closeParser ;
+
 void initParser  = w { initParser(); yyState.init(writer); };
 void closeParser = w EndOfFile
      { try {

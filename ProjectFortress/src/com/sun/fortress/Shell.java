@@ -709,28 +709,15 @@ public final class Shell {
             Path path = sourcePath( s, name );
             String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
 
-
             List<StaticError> errors = new ArrayList<StaticError>();
             for ( StaticError error : IterUtil.sort(compilerPhases(path, file_name, out, doLink),
                                                     StaticError.comparator) ) {
                 if ( ! error.toString().equals("") )
                     errors.add( error );
             }
-            int num_errors = IterUtil.sizeOf(errors);
-            if ( !IterUtil.isEmpty(errors) ) {
-                for (StaticError error: errors) {
-                    System.err.println(error);
-                }
-                String err_string;
-                if (num_errors == 0) {
-                    err_string = "File " + file_name + " compiled successfully.";
-                } else {
-                    err_string = "File " + file_name + " has " + num_errors + " error" +
-                        (num_errors == 1 ? "." : "s.");
-                }
-                System.err.println(err_string);
-                return_code = -1;
-            }
+            return_code = reportErrors(errors, file_name);
+        } catch (StaticError e) {
+            return_code = reportErrors(flattenErrors(e), new File(s).getName());
         } catch (ProgramError e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
@@ -742,6 +729,24 @@ public final class Shell {
             return_code = 1;
         }
         return return_code;
+    }
+
+    private static int reportErrors(List<? extends StaticError> errors, String file_name) {
+        int num_errors = IterUtil.sizeOf(errors);
+        if ( !IterUtil.isEmpty(errors) ) {
+            for (StaticError error: errors) {
+                System.err.println(error);
+            }
+            String err_string;
+            if (num_errors == 0) {
+                err_string = "File " + file_name + " compiled successfully.";
+            } else {
+                err_string = "File " + file_name + " has " + num_errors + " error" +
+                    (num_errors == 1 ? "." : "s.");
+            }
+            System.err.println(err_string);
+            return -1;
+        } else return 0;
     }
 
     /**

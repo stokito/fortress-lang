@@ -179,12 +179,4 @@ public class PreParserState implements State {
             return ( right.equals("'") || right.equals("\u2019") );
         else return false;
     }
-
-    /* ToDo:
-     * - Add back XXX1b.test.
-     * - Add Compiled2 tests.
-     * - Check comments.
-     * - Check openangle and closeangle.
-     * - Refactor Rats! files to reduece code duplication.
-     */
 }
