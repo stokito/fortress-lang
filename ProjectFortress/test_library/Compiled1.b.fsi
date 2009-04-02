@@ -15,11 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled1.j
-  export Compiled1.j
-
-  x:String = ""
-  y:String = ""
-  z:String = ""
-
+api Compiled1.b
+  f(x':String): String
+  x:String
+  z:String
 end
