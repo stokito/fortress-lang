@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Compiled2.i
-import System.{args}
+import CompilerSystem.{args}
 export Executable
 
 run() = do

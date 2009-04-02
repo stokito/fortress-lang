@@ -16,10 +16,10 @@
  ******************************************************************************)
 
 component Compiled2.m
-import System.{args}
+import CompilerSystem.{args}
 export Executable
 
-run() = do 
+run() = do
 do
  println("Hello, " || args[0] || "!")
 end
