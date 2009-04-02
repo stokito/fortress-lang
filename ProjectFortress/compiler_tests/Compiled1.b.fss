@@ -16,10 +16,10 @@
  ******************************************************************************)
 
 component Compiled1.b
-export Executable
+  export Compiled1.b
 
-run() do
- println("Hello, World!")
-end
+  x:String = ""
+  y:String = ""
+  z:String = ""
 
 end
