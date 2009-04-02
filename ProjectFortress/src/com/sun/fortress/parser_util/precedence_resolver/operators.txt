@@ -558,6 +558,8 @@ enclosing
   triple vertical bar binary relation, |||, \u2af4
 
 other_operators
+  dagger, \u2020
+  double dagger, \u2021
   exclamation mark, !, \u0021
   dollar sign, $, \u0024
   percent sign, %, \u0025

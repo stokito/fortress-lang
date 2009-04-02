@@ -18,8 +18,14 @@
 component postfixTest
 export Executable
 
-opr (s: String)MYOPR = println "postfix operator"
+opr (s: String)MYOPR = "postfix operator"
+opr (s: String)† = "Now, dagger (U+2020) is a valid Fortress operator."
+opr (s: String)‡ = "Now, double dagger (U+2021) is a valid Fortress operator."
 
-run() = ""MYOPR
+run() = do
+  assert(""MYOPR, "postfix operator")
+  assert(""†, "Now, dagger (U+2020) is a valid Fortress operator.")
+  assert(""‡, "Now, double dagger (U+2021) is a valid Fortress operator.")
+end
 
 end
