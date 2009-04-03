@@ -23,6 +23,5 @@ ${STATIC_TESTS_DIR}/Compiled2.s.fss:18:1-19:27:\n\
 \ Unmatched delimiters \"component\" and \"}\".\n\
 ${STATIC_TESTS_DIR}/Compiled2.s.fss:26:1-2:\n\
 \ Unmatched delimiter \"end\".\n\
-File Compiled2.s.fss has 2 errors.\n\
-
+File Compiled2.s.fss has 2 errors.\n
 compile_out_equals=

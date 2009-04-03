@@ -146,6 +146,10 @@ public class Parser {
             }
         } catch (StaticError se) {
             return new Result(se);
+        } finally {
+            String filename = f.getName();
+            filename = filename.substring(0, filename.length()-4);
+            Files.rm( filename + ".macroError.log" );
         }
     }
 
@@ -156,14 +160,19 @@ public class Parser {
         try {
             String filename = file.getCanonicalPath();
             BufferedReader in = Useful.utf8BufferedFileReader(file);
-            reportSyntaxErrors( preParser(in, filename) );
-            in.close();
-            in = Useful.utf8BufferedFileReader(file);
             ImportCollector collector = new ImportCollector(in, filename);
             xtc.parser.Result collectorResult = collector.pFile(0);
-            CompilationUnit cu = checkResultCU(collectorResult, collector, filename);
-            in.close();
-            return cu;
+            try {
+                CompilationUnit cu = checkResultCU(collectorResult, collector, filename);
+                return cu;
+            } catch (ParserError err) {
+                in.close();
+                in = Useful.utf8BufferedFileReader(file);
+                reportSyntaxErrors( preParser(in, filename) );
+                throw err;
+            } finally {
+                in.close();
+            }
         } catch (FileNotFoundException fnfe) {
             throw convertExn(fnfe, file);
         } catch (IOException ioe) {
@@ -266,10 +275,12 @@ public class Parser {
             in = Useful.utf8BufferedFileReader(f);
             /* instantiate the class using reflection */
             ParserBase p = RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
+            String macroLogFile = f.getCanonicalPath() + ".macroError.log";
+            reportSyntaxErrors(getSyntaxErrors( macroLogFile ));
+            Files.rm( macroLogFile );
             /* call the parser on the component and checks the validity,
              * get back a component AST
              */
-            reportSyntaxErrors(getSyntaxErrors( f.getName() + ".macroError.log" ));
             CompilationUnit original = checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
             // dump(original, "original-" + f.getName());
             /* Transform the syntax abstraction nodes into core Fortress */
@@ -290,7 +301,6 @@ public class Parser {
         } finally {
             try {
                 Files.rm( f.getCanonicalPath() + ".preparserError.log" );
-                Files.rm( f.getCanonicalPath() + ".macroError.log" );
                 if (in != null) in.close();
             } catch (IOException ioe) {}
         }

@@ -466,8 +466,8 @@ public class NodeUtil {
         String absolutePath = new File(path).getCanonicalPath();
         try {
             File file = new File(path).getCanonicalFile();
+            String filename = new File(path).getName();
             try {
-                String filename = new File(path).getName();
                 filename = filename.substring(0, filename.length()-4);
                 BufferedReader br = Useful.utf8BufferedFileReader(file);
                 // skip comments and blank lines
@@ -500,7 +500,6 @@ public class NodeUtil {
                 // line is the first non-comment/non-blank line
                 String[] split = line.split(" ");
                 String name;
-                //String absolutePath = new File(path).getCanonicalPath();
                 if ( split[0].equals("component") || split[0].equals("api") ) {
                     Span span = NodeFactory.makeSpan(absolutePath,
                                                      lineNo, split[0].length()+2,
@@ -514,7 +513,7 @@ public class NodeUtil {
                 } else name = filename;
                 return NodeFactory.makeAPIName(NodeFactory.parserSpan, name);
             } catch (NullPointerException ex) {
-                return Parser.importCollector(file).getName();
+                return NodeFactory.makeAPIName(NodeFactory.parserSpan, filename);
             }
         } catch (FileNotFoundException ex) {
             throw new UserError("Cannot find file " + absolutePath);
