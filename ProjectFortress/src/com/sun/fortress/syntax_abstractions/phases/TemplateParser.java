@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
@@ -48,6 +49,7 @@ import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -127,7 +129,8 @@ public class TemplateParser {
                         "Parsing template '" + stuff +
                         "' with nonterminal " + nonterminal );
             ParserBase parser =
-                RatsUtil.getParserObject(parserClass, in, apiName.toString());
+                RatsUtil.getParserObject(parserClass, in,
+                                         NodeUtil.getSpan(apiName).getFileName());
             xtc.parser.Result result =
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
             if (result.hasValue()){
@@ -140,6 +143,8 @@ public class TemplateParser {
             }
         } catch (Exception e) {
             throw new MacroError( "Could not parse '" + stuff + "'", e );
+        } finally {
+            Files.rm( NodeUtil.getSpan(apiName).getFileName() + ".macroError.log" );
         }
     }
 
