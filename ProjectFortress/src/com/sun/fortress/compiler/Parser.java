@@ -147,9 +147,9 @@ public class Parser {
         } catch (StaticError se) {
             return new Result(se);
         } finally {
-            String filename = f.getName();
-            filename = filename.substring(0, filename.length()-4);
-            Files.rm( filename + ".macroError.log" );
+            try {
+                Files.rm( f.getCanonicalPath() + ".macroError.log" );
+            } catch (IOException ioe) {}
         }
     }
 
@@ -275,9 +275,7 @@ public class Parser {
             in = Useful.utf8BufferedFileReader(f);
             /* instantiate the class using reflection */
             ParserBase p = RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
-            String macroLogFile = f.getCanonicalPath() + ".macroError.log";
-            reportSyntaxErrors(getSyntaxErrors( macroLogFile ));
-            Files.rm( macroLogFile );
+            reportSyntaxErrors(getSyntaxErrors( f.getCanonicalPath() + ".macroError.log" ));
             /* call the parser on the component and checks the validity,
              * get back a component AST
              */
