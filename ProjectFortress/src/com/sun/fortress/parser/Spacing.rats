@@ -37,7 +37,7 @@ transient private void Space      =
    / "&" s Whitespace
    / InvalidSpace
    / NoNewlineComment ;
-transient private void InvalidSpace =
+transient void InvalidSpace =
      <ErrorProduction1> ("\t" / "\u000b")
      { log(createSpan(yyStart,yyCount),
            "Tab characters are not allowed in Fortress programs except in comments.");
@@ -68,7 +68,7 @@ private void NoNewlineComment =
 transient void CommentContents =
      CommentContent*;
 
-transient private void NNCommentContents =
+transient void NNCommentContents =
      NNCommentContent*;
 
 transient private void WhitespaceCharacters =
@@ -78,7 +78,7 @@ transient private void NoNewlineWhitespaceCharacters =
      void:"\u000d\u000a"
    / [\u0009\u000b\u000c\u001c\u001d\u001e\u001f] ;
 
-transient private void CommentContent =
+transient void CommentContent =
      "(*)"
    / Comment
    / '*' !')'
@@ -94,7 +94,7 @@ transient private void NNCommentContent =
    / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
    ;
 
-transient private void NewlineComment = Comment;
+transient void NewlineComment = Comment;
 
 transient void w  = Whitespace*; // whitespace optional
 transient void wr = Whitespace+; // whitespace required

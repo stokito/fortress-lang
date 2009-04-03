@@ -566,6 +566,8 @@ public final class Shell {
             return_code = 1;
         } catch ( FileNotFoundException f ){
             throw new UserError(file + " not found");
+        } finally {
+            Files.rm( file + ".preparserError.log" );
         }
         return return_code;
     }
