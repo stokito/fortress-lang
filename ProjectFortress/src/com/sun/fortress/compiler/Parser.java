@@ -415,10 +415,10 @@ public class Parser {
             PreFortress preparser = new PreFortress(in, filename);
             preparser.pFile(0);
             List<StaticError> errors = getSyntaxErrors( preparserLogFile );
-            in.close();
             return errors;
         } finally {
             Files.rm( preparserLogFile );
+            in.close();
         }
     }
 

@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.TestCaseWrapper;
 import com.sun.fortress.useful.WireTappedPrintStream;
 import com.sun.fortress.compiler.Parser;
@@ -151,9 +152,12 @@ public class ParserJUTest extends TestCaseWrapper {
                 try {
                     return new Parser.Result(Parser.parseFileConvertExn(f),
                                              f.lastModified());
-                }
-                catch (StaticError se) {
+                } catch (StaticError se) {
                     return new Parser.Result(se);
+                } finally {
+                    try {
+                        Files.rm( f.getCanonicalPath() + ".preparserError.log" );
+                    } catch (IOException e) {}
                 }
             }
         }
