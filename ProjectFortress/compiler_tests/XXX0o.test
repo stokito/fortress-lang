@@ -19,5 +19,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled0.o.fss:20:12-22:2:\n\
 \ Missing function body.\n\
-File Compiled0.o.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled0.o.fss:20:3-22:2:\n\
+\ Invalid top-level declaration.\n\
+File Compiled0.o.fss has 2 errors.\n
 compile_out_equals=

@@ -45,17 +45,9 @@ FnDecl TopLevelFnDecl =
    ;
 
 FnDecl InvalidFnDecl =
-     Id w openparen w closeparen w NoNewlineExpr
+     Mods? a2:FnHeaderFront a3:FnHeaderClause s a4:NoNewlineExpr
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Invalid top-level declaration.");
-       FnHeaderFront a2  = new FnHeaderFront(NodeFactory.bogusId(span),
-                                             Collections.<StaticParam>emptyList(),
-                                             Collections.<Param>emptyList());
-       FnHeaderClause a3 = new FnHeaderClause(Option.<List<BaseType>>none(),
-                                              Option.<WhereClause>none(),
-                                              Option.<Contract>none(),
-                                              Option.<Type>none());
-       Expr a4 = ExprFactory.makeVoidLiteralExpr(span);
        yyValue = NodeFactory.mkFnDecl(span, Modifiers.None, a2, a3, a4);
      };
 
