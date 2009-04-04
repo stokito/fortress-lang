@@ -54,14 +54,20 @@ abstract public class CheapSerializer<T> {
     public int readInt(InputStream i) throws IOException {
         int x = i.read();
         int sum = 0;
+        boolean doneg = false;
+        if (x == '-') {
+            doneg = true;
+            x = i.read();
+        }
         while (x != -1 && x != ' ') {
             if ('0' > x || x > '9') {
-                throw new NumberFormatException();
+                throw new NumberFormatException("Read '" + (char) x + "' expecting a digit, preceding number is " + sum);
             }
             sum = sum * 10 + (x - '0');
             x = i.read();
         }
-        return sum;
+            
+        return doneg ? -sum : sum;
     }
     
     public void writeLong(OutputStream o, long data) throws IOException {
@@ -74,14 +80,19 @@ abstract public class CheapSerializer<T> {
     public long readLong(InputStream i) throws IOException {
         int x = i.read();
         long sum = 0;
+        boolean doneg = false;
+        if (x == '-') {
+            doneg = true;
+            x = i.read();
+        }
         while (x != -1 && x != ' ') {
             if ('0' > x || x > '9') {
-                throw new NumberFormatException();
+                throw new NumberFormatException("Read '" + (char) x + "' expecting a digit, preceding number is " + sum);
             }
             sum = sum * 10 + (x - '0');
             x = i.read();
         }
-        return sum;
+        return doneg ? -sum : sum;
     }
     
     static public CheapSerializer<java.lang.String> STRING =
