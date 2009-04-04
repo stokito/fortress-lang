@@ -46,19 +46,14 @@ List<Decl> Decls = a1:Decl a2s:(br Decl)*
    | PropertyDecl
 */
 List<Decl> Decl =
-     a1:TraitDecl    { yyValue = Useful.list((Decl)a1); }
-   / a1:ObjectDecl   { yyValue = Useful.list((Decl)a1); }
-   / a1:VarDecl      { yyValue = Useful.list((Decl)a1); }
-   / a1:FnDecl       { yyValue = Useful.list((Decl)a1); }
-   / FnHeaderFront w NoNewlineExpr
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Invalid top-level declaration.");
-       yyValue = Useful.list();
-     }
+     a1:TraitDecl      { yyValue = Useful.list((Decl)a1); }
+   / a1:ObjectDecl     { yyValue = Useful.list((Decl)a1); }
+   / a1:VarDecl        { yyValue = Useful.list((Decl)a1); }
+   / a1:TopLevelFnDecl { yyValue = Useful.list((Decl)a1); }
    / DimUnitDecl
-   / a1:TypeAlias    { yyValue = Useful.list((Decl)a1); }
-   / a1:TestDecl     { yyValue = Useful.list((Decl)a1); }
-   / a1:PropertyDecl { yyValue = Useful.list((Decl)a1); }
+   / a1:TypeAlias      { yyValue = Useful.list((Decl)a1); }
+   / a1:TestDecl       { yyValue = Useful.list((Decl)a1); }
+   / a1:PropertyDecl   { yyValue = Useful.list((Decl)a1); }
    ;
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */

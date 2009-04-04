@@ -35,6 +35,34 @@ import Spacing;
      Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
    | AbsFnDecl
  */
+FnDecl TopLevelFnDecl =
+     a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     { if (a1 == null) a1 = Modifiers.None;
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);
+     }
+   / InvalidFnDecl
+   / AbsFnDecl
+   ;
+
+FnDecl InvalidFnDecl =
+     Id w openparen w closeparen w NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Invalid top-level declaration.");
+       FnHeaderFront a2  = new FnHeaderFront(NodeFactory.bogusId(span),
+                                             Collections.<StaticParam>emptyList(),
+                                             Collections.<Param>emptyList());
+       FnHeaderClause a3 = new FnHeaderClause(Option.<List<BaseType>>none(),
+                                              Option.<WhereClause>none(),
+                                              Option.<Contract>none(),
+                                              Option.<Type>none());
+       Expr a4 = ExprFactory.makeVoidLiteralExpr(span);
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.None, a2, a3, a4);
+     };
+
+/* FnDecl ::=
+     Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+   | AbsFnDecl
+ */
 FnDecl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
