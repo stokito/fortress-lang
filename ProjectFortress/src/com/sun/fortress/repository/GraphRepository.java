@@ -129,6 +129,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private GraphRepository(Path p, String cacheDir) throws IOException {
         this(p, new CacheBasedRepository(cacheDir));
     }
+    
+    public boolean isForeign(APIName name) {
+        return foreignJava.definesApi(name);
+    }
 
     public DerivedFiles<CompilationUnit> getDerivedComponentCache(final String cache_path) {
         String key=path+"//"+cache_path;

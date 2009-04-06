@@ -64,6 +64,10 @@ public class Constructor extends Function {
     public Span getSpan() { return NodeUtil.getSpan(_declaringTrait); }
 
     public Id declaringTrait() { return _declaringTrait; }
+    
+    protected String mandatoryToString() {
+        return "constructor " + declaringTrait().toString();
+    }
 //    public List<StaticParam> staticParams() { return _staticParams; }
 //    public Option<List<Param>> params() { return _params; }
 //    public Option<List<BaseType>> throwsClause() { return _throwsClause; }

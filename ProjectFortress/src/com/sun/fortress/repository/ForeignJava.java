@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,6 +140,8 @@ public class ForeignJava {
     MultiMap<org.objectweb.asm.Type, String> itemsFromClasses = new MultiMap<org.objectweb.asm.Type, String>();
 
     Map<APIName, ApiIndex> cachedFakeApis = new HashMap<APIName, ApiIndex>();
+
+    Set<APIName> foreignApisNeedingCompilation = new HashSet<APIName>();
 
     /**
      * Stores the FnDecl for a particular method -- also acts as an is-visited
@@ -567,14 +570,8 @@ public class ForeignJava {
     public ApiIndex fakeApi(APIName name) {
         ApiIndex result = cachedFakeApis.get(name);
         if (result == null) {
-
-            Set<Type> classes = classesIncludedInForeignAPI.get(name);
-
-            // Need to generate wrappers for all these classes,
-            // if they do not already exist.
-            for (Type t : classes) {
-                FortressTransformer.transform(t.getClassName());
-            }
+            foreignApisNeedingCompilation.add(name);
+            //generateWrappersForApi(name);
 
             List<Import> imports = new ArrayList<Import>();
             IMultiMap<APIName, Id> gi = generatedImports.get(name);
@@ -595,7 +592,6 @@ public class ForeignJava {
         return result;
 
     }
-
     private void importAnApi(List<Import> imports, APIName a, Set<Id> items) {
 
         List<AliasedSimpleName> lasn = new ArrayList<AliasedSimpleName>();
@@ -728,5 +724,26 @@ public class ForeignJava {
             return NamingCzar.dependenceFileNameForCompAst(node.getName(), node.getSourcePath());
         }
     }
+    
+    public boolean foreignApiNeedingCompilation(APIName name) {
+        return foreignApisNeedingCompilation.contains(name);
+    }
+    
+    /**
+     * @param name
+     */
+    public void generateWrappersForApi(APIName name) {
+        foreignApisNeedingCompilation.remove(name);
+        
+        Set<Type> classes = classesIncludedInForeignAPI.get(name);
+
+        // Need to generate wrappers for all these classes,
+        // if they do not already exist.
+        for (Type t : classes) {
+            FortressTransformer.transform(t.getClassName());
+        }
+    }
+
+
 
 }

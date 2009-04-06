@@ -44,6 +44,10 @@ public class DeclaredFunction extends Function {
 
     public FnDecl ast() { return _ast; }
 
+    protected String mandatoryToString() {
+        return "function " + ast();
+    }
+
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_ast); }
 

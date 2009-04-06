@@ -55,6 +55,10 @@ public class FunctionalMethod extends Function {
 
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_ast); }
+    
+    protected String mandatoryToString() {
+        return "functionalMethod " + declaringTrait().toString() + "." + ast();
+    }
 
     public Id declaringTrait() { return _declaringTrait; }
 

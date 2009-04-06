@@ -23,7 +23,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
 
-public class StubRepository implements FortressRepository {
+abstract public class StubRepository implements FortressRepository {
 
     private boolean verbose;
 
