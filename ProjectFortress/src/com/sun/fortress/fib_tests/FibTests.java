@@ -934,14 +934,17 @@ public final class FibTests {
             }
             if (setp) {
                 procs = (int)i;
+                setp = false;
             } else if (sett) {
                 trials = (int)i;
+                sett = false;
             } else if (argn+1 == argc) {
                 init_n = i;
             } else {
                 usage();
             }
         }
+        System.err.println("fib -p "+procs+" -t "+trials+" "+init_n);
     }
 
     public static void main(String [] args) {
