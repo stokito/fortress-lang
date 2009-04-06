@@ -944,7 +944,6 @@ public final class FibTests {
                 usage();
             }
         }
-        System.err.println("fib -p "+procs+" -t "+trials+" "+init_n);
     }
 
     public static void main(String [] args) {
