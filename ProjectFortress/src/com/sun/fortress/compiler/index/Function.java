@@ -19,4 +19,8 @@ package com.sun.fortress.compiler.index;
 
 /** Comprises Constructor, DeclaredFunction, and FunctionalMethod. */
 public abstract class Function extends Functional {
+    protected abstract String mandatoryToString();
+    public String toString() {
+        return mandatoryToString();
+    }
 }

@@ -92,6 +92,14 @@ public interface FortressRepository {
     public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
 
     /**
+     * True if this API has a foreign implementation.
+     * 
+     * @param name
+     * @return
+     */
+    public boolean isForeign(APIName name);
+    
+    /**
      * Debugging methods.
      */
     public boolean setVerbose(boolean new_value);

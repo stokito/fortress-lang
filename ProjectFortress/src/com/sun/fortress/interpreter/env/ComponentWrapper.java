@@ -149,8 +149,8 @@ public class ComponentWrapper extends NonApiWrapper {
     }
 
     private boolean exportsMain(Component transformed2) {
-        List<APIName> exports = transformed2.getExports();
-        for (APIName a : exports) {
+        List<APIName> _exports = transformed2.getExports();
+        for (APIName a : _exports) {
             if (WellKnownNames.exportsMain(a.getText()))
                 return true;
         }

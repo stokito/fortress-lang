@@ -245,9 +245,7 @@ public class CUWrapper {
              * rules as other name visibility.
              */
             ownNames.addAll(desugarer.getTopLevelRewriteNames());
-        } else {
-            desugarer = desugarer;
-        }
+        } 
         for (CUWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
