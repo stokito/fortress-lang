@@ -18,12 +18,15 @@
 package com.sun.fortress.interpreter.evaluator.tasks;
 
 import jsr166y.ForkJoinWorkerThread;
+import jsr166y.ForkJoinTask;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class TupleTask extends BaseTask {
     Evaluator eval;
@@ -50,7 +53,7 @@ public class TupleTask extends BaseTask {
             /* Null out fields so they are not retained by GC after termination. */
             eval = null;
             expr = null;
-	    transaction = null;
+            transaction = null;
         }
     }
 
@@ -67,6 +70,19 @@ public class TupleTask extends BaseTask {
 
     public FValue getRes() { return res;}
     public Expr getExpr() {return expr;}
+    public FValue getResOrException() {
+        if (causedException()) {
+            Throwable t = taskException();
+            if (t instanceof Error) {
+                throw (Error)t;
+            } else if (t instanceof RuntimeException) {
+                throw (RuntimeException)t;
+            } else {
+                error(getExpr(), errorMsg("Wrapped Exception ",t));
+            }
+        }
+        return res;
+    }
 
     // Commented out because not supported in new jsr166y library.
 
@@ -100,4 +116,9 @@ public class TupleTask extends BaseTask {
 //             BaseTask.forkJoin(tasks);
 //         }
 //     }
+
+    public static boolean worthSpawning() {
+        return (ForkJoinTask.getSurplusQueuedTaskCount() <= 3);
+    }
+
 }
