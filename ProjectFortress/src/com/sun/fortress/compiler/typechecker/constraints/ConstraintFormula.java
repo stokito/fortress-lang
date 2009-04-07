@@ -58,39 +58,39 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class ConstraintFormula{
 
-	/** Merge this and another formula by asserting that they must both be true. */
-	public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
+    /** Merge this and another formula by asserting that they must both be true. */
+    public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
 
-	/**
-	 * Apply a type substitution to the contents of a formula.  Callers assume responsibility
-	 * for guaranteeing that the substitution will not change the satisfiability (or truth) of the
-	 * formula.  Substitutions of bounded inference variables must map to other (or the same)
-	 * inference variables, not arbitrary types.
-	 */
-	public abstract ConstraintFormula applySubstitution(Lambda<Type, Type> sigma);
+    /**
+     * Apply a type substitution to the contents of a formula.  Callers assume responsibility
+     * for guaranteeing that the substitution will not change the satisfiability (or truth) of the
+     * formula.  Substitutions of bounded inference variables must map to other (or the same)
+     * inference variables, not arbitrary types.
+     */
+    public abstract ConstraintFormula applySubstitution(Lambda<Type, Type> sigma);
 
-	/** Get the map of inference variable types to upper bounds **/
-	public Map<_InferenceVarType, Type> getMap(){
-		return Collections.emptyMap();
-	}
+    /** Get the map of inference variable types to upper bounds **/
+    public Map<_InferenceVarType, Type> getMap(){
+        return Collections.emptyMap();
+    }
 
 
-	/** Determine whether the formula is false for all inference variable instantiations. */
-	public boolean isFalse(){return false;}
+    /** Determine whether the formula is false for all inference variable instantiations. */
+    public boolean isFalse(){return false;}
 
-	/** Determine whether there exists some choice for inference variables that makes the formula true. */
-	public boolean isSatisfiable() { return !isFalse(); }
+    /** Determine whether there exists some choice for inference variables that makes the formula true. */
+    public boolean isSatisfiable() { return !isFalse(); }
 
-	/** Determine whether the formula is true for all inference variable instantiations. */
-	public boolean isTrue(){return false;}
+    /** Determine whether the formula is true for all inference variable instantiations. */
+    public boolean isTrue(){return false;}
 
-	/** Indicates that the given types have just gone out of scope, so in the resulting
-	 *  ConstraintFormula they must not be mentioned. */
-	public ConstraintFormula removeTypesFromScope(List<VarType> types){return this;}
+    /** Indicates that the given types have just gone out of scope, so in the resulting
+     *  ConstraintFormula they must not be mentioned. */
+    public ConstraintFormula removeTypesFromScope(List<VarType> types){return this;}
 
-	/** Merge this and another formula by asserting that one of the two must be true. */
-	public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
+    /** Merge this and another formula by asserting that one of the two must be true. */
+    public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
 
-	public ConstraintFormula solve() {return this;}
+    public ConstraintFormula solve() {return this;}
 
 }
