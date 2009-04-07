@@ -16,26 +16,27 @@
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
-import java.io.IOException;
 
+import java.io.IOException;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class CompilerJUTest {
-
-
     public static void main(String[] args) throws IOException {
-
         junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "compiler_tests";
-        
+        String testDir1 = ProjectProperties.BASEDIR + "compiler_tests";
+        String testDir2 = ProjectProperties.BASEDIR + "parser_tests";
         boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
-        
-         return FileTests.compilerSuite(testDir, failsOnly, false);
+        TestSuite suite = new TestSuite("Test all .test files in 'ProjectFortress/compiler_tests' " +
+                                        "and 'ProjectFortress/parser_tests'.");
+        //$JUnit-BEGIN$
+        suite.addTest(FileTests.compilerSuite(testDir1, failsOnly, false));
+        suite.addTest(FileTests.compilerSuite(testDir2, failsOnly, false));
+        return suite;
     }
 
 }
