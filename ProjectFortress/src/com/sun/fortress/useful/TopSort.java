@@ -19,6 +19,7 @@ package com.sun.fortress.useful;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -76,7 +77,14 @@ public class TopSort {
 
         return sorted;
     }
-
+    
+    public static <T extends TopSortItem<T>> List<T> depthFirst(T[] unsorted) {
+        return depthFirst(Useful.list(unsorted));
+    }
+    public static <T extends TopSortItem<T>> List<T> breadthFirst(T[] unsorted) {
+        return breadthFirst(Useful.list(unsorted));
+    }
+    
     /**
      * @param unsorted Unordered list of items
      * @return topologically ordered list of items, prioritized by comparator comp
