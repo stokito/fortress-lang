@@ -17,9 +17,13 @@
 
 package com.sun.fortress.nativeHelpers;
 
-public class simplePrintln {
+public class simpleOverload {
     
     public static void nativePrintln(String s) {
         System.out.println(s);
     }
+    public static void nativePrintln(int i) {
+        System.out.println(i);
+    }
+
 }

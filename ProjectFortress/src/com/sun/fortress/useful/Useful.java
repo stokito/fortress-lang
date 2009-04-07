@@ -460,6 +460,14 @@ public class Useful {
         return l;
     }
 
+    public static <U, T extends U> List<U> list(T[] all) {
+        List<U> l = new ArrayList<U>(all.length);
+        for (T x : all) {
+            l.add(x);
+        }
+        return l;
+    }
+
     public static <T> List<T> list(Iterable<T> xs) {
         ArrayList<T> result;
         if (xs instanceof Collection<?>) {
