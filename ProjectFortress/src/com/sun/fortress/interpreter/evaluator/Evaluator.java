@@ -357,9 +357,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forDo(Do x) {
-	FValue res;
+        FValue res;
         int s = x.getFronts().size();
-        //	System.out.println("forDo with s = " + s + " x = " + x);
+        //      System.out.println("forDo with s = " + s + " x = " + x);
 
         if (s == 0) return FVoid.V;
         if (s == 1) {
@@ -370,45 +370,36 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             if (f.isAtomicBlock()) {
                 res = forAtomicExpr(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f));
-	    } else {
-		res = f.accept(new Evaluator(this));
-	    }
-	    return res;
-       }
+            } else {
+                res = f.accept(new Evaluator(this));
+            }
+            return res;
+        }
 
-	List<TupleTask> tasks = new ArrayList<TupleTask>();
+        List<TupleTask> tasks = new ArrayList<TupleTask>();
 
-	for (int i = 0; i < s; i++) {
-	    Block f = x.getFronts().get(i);
+        for (int i = 0; i < s; i++) {
+            Block f = x.getFronts().get(i);
 
             if (f.getLoc().isSome()) {
                 Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
-	    if (f.isAtomicBlock())
-		tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
-	    else {
-		tasks.add(new TupleTask(f, new Evaluator(this)));
-	    }
-	}
-
-	BaseTask currentTask = FortressTaskRunner.getTask();
-	TupleTask.invokeAll(tasks);
-	FortressTaskRunner.setCurrentTask(currentTask);
-
-	for (TupleTask t : tasks) {
-            if (t.causedException()) {
-                Throwable th = t.taskException();
-                if (th instanceof Error) {
-                    throw (Error)th;
-                } else if (th instanceof RuntimeException) {
-                    throw (RuntimeException)th;
-                } else {
-		    error(t.getExpr(), errorMsg("Wrapped Exception",th));
-                }
+            if (f.isAtomicBlock())
+                tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
+            else {
+                tasks.add(new TupleTask(f, new Evaluator(this)));
             }
         }
-       return FVoid.V;
+
+        BaseTask currentTask = FortressTaskRunner.getTask();
+        TupleTask.invokeAll(tasks);
+        FortressTaskRunner.setCurrentTask(currentTask);
+
+        for (TupleTask t : tasks) {
+            FValue ignore = t.getResOrException();
+        }
+        return FVoid.V;
     }
 
     public FValue forBlock(Block x) {
@@ -469,41 +460,30 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-
     <T extends Expr> List<FValue> evalExprListParallel(List<T> exprs) {
         // Added some special-case code to avoid explosion of TupleTasks.
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
-	ArrayList<TupleTask> TupleTasks = new ArrayList<TupleTask>(sz);
-        if (sz==1) {
-            resList.add(exprs.get(0).accept(this));
-        } else if (sz > 1) {
-	    for (Expr expr : exprs)
-		// We want to add things to the front of the list.
-		TupleTasks.add(0, new TupleTask(expr, this));
+        ArrayList<TupleTask> TupleTasks = new ArrayList<TupleTask>(sz);
+        if (sz<2 || !TupleTask.worthSpawning()) {
+            evalExprList(exprs,resList);
+        } else {
+            for (Expr expr : exprs)
+                // We want to add things to the front of the list.
+                TupleTasks.add(0, new TupleTask(expr, this));
 
             BaseTask currentTask = FortressTaskRunner.getTask();
             TupleTask.invokeAll(TupleTasks);
             FortressTaskRunner.setCurrentTask(currentTask);
 
-	    for (TupleTask task : TupleTasks) {
-		if (task.causedException()) {
-                    Throwable t = task.taskException();
-                    if (t instanceof Error) {
-                        throw (Error)t;
-                    } else if (t instanceof RuntimeException) {
-                        throw (RuntimeException)t;
-                    } else {
-			error(task.getExpr(), errorMsg("Wrapped Exception",t));
-                    }
-                }
-                resList.add(0,task.getRes());
+            for (TupleTask task : TupleTasks) {
+                resList.add(0,task.getResOrException());
             }
         }
 
-	if (resList.size() != exprs.size())
-	    bug("We should have the same number of results as we did exprs resList = " +
-		resList + " exprs = " + exprs );
+        if (resList.size() != exprs.size())
+            bug("We should have the same number of results as we did exprs resList = " +
+                resList + " exprs = " + exprs );
         return resList;
     }
 
