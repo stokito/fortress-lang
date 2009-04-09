@@ -19,5 +19,7 @@ compile
 compile_err_equals=\
 ${PREPARSER_TESTS_DIR}/XXXPreparser.aj.fss:21:41-71:\n\
 \ Unmatched delimiters \"also\" and \"end\".\n\
-File XXXPreparser.aj.fss has 1 error.\n
+${PREPARSER_TESTS_DIR}/XXXPreparser.aj.fss:21:9:\n\
+\ Unmatched delimiter \"at\".\n\
+File XXXPreparser.aj.fss has 2 errors.\n
 compile_out_equals=

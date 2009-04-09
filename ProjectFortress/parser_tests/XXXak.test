@@ -13,15 +13,11 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=XXXPreparser.ai
+tests=XXXPreparser.ak
 PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
 compile
 compile_err_equals=\
-${PREPARSER_TESTS_DIR}/XXXPreparser.ai.fss:18:1-8:\n\
-\ Unmatched delimiter \"component\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.ai.fss:21:41-23:2:\n\
-\ Unmatched delimiters \"also\" and \"end\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.ai.fss:21:9:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ak.fss:21:9:\n\
 \ Unmatched delimiter \"at\".\n\
-File XXXPreparser.ai.fss has 3 errors.\n
+File XXXPreparser.ak.fss has 1 error.\n
 compile_out_equals=
