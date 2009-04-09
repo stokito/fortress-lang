@@ -78,6 +78,7 @@ stateful void Token =
    / also       { yyState.left(createSpan(yyStart,yyCount), "also"); }
    / end        { yyState.right(createSpan(yyStart,yyCount), "end"); }
    / do         { yyState.handleDo(createSpan(yyStart,yyCount)); }
+   / at         { yyState.handleAt(createSpan(yyStart,yyCount)); }
    / Encloser   // ignore vertical bars
    / a1:LeftEncloser  { yyState.left(a1); }
    / a1:RightEncloser { yyState.right(a1); }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import xtc.util.State;
+import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
@@ -49,6 +50,9 @@ public class PreParserState implements State {
 
     /** Nested component/API definitions are not allowed. */
     private boolean sawCompilation = false;
+
+    /** Region annotation by "at" should be followed by "do". */
+    private Option<Span> sawAt = Option.<Span>none();
 
     /** Create a new preparser state object. */
     public PreParserState() {
@@ -121,9 +125,15 @@ public class PreParserState implements State {
 
     public void handleDo(Span span) {
         Debug.debug( Debug.Type.PARSER, 1, "HandleDo");
+        sawAt = Option.<Span>none();
         if ( ! lefts.isEmpty() && lefts.get(0).getText().equals("also") )
             right( span, "do" );
         else left( span, "do" );
+    }
+
+    public void handleAt(Span span) {
+        Debug.debug( Debug.Type.PARSER, 1, "HandleAt");
+        sawAt = Option.<Span>some(span);
     }
 
     public void quote(Span span, String token) {
@@ -147,6 +157,8 @@ public class PreParserState implements State {
                     "Unmatched delimiter \"" + left + "\".");
             }
         }
+        if ( sawAt.isSome() )
+            log(sawAt.unwrap(), "Unmatched delimiter \"at\".");
     }
 
     private void log(Span span, String message) {
