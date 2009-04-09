@@ -56,6 +56,11 @@ Expr ExprFront =
      { yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1,
                                         Option.<Type>wrap(a2),
                                         Option.<List<BaseType>>wrap(a3), a4);
+     }
+   / <ErrorProduction> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Anonymous function expression is missing \"=>\".");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      };
 
 constant transient Action<Expr> ExprTail =
