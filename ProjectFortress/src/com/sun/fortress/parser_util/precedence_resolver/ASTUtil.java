@@ -22,6 +22,7 @@ package com.sun.fortress.parser_util.precedence_resolver;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 
+import java.io.BufferedWriter;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +79,7 @@ public class ASTUtil {
 
     // let multifix (span : span) (op : op) (args : expr list) : expr =
     //   opr span (node op.node_span (`Opr op)) args
-    static Expr multifix(Span span, Op op, List<Expr> args) {
+    static Expr multifix(BufferedWriter writer, Span span, Op op, List<Expr> args) {
         Op infix_op_ = NodeFactory.makeOpInfix(op);
         FunctionalRef infix_op = ExprFactory.makeOpRef(infix_op_);
 
@@ -90,30 +91,33 @@ public class ASTUtil {
                                                            infix_op, multifix_op, args);
         }
         else if (args.size() == 2) {
-        	return ExprFactory.makeOpExpr(span, infix_op, args);
+            return ExprFactory.makeOpExpr(span, infix_op, args);
         }
         else {
-        	return error(op, "Operator fixity is invalid in its application.");
+            NodeUtil.log(writer, span, "Operator fixity is invalid in its application.");
+            return ExprFactory.makeVoidLiteralExpr(span);
         }
     }
 
     // let enclosing (span : span) (left : op) (args : expr list) (right : op) : expr =
     //     opr span (node (span_two left right) (`Enclosing (left,right))) args
-    public static Expr enclosing(Span span, Op left, List<Expr> args, Op right) {
-        return enclosing(span, left, Collections.<StaticArg>emptyList(),
+    public static Expr enclosing(BufferedWriter writer, Span span, Op left,
+                                 List<Expr> args, Op right) {
+        return enclosing(writer, span, left, Collections.<StaticArg>emptyList(),
                          args, right);
     }
 
-    public static Expr enclosing(Span span, Op left, List<StaticArg> sargs,
-                                 List<Expr> args, Op right) {
+    public static Expr enclosing(BufferedWriter writer, Span span, Op left,
+                                 List<StaticArg> sargs, List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = NodeUtil.spanTwo(left, right);
             Op en = NodeFactory.makeEnclosing(s, left.getText(), right.getText());
             FunctionalRef ref = ExprFactory.makeOpRef(en, sargs);
             return ExprFactory.makeOpExpr(span, ref, args);
         } else {
-            return error(right, "Mismatched Enclosers: " +
+            NodeUtil.log(writer, span, "Mismatched Enclosers: " +
                          left.getText() + " and " + right.getText());
+            return ExprFactory.makeVoidLiteralExpr(span);
         }
     }
 

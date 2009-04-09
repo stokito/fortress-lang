@@ -157,12 +157,15 @@ constant inline Action<Expr> FieldSelectionAssign =
  */
 Expr OpExpr =
      <FIRST> a1:OpExprNoEnc
-     { yyValue = Resolver.resolveOps(a1); }
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOps(writer, span, a1); }
    / a1:OpExprLeftEncloser
-     { yyValue = Resolver.resolveOps(a1); }
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOps(writer, span, a1); }
    / a1:Encloser
-     { PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
-       yyValue = Resolver.resolveOps(PureList.make(e));
+     { Span span = createSpan(yyStart,yyCount);
+       PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
+       yyValue = Resolver.resolveOps(writer, span, PureList.make(e));
      };
 
 /* OpExprNoEnc ::=
@@ -426,8 +429,8 @@ Expr PrimaryFront =
        if ( a2.booleanValue() && a3 != null )
            log(span, "Space is not allowed immediately " +
                "before left white square bracket.");
-       if (a3 == null) yyValue = ASTUtil.enclosing(span, a1, a4, a5);
-       else            yyValue = ASTUtil.enclosing(span, a1, a3, a4, a5);
+       if (a3 == null) yyValue = ASTUtil.enclosing(writer, span, a1, a4, a5);
+       else            yyValue = ASTUtil.enclosing(writer, span, a1, a3, a4, a5);
      }
    / ParenthesisDelimited
    / LiteralExpr

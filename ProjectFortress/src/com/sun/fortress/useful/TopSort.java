@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -77,14 +77,14 @@ public class TopSort {
 
         return sorted;
     }
-    
+
     public static <T extends TopSortItem<T>> List<T> depthFirst(T[] unsorted) {
         return depthFirst(Useful.list(unsorted));
     }
     public static <T extends TopSortItem<T>> List<T> breadthFirst(T[] unsorted) {
         return breadthFirst(Useful.list(unsorted));
     }
-    
+
     /**
      * @param unsorted Unordered list of items
      * @return topologically ordered list of items, prioritized by comparator comp
@@ -125,7 +125,7 @@ public class TopSort {
         return sorted;
     }
 
-    
+
     public static <T extends TopSortItem<T>> List<T> depthFirst(Iterable<T> unsorted) {
         Iterator<T> i = unsorted.iterator();
 
