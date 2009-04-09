@@ -67,7 +67,6 @@ stateful void Token =
    / api        { yyState.left(createSpan(yyStart,yyCount), "api"); }
    / case       { yyState.left(createSpan(yyStart,yyCount), "case"); }
    / component  { yyState.left(createSpan(yyStart,yyCount), "component"); }
-   / do         { yyState.left(createSpan(yyStart,yyCount), "do"); }
    / grammar    { yyState.left(createSpan(yyStart,yyCount), "grammar"); }
    / "(if"      { yyState.left(createSpan(yyStart,yyCount), "(if"); }
    / if         { yyState.left(createSpan(yyStart,yyCount), "if"); }
@@ -76,8 +75,9 @@ stateful void Token =
    / trait      { yyState.left(createSpan(yyStart,yyCount), "trait"); }
    / try        { yyState.left(createSpan(yyStart,yyCount), "try"); }
    / typecase   { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
-   / also       { yyState.right(createSpan(yyStart,yyCount), "also"); }
+   / also       { yyState.left(createSpan(yyStart,yyCount), "also"); }
    / end        { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / do         { yyState.handleDo(createSpan(yyStart,yyCount)); }
    / Encloser   // ignore vertical bars
    / a1:LeftEncloser  { yyState.left(a1); }
    / a1:RightEncloser { yyState.right(a1); }
@@ -86,7 +86,7 @@ stateful void Token =
    / a1:Opening { yyState.left(createSpan(yyStart,yyCount), a1); }
    / a1:Closing { yyState.right(createSpan(yyStart,yyCount), a1); }
    / a1:["] { yyState.quote(createSpan(yyStart,yyCount), "\\\""); } // "
-   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); } // '
+   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); }
    / Numbers
    / OtherKeywords
    / OtherSymbols

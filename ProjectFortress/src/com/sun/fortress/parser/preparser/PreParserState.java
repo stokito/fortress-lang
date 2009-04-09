@@ -59,7 +59,7 @@ public class PreParserState implements State {
     public void init(BufferedWriter wr) {
         writer = wr;
         String[] ends = new String[]{"api", "component", "trait", "object", "grammar",
-                                     "case", "if", "label", "try", "typecase"};
+                                     "do", "case", "if", "label", "try", "typecase"};
         keywords = new ArrayList<String>(java.util.Arrays.asList(ends));
     }
 
@@ -119,6 +119,13 @@ public class PreParserState implements State {
         right( NodeFactory.makeId(span, close) );
     }
 
+    public void handleDo(Span span) {
+        Debug.debug( Debug.Type.PARSER, 1, "HandleDo");
+        if ( ! lefts.isEmpty() && lefts.get(0).getText().equals("also") )
+            right( span, "do" );
+        else left( span, "do" );
+    }
+
     public void quote(Span span, String token) {
         Debug.debug( Debug.Type.PARSER, 1, "Quote " + token);
         if ( lefts.isEmpty() )
@@ -165,8 +172,7 @@ public class PreParserState implements State {
 
     private boolean matches(String left, String right) {
         if ( keywords.contains(left) ) return right.equals("end");
-        else if ( left.equals("do") )
-            return right.equals("end") || right.equals("also");
+        else if ( left.equals("also") ) return right.equals("do");
         else if ( left.equals("(if") ) return ( right.equals(")") || right.equals("end)") );
         else if ( left.equals("(") ) return right.equals(")");
         else if ( left.equals("[") ) return right.equals("]");
