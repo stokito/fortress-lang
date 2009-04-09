@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,15 +25,15 @@ public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>> {
 
     /*
      * Typical use is by creating a subtype, like so:
-     
+
      static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
             super(x);
         }
      }
-     
+
      * and to create an array list of that subtype, like so:
-     
+
      TopSortItemImpl<Type>[] potypes = new POType[dispatchTypes.size()];
 
      * Notice that the generic type is on the variable, not on the array
@@ -43,7 +43,7 @@ public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>> {
      * is invoked.
 
      */
-    
+
     public T x;
     List<TopSortItemImpl<T>> succs;
     int pcount;

@@ -20,6 +20,7 @@
  */
 package com.sun.fortress.parser_util.precedence_resolver;
 
+import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +74,7 @@ import static com.sun.fortress.nodes_util.NodeUtil.spanTwo;
  */
 public class Resolver {
 
+  private BufferedWriter writer;
   private static boolean noSpace = false;
 
   // let is_div op = op.node_data = "/"
@@ -415,10 +417,9 @@ public class Resolver {
 
   // let rec resolve_infix (oes : infix_opexpr list) : expr =
   //   resolve_infix_stack oes []
-  private static Expr resolveInfix(PureList<InfixOpExpr> opExprs)
-    throws ReadError
-  {
-    return resolveInfixStack(opExprs, PureList.<InfixFrame>make());
+  private static Expr resolveInfix(BufferedWriter writer,
+                                   PureList<InfixOpExpr> opExprs) throws ReadError {
+    return resolveInfixStack(writer, opExprs, PureList.<InfixFrame>make());
   }
 
   // and resolve_infix_stack (oes : infix_opexpr list) (stack : infix_stack) : expr =
@@ -445,14 +446,15 @@ public class Resolver {
   //     | [`Expr _; (`TightInfix op | `LooseInfix op)] ->
   //         Errors.internal_error op.node_span
   //           "Interpreted %s with no right operand as infix." op.node_data
-  private static Expr resolveInfixStack(PureList<InfixOpExpr> opExprs,
-                    PureList<InfixFrame> stack)
+  private static Expr resolveInfixStack(BufferedWriter writer,
+                                        PureList<InfixOpExpr> opExprs,
+                                        PureList<InfixFrame> stack)
     throws ReadError {
     if (opExprs.size() == 1 &&
         ((Cons<InfixOpExpr>)opExprs).getFirst() instanceof RealExpr)
     {
       return finishInfixStack
-        (((RealExpr)((Cons<InfixOpExpr>)opExprs).getFirst()).getExpr(),
+        (writer, ((RealExpr)((Cons<InfixOpExpr>)opExprs).getFirst()).getExpr(),
          stack);
     }
     // Chaining
@@ -469,7 +471,7 @@ public class Resolver {
           second instanceof LooseInfix &&
           chains(((LooseInfix)second).getOp())) {
         return resolveInfixStack
-          (_rest, looseChainStack(((RealExpr)first).getExpr(),
+          (writer, _rest, looseChainStack(writer, ((RealExpr)first).getExpr(),
                                   ((LooseInfix)second).getOp(),
                                   stack));
       }
@@ -478,7 +480,7 @@ public class Resolver {
                chains(((TightInfix)second).getOp()))
       {
         return resolveInfixStack
-          (_rest, tightChainStack(((RealExpr)first).getExpr(),
+          (writer, _rest, tightChainStack(writer, ((RealExpr)first).getExpr(),
                                   ((TightInfix)second).getOp(),
                                   stack));
 
@@ -488,14 +490,14 @@ public class Resolver {
                second instanceof LooseInfix)
       {
         return resolveInfixStack
-          (_rest, looseInfixStack(((RealExpr)first).getExpr(),
+          (writer, _rest, looseInfixStack(writer, ((RealExpr)first).getExpr(),
                                   ((LooseInfix)second).getOp(),
                                   stack));
       }
       else if (first  instanceof RealExpr &&
                second instanceof TightInfix) {
         return resolveInfixStack
-          (_rest, tightInfixStack(((RealExpr)first).getExpr(),
+          (writer, _rest, tightInfixStack(writer, ((RealExpr)first).getExpr(),
                                   ((TightInfix)second).getOp(),
                                   stack));
       }
@@ -546,7 +548,8 @@ public class Resolver {
   //     | [] -> last
   //     | frame :: rest ->
   //         finish_infix_stack (finish_infix_frame last frame) rest
-  private static Expr finishInfixStack(Expr last, PureList<InfixFrame> stack)
+  private static Expr finishInfixStack(BufferedWriter writer,
+                                       Expr last, PureList<InfixFrame> stack)
     throws ReadError
   {
     if (stack.isEmpty()) { return last; }
@@ -555,7 +558,7 @@ public class Resolver {
       InfixFrame frame = ((Cons<InfixFrame>)stack).getFirst();
       PureList<InfixFrame> rest = ((Cons<InfixFrame>)stack).getRest();
 
-      return finishInfixStack(finishInfixFrame(last, frame), rest);
+      return finishInfixStack(writer, finishInfixFrame(writer, last, frame), rest);
     }
   }
 
@@ -567,8 +570,8 @@ public class Resolver {
   //     | `TightChain links | `LooseChain links ->
   //         ensure_valid_chaining links;
   //         build_chain_expr (List.rev links) last
-  private static Expr finishInfixFrame(Expr last, InfixFrame frame)
-    throws ReadError
+  private static Expr finishInfixFrame(BufferedWriter writer, Expr last,
+                                       InfixFrame frame) throws ReadError
   {
     if (frame instanceof NonChain) {
       // frame instanceof Loose || frame instanceof Tight
@@ -581,7 +584,7 @@ public class Resolver {
           span = NodeFactory.parserSpan;
       else
           span = NodeUtil.spanAll(exprs.toArray(),exprs.size());
-      return ASTUtil.multifix(span, op, args.toJavaList());
+      return ASTUtil.multifix(writer, span, op, args.toJavaList());
     }
     else { // frame instanceof TightChain || frame instanceof LooseChain
       PureList<ExprOpPair> links = ((Chain)frame).getLinks();
@@ -680,8 +683,9 @@ public class Resolver {
   //                  op'.node_data op.node_data)
   //     | (`LooseChain [] | `TightChain []) :: rest ->
   //         Errors.internal_error op.node_span "Empty chain expression."
-  private static PureList<InfixFrame> looseInfixStack(Expr e, Op op,
-                          PureList<InfixFrame> stack)
+  private static PureList<InfixFrame> looseInfixStack(BufferedWriter writer,
+                                                      Expr e, Op op,
+                                                      PureList<InfixFrame> stack)
     throws ReadError
   {
     if (stack.isEmpty()) {
@@ -696,7 +700,7 @@ public class Resolver {
         Op _op = ((Tight)frame).getOp();
 
         if (precedence(_op, op) instanceof Higher) {
-          return looseInfixStack(finishInfixFrame(e,frame),op,rest);
+          return looseInfixStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else {
           throw new ReadError(spanTwo(_op,op),
@@ -720,7 +724,7 @@ public class Resolver {
           else if (prec instanceof Lower ||
                    prec instanceof Equal)
           {
-            return looseInfixStack(finishInfixFrame(e,frame),
+            return looseInfixStack(writer, finishInfixFrame(writer, e,frame),
                                    op, rest);
           }
           else { // prec instanceof None
@@ -746,7 +750,7 @@ public class Resolver {
           return stack.cons(new Loose(op, PureList.make(e)));
         }
         else if (prec instanceof Lower) {
-          return looseInfixStack(finishInfixFrame(e,frame),op,rest);
+          return looseInfixStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else if (prec instanceof Equal) {
           throw new ReadError(NodeUtil.getSpan(op),
@@ -770,7 +774,7 @@ public class Resolver {
           Precedence prec = precedence(_op, op);
 
           if (prec instanceof Higher) {
-            return looseInfixStack(finishInfixFrame(e,frame),
+            return looseInfixStack(writer, finishInfixFrame(writer, e,frame),
                                    op, rest);
           }
           else {
@@ -826,8 +830,9 @@ public class Resolver {
   //                  op'.node_data op.node_data)
   //     | (`LooseChain [] | `TightChain []) :: rest ->
   //         Errors.internal_error op.node_span "Empty chain expression."
-  private static PureList<InfixFrame> tightInfixStack(Expr e, Op op,
-                          PureList<InfixFrame> stack)
+  private static PureList<InfixFrame> tightInfixStack(BufferedWriter writer,
+                                                      Expr e, Op op,
+                                                      PureList<InfixFrame> stack)
     throws ReadError
   {
     if (stack.isEmpty()) {
@@ -865,7 +870,7 @@ public class Resolver {
           }
           else if (prec instanceof Lower ||
                    prec instanceof Equal) {
-            return tightInfixStack(finishInfixFrame(e,frame),
+            return tightInfixStack(writer, finishInfixFrame(writer, e,frame),
                                    op, rest);
           }
           else { // prec instanceof None
@@ -892,7 +897,7 @@ public class Resolver {
           return stack.cons(new Tight(op, PureList.make(e)));
         }
         else if (prec instanceof Lower) {
-          return tightInfixStack(finishInfixFrame(e,frame),op,rest);
+          return tightInfixStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else if (prec instanceof Equal) {
           throw new ReadError(NodeUtil.getSpan(op),
@@ -953,8 +958,9 @@ public class Resolver {
   //         Errors.read_error op.node_span "Chaining with inconsistent spacing."
   //     | (`LooseChain links as frame) :: rest ->
   //         `LooseChain ((e,op)::links) :: rest
-  private static PureList<InfixFrame> looseChainStack(Expr e, Op op,
-                          PureList<InfixFrame> stack)
+  private static PureList<InfixFrame> looseChainStack(BufferedWriter writer,
+                                                      Expr e, Op op,
+                                                      PureList<InfixFrame> stack)
     throws ReadError
   {
     if (stack.isEmpty()) {
@@ -971,7 +977,7 @@ public class Resolver {
         Op _op = ((Tight)frame).getOp();
 
         if (precedence(op, _op) instanceof Lower) {
-          return looseChainStack(finishInfixFrame(e,frame),op,rest);
+          return looseChainStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else {
           throw new ReadError(spanTwo(_op, op),
@@ -984,7 +990,7 @@ public class Resolver {
         Precedence prec = precedence(op, _op);
 
         if (prec instanceof Lower) {
-          return looseChainStack(finishInfixFrame(e,frame),op,rest);
+          return looseChainStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else if (prec instanceof Higher) {
           return stack.cons(new LooseChain
@@ -1037,8 +1043,9 @@ public class Resolver {
   //         Errors.read_error op.node_span "Chaining with inconsistent spacing."
   //     | (`TightChain links as frame) :: rest ->
   //         `TightChain ((e,op)::links) :: rest
-  private static PureList<InfixFrame> tightChainStack(Expr e, Op op,
-                          PureList<InfixFrame> stack)
+  private static PureList<InfixFrame> tightChainStack(BufferedWriter writer,
+                                                      Expr e, Op op,
+                                                      PureList<InfixFrame> stack)
     throws ReadError {
     if (stack.isEmpty()) {
       InfixFrame frame = new TightChain(PureList.make(new ExprOpPair(e,op)));
@@ -1068,7 +1075,7 @@ public class Resolver {
         Precedence prec = precedence(op, _op);
 
         if (prec instanceof Lower) {
-          return tightChainStack(finishInfixFrame(e,frame),op,rest);
+          return tightChainStack(writer, finishInfixFrame(writer, e,frame),op,rest);
         }
         else if (prec instanceof Higher) {
           return stack.cons(new TightChain
@@ -1110,10 +1117,11 @@ public class Resolver {
   //   | (`Expr _ | `TightInfix _ | `LooseInfix _ | `Postfix _ | `Prefix _ as oe)
   //        :: rest ->
   //        push_enclosing oe rest stack
-  private static Expr resolveOpsEnclosing(PureList<PrecedenceOpExpr> opExprs,
+  private static Expr resolveOpsEnclosing(BufferedWriter writer,
+                                          PureList<PrecedenceOpExpr> opExprs,
                       EnclosingStack stack)
     throws ReadError {
-    if (opExprs.isEmpty()) { return finishEnclosing(stack); }
+    if (opExprs.isEmpty()) { return finishEnclosing(writer, stack); }
 
     else { // opExprs instanceof Cons
       Cons<PrecedenceOpExpr> _opExprs = (Cons<PrecedenceOpExpr>) opExprs;
@@ -1123,15 +1131,15 @@ public class Resolver {
       if (first instanceof Left) {
         Left _first = (Left) first;
 
-        return resolveOpsEnclosing(rest, stack.layer(_first.getOp()));
+        return resolveOpsEnclosing(writer, rest, stack.layer(_first.getOp()));
       }
       else if (first instanceof Right) {
         Right _first = (Right) first;
 
-        return popEnclosing(_first.getOp(), rest, stack);
+        return popEnclosing(writer, _first.getOp(), rest, stack);
       }
       else { // first instanceof PostfixOpExpr
-        return pushEnclosing((PostfixOpExpr)first, rest, stack);
+        return pushEnclosing(writer, (PostfixOpExpr)first, rest, stack);
       }
     }
   }
@@ -1142,10 +1150,10 @@ public class Resolver {
   //       (resolve_prefix
   //          (resolve_tight_div
   //             (resolve_postfix (List.rev oes)))))
-  private static Expr buildLayer(PureList<PostfixOpExpr> opExprs)
+  private static Expr buildLayer(BufferedWriter writer, PureList<PostfixOpExpr> opExprs)
     throws ReadError {
     return resolveInfix
-              (resolvePrefix
+              (writer, resolvePrefix
                  (resolveJuxt
                     (resolveTightDiv
                        (resolvePostfix (opExprs.reverse())))));
@@ -1157,8 +1165,9 @@ public class Resolver {
   //    | `Layer (op,oes,stack') ->
   //        Errors.read_error op.node_span
   //          "Left encloser %s without right encloser." op.node_data
-  private static Expr finishEnclosing(EnclosingStack stack) throws ReadError {
-    if (stack instanceof Bottom) { return buildLayer(stack.getList()); }
+  private static Expr finishEnclosing(BufferedWriter writer,
+                                      EnclosingStack stack) throws ReadError {
+    if (stack instanceof Bottom) { return buildLayer(writer, stack.getList()); }
 
     else { // stack instanceof Layer
       Op op = ((Layer) stack).getOp();
@@ -1178,8 +1187,9 @@ public class Resolver {
   //    | _ ->
   //        Errors.read_error op.node_span
   //          "Right encloser %s without left encloser." op.node_data
-  private static Expr popEnclosing(Op op, PureList<PrecedenceOpExpr> opExprs,
-                   EnclosingStack stack) throws ReadError {
+  private static Expr popEnclosing(BufferedWriter writer, Op op,
+                                   PureList<PrecedenceOpExpr> opExprs,
+                                   EnclosingStack stack) throws ReadError {
 
     if (stack instanceof Layer &&
     ((Layer) stack).getOp().getText().equals(op.getText())) {
@@ -1187,11 +1197,11 @@ public class Resolver {
       Op layerOp = layer.getOp();
 
       List<Expr> es = new ArrayList<Expr>();
-      es.add(buildLayer(layer.getList()));
+      es.add(buildLayer(writer, layer.getList()));
       RealExpr expr = new RealExpr
-        (ASTUtil.enclosing(spanTwo(layerOp, op), layerOp, es, op));
+          (ASTUtil.enclosing(writer, spanTwo(layerOp, op), layerOp, es, op));
 
-      return resolveOpsEnclosing(opExprs.cons(expr), layer.getNext());
+      return resolveOpsEnclosing(writer, opExprs.cons(expr), layer.getNext());
     }
     else {
       throw new ReadError(NodeUtil.getSpan(op),
@@ -1206,19 +1216,20 @@ public class Resolver {
   //    | `Bottom oes' -> resolve_ops_enclosing oes (`Bottom (oe::oes'))
   //    | `Layer (op',oes',stack') ->
   //        resolve_ops_enclosing oes (`Layer (op',oe::oes',stack'))
-  private static Expr pushEnclosing(PostfixOpExpr opExpr, PureList<PrecedenceOpExpr> opExprs,
+  private static Expr pushEnclosing(BufferedWriter writer, PostfixOpExpr opExpr,
+                                    PureList<PrecedenceOpExpr> opExprs,
                                     EnclosingStack stack) throws ReadError {
     if (stack instanceof Bottom) {
       Bottom _stack = (Bottom)stack;
       PureList<PostfixOpExpr> stackList = _stack.getList();
 
-      return resolveOpsEnclosing(opExprs,
+      return resolveOpsEnclosing(writer, opExprs,
                                  new Bottom(stackList.cons(opExpr)));
     }
     else { // stack instanceof Layer
       Layer layer = (Layer) stack;
 
-      return resolveOpsEnclosing(opExprs,
+      return resolveOpsEnclosing(writer, opExprs,
                                  new Layer(layer.getOp(),
                                            layer.getList().cons(opExpr),
                                            layer.getNext()));
@@ -1236,21 +1247,25 @@ public class Resolver {
   //            (opexprs_to_string oes);
   //          raise exn
   //        end
-  public static Expr resolveOps(PureList<PrecedenceOpExpr> opExprs) {
+  public static Expr resolveOps(BufferedWriter writer, Span span,
+                                PureList<PrecedenceOpExpr> opExprs) {
     try {
-      return resolveOpsEnclosing(opExprs, new Bottom());
+      return resolveOpsEnclosing(writer, opExprs, new Bottom());
     }
     catch (ReadError e) {
       String msg = e.getMessage();
       for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
       msg += "\n  " + expr.toString();
       }
-      return error("Resolution of operator property failed for:\n" + msg);
+      NodeUtil.log(writer, span,
+                   "Resolution of operator property failed for:\n    " + msg);
+      return ExprFactory.makeVoidLiteralExpr(span);
     }
   }
 
-  public static Expr resolveOpsNoSpace(PureList<PrecedenceOpExpr> opExprs) {
+  public static Expr resolveOpsNoSpace(BufferedWriter writer, Span span,
+                                       PureList<PrecedenceOpExpr> opExprs) {
       noSpace = true;
-      return resolveOps(opExprs);
+      return resolveOps(writer, span, opExprs);
   }
 }

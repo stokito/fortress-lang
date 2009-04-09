@@ -62,8 +62,8 @@ Expr DelimitedExpr =
    / label w a1:IdOrOpName w a2:BlockElems w end w a3:IdOrOpName
      { Span span = NodeUtil.getSpan(a1);
        if (!a1.getText().equals(a3.getText()))
-           log(span, "Mismatched identifiers for label expressions:\n'" +
-               a1 + "' at " + span + " and\n'" +
+           log(span, "Mismatched identifiers for label expressions:\n        '" +
+               a1 + "' at " + span + " and\n        '" +
                a3 + "' at " + NodeUtil.getSpan(a3));
        if ( a1 instanceof Op ) {
            if (a1.getText().equals("in"))
@@ -284,8 +284,8 @@ Expr MapExpr =
        Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1),
                                               a4.getText());
        if (a2 == null)
-            yyValue = ASTUtil.enclosing(span, open, a3, close);
-       else yyValue = ASTUtil.enclosing(span, open, a2, a3, close);
+            yyValue = ASTUtil.enclosing(writer, span, open, a3, close);
+       else yyValue = ASTUtil.enclosing(writer, span, open, a2, a3, close);
      };
 
 /* Comprehension ::=

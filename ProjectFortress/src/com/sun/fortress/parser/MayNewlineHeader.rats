@@ -210,7 +210,10 @@ transient IntExpr IntBase =
    | BoolExpr w = w BoolExpr
  */
 transient BoolExpr BoolExpr = a1:OpBool
-     { yyValue = NodeFactory.makeBoolExpr(writer, Resolver.resolveOps(a1)); };
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeBoolExpr(writer,
+                                          Resolver.resolveOps(writer, span, a1));
+     };
 
 /* OpBool ::=
      BoolPrimary
@@ -260,7 +263,9 @@ transient private Expr BoolPrimaryFront =
    / a1:QualifiedName
      { yyValue = ExprFactory.makeVarRef(NodeUtil.getSpan(a1), a1); }
    / openparen w a1:OpBool w closeparen
-     { yyValue = ExprFactory.makeInParentheses(Resolver.resolveOps(a1)); };
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = ExprFactory.makeInParentheses(Resolver.resolveOps(writer, span, a1));
+     };
 
 /* UnitVal ::=
      dimensionless
