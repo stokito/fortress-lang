@@ -133,10 +133,16 @@ class OverloadingChecker(component: ComponentIndex,
         subtype(sub_type._1._2, super_type._1._2)
 
     /* Checks the overloading rule: exclusion */
+    /* Invariant: firstParam is not equal to secondParam */
     /* Not yet fully implemented... */
     private def exclusion(first: ((Type,Type),Span),
-                          second: ((Type,Type),Span)): Boolean =
-        NodeUtil.differentArity(first._1._1, second._1._1)
+                          second: ((Type,Type),Span)): Boolean = {
+        val firstParam = first._1._1
+        val secondParam = second._1._1
+        NodeUtil.differentArity(firstParam, secondParam) ||
+        NodeUtil.structuralExclusion(firstParam, secondParam) ||
+        typeAnalyzer.exclusion(firstParam, secondParam)
+    }
 
     /* Checks the overloading rule: meet */
     /* Not yet fully implemented... */

@@ -58,6 +58,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeAliasIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -202,6 +203,44 @@ public class TypeAnalyzer {
     public final Lambda<Type, Type> NORMALIZE = new Lambda<Type, Type>() {
         public Type value(Type t) { return normalize(t); }
     };
+
+    /* Checks whether two given types are exclusive. */
+    /* Invariant: two types are not equal. */
+    public boolean exclusion(Type s, Type t) {
+        return exc(normalize(s), normalize(t));
+    }
+
+    /* The following TypeConsIndex's are not checked:
+     *     TypeAliasIndex
+     *     Dimension
+     *     Unit
+     */
+    private boolean exc(Type s, Type t) {
+        if ( s instanceof TraitType && t instanceof TraitType ) {
+            Option<TypeConsIndex> firstInd  = _table.typeCons(((TraitType)s).getName());
+            Option<TypeConsIndex> secondInd = _table.typeCons(((TraitType)t).getName());
+            if ( firstInd.isNone() )
+                throw new IllegalArgumentException("Unrecognized name: " +
+                                                   ((TraitType)s).getName());
+            else if ( secondInd.isNone() )
+                throw new IllegalArgumentException("Unrecognized name: " +
+                                                   ((TraitType)t).getName());
+            TypeConsIndex first  = firstInd.unwrap();
+            TypeConsIndex second = secondInd.unwrap();
+            if ( first instanceof TraitIndex && second instanceof TraitIndex ) {
+                if ( first instanceof ObjectTraitIndex ) {
+                    if ( second instanceof ObjectTraitIndex )
+                        return true;
+                    else // ! second instanceof ObjectTraitIndex
+                        return ! subtype(s, t).isTrue();
+                } else { // ! first instanceof ObjectTraitIndex
+                    if ( second instanceof ObjectTraitIndex )
+                        return ! subtype(t, s).isTrue();
+                    else return false;
+                }
+            } else return false;
+        } else return false;
+    }
 
     /**
      * Produce a formula that, if satisfied, will support {@code s} as a subtype of {@code t}.

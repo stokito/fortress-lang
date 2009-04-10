@@ -63,7 +63,6 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 import static com.sun.fortress.nodes_util.NodeUtil.spanTwo;
 
@@ -383,7 +382,7 @@ public class Resolver {
 
 
   private static PureList<PrefixOpExpr> buildJuxt(PureList<PrefixOpExpr> opExprs,
-                         PureList<RealExpr> revExprs)
+                                                  PureList<RealExpr> revExprs)
     throws ReadError
   {
     if (!opExprs.isEmpty() &&

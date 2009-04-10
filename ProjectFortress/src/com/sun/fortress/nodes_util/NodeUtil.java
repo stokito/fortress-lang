@@ -652,6 +652,26 @@ public class NodeUtil {
                  ((TupleType)second).getElements().size() );
     }
 
+    /* The following types are not yet checked:
+     *     IntersectionType
+     *     UnionType
+     *     FixedPointType
+     *     TaggedDimType
+     *     TaggedUnitType
+     *     LabelType
+     *     DimExpr
+     */
+    public static boolean structuralExclusion(Type first, Type second) {
+        if ( first instanceof AnyType || second instanceof AnyType )
+            return false;
+        else if ( first instanceof BottomType || second instanceof BottomType )
+            return true;
+        else if ( ( first instanceof ArrowType && ! (second instanceof ArrowType) ) ||
+                  ( ! (first instanceof ArrowType) && second instanceof ArrowType ) )
+            return true;
+        else return false;
+    }
+
     /* for Param ***********************************************************/
     public static boolean isMultifix(List<Param> params) {
         for (Param p : params) {

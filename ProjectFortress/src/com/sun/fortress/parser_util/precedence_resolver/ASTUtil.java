@@ -20,8 +20,6 @@
  */
 package com.sun.fortress.parser_util.precedence_resolver;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
-
 import java.io.BufferedWriter;
 import java.lang.reflect.Array;
 import java.util.Collections;
