@@ -410,9 +410,9 @@ public class IndexBuilder {
      * abstract fields.
      */
     private void buildTraitFields(VarDecl ast,
-            Id declaringTrait,
-            Map<Id, Method> getters,
-            Map<Id, Method> setters) {
+                                  Id declaringTrait,
+                                  Map<Id, Method> getters,
+                                  Map<Id, Method> setters) {
         for (LValue b : ast.getLhs()) {
             Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
