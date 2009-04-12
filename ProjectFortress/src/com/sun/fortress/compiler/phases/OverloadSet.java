@@ -30,6 +30,9 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.GMultiMap;
+import com.sun.fortress.useful.Hasher;
+import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
@@ -221,6 +224,8 @@ class OverloadSet {
                         }
                     }
                 
+               childLSTSF = thin(childLSTSF, childTestedIndices);
+                    
                if (the_size == childTestedIndices.size()) {
                         // Choose most specific member of lessSpecificThanSoFar
                    childLSTSF = mostSpecificMemberOf(childLSTSF);
@@ -236,6 +241,63 @@ class OverloadSet {
             }
         }
         splitDone = true;
+    }
+
+    private Set<Function> thin(Set<Function> childLSTSF, final Set<Integer> childTestedIndices) {
+        /*
+         * Hashes together functions that are equal in their unexamined parameter lists.
+         */
+        Hasher<Function> hasher = new Hasher<Function>() {
+
+            @Override
+            public boolean equiv(Function x, Function y) {
+                List<Param> px = x.parameters();
+                List<Param> py = y.parameters();
+                for (int i = 0; i < px.size(); i++) {
+                    if (childTestedIndices.contains(i))
+                        continue;
+                    Type tx = px.get(i).getIdType().unwrap();
+                    Type ty = px.get(i).getIdType().unwrap();
+                    if (! tx.equals(ty))
+                        return false;
+                }
+                return true;
+            }
+
+            @Override
+            public long hash(Function x) {
+                int h = MagicNumbers.T;
+                
+                List<Param> px = x.parameters();
+                for (int i = 0; i < px.size(); i++) {
+                    if (childTestedIndices.contains(i))
+                        continue;
+                    Type tx = px.get(i).getIdType().unwrap();
+                    h = h * MagicNumbers.t + tx.hashCode();
+                }
+                return h;
+            }
+            
+        };
+        
+        /*
+         * Creates map from (some) functions to the
+         * equivalence sets to which they are members.
+         */
+        GMultiMap<Function, Function> eqSetMap = new GMultiMap<Function, Function>(hasher);
+        for (Function f : childLSTSF)
+            eqSetMap.putItem(f, f);
+        
+        Set<Function> tmp = new HashSet<Function>();
+        
+        /*
+         * Take the most specific member of each equivalence set, and union
+         * those together.
+         */
+        for (Set<Function> sf : eqSetMap.values())
+            tmp.addAll(mostSpecificMemberOf(sf));
+        
+        return tmp;
     }
 
     /**
