@@ -22,7 +22,7 @@ import java.util.Set;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Useful;
 
 public class CircularDependenceError extends ProgramError {
@@ -82,7 +82,7 @@ public class CircularDependenceError extends ProgramError {
         participants.add(s);
     }
 
-    Set<String> participants = new BASet<String>(StringComparer.V);
+    Set<String> participants = new BASet<String>(DefaultComparator.V);
 
     @Override
     public String getMessage() {

@@ -28,14 +28,14 @@ import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATree;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
-    final private Map<String, List<IdOrOp>> overloadedFunctions = new BATree<String, List<IdOrOp>>(StringComparer.Vreversed);
-    final private Map<String, List<IdOrOp>> overloadedOperators = new BATree<String, List<IdOrOp>>(StringComparer.Vreversed);
+    final private Map<String, List<IdOrOp>> overloadedFunctions = new BATree<String, List<IdOrOp>>(DefaultComparator.Vreversed);
+    final private Map<String, List<IdOrOp>> overloadedOperators = new BATree<String, List<IdOrOp>>(DefaultComparator.Vreversed);
 
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,

@@ -93,7 +93,7 @@ import com.sun.fortress.useful.CheckedNullPointerException;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor1;
 import com.sun.fortress.useful.Visitor2;

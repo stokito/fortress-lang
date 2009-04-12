@@ -43,7 +43,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.LatticeIntervalMap;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -109,7 +109,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         BoundingMap<String, FType, TypeLatticeOps> abm = new
         // ABoundingMap
         LatticeIntervalMap<String, FType, TypeLatticeOps>(TypeLatticeOps.V,
-                StringComparer.V);
+                DefaultComparator.V);
         Param p = null;
         Set<String> tp_set = new HashSet<String>();
         List<StaticParam> rechecks = null;

@@ -19,11 +19,32 @@ package com.sun.fortress.nativeHelpers;
 
 public class simpleOverload {
     
-    public static void nativePrintln(String s) {
-        System.out.println(s);
-    }
-    public static void nativePrintln(int i) {
-        System.out.println(i);
+    public static void foo(int i, int j, int k, int l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
     }
 
+    public static void foo(int i, int j, long k, int l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
+    }
+
+    public static void foo(int i, int j, int k, long l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
+    }
+
+    public static void foo(int i, int j, float k, float l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
+    }
+
+    public static void foo(int i, int j, double k, double l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
+    }
+
+    public static void foo(int i, String j, double k, double l) {
+        System.out.println("" + i + " " + j + " " + k + " " + l);
+    }
+
+    public static String bar() {
+        return "bar";
+    }
+    
 }
