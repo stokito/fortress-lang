@@ -356,7 +356,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     BASnode<T> root;
     Comparator<T> comp;
-
+    
     public BASet(Comparator<T> c) {
         comp = c;
     }

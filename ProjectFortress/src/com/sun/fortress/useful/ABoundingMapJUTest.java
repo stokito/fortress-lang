@@ -27,7 +27,7 @@ public class ABoundingMapJUTest extends TestCaseWrapper {
 
     LongBitsLatticeOps ops = LongBitsLatticeOps.V;
     ABoundingMap<String, Long, LongBitsLatticeOps> abm = new
-    ABoundingMap<String, Long, LongBitsLatticeOps>(new BATree<String, Long>(StringComparer.V), ops);
+    ABoundingMap<String, Long, LongBitsLatticeOps>(new BATree<String, Long>(DefaultComparator.V), ops);
 
     /*
      * Test method for 'com.sun.fortress.interpreter.useful.ABoundingMap.ABoundingMap(Map<T, U>, LatticeOps<U>)'

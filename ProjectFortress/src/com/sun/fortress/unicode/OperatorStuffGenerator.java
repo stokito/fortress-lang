@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -31,7 +31,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.StringEncodedAggregate;
 
 
@@ -198,12 +198,12 @@ public class OperatorStuffGenerator {
         tjf.write("class "+ cls +" {");
         tjf.newLine();
 
-        Set<String> s_enclosing = new BASet<String>(StringComparer.V);
-        Set<String> s_left = new BASet<String>(StringComparer.V);
-        Set<String> s_right = new BASet<String>(StringComparer.V);
-        Set<String> s_ops = new BASet<String>(StringComparer.V);
-        Map<String, String> l2r = new BATree<String, String>(StringComparer.V);
-        Map<String, String> aliases = new BATree<String, String>(StringComparer.V);
+        Set<String> s_enclosing = new BASet<String>(DefaultComparator.V);
+        Set<String> s_left = new BASet<String>(DefaultComparator.V);
+        Set<String> s_right = new BASet<String>(DefaultComparator.V);
+        Set<String> s_ops = new BASet<String>(DefaultComparator.V);
+        Map<String, String> l2r = new BATree<String, String>(DefaultComparator.V);
+        Map<String, String> aliases = new BATree<String, String>(DefaultComparator.V);
 
         for (Element e : allElements) {
             String ename = fortressName(e.name());
@@ -263,7 +263,7 @@ public class OperatorStuffGenerator {
 
         for (String k : groups.keySet()) {
             Set<Element> els = groups.get(k);
-            Set<String> s_e = new BASet<String>(StringComparer.V);
+            Set<String> s_e = new BASet<String>(DefaultComparator.V);
 
             for (Element e : els) {
                 String ename = e.escapedShortName();
@@ -280,17 +280,17 @@ public class OperatorStuffGenerator {
             tjf.newLine();
         }
 
-        tjf.write("   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(StringComparer.V));");
+        tjf.write("   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(StringComparer.V));");
+        tjf.write("   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(StringComparer.V));");
+        tjf.write("   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(StringComparer.V));");
+        tjf.write("   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(StringComparer.V));");
+        tjf.write("   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(StringComparer.V));");
+        tjf.write("   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.V));");
         tjf.newLine();
 
         for (String k : groups.keySet()) {
@@ -299,7 +299,7 @@ public class OperatorStuffGenerator {
 
             tjf.write("   static Set<String> p_" + k
                     + " = StringEncodedAggregate.stringToSet(" + enc_group
-                    + ",';',new BASet<String>(StringComparer.V));");
+                    + ",';',new BASet<String>(DefaultComparator.V));");
             tjf.newLine();
 
         }

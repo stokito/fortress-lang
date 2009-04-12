@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1C;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.DefaultComparator;
 
 public class FTypeOpr extends FType {
     private FTypeOpr(String s) {
@@ -44,7 +44,7 @@ public class FTypeOpr extends FType {
     }
 
     public static void reset() {
-        memo = new Memo1C<String, FType>( new Factory(), StringComparer.V);
+        memo = new Memo1C<String, FType>( new Factory(), DefaultComparator.V);
     }
 
     static public FType make(String s) {

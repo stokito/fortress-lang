@@ -28,7 +28,7 @@ public class LatticeIntervalMapJUTest extends com.sun.fortress.useful.TestCaseWr
     LongBitsLatticeOps ops = LongBitsLatticeOps.V;
     LatticeIntervalMap<String, Long, LongBitsLatticeOps> m = new
         LatticeIntervalMap<String, Long, LongBitsLatticeOps>
-        (new BATree2<String, Long, Long>(StringComparer.V), ops);
+        (new BATree2<String, Long, Long>(DefaultComparator.V), ops);
     
     BoundingMap<String, Long, LongBitsLatticeOps> md = m.dual();
 
