@@ -101,6 +101,7 @@ object ExportChecker {
         val componentName = component.ast.getName
         var missingDecls  = List[ASTNode]()
         var multipleDecls = List[(String,String)]()
+        var wrongDecls  = List[(ASTNode,String)]()
         var declaredVariables           = Map[IdOrOpOrAnonymousName,APIName]()
         var declaredFunctions           = Map[IdOrOpOrAnonymousName,APIName]()
         var declaredParametricOperators = Map[IdOrOpOrAnonymousName,APIName]()
@@ -201,11 +202,16 @@ object ExportChecker {
                         case (DeclaredVariable(lvalueInAPI),
                               DeclaredVariable(lvalueInComp)) =>
                             // should be with the same type and the same mutability
-                            if ( ! equalOptTypes(toOption(lvalueInAPI.getIdType),
-                                                 toOption(lvalueInComp.getIdType)) ||
-                                 ! lvalueInAPI.getMods.equals(lvalueInComp.getMods) ||
-                                 lvalueInAPI.isMutable != lvalueInComp.isMutable )
-                                missingDecls = lvalueInAPI :: missingDecls
+                            val diffType = ! equalOptTypes(toOption(lvalueInAPI.getIdType),
+                                                           toOption(lvalueInComp.getIdType))
+                            val diffMods = ! lvalueInAPI.getMods.equals(lvalueInComp.getMods)
+                            val diffMuts = ! lvalueInAPI.isMutable == lvalueInComp.isMutable
+                            var cause = ""
+                            if ( diffType ) cause = addMessage(cause, "different types")
+                            if ( diffMods ) cause = addMessage(cause, "different modifiers")
+                            if ( diffMuts ) cause = addMessage(cause, "different mutabilities")
+                            if ( diffType || diffMods || diffMuts )
+                                wrongDecls = (lvalueInAPI, cause) :: wrongDecls
                         case _ => // non-DeclaredVariable:
                                   //   ParamVariable or SingletonVariable
                     }
@@ -273,19 +279,24 @@ object ExportChecker {
                 if ( typesInComp.keySet.contains(t) ) {
                     val traitOrObject = typesInComp.get(t)
                     val declInComp = NodeUtil.getDecl(traitOrObject)
-                    if ( ! equalTraitTypeHeaders(declInAPI.getHeader,
-                                                 declInComp.getHeader) ||
-                         ( NodeUtil.isTrait(traitOrObject) &&
-                           ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
-                                              toList(NodeUtil.getExcludesClause(declInComp))) ||
-                             ! equalOptListTypes(toOptList(NodeUtil.getComprisesClause(declInAPI)),
-                                                 toOptList(NodeUtil.getComprisesClause(declInComp))) ||
-                             NodeUtil.isComprisesEllipses(declInAPI) !=
-                             NodeUtil.isComprisesEllipses(declInComp) ) ) ||
-                         ( NodeUtil.isObject(traitOrObject) &&
-                           ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
-                                                toOptList(NodeUtil.getParams(declInComp))) ) )
-                        missingDecls = declInAPI :: missingDecls
+                    val diffHeaders = ! equalTraitTypeHeaders(declInAPI.getHeader,
+                                                              declInComp.getHeader)
+                    val diffTraits = NodeUtil.isTrait(traitOrObject) &&
+                                     ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
+                                                        toList(NodeUtil.getExcludesClause(declInComp))) ||
+                                       ! equalOptListTypes(toOptList(NodeUtil.getComprisesClause(declInAPI)),
+                                                           toOptList(NodeUtil.getComprisesClause(declInComp))) ||
+                                       NodeUtil.isComprisesEllipses(declInAPI) !=
+                                       NodeUtil.isComprisesEllipses(declInComp) )
+                    val diffObjects = NodeUtil.isObject(traitOrObject) &&
+                                      ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
+                                                           toOptList(NodeUtil.getParams(declInComp)))
+                    var cause = ""
+                    if ( diffHeaders ) cause = addMessage(cause, "different headers")
+                    if ( diffTraits  ) cause = addMessage(cause, "different clauses for traits")
+                    if ( diffObjects ) cause = addMessage(cause, "different clauses for objects")
+                    if ( diffHeaders || diffTraits || diffObjects )
+                        wrongDecls = (declInAPI, cause) :: wrongDecls
                 } else missingDecls = declInAPI :: missingDecls
             }
 
@@ -305,10 +316,22 @@ object ExportChecker {
                 var message = "" + multipleDecls.head
                 for ( f <- multipleDecls.tail )
                     message += ",\n                           " + f
-                error(errors, componentName, 
+                error(errors, componentName,
                       "Multiple exported API declarations must not be satisfied by a " +
                       "single definition.\n" +
                       "    Multiple declarations: {" + message + "}")
+            }
+
+            // Collect the error messages for the wrong declarations.
+            if ( ! wrongDecls.isEmpty ) {
+                var message = "" + wrongDecls.head
+                for ( f <- wrongDecls.tail )
+                    message += ",\n                               " + f
+                error(errors, componentName,
+                      "The following declarations in API " + apiName +
+                      " are not matched\n    by the declarations in component " +
+                      componentName + ".\n    Unmatched declarations: {\n        " +
+                      message + "\n    }")
             }
         }
         errors
@@ -326,6 +349,10 @@ object ExportChecker {
     private def getMessage(n: ASTNode) =
         if ( NodeUtil.isTraitObjectDecl(n) ) n.toString
         else n.toString + " at " + NodeUtil.getSpan(n)
+
+    private def addMessage(original: String, added: String) =
+        if ( original.equals("") ) "\n         due to " + added
+       else original + ", " + added
 
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
@@ -488,13 +515,10 @@ object ExportChecker {
             case _ => false
         }
 
-    /* Returns true if two IntExprs are same. */
+    /* Returns true if two IntExprs are same.
+     * Not implemented!
+     */
     private def equalIntExprs(left: IntExpr, right: IntExpr): Boolean = false
-        /*
-        (left, right) match {
-            case (_, nameL, modsL, typeL, initL, varargsL),
-        }
-        */
 
     /* Returns true if two parameters are same. */
     private def equalParams(left: Param, right: Param): Boolean =
@@ -520,9 +544,9 @@ object ExportChecker {
         }
 
     /* Returns true if two TraitTypeHeaders are same. */
-    private def equalTraitTypeHeaders(left: TraitTypeHeader,
-                                      right: TraitTypeHeader): Boolean =
-        (left, right) match {
+    private def equalTraitTypeHeaders(inAPI:  TraitTypeHeader,
+                                      inComp: TraitTypeHeader): Boolean =
+        (inAPI, inComp) match {
             case (TraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
                                   extendsL, declsL),
                   TraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
@@ -534,28 +558,30 @@ object ExportChecker {
     }
 
     /* Returns true if two lists of TraitTypeWheres are same. */
-    private def equalListTraitTypeWheres(left: List[TraitTypeWhere],
-                                         right: List[TraitTypeWhere]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalTraitTypeWheres(l,r))
+    private def equalListTraitTypeWheres(inAPI:  List[TraitTypeWhere],
+                                         inComp: List[TraitTypeWhere]): Boolean =
+        inAPI.length == inComp.length &&
+        List.forall2(inAPI, inComp)((l,r) => equalTraitTypeWheres(l,r))
 
     /* Returns true if two TraitTypeWheres are same. */
-    private def equalTraitTypeWheres(left: TraitTypeWhere,
-                                     right: TraitTypeWhere): Boolean =
-        (left, right) match {
+    private def equalTraitTypeWheres(inAPI:  TraitTypeWhere,
+                                     inComp: TraitTypeWhere): Boolean =
+        (inAPI, inComp) match {
             case (TraitTypeWhere(_, typeL, whereL),
                   TraitTypeWhere(_, typeR, whereR)) =>
                 equalTypes(typeL, typeR)
     }
 
-    /* Returns true if two lists of members in traits and objects are same. */
-    private def equalListMembers(left: List[Decl], right: List[Decl]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalMember(l,r))
+    /* Returns true if members in traits and objects in an API have
+     * corresponding members in the component.
+     */
+    private def equalListMembers(inAPI: List[Decl], inComp: List[Decl]): Boolean =
+        inAPI.length <= inComp.length &&
+        inAPI.forall(l => inComp.exists(r => equalMember(l, r)))
 
     /* Returns true if two members in traits and objects are same. */
-    private def equalMember(left: Decl, right: Decl): Boolean =
-        (left, right) match {
+    private def equalMember(inAPI: Decl, inComp: Decl): Boolean =
+        (inAPI, inComp) match {
             case (VarDecl(_, lhsL, _), VarDecl(_, lhsR, _)) =>
                 equalListLValues(lhsL, lhsR)
             case (FnDecl(_,headerL,_,_,_), FnDecl(_,headerR,_,_,_)) =>
