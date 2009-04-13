@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,7 +35,7 @@ public class ABoundingMapJUTest extends TestCaseWrapper {
     public void testABoundingMapMapOfTULatticeOpsOfU() {
         // TODO Auto-generated method stub
         System.err.println("before a success");
-        
+
     }
 
     /*
