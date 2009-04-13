@@ -13,5 +13,16 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=AfterTypeChecking Compiled2.g Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f
-desugar
+tests=Compiled3.g
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled3.g.fss:18:11-21:\n\
+\ The following declarations in API Compiled3.g are not matched\n\
+\ by the declarations in component Compiled3.g.\n\
+\ Unmatched declarations: {\n\
+\     (TraitDecl T at /Users/sukyoungryu/PFC/ProjectFortress/test_library/Compiled3.g.fsi:19.3,\n\
+\      due to different clauses for traits)\n\
+\ }\n\
+File Compiled3.g.fss has 1 error.\n
+compile_out_equals=
