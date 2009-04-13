@@ -170,14 +170,16 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
      protected static void doDefs(BuildEnvironments inner, List<Decl> defs) {
         for (Decl def : defs) {
-            def.accept(inner);
+            try {
+                def.accept(inner);
+            } catch (FortressException x) {
+                throw x.setWhere(def);
+            }
         }
     }
 
     protected void doDefs(List<Decl> defs) {
-        for (Decl def : defs) {
-            def.accept(this);
-        }
+        doDefs(this, defs);
     }
 
 //    /**

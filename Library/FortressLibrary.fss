@@ -1952,7 +1952,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         __subarrayI(self,N[\0\],s,l,m)
       end
     opr[_:TrivialOpenRange] : ImmutableArray1[\T,0,s0\] =
-        subarray[\0,s0,0\](1)
+        subarray[\0,s0,b0\](1)
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
@@ -2002,7 +2002,7 @@ trait Array1[\T, nat b0, nat s0\]
         __subarray(self,N[\0\],s,l,m)
       end
     opr[_:TrivialOpenRange] : Array1[\T,0,s0\] =
-        subarray[\0,s0,0\](1)
+        subarray[\0,s0,b0\](1)
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
@@ -2225,7 +2225,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
                  reflect(l0),reflect(l1),m0,m1)
     end
   opr[_:TrivialOpenRange] : Array2[\T,0,s0,0,s1\] =
-      subarray[\0,s0,0,s1,0,0\](1,1)
+      subarray[\0,s0,0,s1,b0,b1\](1,1)
   (** Indexing by pairs of ranges *)
 (*
   opr[r0:Range[\ZZ32\], r1:Range[\ZZ32\]]: Array[\T,(ZZ32,ZZ32)\] = do
@@ -2701,6 +2701,10 @@ __builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
 
 array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\] =
   __DefaultArray3[\T,0,s0,0,s1,0,s2\]()
+array3[\T, nat s0, nat s1, nat s2\](v:T):Array3[\T,0,s0,0,s1,0,s2\] =
+  array3[\T,s0,s1,s2\]().fill(v)
+array3[\T, nat s0, nat s1, nat s2\](f:(ZZ32,ZZ32)->T):Array3[\T,0,s0,0,s1,0,s2\] =
+  array3[\T,s0,s1,s2\]().fill(f)
 
 (*************
 

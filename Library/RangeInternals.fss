@@ -135,11 +135,11 @@ checkSelection[\R extends Range[\I\], I\]
     tf = this.forward()
     otf = other.forward()
     for tfl <- tf.left, ofl <- otf.left, tfl > ofl, NOT tf.isEmpty, NOT otf.isEmpty do
-        println(other " left outside bounds " this)
+        errorPrintln(other " left outside bounds " this)
         throw IndexOutOfBounds[\I\](this,ofl)
     end
     for tfr <- tf.right, ofr <- otf.right, tfr < ofr, NOT tf.isEmpty, NOT otf.isEmpty do
-        println(other " right outside bounds " this)
+        errorPrintln(other " right outside bounds " this)
         throw IndexOutOfBounds[\I\](this,ofr)
     end
     r
