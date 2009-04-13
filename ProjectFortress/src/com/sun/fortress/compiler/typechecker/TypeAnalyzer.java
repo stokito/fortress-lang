@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.typechecker;
 
+import java.util.Set;
 import static com.sun.fortress.scala_src.useful.Options.*;
 import static com.sun.fortress.scala_src.useful.Lists.*;
 import static com.sun.fortress.compiler.Types.BOTTOM;
@@ -59,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeAliasIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -75,6 +77,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
+import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.OpArg;
@@ -214,6 +217,7 @@ public class TypeAnalyzer {
      *     TypeAliasIndex
      *     Dimension
      *     Unit
+     * TupleType's with varargs parameters or keyword parameters are not supprted.
      */
     private boolean exc(Type s, Type t) {
         if ( s instanceof TraitType && t instanceof TraitType ) {
@@ -236,10 +240,36 @@ public class TypeAnalyzer {
                 } else { // ! first instanceof ObjectTraitIndex
                     if ( second instanceof ObjectTraitIndex )
                         return ! subtype(t, s).isTrue();
-                    else return false;
+                    else { // ! second instanceof ObjectTraitIndex
+                        return ( exc(s, ((ProperTraitIndex)second).excludesTypes()) ||
+                                 exc(t, ((ProperTraitIndex)first).excludesTypes()) );
+                    }
                 }
             } else return false;
+        } else if ( s instanceof TupleType && t instanceof TupleType ) {
+            List<Type> ss = ((TupleType)s).getElements();
+            List<Type> tt = ((TupleType)t).getElements();
+            return ( ss.size() == tt.size() && existExc(ss, tt) );
         } else return false;
+    }
+
+    /* Invariant: two lists of types are the same length. */
+    private boolean existExc(List<Type> ss, List<Type> tt) {
+        int i = 0;
+        for ( Type s : ss ) {
+            if ( exclusion(s, tt.get(i++)) ) return true;
+        }
+        return false;
+    }
+
+    private boolean exc(Type ty, Set<Type> excludes) {
+        for ( Type t : excludes ) {
+            if ( ty instanceof NamedType && t instanceof NamedType &&
+                 ((NamedType)ty).getName().getText() ==
+                 ((NamedType)t).getName().getText() )
+                return true;
+        }
+        return false;
     }
 
     /**
