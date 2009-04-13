@@ -18,13 +18,18 @@
 component CompilerBuiltin
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate as jConcatenate}
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString as jIntToString,
+                                            simpleIntArith.intAdd as jIntAdd,
+                                            simpleIntArith.intSub as jIntSub,
+                                            simpleIntArith.intMul as jIntMul,
+                                            simpleIntArith.intNeg as jIntNeg}
 export CompilerBuiltin
 
 trait Object extends Any
 end Object
 
 trait String
-opr ||(self, b:String): String =  jConcatenate(self, b)
+    opr ||(self, b:String): String =  jConcatenate(self, b)
 end
 
 object FlatString extends String
@@ -39,6 +44,12 @@ trait ZZ64 extends Number
 end
 
 trait ZZ32 extends ZZ64
+    opr STR(self): String = jIntToString(self)
+    opr -(self): ZZ32 = jIntNeg(self)
+    opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
+    opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
+    opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
+    opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
 end
 
 object IntLiteral extends ZZ32

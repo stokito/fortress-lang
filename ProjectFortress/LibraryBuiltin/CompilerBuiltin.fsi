@@ -21,7 +21,7 @@ trait Object extends Any
 end Object
 
 trait String
-opr || (self, b:String):String 
+opr || (self, b:String):String
 end
 
 object FlatString extends String
@@ -36,6 +36,12 @@ trait ZZ64 extends Number
 end
 
 trait ZZ32 extends ZZ64
+    opr STR(self): String
+    opr -(self): ZZ32
+    opr +(self, other:ZZ32): ZZ32
+    opr -(self, other:ZZ32): ZZ32
+    opr juxtaposition(self, other:ZZ32): ZZ32
+    opr DOT(self, other:ZZ32): ZZ32
 end
 
 object IntLiteral extends ZZ32
