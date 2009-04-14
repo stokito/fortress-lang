@@ -60,6 +60,7 @@ class OverloadingChecker(component: ComponentIndex,
                          repository: FortressRepository) {
 
     val typeAnalyzer = TypeAnalyzer.make(new TraitTable(component, globalEnv))
+    val exclusionOracle = new ExclusionOracle(typeAnalyzer)
     var errors = List[StaticError]()
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
@@ -143,28 +144,8 @@ class OverloadingChecker(component: ComponentIndex,
      *     Fixed-point types
      */
     private def exclusion(first: ((Type,Type),Span),
-                          second: ((Type,Type),Span)): Boolean = {
-        val firstParam = first._1._1
-        val secondParam = second._1._1
-        (firstParam, secondParam) match {
-            case (BottomType(_), _) => true
-            case (_, BottomType(_)) => true
-            case (AnyType(_), _) => false
-            case (_, AnyType(_)) => false
-            case (VarType(_,_,_), _) =>
-                typeAnalyzer.exclusion(firstParam, secondParam)
-            case (_, VarType(_,_,_)) =>
-                typeAnalyzer.exclusion(firstParam, secondParam)
-            case (ArrowType(_,_,_,_), ArrowType(_,_,_,_)) => false
-            case (ArrowType(_,_,_,_), _) => true
-            case (_, ArrowType(_,_,_,_)) => true
-            case (f@TupleType(_,_,_,_), s@TupleType(_,_,_,_)) =>
-                NodeUtil.differentArity(f, s) || typeAnalyzer.exclusion(f, s)
-            case (TupleType(_,_,_,_) ,_) => true
-            case (_, TupleType(_,_,_,_)) => true
-            case _ => typeAnalyzer.exclusion(firstParam, secondParam)
-        }
-    }
+                          second: ((Type,Type),Span)): Boolean =
+        exclusionOracle.excludes(first._1._1, second._1._1)
 
     /* Checks the overloading rule: meet */
     /* Not yet fully implemented... */
