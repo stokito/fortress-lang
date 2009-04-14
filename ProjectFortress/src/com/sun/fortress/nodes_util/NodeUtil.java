@@ -638,38 +638,12 @@ public class NodeUtil {
             return bug("TupleType expected, but got " + t);
     }
 
-    public static boolean differentArity(Type first, Type second) {
+    public static boolean differentArity(TupleType first, TupleType second) {
         return ( isVoidType(first) && ! isVoidType(second) ) ||
                ( isVoidType(second) && ! isVoidType(first) ) ||
-               ( isTupleType(first) && ! isTupleType(second) ) ||
-               ( isTupleType(second) && ! isTupleType(first) ) ||
-               ( isTupleType(first) && isTupleType(second) &&
-                 ((TupleType)first).getVarargs().isNone() &&
-                 ((TupleType)second).getVarargs().isNone() &&
-                 ((TupleType)first).getKeywords().isEmpty() &&
-                 ((TupleType)second).getKeywords().isEmpty() &&
-                 ((TupleType)first).getElements().size() !=
-                 ((TupleType)second).getElements().size() );
-    }
-
-    /* The following types are not yet checked:
-     *     IntersectionType
-     *     UnionType
-     *     FixedPointType
-     *     TaggedDimType
-     *     TaggedUnitType
-     *     LabelType
-     *     DimExpr
-     */
-    public static boolean structuralExclusion(Type first, Type second) {
-        if ( first instanceof AnyType || second instanceof AnyType )
-            return false;
-        else if ( first instanceof BottomType || second instanceof BottomType )
-            return true;
-        else if ( ( first instanceof ArrowType && ! (second instanceof ArrowType) ) ||
-                  ( ! (first instanceof ArrowType) && second instanceof ArrowType ) )
-            return true;
-        else return false;
+               ( first.getVarargs().isNone()   && second.getVarargs().isNone() &&
+                 first.getKeywords().isEmpty() && second.getKeywords().isEmpty() &&
+                 first.getElements().size() != second.getElements().size() );
     }
 
     /* for Param ***********************************************************/

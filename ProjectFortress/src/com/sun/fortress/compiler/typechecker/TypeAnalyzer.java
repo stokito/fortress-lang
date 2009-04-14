@@ -246,10 +246,59 @@ public class TypeAnalyzer {
                     }
                 }
             } else return false;
+        } else if ( s instanceof VarType && t instanceof VarType ) {
+            Option<StaticParam> sParam = _typeEnv.staticParam(((VarType)s).getName());
+            Option<StaticParam> tParam = _typeEnv.staticParam(((VarType)t).getName());
+            if ( sParam.isNone() )
+                bug("We are being asked about some type that is not in scope: " +
+                    s + " @ " + NodeUtil.getSpan(s));
+            if ( tParam.isNone() )
+                bug("We are being asked about some type that is not in scope: " +
+                    t + " @ " + NodeUtil.getSpan(t));
+            StaticParam that = sParam.unwrap();
+            if ( NodeUtil.isTypeParam( that ) ) {
+                for ( BaseType ty : that.getExtendsClause() ) {
+                    if ( exclusion(ty, t) ) return true;
+                }
+            }
+            that = tParam.unwrap();
+            if ( NodeUtil.isTypeParam( that ) ) {
+                for ( BaseType ty : that.getExtendsClause() ) {
+                    if ( exclusion(s, ty) ) return true;
+                }
+            }
+            return false;
+        } else if ( s instanceof VarType ) {
+            Option<StaticParam> param = _typeEnv.staticParam(((VarType)s).getName());
+            if ( param.isNone() )
+                bug("We are being asked about some type that is not in scope: " +
+                    s + " @ " + NodeUtil.getSpan(s));
+            StaticParam that = param.unwrap();
+            if ( NodeUtil.isTypeParam( that ) ) {
+                for ( BaseType ty : that.getExtendsClause() ) {
+                    if ( exclusion(ty, t) ) return true;
+                }
+            }
+            return false;
+        } else if ( t instanceof VarType ) {
+            Option<StaticParam> param = _typeEnv.staticParam(((VarType)t).getName());
+            if ( param.isNone() )
+                bug("We are being asked about some type that is not in scope: " +
+                    t + " @ " + NodeUtil.getSpan(t));
+            StaticParam that = param.unwrap();
+            if ( NodeUtil.isTypeParam( that ) ) {
+                for ( BaseType ty : that.getExtendsClause() ) {
+                    if ( exclusion(s, ty) ) return true;
+                }
+            }
+            return false;
         } else if ( s instanceof TupleType && t instanceof TupleType ) {
-            List<Type> ss = ((TupleType)s).getElements();
-            List<Type> tt = ((TupleType)t).getElements();
-            return ( ss.size() == tt.size() && existExc(ss, tt) );
+            TupleType ss = (TupleType)s;
+            TupleType tt = (TupleType)t;
+            return ( ss.getVarargs().isNone() && tt.getVarargs().isNone() &&
+                     ss.getKeywords().isEmpty() && tt.getKeywords().isEmpty() &&
+                     ss.getElements().size() == tt.getElements().size() &&
+                     existExc(ss.getElements(), tt.getElements()) );
         } else return false;
     }
 
