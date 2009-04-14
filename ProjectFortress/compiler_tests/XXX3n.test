@@ -13,5 +13,14 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=AfterTypeChecking Compiled2.g Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p
-desugar
+tests=Compiled3.n
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled3.n.fss:25:1-20:\n\
+${STATIC_TESTS_DIR}/Compiled3.n.fss:26:1-27:1:\n\
+\ Invalid overloading of f:\n\
+\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.n.fss:26:1-27:1\n\
+\ and T[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.n.fss:25:1-20\n\
+File Compiled3.n.fss has 1 error.\n
+compile_out_equals=

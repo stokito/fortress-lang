@@ -28,12 +28,15 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Pair;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /** Wraps a (non-object) trait declaration. */
 public class ProperTraitIndex extends TraitIndex {
@@ -47,9 +50,12 @@ public class ProperTraitIndex extends TraitIndex {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
     }
 
-    public Set<Type> excludesTypes() {
-        Set<Type> types = new HashSet<Type>();
-        for ( BaseType t : ((TraitDecl)ast()).getExcludesClause() ) types.add(t);
+    public Set<TraitType> excludesTypes() {
+        Set<TraitType> types = new HashSet<TraitType>();
+        for ( BaseType t : ((TraitDecl)ast()).getExcludesClause() )
+            if ( t instanceof TraitType ) types.add((TraitType)t);
+            else bug("TraitType is expected in the excludes of " + ast() +
+                     " but found " + t);
         return types;
     }
 
