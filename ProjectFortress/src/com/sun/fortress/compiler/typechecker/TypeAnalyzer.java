@@ -74,10 +74,12 @@ import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
 import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.OpArg;
@@ -221,14 +223,16 @@ public class TypeAnalyzer {
      */
     private boolean exc(Type s, Type t) {
         if ( s instanceof TraitType && t instanceof TraitType ) {
-            Option<TypeConsIndex> firstInd  = _table.typeCons(((TraitType)s).getName());
-            Option<TypeConsIndex> secondInd = _table.typeCons(((TraitType)t).getName());
+            TraitType ss = (TraitType)s;
+            TraitType tt = (TraitType)t;
+            Option<TypeConsIndex> firstInd  = _table.typeCons(ss.getName());
+            Option<TypeConsIndex> secondInd = _table.typeCons(tt.getName());
             if ( firstInd.isNone() )
                 throw new IllegalArgumentException("Unrecognized name: " +
-                                                   ((TraitType)s).getName());
+                                                   ss.getName());
             else if ( secondInd.isNone() )
                 throw new IllegalArgumentException("Unrecognized name: " +
-                                                   ((TraitType)t).getName());
+                                                   tt.getName());
             TypeConsIndex first  = firstInd.unwrap();
             TypeConsIndex second = secondInd.unwrap();
             if ( first instanceof TraitIndex && second instanceof TraitIndex ) {
@@ -236,13 +240,13 @@ public class TypeAnalyzer {
                     if ( second instanceof ObjectTraitIndex )
                         return true;
                     else // ! second instanceof ObjectTraitIndex
-                        return ! subtype(s, t).isTrue();
+                        return ! subtype(ss, tt).isTrue();
                 } else { // ! first instanceof ObjectTraitIndex
                     if ( second instanceof ObjectTraitIndex )
-                        return ! subtype(t, s).isTrue();
+                        return ! subtype(tt, ss).isTrue();
                     else { // ! second instanceof ObjectTraitIndex
-                        return ( exc(s, ((ProperTraitIndex)second).excludesTypes()) ||
-                                 exc(t, ((ProperTraitIndex)first).excludesTypes()) );
+                        return exc(ss, tt, (ProperTraitIndex)second) ||
+                               exc(tt, ss, (ProperTraitIndex)first);
                     }
                 }
             } else return false;
@@ -311,12 +315,41 @@ public class TypeAnalyzer {
         return false;
     }
 
-    private boolean exc(Type ty, Set<Type> excludes) {
-        for ( Type t : excludes ) {
-            if ( ty instanceof NamedType && t instanceof NamedType &&
-                 ((NamedType)ty).getName().getText() ==
-                 ((NamedType)t).getName().getText() )
-                return true;
+    /* Exists "tau" in "[X |-> ty...]S" such that "s" is a subtype of "tau"
+     * where "t" is "T[\ty...\]" and "trait T[\X...\] ... excludes S ... end"
+     */
+    private boolean exc(TraitType s, TraitType t, ProperTraitIndex tIndex) {
+        // staticParams: X...
+        List<StaticParam> staticParams = tIndex.staticParameters();
+        // staticArgs  : ty...
+        List<StaticArg>   staticArgs   = t.getArgs();
+        if ( staticParams.size() != staticArgs.size() )
+            bug("The numbers of static parameters and static arguments do not match: " + t);
+        // subst       : [X |-> ty ...]
+        final Map<IdOrOp,Type> subst = new HashMap<IdOrOp,Type>();
+        int i = 0;
+        for ( StaticParam sp : staticParams ) {
+            StaticArg arg = staticArgs.get(i++);
+            if ( arg instanceof TypeArg )
+                subst.put(sp.getName(), ((TypeArg)arg).getTypeArg());
+        }
+        // excludes    : S
+        Set<TraitType> excludes = tIndex.excludesTypes();
+        // [X |-> ty ...]S
+        for ( TraitType tau : excludes ) {
+            excludes.remove(tau);
+            excludes.add((TraitType)tau.accept(new NodeUpdateVisitor() {
+                        @Override
+                        public Node forVarTypeOnly(VarType that, TypeInfo info, Id name) {
+                            if ( subst.containsKey(name) ) {
+                                return subst.get(name);
+                            } else return bug("Type variable " + that + " is unbound.");
+                        }
+                }));
+        }
+        // Exists "tau" in "[X |-> ty ...]S" such that "s" is a subtype of "tau"
+        for ( TraitType tau : excludes ) {
+            if ( subtype(s, tau).isTrue() ) return true;
         }
         return false;
     }
