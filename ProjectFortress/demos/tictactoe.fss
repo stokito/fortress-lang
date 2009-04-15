@@ -138,7 +138,7 @@ object Board(rows)
 
     (* returns a list of indexes that are empty in the board *)
     emptySquares() = do
-        var squares:List[\ZZ32\] = emptyList[\ZZ32\]()
+        var squares:List[\ZZ32\] = <|[\ZZ32\] |>
         for i <- seq(0#(boardSize boardSize)) do
             if element(rows, i) = 0 then
                 squares := squares.addRight(i)

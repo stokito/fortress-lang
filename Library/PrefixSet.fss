@@ -84,7 +84,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             t
         end
     end
-    generate[\R\](r: Reduction[\R\], body:F->R):R = prefixGenerate[\R\](emptyList[\E\](), r, body)
+    generate[\R\](r: Reduction[\R\], body:F->R):R = prefixGenerate[\R\](<|[\E\] |>, r, body)
 
     prefixSeqgen[\R\](prefix:F, r: Reduction[\R\], body: F->R):R = do
         t:R = children().seqgen[\R\](r, fn (k,v) => v.prefixSeqgen[\R\](prefix.addRight(k),r,body))
@@ -94,7 +94,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             t
         end
     end
-    seqgen[\R\](r: Reduction[\R\], body: F->R):R = prefixSeqgen[\R\](emptyList[\E\](), r, body)
+    seqgen[\R\](r: Reduction[\R\], body: F->R):R = prefixSeqgen[\R\](<|[\E\] |>, r, body)
 
     seq(self): SequentialGenerator[\F\] = SeqPrefixSetGenerator[\E,F\](self)
 
@@ -151,7 +151,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
 
     opr[i:ZZ32]:F = do
         if isMember() AND (i = 0) then
-            emptyList[\E\]()
+            <|[\E\] |>
         else
             var c:ZZ32
             c := (if isMember() then 1 else 0 end)
@@ -218,13 +218,13 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         a
     end
 
-    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = prefixivgen[\R\](emptyList[\E\](), i0, r, body)
+    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = prefixivgen[\R\](<|[\E\] |>, i0, r, body)
     (* Expensive indexing code ends here *)
 
     minimum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMinimum() end
     getMinimum():F throws NotFound = do
         if isMember() then
-            emptyList[\E\]()
+            <|[\E\] |>
         elif (k,v) <- children().minimum() then
             v.getMinimum().addLeft(k)
         else
@@ -237,7 +237,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         if (k,v) <- children().maximum() then
             v.getMaximum().addLeft(k)
         else
-            emptyList[\E\]()
+            <|[\E\] |>
         end
     end
 
@@ -248,7 +248,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
 
     extractMinimum():Maybe[\(F, PrefixSet[\E,F\])\] = do
         if isMember() then
-            Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), fastPrefixSet[\E,F\](false, children()))
+            Just[\(F, PrefixSet[\E,F\])\](<|[\E\] |>, fastPrefixSet[\E,F\](false, children()))
         elif (k,v,r) <- children().extractMinimum() then
             (m,s) = v.extractMinimum().get()
             Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](false, r.add(k,s)))
@@ -262,7 +262,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             (m,s) = v.extractMaximum().get()
             Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](isMember(), r.add(k,s)))
         elif isMember() then
-            Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), emptyPrefixSet[\E,F\]())
+            Just[\(F, PrefixSet[\E,F\])\](<|[\E\] |>, emptyPrefixSet[\E,F\]())
         else
             Nothing[\(F, PrefixSet[\E,F\])\]
         end

@@ -34,12 +34,12 @@ makeInfix(op:Op) = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](Infixity))
 (* object OpRef (in_lexicalDepth:ZZ32, in_originalName:OpName, in_ops:List[\OpName\], in_staticArgs:List[\StaticArg\]) extends FunctionalRef *)
 makeMultiJuxt():OpRef = do
     name = makeMultiFix(makeOp("juxtaposition"))
-    OpRef(0, name, singleton(name asif OpName), emptyList[\StaticArg\]())
+    OpRef(0, name, singleton(name asif OpName), <|[\StaticArg\] |>)
 end asif OpRef
 
 makeInfixJuxt():OpRef = do
     name = makeInfix(makeOp("juxtaposition"))
-    OpRef(0, name, singleton(name asif OpName), emptyList[\StaticArg\]())
+    OpRef(0, name, singleton(name asif OpName), <|[\StaticArg\] |>)
 end
 
 LooseJuxt1(exprs:List[\Expr\]):LooseJuxt =

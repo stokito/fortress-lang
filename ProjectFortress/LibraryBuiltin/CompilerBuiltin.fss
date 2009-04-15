@@ -44,6 +44,7 @@ trait ZZ64 extends Number
 end
 
 trait ZZ32 extends ZZ64
+    asString(): String = "Wurble" (* Broken: jIntToString(self) *)
     opr STR(self): String = jIntToString(self)
     opr -(self): ZZ32 = jIntNeg(self)
     opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)

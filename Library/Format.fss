@@ -411,7 +411,7 @@ end
 (* String -> [(fn String -> String)] *)
 compile(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     if |string| = 0 then
-        emptyList[\Any\]()
+        <|[\Any\] |>
     else
         percent = minIndexOf(string,'%')
         if index <- percent then
@@ -422,7 +422,7 @@ compile(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
                 compile(string[index:],allArgs,args).addLeft(this)
             end
         else
-            emptyList[\Any\]().addRight( (fn () => string) )
+            <|[\Any\] (fn () => string) |>
             (*
             singleton[\String\]( (fn () => string) )
             *)

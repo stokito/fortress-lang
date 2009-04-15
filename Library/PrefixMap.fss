@@ -62,7 +62,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             t
         end
     end
-    generate[\R\](r: Reduction[\R\], body:(F,V)->R):R = prefixGenerate[\R\](emptyList[\E\](), r, body)
+    generate[\R\](r: Reduction[\R\], body:(F,V)->R):R = prefixGenerate[\R\](<|[\E\] |>, r, body)
 
 
     prefixSeqgen[\R\](prefix:F, r: Reduction[\R\], body: (F,V)->R):R = do
@@ -73,7 +73,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             t
         end
     end
-    seqgen[\R\](r: Reduction[\R\], body: (F,V)->R):R = prefixSeqgen[\R\](emptyList[\E\](), r, body)
+    seqgen[\R\](r: Reduction[\R\], body: (F,V)->R):R = prefixSeqgen[\R\](<|[\E\] |>, r, body)
     seq(self):SequentialGenerator[\(F,V)\] = SeqPrefixMapGenerator[\E,F,V\](self)
 
 
@@ -110,7 +110,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
     minimum():Maybe[\(F,V)\] = if isEmpty() then Nothing[\(F,V)\] else Just[\(F,V)\](getMinimum()) end
     getMinimum():(F,V) throws NotFound = do
         if x <- content() then
-            (emptyList[\E\](), x)
+            (<|[\E\] |>, x)
         elif (k,v) <- children().minimum() then
             (f,w) = v.getMinimum()
             (f.addLeft(k), w)
@@ -125,7 +125,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             (f,w) = v.getMaximum()
             (f.addLeft(k), w)
         elif x <- content() then
-            (emptyList[\E\](), x)
+            (<|[\E\] |>, x)
         else
             throw NotFound
         end
@@ -140,7 +140,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
     extractMinimum():Maybe[\(F,V, PrefixMap[\E,F,V\])\] = do
         if x <- content() then
-            Just[\(F, V, PrefixMap[\E,F,V\])\](emptyList[\E\](), x, fastPrefixMap[\E,F,V\](Nothing[\V\], children()))
+            Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, fastPrefixMap[\E,F,V\](Nothing[\V\], children()))
         elif (k,v,r) <- children().extractMinimum() then
             (m,w,s) = v.extractMinimum().get()
             Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](Nothing[\V\], r.add(k,s)))
@@ -154,7 +154,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             (m,w,s) = v.extractMaximum().get()
             Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](content(), r.add(k,s)))
         elif x <- content() then
-            Just[\(F, V, PrefixMap[\E,F,V\])\](emptyList[\E\](), x, emptyPrefixMap[\E,F,V\]())
+            Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, emptyPrefixMap[\E,F,V\]())
         else
             Nothing[\(F, V, PrefixMap[\E,F,V\])\]
         end
@@ -259,7 +259,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](innerunion(prefix.addRight(k),u,v))
             fastPrefixMap[\E,F,V\](f(prefix,x.content(),y.content()), x.children().combine[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,y.children()))
         end
-        innerunion(emptyList[\E\](), other)
+        innerunion(<|[\E\] |>, other)
     end
 
 
@@ -353,7 +353,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             prefixMap(c, arg1.children().combine(ourDoBoth, ourDoThis, ourDoThat, ourMapThis, ourMapThat, arg2.children()))
         end
 
-        prefixCombine(emptyList[\E\](), self, that)
+        prefixCombine(<|[\E\] |>, self, that)
     end
 
     (** Easy-to-use version when there is no special doThis or doThat **)
@@ -376,7 +376,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
             end
         end
 
-        prefixMapFilter(emptyList[\E\](), self)
+        prefixMapFilter(<|[\E\] |>, self)
     end
 end
 

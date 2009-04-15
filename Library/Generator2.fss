@@ -102,7 +102,7 @@ commutative[\R\](r : R) : Boolean =
 
 (* redcution for generating prefixes with List *)
 object InitsReduction[\ E \] extends Reduction[\ List[\ List[\ E \] \] \]
-  empty(): List[\ List[\ E \] \] = emptyList[\ List[\ E \] \]()
+  empty(): List[\ List[\ E \] \] = <|[\ List[\ E \] \] |>
   join(a:List[\ List[\ E \] \], b:List[\ List[\ E \] \]): List[\ List[\ E \] \] = do
     l = a.right().generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
     a || (b.map[\ List[\ E \] \](fn (x) => l || x));
@@ -239,7 +239,7 @@ inits[\E\](g : Generator[\E\]) : Inits[\E\] = Inits[\E\](g)
 
 (** A reduction object for tails. *)
 object TailsReduction[\ E \] extends Reduction[\ List[\ List[\ E \] \] \]
-  empty(): List[\ List[\ E \] \] = emptyList[\ List[\ E \] \]()
+  empty(): List[\ List[\ E \] \] = <|[\ List[\ E \] \] |>
   join(a:List[\ List[\ E \] \], b:List[\ List[\ E \] \]): List[\ List[\ E \] \] = do
     h = b.left().generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
     a.map[\ List[\ E \] \](fn (x) => x || h) || b;

@@ -486,15 +486,15 @@ addGame(fout: WriteStream,
 (* Print result ***************************************************************)
 (* MVP(Most Valuable Players): the biggest points earned in this term *)
 mvp: ZZ32 := 0          (* points earned in this term *)
-mvpPlayers: List[\String\] := emptyList[\String\]()
+mvpPlayers: List[\String\] := <|[\String\] |>
 
 (* MEP(Most Energetic Players): the biggest games played in this term *)
 mep: ZZ32 := 0          (* games played in this term *)
-mepPlayers: List[\String\] := emptyList[\String\]()
+mepPlayers: List[\String\] := <|[\String\] |>
 
 (* MIP(Most Improved Players): the biggest differences in old and new rankings *)
 mip: ZZ32 := 0          (* old ranking minus new ranking *)
-mipPlayers: List[\String\] := emptyList[\String\]()
+mipPlayers: List[\String\] := <|[\String\] |>
 
 (* Print the new ranking result while finding MVP and MEP players. *)
 printTable(fout:WriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =

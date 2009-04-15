@@ -615,7 +615,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
   (* perform the merge operation when the height is greater than one *)
   heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
     destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\] = array[\List[\Node[\Key,Val\]\]\](|children|)
-    empty:List[\Node[\Key,Val\]\] = emptyList[\Node[\Key,Val\]\]()
+    empty:List[\Node[\Key,Val\]\] = <|[\Node[\Key,Val\]\] |>
     destinations.fill(empty)
     for node <- nodes do
       merge_destination_insert(node, destinations)
@@ -743,7 +743,7 @@ object EmptyNode[\Key,Val\] extends Node[\Key,Val\]
 
   merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = nodes[0]
 
-  getLeaves():List[\LeafNode[\Key,Val\]\] =  emptyList[\LeafNode[\Key,Val\]\]()
+  getLeaves():List[\LeafNode[\Key,Val\]\] =  <|[\LeafNode[\Key,Val\]\] |>
 
 end
 

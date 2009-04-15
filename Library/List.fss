@@ -168,7 +168,7 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
         generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
-                                             else emptyList[\E\]() end)
+                                             else <|[\E\] |> end)
     (** %concatMap% is an in-place version of the %nest% method from
         %Generator%; it flattens the result into an actual list, rather than
         returning an abstract %Generator%. *)
