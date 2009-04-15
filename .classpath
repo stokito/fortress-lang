@@ -10,8 +10,6 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/astgen/astgen.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-tree-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-3.1/src"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/scala/scala-compiler-2.7.2.jar"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/scala/scala-library-2.7.2.jar"/>
 	<classpathentry kind="con" path="ch.epfl.lamp.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="ProjectFortress/build"/>

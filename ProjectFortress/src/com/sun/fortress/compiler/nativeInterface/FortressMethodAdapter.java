@@ -18,7 +18,10 @@
 package com.sun.fortress.compiler.nativeInterface;
 
 import java.util.*;
+
 import org.objectweb.asm.*;
+
+import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.nativeHelpers.*;
 import com.sun.fortress.useful.Debug;
 
@@ -54,6 +57,7 @@ public class FortressMethodAdapter extends ClassAdapter {
     private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
     private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
+    private final Set<OverloadSet> overloads;
 
     private void initializeEntry(String fortressRuntimeType,
                                  String toJavaTypeMethod,
@@ -94,8 +98,11 @@ public class FortressMethodAdapter extends ClassAdapter {
         return "L" + prefix + s + ";" ;
     }
 
-    public FortressMethodAdapter(ClassVisitor cv, String outputClassName) {
+    public FortressMethodAdapter(ClassVisitor cv,
+            String outputClassName,
+            Set<OverloadSet> overloads) {
         super(cv);
+        this.overloads = overloads;
         className = outputClassName.replace('.','/');
         initializeTables();
     }

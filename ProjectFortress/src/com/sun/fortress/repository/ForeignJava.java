@@ -47,6 +47,7 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.nativeInterface.*;
+import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
@@ -731,8 +732,9 @@ public class ForeignJava {
     
     /**
      * @param name
+     * @param overloads 
      */
-    public void generateWrappersForApi(APIName name) {
+    public void generateWrappersForApi(APIName name, Set<OverloadSet> overloads) {
         foreignApisNeedingCompilation.remove(name);
         
         Set<Type> classes = classesIncludedInForeignAPI.get(name);
@@ -740,7 +742,27 @@ public class ForeignJava {
         // Need to generate wrappers for all these classes,
         // if they do not already exist.
         for (Type t : classes) {
-            FortressTransformer.transform(t.getClassName());
+            String s = t.getClassName();
+            int i = s.lastIndexOf(".");
+            if (i == -1) {
+                s = Useful.substring(s, 1, Integer.MAX_VALUE);
+            } else {
+                s = Useful.substring(s, i+1, Integer.MAX_VALUE);
+            }
+            final String startswith = s + ".";
+            
+            overloads = Useful.matchingSubset(overloads,
+                    new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
+                        
+                        @Override
+                        public Boolean apply(OverloadSet x) {
+                            String name = x.getName().stringName();
+                            return name.startsWith(startswith);
+                        }
+                
+            });
+            
+            FortressTransformer.transform(t.getClassName(), overloads);
         }
     }
 

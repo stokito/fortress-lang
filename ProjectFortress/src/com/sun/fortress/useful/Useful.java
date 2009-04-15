@@ -309,6 +309,17 @@ public class Useful {
 
     }
 
+    public static <T> Set<T> matchingSubset(Iterable<T> s, F<T, Boolean> verb) {
+        HashSet<T> result = new HashSet<T>();
+        for (T i : s) {
+            if (verb.apply(i))
+                result.add((i));
+        }
+           
+        return result;
+
+    }
+
     /**
      * Returns the LIST [ e = verb.apply(i) | i IN s ]
      *
