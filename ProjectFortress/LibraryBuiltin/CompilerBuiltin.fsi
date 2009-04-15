@@ -56,4 +56,8 @@ end
 object FloatLiteral extends RR32
 end
 
+
+trait Boolean 
+end
+
 end
