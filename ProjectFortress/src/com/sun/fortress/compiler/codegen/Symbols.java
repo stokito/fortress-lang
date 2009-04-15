@@ -44,53 +44,44 @@ public class Symbols {
         components.put(apiName, componentIndex);
     }
 
-    public Function getFunctionForSymbol(IdOrOp fnName) {
-        Option<APIName> maybe_api = fnName.getApiName();
-
-        if (maybe_api.isSome()) {
-            APIName apiName = maybe_api.unwrap();
-            Debug.debug(Debug.Type.CODEGEN, 1,
-                        "getFunctionForSymbol" + apiName + ":" + fnName);
-            if (apis.containsKey(apiName)) {
-                ApiIndex ind = apis.get(apiName);
-                Debug.debug(Debug.Type.CODEGEN, 1,
-                            "getFunctionForSymbol" + apiName + ":" + fnName + "::" + ind);
-
-                PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
-
-                // The following code is meant to work a known issue.
-                // The IdOrOp added when processing an api, is not the same IdOrOp
-                // we are searching for when processing a component.  We need to
-                // match on the strings, not on the objects.
-                IdOrOp matchingFnName = fnName;
-
-                for (IdOrOpOrAnonymousName name : first) {
-                    if (name instanceof IdOrOp) {
-                        IdOrOp foo = (IdOrOp) name;
-                        if (foo.getText() == fnName.getText()) {
-                            matchingFnName = foo;
-                        }
-                    }
-                }
-                PredicateSet<Function> functions = ind.functions().matchFirst(matchingFnName);
-                for (Function f : functions) {
-                    Debug.debug(Debug.Type.CODEGEN, 1,
-                                "getJavaClassForSymbol contains key" + apiName + " f = " + f);
-                    return f;
-                }
-            }
-            throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function: " + fnName +
-                                    " in api " + apiName);
-        }
-
-        throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function: " + fnName);
+    private <T> T sayWhat(ASTNode x) {
+        throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
     }
 
+    private <T> T sayWhat(ASTNode x, String message) {
+        throw new CompilerError(NodeUtil.getSpan(x), message + " node = " + x);
+    }
+
+
+
+    public String getTypeSignatureForIdOrOp(IdOrOp op) {
+        Function f = getFunction(op);
+        String desc = "";
+        if (f instanceof FunctionalMethod) {
+            FunctionalMethod fm = (FunctionalMethod) f;
+            List<Param> params = f.parameters();
+            Type returnType = f.getReturnType();
+            desc = Naming.openParen;
+            for (Param p : params) {
+                Id paramName = p.getName();
+                Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
+                if (optionType.isNone())
+                    sayWhat(op);
+                else {
+                    com.sun.fortress.nodes.Type t = optionType.unwrap();
+                    desc = desc + Naming.emitDesc(t);
+                }
+            }
+            desc = desc + ")" + Naming.emitDesc(returnType);
+        }
+        else sayWhat(op);
+        return desc;            
+    }
 
     public String getJavaClassForSymbol(IdOrOp fnName) {
         Debug.debug(Debug.Type.CODEGEN, 1,
                     "getJavaClassForSymbo:" + fnName);
-        Function f = getFunctionForSymbol(fnName);
+        Function f = getFunction(fnName);
 
         if (f instanceof FunctionalMethod) {
             FunctionalMethod fm = (FunctionalMethod) f;
@@ -99,6 +90,68 @@ public class Symbols {
         }
 
         throw new CompilerError(NodeUtil.getSpan(fnName), "Get Java Class For Symbol Not yet implemented");
+    }
+
+    // This works around the issue with IdOrOps not matching the table provided by the type checker.  
+    public IdOrOp lookupFunctionInPredicateSet(IdOrOp fnName, PredicateSet<IdOrOpOrAnonymousName> predSet) {
+        for (IdOrOpOrAnonymousName name : predSet) {
+                if (name instanceof IdOrOp) {
+                    IdOrOp foo = (IdOrOp) name;
+                    Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInPredicateSet:name = " + name + " fnName = " + fnName);
+                    if (foo.getText() == fnName.getText()) {
+                        return foo;
+                    }
+                }
+        }
+        throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in predicate set");
+    }
+            
+
+    public Function lookupFunctionInApi(IdOrOp fnName, APIName api) {
+        if (apis.containsKey(api)) {
+            ApiIndex ind = apis.get(api);
+            PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
+            IdOrOp n = lookupFunctionInPredicateSet(fnName, first);
+            PredicateSet<Function> functions = ind.functions().matchFirst(n);
+            // Someday we will do overloading here
+            for (Function f : functions) {
+                return f;
+            }
+        }
+        throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in Api " + api);
+    }
+
+    public Function lookupFunctionInComponent(IdOrOp fnName) {
+        for (ComponentIndex ind : components.values()) {
+            Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInComponent:name = " + fnName + " component = " + ind);
+            PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
+            IdOrOp n = lookupFunctionInPredicateSet(fnName, first);
+            PredicateSet<Function> functions = ind.functions().matchFirst(n);
+            // Someday we will do overloading here
+            for (Function f : functions) {
+                return f;
+            }
+        }
+        throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in component");
+    }
+
+
+    public Function getFunction(IdOrOp fnName) {
+        Option<APIName> maybe_api = fnName.getApiName();
+        IdOrOp id = fnName;
+        if (maybe_api.isSome()) {
+            return lookupFunctionInApi(fnName, maybe_api.unwrap());
+        } else {
+            return lookupFunctionInComponent(fnName);
+        }
+    }
+    
+    public boolean isFunctionalMethod(IdOrOp fnName) {
+        Option<APIName> maybe_api = fnName.getApiName();
+        Function f = getFunction(fnName);
+        if (f instanceof FunctionalMethod)
+            return true;
+        else return false;
     }
 
     public String toString() {

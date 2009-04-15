@@ -14,29 +14,27 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.codegen.stubs.compiled1;
-
-import com.sun.fortress.nodes.*;
+package com.sun.fortress.compiler.codegen.stubs.compiled3;
 import com.sun.fortress.nativeHelpers.*;
 import com.sun.fortress.compiler.runtimeValues.*;
+import com.sun.fortress.compiler.codegen.stubs.compiled3.fortress.*;
 
-import java.util.*;
-import org.objectweb.asm.*;
-import edu.rice.cs.plt.tuple.Option;
 
-public class CompilerBuiltin {
+public class Compiled3 {
 
-    public interface Object {}
-    public interface String extends Object {}
-    public class FlatString implements String {}
-    public interface Number {}
-    public class RR32 implements Number {}
-    public class RR64 implements Number {}
-    public class ZZ32 implements Number {}
-    public class ZZ64 implements Number {}
+    public static FZZ32 fib(FZZ32 n) {
+        if (n.getValue() < 2) 
+            return FZZ32.make(1) ;
+        else return FZZ32.plus(fib(FZZ32.make(n.getValue()-1)), fib(FZZ32.make(n.getValue()-2)));
+    }
 
-    public static com.sun.fortress.compiler.runtimeValues.FVoid println(FString s) {
-        simplePrintln.nativePrintln(s.toString());
-        return com.sun.fortress.compiler.runtimeValues.FVoid.make();
+    public static void run() {
+        CompilerBuiltin.println(fib(FZZ32.make(20)));
+    }
+
+
+    public static void main(String args[]) {
+        systemHelper.registerArgs(args);
+        run();
     }
 }
