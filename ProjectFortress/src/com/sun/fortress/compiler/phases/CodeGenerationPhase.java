@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.phases;
 
 import java.util.Comparator;
+import java.util.Set;
 
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
@@ -38,7 +39,9 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Useful;
 
 public class CodeGenerationPhase extends Phase {
@@ -75,15 +78,18 @@ public class CodeGenerationPhase extends Phase {
         for ( APIName api : previous.apis().keySet() ) {
                 if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                     ApiIndex ai = previous.apis().get(api);
+                    Set<OverloadSet> overloads =
+                        new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
                     
                     Relation<IdOrOpOrAnonymousName, Function>  fns = ai.functions();
                     for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                         PredicateSet<Function> defs = fns.matchFirst(name);
                         if (defs.size() > 1) {
-                            foundAnOverLoadedForeignFunction(ai, name, defs);
+                            overloads.add(foundAnOverLoadedForeignFunction(ai, name, defs));
                         }
                     }
-                    ForeignJava.only.generateWrappersForApi(api);
+                    ForeignJava.only.generateWrappersForApi(api, overloads);
+                    // Need to generate overloaded functions -- where?
                 }
         }
         
@@ -106,7 +112,7 @@ public class CodeGenerationPhase extends Phase {
      * @param name
      * @param defs
      */
-    private void foundAnOverLoadedForeignFunction(ApiIndex ai,
+    private OverloadSet foundAnOverLoadedForeignFunction(ApiIndex ai,
             IdOrOpOrAnonymousName name, PredicateSet<Function> defs) {
         TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, getEnv()));
         // Woo-hoo, an overloaded function.
@@ -117,6 +123,7 @@ public class CodeGenerationPhase extends Phase {
         String s = os.toString();
         if (debugOverloading)
             System.err.println(s);
+        return os;
      }
 
 }

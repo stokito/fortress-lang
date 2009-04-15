@@ -17,9 +17,11 @@
 package com.sun.fortress.compiler.nativeInterface;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
 import com.sun.fortress.compiler.ByteCodeWriter;
+import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class FortressTransformer {
@@ -27,12 +29,12 @@ public class FortressTransformer {
 
 
     @SuppressWarnings("unchecked")
-    public static void transform(String inputClassName) {
+    public static void transform(String inputClassName, Set<OverloadSet> overloads) {
         String outputClassName;
         try {
             ClassReader cr = new ClassReader(inputClassName);
             ClassWriter cw = new ClassWriter(1);
-            FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName);
+            FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName, overloads);
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
             ByteCodeWriter.writeClass(repository, inputClassName, b2);

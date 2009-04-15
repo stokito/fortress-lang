@@ -33,13 +33,14 @@ import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.GMultiMap;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
-class OverloadSet {
+public class OverloadSet implements Comparable<OverloadSet> {
     
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
@@ -56,12 +57,33 @@ class OverloadSet {
      */
     final Set<Function> lessSpecificThanSoFar;
     final IdOrOpOrAnonymousName name;
+    /**
+     * Used to answer subtype questions.
+     */
     final TypeAnalyzer ta;
+    /**
+     * All the indices that have been tested already.
+     * Dispatch begins at the "most profitable" index, which
+     * is defined to be the one with the greatest variation.
+     * (Alternative plan might be to order them by the one
+     * with the smallest subsets, thus guaranteeing log depth).
+     */
     final BASet<Integer> testedIndices;
     
+    /**
+     * Assuming we have a parent (are not the root of a tree of OverloadSets),
+     * what is that parent.
+     */
     final OverloadSet parent;
+    /**
+     * Assuming we have a parent that dispatched on a parameter, how did we
+     * get here?
+     */
     final Type selectedParameterType;
 
+    /**
+     * Which parameter is used to split this set into subsets?
+     */
     int dispatchParameterIndex;
     OverloadSet[] children;
     boolean splitDone;
@@ -134,15 +156,20 @@ class OverloadSet {
         {
             // Accumulate sets of parameter types.
             int nargs = the_size;
-            Set<Type>[] typeSets = new Set[nargs];
+            
+            MultiMap<Type, Function>[] typeSets = new MultiMap[nargs];
             for (int i = 0; i < nargs; i++) {
-                typeSets[i] = new HashSet<Type>();
+                typeSets[i] = new MultiMap<Type, Function>();
             }
             
             for (Function f : lessSpecificThanSoFar) {
                 List<Param> parameters = f.parameters();
                 int i = 0;
                 for (Param p : parameters) {
+                    if (testedIndices.contains(i)) {
+                        i++;
+                        continue;
+                    }
                     Option<Type> ot = p.getIdType();
                     Option<Type> ovt = p.getVarargsType();
                     if (ovt.isSome()) {
@@ -152,29 +179,43 @@ class OverloadSet {
                         InterpreterBug.bug("Missing type for parameter " + i + " of " + f);
                     }
                     Type t = ot.unwrap();
-                    typeSets[i++].add(t);
+                    typeSets[i++].putItem(t, f);
                 }       
             }
             
             // Choose parameter index with greatest variation.
-            
-            int maxi = -1; int max = 0;
+            // Choose parameter index with the smallest largest subset.
+            int besti = -1; int best = 0;
+            boolean greatest_variation = false;
             for (int i = 0; i < nargs; i++) {
                 if (testedIndices.contains(i))
                     continue;
-                if (typeSets[i].size() > max) {
-                    max = typeSets[i].size();
-                    maxi = i;
+                if (greatest_variation) {
+                    if (typeSets[i].size() > best) {
+                        best = typeSets[i].size();
+                        besti = i;
+                    }
+                } else {
+                    MultiMap<Type, Function> mm = typeSets[i];
+                    int largest = 0;
+                    for (Set<Function> sf : mm.values()) {
+                        if (sf.size() > largest)
+                            largest = sf.size();
+                    }
+                    if (besti == -1 || largest < best) {
+                        besti = i;
+                        best = largest;
+                    }
                 }
             }
             
             // dispatch on maxi'th parameter.
-            dispatchParameterIndex = maxi;
-            Set<Type> dispatchTypes = typeSets[dispatchParameterIndex];
+            dispatchParameterIndex = besti;
+            Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
            
            
-            children = new OverloadSet[max];
-            BASet<Integer> childTestedIndices = testedIndices.putNew(maxi);
+            children = new OverloadSet[best];
+            BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
             
             int i = 0;
             TopSortItemImpl<Type>[] potypes =
@@ -336,6 +377,16 @@ class OverloadSet {
             return Collections.<Function>emptySet();
         else
             return Collections.singleton(msf);
+    }
+
+    @Override
+    public int compareTo(OverloadSet o) {
+        // TODO Auto-generated method stub
+        return name.stringName().compareTo(o.name.stringName());
+    }
+    
+    public IdOrOpOrAnonymousName getName() {
+        return name;
     }
     
 }
