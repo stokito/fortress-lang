@@ -24,7 +24,7 @@ fiveOrMore = fn x => x > 4
 
 run():() = do
     list'  = emptyList[\ZZ32\]().addLeft(7).addLeft(5).addLeft(3)
-    list'' = emptyList[\ZZ32\]().addRight(8).addRight(6).addRight(4)
+    list'' = <|[\ZZ32\] |>.addRight(8).addRight(6).addRight(4)
 
     assert(|list'|,3," |list'|")
     assert(list'.left().get(),3," list'.left()")

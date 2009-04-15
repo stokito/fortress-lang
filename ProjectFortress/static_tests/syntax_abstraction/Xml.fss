@@ -65,8 +65,8 @@ component Xml
 
     attributes():List[\Attribute\] = info.attributes
   end
-  Element(info:Header) = Element(info, emptyList[\Content\](), info.startTag)
-  Element(info:Header, endTag:String) = Element(info, emptyList[\Content\](), endTag)
+  Element(info:Header) = Element(info, <|[\Content\] |>, info.startTag)
+  Element(info:Header, endTag:String) = Element(info, <|[\Content\] |>, endTag)
 
   object Header(startTag:String, attributes:List[\Attribute\])
   end

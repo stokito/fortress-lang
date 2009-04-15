@@ -57,7 +57,7 @@ object ClassTable(defs: Map[\String, Class\])
 
 
   fields(c: Type): List[\Decl\] = do
-    if c.name = "Object" then emptyList[\Decl\]()
+    if c.name = "Object" then <|[\Decl\] |>
     else
       c_def: Class = defs[c.name]
       c_def.fields.appendR[\Decl\](fields(c_def.ext))
@@ -192,7 +192,7 @@ opr <(typ1: Type, typ2: Type) = SubtypeThunk(typ1, typ2)
 (* Testing *)
 run() = do
   obj = Type("Object")
-  newObj = New(obj, emptyList[\Expr\]())
+  newObj = New(obj, <|[\Expr\] |>)
   x = Var("x")
   y = Var("y")
   this = Var("this")
@@ -203,7 +203,7 @@ run() = do
   dy = Decl(obj, "y")
   i = Init("x","_x")
   e = <|d|>
-  k = Cons(c, e, emptyList[\Var\](), <| i |>)
+  k = Cons(c, e, <|[\Var\] |>, <| i |>)
   m = Meth(obj, "m", <|dy|>, y)
   m' = Meth(obj, "n", <|d|>, Proj(this, "x"))
   l = Class("c", obj, <|dx|>, k, <|m, m'|>)

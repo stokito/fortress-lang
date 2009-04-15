@@ -400,7 +400,7 @@ simpleInsDel(elts:List[\RR64\]):() = do
   end
 
 test withOrderedData():() = do
-    simpleInsDel(emptyList[\RR64\]())
+    simpleInsDel( <|[\RR64\] |>)
     simpleInsDel( <|[\RR64\] 17.0 |> )
     simpleInsDel( <|[\RR64\] 1.0, 2.0|> )
     simpleInsDel( <|[\RR64\] 1.0, 2.0, 3.0|> )

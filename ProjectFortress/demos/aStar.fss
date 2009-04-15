@@ -181,7 +181,7 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
                 end
               | k <- 0#9 |>.filter(fn (s) => s.cands >= 81)
         else
-            emptyList[\Sudoku\]()
+            <|[\Sudoku\] |>
         end
 
     computeConsistent(): Boolean =

@@ -36,6 +36,7 @@ trait ZZ64 extends Number
 end
 
 trait ZZ32 extends ZZ64
+    asString(): String
     opr STR(self): String
     opr -(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
