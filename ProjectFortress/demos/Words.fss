@@ -28,32 +28,35 @@ end
 object Chunk(s: String) extends WordState
   opr OPLUS(self, other: WordState): WordState = Chunk("")
   opr OPLUS(self, other: Chunk): WordState =
-    Chunk(s DOT other.s)
+    Chunk(s || other.s)
   opr OPLUS(self, other: Segment): WordState =
-    Segment(s DOT other.l, other.A, other.r)
+    Segment(s || other.l, other.A, other.r)
 end
 
 object Segment(l: String, A: List[\String\], r: String)
     extends WordState
   opr OPLUS(self, other: WordState): WordState = Chunk("")
   opr OPLUS(self, other: Chunk): WordState =
-    Segment(l, A, r DOT other.s)
+    Segment(l, A, r || other.s)
   opr OPLUS(self, other: Segment): WordState =
-    Segment(l, A || maybeWord(r DOT other.l) || other.A, other.r)
+    Segment(l, A || maybeWord(r || other.l) || other.A, other.r)
 end
 
-object GlomReduction extends Reduction[\WordState\]
-    getter toString() = "GlomReduction"
+object GlomReduction extends { MonoidReduction[\WordState\],
+                               ReductionWithZeroes[\WordState,WordState\] }
+    getter asString() = "GlomReduction"
     empty(): WordState = Chunk("")
     join(a: WordState, b: WordState): WordState = a OPLUS b
 end
 
-opr BIG OPLUS[\T\](g:(Reduction[\WordState\],
-                  T->WordState)->WordState): WordState =
-    g(GlomReduction, identity[\WordState\])
+opr BIG OPLUS[\T\](): BigReduction[\WordState,WordState\] =
+    BigReduction[\WordState,WordState\](GlomReduction)
+
+opr BIG OPLUS[\T\](g: Generator[\WordState\]) =
+    __bigOperatorSugar[\WordState,WordState,WordState,WordState\](BIG OPLUS[\T\](), g)
 
 maybeWord(s: String): List[\String\] =
-  if s = "" then emptyList[\String\]() else <| s |> end
+  if s = "" then emptyList[\String\]() else <|[\String\] s |> end
 
 processChar(c: String): WordState =
   if (c = " ") then
@@ -63,7 +66,7 @@ processChar(c: String): WordState =
   end
 
 words(s: String) = do
-  g = BIG OPLUS[k<-0#length(s)] processChar(substring(s,k,k+1))
+  g = BIG OPLUS[k<-0#s.size] processChar(s[k#1])
   typecase g of
     Chunk => maybeWord(g.s)
     Segment => maybeWord(g.l) || g.A || maybeWord(g.r)
