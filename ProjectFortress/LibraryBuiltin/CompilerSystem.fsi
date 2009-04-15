@@ -1,4 +1,4 @@
-/*******************************************************************************
+(*******************************************************************************
     Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,16 +13,16 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+ ******************************************************************************)
 
-package com.sun.fortress.compiler.runtimeValues;
+api CompilerSystem
 
-public class FZZ32 {
-    int val;
+(** Right now this is a massive hack, to make the native wrapper
+    use array-like *notation* without actually supporting native-side
+    arrays per se.  This should be remedied as soon as is practical. **)
+object args 
+(*    opr |self|: ZZ32  *)
+    opr [n:ZZ32]: String
+end
 
-    FZZ32(int x) { val = x; }
-    public String toString() { return "" + val;}
-    public int getValue() {return val;}
-    public static FZZ32 make(int x) {return new FZZ32(x);}
-    public static FZZ32 plus(FZZ32 a, FZZ32 b) {return make(a.getValue() + b.getValue());}
-}
+end

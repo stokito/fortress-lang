@@ -38,6 +38,7 @@ public class Naming extends NodeAbstractVisitor<String> {
     public static String openParen = "(";
     public static String closeParen = ")";
     public static String springBoard = "SpringBoard";
+    public static String underscore = "_";
     public static String make = "make";
     public static String emptyString = "";
 
@@ -93,9 +94,9 @@ public class Naming extends NodeAbstractVisitor<String> {
     // fortress types
     public static String fortressPackage = "fortress";
     public static String fortressAny = fortressPackage + slash + WellKnownNames.anyTypeLibrary() +
-                         dollar + WellKnownNames.anyTypeName;
+                         underscore + WellKnownNames.anyTypeName;
 
-    // fortress interpreter types: internal names
+    // fortress runtime types: internal names
     public static String makeFortressInternal(String type) {
         return "com/sun/fortress/compiler/runtimeValues/F" + type;
     }
@@ -159,40 +160,86 @@ public class Naming extends NodeAbstractVisitor<String> {
                 }
             }
             public String forTraitType(TraitType t) {
+                String result = "Broken";
                 if ( t.getName().getText().equals("String") )
-                    return descFortressString;
+                    result = descFortressString;
                 else if ( t.getName().getText().equals("ZZ32") )
-                    return descFortressZZ32;
+                    result = descFortressZZ32;
                 else if ( t.getName().getText().equals("ZZ64") )
-                    return descFortressZZ64;
+                    result = descFortressZZ64;
                 else if ( t.getName().getText().equals("RR32") )
-                    return descFortressRR32;
+                    result =  descFortressRR32;
                 else if ( t.getName().getText().equals("RR64") )
-                    return descFortressRR64;
+                    result = descFortressRR64;
                 else if ( t.getName().getText().equals("Bool"))
-                    return descFortressBool;
+                    result =  descFortressBool;
                 else if ( t.getName().getText().equals("Char"))
-                    return descFortressChar;
-                else
-                    return sayWhat( t );
+                    result =  descFortressChar;
+                else {
+                    Id id = t.getName();
+                    Option<APIName> maybeApi = id.getApiName();
+                    String name = id.getText();
+                    if (maybeApi.isSome()) {
+                        APIName api = maybeApi.unwrap();
+                        result = "L" + api.getText()  + underscore + name + ";";
+                    } else {
+                        sayWhat(t);
+                    }
+                }
+                Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type " + t + " = " + result);
+
+                return result;
             }
             });
     }
 
     public static String makeClassName(String packageName, String className, TraitObjectDecl t) {
-        return packageName + className + Naming.dollar + NodeUtil.getName(t).getText();
+        return packageName + className + underscore + NodeUtil.getName(t).getText();
     }
 
     public static String getJavaClassForSymbol(IdOrOp fnName) {
         Option<APIName> maybe_api = fnName.getApiName();
-        String result = "fortress/";
+        String result = "";
         if (maybe_api.isSome()) {
             APIName apiName = maybe_api.unwrap();
+            if (WellKnownNames.exportsDefaultLibrary(apiName.getText()))
+                result = result + "fortress/";
             result = result + apiName.getText();
-        }
+        } 
+        //        result = result + fnName.getText();
+        
         Debug.debug(Debug.Type.CODEGEN, 1,
                     "getJavaClassForSymbol(" + fnName +")=" + result);
         return result;
+    }
+
+
+    public static String getDottedMethodDesc(IdOrOp opName) {
+        return "(" + descFortressZZ32 + ")" + descFortressString;
+    }
+
+    public static String generateTypeDescriptor(FnDecl f) {
+        FnHeader h = f.getHeader();
+        IdOrOpOrAnonymousName xname = h.getName();
+        IdOrOp name = (IdOrOp) xname;
+        List<Param> params = h.getParams();
+        Option<com.sun.fortress.nodes.Type> optionReturnType = h.getReturnType();
+        String desc = openParen;
+        for (Param p : params) {
+            Id paramName = p.getName();
+            Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
+            if (optionType.isNone())
+                sayWhat(f);
+            else {
+                com.sun.fortress.nodes.Type t = optionType.unwrap();
+                desc = desc + emitDesc(t);
+            }
+        }
+        if (optionReturnType.isNone())
+            desc = desc + closeParen + descFortressVoid;
+        else desc = desc + closeParen + emitDesc(optionReturnType.unwrap());
+        Debug.debug(Debug.Type.CODEGEN, 1, "generateTypeDescriptor" + f + " = " + desc);
+        return desc;
     }
 
     private static <T> T sayWhat(ASTNode x) {
@@ -201,6 +248,14 @@ public class Naming extends NodeAbstractVisitor<String> {
 
     private static <T> T sayWhat(ASTNode x, String message) {
         throw new CompilerError(NodeUtil.getSpan(x), message + " node = " + x);
+    }
+
+    // This is definitely hacky, but the one in NamingCzar doesn't do what we need.
+    // Come back and fix this.
+    public static String mangle(String name) {
+        if (name == "[ ]") 
+            return "subscript";
+        else return name;
     }
 
 

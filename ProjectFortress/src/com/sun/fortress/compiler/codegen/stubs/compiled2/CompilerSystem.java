@@ -13,16 +13,12 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
+package com.sun.fortress.compiler.codegen.stubs.compiled2;
+import com.sun.fortress.nativeHelpers.*;
+import com.sun.fortress.compiler.runtimeValues.*;
 
-package com.sun.fortress.compiler.runtimeValues;
-
-public class FZZ32 {
-    int val;
-
-    FZZ32(int x) { val = x; }
-    public String toString() { return "" + val;}
-    public int getValue() {return val;}
-    public static FZZ32 make(int x) {return new FZZ32(x);}
-    public static FZZ32 plus(FZZ32 a, FZZ32 b) {return make(a.getValue() + b.getValue());}
+public class CompilerSystem {
+    public static CompilerSystem_args default_args = new CompilerSystem_args();
 }
+        
