@@ -218,7 +218,7 @@ TraitDecl AbsTraitDecl =
                                            a2.getStaticParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
-                                           a3.getComprises());
+                                           a3.getComprises(), a3.getEllipses());
      };
 
 /* Each trait clause cannot appear more than once. */
