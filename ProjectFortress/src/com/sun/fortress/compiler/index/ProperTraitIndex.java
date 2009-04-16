@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -54,15 +56,23 @@ public class ProperTraitIndex extends TraitIndex {
         Set<TraitType> types = new HashSet<TraitType>();
         for ( BaseType t : ((TraitDecl)ast()).getExcludesClause() )
             if ( t instanceof TraitType ) types.add((TraitType)t);
-            else bug("TraitType is expected in the excludes of " + ast() +
+            else bug("TraitType is expected in the excludes clause of " + ast() +
                      " but found " + t);
         return types;
     }
 
-    public Set<Type> comprisesTypes() {
-        return NI.nyi();
+    public Set<TraitType> comprisesTypes() {
+        Set<TraitType> types = new HashSet<TraitType>();
+        Option<List<BaseType>> comprises = ((TraitDecl)ast()).getComprisesClause();
+        if ( comprises.isNone() ) return types;
+        else {
+            for ( BaseType t : comprises.unwrap() )
+                if ( t instanceof TraitType ) types.add((TraitType)t);
+                else bug("TraitType is expected in the comprises clause of " + ast() +
+                         " but found " + t);
+        }
+        return types;
     }
-
 
     @Override
     public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor v) {

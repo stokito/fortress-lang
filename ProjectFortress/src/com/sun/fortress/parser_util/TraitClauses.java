@@ -37,6 +37,7 @@ public class TraitClauses {
     private List<BaseType>         excludes  = Collections.<BaseType>emptyList();
     private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
     private Option<WhereClause>    where     = Option.<WhereClause>none();
+    private boolean hasEllipses  = false;
     private boolean setExcludes  = false;
     private boolean setComprises = false;
     private boolean setWhere     = false;
@@ -49,6 +50,10 @@ public class TraitClauses {
 
     public Option<List<BaseType>> getComprises() {
         return comprises;
+    }
+
+    public boolean getEllipses() {
+        return hasEllipses;
     }
 
     public Option<WhereClause> getWhere() {
@@ -71,6 +76,7 @@ public class TraitClauses {
             if (setComprises) multiple(t);
             else {
                 comprises    = ((Comprises)t).getComprises();
+                hasEllipses  = ((Comprises)t).hasEllipses();
                 setComprises = true;
             }
         } else if (t instanceof Where) {

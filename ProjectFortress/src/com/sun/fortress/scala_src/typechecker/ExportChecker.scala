@@ -284,10 +284,7 @@ object ExportChecker {
                     val diffTraits = NodeUtil.isTrait(traitOrObject) &&
                                      ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
                                                         toList(NodeUtil.getExcludesClause(declInComp))) ||
-                                       ! equalOptListTypes(toOptList(NodeUtil.getComprisesClause(declInAPI)),
-                                                           toOptList(NodeUtil.getComprisesClause(declInComp))) ||
-                                       NodeUtil.isComprisesEllipses(declInAPI) !=
-                                       NodeUtil.isComprisesEllipses(declInComp) )
+                                       ! equalComprises(declInAPI, declInComp) )
                     val diffObjects = NodeUtil.isObject(traitOrObject) &&
                                       ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
                                                            toOptList(NodeUtil.getParams(declInComp)))
@@ -570,6 +567,23 @@ object ExportChecker {
             case (TraitTypeWhere(_, typeL, whereL),
                   TraitTypeWhere(_, typeR, whereR)) =>
                 equalTypes(typeL, typeR)
+    }
+
+    /* Returns true if two comprises clauses are "same" in the presence of "..." */
+    private def equalComprises(declInAPI:  TraitObjectDecl,
+                               declInComp: TraitObjectDecl): Boolean = {
+        val comprisesInAPI  = toOptList(NodeUtil.getComprisesClause(declInAPI))
+        val comprisesInComp = toOptList(NodeUtil.getComprisesClause(declInComp))
+        if ( NodeUtil.isComprisesEllipses(declInAPI) )
+            (comprisesInAPI, comprisesInComp) match {
+                case (Some(tysInAPI), Some(tysInComp)) =>
+                    var result = true
+                    for ( t <- tysInAPI )
+                        if ( ! tysInComp.contains(t) ) result = false
+                    result
+                case (Some(tysInAPI), None) => false
+                case _ => true
+        } else equalOptListTypes(comprisesInAPI, comprisesInComp)
     }
 
     /* Returns true if members in traits and objects in an API have
