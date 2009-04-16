@@ -1,46 +1,46 @@
 (*******************************************************************************
-  This program is copyrighted free software by Kento Emoto 
-  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative 
-  research on Fortress Programming Language between Sun Microsystems, 
-  Inc. and the University of Tokyo.  
-  
-  You can redistribute it and/or modify it under the following 
+  This program is copyrighted free software by Kento Emoto
+  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative
+  research on Fortress Programming Language between Sun Microsystems,
+  Inc. and the University of Tokyo.
+
+  You can redistribute it and/or modify it under the following
   BSD-style license or the Sun Contributor Agreement that Kento Emoto signed.
-  
-  
-  Copyright (c) 2009 by Kento Emoto
+
+
+  Copyright 2009 by Kento Emoto
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
-  modification, are permitted provided that the following conditions 
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
   are met:
-  
-      * Redistributions of source code must retain the above copyright 
+
+      * Redistributions of source code must retain the above copyright
         notice, this list of conditions and the following disclaimer.
-      * Redistributions in binary form must reproduce the above copyright 
-        notice, this list of conditions and the following disclaimer 
-        in the documentation and/or other materials provided with the 
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer
+        in the documentation and/or other materials provided with the
         distribution.
-      * Neither the name of Kento Emoto nor the names of its 
-        contributors may be used to endorse or promote products derived 
+      * Neither the name of Kento Emoto nor the names of its
+        contributors may be used to endorse or promote products derived
         from this software without specific prior written permission.
-  
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
+
 
  ******************************************************************************)
 
-(* 
+(*
 
 This program is modified from the BiCGSTAB.fss to use zero-based
 indexing and algebraic operations on vectors.  It is important to use
@@ -59,12 +59,12 @@ export Executable
 
 run(args : String...) : () = do
   println("BiCGSTAB")
-  testrun[\16,16,16\](); 
+  testrun[\16,16,16\]();
   (*testrun[\2,2,2\]();*)
 end
 
 (* Makes sample matrix A and vector b s.t. the answer of A x = b is x = 1 . *)
-initilization[\nat imax, nat jmax, nat kmax\]() = 
+initilization[\nat imax, nat jmax, nat kmax\]() =
 do
   (* those allocations of vectors should be factored out as calls of a function *)
   Ap = array3[\RR64, imax, jmax, kmax\]()
@@ -81,7 +81,7 @@ do
   As.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
   At.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
   Ab.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
-  
+
   for j <- 0#jmax do
     for k <- 0#kmax do
       Aw[0,j,k]    := 0.0
@@ -100,20 +100,20 @@ do
       At[i,j,kmax-1] := 0.0
     end
   end
-  
+
   (*  PrintMatrix[\imax,jmax,kmax\](Ap, Ae, Aw, An, As, At, Ab) *)
-   
-  (* 
+
+  (*
   oops! we cant use negative indices!  ... nat is only for non-negative...
   b = array1[\RR64, imax jmax kmax + 2 jmax imax\]().shift( - jmax imax)
   c = array1[\RR64, imax jmax kmax + 2 jmax imax\]().shift( - jmax imax)
-  
+
   i will shift them in the product loop.
   *)
-  
+
   b = array1[\RR64, (imax jmax kmax) + (2 jmax imax)\]()
   x = array1[\RR64, (imax jmax kmax) + (2 jmax imax)\]()
-  
+
   x.fill(fn (i:ZZ32):RR64 => 0.0)
   b.fill(fn (i:ZZ32):RR64 => 0.0)
 
@@ -127,13 +127,13 @@ do
         else
           b[m] := b[m] + 1.0
         end
-    
+
         if (j>0) AND (j<jmax-1) then
           b[m] := b[m] + 2.0
         else
           b[m] := b[m] + 1.0
         end
-      
+
         if (k>0) AND (k<kmax-1) then
           b[m] := b[m] + 2.0
         else
@@ -148,14 +148,14 @@ end
 (* A sample driver for the BiCGSTAB method. *)
 testrun[\nat imax, nat jmax, nat kmax\]() : () =
 do
-  (Ap, Ae, Aw, An, As, At, Ab, b, x) = initilization[\imax, jmax, kmax\]()  
+  (Ap, Ae, Aw, An, As, At, Ab, b, x) = initilization[\imax, jmax, kmax\]()
 (*
   PrintVector[\imax, jmax, kmax\](b)
   PrintMatrixVector[\imax, jmax, kmax\](Ap, Ae, Aw, An, As, At, Ab, b)
   MatrixVectorProduct[\imax, jmax, kmax\](Ap, Ae, Aw, An, As, At, Ab, b, x)
   PrintVector[\imax, jmax, kmax\](x)
   *)
-  
+
   st = nanoTime()
   BiCGSTABband[\imax, jmax, kmax\](Ap,Ae,Aw,An,As,At,Ab,x,b)
   et = nanoTime()
@@ -177,11 +177,11 @@ Ab(_,_,1)    = 0
 At(_,_,kmax) = 0
 
 *)
-(* BiCGSTAB method for band matrix A and vector b. 
-   This program uses zero-based indexing 
+(* BiCGSTAB method for band matrix A and vector b.
+   This program uses zero-based indexing
    to use algebraic operations of vectors in Fortress.
 *)
-BiCGSTABband[\nat imax, nat jmax, nat kmax\](Ap,Ae,Aw,An,As,At,Ab,x2,b2) : (ZZ32, RR64) = 
+BiCGSTABband[\nat imax, nat jmax, nat kmax\](Ap,Ae,Aw,An,As,At,Ab,x2,b2) : (ZZ32, RR64) =
 do
   (* those allocations of vectors should be factored out as calls of a function *)
   x  : Vector[\RR64,(imax jmax kmax) + (2 jmax imax)\] := x2
@@ -196,7 +196,7 @@ do
   (* we dont need so many iterations because the matrix is a band matrix. *)
   itrmax = imax jmax kmax
   er0 = 1.0 10^(-4)
-  
+
   MatrixVectorProduct[\imax,jmax,kmax\](Ap,Ae,Aw,An,As,At,Ab,x,c)
 
 (*
@@ -210,7 +210,7 @@ do
   c1 : RR64 := r DOT r
 
   label MainLoop
-    if (c1 < er0) then exit MainLoop with () end 
+    if (c1 < er0) then exit MainLoop with () end
     p := r
     r' := r
 
@@ -230,16 +230,16 @@ do
       vv = v DOT v
       (* We get ev=vv=0 when imax=jmax=kmax=2. Thus, we need to avoid NaN. *)
       c3 = if (vv=0) AND (ev=0) then 1 else ev / vv end
-      x := x + alp p + c3 e 
+      x := x + alp p + c3 e
       r := e - c3 v
       rr := r DOT r
       println(it " residual = " rr)
       if (rr < er0) then exit MainLoop with (it,rr) end
       c1 := r' DOT r
-      
+
       bet = c1 / (c2 c3)
       p := r + bet (p - c3 y)
-      
+
       it += 1
     end
     (it,rr)
@@ -249,7 +249,7 @@ end
 
 (* A product of a 7-band matrix and a vector. *)
 MatrixVectorProduct[\nat imax, nat jmax, nat kmax\]
-(Ap, Ae, Aw, An, As, At, Ab, b, c) : () = 
+(Ap, Ae, Aw, An, As, At, Ab, b, c) : () =
 do
   for k <- 0#kmax do
     for j <- 0#jmax do
@@ -277,7 +277,7 @@ do
                 m - imax      => As[i,j,k]
                 m + imax      => An[i,j,k]
                 m - imax jmax => Ab[i,j,k]
-                m + imax jmax => At[i,j,k] 
+                m + imax jmax => At[i,j,k]
                 else          => 0.0
               end
           print(v " ")
@@ -329,7 +329,7 @@ do
                 m - imax      => As[i,j,k]
                 m + imax      => An[i,j,k]
                 m - imax jmax => Ab[i,j,k]
-                m + imax jmax => At[i,j,k] 
+                m + imax jmax => At[i,j,k]
                 else          => 0.0
               end
           print(v " ")
