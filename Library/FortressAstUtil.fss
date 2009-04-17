@@ -31,22 +31,22 @@ makeMultiFix(op:Op) = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](MultiFix
 makeInfix(op:Op) = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](Infixity))
 *)
 
-(* object OpRef (in_lexicalDepth:ZZ32, in_originalName:OpName, in_ops:List[\OpName\], in_staticArgs:List[\StaticArg\]) extends FunctionalRef *)
+(* object OpRef (in_lexicalDepth:ZZ32, in_originalName:IdOrOp, in_ops:List[\IdOrOp\], in_staticArgs:List[\StaticArg\]) extends FunctionalRef *)
 makeMultiJuxt():OpRef = do
     name = makeMultiFix(makeOp("juxtaposition"))
-    OpRef(0, name, singleton(name asif OpName), <|[\StaticArg\] |>)
+    OpRef(0, name, singleton(name asif IdOrOp), <|[\StaticArg\] |>)
 end asif OpRef
 
 makeInfixJuxt():OpRef = do
     name = makeInfix(makeOp("juxtaposition"))
-    OpRef(0, name, singleton(name asif OpName), <|[\StaticArg\] |>)
+    OpRef(0, name, singleton(name asif IdOrOp), <|[\StaticArg\] |>)
 end
 
-LooseJuxt1(exprs:List[\Expr\]):LooseJuxt =
-    LooseJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+LooseJuxt1(exprs:List[\Expr\]):Juxt =
+    Juxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
 
-TightJuxt1(exprs:List[\Expr\]):TightJuxt =
-    TightJuxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+TightJuxt1(exprs:List[\Expr\]):Juxt =
+    Juxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
 
 APIName1(in_ids:List[\Id\]):APIName = do
     t1 = BIG || [e <- in_ids] (e ".")

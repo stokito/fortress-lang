@@ -411,7 +411,7 @@ trait Number
     round(self): ZZ = round(asFloat(self))
 end
 
-trait RR64 extends Number comprises { Float, FloatLiteral, QQ }
+trait RR64 extends Number comprises { Float, FloatLiteral, RR32, QQ }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean = false
     (** returns true if the value is an IEEE infinity **)
