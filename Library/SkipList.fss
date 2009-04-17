@@ -102,15 +102,16 @@ NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
     iv)  White Nodes - stores exactly zero keys and one child.
 *)
 trait Node[\Key,Val\]
+(*
       comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
                  NonLeafNode[\Key,Val\],
-              (* WhiteNodeHelper[\Key,Val,ChildType\]
+                 WhiteNodeHelper[\Key,Val,ChildType\]
                      where [\ChildType extends Node[\Key,Val\]\],
                  InternalNodeHelper[\SelfType,Key,Val,ChildType\]
                      where [\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],
                              ChildType extends Node[\KeyVal\]\],
-               *)
                  WhiteNode[\Key,Val\], InternalNode[\Key,Val\]}
+*)
 
   (* The height of the current node.  Height = 0 must be a leaf *)
   getter height():ZZ32

@@ -171,7 +171,7 @@ end
 
  (* %w=1&d='&d *)
 
-object FormatException(reason:String) extends Exception
+object FormatException(reason:String) extends CheckedException
     getter asString(): String = "Format exception: " reason
     getter asExprString(): String = "FormatException(" reason.asEvalString ")"
 end

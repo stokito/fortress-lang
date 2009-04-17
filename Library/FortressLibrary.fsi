@@ -324,7 +324,7 @@ trait Number
     truncate(self):ZZ64
 end
 
-trait RR64 extends Number comprises { RR32, Float, AnyIntegral, FloatLiteral }
+trait RR64 extends Number comprises { Float, FloatLiteral, QQ }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean
     (** returns true if the value is an IEEE infinity **)
@@ -397,7 +397,6 @@ end
 trait AnyIntegral extends { QQ } end
 
 trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
-        comprises { ZZ, IntLiteral }
     getter zero(): I
     getter one(): I
     opr -(self):I
@@ -522,7 +521,7 @@ trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     big(self):ZZ
 end
 
-trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64}
+trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64, NN64 }
     opr /(self,other:ZZ):QQ
     numerator(self): ZZ
     odd(self): Boolean
@@ -1153,7 +1152,6 @@ end
     be either mutable or immutable. *)
 trait ReadableArray[\E,I\]
         extends { HasRank, Indexed[\E,I\], DelegatedIndexed[\E,I\] }
-        comprises { Array[\E,I\], ImmutableArray[\E,I\] }
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)

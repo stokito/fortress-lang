@@ -50,15 +50,15 @@ end
 
 value object AvlDump[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\])
     getter asString(): String = d(t)
-    d(t:Avl[\K,V\]): String =
-        typecase t of
+    d(s:Avl[\K,V\]): String =
+        typecase s of
             AvlEmpty[\K,V\] => "."
             LeftHigh[\K,V\] =>
-               "(" d(t.left()) "<" t.key() "," t.val() "<" d(t.right()) ")"
+               "(" d(s.left()) "<" s.key() "," s.val() "<" d(s.right()) ")"
             Balanced[\K,V\] =>
-               "(" d(t.left()) "=" t.key() "," t.val() "=" d(t.right()) ")"
+               "(" d(s.left()) "=" s.key() "," s.val() "=" d(s.right()) ")"
             RightHigh[\K,V\] =>
-               "(" d(t.left()) ">" t.key() "," t.val() ">" d(t.right()) ")"
+               "(" d(s.left()) ">" s.key() "," s.val() ">" d(s.right()) ")"
         end
 end
 
