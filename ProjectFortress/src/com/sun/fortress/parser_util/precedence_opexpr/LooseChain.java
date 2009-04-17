@@ -76,7 +76,7 @@ public class LooseChain extends Chain {
     * of the fields of the object. Thus, two objects
     * created with identical parameters will be equal.
     */
-   public boolean equals(java.lang.Object obj) {
+   public boolean equals(Object obj) {
       if (obj == null) return false;
       if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
          return false;

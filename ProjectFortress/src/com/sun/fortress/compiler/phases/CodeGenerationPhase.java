@@ -118,7 +118,8 @@ public class CodeGenerationPhase extends Phase {
         // Woo-hoo, an overloaded function.
         if (debugOverloading)
             System.err.println("Found an overloaded function " + name);
-        OverloadSet os = new OverloadSet(name, ta, defs);
+        OverloadSet os = new OverloadSet(name, ta, defs,
+                defs.iterator().next().parameters().size());
         os.split();
         String s = os.toString();
         if (debugOverloading)

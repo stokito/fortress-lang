@@ -39,7 +39,7 @@ public class TabPrintWriter extends java.io.PrintWriter {
   public void indent() { _numIndents++; }
   public void unindent() { _numIndents--; }
 
-  public void startLine(java.lang.Object s) {
+  public void startLine(Object s) {
     startLine();
     print(s);
   }

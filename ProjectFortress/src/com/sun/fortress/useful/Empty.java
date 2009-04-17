@@ -50,7 +50,7 @@ public class Empty<T> extends PureList<T> {
     * created with identical parameters will be equal.
     */
    @Override
-   public boolean equals(java.lang.Object obj) {
+   public boolean equals(Object obj) {
       if (obj == null) return false;
       if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
          return false;
