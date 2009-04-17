@@ -15,12 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled3.q
-export Compiled3.q
+component Compiled3.r
+export Executable
 
 trait T comprises { O, P } end
 
 object O extends T end
-object P extends T end
+object P end
+
+run() = ()
 
 end

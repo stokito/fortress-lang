@@ -18,7 +18,7 @@
 component TryTest
   export Executable
 
-  object FooExn extends Exception
+  object FooExn extends CheckedException
 
   end
 
