@@ -179,7 +179,7 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeEquals(TabPrintWriter writer) {
-        writer.startLine("public boolean equals(java.lang.Object obj) {");
+        writer.startLine("public boolean equals(Object obj) {");
         writer.startLine("if (obj == null) return false;");
         writer.indent();
         writer.startLine("if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {");

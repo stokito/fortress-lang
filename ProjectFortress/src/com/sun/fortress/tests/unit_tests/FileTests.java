@@ -445,7 +445,19 @@ public class FileTests {
             System.out.print(" ");
             System.out.flush();
 
-            ProcessBuilder pb = new ProcessBuilder(scriptName, name);
+            ArrayList<String> commandAndArgs = new ArrayList<String>();
+	    commandAndArgs.add(scriptName);
+	    commandAndArgs.add(name);
+            for (int i=1; i < Integer.MAX_VALUE; i++) {
+		String s = props.get("arg"+String.valueOf(i));
+		if (s == null) {
+		    break;
+		}
+		commandAndArgs.add(s);
+	    }
+
+
+            ProcessBuilder pb = new ProcessBuilder(commandAndArgs);
             Map<String, String> env = pb.environment();
             if (!env.containsKey("FORTRESS_HOME")) {
                 env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);

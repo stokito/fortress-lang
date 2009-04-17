@@ -80,6 +80,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
      * get here?
      */
     final Type selectedParameterType;
+    
+    final int paramCount;
 
     /**
      * Which parameter is used to split this set into subsets?
@@ -90,19 +92,31 @@ public class OverloadSet implements Comparable<OverloadSet> {
     
     OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<Function> lessSpecificThanSoFar,
-                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType) {
+                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.name = name;
         this.ta = ta;
         this.lessSpecificThanSoFar = lessSpecificThanSoFar;
         this.testedIndices = testedIndices;
         this.parent = parent;
         this.selectedParameterType = selectedParameterType;
+        this.paramCount = paramCount;
     }
     
-    OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs) {
+    OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
         this(name, ta, defs,
             new BASet<Integer>(DefaultComparator.<Integer>normal()),
-            null, null);
+            null, null, n);
+        
+        // Ensure that they are all the same size.
+        for (Function f : lessSpecificThanSoFar) {
+            if (CodeGenerationPhase.debugOverloading)
+                System.err.println("Overload: " + f);
+            List<Param> parameters = f.parameters();
+            int this_size = parameters.size();
+            if (this_size != paramCount)
+                InterpreterBug.bug("Need to handle variable arg dispatch elsewhere " + name);
+            
+        }
     }
     
     public String toString() {
@@ -128,7 +142,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
             return s;
         }
     }
-
+    
     void split() {
         if (splitDone)
             return;
@@ -138,24 +152,9 @@ public class OverloadSet implements Comparable<OverloadSet> {
             // If there are no other alternatives, then we are done.
         }
         
-        int the_size = -1;
-
-        for (Function f : lessSpecificThanSoFar) {
-            if (CodeGenerationPhase.debugOverloading)
-                System.err.println("Overload: " + f);
-            List<Param> parameters = f.parameters();
-            int this_size = parameters.size();
-            if (the_size == -1)
-                the_size = this_size;
-            else if (the_size != this_size) {
-                InterpreterBug.bug("Need to handle variable arg dispatch elsewhere " + name);
-                return;
-            }
-        }
-        
         {
             // Accumulate sets of parameter types.
-            int nargs = the_size;
+            int nargs = paramCount;;
             
             MultiMap<Type, Function>[] typeSets = new MultiMap[nargs];
             for (int i = 0; i < nargs; i++) {
@@ -267,7 +266,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
                 
                childLSTSF = thin(childLSTSF, childTestedIndices);
                     
-               if (the_size == childTestedIndices.size()) {
+               // ought to not be necessary
+               if (paramCount == childTestedIndices.size()) {
                         // Choose most specific member of lessSpecificThanSoFar
                    childLSTSF = mostSpecificMemberOf(childLSTSF);
                         
@@ -275,7 +275,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
                     
                 children[i] =
                     new OverloadSet(name, ta, childLSTSF,
-                            childTestedIndices, this, t);
+                            childTestedIndices, this, t, paramCount);
             }
             for (OverloadSet child: children) {
                 child.split();

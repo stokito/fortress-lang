@@ -72,7 +72,7 @@ public class Cons<T> extends PureList<T> {
     */
    @Override
    @SuppressWarnings("unchecked")
-   public boolean equals(java.lang.Object obj) {
+   public boolean equals(Object obj) {
       if (obj == null) return false;
       if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
          return false;

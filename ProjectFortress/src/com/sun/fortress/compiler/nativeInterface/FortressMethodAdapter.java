@@ -186,7 +186,26 @@ public class FortressMethodAdapter extends ClassAdapter {
     }
 
     public void visitEnd() {
+        // Generate all the overloadings.
+        for (OverloadSet o : overloads) {
+            generateAnOverload(o);
+        }
+        
         super.visitEnd();
+    }
+
+    private void generateAnOverload(OverloadSet o) {
+        
+//        MethodVisitor mv = cv.visitMethod(
+//                0, // access,
+//                null, // name,
+//                null, // sp.getFortressifiedSignature(),
+//                null, // signature,
+//                null); // exceptions);
+//        
+//        mv.visitCode();
+        // TODO Auto-generated method stub
+        
     }
 
 }
