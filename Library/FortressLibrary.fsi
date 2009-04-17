@@ -324,7 +324,7 @@ trait Number
     truncate(self):ZZ64
 end
 
-trait RR64 extends Number comprises { Float, FloatLiteral, QQ }
+trait RR64 extends Number comprises { Float, FloatLiteral, RR32, QQ }
     (** returns true if the value is an IEEE NaN **)
     getter isNaN(): Boolean
     (** returns true if the value is an IEEE infinity **)
