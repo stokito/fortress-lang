@@ -18,11 +18,19 @@ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 -->
 
 <!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+
 This is the main Ant build file for the Fortress reference
 implementation. Declarations are separated by type (e.g., taskdefs,
 properties, targets, etc.). To add a new declaration, please find the
 appropriate place in the file. For the sake of readability, please
 maintain proper indentation.
+-->
+
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
 -->
 
 <project name="Fortress" default="help">
@@ -42,6 +50,10 @@ maintain proper indentation.
   <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
   <property name="blahblahblah" value="com/sun/fortress"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Directories in the ${basedir} directory -->
   <property name="cache0" location="${basedir}/../default_repository/caches"/>
   <property name="cache1" location="${basedir}/../.fortress_cache"/>
@@ -64,6 +76,10 @@ maintain proper indentation.
   <property name="astgen.generators.src"
             location="${src}/${packagePrefix}/astgen"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Third party jar files -->
   <property name="asm" location="${basedir}/third_party/asm"/>
   <property name="astgen.third" location="${basedir}/third_party/astgen"/>
@@ -80,6 +96,10 @@ maintain proper indentation.
   <property name="scala-library.jar"
             value="${basedir}/third_party/scala/scala-library-2.7.2.jar"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- ASTGen -->
   <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
 
@@ -93,6 +113,10 @@ maintain proper indentation.
   <!-- Package nodes_util -->
   <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Parser packages -->
   <property name="parser"  location="${src}/${packagePrefix}/parser"/>
   <property name="preparser" location="${src}/${packagePrefix}/parser/preparser"/>
@@ -104,6 +128,10 @@ maintain proper indentation.
   <property name="precedenceResolver"
             location="${parserUtil}/precedence_resolver"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Unicode packages -->
   <property name="unicodePackage" value="${packagePrefix}/unicode"/>
   <property name="unicode" location="${src}/${packagePrefix}/unicode"/>
@@ -118,6 +146,10 @@ maintain proper indentation.
   <property name="protofortress" location="${basedir}/fortress/FORTRESS"/>
   <property name="protofortress.lib" location="${protofortress}/lib"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Instrumentation -->
   <property name="instrumentation.package"
             value="${package.prefix}.parser_util.instrumentation"/>
@@ -131,6 +163,10 @@ maintain proper indentation.
   <!-- For tests -->
   <property name="test.results" location="${basedir}/TEST-RESULTS"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Other settings -->
   <property name="junitMem" value="768m"/>
   <property name="junit.dir" value="junit-results"/>
@@ -147,6 +183,10 @@ maintain proper indentation.
   <!--
        Paths
   -->
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <path id="scala.classpath">
     <pathelement location="${scala-compiler.jar}"/>
     <pathelement location="${scala-library.jar}"/>
@@ -158,6 +198,10 @@ maintain proper indentation.
     <pathelement location="${build}" />
   </path>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <path id="astgen.classpath">
     <path refid="scala.classpath"/>
     <pathelement location="${build}"/>
@@ -171,6 +215,10 @@ maintain proper indentation.
     <pathelement location="${plt}/plt.jar"/>
   </path>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <path id="compile.classpath">
     <path refid="scala.classpath"/>
     <pathelement location="${build}"/>
@@ -197,6 +245,10 @@ maintain proper indentation.
   <!--
        Targets
   -->
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="help">
     <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
                    checkParserUptodate, clean, cleanCache, compileJava, compileAll,
@@ -269,6 +321,10 @@ maintain proper indentation.
                    ${os.version}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="checkEnv">
     <echo message="Environment variables set correctly? ${correct.environment}"/>
     <fail unless="correct.environment"
@@ -284,6 +340,10 @@ maintain proper indentation.
     <mkdir dir="${junit.dir}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="cleanAst" depends="cleanCache"
           description="Delete the ${nodes} directory tree and cached asts.">
     <delete dir="${nodes}"/>
@@ -323,6 +383,10 @@ maintain proper indentation.
     </delete>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="cleanCache"
           description="Delete any cached Fortress ASTs in the development tree">
     <delete dir="${cache0}"/>
@@ -340,6 +404,10 @@ maintain proper indentation.
     <delete dir="${cache12}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- Generation of Operators.java depends only on the files listed below.
        Note that there are class files it depends on; if these class files are
        not up to date with respect to their sources, they are themselves
@@ -360,6 +428,10 @@ maintain proper indentation.
     <echo message="Operators up to date? ${operators.uptodate}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="operatorsGen"  unless="operators.uptodate"
           depends="init, compileCommon, checkOperatorsUptodate"
           description="Automatically generate visitors for AST nodes.">
@@ -384,6 +456,10 @@ maintain proper indentation.
     </java>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="checkAstgen">
     <condition property="astgenerators.uptodate">
       <uptodate targetfile="${basedir}/build/com/sun/fortress/astgen/FortressAstGenerator.class">
@@ -392,6 +468,10 @@ maintain proper indentation.
     </condition>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="astGenerators"
           unless="astgenerators.uptodate"
           depends="init,checkAstgen"
@@ -428,6 +508,10 @@ maintain proper indentation.
     </scalac>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="checkNodesUptodate" depends="astGenerators">
     <condition property="nodes.uptodate">
       <and>
@@ -448,9 +532,17 @@ maintain proper indentation.
     <echo message="Nodes up to date? ${nodes.uptodate}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <taskdef name="astgen" classpath="${astgen.third}/astgen.jar;${build}"
            classname="edu.rice.cs.astgen.AntTask"/>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
           description="Automatically generate AST nodes.">
     <echo message="Processing ${generate-sourcefile}" />
@@ -474,6 +566,10 @@ maintain proper indentation.
     </move>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileJava" depends="compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code written in Java (Scala code is ignored).">
     <depend srcdir="${src}"
@@ -497,6 +593,10 @@ maintain proper indentation.
     </javac>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileAll" depends="compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code.">
     <scalac
@@ -526,6 +626,10 @@ maintain proper indentation.
     </javac>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compile" depends="compileAll"/>
 
   <target name="check.blas" depends="init">
@@ -539,6 +643,10 @@ maintain proper indentation.
     </java>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="check.linux">
     <condition property="blas.islinux">
       <equals arg1="${os.name}" arg2="Linux" />
@@ -567,12 +675,20 @@ maintain proper indentation.
     </exec>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="check.osx">
     <condition property="blas.is.osx">
       <equals arg1="${os.name}" arg2="Mac OS X" />
     </condition>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="blas.osx" depends="check.osx" if="blas.is.osx">
     <echo message="Generating C header and stub files." />
     <javah class="com.sun.fortress.numerics.Blas"
@@ -601,6 +717,10 @@ maintain proper indentation.
     </condition>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="blas.sunos" depends="check.sunos" if="blas.is.sunos">
     <echo message="Generating C header and stub files." />
     <javah class="com.sun.fortress.numerics.Blas"
@@ -624,6 +744,10 @@ maintain proper indentation.
 
   <target name="blas" depends="check.blas,blas.linux,blas.osx,blas.sunos"></target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileLint"
           depends="compileCommonLint, makeAST, parser, operatorsGen"
           description="Compile all interpreter code.">
@@ -648,6 +772,10 @@ maintain proper indentation.
     </javac>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileCommon" depends="init"
           description="Compile interpreter-indepedent code.">
     <depend srcdir="${src}"
@@ -669,6 +797,10 @@ maintain proper indentation.
     </javac>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileCommonLint" depends="init"
           description="Compile interpreter-indepedent code.">
     <depend srcdir="${src}"
@@ -699,6 +831,10 @@ maintain proper indentation.
         includes="**/*"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testOnly" depends="compileAll"
           description="Run specific tests (use -DtestPattern=...).">
     <mkdir dir="${test.results}"/>
@@ -735,6 +871,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="test" depends="compileAll, testFast"
           description="Clean, compile everything, and run all unit and system tests.">
   </target>
@@ -764,6 +904,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testFast"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
@@ -793,6 +937,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testCruiseControl" depends="compileAll"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
@@ -824,6 +972,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testNotPassing" depends="compileAll"
           description="Run system tests that aren't passing yet.">
     <mkdir dir="${test.results}"/>
@@ -849,6 +1001,10 @@ maintain proper indentation.
     <fail message="Tests expected to fail are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testSpecData" depends="compileAll"
           description="Run SpecDataJUTests.">
     <mkdir dir="${test.results}"/>
@@ -874,6 +1030,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testSystem" depends="compileAll"
           description="Run SystemJUTests.">
     <mkdir dir="${test.results}"/>
@@ -899,6 +1059,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testblas" depends="compile,blas" description="Test blas">
     <mkdir dir="${basedir}/test-tmp" />
     <junit printsummary="on"
@@ -922,6 +1086,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testsyntax" depends="compileAll"
           description="Run SyntaxAbstractionJUTests.">
     <mkdir dir="${test.results}"/>
@@ -948,6 +1116,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="testDemos" depends="compileAll"
           description="Run demos in a test harness.">
     <mkdir dir="${test.results}"/>
@@ -988,6 +1160,10 @@ maintain proper indentation.
     <echo message="Some tests expected to fail still aren't passing."/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <!-- If the generated file Fortress.java is no older than all rats files
        in the parser directory, then the parser must be up to date.
        This is a conservative test; a more precise test would perform a
@@ -1023,6 +1199,10 @@ maintain proper indentation.
     <echo>Fortress parser up to date? ${parser.uptodate}</echo>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="checkPreparserUptodate" depends="init">
     <uptodate property="preparser.uptodate"
               targetfile="${preparser}/PreFortress.java">
@@ -1050,6 +1230,10 @@ maintain proper indentation.
     <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="checkInstrumentedParserUptodate" depends="init">
     <uptodate property="instrumentedparser.uptodate"
               targetfile="${parser}/FortressInstrumented.java">
@@ -1060,6 +1244,10 @@ maintain proper indentation.
     <echo>Fortress parser up to date? ${parser.uptodate}</echo>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <macrodef name="buildparser">
     <attribute name="name" />
     <attribute name="file" />
@@ -1078,6 +1266,10 @@ maintain proper indentation.
     </sequential>
   </macrodef>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="fortressparser" unless="fortressparser.uptodate"
           depends="checkFortressParserUptodate"
           description="Fortress Parser">
@@ -1103,6 +1295,10 @@ maintain proper indentation.
                  file="TemplateParser.rats" />
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="instrumentedparser" unless="instrumentedparser.uptodate"
           depends="compile, checkInstrumentedParserUptodate"
           description="Instrumented Parser">
@@ -1116,6 +1312,10 @@ maintain proper indentation.
     </java>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="optimizeParser"
           depends="compile"
           description="Optimized Parser">
@@ -1140,6 +1340,10 @@ maintain proper indentation.
     <ant target="templateparser" />
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="compileGrammarCoverage" depends="compile, instrumentedparser">
     <depend srcdir="${src}"
             destdir="${build}"
@@ -1171,6 +1375,10 @@ maintain proper indentation.
     <echo message="Wrote grammar coverage report to ${instrumentation.outfile}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="doc" depends="compileAll">
     <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="${junitMem}">
       <classpath refid="compile.classpath"/>
@@ -1187,6 +1395,10 @@ maintain proper indentation.
     </javadoc>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="jar"
           depends="compileAll"
           description="Package up a Fortress distribution as a self-extracting jar.">
@@ -1240,6 +1452,10 @@ maintain proper indentation.
     </jar>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="copy.anthooks" depends="init" unless="anthooks.uptodate">
     <copy file="${src}/com/sun/fortress/shell/anthooks.xml"
           todir="${build}/com/sun/fortress/shell"
@@ -1266,6 +1482,10 @@ maintain proper indentation.
     <delete dir="${installerDir}"/>
   </target>
 
+<!--
+THIS FILE IS DEPRECATED.
+CHANGES SHOULD BE MADE TO BUILD.XML IN THE PARENT (ROOT) DIRECTORY.
+-->
   <target name="createNestedJarUpgrade"
           description="wrap up a jar for inclusion in a mock upgrade">
     <jar
