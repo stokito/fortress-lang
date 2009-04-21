@@ -359,7 +359,7 @@ end
 *)
 simplestRationalBetween(a:QQ, b:QQ): QQ
 
-trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
+trait QQ extends { RR64, StandardPartialOrder[\QQ\] } comprises { ... }
     getter isNaN(): Boolean
     getter isInfinite(): Boolean
     getter isNumber(): Boolean
@@ -1837,7 +1837,7 @@ opr BIG |||(g: Generator[\Any\]): String
     necessary. **)
 opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\]
 
-opr BIG //(g: Generator[\Any\]): String
+opr BIG //[\T\](g: Generator[\T\]): String
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
