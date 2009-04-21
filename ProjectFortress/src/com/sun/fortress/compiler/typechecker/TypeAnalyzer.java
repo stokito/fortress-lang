@@ -236,19 +236,14 @@ public class TypeAnalyzer {
             TypeConsIndex first  = firstInd.unwrap();
             TypeConsIndex second = secondInd.unwrap();
             if ( first instanceof TraitIndex && second instanceof TraitIndex ) {
-                if ( first instanceof ObjectTraitIndex ) {
-                    if ( second instanceof ObjectTraitIndex )
-                        return true;
-                    else // ! second instanceof ObjectTraitIndex
-                        return ! subtype(ss, tt).isTrue();
-                } else { // ! first instanceof ObjectTraitIndex
-                    if ( second instanceof ObjectTraitIndex )
-                        return ! subtype(tt, ss).isTrue();
-                    else { // ! second instanceof ObjectTraitIndex
-                        return exc(ss, tt, (ProperTraitIndex)second) ||
-                               exc(tt, ss, (ProperTraitIndex)first);
-                    }
-                }
+                if ( ! (subtype(ss, tt).isTrue() || subtype(tt, ss).isTrue() ) &&
+                     ( isClosedType(first) || isClosedType(second) ) )
+                    return true;
+                else if ( first  instanceof ProperTraitIndex &&
+                          second instanceof ProperTraitIndex )
+                    return exc(ss, tt, (ProperTraitIndex)second) ||
+                           exc(tt, ss, (ProperTraitIndex)first);
+                else return false;
             } else return false;
         } else if ( s instanceof VarType && t instanceof VarType ) {
             Option<StaticParam> sParam = _typeEnv.staticParam(((VarType)s).getName());
@@ -303,6 +298,26 @@ public class TypeAnalyzer {
                      ss.getKeywords().isEmpty() && tt.getKeywords().isEmpty() &&
                      ss.getElements().size() == tt.getElements().size() &&
                      existExc(ss.getElements(), tt.getElements()) );
+        } else return false;
+    }
+
+    /* A type is a closed type if and only if
+     * it is an object trait type or
+     * it is a trait type with a comprises clause containing only closed types.
+     */
+    private boolean isClosedType(TypeConsIndex s) {
+        if ( s instanceof ObjectTraitIndex ) return true;
+        else if ( s instanceof ProperTraitIndex ) {
+            Set<TraitType> comprises = ((ProperTraitIndex)s).comprisesTypes();
+            if ( comprises.isEmpty() ) return false;
+            for ( TraitType t : comprises ) {
+                Option<TypeConsIndex> index  = _table.typeCons(t.getName());
+                if ( index.isNone() )
+                    throw new IllegalArgumentException("Unrecognized name: " +
+                                                       t.getName());
+                if ( ! isClosedType(index.unwrap()) ) return false;
+            }
+            return true;
         } else return false;
     }
 
