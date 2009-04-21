@@ -17,6 +17,11 @@
 
 api Format
 
+object FormatException(reason:String) extends UncheckedException
+    getter asString(): String
+    getter asExprString(): String
+end
+
 padLeft(s:String,c:Char,z:ZZ32):String
 padRight(s:String,c:Char,z:ZZ32):String
 radix(base:ZZ64,val:ZZ64):String

@@ -510,7 +510,7 @@ simplestRationalBetween(a:QQ, b:QQ): QQ = label done
     if neg then (-nr) / dr else nr/dr end
   end done
 
-trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
+trait QQ extends { RR64, StandardPartialOrder[\QQ\] } comprises { Ratio, AnyIntegral }
     getter zero(): QQ = 0
     getter one(): QQ = 1
     getter isNaN(): Boolean
@@ -3056,8 +3056,8 @@ opr BIG ||(): Comprehension[\Any,String,String,String\] =
     Comprehension[\Any,String,String,String\](
         identity[\String\],StringReduction,fn (x:Any)=> "" x)
 
-opr BIG ||(g: Generator[\Any\]) =
-    __bigOperatorSugar[\Any,String,String,String\](BIG ||(), g)
+opr BIG ||[\T\](g: Generator[\T\]) =
+    __bigOperatorSugar[\Any,String,String,String\](BIG ||(), g.map[\Any\](identity[\Any\]))
 
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary, and separating
@@ -3076,8 +3076,8 @@ opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\] =
     Comprehension[\Any,String,String,AnyMaybe\](
         fn x => x,NewlineReduction,fn (x:Any)=> "" x)
 
-opr BIG //(g: Generator[\Any\]) =
-    __bigOperatorSugar[\Any,String,String,AnyMaybe\](BIG //(), g)
+opr BIG //[\T\](g: Generator[\T\]) =
+    __bigOperatorSugar[\Any,String,String,AnyMaybe\](BIG //(), g.map[\Any\](identity[\Any\]))
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
