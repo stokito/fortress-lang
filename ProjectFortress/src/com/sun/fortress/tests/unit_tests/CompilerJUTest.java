@@ -34,8 +34,8 @@ public class CompilerJUTest {
         TestSuite suite = new TestSuite("Test all .test files in 'ProjectFortress/compiler_tests' " +
                                         "and 'ProjectFortress/parser_tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.compilerSuite(testDir1, failsOnly, false));
-        suite.addTest(FileTests.compilerSuite(testDir2, failsOnly, false));
+        suite.addTest(FileTests.compilerSuite(testDir1, true, failsOnly, false));
+        suite.addTest(FileTests.compilerSuite(testDir2, true, failsOnly, false));
         return suite;
     }
 

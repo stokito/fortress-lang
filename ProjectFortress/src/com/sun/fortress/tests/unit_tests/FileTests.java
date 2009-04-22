@@ -774,7 +774,7 @@ public class FileTests {
 
         /* Many lines of random number generator seed nonsense. */
 
-        Iterable<String> shuffled = shuffledFileList(dir);
+        Iterable<String> shuffled = shuffledFileList(dir, true);
 
         int testCount = testCount();
         int i = testCount;
@@ -830,6 +830,7 @@ public class FileTests {
      */
     public static TestSuite compilerSuite(
             String dir_name,
+            boolean shuffle,
             boolean failsOnly,
             boolean expect_failure) throws IOException {
 
@@ -846,7 +847,7 @@ public class FileTests {
 
         /* Many lines of random number generator seed nonsense. */
 
-        Iterable<String> shuffled = shuffledFileList(dir);
+        Iterable<String> shuffled = shuffledFileList(dir, shuffle);
 
         int testCount = testCount();
         int i = testCount;
@@ -1020,7 +1021,7 @@ public class FileTests {
      * @param files
      * @return
      */
-    private static Iterable<String> shuffledFileList(File dir) {
+    private static Iterable<String> shuffledFileList(File dir, boolean shuffle) {
         String[] files = dir.list();
 
         long seed = default_seed;
@@ -1034,8 +1035,10 @@ public class FileTests {
             System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
         }
         Random random = new java.util.Random(seed);
-        Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files),
-                random);
+        
+        Iterable<String> shuffled = shuffle ? IterUtil.shuffle(Arrays.asList(files),
+                random) : Arrays.asList(files);
+        
         System.err.println("Test shuffling seed env var = FORTRESS_UNITTESTS_SEED="
                 + Long.toHexString(seed) + "_16");
         return shuffled;
