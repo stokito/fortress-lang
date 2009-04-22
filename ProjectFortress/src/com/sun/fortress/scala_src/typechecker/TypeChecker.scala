@@ -54,12 +54,12 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
   }
 
   def check(node:Node,env:TypeEnv,senv:TypeAnalyzer):Node = node match {
-    case Component(info,name,imports,decls,isNative,exports)  => 
-      Component(info,name,imports,decls.map((n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
+    case SComponent(info,name,imports,decls,isNative,exports)  => 
+      SComponent(info,name,imports,decls.map((n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
 
-    case f@FnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
+    case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
-    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
+    case f@SFnDecl(info,SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
                   unambiguousName,Some(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newSenv = senv.extend(statics,wheres)
@@ -77,19 +77,19 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         }
         case _ => returnType
       }
-      FnDecl(info, FnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), 
+      SFnDecl(info, SFnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), 
              unambiguousName, Some(newBody), implementsUnambiguousName)
     }
     
     /* Matches if block is not an atomic block. */
-    case Block(ExprInfo(span,parenthesized,resultType),loc,false,withinDo,exprs) => exprs.reverse match {
+    case SBlock(SExprInfo(span,parenthesized,resultType),loc,false,withinDo,exprs) => exprs.reverse match {
       case Nil =>
-        Block(ExprInfo(span,parenthesized,Some(Types.VOID)),loc,false,withinDo,exprs)   
+        SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),loc,false,withinDo,exprs)   
       case last::rest =>
         val allButLast = rest.map((e: Expr) => checkExpr(e,env,senv,Some(Types.VOID)))
         val lastExpr = checkExpr(last,env,senv)
         val newExprs = (lastExpr::allButLast).reverse
-        Block(ExprInfo(span,parenthesized,inferredType(lastExpr)),loc,false,withinDo,newExprs)  
+        SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),loc,false,withinDo,newExprs)  
     }
 
     case _ => node
@@ -101,7 +101,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
     
     /* Temporary code for Tight Juxtapositions
      */
-    case Juxt(info, multi, infix, exprs, false, true) => {
+    case SJuxt(info, multi, infix, exprs, false, true) => {
       val checkedExprs = exprs.map((e:Expr)=>checkExpr(e,env,senv))
       if(haveInferredTypes(checkedExprs)){
         //check if there are any functions
@@ -120,18 +120,18 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
           //Replace fn and arg with a _ReWriteFnApp and recurse
           val fnApp = ExprFactory.make_RewriteFnApp(fn,arg)
           val newExprs = prefix++(fnApp::suffix)
-          checkExpr(Juxt(info,multi,infix,newExprs,false,true),env,senv,expected)
+          checkExpr(SJuxt(info,multi,infix,newExprs,false,true),env,senv,expected)
         }
       }
       else{
-        Juxt(info,multi,infix,checkedExprs,false,true)
+        SJuxt(info,multi,infix,checkedExprs,false,true)
       }  
     }
     
     
     /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
      */
-    case Juxt(info, multi, infix, exprs, isApp, false) => {
+    case SJuxt(info, multi, infix, exprs, isApp, false) => {
       //Check subexpressions
       val checkedExprs = exprs.map((e:Expr)=>checkExpr(e,env,senv))
       if(haveInferredTypes(checkedExprs)){
@@ -189,12 +189,12 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         }  
       }
       else{
-        Juxt(info,multi,infix,checkedExprs,isApp,false)  
+        SJuxt(info,multi,infix,checkedExprs,isApp,false)  
       }
     }
     
     /* Tight Juxts will be rewritten as MathPrimaries
-    case Juxt(info, multi, infix, front::rest, false, true) => {
+    case SJuxt(info, multi, infix, front::rest, false, true) => {
       def converter(e:Expr): MathItem = {
         if (NodeUtil.isParenthesized(e) || (e.isInstanceOf[TupleExpr]) || (e.isInstanceOf[VoidLiteralExpr]))
           ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
@@ -206,7 +206,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
      */
     
     //TODO: Handle math expressions
-    case MathPrimary(info,multi,infix,front,rest) => expr
+    case SMathPrimary(info,multi,infix,front,rest) => expr
     
     case _ => expr
   }

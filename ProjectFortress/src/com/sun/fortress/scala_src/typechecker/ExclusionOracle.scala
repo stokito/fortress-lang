@@ -55,21 +55,21 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer) {
      */
     def excludes(first: Type, second: Type): Boolean =
         (first, second) match {
-            case (BottomType(_), _) => true
-            case (_, BottomType(_)) => true
-            case (AnyType(_), _) => false
-            case (_, AnyType(_)) => false
-            case (VarType(_,_,_), _) =>
+            case (SBottomType(_), _) => true
+            case (_, SBottomType(_)) => true
+            case (SAnyType(_), _) => false
+            case (_, SAnyType(_)) => false
+            case (SVarType(_,_,_), _) =>
                 typeAnalyzer.exclusion(first, second)
-            case (_, VarType(_,_,_)) =>
+            case (_, SVarType(_,_,_)) =>
                 typeAnalyzer.exclusion(first, second)
-            case (ArrowType(_,_,_,_), ArrowType(_,_,_,_)) => false
-            case (ArrowType(_,_,_,_), _) => true
-            case (_, ArrowType(_,_,_,_)) => true
-            case (f@TupleType(_,_,_,_), s@TupleType(_,_,_,_)) =>
+            case (SArrowType(_,_,_,_), SArrowType(_,_,_,_)) => false
+            case (SArrowType(_,_,_,_), _) => true
+            case (_, SArrowType(_,_,_,_)) => true
+            case (f@STupleType(_,_,_,_), s@STupleType(_,_,_,_)) =>
                 NodeUtil.differentArity(f, s) || typeAnalyzer.exclusion(f, s)
-            case (TupleType(_,_,_,_) ,_) => true
-            case (_, TupleType(_,_,_,_)) => true
+            case (STupleType(_,_,_,_) ,_) => true
+            case (_, STupleType(_,_,_,_)) => true
             case _ => typeAnalyzer.exclusion(first, second)
     }
 
