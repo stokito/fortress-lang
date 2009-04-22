@@ -373,22 +373,22 @@ object ExportChecker {
      */
     def equalTypes(left: Type, right: Type): Boolean =
         (left, right) match {
-            case (AnyType(_), AnyType(_)) => true
-            case (BottomType(_), BottomType(_)) => true
-            case (VarType(_, nameL, _), VarType(_, nameR, _)) =>
+            case (SAnyType(_), SAnyType(_)) => true
+            case (SBottomType(_), SBottomType(_)) => true
+            case (SVarType(_, nameL, _), SVarType(_, nameR, _)) =>
                 equalIds(nameL, nameR)
-            case (TraitType(_, nameL, argsL, paramsL),
-                  TraitType(_, nameR, argsR, paramsR)) =>
+            case (STraitType(_, nameL, argsL, paramsL),
+                  STraitType(_, nameR, argsR, paramsR)) =>
                 equalIds(nameL, nameR) &&
                 equalListStaticArgs(argsL, argsR) &&
                 equalListStaticParams(paramsL, paramsR)
-            case (TupleType(_, elmsL, varargsL, kwdL),
-                  TupleType(_, elmsR, varargsR, kwdR)) =>
+            case (STupleType(_, elmsL, varargsL, kwdL),
+                  STupleType(_, elmsR, varargsR, kwdR)) =>
                 equalListTypes(elmsL, elmsR) &&
                 equalOptTypes(varargsL, varargsR) &&
                 equalListKeywordTypes(kwdL, kwdR)
-            case (ArrowType(_, domL, ranL, effL),
-                  ArrowType(_, domR, ranR, effR)) =>
+            case (SArrowType(_, domL, ranL, effL),
+                  SArrowType(_, domR, ranR, effR)) =>
                   equalTypes(domL, domR) &&
                   equalTypes(ranL, ranR) &&
                   equalEffects(effL, effR)
@@ -426,14 +426,14 @@ object ExportChecker {
     /* Returns true if two keyword types are same. */
     private def equalKeywordTypes(left: KeywordType, right: KeywordType): Boolean =
         (left, right) match {
-            case (KeywordType(_, nameL, typeL), KeywordType(_, nameR, typeR)) =>
+            case (SKeywordType(_, nameL, typeL), SKeywordType(_, nameR, typeR)) =>
                 equalIds(nameL, nameR) && equalTypes(typeL, typeR)
         }
 
     /* Returns true if two effects are same. */
     private def equalEffects(left: Effect, right: Effect): Boolean =
         (left, right) match {
-            case (Effect(_, throwsL, ioL), Effect(_, throwsR, ioR)) =>
+            case (SEffect(_, throwsL, ioL), SEffect(_, throwsR, ioR)) =>
                 equalOptListTypes(throwsL, throwsR) &&
                 ioL == ioR
         }
@@ -441,9 +441,9 @@ object ExportChecker {
     /* Returns true if two IdOrOps denote the same type. */
     private def equalIdOrOps(left: IdOrOp, right: IdOrOp): Boolean =
         (left, right) match {
-            case (idl@Id(_,_,_), idr@Id(_,_,_)) => equalIds(idl, idr)
-            case (Op(_, apiL, textL, fixityL, enclosingL),
-                  Op(_, apiR, textR, fixityR, enclosingR)) =>
+            case (idl@SId(_,_,_), idr@SId(_,_,_)) => equalIds(idl, idr)
+            case (SOp(_, apiL, textL, fixityL, enclosingL),
+                  SOp(_, apiR, textR, fixityR, enclosingR)) =>
                 equalOptAPINames(apiL, apiR) && textL == textR &&
                 fixityL == fixityR && enclosingL == enclosingR
             case _ => false
@@ -452,7 +452,7 @@ object ExportChecker {
     /* Returns true if two Ids denote the same type. */
     private def equalIds(left: Id, right: Id): Boolean =
         (left, right) match {
-            case (Id(_, apiL, textL), Id(_, apiR, textR)) =>
+            case (SId(_, apiL, textL), SId(_, apiR, textR)) =>
                 equalOptAPINames(apiL, apiR) && textL == textR
         }
 
@@ -461,7 +461,7 @@ object ExportChecker {
                                  right: Option[APIName]): Boolean =
         (left, right) match {
             case (None, None) => true
-            case (Some(APIName(_, idsL, _)), Some(APIName(_, idsR, _))) =>
+            case (Some(SAPIName(_, idsL, _)), Some(SAPIName(_, idsR, _))) =>
                 List.forall2(idsL, idsR)((l,r) => equalIds(l,r))
             case _ => false
         }
@@ -470,10 +470,10 @@ object ExportChecker {
     private def equalFnHeaders(left: FnHeader, right: FnHeader,
                                ignoreAbstract: Boolean): Boolean =
         (left, right) match {
-            case (FnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
-                           paramsL, retTyL),
-                  FnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
-                           paramsR, retTyR)) =>
+            case (SFnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                            paramsL, retTyL),
+                  SFnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                            paramsR, retTyR)) =>
                 equalListStaticParams(sparamsL, sparamsR) &&
                 ( if (ignoreAbstract)
                       modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
@@ -491,8 +491,8 @@ object ExportChecker {
     /* Returns true if two static parameters are same. */
     private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
         (left, right) match {
-            case (StaticParam(_, nameL, extendsL, dimL, absorbsL, kindL),
-                  StaticParam(_, nameR, extendsR, dimR, absorbsR, kindR)) =>
+            case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL),
+                  SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR)) =>
                 equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
                 equalOptTypes(dimL, dimR) &&
                 absorbsL == absorbsR && kindL == kindR
@@ -507,8 +507,8 @@ object ExportChecker {
     /* Returns true if two static arguments are same. */
     private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
         (left, right) match {
-            case (TypeArg(_, typeL), TypeArg(_, typeR)) => equalTypes(typeL, typeR)
-            case (IntArg(_, intL), IntArg(_, intR)) => equalIntExprs(intL,intR)
+            case (STypeArg(_, typeL), STypeArg(_, typeR)) => equalTypes(typeL, typeR)
+            case (SIntArg(_, intL), SIntArg(_, intR)) => equalIntExprs(intL,intR)
             case _ => false
         }
 
@@ -520,8 +520,8 @@ object ExportChecker {
     /* Returns true if two parameters are same. */
     private def equalParams(left: Param, right: Param): Boolean =
         (left, right) match {
-            case (Param(_, nameL, modsL, typeL, initL, varargsL),
-                  Param(_, nameR, modsR, typeR, initR, varargsR)) =>
+            case (SParam(_, nameL, modsL, typeL, initL, varargsL),
+                  SParam(_, nameR, modsR, typeR, initR, varargsR)) =>
                 modsL.equals(modsR) &&
                 equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
         }
@@ -544,10 +544,10 @@ object ExportChecker {
     private def equalTraitTypeHeaders(inAPI:  TraitTypeHeader,
                                       inComp: TraitTypeHeader): Boolean =
         (inAPI, inComp) match {
-            case (TraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
-                                  extendsL, declsL),
-                  TraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
-                                  extendsR, declsR)) =>
+            case (STraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                                   extendsL, declsL),
+                  STraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                                   extendsR, declsR)) =>
                 equalListStaticParams(sparamsL, sparamsR) && modsL.equals(modsR) &&
                 equalOptListTypes(throwsL, throwsR) &&
                 equalListTraitTypeWheres(extendsL, extendsR) &&
@@ -564,8 +564,8 @@ object ExportChecker {
     private def equalTraitTypeWheres(inAPI:  TraitTypeWhere,
                                      inComp: TraitTypeWhere): Boolean =
         (inAPI, inComp) match {
-            case (TraitTypeWhere(_, typeL, whereL),
-                  TraitTypeWhere(_, typeR, whereR)) =>
+            case (STraitTypeWhere(_, typeL, whereL),
+                  STraitTypeWhere(_, typeR, whereR)) =>
                 equalTypes(typeL, typeR)
     }
 
@@ -596,9 +596,9 @@ object ExportChecker {
     /* Returns true if two members in traits and objects are same. */
     private def equalMember(inAPI: Decl, inComp: Decl): Boolean =
         (inAPI, inComp) match {
-            case (VarDecl(_, lhsL, _), VarDecl(_, lhsR, _)) =>
+            case (SVarDecl(_, lhsL, _), SVarDecl(_, lhsR, _)) =>
                 equalListLValues(lhsL, lhsR)
-            case (FnDecl(_,headerL,_,_,_), FnDecl(_,headerR,_,_,_)) =>
+            case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
                 equalFnHeaders(headerL, headerR, true)
     }
 
@@ -610,8 +610,8 @@ object ExportChecker {
     /* Returns true if two LValues are same. */
     private def equalLValue(left: LValue, right: LValue): Boolean =
         (left, right) match {
-            case (LValue(_, nameL, modsL, typeL, _),
-                  LValue(_, nameR, modsR, typeR, _)) =>
+            case (SLValue(_, nameL, modsL, typeL, _),
+                  SLValue(_, nameR, modsR, typeR, _)) =>
                 equalIds(nameL, nameR) && modsL.equals(modsR)
                 equalOptTypes(typeL, typeR)
     }

@@ -64,8 +64,8 @@ class TypeHierarchyChecker(component: ComponentIndex,
 
   private def getTypes(typ:Id, errors:JavaList[StaticError]) = {
     val types = typ match {
-      case Id(info,Some(name),text) =>
-        globalEnv.api(name).typeConses.get(Id(info,None,text))
+      case SId(info,Some(name),text) =>
+        globalEnv.api(name).typeConses.get(SId(info,None,text))
       case _ => component.typeConses.get(typ)
     }
     if (types == null) {
@@ -101,8 +101,8 @@ class TypeHierarchyChecker(component: ComponentIndex,
           for (extension <- scalaify(ti.extendsTypes).asInstanceOf[List[TraitTypeWhere]]) {
             extension match {
               // TODO: Extend to handle non-empty where clauses.
-              case TraitTypeWhere(_,AnyType(_),_) => {}
-              case TraitTypeWhere(_,TraitType(_,name,_,_),_) =>
+              case STraitTypeWhere(_,SAnyType(_),_) => {}
+              case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
                   errors.addAll(checkDeclAcyclicity(name,decl::children))
               case _ => error(errors, "Invalid type in extends clause: " +
                               extension.getBaseType, extension)
@@ -129,8 +129,8 @@ class TypeHierarchyChecker(component: ComponentIndex,
         for (extension <- scalaify(ti.extendsTypes).asInstanceOf[List[TraitTypeWhere]]) {
           extension match {
             // TODO: Extend to handle non-empty where clauses.
-            case TraitTypeWhere(_,AnyType(_),_) => {}
-            case TraitTypeWhere(_,TraitType(_,name,_,_),_) =>
+            case STraitTypeWhere(_,SAnyType(_),_) => {}
+            case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
               getTypes(name, errors) match {
                 case si:ProperTraitIndex =>
                   val comprises = si.comprisesTypes
@@ -152,7 +152,7 @@ class TypeHierarchyChecker(component: ComponentIndex,
           case si:ProperTraitIndex =>
             for (ty <- scalaify(si.comprisesTypes).asInstanceOf[Set[TraitType]]) {
               ty match {
-                case TraitType(_,name,_,_) =>
+                case STraitType(_,name,_,_) =>
                   getTypes(name, errors) match {
                     case tt:TraitIndex =>
                     if ( ! extendsContains(tt.extendsTypes, decl) )
@@ -172,7 +172,7 @@ class TypeHierarchyChecker(component: ComponentIndex,
     var result = false
     for (ty <- scalaify(comprises).asInstanceOf[Set[TraitType]]) {
       ty match {
-        case TraitType(_,name,_,_) =>
+        case STraitType(_,name,_,_) =>
           if ( name.getText.equals(decl.getText) ) result = true
       }
     }
@@ -183,9 +183,9 @@ class TypeHierarchyChecker(component: ComponentIndex,
     var result = false
     for (ty <- scalaify(extendsC).asInstanceOf[List[TraitTypeWhere]]) {
       ty match {
-        case TraitTypeWhere(_,AnyType(_),_) =>
+        case STraitTypeWhere(_,SAnyType(_),_) =>
           if ( decl.getText.equals("Any") ) result = true
-        case TraitTypeWhere(_,TraitType(_,name,_,_),_) =>
+        case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
           if ( name.getText.equals(decl.getText) ) result = true
       }
     }

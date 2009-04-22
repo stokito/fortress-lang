@@ -565,7 +565,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
          // Generate extractor objects
          for (NodeInterface box : sort(getInterfaces())) {
-            writer.println(sub("object @name {", "@name", box.name()));
+            writer.println(sub("object S@name {", "@name", box.name()));
             writer.println(sub("   def unapply(node:com.sun.fortress.nodes.@name) = ", "@name", box.name()));
             writer.println(sub("      Some(@getterCalls)", "@getterCalls", getterCalls("node", box)));
             writer.println(sub("}"));
@@ -574,7 +574,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         for (NodeClass c : sort(ast.classes())) {
             if (ignoreClass(c.name())) { continue; }
 
-            writer.println(sub("object @name {", "@name", c.name()));
+            writer.println(sub("object S@name {", "@name", c.name()));
             writer.println(sub("   def unapply(node:com.sun.fortress.nodes.@name) = ", "@name", c.name()));
             writer.println(sub("      Some(@getterCalls)", "@getterCalls", getterCalls("node", c)));
 

@@ -164,7 +164,7 @@ class OverloadingChecker(component: ComponentIndex,
     }
 
     private def reduce(t: Type): Type = t match {
-        case IntersectionType(info, elements) =>
+        case SIntersectionType(info, elements) =>
             val (tuples, nots) = elements.partition(ty => NodeUtil.isTupleType(ty))
             if ( ! tuples.isEmpty && ! nots.isEmpty ) NodeFactory.makeBottomType(info)
             else if ( tuples.isEmpty ) t
@@ -236,8 +236,8 @@ class OverloadingChecker(component: ComponentIndex,
     }
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
-        case Id(_,_,str) => IdentifierUtil.validId(str)
-        case Op(_,_,str,_,_) => NodeUtil.validOp(str)
+        case SId(_,_,str) => IdentifierUtil.validId(str)
+        case SOp(_,_,str,_,_) => NodeUtil.validOp(str)
         case _ => false
     }
 
