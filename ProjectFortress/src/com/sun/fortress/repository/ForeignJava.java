@@ -751,7 +751,7 @@ public class ForeignJava {
             }
             final String startswith = s + ".";
             
-            overloads = Useful.matchingSubset(overloads,
+            Set<OverloadSet> some_overloads = Useful.matchingSubset(overloads,
                     new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
                         
                         @Override
@@ -762,7 +762,7 @@ public class ForeignJava {
                 
             });
             
-            FortressTransformer.transform(t.getClassName(), overloads);
+            FortressTransformer.transform(t.getClassName(), some_overloads);
         }
     }
 

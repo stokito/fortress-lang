@@ -36,12 +36,22 @@ public class FortressTransformer {
             ClassReader cr = new ClassReader(inputClassName);
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-
-            FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName, overloads);
+            FortressMethodAdapter fa = new FortressMethodAdapter(cw,
+                    inputClassName, overloads);
             cr.accept(fa, 0);
 
             cw.visitEnd();
+            byte[] b1 = cw.toByteArray();
+
+            cr = new ClassReader(b1);
+            cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+            FortressForeignAdapter ffa = new FortressForeignAdapter(cw,
+                    inputClassName, overloads);
+            cr.accept(ffa, 0);
+            cw.visitEnd();
             byte[] b2 = cw.toByteArray();
+
             ByteCodeWriter.writeClass(repository, inputClassName, b2);
         } catch (Throwable e) {
             e.printStackTrace();

@@ -57,8 +57,6 @@ public class FortressMethodAdapter extends ClassAdapter {
     private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
     private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
-    private final Set<OverloadSet> overloads;
-    boolean overloadsDone = false;
 
     private void initializeEntry(String fortressRuntimeType,
                                  String toJavaTypeMethod,
@@ -103,7 +101,6 @@ public class FortressMethodAdapter extends ClassAdapter {
             String outputClassName,
             Set<OverloadSet> overloads) {
         super(cv);
-        this.overloads = overloads;
         className = outputClassName.replace('.','/');
         initializeTables();
     }
@@ -115,41 +112,32 @@ public class FortressMethodAdapter extends ClassAdapter {
         cv.visit(version, access, className, signature, superName, interfaces);
     }
 
-    public MethodVisitor visitMethod(int access,
-                                     String name, String desc,
-                                     String signature, String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String desc,
+            String signature, String[] exceptions) {
         // Don't know how to do these, or if we need them...
         if (name.equals("<init>") || name.equals("<clinit>"))
-            Debug.debug( Debug.Type.COMPILER, 1, "Don't visit Method " + name);
+            Debug.debug(Debug.Type.COMPILER, 1, "Don't visit Method " + name);
         else if (SignatureParser.unsayable(desc))
-            Debug.debug( Debug.Type.COMPILER, 1,
-                         "Don't visit Method with unsayable desc" + name);
+            Debug.debug(Debug.Type.COMPILER, 1,
+                    "Don't visit Method with unsayable desc" + name);
         else {
+            
             generateNewBody(access, desc, signature, exceptions, name, name);
-        }
-
-        if (!overloadsDone) {
-            // Generate all the overloadings.
-            overloadsDone = true;
-            for (OverloadSet o : overloads) {
-                generateAnOverload(cv, o);
-            }
+ 
         }
 
         return super.visitMethod(access, name, desc, signature, exceptions);
     }
 
-    private static void generateAnOverload(ClassVisitor cv, OverloadSet o) {
-
-        //
-        String name = o.getName().stringName();
+    private static void generateAnOverload(String name, ClassVisitor cv,
+            OverloadSet o) {
 
         // "(" anOverloadedArg^N ")" returnType
         // Not sure what to do with return type.
         String signature = o.getSignature();
         String[] exceptions = o.getExceptions();
-        MethodVisitor mv = cv.visitMethod(
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, // access,
+        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
+                + Opcodes.ACC_STATIC, // access,
                 name, // name,
                 signature, // sp.getFortressifiedSignature(),
                 null, // signature, // depends on generics, I think
@@ -158,7 +146,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         mv.visitCode();
         Label fail = new Label();
 
-        o.generateCall(mv, 0, fail);
+        o.generateCall(mv, 0, fail); // Guts of overloaded method
 
         // Emit failure case
         mv.visitLabel(fail);
@@ -167,27 +155,25 @@ public class FortressMethodAdapter extends ClassAdapter {
         mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
         mv.visitInsn(Opcodes.DUP);
         mv.visitLdcInsn("Should not happen");
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>", "(Ljava/lang/String;)V");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>",
+                "(Ljava/lang/String;)V");
         mv.visitInsn(Opcodes.ATHROW);
 
-        mv.visitMaxs(0,0); // autocomputed
+        mv.visitMaxs(o.getParamCount(), o.getParamCount()); // autocomputed
         mv.visitEnd();
 
     }
 
+    private void generateNewBody(int access, String desc, String signature,
+            String[] exceptions, String name, String newName) {
 
-    private void generateNewBody(int access,
-                                 String desc, String signature,
-                                 String[] exceptions,
-                                 String name, String newName) {
-
-        Debug.debug(Debug.Type.COMPILER, 1,
-                    "generateNewBody: " + name + " with desc " +  desc);
+        Debug.debug(Debug.Type.COMPILER, 1, "generateNewBody: " + name
+                + " with desc " + desc);
 
         SignatureParser sp = new SignatureParser(desc);
-        MethodVisitor mv = cv.visitMethod(access, name,
-                                          sp.getFortressifiedSignature(),
-                                          signature, exceptions);
+        String fsig = sp.getFortressifiedSignature();
+        MethodVisitor mv = cv.visitMethod(access, name, fsig, signature,
+                exceptions);
         mv.visitCode();
         Label l0 = new Label();
         mv.visitLabel(l0);
@@ -196,38 +182,35 @@ public class FortressMethodAdapter extends ClassAdapter {
         for (String s : args) {
             mv.visitVarInsn(Opcodes.ALOAD, count++);
             String stripped = strip(s);
-            fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
+            fortressConverter converter = (fortressConverter) conversionTable
+                    .get(stripped);
             if (converter == null)
-                throw new RuntimeException("Can't generate header for method " +
-                                            name + " problem =" + s +
-                                            " stripped = " + stripped);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                               prefix + stripped,
-                               converter.toJavaTypeMethod,
-                               converter.toJavaTypeMethodDesc);
+                throw new RuntimeException("Can't generate header for method "
+                        + name + " problem =" + s + " stripped = " + stripped);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, prefix + stripped,
+                    converter.toJavaTypeMethod, converter.toJavaTypeMethodDesc);
         }
 
-        Debug.debug( Debug.Type.COMPILER, 1,
-                     "className = " + className + " name = " + name + " access = " + access);
+        Debug.debug(Debug.Type.COMPILER, 1, "className = " + className
+                + " name = " + name + " access = " + access);
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                           className,
-                           name,
-                           sp.getSignature());
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name, sp
+                .getSignature());
 
         String result = sp.getFortressResult();
         String stripped = strip(result);
 
-        fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
+        fortressConverter converter = (fortressConverter) conversionTable
+                .get(stripped);
         if (converter == null)
-            throw new RuntimeException("Can't generate return type for method " + name + " value " + result);
+            throw new RuntimeException("Can't generate return type for method "
+                    + name + " value " + result);
 
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, prefix + strip(result),
-                           converter.constructor,
-                           converter.constructorType);
+                converter.constructor, converter.constructorType);
 
         mv.visitInsn(Opcodes.ARETURN);
-        mv.visitMaxs(2,1);
+        mv.visitMaxs(2, 1);
         mv.visitEnd();
     }
 

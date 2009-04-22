@@ -43,8 +43,21 @@ public class simpleOverload {
         System.out.println("" + i + " " + j + " " + k + " " + l);
     }
 
+    
     public static String bar() {
         return "bar";
     }
-    
+      
+    public static String baz(float f) {
+        return "bar";
+    }
+      
+    public static String baz(int i) {
+        return "bar";
+    }
+      
+    public static String baz(String s) {
+        return "bar";
+    }
+      
 }
