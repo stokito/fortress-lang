@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
+
 import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.repository.ProjectProperties;
@@ -33,13 +34,19 @@ public class FortressTransformer {
         String outputClassName;
         try {
             ClassReader cr = new ClassReader(inputClassName);
-            ClassWriter cw = new ClassWriter(1);
+            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+
             FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName, overloads);
             cr.accept(fa, 0);
+
+            cw.visitEnd();
             byte[] b2 = cw.toByteArray();
             ByteCodeWriter.writeClass(repository, inputClassName, b2);
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
+
+
 }
