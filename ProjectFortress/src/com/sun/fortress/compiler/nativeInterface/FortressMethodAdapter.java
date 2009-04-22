@@ -58,6 +58,7 @@ public class FortressMethodAdapter extends ClassAdapter {
     private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
     private final Set<OverloadSet> overloads;
+    boolean overloadsDone = false;
 
     private void initializeEntry(String fortressRuntimeType,
                                  String toJavaTypeMethod,
@@ -80,7 +81,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FRR64",   "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
         initializeEntry("FBool",   "getValue", "()Z", "make", "(Z)L" + prefix + "FBool;");
         initializeEntry("FVoid",   "getValue", "()",  "make", "()L" + prefix + "FVoid;");
-        initializeEntry("FString", "getValue", "()Ljava/lang/String;", "make", "(Ljava/lang/String;)L" + 
+        initializeEntry("FString", "getValue", "()Ljava/lang/String;", "make", "(Ljava/lang/String;)L" +
                         prefix + "FString;");
     }
 
@@ -126,7 +127,52 @@ public class FortressMethodAdapter extends ClassAdapter {
         else {
             generateNewBody(access, desc, signature, exceptions, name, name);
         }
+
+        if (!overloadsDone) {
+            // Generate all the overloadings.
+            overloadsDone = true;
+            for (OverloadSet o : overloads) {
+                generateAnOverload(cv, o);
+            }
+        }
+
         return super.visitMethod(access, name, desc, signature, exceptions);
+    }
+
+    private static void generateAnOverload(ClassVisitor cv, OverloadSet o) {
+
+        //
+        String name = o.getName().stringName();
+
+        // "(" anOverloadedArg^N ")" returnType
+        // Not sure what to do with return type.
+        String signature = o.getSignature();
+        String[] exceptions = o.getExceptions();
+        MethodVisitor mv = cv.visitMethod(
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, // access,
+                name, // name,
+                signature, // sp.getFortressifiedSignature(),
+                null, // signature, // depends on generics, I think
+                exceptions); // exceptions);
+
+        mv.visitCode();
+        Label fail = new Label();
+
+        o.generateCall(mv, 0, fail);
+
+        // Emit failure case
+        mv.visitLabel(fail);
+        // Boilerplate for throwing an error.
+        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitLdcInsn("Should not happen");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>", "(Ljava/lang/String;)V");
+        mv.visitInsn(Opcodes.ATHROW);
+
+        mv.visitMaxs(0,0); // autocomputed
+        mv.visitEnd();
+
     }
 
 
@@ -152,8 +198,8 @@ public class FortressMethodAdapter extends ClassAdapter {
             String stripped = strip(s);
             fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
             if (converter == null)
-                throw new RuntimeException("Can't generate header for method " + 
-                                            name + " problem =" + s + 
+                throw new RuntimeException("Can't generate header for method " +
+                                            name + " problem =" + s +
                                             " stripped = " + stripped);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                                prefix + stripped,
@@ -175,7 +221,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
         if (converter == null)
             throw new RuntimeException("Can't generate return type for method " + name + " value " + result);
-        
+
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, prefix + strip(result),
                            converter.constructor,
                            converter.constructorType);
@@ -186,26 +232,9 @@ public class FortressMethodAdapter extends ClassAdapter {
     }
 
     public void visitEnd() {
-        // Generate all the overloadings.
-        for (OverloadSet o : overloads) {
-            generateAnOverload(o);
-        }
-        
+
         super.visitEnd();
     }
 
-    private void generateAnOverload(OverloadSet o) {
-        
-//        MethodVisitor mv = cv.visitMethod(
-//                0, // access,
-//                null, // name,
-//                null, // sp.getFortressifiedSignature(),
-//                null, // signature,
-//                null); // exceptions);
-//        
-//        mv.visitCode();
-        // TODO Auto-generated method stub
-        
-    }
 
 }

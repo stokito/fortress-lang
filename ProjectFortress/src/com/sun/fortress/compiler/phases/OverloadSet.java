@@ -22,12 +22,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.GMultiMap;
@@ -41,13 +48,13 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 
 public class OverloadSet implements Comparable<OverloadSet> {
-    
+
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
             super(x);
         }
     }
-    
+
     /**
      * The set of functions that are less-specific-than-or-equal to the
      * parameters seen so far, so the parameter seen so far would be legal
@@ -69,7 +76,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
      * with the smallest subsets, thus guaranteeing log depth).
      */
     final BASet<Integer> testedIndices;
-    
+
     /**
      * Assuming we have a parent (are not the root of a tree of OverloadSets),
      * what is that parent.
@@ -80,7 +87,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
      * get here?
      */
     final Type selectedParameterType;
-    
+
     final int paramCount;
 
     /**
@@ -89,7 +96,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
     int dispatchParameterIndex;
     OverloadSet[] children;
     boolean splitDone;
-    
+
     OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<Function> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
@@ -101,12 +108,12 @@ public class OverloadSet implements Comparable<OverloadSet> {
         this.selectedParameterType = selectedParameterType;
         this.paramCount = paramCount;
     }
-    
+
     OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
         this(name, ta, defs,
             new BASet<Integer>(DefaultComparator.<Integer>normal()),
             null, null, n);
-        
+
         // Ensure that they are all the same size.
         for (Function f : lessSpecificThanSoFar) {
             if (CodeGenerationPhase.debugOverloading)
@@ -115,52 +122,29 @@ public class OverloadSet implements Comparable<OverloadSet> {
             int this_size = parameters.size();
             if (this_size != paramCount)
                 InterpreterBug.bug("Need to handle variable arg dispatch elsewhere " + name);
-            
+
         }
     }
-    
-    public String toString() {
-        if (lessSpecificThanSoFar.size() == 1) {
-            return lessSpecificThanSoFar.iterator().next().toString();
-        }
-        if (splitDone) {
-            return toStringR("");
-        } else {
-            return lessSpecificThanSoFar.toString();
-        }
-    }
-    
-    private String toStringR(String indent) {
-        if (lessSpecificThanSoFar.size() == 1) {
-            return indent + lessSpecificThanSoFar.iterator().next().toString();
-        } else {
-            String s =  indent + "#" + dispatchParameterIndex + "\n";
-            for (int i = 0; i < children.length; i++) {
-                OverloadSet os = children[i];
-                s += indent + os.selectedParameterType + "->" + os.toStringR(indent + "   ") + "\n";
-            }
-            return s;
-        }
-    }
-    
+
     void split() {
         if (splitDone)
             return;
-        
+
         if (lessSpecificThanSoFar.size() == 1) {
+                splitDone = true;
                 return;
             // If there are no other alternatives, then we are done.
         }
-        
+
         {
             // Accumulate sets of parameter types.
             int nargs = paramCount;;
-            
+
             MultiMap<Type, Function>[] typeSets = new MultiMap[nargs];
             for (int i = 0; i < nargs; i++) {
                 typeSets[i] = new MultiMap<Type, Function>();
             }
-            
+
             for (Function f : lessSpecificThanSoFar) {
                 List<Param> parameters = f.parameters();
                 int i = 0;
@@ -179,9 +163,9 @@ public class OverloadSet implements Comparable<OverloadSet> {
                     }
                     Type t = ot.unwrap();
                     typeSets[i++].putItem(t, f);
-                }       
+                }
             }
-            
+
             // Choose parameter index with greatest variation.
             // Choose parameter index with the smallest largest subset.
             int besti = -1; int best = 0;
@@ -207,15 +191,15 @@ public class OverloadSet implements Comparable<OverloadSet> {
                     }
                 }
             }
-            
+
             // dispatch on maxi'th parameter.
             dispatchParameterIndex = besti;
             Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
-           
-           
+
+
             children = new OverloadSet[best];
             BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
-            
+
             int i = 0;
             TopSortItemImpl<Type>[] potypes =
                 new OverloadSet.POType[dispatchTypes.size()];
@@ -225,7 +209,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
                 potypes[i] = new POType(t);
                 i++;
             }
-            
+
             /*
              * Figure out ordering relationship for top sort.  O(N^2) work,
              * hope N is not too large.
@@ -241,16 +225,16 @@ public class OverloadSet implements Comparable<OverloadSet> {
                     }
                 }
             }
-            
+
             List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirst(potypes);
             children = new OverloadSet[specificFirst.size()];
-            Set<Function> alreadySelected = new HashSet<Function>();    
-            
+            Set<Function> alreadySelected = new HashSet<Function>();
+
             // fill in children.
             for (i = 0; i < specificFirst.size(); i++) {
                 Type t = specificFirst.get(i).x;
                 Set<Function> childLSTSF = new HashSet<Function>();
-                
+
                     for (Function f : lessSpecificThanSoFar) {
 //                        if (alreadySelected.contains(f))
 //                            continue;
@@ -260,19 +244,19 @@ public class OverloadSet implements Comparable<OverloadSet> {
                         if (ta.subtype(t, pt).isTrue()) {
                             childLSTSF.add(f);
                             alreadySelected.add(f);
-                          
+
                         }
                     }
-                
+
                childLSTSF = thin(childLSTSF, childTestedIndices);
-                    
+
                // ought to not be necessary
                if (paramCount == childTestedIndices.size()) {
                         // Choose most specific member of lessSpecificThanSoFar
                    childLSTSF = mostSpecificMemberOf(childLSTSF);
-                        
+
                 }
-                    
+
                 children[i] =
                     new OverloadSet(name, ta, childLSTSF,
                             childTestedIndices, this, t, paramCount);
@@ -308,7 +292,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
             @Override
             public long hash(Function x) {
                 int h = MagicNumbers.T;
-                
+
                 List<Param> px = x.parameters();
                 for (int i = 0; i < px.size(); i++) {
                     if (childTestedIndices.contains(i))
@@ -318,9 +302,9 @@ public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 return h;
             }
-            
+
         };
-        
+
         /*
          * Creates map from (some) functions to the
          * equivalence sets to which they are members.
@@ -328,21 +312,21 @@ public class OverloadSet implements Comparable<OverloadSet> {
         GMultiMap<Function, Function> eqSetMap = new GMultiMap<Function, Function>(hasher);
         for (Function f : childLSTSF)
             eqSetMap.putItem(f, f);
-        
+
         Set<Function> tmp = new HashSet<Function>();
-        
+
         /*
          * Take the most specific member of each equivalence set, and union
          * those together.
          */
         for (Set<Function> sf : eqSetMap.values())
             tmp.addAll(mostSpecificMemberOf(sf));
-        
+
         return tmp;
     }
 
     /**
-     * 
+     *
      */
     private Set<Function> mostSpecificMemberOf(Set<Function> set) {
         Function msf = null;
@@ -360,7 +344,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
                     // Not handling varargs yet!
                     Type msf_t = msf_parameters.get(i).getIdType().unwrap();
                     Type cand_t = cand_parameters.get(i).getIdType().unwrap();
-                    // if any type of the candidate is not a subtype(or eq) 
+                    // if any type of the candidate is not a subtype(or eq)
                     // of the corresponding type of the msf, then the candidate
                     // is NOT better.
                     if (! ta.subtype(cand_t, msf_t).isTrue()) {
@@ -370,7 +354,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 if (cand_better)
                     msf = candidate;
-                
+
             }
         }
         if (msf == null)
@@ -384,9 +368,129 @@ public class OverloadSet implements Comparable<OverloadSet> {
         // TODO Auto-generated method stub
         return name.stringName().compareTo(o.name.stringName());
     }
-    
+
     public IdOrOpOrAnonymousName getName() {
         return name;
     }
-    
+
+    public int getParamCount() {
+        return paramCount;
+    }
+
+    /**
+     * returns the code generation signature for the overloaded function.
+     * (separation of concerns problem here -- taking joins of types,
+     * and returning a target-platform (i.e., Java) signature).
+     *
+     * @return
+     */
+    public String getSignature() {
+        String s = "(";
+        String anOverloadedArg = "Ljava/lang/Object;";
+
+        for (int i = 0; i < paramCount; i++) {
+            s += anOverloadedArg;
+        }
+        s += ")";
+
+        Type r = null;
+        boolean isAny = false;
+
+        for (Function f : lessSpecificThanSoFar) {
+            Type r0 = f.getReturnType();
+            if (r == null)
+                r = r0;
+            else if (r.equals(r0)) {
+                // ok
+            } else if (!isAny) {
+                isAny = true;
+                // Locate the any at the place we realized it was necessary.
+                r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+            }
+        }
+        s += NamingCzar.only.boxedImplDesc(r);
+
+        return s;
+    }
+
+    public String[] getExceptions() {
+        HashSet<Type> exceptions = new HashSet<Type>();
+        for (Function f : lessSpecificThanSoFar) {
+            List<BaseType> f_exceptions =  f.thrownTypes();
+            exceptions.addAll(f_exceptions);
+        }
+        String[] string_exceptions = new String[exceptions.size()];
+        int i = 0;
+        for (Type e : exceptions) {
+            string_exceptions[i++] = NamingCzar.only.boxedImplDesc(e);
+        }
+        return string_exceptions;
+    }
+
+    public void generateCall(MethodVisitor mv, int firstArgIndex, Label failLabel) {
+        if (!splitDone) {
+             InterpreterBug.bug("Must split overload set before generating call(s)");
+             return;
+        }
+
+        if (lessSpecificThanSoFar.size() == 1) {
+            // Emit casts and call of f.
+            Function f =  lessSpecificThanSoFar.iterator().next();
+            List<Param> params = f.parameters();
+            int i = firstArgIndex;
+            String sig = "(";
+            for (Param p : params ) {
+                mv.visitVarInsn(Opcodes.ALOAD, i);
+                String toType = NamingCzar.only.boxedImplDesc(p.getIdType().unwrap());
+                sig += toType;
+                mv.visitTypeInsn(Opcodes.CHECKCAST, toType);
+                i++;
+            }
+            sig += ")";
+            sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "OLT", f.toString(), sig);
+            mv.visitInsn(Opcodes.ARETURN);
+
+        } else {
+            // Perform instanceof checks on specified parameter to dispatch to children.
+            Label lookahead = new Label();
+            for (int i = 0; i < children.length; i++) {
+                OverloadSet os = children[i];
+                mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
+                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.only.boxedImplDesc(os.selectedParameterType));
+                mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                os.generateCall(mv, firstArgIndex, failLabel);
+                mv.visitLabel(lookahead);
+                lookahead = new Label();
+            }
+            mv.visitJumpInsn(Opcodes.GOTO, failLabel);
+        }
+    }
+
+    public String toString() {
+        if (lessSpecificThanSoFar.size() == 1) {
+            return lessSpecificThanSoFar.iterator().next().toString();
+        }
+        if (splitDone) {
+            return toStringR("");
+        } else {
+            return lessSpecificThanSoFar.toString();
+        }
+    }
+
+    private String toStringR(String indent) {
+        if (lessSpecificThanSoFar.size() == 1) {
+            return indent + lessSpecificThanSoFar.iterator().next().toString();
+        } else {
+            String s =  indent + "#" + dispatchParameterIndex + "\n";
+            for (int i = 0; i < children.length; i++) {
+                OverloadSet os = children[i];
+                s += indent + os.selectedParameterType + "->" + os.toStringR(indent + "   ") + "\n";
+            }
+            return s;
+        }
+    }
+
+
+
 }
