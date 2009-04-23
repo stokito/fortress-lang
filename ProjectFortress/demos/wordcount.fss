@@ -21,7 +21,7 @@ import File.{...}
 import FileSupport.{...}
 import List.{...}
 import Map.{...}
-import System.{getEnvironment}
+import System.{getProperty}
 
 export Executable
 
@@ -116,6 +116,6 @@ end
 
 
 run() = do
-    processFile(getEnvironment("fortress.autohome", ".") "/ProjectFortress/demos/hamlet")
+    processFile(getProperty("fortress.autohome", ".") "/ProjectFortress/demos/hamlet")
 end
 end
