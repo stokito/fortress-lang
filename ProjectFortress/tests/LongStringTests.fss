@@ -20,7 +20,7 @@ import File.{...}
 import String.{...}
 import Timing.{...}
 import List.{...}
-import System.{getEnvironment}
+import System.{getProperty}
 
 export Testable
 
@@ -56,14 +56,14 @@ test inputTest(): () = do
                     else
                         "unbalanced"
                     end  )
-    output = FileWriteStream(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/poem.out")
+    output = FileWriteStream(getProperty("fortress.autohome", ".") "/ProjectFortress/tests/poem.out")
     output.write(balancedContents)
     output.close()
     *)
 end
 
 readFile(n: ZZ32): () = do
-    input = FileReadStream(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/poem.txt")
+    input = FileReadStream(getProperty("fortress.autohome", ".") "/ProjectFortress/tests/poem.txt")
     maxLeafSize := n
     fileContents := BIG || [ c ← seq(input.chunks(n)) ] c
     input.close()
