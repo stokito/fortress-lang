@@ -97,11 +97,20 @@ FortressTaskRunner.debugPrintln(x);
     }
 }
 
-public static final class GetEnvironment extends Util.SS2S {
+public static final class GetProperty extends Util.SS2S {
     protected String f(String name, String defaultValue) {
         return com.sun.fortress.repository.ProjectProperties.get(name,defaultValue);
     }
 }
+
+public static final class GetEnvironment extends Util.SS2S{
+    protected String f(String name, String defaultValue) {
+        String result = System.getenv(name);
+        if (result==null) { return defaultValue; }
+        return result;
+    }
+}
+
 
 public static final class GetProgramArgs extends NativeFn0 {
     static volatile List<String> args = null;

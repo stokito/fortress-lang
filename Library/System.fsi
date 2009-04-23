@@ -34,7 +34,16 @@ args : ImmutableArray[\String,ZZ32\]
 (** programName is the name by which the Fortress program was invoked. **)
 programName : String
 
-(* A way to get environment information from inside of fortress *)
+(** A way to get environment information from inside of fortress **)
 getEnvironment(name:String, defaultValue:String):String
+
+(** A way to get fortress-style property information (that can be
+    overridden by environment variable settings; uses the same code as
+    property settings for the fortress implementation itself). **)
+getProperty(name:String, defaultValue:String):String
+
+(** Turn string into properly-terminated directory name
+    (on Unix/Windows, add a trailing / if one is missing and string is nonempty) **)
+toDirectoryName(s: String): String
 
 end
