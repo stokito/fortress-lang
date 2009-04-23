@@ -19,6 +19,7 @@ import OneShotFlag.{...}
 import Map.{...}
 import List.{...}
 import File.{...}
+import System.{...}
 export Executable
 
 emptyMap = {[\String,Term\]}
@@ -336,7 +337,9 @@ object Parser(f:FileReadStream)
 end
 
 run():() = do
-    rs = FileReadStream("demos/Lambda.tests")
+    fname = (toDirectoryName(getProperty("fortress.autohome",""))
+             "ProjectFortress/demos/Lambda.tests")
+    rs = FileReadStream(fname)
     p = Parser(rs)
     while NOT rs.eof() do
         p.parseTop()

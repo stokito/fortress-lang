@@ -20,6 +20,7 @@ component aStar
 import Heap.{...}
 import List.{...}
 import File.{...}
+import System.{getProperty, toDirectoryName}
 export Executable
 
 (** To perform a search, define an object containing the search state.
@@ -361,7 +362,9 @@ end
 
 run():()=do
     spuriousInconsistency : Boolean := false
-    for problem <- seq(FileReadStream("demos/aStarSudokuData.txt").lines()) do
+    path = toDirectoryName(getProperty("fortress.autohome",""))
+    println("path=" path)
+    for problem <- seq(FileReadStream(path "ProjectFortress/demos/aStarSudokuData.txt").lines()) do
         println("************************************************************")
         (init,initTime) = timing (fn ():Sudoku => sudoku(problem))
         println("initTime = " initTime)
