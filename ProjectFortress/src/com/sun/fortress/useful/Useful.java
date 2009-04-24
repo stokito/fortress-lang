@@ -315,7 +315,7 @@ public class Useful {
             if (verb.apply(i))
                 result.add((i));
         }
-           
+
         return result;
 
     }
@@ -790,8 +790,15 @@ public class Useful {
         return input.substring(i + to_match.length());
     }
 
+    public static String extractBeforeMatchOrAll(String input, String to_match){
+        int i = input.indexOf(to_match);
+        if (i == -1)
+            return input;
+        return input.substring(0, i);
+    }
+
     public static String extractBeforeMatch(String input, String to_match)
-            throws NotFound {
+    throws NotFound {
         int i = input.indexOf(to_match);
         if (i == -1)
             throw new NotFound();
