@@ -731,7 +731,7 @@ public class TopLevelEnv extends NameEnv {
 //                 System.err.println("alias " + alias.getName() + " -> " + alias.getAlias().unwrap());
                 IdOrOpOrAnonymousName oldFirst = alias.getName();
                 IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
-                Set<Function> seconds = result.matchFirst(oldFirst);
+                Set<Function> seconds = new HashSet<Function>(result.matchFirst(oldFirst));
                 for (Function second : seconds) {
 //                     System.err.println("Replacing " + oldFirst + " with " + newFirst);
                     result.remove(oldFirst, second);
