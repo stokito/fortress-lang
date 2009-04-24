@@ -27,9 +27,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
@@ -37,6 +39,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.GMultiMap;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.MagicNumbers;
@@ -55,6 +58,37 @@ public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    static class TaggedFunctionName {
+        APIName a;
+        Function f;
+        TaggedFunctionName(APIName a, Function f) {
+            this.f = f;
+            this.a = a;
+        }
+        public List<Param> parameters() {
+            return f.parameters();
+        }
+        public Type getReturnType() {
+            return f.getReturnType();
+        }
+        public int hashCode() {
+            return f.hashCode() + MagicNumbers.a * a.hashCode();
+        }
+        public boolean equals(Object o) {
+            if (o instanceof TaggedFunctionName) {
+                TaggedFunctionName tfn = (TaggedFunctionName) o;
+                return f.equals(tfn.f) && a.equals(tfn.a);
+            }
+            return false;
+        }
+        public List<BaseType> thrownTypes() {
+            return f.thrownTypes();
+        }
+        public String toString() {
+            return a.toString() + ".." + f.toString();
+        }
+    }
+
     /**
      * The set of functions that are less-specific-than-or-equal to the
      * parameters seen so far, so the parameter seen so far would be legal
@@ -62,7 +96,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
      * are found, and ultimately to choose the most specific one that
      * remains.
      */
-    final Set<Function> lessSpecificThanSoFar;
+    final Set<TaggedFunctionName> lessSpecificThanSoFar;
     final IdOrOpOrAnonymousName name;
     /**
      * Used to answer subtype questions.
@@ -97,8 +131,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
     OverloadSet[] children;
     boolean splitDone;
 
-    OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                Set<Function> lessSpecificThanSoFar,
+    private OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+                Set<TaggedFunctionName> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.name = name;
         this.ta = ta;
@@ -109,13 +143,19 @@ public class OverloadSet implements Comparable<OverloadSet> {
         this.paramCount = paramCount;
     }
 
-    OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-        this(name, ta, defs,
+    OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+
+        this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
+
+            @Override
+            public TaggedFunctionName apply(Function f) {
+                return new TaggedFunctionName(apiname, f);
+            }} ),
             new BASet<Integer>(DefaultComparator.<Integer>normal()),
             null, null, n);
 
         // Ensure that they are all the same size.
-        for (Function f : lessSpecificThanSoFar) {
+        for (TaggedFunctionName f : lessSpecificThanSoFar) {
             if (CodeGenerationPhase.debugOverloading)
                 System.err.println("Overload: " + f);
             List<Param> parameters = f.parameters();
@@ -140,12 +180,12 @@ public class OverloadSet implements Comparable<OverloadSet> {
             // Accumulate sets of parameter types.
             int nargs = paramCount;;
 
-            MultiMap<Type, Function>[] typeSets = new MultiMap[nargs];
+            MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
             for (int i = 0; i < nargs; i++) {
-                typeSets[i] = new MultiMap<Type, Function>();
+                typeSets[i] = new MultiMap<Type, TaggedFunctionName>();
             }
 
-            for (Function f : lessSpecificThanSoFar) {
+            for (TaggedFunctionName f : lessSpecificThanSoFar) {
                 List<Param> parameters = f.parameters();
                 int i = 0;
                 for (Param p : parameters) {
@@ -179,9 +219,9 @@ public class OverloadSet implements Comparable<OverloadSet> {
                         besti = i;
                     }
                 } else {
-                    MultiMap<Type, Function> mm = typeSets[i];
+                    MultiMap<Type, TaggedFunctionName> mm = typeSets[i];
                     int largest = 0;
-                    for (Set<Function> sf : mm.values()) {
+                    for (Set<TaggedFunctionName> sf : mm.values()) {
                         if (sf.size() > largest)
                             largest = sf.size();
                     }
@@ -228,14 +268,14 @@ public class OverloadSet implements Comparable<OverloadSet> {
 
             List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirst(potypes);
             children = new OverloadSet[specificFirst.size()];
-            Set<Function> alreadySelected = new HashSet<Function>();
+            Set<TaggedFunctionName> alreadySelected = new HashSet<TaggedFunctionName>();
 
             // fill in children.
             for (i = 0; i < specificFirst.size(); i++) {
                 Type t = specificFirst.get(i).x;
-                Set<Function> childLSTSF = new HashSet<Function>();
+                Set<TaggedFunctionName> childLSTSF = new HashSet<TaggedFunctionName>();
 
-                    for (Function f : lessSpecificThanSoFar) {
+                    for (TaggedFunctionName f : lessSpecificThanSoFar) {
 //                        if (alreadySelected.contains(f))
 //                            continue;
                         List<Param> parameters = f.parameters();
@@ -268,14 +308,14 @@ public class OverloadSet implements Comparable<OverloadSet> {
         splitDone = true;
     }
 
-    private Set<Function> thin(Set<Function> childLSTSF, final Set<Integer> childTestedIndices) {
+    private Set<TaggedFunctionName> thin(Set<TaggedFunctionName> childLSTSF, final Set<Integer> childTestedIndices) {
         /*
          * Hashes together functions that are equal in their unexamined parameter lists.
          */
-        Hasher<Function> hasher = new Hasher<Function>() {
+        Hasher<TaggedFunctionName> hasher = new Hasher<TaggedFunctionName>() {
 
             @Override
-            public boolean equiv(Function x, Function y) {
+            public boolean equiv(TaggedFunctionName x, TaggedFunctionName y) {
                 List<Param> px = x.parameters();
                 List<Param> py = y.parameters();
                 for (int i = 0; i < px.size(); i++) {
@@ -290,7 +330,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
             }
 
             @Override
-            public long hash(Function x) {
+            public long hash(TaggedFunctionName x) {
                 int h = MagicNumbers.T;
 
                 List<Param> px = x.parameters();
@@ -309,17 +349,17 @@ public class OverloadSet implements Comparable<OverloadSet> {
          * Creates map from (some) functions to the
          * equivalence sets to which they are members.
          */
-        GMultiMap<Function, Function> eqSetMap = new GMultiMap<Function, Function>(hasher);
-        for (Function f : childLSTSF)
+        GMultiMap<TaggedFunctionName, TaggedFunctionName> eqSetMap = new GMultiMap<TaggedFunctionName, TaggedFunctionName>(hasher);
+        for (TaggedFunctionName f : childLSTSF)
             eqSetMap.putItem(f, f);
 
-        Set<Function> tmp = new HashSet<Function>();
+        Set<TaggedFunctionName> tmp = new HashSet<TaggedFunctionName>();
 
         /*
          * Take the most specific member of each equivalence set, and union
          * those together.
          */
-        for (Set<Function> sf : eqSetMap.values())
+        for (Set<TaggedFunctionName> sf : eqSetMap.values())
             tmp.addAll(mostSpecificMemberOf(sf));
 
         return tmp;
@@ -328,9 +368,9 @@ public class OverloadSet implements Comparable<OverloadSet> {
     /**
      *
      */
-    private Set<Function> mostSpecificMemberOf(Set<Function> set) {
-        Function msf = null;
-        for (Function candidate : set) {
+    private Set<TaggedFunctionName> mostSpecificMemberOf(Set<TaggedFunctionName> set) {
+        TaggedFunctionName msf = null;
+        for (TaggedFunctionName candidate : set) {
             if (msf == null)
                 msf = candidate;
             else {
@@ -358,7 +398,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
         if (msf == null)
-            return Collections.<Function>emptySet();
+            return Collections.<TaggedFunctionName>emptySet();
         else
             return Collections.singleton(msf);
     }
@@ -396,7 +436,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
         Type r = null;
         boolean isAny = false;
 
-        for (Function f : lessSpecificThanSoFar) {
+        for (TaggedFunctionName f : lessSpecificThanSoFar) {
             Type r0 = f.getReturnType();
             if (r == null)
                 r = r0;
@@ -415,7 +455,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
 
     public String[] getExceptions() {
         HashSet<Type> exceptions = new HashSet<Type>();
-        for (Function f : lessSpecificThanSoFar) {
+        for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<BaseType> f_exceptions =  f.thrownTypes();
             exceptions.addAll(f_exceptions);
         }
@@ -435,7 +475,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
 
         if (lessSpecificThanSoFar.size() == 1) {
             // Emit casts and call of f.
-            Function f =  lessSpecificThanSoFar.iterator().next();
+            TaggedFunctionName f =  lessSpecificThanSoFar.iterator().next();
+
             List<Param> params = f.parameters();
             int i = firstArgIndex;
             String sig = "(";
@@ -448,7 +489,22 @@ public class OverloadSet implements Comparable<OverloadSet> {
             }
             sig += ")";
             sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "OLT", f.toString(), sig);
+
+            String pname = NamingCzar.only.apiNameToPackageName(f.a);
+            String cnameDOTmname = name.toString();
+
+            int idot = cnameDOTmname.lastIndexOf(".");
+            String ownerName;
+            String mname;
+            if (idot == -1) {
+                ownerName = Useful.replace(pname, ".", "/") ;
+                mname = cnameDOTmname;
+            } else {
+                ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
+                mname = cnameDOTmname.substring(idot+1);
+            }
+
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
             mv.visitInsn(Opcodes.ARETURN);
 
         } else {

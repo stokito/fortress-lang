@@ -48,7 +48,7 @@ public class CodeGenerationPhase extends Phase {
 
     public static Symbols symbolTable = new Symbols();
     public static final boolean debugOverloading = false;
-    
+
     public CodeGenerationPhase(Phase parentPhase) {
         super(parentPhase);
     }
@@ -59,28 +59,28 @@ public class CodeGenerationPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
         AnalyzeResult previous = parentPhase.getResult();
         FortressRepository repository = getRepository();
-        
+
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "CodeGenerationPhase: components " + previous.components() + 
+                    "CodeGenerationPhase: components " + previous.components() +
                     " apis = " + previous.apis().keySet());
 
-        for ( APIName api : previous.apis().keySet() )  
-            symbolTable.addApi(api, previous.apis().get(api)); 
-	 	 
-        for (Component component : previous.componentIterator()) { 
-            APIName api = component.getName(); 
-            symbolTable.addComponent(api, previous.components().get(api)); 
-        } 
-	 	 
-        Debug.debug(Debug.Type.CODEGEN, 1,  
-                    "SymbolTable=" + symbolTable.toString()); 
+        for ( APIName api : previous.apis().keySet() )
+            symbolTable.addApi(api, previous.apis().get(api));
+
+        for (Component component : previous.componentIterator()) {
+            APIName api = component.getName();
+            symbolTable.addComponent(api, previous.components().get(api));
+        }
+
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "SymbolTable=" + symbolTable.toString());
 
         for ( APIName api : previous.apis().keySet() ) {
                 if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                     ApiIndex ai = previous.apis().get(api);
                     Set<OverloadSet> overloads =
                         new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
-                    
+
                     Relation<IdOrOpOrAnonymousName, Function>  fns = ai.functions();
                     for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                         PredicateSet<Function> defs = fns.matchFirst(name);
@@ -92,7 +92,7 @@ public class CodeGenerationPhase extends Phase {
                     // Need to generate overloaded functions -- where?
                 }
         }
-        
+
         for (Component component : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1,
                         "CodeGenerationPhase: Compile(" + component.getName() + ")");
@@ -118,7 +118,7 @@ public class CodeGenerationPhase extends Phase {
         // Woo-hoo, an overloaded function.
         if (debugOverloading)
             System.err.println("Found an overloaded function " + name);
-        OverloadSet os = new OverloadSet(name, ta, defs,
+        OverloadSet os = new OverloadSet(ai.ast().getName(), name, ta, defs,
                 defs.iterator().next().parameters().size());
         os.split();
         String s = os.toString();

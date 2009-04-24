@@ -111,7 +111,7 @@ public class NamingCzar {
     static Span span = NodeFactory.internalSpan;
 
     static APIName fortLib =
-        NodeFactory.makeAPIName(span, "FortressLibrary");
+        NodeFactory.makeAPIName(span, "CompilerBuiltin");
 
     /**
      * Given an ASM Type t from foreign Java, what is the corresponding type
@@ -151,7 +151,8 @@ public class NamingCzar {
     }
 
     static void s(String cl, APIName api, String str) {
-        specialForeignJavaTranslations.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
+        specialForeignJavaTranslations.put(cl,
+                NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, /* api, */ str)));
     }
 
     static {
@@ -197,7 +198,8 @@ public class NamingCzar {
     }
 
     static void b(APIName api, String str, String cl) {
-        b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)), cl);
+        b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str)), cl);
+        b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, /* api, */ str)), cl);
     }
 
     static void b(com.sun.fortress.nodes.Type t, String cl) {

@@ -59,7 +59,7 @@ public class ClosureMaker  implements Opcodes {
                 bytecodes
                 );
     }
-    
+
     public static byte[] forTopLevelFunction (APIName apiname,  FnDecl fd, String closureClass,  String aClass, String aMethod) throws Exception {
 
         Id ua_name = fd.getUnambiguousName();
@@ -69,16 +69,16 @@ public class ClosureMaker  implements Opcodes {
          algorithm derives it from the FnDecl.
          */
         String md = ForeignJava.only.methodToDecl.inverse().get(fd);
-        
+
         /*
          translate apiname into package name
          extract aClass from name
          md is the method name.
-        
-         need to generate a class, extending 
+
+         need to generate a class, extending
          com.sun.fortress.interpreter.Glue.NativeFn#,
          where # is the number of parameters in the decl,
-         
+
          that class must contain a method (say, #=3)
           FValue applyToArgs(FValue x, FValue y, FValue z) {
             return package.class.md(x,y,z);
@@ -88,21 +88,21 @@ public class ClosureMaker  implements Opcodes {
         String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
         String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
         int nargs = fd.getHeader().getParams().size();
-        
+
         String nativeHelper = "com/sun/fortress/interpreter/glue/NativeFn" + nargs;
         String nativeWrapperClass = pkg_slashes + "/" + aClass;
         String LclosureClass = "L" + closureClass + ";";
         String fvalue = "Lcom/sun/fortress/interpreter/evaluator/values/FValue;";
-        
+
         String signature = "(";
         for (int i = 1; i <= nargs; i++) {
             signature += fvalue;
         }
         signature += ")" + fvalue;
-        
+
         System.err.println(md);
-        
-        
+
+
         ClassWriter cw = new ClassWriter(0);
         FieldVisitor fv;
         MethodVisitor mv;

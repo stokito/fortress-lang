@@ -23,6 +23,7 @@ import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class FortressTransformer {
@@ -55,6 +56,7 @@ public class FortressTransformer {
             ByteCodeWriter.writeClass(repository, inputClassName, b2);
         } catch (Throwable e) {
             e.printStackTrace();
+            InterpreterBug.bug(e);
         }
     }
 
