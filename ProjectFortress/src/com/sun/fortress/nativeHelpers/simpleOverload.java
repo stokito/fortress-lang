@@ -18,7 +18,7 @@
 package com.sun.fortress.nativeHelpers;
 
 public class simpleOverload {
-    
+
     public static void foo(int i, int j, int k, int l) {
         System.out.println("" + i + " " + j + " " + k + " " + l);
     }
@@ -43,21 +43,17 @@ public class simpleOverload {
         System.out.println("" + i + " " + j + " " + k + " " + l);
     }
 
-    
+
     public static String bar() {
         return "bar";
     }
-      
-    public static String baz(float f) {
-        return "bar";
+
+     public static String baz(String s) {
+        return "baz " + s;
     }
-      
+
     public static String baz(int i) {
-        return "bar";
+        return "baz " + i;
     }
-      
-    public static String baz(String s) {
-        return "bar";
-    }
-      
+
 }
