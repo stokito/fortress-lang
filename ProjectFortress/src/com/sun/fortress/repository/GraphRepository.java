@@ -129,7 +129,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private GraphRepository(Path p, String cacheDir) throws IOException {
         this(p, new CacheBasedRepository(cacheDir));
     }
-    
+
     public boolean isForeign(APIName name) {
         return foreignJava.definesApi(name);
     }
@@ -770,8 +770,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             Iterator<Component> components = result.components().iterator();
             if (components.hasNext()) return components.next();
             throw new ProgramError("Successful parse result was nonetheless empty, file " + file.getCanonicalPath());
-        }
-        throw new ProgramError(result.errors());
+        } else
+            throw new ProgramError(result.errors());
     }
 
     /* add an API to the repository and cache it */

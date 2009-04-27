@@ -21,7 +21,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled2.p.fss:22:9-23:37:\n\
 \ Unmatched delimiters \"do\" and \")\".\n\
-${STATIC_TESTS_DIR}/Compiled2.p.fss:26:1-2:\n\
+${STATIC_TESTS_DIR}/Compiled2.p.fss:26:1-3:\n\
 \ Unmatched delimiter \"end\".\n\
 File Compiled2.p.fss has 2 errors.\n\
 

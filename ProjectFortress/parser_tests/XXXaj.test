@@ -17,7 +17,7 @@ tests=XXXPreparser.aj
 PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
 compile
 compile_err_equals=\
-${PREPARSER_TESTS_DIR}/XXXPreparser.aj.fss:21:41-71:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.aj.fss:21:41-23:2:\n\
 \ Unmatched delimiters \"also\" and \"end\".\n\
 ${PREPARSER_TESTS_DIR}/XXXPreparser.aj.fss:21:9:\n\
 \ Unmatched delimiter \"at\".\n\

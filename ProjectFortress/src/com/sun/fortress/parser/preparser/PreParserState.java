@@ -63,7 +63,7 @@ public class PreParserState implements State {
     public void init(BufferedWriter wr) {
         writer = wr;
         String[] ends = new String[]{"api", "component", "trait", "object", "grammar",
-                                     "do", "case", "if", "label", "try", "typecase"};
+                                     "do", "case", "if", "try", "typecase"};
         keywords = new ArrayList<String>(java.util.Arrays.asList(ends));
     }
 
@@ -93,22 +93,30 @@ public class PreParserState implements State {
         left( NodeFactory.makeId(span, open) );
     }
 
+    private void emptyLefts(IdOrOp close) {
+        Debug.debug( Debug.Type.PARSER, 1,
+                     "right: Unmatched delimiter \"" + close + "\"." );
+        log(NodeUtil.getSpan(close),
+            "Unmatched delimiter \"" + close + "\".");
+    }
+
     /** Check a right delimiter. */
     public void right(IdOrOp close) {
         Debug.debug( Debug.Type.PARSER, 1, "Right delimiter " + close );
-        if ( lefts.isEmpty() ) {
-            Debug.debug( Debug.Type.PARSER, 1,
-                         "right: Unmatched delimiter \"" + close + "\"." );
-            log(NodeUtil.getSpan(close),
-                "Unmatched delimiter \"" + close + "\".");
-        } else {
+        if ( lefts.isEmpty() ) emptyLefts(close);
+        else {
             IdOrOp open = lefts.remove(0);
-            /* (if ... )        -- covered by matches
+            /* label Id /end Id -- covered by handleEnd
+             * (if ... )        -- covered by matches
              * (if ... end)     -- covered by matches
              * (if ... end ...) -- here
              */
             if ( open.getText().equals("(if") && close.getText().equals("end") ) {
                 lefts.add(0, NodeFactory.makeId(NodeUtil.getSpan(open), "("));
+            } else if ( open.getText().startsWith("label$") ) {
+                String openLabel = open.getText().substring(6);
+                log(NodeUtil.spanTwo(open, close),
+                    "Missing label at the end of a label expression.");
             } else if ( ! matches(open, close) ) {
                 Debug.debug( Debug.Type.PARSER, 1,
                              "right: Unmatched delimiter \"" + close + "\"." );
@@ -121,6 +129,26 @@ public class PreParserState implements State {
 
     public void right(Span span, String close) {
         right( NodeFactory.makeId(span, close) );
+    }
+
+    public void handleLabelEnd(Span span, Id id) {
+        Debug.debug( Debug.Type.PARSER, 1, "HandleLabelEnd");
+        Id close = NodeFactory.makeId(span, "end");
+        if ( lefts.isEmpty() ) emptyLefts(close);
+        else {
+            IdOrOp open = lefts.remove(0);
+            String openText = open.getText();
+            if ( openText.startsWith("label$") ) {
+                String openLabel = openText.substring(6);
+                String closeLabel = id.getText();
+                if ( ! openLabel.equals(closeLabel) )
+                    log(NodeUtil.spanTwo(NodeUtil.getSpan(open), span),
+                        "Opening label must match closing label.");
+            } else {
+                lefts.add(0, open);
+                right(close);
+            }
+        }
     }
 
     public void handleDo(Span span) {

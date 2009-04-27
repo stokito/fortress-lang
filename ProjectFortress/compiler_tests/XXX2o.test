@@ -21,7 +21,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled2.o.fss:18:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4-26:2:\n\
+${STATIC_TESTS_DIR}/Compiled2.o.fss:22:4-26:3:\n\
 \ Unmatched delimiters \"(\" and \"end\".\n\
 File Compiled2.o.fss has 2 errors.\n\
 

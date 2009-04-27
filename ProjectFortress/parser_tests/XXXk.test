@@ -19,7 +19,7 @@ compile
 compile_err_equals=\
 ${PREPARSER_TESTS_DIR}/XXXPreparser.k.fss:18:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.k.fss:21:2-24:2:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.k.fss:21:2-24:3:\n\
 \ Unmatched delimiters \"(\" and \"end\".\n\
 File XXXPreparser.k.fss has 2 errors.\n
 compile_out_equals=

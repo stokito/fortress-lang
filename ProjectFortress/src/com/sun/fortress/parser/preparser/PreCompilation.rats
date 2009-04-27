@@ -64,30 +64,33 @@ void Program = (Token w)+ ;
 stateful void Token =
      LiteralExpr
    / import w api // ignore the api keyword
-   / api        { yyState.left(createSpan(yyStart,yyCount), "api"); }
-   / case       { yyState.left(createSpan(yyStart,yyCount), "case"); }
-   / component  { yyState.left(createSpan(yyStart,yyCount), "component"); }
-   / grammar    { yyState.left(createSpan(yyStart,yyCount), "grammar"); }
-   / "(if"      { yyState.left(createSpan(yyStart,yyCount), "(if"); }
-   / if         { yyState.left(createSpan(yyStart,yyCount), "if"); }
-   / label      { yyState.left(createSpan(yyStart,yyCount), "label"); }
-   / object     { yyState.left(createSpan(yyStart,yyCount), "object"); }
-   / trait      { yyState.left(createSpan(yyStart,yyCount), "trait"); }
-   / try        { yyState.left(createSpan(yyStart,yyCount), "try"); }
-   / typecase   { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
-   / also       { yyState.left(createSpan(yyStart,yyCount), "also"); }
-   / end        { yyState.right(createSpan(yyStart,yyCount), "end"); }
-   / do         { yyState.handleDo(createSpan(yyStart,yyCount)); }
-   / at         { yyState.handleAt(createSpan(yyStart,yyCount)); }
+   / api         { yyState.left(createSpan(yyStart,yyCount), "api"); }
+   / case        { yyState.left(createSpan(yyStart,yyCount), "case"); }
+   / component   { yyState.left(createSpan(yyStart,yyCount), "component"); }
+   / grammar     { yyState.left(createSpan(yyStart,yyCount), "grammar"); }
+   / "(if"       { yyState.left(createSpan(yyStart,yyCount), "(if"); }
+   / if          { yyState.left(createSpan(yyStart,yyCount), "if"); }
+   / label w a1:Id { yyState.left(createSpan(yyStart,yyCount), "label$"+a1); }
+   / label         { log(createSpan(yyStart,yyCount),
+                         "Missing label from a label expression."); }
+   / object      { yyState.left(createSpan(yyStart,yyCount), "object"); }
+   / trait       { yyState.left(createSpan(yyStart,yyCount), "trait"); }
+   / try         { yyState.left(createSpan(yyStart,yyCount), "try"); }
+   / typecase    { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
+   / also        { yyState.left(createSpan(yyStart,yyCount), "also"); }
+   / end w a1:Id { yyState.handleLabelEnd(createSpan(yyStart,yyCount), a1); }
+   / end         { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / do          { yyState.handleDo(createSpan(yyStart,yyCount)); }
+   / at          { yyState.handleAt(createSpan(yyStart,yyCount)); }
    / Encloser   // ignore vertical bars
    / a1:LeftEncloser  { yyState.left(a1); }
    / a1:RightEncloser { yyState.right(a1); }
-   / a1:"("     { yyState.left(createSpan(yyStart,yyCount), a1); }
-   / a1:")"     { yyState.right(createSpan(yyStart,yyCount), a1); }
-   / a1:Opening { yyState.left(createSpan(yyStart,yyCount), a1); }
-   / a1:Closing { yyState.right(createSpan(yyStart,yyCount), a1); }
-   / a1:["] { yyState.quote(createSpan(yyStart,yyCount), "\\\""); } // "
-   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); }
+   / a1:"("      { yyState.left(createSpan(yyStart,yyCount), a1); }
+   / a1:")"      { yyState.right(createSpan(yyStart,yyCount), a1); }
+   / a1:Opening  { yyState.left(createSpan(yyStart,yyCount), a1); }
+   / a1:Closing  { yyState.right(createSpan(yyStart,yyCount), a1); }
+   / a1:["] { yyState.quote(createSpan(yyStart,yyCount), "\\\""); }
+   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); } // '
    / Numbers
    / OtherKeywords
    / OtherSymbols
