@@ -580,12 +580,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // however I don't want to be putting a void literal on the stack because it gets in the way.
         int savedParamCount = paramCount;
         try {
-            if (x.getArgument() instanceof VoidLiteralExpr) {
+            Expr arg = x.getArgument();
+            if (arg instanceof VoidLiteralExpr) {
                 paramCount = 0;
+                x.getFunction().accept(this);
+            } else if (arg instanceof TupleExpr) {
+                TupleExpr targ = (TupleExpr) arg;
+                List<Expr> exprs = targ.getExprs();
+                for (Expr expr : exprs) {
+                    expr.accept(this);
+                }
+                paramCount = exprs.size();
                 x.getFunction().accept(this);
             } else {
                 paramCount = 1; // for now; need to dissect tuple and do more.
-                x.getArgument().accept(this);
+                arg.accept(this);
                 x.getFunction().accept(this);
             }
         } finally {
