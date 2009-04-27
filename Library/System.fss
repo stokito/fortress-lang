@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component System
+import NativeArray.{...}
 export System
 
 (**
@@ -35,9 +36,8 @@ args : ImmutableArray[\String,ZZ32\] = getProgramArgs(getProgramArgsPrim())
 getProgramArgsPrim(): ImmutableArray[\String,ZZ32\] = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetProgramArgs")
 
 (* Impedence matcher to get types right.  Sigh. *)
-getProgramArgs[\T extends String,nat b,nat s\](r0:ImmutableArray1[\T,b,s\]): ImmutableArray1[\String,b,s\] = do
+getProgramArgs[\T extends String, int n\](r0:PrimImmutableArray[\T,n\]): PrimImmutableArray[\String,n\] =
     r0.replica[\String\]().fill(fn (i:ZZ32): String => r0.get(i))
-  end
 
 (** programName is the name by which the Fortress program was invoked. **)
 programName : String = ""
