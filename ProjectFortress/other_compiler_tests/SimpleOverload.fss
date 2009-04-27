@@ -25,6 +25,9 @@ import java com.sun.fortress.nativeHelpers.{simpleOverload.baz as jBaz}
 
 export Executable
 
-run() = jPrintln(jBar())
+run() = do
+  jPrintln(jBaz("PASS")) 
+  jPrintln(jBaz(11))
+end
 
 end
