@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.OutAfterTypeChecking;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -342,15 +343,7 @@ public class TypesUtil {
 
         ast.accept(new NodeDepthFirstVisitor_void() {
             @Override
-            public void forArrayType(ArrayType that) {
-                result_.set(Boolean.TRUE);
-            }
-            @Override
-            public void forMatrixType(MatrixType that) {
-                result_.set(Boolean.TRUE);
-            }
-            @Override
-            public void for_InferenceVarType(_InferenceVarType that) {
+            public void forOutAfterTypeCheckingOnly(OutAfterTypeChecking that) {
                 result_.set(Boolean.TRUE);
             }
         });
