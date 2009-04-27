@@ -48,12 +48,20 @@ public class simpleOverload {
         return "bar";
     }
 
-     public static String baz(String s) {
+    public static String baz(String s) {
         return "baz " + s;
     }
 
     public static String baz(int i) {
         return "baz " + i;
+    }
+
+    public static String duo(String s, String t) {
+        return "baz " + (s+t);
+    }
+
+    public static String duo(int i, int j) {
+        return "baz " + (i+j);
     }
 
 }
