@@ -19,7 +19,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled0.k.fss:17:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${STATIC_TESTS_DIR}/Compiled0.k.fss:20:22-22:2:\n\
+${STATIC_TESTS_DIR}/Compiled0.k.fss:20:22-22:3:\n\
 \ Unmatched delimiters \"\\\"\" and \"end\".\n\
 ${STATIC_TESTS_DIR}/Compiled0.k.fss:20:36:\n\
 \ Invalid string literal content: \n\

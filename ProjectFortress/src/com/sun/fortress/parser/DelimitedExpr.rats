@@ -62,7 +62,7 @@ Expr DelimitedExpr =
    / label w a1:IdOrOpName w a2:BlockElems w end w a3:IdOrOpName
      { Span span = NodeUtil.getSpan(a1);
        if (!a1.getText().equals(a3.getText()))
-           log(span, "Mismatched identifiers for label expressions:\n        '" +
+           log(span, "Mismatched identifiers for a label expression:\n        '" +
                a1 + "' at " + span + " and\n        '" +
                a3 + "' at " + NodeUtil.getSpan(a3));
        if ( a1 instanceof Op ) {

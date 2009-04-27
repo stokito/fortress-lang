@@ -21,7 +21,7 @@ ${STATIC_TESTS_DIR}/Compiled0.m.fss:17:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
 ${STATIC_TESTS_DIR}/Compiled0.m.fss:20:14:\n\
 \ Unmatched delimiter \"do\".\n\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:21:12-22:2:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:21:12-22:3:\n\
 \ Unmatched delimiters \"\\\"\"\ and \"end\".\n\
 ${STATIC_TESTS_DIR}/Compiled0.m.fss:21:26:\n\
 \ Invalid string literal content: \n\

@@ -15,20 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Format
+component XXXPreparser.al
+export Executable
 
-object FormatException(reason:String) extends UncheckedException
-    getter asString(): String
-    getter asExprString(): String
+run() = do
+        k = label placed
+                for j <- seq(i:1:-1) do
+                    if xs[j-1] <= v then
+                        exit placed with j
+                    end
+                    xs[j] := xs[j-1]
+                end
+                0
+            end
+        xs[k] := v
 end
-
-padLeft(s:String,c:Char,z:ZZ32):String
-padRight(s:String,c:Char,z:ZZ32):String
-radix(base:ZZ64,val:ZZ64):String
-scientific(number:RR64):String
-(* scientific(number:ZZ32):String *)
-digitSeparator(z:String,nth:ZZ32,separator:String):String
-digitSeparator(num:String,nth:ZZ32,separator:String,middle:Char):String
-format(string:String,args:Any...): String
 
 end
