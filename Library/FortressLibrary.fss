@@ -256,6 +256,20 @@ trait StandardMax[\T extends StandardMax[\T\]\]
     opr MAX(self, other:T): T
 end
 
+(** %StandardMinMax% combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that %(a MINMAX b)% stably sorts
+    %a% and %b%.  In addition, %a MINMAX b = (a MIN b, a MAX b)% must
+    always hold. **)
+
+trait StandardMinMax[\T extends StandardMinMax[\T\]\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+    opr MINMAX(self, other:T): (T,T)
+    opr MIN(self, other:T): (T,T) = do (r,_) = self MINMAX other; r end
+    opr MAX(self, other:T): (T,T) = do (_,r) = self MINMAX other; r end
+end
+
 (** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and
     CMP.  Most values that define a comparison should do so using
     this.  Minimal complete definition: either CMP or < (it's
@@ -263,7 +277,7 @@ end
     and %MAX% respect the total order and are defined in the obvious
     way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
+        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
     opr CMP(self, other:Self): TotalComparison =
         if self < other then LessThan
         elif other < self then GreaterThan
@@ -272,7 +286,9 @@ trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
     opr >=(self, other:Self): Boolean = NOT (self < other)
     opr <=(self, other:Self): Boolean = NOT (other < self)
     opr MIN(self, other:Self): Self = if other < self then other else self end
-    opr MAX(self, other:Self): Self = if self < other then other else self end
+    opr MAX(self, other:Self): Self = if other < self then self else other end
+    opr MINMAX(self, other:Self): (Self,Self) =
+        if other < self then (other, self) else (self, other) end
 end
 
 (** Assertion *)
@@ -340,7 +356,7 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
 end
 
 trait Number
-        extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\],
+        extends { StandardPartialOrder[\Number\], StandardMinMax[\Number\],
                   AdditiveGroup[\Number\], MultiplicativeRing[\Number\] }
         comprises { RR64 }
     getter zero(): Number = 0.0
@@ -363,6 +379,7 @@ trait Number
         total order. **)
     opr MIN(self, b:Number):Number = asFloat(self) MIN asFloat(b)
     opr MAX(self, b:Number):Number = asFloat(self) MAX asFloat(b)
+    opr MINMAX(self, b:Number):(Number,Number) = asFloat(self) MINMAX asFloat(b)
 
     opr -(self):RR64 = -asFloat(self)
     opr +(self,b:Number):RR64 = asFloat(self) + asFloat(b)
@@ -534,9 +551,15 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] } comprises { Ratio, AnyInte
     (** In case of 0/0, %MIN% and %MAX% return 0/0, otherwise it respects the
         total order. **)
     opr MIN(self, other:QQ):QQ =
-        if self < other then self elif other < self then other elif self = 0/0 then self else other end
+        if self < other then self elif other < self then other elif other = 0/0 then other else self end
     opr MAX(self, other:QQ):QQ =
         if self > other then self elif other > self then other elif self = 0/0 then self else other end
+    opr MINMAX(self, other:QQ):(QQ,QQ) =
+        if self > other then (other,self)
+        elif other > self then (self,other)
+        elif other=0/0 then (other,other)
+        elif self=0/0 then (self,self)
+        else (self,other) end
 
     opr -(self):QQ = (-numerator(self)) / denominator(self)
     opr +(self,other:QQ):QQ =
@@ -2845,17 +2868,13 @@ trait BigOperator[\I,O,R,L\]
     getter unwrap(): R->O
 end
 
-object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
-    getter reduction(): ActualReduction[\R,L\] = r
+object BigReduction[\R,L\](reduction:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter body(): R->R = fn x => x
     getter unwrap(): R->R = fn x => x
 end
 
-object Comprehension[\I,O,R,L\](u: R->O, r: ActualReduction[\R,L\], singleton:I->R)
+object Comprehension[\I,O,R,L\](unwrap: R->O, reduction: ActualReduction[\R,L\], body:I->R)
         extends BigOperator[\I,O,R,L\]
-    getter reduction(): ActualReduction[\R,L\] = r
-    getter body(): I->R = singleton
-    getter unwrap(): R->O = u
 end
 
 (** VoidReduction is usually done for effect, so we pretend that
@@ -2939,20 +2958,15 @@ opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
 opr PROD[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](PROD[\T\](), g)
 
-object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
-    getter asString(): String = "MinReduction"
-    simpleJoin(a, b) = a MIN b
-end
-
 (* MAX without lifting for Numbers... (what is -1/0?)*)
 object MaxReductionN extends {CommutativeMonoidReduction[\Number\] }
     getter asString(): String = "MaxReductionN"
     empty(): Number = -1/0
     join(a: Number, b: Number): Number = a MAX b
 end
+
 opr BIG MAXN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
     Comprehension[\T,Number,Number,Number\](fn x => x, MaxReductionN, cast[\Number\])
-
 opr BIG MAXN[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](BIG MAXN[\T\](), g)
 
@@ -2967,10 +2981,30 @@ opr BIG MINN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
 opr BIG MINN[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](BIG MINN[\T\](), g)
 
+object MinMaxReductionN extends {CommutativeMonoidReduction[\(Number,Number)\] }
+    getter asString(): String = "MinMaxReductionN"
+    empty(): Number = (1/0,-1/0)
+    join(a: (Number, Number), b: (Number, Number)): (Number, Number) = do
+        (na,xa) = a
+        (nb,xb) = b
+        (na MIN nb, xa MAX xb)
+      end
+end
+opr BIG MINMAXN[\T extends Number\]():
+        Comprehension[\T,(Number,Number),(Number,Number),(Number,Number)\] =
+    Comprehension[\T,(Number,Number),(Number,Number),(Number,Number)\](
+        fn x => x, MinMaxReductionN, fn x => (x,x))
+opr BIG MINMAXN[\T extends Number\](g: Generator[\T\]): (Number, Number) =
+    __bigOperatorSugar[\T,(Number,Number),(Number,Number),(Number,Number)\](
+        BIG MINMAXN[\T\](), g)
 
+
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
+    getter asString(): String = "MinReduction"
+    simpleJoin(a, b) = a MIN b
+end
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MinReduction[\T\])
-
 opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MIN[\T\](), g)
 
@@ -2978,12 +3012,24 @@ object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\
     getter asString(): String = "MaxReduction"
     simpleJoin(a, b) = a MAX b
 end
-
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
-
-opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]) =
+opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]):(T,T) =
     __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MAX[\T\](), g)
+
+object MinMaxReduction[\T extends StandardMinMax[\T\]\] extends CommutativeReduction[\(T,T)\]
+    getter asString(): String = "MinMaxReduction"
+    simpleJoin(a:(T,T),b:(T,T)): (T,T) = do
+        (na,xa) = a
+        (nb,xb) = b
+        (na MIN nb, xa MAX xb)
+      end
+end
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\]():
+        Comprehension[\T,AnyMaybe,AnyMaybe,AnyMaybe\] =
+    Comprehension[\T,AnyMaybe,AnyMaybe,AnyMaybe\](fn x => x, MinMaxReduction[\T\], fn x => (x,x))
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\](g:Generator[\T\]):(T,T) =
+    __bigOperatorSugar[\T,(T,T),(T,T),AnyMaybe\](BIG MINMAX[\T\](), g)
 
 opr BIG MINNUM(): BigReduction[\RR64,RR64\] =
     BigReduction[\RR64,RR64\](

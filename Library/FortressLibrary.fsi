@@ -205,6 +205,20 @@ trait StandardMax[\T extends StandardMax[\T\]\]
     opr MAX(self, other:T): T
 end
 
+(** %StandardMinMax% combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that %(a MINMAX b)% stably sorts
+    %a% and %b%.  In addition, %a MINMAX b = (a MIN b, a MAX b)% must
+    always hold. **)
+
+trait StandardMinMax[\T extends StandardMinMax[\T\]\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+    abstract opr MINMAX(self, other:T): (T,T)
+    opr MIN(self, other:T): (T,T)
+    opr MAX(self, other:T): (T,T)
+end
+
 (** StandardTotalOrder is the usual total order using %<%,%>%,%<=%,%>=%,%=%, and %CMP%.
     Most values that define a comparison should do so using this.
     Minimal complete definition: either %CMP% or %<% (it is advisable to
@@ -212,7 +226,8 @@ end
     and %MAX% respect the total order and are defined in the obvious
     way. **)
 trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends { StandardPartialOrder[\Self\], StandardMin[\Self\], StandardMax[\Self\] }
+        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
+    opr MINMAX(self, other:Self): (Self,Self)
     opr CMP(self, other:Self): TotalComparison
 end
 
@@ -265,8 +280,9 @@ trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
 end
 
 trait Number
-      extends { StandardPartialOrder[\Number\], StandardMin[\Number\], StandardMax[\Number\] }
-      comprises { RR64 }
+        extends { StandardPartialOrder[\Number\], StandardMinMax[\Number\],
+                  AdditiveGroup[\Number\], MultiplicativeRing[\Number\] }
+        comprises { RR64 }
     opr =(self, b:Number):Boolean
     opr =/=(self, b:Number):Boolean
     opr <(self, b:Number):Boolean
@@ -278,6 +294,7 @@ trait Number
         total order. **)
     opr MIN(self, b:Number):Number
     opr MAX(self, b:Number):Number
+    opr MINMAX(self, b:Number):(Number,Number)
 
     opr -(self):RR64
     opr +(self,b:Number):RR64
@@ -376,6 +393,7 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] } comprises { ... }
     (** In case of 0/0, %MIN% and %MAX% return 0/0, otherwise it respects the total order. **)
     opr MIN(self, other:QQ):QQ
     opr MAX(self, other:QQ):QQ
+    opr MINMAX(self, other:QQ):(QQ,QQ)
     opr -(self):QQ
     opr +(self,other:QQ):QQ
     opr -(self,other:QQ):QQ
@@ -1753,6 +1771,15 @@ end
 opr BIG MINN[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 opr BIG MINN[\T extends Number\](g: Generator[\T\]): Number
 
+object MinMaxReductionN extends {CommutativeMonoidReduction[\(Number,Number)\] }
+    getter asString(): String
+    empty(): Number
+    join(a: (Number, Number), b: (Number, Number)): (Number, Number)
+end
+opr BIG MINMAXN[\T extends Number\]():
+        Comprehension[\T,(Number,Number),(Number,Number),(Number,Number)\]
+opr BIG MINMAXN[\T extends Number\](g: Generator[\T\]): (Number, Number)
+
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     simpleJoin(a:T, b:T): T
 end
@@ -1768,6 +1795,14 @@ end
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\]
 
 opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]): T
+
+object MinMaxReduction[\T extends StandardMinMax[\T\]\] extends CommutativeReduction[\(T,T)\]
+    getter asString(): String
+    simpleJoin(a:(T,T),b:(T,T)): (T,T)
+end
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\]():
+        Comprehension[\T,AnyMaybe,AnyMaybe,AnyMaybe\]
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\](g:Generator[\T\]):(T,T)
 
 opr BIG MINNUM(): BigReduction[\RR64,RR64\]
 
