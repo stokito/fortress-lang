@@ -17,4 +17,4 @@ tests=SimpleOverload
 compile
 link
 run
-run_out_contains=bar
+run_out_WCIequals=baz PASS baz 11

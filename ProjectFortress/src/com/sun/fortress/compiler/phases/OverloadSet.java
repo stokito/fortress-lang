@@ -32,8 +32,10 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -425,13 +427,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public String getSignature() {
-        String s = "(";
-        String anOverloadedArg = "Ljava/lang/Object;";
-
-        for (int i = 0; i < paramCount; i++) {
-            s += anOverloadedArg;
-        }
-        s += ")";
+        String s = overloadedDomainSig(paramCount);
 
         Type r = null;
         boolean isAny = false;
@@ -450,6 +446,65 @@ public class OverloadSet implements Comparable<OverloadSet> {
         }
         s += NamingCzar.only.boxedImplDesc(r);
 
+        return s;
+    }
+
+    /**
+     * Given an intersection of arrow types (what we get for at least some
+     * overloaded functions) and an indication of how many parameters actually
+     * appeared, create the signature for the overloaded function that will be
+     * called.
+     *
+     * There's some fiddliness with varargs that has to be sorted out.
+     *
+     * @param t
+     * @param paramCount
+     * @return
+     */
+    public static String getSignature(IntersectionType t, int paramCount) {
+        List<Type> types = t.getElements();
+
+        String s = overloadedDomainSig(paramCount);
+
+        Type r = null;
+        boolean isAny = false;
+
+        for (Type type : types) {
+            if (type instanceof ArrowType) {
+                ArrowType at = (ArrowType) type;
+                Type r0 = at.getRange();
+
+                if (r == null)
+                    r = r0;
+                else if (r.equals(r0)) {
+                    // ok
+                } else if (!isAny) {
+                    isAny = true;
+                    // Locate the any at the place we realized it was necessary.
+                    r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+                }
+            } else {
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
+            }
+        }
+
+        s += NamingCzar.only.boxedImplDesc(r);
+
+        return s;
+    }
+
+    /**
+     * @param paramCount
+     * @return
+     */
+    private static String overloadedDomainSig(int paramCount) {
+        String s = "(";
+        String anOverloadedArg = "Ljava/lang/Object;";
+
+        for (int i = 0; i < paramCount; i++) {
+            s += anOverloadedArg;
+        }
+        s += ")";
         return s;
     }
 
