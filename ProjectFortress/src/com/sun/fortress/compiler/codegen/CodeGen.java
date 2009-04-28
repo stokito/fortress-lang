@@ -43,6 +43,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     MethodVisitor mv;
     String className;
     String packageName;
+    String packageAndClassName;
     HashMap<String, String> aliasTable;
     Symbols symbols;
     boolean inATrait = false;
@@ -117,8 +118,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
         else
             packageName = Naming.emptyString;
 
+        packageAndClassName = packageName + className;
+
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageName + className, null, Naming.internalObject, null);
+                packageAndClassName, null, Naming.internalObject, null);
 
         // Always generate the init method
         generateInitMethod();
@@ -131,7 +134,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         for ( Import i : x.getImports() ) i.accept(this);
 
         for ( Decl d : x.getDecls() ) { d.accept(this);}
-        dumpClass( packageName + className );
+        dumpClass( packageAndClassName );
     }
 
     public void forImportNames(ImportNames x) {
@@ -529,6 +532,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void forFnRef(FnRef x) {
         Debug.debug( Debug.Type.CODEGEN, 1,"forFnRef ", x);
         String name = x.getOriginalName().getText();
+        Option<com.sun.fortress.nodes.Type> type = x.getInfo().getExprType();
+        if ( type.isNone() ) {
+            sayWhat( x, "The type of this expression is not inferred." );
+        }
+        /* Arrow, or perhaps an intersection if it is an overloaded function. */
+        com.sun.fortress.nodes.Type arrow = type.unwrap();
+
         if ( aliasTable.containsKey(name) ) {
             String n = aliasTable.get(name);
             // Cheating by assuming class is everything before the dot.
@@ -537,11 +547,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             String _method = n.substring(lastDot+1);
             Debug.debug( Debug.Type.CODEGEN, 1,
                          "class = " + internal_class + " method = " + _method );
-            Option<com.sun.fortress.nodes.Type> type = x.getInfo().getExprType();
-            if ( type.isNone() )
-                sayWhat( x, "The type of this expression is not inferred." );
-            else {
-                com.sun.fortress.nodes.Type arrow = type.unwrap();
+             {
                 if ( arrow instanceof ArrowType )
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                        _method, Naming.emitDesc(arrow));
@@ -568,14 +574,23 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if ( names.size() == 1) {
                 IdOrOp fnName = names.get(0);
                 Option<APIName> apiName = fnName.getApiName();
-                if ( apiName.isSome() ) {
+                String calleePackageAndClass =
+                    apiName.isSome() ?
+                            Naming.fortressPackage + Naming.slash + apiName.unwrap().getText() :
+                                packageAndClassName;
+
+                    if ( arrow instanceof ArrowType ) {
+
+                    String domainType;
+                    String rangeType;
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                       Naming.fortressPackage + Naming.slash + apiName.unwrap().getText(),
+                                       calleePackageAndClass,
                                        fnName.getText(),
-                                       Naming.makeMethodDesc(Naming.descFortressString,
-                                                      Naming.descFortressVoid));
-                } else // if ( apiName.isNone() )
-                    sayWhat( x, "API name is not disambiguated." );
+                                       Naming.emitDesc(arrow));
+                    } else {
+                        sayWhat(x, "Overloaded non-foreign not implemented yet.");
+                    }
+
             } else // if ( names.size() != 1 )
                 sayWhat( x, "Overloaded function references are not supported." );
         }

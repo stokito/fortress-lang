@@ -24,9 +24,11 @@ import java com.sun.fortress.nativeHelpers.{simpleOverload.duo as jDuo}
 
 export Executable
 
+id(x:ZZ32):ZZ32 = x
+
 run() = do
   jPrintln(jDuo("PA","SS")) 
-  jPrintln(jDuo(5,6))
+  jPrintln(jDuo(id(5),id(6)))
 end
 
 end
