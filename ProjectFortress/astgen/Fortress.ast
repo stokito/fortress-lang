@@ -306,11 +306,11 @@ interface Node() extends HasAt;
                  * functional declaration in components
                  * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
                  * e.g.) swap (x, y) = (y, x)
-                 * 
+                 *
                  * umambiguousName stores a name distinct from all other declarations
                  * (even if they have the same name in the source code). This distinct name
                  * is likely to be derived from this node's source location.
-                 *        
+                 *
                  * implementsUnambiguousName is used to store the
                  * unambiguousName of a declaration in an exported API that is matched
                  * by this declaration. If this declaration doesn't match an exported
@@ -1017,14 +1017,15 @@ interface Node() extends HasAt;
                          * TraitType ::= Type [ ArraySize? ]
                          * e.g.) ZZ64[3, 2]
                          */
-                        ArrayType(Indices indices);
+                        ArrayType(Indices indices) implements OutAfterTypeChecking;
                         /**
                          * matrix type
                          * TraitType ::= Type ^ IntExpr
                          *             | Type ^ ( ExtentRange (BY ExtentRange)* )
                          * e.g.) ZZ32^3
                          */
-                        MatrixType(List<ExtentRange> dimensions);
+                        MatrixType(List<ExtentRange> dimensions)
+                                  implements OutAfterTypeChecking;
                         /**
                          * type with dimension
                          * DimType ::= Type DimExpr (in Expr)?
@@ -1075,7 +1076,7 @@ interface Node() extends HasAt;
                  * inferred type
                  * Used internally for type analysis
                  */
-                _InferenceVarType(Object id);
+                _InferenceVarType(Object id) implements OutAfterTypeChecking;
                 /**
                  * An intersection or union.
                  */
