@@ -26,8 +26,8 @@ import List.{...}
 (** In-place array shuffle **)
 shuffle[\T\](a: Array[\T,ZZ32\]): () = do
     l = a.bounds.lower
-    for i <- seq((|a| - 1):-1:1) do
-        s = |\ random(i+1) /|
+    for i <- seq((|a| - 1):-1:-1) do
+        s = narrow |\ random(i+1) /|
         if s < i then (a[l+s],a[l+i]) := (a[l+i], a[l+s]) end
     end
   end

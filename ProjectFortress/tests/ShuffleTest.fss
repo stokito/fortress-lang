@@ -24,7 +24,9 @@ import QuickSort.{...}
 run(): () = do
     lt(a:ZZ32,b:ZZ32): Boolean = a < b
     a = array[\ZZ32\](50).fill(fn i => i)
-    for _ <- 1#10 do
+    matches : ZZ32 := 0
+    for _ <- seq(1#10) do
+        println(a)
         shuffle(a)
         c = a.copy()
         quicksort(lt,c)
@@ -39,7 +41,11 @@ run(): () = do
                 end
             end
         end
+        if (a=c) then
+            atomic matches += 1
+        end
     end
+    assert(matches < 10, true, "No shuffling ever occurred!")
   end
 
 end
