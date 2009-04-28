@@ -99,7 +99,7 @@ public class TemplateParser {
                 @Override
                 public Node forSyntaxDef(SyntaxDef thatSyntaxDef) {
                     final GapEnv gapEnv = EnvFactory.makeGapEnv(thatSyntaxDef, ntEnv);
-                    Debug.debug(Debug.Type.SYNTAX, 3, "Gap env: " + gapEnv);
+                    Debug.debug(Debug.Type.SYNTAX, 3, "Gap env: ", gapEnv);
                     return thatSyntaxDef.accept(new NodeUpdateVisitor() {
                             @Override
                             public Node forNamedTransformerDef(NamedTransformerDef that) {
@@ -135,8 +135,8 @@ public class TemplateParser {
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
             if (result.hasValue()){
                 Object node = ((SemanticValue) result).value;
-                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff +
-                             "' as node " + node );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '", stuff,
+                             "' as node ", node );
                 return (AbstractNode) node;
             } else {
                 throw new ParserError((ParseError) result, parser);

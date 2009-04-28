@@ -141,7 +141,7 @@ public class NonterminalNameDisambiguator {
                           NodeUtil.namesString(names), name);
                     return Option.none();
                 }
-                Debug.debug( Debug.Type.SYNTAX, 4, uqname + " is qualified as " +
+                Debug.debug( Debug.Type.SYNTAX, 4, uqname, " is qualified as ",
                              IterUtil.first(names) );
                 return Option.some(IterUtil.first(names));
             }

@@ -122,7 +122,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forItemSymbol(ItemSymbol that) {
         SyntaxSymbol n = nameResolution(that);
-        Debug.debug(Debug.Type.SYNTAX, 4, "Resolve item symbol " + that.getItem() + " to " + n);
+        Debug.debug(Debug.Type.SYNTAX, 4, "Resolve item symbol ", that.getItem(), " to ", n);
         return n;
     }
 

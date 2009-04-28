@@ -56,8 +56,9 @@ public class EnvGenerationPhase extends Phase {
 
         // Generate bytecodes for as much as we can.
 
-        Debug.debug(Debug.Type.ENVGEN, 1, "Before invoking Compile: components=" + previous.components());
-        //Debug.debug(Debug.Type.ENVGEN, 1, "Before invoking Compile: apis      =" + previous.apis());
+        Debug.debug(Debug.Type.ENVGEN, 1,
+                    "Before invoking Compile: components=", previous.components());
+        //Debug.debug(Debug.Type.ENVGEN, 1, "Before invoking Compile: apis      =", previous.apis());
 
 
         return new AnalyzeResult(previous.apis(), previous.components(),

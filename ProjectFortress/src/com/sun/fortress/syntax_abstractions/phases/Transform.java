@@ -138,8 +138,8 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
-        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() +
-                    " in hygiene environment = " + var_result);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref ", that.getVarId(),
+                    " in hygiene environment = ", var_result);
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
                                                  NodeUtil.isParenthesized(that),
                                                  exprType_result);
@@ -552,16 +552,16 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
                                    Id gapId_result,
                                    List<Id> templateParams_result) {
-        Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid ", gapId_result );
         /* I'm pretty sure the following line should be commented out. Explanation
          * needed..
          */
         // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
         /* another annoying cast */
         Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object());
-        // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
-        Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result +
-                     " is " + n.getClass() + " " + n );
+        // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for ", n, " is ", n.generateHashCode() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid ", gapId_result,
+                     " is ", n.getClass(), " ", n );
         return n;
     }
 
@@ -604,7 +604,7 @@ public class Transform extends TemplateUpdateVisitor {
                 for ( int i = 0; i < params.size(); i++ ){
                     Id parameter = params.get( i );
                     String name = curried.getSyntaxParameters().get( i );
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Adding parameter " + name );
+                    Debug.debug( Debug.Type.SYNTAX, 3, "Adding parameter ", name );
                     vars.put( name, lookupVariable(parameter, new LinkedList<Id>()) );
                 }
                 // return curry((Node)binding, vars);
@@ -646,7 +646,7 @@ public class Transform extends TemplateUpdateVisitor {
             String varName = var.getKey();
             /*
             if ( var.getValue() instanceof List ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node ", varName );
                 env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
             }
             */
@@ -657,7 +657,7 @@ public class Transform extends TemplateUpdateVisitor {
             /* this is almost definately in the wrong place */
             /*
             if ( argument instanceof List ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node ", varName );
                 env.add( NodeFactory.makeId( varName ), 1, argument );
             }
             */
@@ -667,7 +667,7 @@ public class Transform extends TemplateUpdateVisitor {
 			 "Argument " + varName + " is " + argument);
         }
 
-        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " +
+        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer ",
 		     that.getSyntaxTransformer() );
         Node transformed =
 	    transformer.accept(new TransformerEvaluator(this.transformers,
@@ -702,7 +702,7 @@ public class Transform extends TemplateUpdateVisitor {
      * x = '((a) (b)) : Level(2, (list (list 'a) (list 'b)))
      */
     private Object traverse( Object partial ){
-        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " +
+        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object ",
                      partial.getClass().getName() );
         if ( partial instanceof Level ){
             Level l = (Level) partial;
@@ -949,7 +949,8 @@ public class Transform extends TemplateUpdateVisitor {
         for ( Id var : freeVariables ){
             if ( lookupLevel( var ) > 0 ){
                 int size = ((List) lookupVariable( var, new LinkedList<Id>() ).get_object()).size();
-                Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
+                Debug.debug( Debug.Type.SYNTAX, 2,
+                             "Repeated variable ", var, " size is ", size );
                 return size;
             }
         }

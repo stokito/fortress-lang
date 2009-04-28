@@ -46,7 +46,7 @@ public class JavaC {
         PrintWriter pw = new PrintWriter(sw);
         int compilationResult = com.sun.tools.javac.Main.compile(args, pw);
         String errors = sw.getBuffer().toString();
-        Debug.debug( Debug.Type.SYNTAX, "done: ", compilationResult+"" );
+        Debug.debug( Debug.Type.SYNTAX, "done: ", compilationResult );
 
         if (!errors.equals("")) {
             System.err.println(errors);

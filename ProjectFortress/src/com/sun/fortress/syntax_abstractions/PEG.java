@@ -68,7 +68,7 @@ class PEG extends NTEnv {
         Set<Id> all = new HashSet<Id>(defEntries.keySet());
         for (Id nt : all){
             if (defEntries.get(nt).isEmpty() && extEntries.get(nt).isEmpty()) {
-                Debug.debug(Debug.Type.SYNTAX, 2, "Removing empty nonterminal " + nt);
+                Debug.debug(Debug.Type.SYNTAX, 2, "Removing empty nonterminal ", nt);
                 defEntries.remove(nt);
                 extEntries.remove(nt);
             }

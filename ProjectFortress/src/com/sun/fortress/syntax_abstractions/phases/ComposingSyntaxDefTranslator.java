@@ -497,7 +497,7 @@ public class ComposingSyntaxDefTranslator {
 
         for (final Id id : gapEnv.gaps()) {
             Depth depth = gapEnv.getDepth(id);
-            // Debug.debug(Debug.Type.SYNTAX, 3, "Depth for " + id + " is " + depth);
+            // Debug.debug(Debug.Type.SYNTAX, 3, "Depth for ", id, " is ", depth);
             String var = id.getText();
 
             class DepthConvertVisitor implements Depth.Visitor<String> {

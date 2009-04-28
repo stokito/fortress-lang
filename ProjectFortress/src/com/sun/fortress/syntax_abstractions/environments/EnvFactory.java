@@ -130,9 +130,9 @@ public class EnvFactory {
             GrammarDecl og = grammar.ast();
             List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
             for (Id n: og.getExtendsClause()) {
-                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() +
-                            "[" + grammarMap.get(n.getText()) +
-                            "] to the extends list of " + grammar );
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar ", n.getText(),
+                            "[", grammarMap.get(n.getText()),
+                            "] to the extends list of ", grammar );
                 ls.add(grammarMap.get(n.getText()));
             }
             Debug.debug(Debug.Type.SYNTAX, 3,

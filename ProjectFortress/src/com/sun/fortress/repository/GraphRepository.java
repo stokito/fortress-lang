@@ -547,7 +547,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             youngestSourceDependedOn.put(node, youngest);
 
             List<GraphNode> depends = graph.depends(node);
-            Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
+            Debug.debug( Debug.Type.REPOSITORY, 2, node, " depends on ", depends );
             for (GraphNode next : depends) {
                 if (foreignJava.definesApi(next)) {
                     // no date information here; need to look for the dependence
@@ -583,19 +583,22 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             // If anything depended on has source that is younger than our compiled code,
             // then this is stale.
             if ( stale ){
-                Debug.debug( Debug.Type.REPOSITORY, 1, node + "or dependent is newer " + youngestSourceDependedOn.get(node) + " than the cache " + getCacheDate(node) );
+                Debug.debug( Debug.Type.REPOSITORY, 1, node, "or dependent is newer ",
+                             youngestSourceDependedOn.get(node),
+                             " than the cache ", getCacheDate(node) );
             }
 
             staleOrDependsOnStale.put(node, stale);
 
             List<GraphNode> depends = graph.depends(node);
-            Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
+            Debug.debug( Debug.Type.REPOSITORY, 2, node, " depends on ", depends );
             for ( GraphNode next : depends ){
                 boolean dependent_stale = isStale(next);
 
                 if ( dependent_stale  ){
                     stale = true;
-                    Debug.debug( Debug.Type.REPOSITORY, 1, node + " is stale " + next + " is stale" );
+                    Debug.debug( Debug.Type.REPOSITORY, 1,
+                                 node, " is stale ", next, " is stale" );
                     staleOrDependsOnStale.put(node, stale);
                 }
             }

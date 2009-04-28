@@ -655,7 +655,8 @@ public final class Shell {
         rootName = rootName.replace('/','.');
         rootName = rootName.replace('\\','.');
         String regex = "(.*\\.)?" + cuname.replaceAll("\\.", "\\.") + "$";
-        Debug.debug( Debug.Type.REPOSITORY, 3, "Checking file name " + rootName + " vs cuname " + regex );
+        Debug.debug( Debug.Type.REPOSITORY, 3,
+                     "Checking file name ", rootName, " vs cuname ", regex );
         return rootName.matches( regex );
     }
 
@@ -972,9 +973,9 @@ public final class Shell {
      * the file( including sub-directories )
      */
     public static Path sourcePath( String file, APIName name ) throws IOException {
-        Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is " + name );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is ", name );
         String fullPath = new File(file).getCanonicalPath();
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + fullPath );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Path is ", fullPath );
         Path path = ProjectProperties.SOURCE_PATH;
         /* the path to the file is /absolute/path/a/b/c/foo.fss and the apiname is
          * a.b.c.foo, so we need to take off the apiname plus four more characters,
@@ -982,8 +983,8 @@ public final class Shell {
          */
         String source = fullPath.substring( 0, fullPath.length() - (name.toString().length() + 4) );
         path = path.prepend( source );
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is " + path );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is ", source );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is ", path );
         return path;
     }
 
