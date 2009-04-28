@@ -88,7 +88,7 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
-            Debug.debug( Debug.Type.SYNTAX, 3, "Disambiguate grammar members for api " + index );
+            Debug.debug( Debug.Type.SYNTAX, 3, "Disambiguate grammar members for api ", index );
             Api pdResult = (Api) index.ast().accept(pd);
             results.add(pdResult);
             if (!newErrs.isEmpty()) {
@@ -205,13 +205,13 @@ public class Disambiguator {
          */
         for (ApiIndex a2: moreApis) {
             for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
-                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar " + e.getKey() + " from other apis" );
+                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar ", e.getKey(), " from other apis" );
                 grammars.put(e.getKey(), e.getValue());
             }
         }
         for (ApiIndex a2: apis) {
             for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
-                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar " + e.getKey() + " from normal apis" );
+                Debug.debug( Debug.Type.COMPILER, 4, "Add Grammar ", e.getKey(), " from normal apis" );
                 grammars.put(e.getKey(), e.getValue());
             }
         }
@@ -227,7 +227,7 @@ public class Disambiguator {
                     }
                     ls.add(g);
                 }
-                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar ", e.getKey(), " extends ", ls );
                 e.getValue().setExtended(ls);
             }
         }

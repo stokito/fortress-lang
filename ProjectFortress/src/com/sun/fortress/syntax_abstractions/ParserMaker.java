@@ -127,7 +127,7 @@ public class ParserMaker {
         Set<Id> nativeNonterminals = peg.nativeNonterminals;
         Mangler mangler = new Mangler(nativeNonterminals);
 
-        Debug.debug(Debug.Type.SYNTAX, 3, "Native nonterminals: " + nativeNonterminals);
+        Debug.debug(Debug.Type.SYNTAX, 3, "Native nonterminals: ", nativeNonterminals);
 
         // Remove empty nonterminals (otherwise Rats! complains)
         peg.removeEmptyNonterminals();

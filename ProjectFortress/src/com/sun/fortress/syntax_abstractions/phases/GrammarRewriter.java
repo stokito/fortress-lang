@@ -164,7 +164,7 @@ public class GrammarRewriter {
                 for (Id n: og.getExtendsClause()) {
                     ls.add(grammars.get(n.getText()));
                 }
-                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar ", e.getKey(), " extends ", ls );
                 e.getValue().setExtended(ls);
             }
         }

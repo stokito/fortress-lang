@@ -77,7 +77,7 @@ public class PreParserState implements State {
 
     /** Record a left delimiter. */
     public void left(IdOrOp open) {
-        Debug.debug( Debug.Type.PARSER, 1, "Left delimiter " + open );
+        Debug.debug( Debug.Type.PARSER, 1, "Left delimiter ", open );
         String token = open.getText();
         if ( token.equals("component") || token.equals("api") ) {
             if ( sawCompilation )
@@ -102,7 +102,7 @@ public class PreParserState implements State {
 
     /** Check a right delimiter. */
     public void right(IdOrOp close) {
-        Debug.debug( Debug.Type.PARSER, 1, "Right delimiter " + close );
+        Debug.debug( Debug.Type.PARSER, 1, "Right delimiter ", close );
         if ( lefts.isEmpty() ) emptyLefts(close);
         else {
             IdOrOp open = lefts.remove(0);
@@ -165,7 +165,7 @@ public class PreParserState implements State {
     }
 
     public void quote(Span span, String token) {
-        Debug.debug( Debug.Type.PARSER, 1, "Quote " + token);
+        Debug.debug( Debug.Type.PARSER, 1, "Quote ", token);
         if ( lefts.isEmpty() )
             left( NodeFactory.makeId(span, token) );
         else {

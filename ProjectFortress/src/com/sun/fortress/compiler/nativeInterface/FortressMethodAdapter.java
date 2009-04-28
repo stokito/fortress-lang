@@ -116,10 +116,10 @@ public class FortressMethodAdapter extends ClassAdapter {
             String signature, String[] exceptions) {
         // Don't know how to do these, or if we need them...
         if (name.equals("<init>") || name.equals("<clinit>"))
-            Debug.debug(Debug.Type.COMPILER, 1, "Don't visit Method " + name);
+            Debug.debug(Debug.Type.COMPILER, 1, "Don't visit Method ", name);
         else if (SignatureParser.unsayable(desc))
             Debug.debug(Debug.Type.COMPILER, 1,
-                    "Don't visit Method with unsayable desc" + name);
+                    "Don't visit Method with unsayable desc", name);
         else {
             
             generateNewBody(access, desc, signature, exceptions, name, name);
@@ -167,8 +167,8 @@ public class FortressMethodAdapter extends ClassAdapter {
     private void generateNewBody(int access, String desc, String signature,
             String[] exceptions, String name, String newName) {
 
-        Debug.debug(Debug.Type.COMPILER, 1, "generateNewBody: " + name
-                + " with desc " + desc);
+        Debug.debug(Debug.Type.COMPILER, 1, "generateNewBody: ", name,
+                    " with desc ", desc);
 
         SignatureParser sp = new SignatureParser(desc);
         String fsig = sp.getFortressifiedSignature();
@@ -191,8 +191,8 @@ public class FortressMethodAdapter extends ClassAdapter {
                     converter.toJavaTypeMethod, converter.toJavaTypeMethodDesc);
         }
 
-        Debug.debug(Debug.Type.COMPILER, 1, "className = " + className
-                + " name = " + name + " access = " + access);
+        Debug.debug(Debug.Type.COMPILER, 1, "className = ", className,
+                    " name = ", name, " access = ", access);
 
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name, sp
                 .getSignature());

@@ -53,7 +53,7 @@ public class FortressForeignAdapter extends ClassAdapter {
             String signature, String[] exceptions) {
         // Don't know how to do these, or if we need them...
         if (name.equals("<init>") || name.equals("<clinit>"))
-            Debug.debug(Debug.Type.COMPILER, 1, "Don't visit Method " + name);
+            Debug.debug(Debug.Type.COMPILER, 1, "Don't visit Method ", name);
         else if (SignatureParser.unsayable(desc))
             Debug.debug(Debug.Type.COMPILER, 1,
                     "Don't visit Method with unsayable desc" + name);

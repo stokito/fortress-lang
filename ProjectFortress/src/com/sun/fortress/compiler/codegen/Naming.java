@@ -186,7 +186,7 @@ public class Naming extends NodeAbstractVisitor<String> {
                         sayWhat(t);
                     }
                 }
-                Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type " + t + " = " + result);
+                Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
             }
@@ -238,7 +238,7 @@ public class Naming extends NodeAbstractVisitor<String> {
         if (optionReturnType.isNone())
             desc = desc + closeParen + descFortressVoid;
         else desc = desc + closeParen + emitDesc(optionReturnType.unwrap());
-        Debug.debug(Debug.Type.CODEGEN, 1, "generateTypeDescriptor" + f + " = " + desc);
+        Debug.debug(Debug.Type.CODEGEN, 1, "generateTypeDescriptor", f, " = ", desc);
         return desc;
     }
 

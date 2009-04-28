@@ -144,7 +144,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                                                        CaseTransformerClause that) {
         List<Id> parameters = that.getParameters();
 
-        Debug.debug(Debug.Type.SYNTAX, 2, "Case type for " + gapName + " is " + caseType);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Case type for ", gapName, " is ", caseType);
 
         // FIXME!!!
         if (that.getConstructor().getText().equals("Cons")) {

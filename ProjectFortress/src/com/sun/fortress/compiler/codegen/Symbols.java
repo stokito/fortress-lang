@@ -97,7 +97,9 @@ public class Symbols {
         for (IdOrOpOrAnonymousName name : predSet) {
                 if (name instanceof IdOrOp) {
                     IdOrOp foo = (IdOrOp) name;
-                    Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInPredicateSet:name = " + name + " fnName = " + fnName);
+                    Debug.debug(Debug.Type.CODEGEN, 1,
+                                "lookupFunctionInPredicateSet:name = ", name,
+                                " fnName = ", fnName);
                     if (foo.getText() == fnName.getText()) {
                         return foo;
                     }
@@ -123,7 +125,8 @@ public class Symbols {
 
     public Function lookupFunctionInComponent(IdOrOp fnName) {
         for (ComponentIndex ind : components.values()) {
-            Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInComponent:name = " + fnName + " component = " + ind);
+            Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInComponent:name = ", fnName,
+                        " component = ", ind);
             PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
             IdOrOp n = lookupFunctionInPredicateSet(fnName, first);
             PredicateSet<Function> functions = ind.functions().matchFirst(n);

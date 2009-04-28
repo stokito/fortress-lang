@@ -61,7 +61,7 @@ public class NonterminalEnv {
             throw new RuntimeException("Current grammar is null");
         }
         this.current = currentGrammar;
-        Debug.debug( Debug.Type.COMPILER, 2, "Current grammar is " + current );
+        Debug.debug( Debug.Type.COMPILER, 2, "Current grammar is ", current );
         initializeNonterminals();
     }
 
@@ -84,7 +84,8 @@ public class NonterminalEnv {
                     APIName api = constructNonterminalApi(currentGrammar.getName());
                     Id qname = NodeFactory.makeId(span, api, key);
 
-                    Debug.debug( Debug.Type.SYNTAX, 2, "Qualify " + key + " with name " + qname );
+                    Debug.debug( Debug.Type.SYNTAX, 2,
+                                 "Qualify ", key, " with name ", qname );
                     if (nonterminals.containsKey(key)) {
                         nonterminals.get(key).add(qname);
                     } else {
@@ -115,7 +116,8 @@ public class NonterminalEnv {
             APIName api = constructNonterminalApi(currentGrammar.getName());
             Id qname = NodeFactory.makeId(span, api, key);
 
-            Debug.debug( Debug.Type.SYNTAX, 2, "Ambigious key " + key + " disambiguates to " + qname );
+            Debug.debug( Debug.Type.SYNTAX, 2,
+                         "Ambigious key ", key, " disambiguates to ", qname );
             if (nonterminals.containsKey(key)) {
                 nonterminals.get(key).add(qname);
             } else {
@@ -151,7 +153,7 @@ public class NonterminalEnv {
      * determine whether a nonterminal exists.  Assumes {@code name.getApiName().isSome()}.
      */
     public boolean hasQualifiedNonterminal(Id name) {
-        Debug.debug( Debug.Type.SYNTAX, 3, "Find a qualified id for non-terminal " + name );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Find a qualified id for non-terminal ", name );
         Option<APIName> optApi = name.getApiName();
         if (optApi.isNone())
             bug(name, "A qualified identifier is supposed to have an API name, but the api is not present");
@@ -206,7 +208,7 @@ public class NonterminalEnv {
      * @param an unqualified nonterminal name
      */
     public Set<Id> inheritedNonterminalNames(String name) {
-        Debug.debug( Debug.Type.SYNTAX, 3, "Is " + name + " inherited?" );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Is ", name, " inherited?" );
         Set<Id> results = new HashSet<Id>();
         for ( GrammarIndex extend : this.getGrammarIndex().getExtended() ){
             results.addAll( new NonterminalEnv( extend ).declaredNonterminalNames( name ) );

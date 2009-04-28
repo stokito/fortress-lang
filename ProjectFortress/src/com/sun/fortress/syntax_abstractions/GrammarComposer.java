@@ -72,7 +72,7 @@ class GrammarComposer {
     public static PEG pegForComponent(List<GrammarIndex> imports) {
         Debug.debug(Debug.Type.SYNTAX, 2,
                     "GrammarComposer: create parser for component");
-        Debug.debug(Debug.Type.SYNTAX, 2, "Imports: " + imports);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Imports: ", imports);
         List<NonterminalDef> definitions = new LinkedList<NonterminalDef>();
         List<NonterminalExtensionDef> extensions =
             ExtensionDesugarer.createImplicitExtensions(imports);
@@ -143,7 +143,7 @@ class GrammarComposer {
         for (NonterminalDef nonterminal : nonterminals){
             Id nonterminalName = nonterminal.getName();
             List<SyntaxDef> defs = peg.create(nonterminalName);
-            Debug.debug(Debug.Type.SYNTAX, 2, "Add " + nonterminalName + " to peg definition");
+            Debug.debug(Debug.Type.SYNTAX, 2, "Add ", nonterminalName, " to peg definition");
             addEntryForDef(defs, nonterminal);
 
             Option<BaseType> type = nonterminal.getAstType();
@@ -164,7 +164,7 @@ class GrammarComposer {
 
     /* add choices for nonterminal extensions to the definition nonterminals */
     private void applyExtension(PEG peg, NonterminalExtensionDef ext) {
-        Debug.debug(Debug.Type.SYNTAX, 2, "Apply extensions to " + ext.getName());
+        Debug.debug(Debug.Type.SYNTAX, 2, "Apply extensions to ", ext.getName());
         List<SyntaxDef> exts = peg.getExts(ext.getName());
         for (SyntaxDecl decl : ext.getSyntaxDecls()) {
             resolveAndAdd(exts, decl);
@@ -186,7 +186,7 @@ class GrammarComposer {
 
         if (decl instanceof SyntaxDef) {
             SyntaxDef def = (SyntaxDef) decl;
-            Debug.debug(Debug.Type.SYNTAX, 3, "Add choice " + decl);
+            Debug.debug(Debug.Type.SYNTAX, 3, "Add choice ", decl);
             defs.add(def);
         } else if (decl instanceof SuperSyntaxDef) {
             SuperSyntaxDef def = (SuperSyntaxDef) decl;

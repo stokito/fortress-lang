@@ -309,7 +309,7 @@ public class Parser {
 	private static void dump( Node node, String name ){
         try{
             ASTIO.writeJavaAst( (CompilationUnit) node, name );
-            Debug.debug( Debug.Type.SYNTAX, 1, "Dumped node to " + name );
+            Debug.debug( Debug.Type.SYNTAX, 1, "Dumped node to ", name );
         } catch ( IOException e ){
             e.printStackTrace();
         }
