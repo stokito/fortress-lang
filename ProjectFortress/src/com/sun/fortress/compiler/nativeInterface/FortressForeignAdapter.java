@@ -33,7 +33,7 @@ public class FortressForeignAdapter extends ClassAdapter {
     private final Set<OverloadSet> overloads;
     HashSet<String> overloadsDone = new HashSet<String>();
     String className;
-    
+
     public FortressForeignAdapter(ClassVisitor cv,
             String outputClassName,
             Set<OverloadSet> overloads) {
@@ -58,58 +58,23 @@ public class FortressForeignAdapter extends ClassAdapter {
             Debug.debug(Debug.Type.COMPILER, 1,
                     "Don't visit Method with unsayable desc" + name);
         else {
-                      
+
             if (!overloadsDone.contains(name)) {
                 // Generate all the overloadings.
                 overloadsDone.add(name);
                 for (OverloadSet o : overloads) {
                     String oname = o.getName().stringName();
+                    // exposed naming conventions, ugh.
                     oname = oname.substring(oname.lastIndexOf(".") + 1);
                     if (oname.equals(name)) {
-                        generateAnOverload(oname, cv, o);
+                        o.generateAnOverloadDefinition(oname, cv);
                     }
                 }
-            } 
-            
+            }
+
 
         }
 
         return super.visitMethod(access, name, desc, signature, exceptions);
     }
-
-    private static void generateAnOverload(String name, ClassVisitor cv,
-            OverloadSet o) {
-
-        // "(" anOverloadedArg^N ")" returnType
-        // Not sure what to do with return type.
-        String signature = o.getSignature();
-        String[] exceptions = o.getExceptions();
-        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
-                + Opcodes.ACC_STATIC, // access,
-                name, // name,
-                signature, // sp.getFortressifiedSignature(),
-                null, // signature, // depends on generics, I think
-                exceptions); // exceptions);
-
-        mv.visitCode();
-        Label fail = new Label();
-
-        o.generateCall(mv, 0, fail); // Guts of overloaded method
-
-        // Emit failure case
-        mv.visitLabel(fail);
-        // Boilerplate for throwing an error.
-        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitLdcInsn("Should not happen");
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>",
-                "(Ljava/lang/String;)V");
-        mv.visitInsn(Opcodes.ATHROW);
-
-        mv.visitMaxs(o.getParamCount(), o.getParamCount()); // autocomputed
-        mv.visitEnd();
-
-    }
-
 }
