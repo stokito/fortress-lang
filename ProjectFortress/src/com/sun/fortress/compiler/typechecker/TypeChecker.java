@@ -2791,7 +2791,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (apiName.isSome()) {
             APIName api = apiName.unwrap();
             TypeEnv apiTypeEnv = returnTypeEnvForApi(api);
-            Option<Type> type = apiTypeEnv.type(name);
+            Option<Type> type = apiTypeEnv.getType(name);
             if (type.isSome()) {
                 Type _type = type.unwrap();
                 if (_type instanceof NamedType) { // Do we need to qualify?
@@ -2812,7 +2812,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return new TypeCheckerResult(original_name, error);
             }
         }
-        Option<Type> type = typeEnv.type(name);
+        Option<Type> type = typeEnv.getType(name);
         if (type.isSome()) {
             Type _type = type.unwrap();
             if (_type instanceof LabelType) { // then name must be an Id

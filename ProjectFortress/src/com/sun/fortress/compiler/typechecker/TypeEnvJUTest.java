@@ -52,7 +52,7 @@ public class TypeEnvJUTest extends TestCase {
                                                      Modifiers.Settable)));
 
     public void testEmptyTypeEnv() {
-        assertEquals(none(), TypeEnv.make().type(makeId(span,"x")));
+        assertEquals(none(), TypeEnv.make().getType(makeId(span,"x")));
         assertEquals(none(), TypeEnv.make().mods(makeId(span,"x")));
         assertEquals(none(), TypeEnv.make().mutable(makeId(span,"x")));
     }
