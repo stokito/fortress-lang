@@ -52,7 +52,7 @@ import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class OverloadSet implements Comparable<OverloadSet> {
+abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
@@ -133,7 +133,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
     OverloadSet[] children;
     boolean splitDone;
 
-    private OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+    protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<TaggedFunctionName> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.name = name;
@@ -145,7 +145,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
         this.paramCount = paramCount;
     }
 
-    OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+    protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
 
         this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
 
@@ -167,6 +167,12 @@ public class OverloadSet implements Comparable<OverloadSet> {
 
         }
     }
+
+    abstract protected  void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+            String sig);
+
+    abstract protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t);
+
 
     void split() {
         if (splitDone)
@@ -299,9 +305,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
 
                 }
 
-                children[i] =
-                    new OverloadSet(name, ta, childLSTSF,
-                            childTestedIndices, this, t, paramCount);
+                children[i] = makeChild(childLSTSF, childTestedIndices, t);
+
             }
             for (OverloadSet child: children) {
                 child.split();
@@ -545,21 +550,7 @@ public class OverloadSet implements Comparable<OverloadSet> {
             sig += ")";
             sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
 
-            String pname = NamingCzar.only.apiNameToPackageName(f.a);
-            String cnameDOTmname = name.toString();
-
-            int idot = cnameDOTmname.lastIndexOf(".");
-            String ownerName;
-            String mname;
-            if (idot == -1) {
-                ownerName = Useful.replace(pname, ".", "/") ;
-                mname = cnameDOTmname;
-            } else {
-                ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
-                mname = cnameDOTmname.substring(idot+1);
-            }
-
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+            invokeParticularMethod(mv, f, sig);
             mv.visitInsn(Opcodes.ARETURN);
 
         } else {
@@ -577,6 +568,8 @@ public class OverloadSet implements Comparable<OverloadSet> {
             mv.visitJumpInsn(Opcodes.GOTO, failLabel);
         }
     }
+
+
 
     public String toString() {
         if (lessSpecificThanSoFar.size() == 1) {
@@ -602,6 +595,50 @@ public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+   static public class Foreign extends OverloadSet {
+       /**
+        * Emit the invocation for a particular type of overloaded functions.
+        *
+        * @param mv
+        * @param f
+        * @param sig
+        */
+       protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+               String sig) {
+           String pname = NamingCzar.only.apiNameToPackageName(f.a);
+           String cnameDOTmname = name.toString();
 
+           int idot = cnameDOTmname.lastIndexOf(".");
+           String ownerName;
+           String mname;
+           if (idot == -1) {
+               ownerName = Useful.replace(pname, ".", "/") ;
+               mname = cnameDOTmname;
+           } else {
+               ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
+               mname = cnameDOTmname.substring(idot+1);
+           }
+
+           mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+       }
+
+       /* Boilerplate follows, because this is a subtype. */
+
+       protected Foreign(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+               Set<TaggedFunctionName> lessSpecificThanSoFar,
+               BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+           super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+       }
+
+       public Foreign(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+           super(apiname, name, ta, defs, n);
+       }
+
+       protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
+           return new Foreign(name, ta, childLSTSF,
+                   childTestedIndices, this, t, paramCount);
+       }
+
+   }
 
 }
