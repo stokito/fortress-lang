@@ -165,8 +165,7 @@ maintain proper indentation.
   <path id="compile.classpath">
     <path refid="scala.classpath"/>
     <pathelement location="${build}"/>
-    <pathelement location="${asm}/asm-3.1.jar"/>
-    <pathelement location="${asm}/asm-tree-3.1.jar"/>
+    <pathelement location="${asm}/asm-all-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location ="${unsigned}/unsigned.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>

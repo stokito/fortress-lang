@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -595,50 +596,127 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-   static public class Foreign extends OverloadSet {
-       /**
-        * Emit the invocation for a particular type of overloaded functions.
-        *
-        * @param mv
-        * @param f
-        * @param sig
-        */
-       protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
-               String sig) {
-           String pname = NamingCzar.only.apiNameToPackageName(f.a);
-           String cnameDOTmname = name.toString();
+    public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
 
-           int idot = cnameDOTmname.lastIndexOf(".");
-           String ownerName;
-           String mname;
-           if (idot == -1) {
-               ownerName = Useful.replace(pname, ".", "/") ;
-               mname = cnameDOTmname;
-           } else {
-               ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
-               mname = cnameDOTmname.substring(idot+1);
-           }
+        // "(" anOverloadedArg^N ")" returnType
+        // Not sure what to do with return type.
+        String signature = getSignature();
+        String[] exceptions = getExceptions();
+        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
+                + Opcodes.ACC_STATIC, // access,
+                name, // name,
+                signature, // sp.getFortressifiedSignature(),
+                null, // signature, // depends on generics, I think
+                exceptions); // exceptions);
 
-           mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
-       }
+        mv.visitCode();
+        Label fail = new Label();
 
-       /* Boilerplate follows, because this is a subtype. */
+        generateCall(mv, 0, fail); // Guts of overloaded method
 
-       protected Foreign(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-               Set<TaggedFunctionName> lessSpecificThanSoFar,
-               BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
-           super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
-       }
+        // Emit failure case
+        mv.visitLabel(fail);
+        // Boilerplate for throwing an error.
+        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitLdcInsn("Should not happen");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>",
+                "(Ljava/lang/String;)V");
+        mv.visitInsn(Opcodes.ATHROW);
 
-       public Foreign(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-           super(apiname, name, ta, defs, n);
-       }
+        mv.visitMaxs(getParamCount(), getParamCount()); // autocomputed
+        mv.visitEnd();
 
-       protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-           return new Foreign(name, ta, childLSTSF,
-                   childTestedIndices, this, t, paramCount);
-       }
+    }
 
-   }
+
+
+    static public class Foreign extends OverloadSet {
+        /**
+         * Emit the invocation for a particular type of overloaded functions.
+         *
+         * @param mv
+         * @param f
+         * @param sig
+         */
+        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+                String sig) {
+            String pname = NamingCzar.only.apiNameToPackageName(f.a);
+            String cnameDOTmname = name.toString();
+
+            int idot = cnameDOTmname.lastIndexOf(".");
+            String ownerName;
+            String mname;
+            if (idot == -1) {
+                ownerName = Useful.replace(pname, ".", "/") ;
+                mname = cnameDOTmname;
+            } else {
+                ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
+                mname = cnameDOTmname.substring(idot+1);
+            }
+
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+        }
+
+        /* Boilerplate follows, because this is a subtype. */
+
+        protected Foreign(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+                Set<TaggedFunctionName> lessSpecificThanSoFar,
+                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+        }
+
+        public Foreign(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+            super(apiname, name, ta, defs, n);
+        }
+
+        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
+            return new Foreign(name, ta, childLSTSF,
+                    childTestedIndices, this, t, paramCount);
+        }
+
+
+    }
+
+    static public class AmongApis extends OverloadSet {
+        /**
+         * Emit the invocation for a particular type of overloaded functions.
+         *
+         * @param mv
+         * @param f
+         * @param sig
+         */
+        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+                String sig) {
+            String pname = NamingCzar.only.apiNameToPackageName(f.a);
+            String cnameDOTmname = name.toString();
+
+            String ownerName;
+            String mname;
+            ownerName = Useful.replace(pname, ".", "/") ;
+            mname = cnameDOTmname;
+
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+        }
+
+        /* Boilerplate follows, because this is a subtype. */
+
+        protected AmongApis(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+                Set<TaggedFunctionName> lessSpecificThanSoFar,
+                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+        }
+
+        public AmongApis(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+            super(apiname, name, ta, defs, n);
+        }
+
+        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
+            return new AmongApis(name, ta, childLSTSF,
+                    childTestedIndices, this, t, paramCount);
+        }
+
+    }
 
 }
