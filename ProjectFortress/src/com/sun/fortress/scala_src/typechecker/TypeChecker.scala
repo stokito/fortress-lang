@@ -31,11 +31,14 @@ import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
+import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.useful.NI
 import com.sun.fortress.exceptions.InterpreterBug.bug;
 
-class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
+
+class TypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) {
 
   var errors = List[StaticError]()
 
@@ -47,29 +50,65 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
   private def isArrows(expr: Expr): Boolean = TypesUtil.isArrows(inferredType(expr).get).asInstanceOf
   
-  private def checkSubtype(subtype:Type,supertype:Type,senv:TypeAnalyzer,node:Node,error:String) = {
-    val judgement = senv.subtype(subtype,supertype).isTrue
+  private def checkSubtype(subtype:Type,supertype:Type,node:Node,error:String) = {
+    val judgement = analyzer.subtype(subtype,supertype).isTrue
     if (! judgement) signal(error,node)
     judgement
   }
+  
+  private def handleAliases(name: Id,api: APIName, imports: List[Import]): Id = {
+	def getAliases(imp: Import): Option[Id] = imp match {
+	  case SImportNames(info,foreignLanguage,aliasApi,aliases) => {
+	    if(api.equals(aliasApi)){
+	      def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
+	        case SAliasedSimpleName(_,newName,Some(alias)) =>
+	          if(alias.equals(name))
+	            Some(newName.asInstanceOf)
+	          else
+	            None
+	        case _ => None
+	      }
+	      val matchingAliases = aliases.flatMap(getName)
+	      matchingAliases.find((x:Id)=>true)
+	    }
+	    else
+	      None
+	  }
+	  case _ => None
+	}
+	imports.flatMap(getAliases).find((x:Id)=>true).getOrElse(name)
+  }
+  
+  private def getEnvFromApi(api: APIName):TypeEnv = TypeEnv.make(traits.compilationUnit(api))
+  
+  private def getTypeFromName(name: Name): Option[Type] = name match{
+    case id@SId(info,api,name) => api match{
+      case Some(api) => {
+        val apiEnv = getEnvFromApi(api)
+        toOption(apiEnv.getType(id))
+      }
+      case _ => toOption(env.getType(id))
+    }
+    case _ => None
+  }
+  
 
-  def check(node:Node,env:TypeEnv,senv:TypeAnalyzer):Node = node match {
+  def check(node:Node):Node = node match {
     case SComponent(info,name,imports,decls,isNative,exports)  => 
-      SComponent(info,name,imports,decls.map((n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
+      SComponent(info,name,imports,decls.map((n:Decl)=>check(n).asInstanceOf),isNative,exports)
 
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
     case f@SFnDecl(info,SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
                   unambiguousName,Some(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
-      val newSenv = senv.extend(statics,wheres)
-
+      val newAnalyzer = analyzer.extend(statics,wheres)
+      val newChecker = new TypeChecker(current,traits,newEnv,newAnalyzer)
       val newContract = contract match {
-        case Some(c) => Some(check(c,newEnv,newSenv))
+        case Some(c) => Some(newChecker.check(c))
         case None => contract
       }
-      val newBody = checkExpr(body,newEnv,newSenv,returnType)
-
+      val newBody = newChecker.checkExpr(body,returnType)
       val newReturnType = inferredType(newBody) match {
         case Some(typ) => returnType match {
           case None => Some(typ)
@@ -86,30 +125,34 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
       case Nil =>
         SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),loc,false,withinDo,exprs)   
       case last::rest =>
-        val allButLast = rest.map((e: Expr) => checkExpr(e,env,senv,Some(Types.VOID)))
-        val lastExpr = checkExpr(last,env,senv)
+        val allButLast = rest.map((e: Expr) => checkExpr(e,Some(Types.VOID)))
+        val lastExpr = checkExpr(last)
         val newExprs = (lastExpr::allButLast).reverse
         SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),loc,false,withinDo,newExprs)  
     }
 
+    case id@SId(info,api,name) => api match{
+      case Some(api) => handleAliases(id,api,toList(current.ast.getImports))
+      case _ => id
+    }
     case _ => node
   }
 
-  def checkExpr(expr: Expr,env: TypeEnv,senv:TypeAnalyzer):Expr = checkExpr(expr,env,senv,None)
+  def checkExpr(expr: Expr):Expr = checkExpr(expr,None)
 
-  def checkExpr(expr: Expr,env: TypeEnv,senv:TypeAnalyzer,expected:Option[Type]):Expr = expr match {
+  def checkExpr(expr: Expr,expected:Option[Type]):Expr = expr match {
     
     /* Temporary code for Tight Juxtapositions
      */
     case SJuxt(info, multi, infix, exprs, false, true) => {
-      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e,env,senv))
+      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
       if(haveInferredTypes(checkedExprs)){
         //check if there are any functions
         if(checkedExprs.exists((e:Expr)=>isArrows(e))){ 
           //ToDo: some static checks
           //Left associate
           val leftAssociated = checkedExprs.tail.foldLeft(checkedExprs.head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)}
-          checkExpr(leftAssociated,env,senv,expected)
+          checkExpr(leftAssociated,expected)
         }
         else{
           //find the left most function
@@ -120,7 +163,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
           //Replace fn and arg with a _ReWriteFnApp and recurse
           val fnApp = ExprFactory.make_RewriteFnApp(fn,arg)
           val newExprs = prefix++(fnApp::suffix)
-          checkExpr(SJuxt(info,multi,infix,newExprs,false,true),env,senv,expected)
+          checkExpr(SJuxt(info,multi,infix,newExprs,false,true),expected)
         }
       }
       else{
@@ -133,7 +176,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
      */
     case SJuxt(info, multi, infix, exprs, isApp, false) => {
       //Check subexpressions
-      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e,env,senv))
+      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
       if(haveInferredTypes(checkedExprs)){
         //Breaks the list of expressions into chunks
         def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
@@ -185,7 +228,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         associatedChunks match{
           case Nil => bug("Empty Juxt")
           case head::tail =>
-            checkExpr(tail.foldLeft(head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)},env,senv,expected)
+            checkExpr(tail.foldLeft(head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)},expected)
         }  
       }
       else{
@@ -201,7 +244,7 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         else
           NonParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
       }
-      checkExpr(MathPrimary(info,multi,infix,checkExpr(front,env,senv),rest.map(converter)),env,senv,expected)
+      checkExpr(MathPrimary(info,multi,infix,checkExpr(front),rest.map(converter)),env,analyzer,expected)
     }
      */
     
@@ -211,9 +254,9 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
     case _ => expr
   }
   
-  def checkMathItem(item: MathItem,env: TypeEnv,senv:TypeAnalyzer): MathItem = checkMathItem(item,env,senv,None)
+  def checkMathItem(item: MathItem): MathItem = checkMathItem(item,None)
 
-  def checkMathItem(item: MathItem, env: TypeEnv,senv:TypeAnalyzer,expected:Option[Type]): MathItem = item match{
+  def checkMathItem(item: MathItem, expected:Option[Type]): MathItem = item match{
     case _ => item
   } 
 

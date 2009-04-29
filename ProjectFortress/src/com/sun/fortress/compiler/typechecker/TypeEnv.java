@@ -267,7 +267,7 @@ public abstract class TypeEnv {
      * Return the type of the given IdOrOpOrAnonymousName (if the given IdOrOpOrAnonymousName is in
      * this type environment).
      */
-    public final Option<Type> type(IdOrOpOrAnonymousName var) {
+    public final Option<Type> getType(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> _binding = binding(var);
         if (_binding.isSome()) {
             Option<Type> type = _binding.unwrap().getType();
@@ -313,7 +313,7 @@ public abstract class TypeEnv {
      * Convenience method that takes a String and returns the type of the
      * corresponding Id in this type environment.
      */
-    public final Option<Type> type(String var) { return type(makeId(NodeFactory.internalSpan,var)); }
+    public final Option<Type> type(String var) { return getType(makeId(NodeFactory.internalSpan,var)); }
 
     /**
      * Convenience method that takes a String and returns the modifiers for the
