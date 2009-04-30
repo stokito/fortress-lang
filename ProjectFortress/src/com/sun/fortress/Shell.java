@@ -209,6 +209,10 @@ public final class Shell {
     public static boolean getTypeChecking() {
         return compileProperties.type_check;
     }
+    
+    public static boolean getScala(){
+    	return compileProperties.use_scala;
+    }
 
     public static boolean getObjExprDesugaring(){
         return compileProperties.objExpr_desugar;
@@ -1078,6 +1082,7 @@ public final class Shell {
         boolean type_check = ProjectProperties.getBoolean("fortress.compile.typecheck", false); // run type checker or not
         boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.objexpr", false); // run obj expression desugaring or not
         boolean getter_setter_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.getset", true); // run getter/setter desugaring or not
+        boolean use_scala = ProjectProperties.getBoolean("fortress.compile.useScala",false); //use the scala typechecker
     }
 
 }

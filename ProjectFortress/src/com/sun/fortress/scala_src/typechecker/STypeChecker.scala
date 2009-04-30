@@ -38,10 +38,10 @@ import com.sun.fortress.useful.NI
 import com.sun.fortress.exceptions.InterpreterBug.bug;
 
 
-class TypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) {
+class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) {
 
   var errors = List[StaticError]()
-
+  
   private def signal(msg:String,node:Node) = { errors = errors ::: List(TypeError.make(msg,node)) }
 
   private def inferredType(expr:Expr): Option[Type] = scalaify(expr.getInfo.getExprType).asInstanceOf
@@ -93,6 +93,8 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeEn
   }
   
 
+  def getErrors(): List[StaticErrors] = errors
+  
   def check(node:Node):Node = node match {
     case SComponent(info,name,imports,decls,isNative,exports)  => 
       SComponent(info,name,imports,decls.map((n:Decl)=>check(n).asInstanceOf),isNative,exports)
