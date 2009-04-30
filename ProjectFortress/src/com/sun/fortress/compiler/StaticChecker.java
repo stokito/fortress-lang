@@ -45,6 +45,7 @@ import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
+import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import edu.rice.cs.plt.iter.IterUtil;
 
 /**
