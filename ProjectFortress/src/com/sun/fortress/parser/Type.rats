@@ -194,17 +194,14 @@ TupleType TupleType =
 List<Type> TypeList = a1:Type a2s:(w comma w Type)*
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* TypeRef ::= DottedIdChain StaticArgs? */
-/* TypeRef ::= Id StaticArgs? */
+/* TypeRef ::= DottedIdChain (w StaticArgs)? */
+/* TypeRef ::= Id (w StaticArgs)? */
 private Type TypeRef =
      "Unity"
      { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,yyCount), false); }
-   / a1:Id a2:hasW a3:StaticArgs
+   / a1:Id w a2:StaticArgs
      { Span span = createSpan(yyStart,yyCount);
-       if ( a2.booleanValue() )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       yyValue = NodeFactory.makeTraitType(span, a1, a3);
+       yyValue = NodeFactory.makeTraitType(span, a1, a2);
      }
    / a1:Id
      { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); };
