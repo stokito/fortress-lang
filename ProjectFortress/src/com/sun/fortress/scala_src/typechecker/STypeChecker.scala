@@ -93,7 +93,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
   }
   
 
-  def getErrors(): List[StaticErrors] = errors
+  def getErrors(): List[StaticError] = errors
   
   def check(node:Node):Node = node match {
     case SComponent(info,name,imports,decls,isNative,exports)  => 
@@ -105,7 +105,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
                   unambiguousName,Some(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newAnalyzer = analyzer.extend(statics,wheres)
-      val newChecker = new TypeChecker(current,traits,newEnv,newAnalyzer)
+      val newChecker = new STypeChecker(current,traits,newEnv,newAnalyzer)
       val newContract = contract match {
         case Some(c) => Some(newChecker.check(c))
         case None => contract
