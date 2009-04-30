@@ -26,10 +26,10 @@ import NoSpaceExpr;
 import Symbol;
 import Spacing;
 
-/* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
+/* ArrayExpr ::= [ (w StaticArgs)? w RectElements w ] */
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
 ArrayElements ArrayExpr =
-     void:opensquare a1:StaticArgs? w a2:NoSpaceExpr a3s:MultiDimCons* w
+     void:opensquare a1:(w StaticArgs)? w a2:NoSpaceExpr a3s:MultiDimCons* w
      void:closesquare
      { ArrayElements rectElements;
        if (a3s == null || a3s.isEmpty()) {

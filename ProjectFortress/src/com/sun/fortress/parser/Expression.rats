@@ -106,7 +106,7 @@ List<Lhs> AssignLefts =
      SubscriptExpr
    | FieldSelection
    | QualifiedName
-   SubscriptExpr ::= Primay LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+   SubscriptExpr ::= Primay LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
    FieldSelection ::= Primary . Id
  */
 Lhs AssignLeft =
@@ -129,18 +129,15 @@ constant transient Action<Expr> AssignLeftTail =
    ;
 
 constant inline Action<Expr> SubscriptAssign =
-     a1:LeftEncloser a2:hasW a3:StaticArgs? a4:(w ExprList)? w a5:RightEncloser
+     a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-             Span span = NodeUtil.spanTwo(base, a5);
-             if ( a2.booleanValue() && a3 != null )
-                 log(span, "Space is not allowed immediately " +
-                     "before left white square bracket.");
+             Span span = NodeUtil.spanTwo(base, a4);
              List<StaticArg> sargs =
-                 (a3 == null) ? Collections.<StaticArg>emptyList() : a3;
-             List<Expr> es = (a4 == null) ? Collections.<Expr>emptyList() : a4;
-             Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a5),
-                                               a1.getText(), a5.getText());
+                 (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+             List<Expr> es = (a3 == null) ? Collections.<Expr>emptyList() : a3;
+             Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
+                                               a1.getText(), a4.getText());
              return ExprFactory.makeSubscriptExpr(span, base, es,
                                                   Option.<Op>some(op), sargs);
             }};
@@ -331,21 +328,18 @@ constant PureList<Expr> PrimaryItem =
      { yyValue = PureList.make(a1); };
 
 /* LeftAssociatedPrimary ::=
-     DottedIdChain StaticArgs? Subscripting* ParenthesisDelimited* Selector*
+     DottedIdChain (w StaticArgs)? Subscripting* ParenthesisDelimited* Selector*
    | PrimaryFront Subscripting* ParenthesisDelimited* Selector+
  */
 constant Expr LeftAssociatedPrimary =
-     a1:DottedIdChain a2:hasW a3:StaticArgs a4:ParenthesisDelimited
-     a5s:ParenthesisDelimitedLeft* a6s:Selector*
+     a1:DottedIdChain w a2:StaticArgs a3:ParenthesisDelimited
+     a4s:ParenthesisDelimitedLeft* a5s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
-       Span span = NodeUtil.spanTwo(receiver, a4);
-       if ( a2.booleanValue() )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a3, a4);
-       Expr e2 = (Expr)apply(a5s, e1);
-       yyValue = (Expr)apply(a6s, e2);
+       Span span = NodeUtil.spanTwo(receiver, a3);
+       Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2, a3);
+       Expr e2 = (Expr)apply(a4s, e1);
+       yyValue = (Expr)apply(a5s, e2);
      }
    / a1:DottedIdChain a2s:SubscriptingLeft+ a3s:ParenthesisDelimitedLeft*
      a4s:Selector*
@@ -415,7 +409,7 @@ constant Expr MathPrimary =
      ArrayExpr
    | MapExpr
    | Comprehension
-   | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
    | ParenthesisDelimited
    | LiteralExpr
    | VarOrFnRef
@@ -425,17 +419,11 @@ Expr PrimaryFront =
      ArrayExpr
    / MapExpr
    / Comprehension
-   / <ErrorProduction>
-     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
-     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); }
-   / a1:LeftEncloser a2:hasW a3:StaticArgs? a4:(w ExprList)? w a5:RightEncloser
-     { if (a4 == null) a4 = Collections.<Expr>emptyList();
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
+     { if (a3 == null) a3 = Collections.<Expr>emptyList();
        Span span = createSpan(yyStart,yyCount);
-       if ( a2.booleanValue() && a3 != null )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       if (a3 == null) yyValue = ASTUtil.enclosing(writer, span, a1, a4, a5);
-       else            yyValue = ASTUtil.enclosing(writer, span, a1, a3, a4, a5);
+       if (a2 == null) yyValue = ASTUtil.enclosing(writer, span, a1, a3, a4);
+       else            yyValue = ASTUtil.enclosing(writer, span, a1, a2, a3, a4);
      }
    / ParenthesisDelimited
    / LiteralExpr
@@ -445,57 +433,46 @@ Expr PrimaryFront =
 
 /* ArrayExpr is defined in NoNewlineHeader.rats because it uses NoSpaceExpr. */
 
-/* VarOrFnRef ::= Id StaticArgs? */
+/* VarOrFnRef ::= Id (w StaticArgs)? */
 Expr VarOrFnRef =
-     a1:Id a2:hasW a3:StaticArgs
-     { Span span = createSpan(yyStart,yyCount);
-       if ( a2.booleanValue() )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       yyValue = ExprFactory.makeFnRef(span, a1, a3);
-     }
+     a1:Id w a2:StaticArgs
+     { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Id
      { yyValue = ExprFactory.makeVarRef(NodeUtil.getSpan(a1), a1); };
 
 /* Subscripting ::=
-     [ StaticArgs? (w ExprList)? w ]
-   | { StaticArgs? (w ExprList)? w }
-   | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+     [ (w StaticArgs)? (w ExprList)? w ]
+   | { (w StaticArgs)? (w ExprList)? w }
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
  */
 constant inline Action<Expr> SubscriptingLeft =
-     a1:(opensquare / opencurly) a2:hasW a3:StaticArgs? a4:(w ExprList)? w
-     a5:(closesquare / closecurly)
+     a1:(opensquare / opencurly) a2:(w StaticArgs)? a3:(w ExprList)? w
+     a4:(closesquare / closecurly)
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                Span span = NodeUtil.spanTwo(NodeUtil.getSpan(base),
                                             createSpan(yyStart,yyCount));
-               if ( a2.booleanValue() && a3 != null )
-                   log(span, "Space is not allowed immediately " +
-                       "before left white square bracket.");
-               if (PrecedenceMap.ONLY.matchedBrackets(a1, a5)) {
+               if (PrecedenceMap.ONLY.matchedBrackets(a1, a4)) {
                    Span spanOpen = createSpan(yyStart, yyStart+1);
                    Span spanClose = createSpan(yyCount-1,1);
                    List<StaticArg> ss =
-                       (a3 == null) ? Collections.<StaticArg>emptyList() : a3;
-                   return ExprFactory.makeSubscripting(span, a1, a5, base, a4, ss);
+                       (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+                   return ExprFactory.makeSubscripting(span, a1, a4, base, a3, ss);
                } else {
                    log(span, "Mismatched subscripting operator: " +
-                       a1 + " and " + a5);
+                       a1 + " and " + a4);
                    return ExprFactory.makeVoidLiteralExpr(span);
                }
            }};
      }
-   / a1:LeftEncloser a2:hasW a3:StaticArgs? a4:(w ExprList)? w a5:RightEncloser
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               Span span = NodeUtil.spanTwo(base, a5);
-               if ( a2.booleanValue() && a3 != null )
-                   log(span, "Space is not allowed immediately " +
-                       "before left white square bracket.");
+               Span span = NodeUtil.spanTwo(base, a4);
                List<StaticArg> ss =
-                   (a3 == null) ? Collections.<StaticArg>emptyList() : a3;
+                   (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
                return ExprFactory.makeSubscripting(span, base, a1.getText(),
-                                                   a5.getText(), a4, ss);
+                                                   a4.getText(), a3, ss);
            }};
      };
 
@@ -522,7 +499,7 @@ Expr ParenthesisDelimited =
 /* Selector ::=
      MethodInvocation ParenthesisDelimited*
    | FieldSelection Subscripting* ParenthesisDelimited*
-   MethodInvocation ::= . w Id StaticArgs? ParenthesisDelimited
+   MethodInvocation ::= . w Id (w StaticArgs)? ParenthesisDelimited
    FieldSelection ::= . w Id
  */
 constant transient Action<Expr> Selector =
@@ -531,13 +508,7 @@ constant transient Action<Expr> Selector =
    ;
 
 constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
-     <ErrorProduction>
-     dot w Id wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft*
-     { log(createSpan(yyStart,yyCount),
-           "Space is not allowed immediately before left white square bracket.");
-       yyValue = new Action<Expr>() { public Expr run(Expr base) { return base; }};
-     }
-   / dot w a1:Id a2:StaticArgs? a3:ParenthesisDelimited
+    dot w a1:Id a2:(w StaticArgs)? a3:ParenthesisDelimited
      a4s:ParenthesisDelimitedLeft*
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
@@ -584,33 +555,27 @@ MathItem MathItem =
      };
 
 /* Subscripting ::=
-     [ StaticArgs? (w ExprList)? w ]
-   | { StaticArgs? (w ExprList)? w }
-   | LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+     [ (w StaticArgs)? (w ExprList)? w ]
+   | { (w StaticArgs)? (w ExprList)? w }
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
  */
 SubscriptingMI Subscripting =
-     a1:(opensquare / opencurly) a2:hasW a3:StaticArgs? a4:(w ExprList)? w
-     a5:(closesquare / closecurly)
+     a1:(opensquare / opencurly) a2:(w StaticArgs)? a3:(w ExprList)? w
+     a4:(closesquare / closecurly)
      { Span span = createSpan(yyStart,yyCount);
-       Op op = NodeFactory.makeEnclosing(span, a1, a5);
-       if ( a2.booleanValue() && a3 != null )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       if (a3 == null) a3 = Collections.<StaticArg>emptyList();
-       if (a4 == null) a4 = Collections.<Expr>emptyList();
-       if (! PrecedenceMap.ONLY.matchedBrackets(a1, a5))
-           log(span, "Mismatched subscripting operator: " + a1 + " and " + a5);
-       yyValue = ExprFactory.makeSubscriptingMI(span, op, a4, a3);
+       Op op = NodeFactory.makeEnclosing(span, a1, a4);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       if (! PrecedenceMap.ONLY.matchedBrackets(a1, a4))
+           log(span, "Mismatched subscripting operator: " + a1 + " and " + a4);
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
      }
-   / a1:LeftEncloser a2:hasW a3:StaticArgs? a4:(w ExprList)? w a5:RightEncloser
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
-       Op op = NodeFactory.makeEnclosing(span, a1.getText(),a5.getText());
-       if ( a2.booleanValue() && a3 != null )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       if (a3 == null) a3 = Collections.<StaticArg>emptyList();
-       if (a4 == null) a4 = Collections.<Expr>emptyList();
-       yyValue = ExprFactory.makeSubscriptingMI(span, op, a4, a3);
+       Op op = NodeFactory.makeEnclosing(span, a1.getText(),a4.getText());
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
      };
 
 /* Exponentiation ::=
@@ -647,9 +612,9 @@ Expr Exponent =
 
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?
-   | Accumulator StaticArgs? (w [ w GeneratorClauseList w ])? w Expr
-   | BIG w LeftEncloser w |-> StaticArgs? w RightEncloser w Expr
-   | BIG w LeftEncloser StaticArgs? w RightEncloser w Expr
+   | Accumulator (w StaticArgs)? (w [ w GeneratorClauseList w ])? w Expr
+   | BIG w LeftEncloser w |-> (w StaticArgs)? w RightEncloser w Expr
+   | BIG w LeftEncloser (w StaticArgs)? w RightEncloser w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
    | spawn w Expr
@@ -662,34 +627,28 @@ Expr FlowExpr =
                                       Option.<Type>none(), name,
                                       Option.<Expr>wrap(a2));
      }
-   / a1:Accumulator a2:hasW a3:StaticArgs?
-     a4:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a5:Expr
+   / a1:Accumulator a2:(w StaticArgs)?
+     a3:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a4:Expr
      { Span span = createSpan(yyStart,yyCount);
-       if ( a2.booleanValue() && a3 != null )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       if (a3 == null) a3 = Collections.<StaticArg>emptyList();
-       if (a4 == null)
-           yyValue = ExprFactory.makeOpExpr(span, a1, a5, a3);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null)
+           yyValue = ExprFactory.makeOpExpr(span, a1, a4, a2);
        else
-           yyValue = ExprFactory.makeAccumulator(span, a3, a1, a4, a5);
+           yyValue = ExprFactory.makeAccumulator(span, a2, a1, a3, a4);
      }
-   / BIG w a1:LeftEncloser w mapsto a2:StaticArgs? w a3:RightEncloser w a4:Expr
+   / BIG w a1:LeftEncloser w mapsto a2:(w StaticArgs)? w a3:RightEncloser w a4:Expr
      { Span span = createSpan(yyStart,yyCount);
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
        Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText() + "|->",
                                           "BIG " + a3.getText());
        yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
      }
-   / BIG w a1:LeftEncloser a2:hasW a3:StaticArgs? w a4:RightEncloser w a5:Expr
+   / BIG w a1:LeftEncloser a2:(w StaticArgs)? w a3:RightEncloser w a4:Expr
      { Span span = createSpan(yyStart,yyCount);
-       if ( a2.booleanValue() && a3 != null )
-           log(span, "Space is not allowed immediately " +
-               "before left white square bracket.");
-       if (a3 == null) a3 = Collections.<StaticArg>emptyList();
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
        Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText(),
-                                          "BIG " + a4.getText());
-       yyValue = ExprFactory.makeOpExpr(span, opr, a5, a3);
+                                          "BIG " + a3.getText());
+       yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
      }
    / atomic w a1:AtomicBack
      { yyValue = ExprFactory.makeAtomicExpr(createSpan(yyStart,yyCount), a1); }
