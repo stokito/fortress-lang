@@ -15,13 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.runtimeValues;
+package com.sun.fortress.nativeHelpers;
 
-public class FBool {
-    boolean val;
+public class simplePrintZZ32 {
 
-    FBool(boolean x) { val = x; }
-    public String toString() { return "" + val;}
-    public boolean getValue() {return val;}
-    public static FBool make(boolean x) {return new FBool(x);}
+    public static void nativePrintZZ32(int x) {
+        System.out.println(x);
+    }
 }

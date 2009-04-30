@@ -17,11 +17,13 @@
 
 component CompilerBuiltin
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
+import java com.sun.fortress.nativeHelpers.{simplePrintZZ32.nativePrintZZ32 as jPrintlnZZ32}
 import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate as jConcatenate}
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString as jIntToString,
                                             simpleIntArith.intAdd as jIntAdd,
                                             simpleIntArith.intSub as jIntSub,
                                             simpleIntArith.intMul as jIntMul,
+                                            simpleIntArith.intLT as jIntLT,
                                             simpleIntArith.intNeg as jIntNeg}
 export CompilerBuiltin
 
@@ -36,6 +38,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
+printlnZZ32(x:ZZ32):() = jPrintlnZZ32(x)
 
 trait Number
 end
@@ -49,6 +52,7 @@ trait ZZ32 extends ZZ64
     opr -(self): ZZ32 = jIntNeg(self)
     opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
     opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
+    opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
     opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
 end
