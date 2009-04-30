@@ -28,6 +28,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
+printlnZZ32(x:ZZ32):()
 
 trait Number
 end
@@ -41,6 +42,7 @@ trait ZZ32 extends ZZ64
     opr -(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
     opr -(self, other:ZZ32): ZZ32
+    opr <(self, other:ZZ32) : Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
 end
