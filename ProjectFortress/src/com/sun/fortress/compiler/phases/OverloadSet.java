@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -468,35 +469,46 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public static String getSignature(IntersectionType t, int paramCount) {
-        List<Type> types = t.getElements();
 
         String s = overloadedDomainSig(paramCount);
 
-        Type r = null;
-        boolean isAny = false;
-
-        for (Type type : types) {
-            if (type instanceof ArrowType) {
-                ArrowType at = (ArrowType) type;
-                Type r0 = at.getRange();
-
-                if (r == null)
-                    r = r0;
-                else if (r.equals(r0)) {
-                    // ok
-                } else if (!isAny) {
-                    isAny = true;
-                    // Locate the any at the place we realized it was necessary.
-                    r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
-                }
-            } else {
-                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
-            }
-        }
+        Type r = getRangeSignature(t);
 
         s += NamingCzar.only.boxedImplDesc(r);
 
         return s;
+    }
+
+    public static Type getRangeSignature(IntersectionType t) {
+        List<Type> types = t.getElements();
+
+        Type r = null;
+
+        for (Type type : types) {
+            Type r0;
+
+            if (type instanceof ArrowType) {
+                ArrowType at = (ArrowType) type;
+                r0 = at.getRange();
+            } else if (type instanceof IntersectionType) {
+                r0 = getRangeSignature((IntersectionType) type);
+            } else {
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
+                return null; // not reached
+            }
+
+            if (r == null)
+                r = r0;
+            else if (r.equals(r0)) {
+                // ok
+            } else {
+                // Locate the any at the place we realized it was necessary.
+                r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+            }
+            if (r instanceof AnyType)
+                break;
+        }
+        return r;
     }
 
     /**

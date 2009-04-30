@@ -168,6 +168,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
             ((ObjectDecl) x).accept(this);
         else if (x instanceof VarDecl)
             ((VarDecl) x).accept(this);
+        else if (x instanceof _RewriteFnOverloadDecl)
+            System.err.println("Saw an overloaded function " + x );
         else
             sayWhat(x);
     }

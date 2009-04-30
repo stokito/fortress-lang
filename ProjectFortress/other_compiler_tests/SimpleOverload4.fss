@@ -28,6 +28,12 @@ print2(x:String, y:String):() = do
   jPrintln(jDuo(x,y)) 
 end
 
+jDuo(x:String, y:ZZ32):String = do
+   jPrintln("cat");
+   jPrintln("dog");
+   "catdog"
+end
+
 run() = do
   print2("PA","SS")
   jPrintln(jDuo(5,6))
