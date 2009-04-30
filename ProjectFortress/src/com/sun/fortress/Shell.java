@@ -230,6 +230,10 @@ public final class Shell {
         compileProperties.type_check = type_check;
     }
 
+    public static void setScala(boolean use_scala){
+    	compileProperties.use_scala = use_scala;
+    }
+    
     public static void setObjExprDesugaring(boolean desugar){
         compileProperties.objExpr_desugar = desugar;
     }
@@ -321,6 +325,11 @@ public final class Shell {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 Types.useTypeCheckerLibraries();
                 setTypeChecking(true);
+                setPhase( PhaseOrder.TYPECHECK );
+                return_code = compilerPhases(args, Option.<String>none(), what);
+            } else if (what.equals("typecheck-scala")){
+            	setTypeChecking(true);
+            	setScala(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
