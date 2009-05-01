@@ -43,6 +43,7 @@ trait ZZ32 extends ZZ64
     opr +(self, other:ZZ32): ZZ32
     opr -(self, other:ZZ32): ZZ32
     opr <(self, other:ZZ32) : Boolean
+    opr <=(self, other:ZZ32):Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
 end
@@ -60,7 +61,7 @@ object FloatLiteral extends RR32
 end
 
 
-trait Boolean 
+trait Boolean
 end
 
 end
