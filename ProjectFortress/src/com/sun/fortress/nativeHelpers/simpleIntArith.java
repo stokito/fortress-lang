@@ -28,4 +28,5 @@ public class simpleIntArith {
     public static int intMul(int a, int b) { return a*b; }
     public static int intNeg(int a) { return -a; }
     public static boolean intLT(int a, int b) {return a < b;}
+    public static boolean intLE(int a, int b) {return a <= b;}
 }

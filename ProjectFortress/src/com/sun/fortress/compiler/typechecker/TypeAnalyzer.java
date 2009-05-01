@@ -107,6 +107,10 @@ import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * Provides core type analysis algorithms in a specific type context.
+ *
+ * ToDo: Unlike subtyping checking, all the other checking such as
+ * exclusion checking and meet and join operations are not cached.
+ * We'll cache the results of those questions later.
  */
 public class TypeAnalyzer {
 
