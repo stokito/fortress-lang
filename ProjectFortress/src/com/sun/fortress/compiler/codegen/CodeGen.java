@@ -213,7 +213,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
             x.getExcludesClause().isEmpty() &&    // no excludes clause
-            x.getComprisesClause().isNone() &&    // no comprises clause
             header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
