@@ -39,6 +39,7 @@ import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
@@ -69,12 +70,25 @@ import edu.rice.cs.plt.tuple.Option;
 public class StaticChecker {
 
     public static class ApiResult extends StaticPhaseResult {
-        private Map<APIName, ApiIndex> _apis;
-        public ApiResult(Iterable<? extends StaticError> errors, Map<APIName, ApiIndex> apis) {
+        private final Map<APIName, ApiIndex> _apis;
+        private final List<APIName> _failedApis;
+        private final TypeCheckerOutput _typeCheckerOutput;
+
+        public ApiResult(Map<APIName, ApiIndex> apis,
+                               List<APIName> failedApis,
+                               Iterable<? extends StaticError> errors,
+                               TypeCheckerOutput typeCheckerOutput) {
             super(errors);
             _apis = apis;
+            _failedApis = failedApis;
+            _typeCheckerOutput = typeCheckerOutput;
         }
         public Map<APIName, ApiIndex> apis() { return _apis; }
+        public List<APIName> failed() { return _failedApis; }
+
+        public TypeCheckerOutput typeCheckerOutput() {
+            return this._typeCheckerOutput;
+        }
     }
 
     /**
@@ -82,11 +96,33 @@ public class StaticChecker {
      * in the given environment.
      */
     public static ApiResult checkApis(Map<APIName, ApiIndex> apis,
-                                      GlobalEnvironment env) {
-        // TODO: implement
-        return new ApiResult(IterUtil.<StaticError>empty(), apis);
-    }
+                                      GlobalEnvironment env,
+                                      FortressRepository repository) {
+        List<APIName> failedApis = new ArrayList<APIName>();
+        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
+        if ( Shell.getTypeChecking() == true &&
+             WellKnownNames.areCompilerLibraries() ) {
+            HashSet<Api> checkedApis = new HashSet<Api>();
+            TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
+            for (APIName apiName : apis.keySet()) {
+                TypeCheckerResult checked = checkApi(apis.get(apiName), env, repository);
+                checkedApis.add((Api)checked.ast());
+                if (!checked.isSuccessful()) failedApis.add(apiName);
+                errors = IterUtil.compose(checked.errors(), errors);
+                type_checker_output = new TypeCheckerOutput( type_checker_output,
+                                                             checked.getTypeCheckerOutput() );
+            }
+            return new ApiResult
+                (IndexBuilder.buildApis(checkedApis,
+                                        System.currentTimeMillis()).apis(),
+                 failedApis,
+                 errors,
+                 type_checker_output);
+        } else
+            return new ApiResult(apis, failedApis, errors,
+                                 TypeCheckerOutput.emptyOutput());
+    }
 
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
@@ -150,7 +186,7 @@ public class StaticChecker {
         if (Shell.getTypeChecking() == true) {
             // Check type hierarchy to ensure acyclicity.
             List<StaticError> errors = new TypeHierarchyChecker(component, env, repository).checkHierarchy();
-            if (! errors.isEmpty()) { 
+            if (! errors.isEmpty()) {
                 return new TypeCheckerResult(component.ast(), errors);
             }
 
@@ -199,7 +235,7 @@ public class StaticChecker {
         // Add all top-level object names to the component-level environment.
         typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
         TraitTable traitTable= new TraitTable(component, env);
-        
+
         if(!Shell.getScala()){
 	        ConstraintUtil.useJavaFormulas();
 	        TypeChecker typeChecker = new TypeChecker(traitTable, typeEnv, component, postInference);
@@ -212,6 +248,27 @@ public class StaticChecker {
         	List<StaticError> staticErrors = Lists.toJavaList(typeChecker.getErrors());
         	return new TypeCheckerResult(component_ast,staticErrors);
         }
+    }
+
+    public static TypeCheckerResult checkApi(ApiIndex api,
+                                             GlobalEnvironment env,
+                                             FortressRepository repository) {
+        // Check type hierarchy to ensure acyclicity.
+        List<StaticError> errors = new TypeHierarchyChecker(api, env, repository).checkHierarchy();
+        if (! errors.isEmpty()) {
+            return new TypeCheckerResult(api.ast(), errors);
+        }
+        Node api_ast = api.ast();
+        TypeCheckerResult result = new TypeCheckerResult(api_ast, errors);
+        result.setAst(result.ast().accept(new TypeNormalizer()));
+        // There should be no Inference vars left at this point
+        if( TypesUtil.assertAfterTypeChecking(result.ast()) )
+            bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
+                result.ast());
+        // Check overloadings in this API.
+        errors = new OverloadingChecker(api, env, repository).checkOverloading();
+        result = addErrors(errors, result);
+        return result;
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,

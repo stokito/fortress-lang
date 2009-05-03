@@ -55,7 +55,7 @@ public class TypeCheckPhase extends Phase {
                 .union(repository.apis(), apiIndex.apis()));
 
         StaticChecker.ApiResult apiSR = StaticChecker.checkApis(
-                apiIndex.apis(), apiEnv);
+                apiIndex.apis(), apiEnv, repository);
 
         if (!apiSR.isSuccessful()) {
             throw new MultipleStaticError(apiSR.errors());
