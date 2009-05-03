@@ -23,7 +23,7 @@ import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
-import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
@@ -42,7 +42,7 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.nodes._
 
-/* Check the set of overloadings in this component.
+/* Check the set of overloadings in this compilation unit.
  *
  * The following functionals are not checked yet:
  *     functional methods
@@ -55,17 +55,19 @@ import com.sun.fortress.scala_src.nodes._
  *     varargs parameters
  *     keyword parameters
  */
-class OverloadingChecker(component: ComponentIndex,
+class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                          globalEnv: GlobalEnvironment,
                          repository: FortressRepository) {
 
-    val typeAnalyzer = TypeAnalyzer.make(new TraitTable(component, globalEnv))
+    val typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     val exclusionOracle = new ExclusionOracle(typeAnalyzer)
     var errors = List[StaticError]()
 
-    /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
+    /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
+     *       and com.sun.fortress.compiler.StaticChecker.checkApi
+     */
     def checkOverloading(): JavaList[StaticError] = {
-        val fnsInComp = component.functions
+        val fnsInComp = compilation_unit.functions
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
             checkOverloading(f, fnsInComp.matchFirst(f))
         }
