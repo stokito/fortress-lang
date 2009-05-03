@@ -22,7 +22,7 @@ import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set  => JavaSet}
 
 import com.sun.fortress.compiler.GlobalEnvironment
-import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.TraitIndex
@@ -49,13 +49,13 @@ import com.sun.fortress.scala_src.useful.ASTGenHelper.scalaify
  *     every S_i \in { S... } should include T in its extends clause.
  *   = no other S' \not\in { S... } should include T in its extends clause.
  */
-class TypeHierarchyChecker(component: ComponentIndex,
+class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                            globalEnv: GlobalEnvironment,
                            repository: FortressRepository) {
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
 
-    for (typ <- scalaify(component.typeConses.keySet).asInstanceOf[Set[Id]]) {
+    for (typ <- scalaify(compilation_unit.typeConses.keySet).asInstanceOf[Set[Id]]) {
       errors.addAll(checkDeclAcyclicity(typ, List()))
       errors.addAll(checkDeclComprises(typ))
     }
@@ -66,7 +66,7 @@ class TypeHierarchyChecker(component: ComponentIndex,
     val types = typ match {
       case SId(info,Some(name),text) =>
         globalEnv.api(name).typeConses.get(SId(info,None,text))
-      case _ => component.typeConses.get(typ)
+      case _ => compilation_unit.typeConses.get(typ)
     }
     if (types == null) {
       error(errors, "Unknown type: " + typ, typ)
