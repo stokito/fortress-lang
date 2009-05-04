@@ -209,7 +209,7 @@ public final class Shell {
     public static boolean getTypeChecking() {
         return compileProperties.type_check;
     }
-    
+
     public static boolean getScala(){
     	return compileProperties.use_scala;
     }
@@ -233,7 +233,7 @@ public final class Shell {
     public static void setScala(boolean use_scala){
     	compileProperties.use_scala = use_scala;
     }
-    
+
     public static void setObjExprDesugaring(boolean desugar){
         compileProperties.objExpr_desugar = desugar;
     }
@@ -697,6 +697,9 @@ public final class Shell {
             else if (s.equals("-compiler-lib")) {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
+            }
+            else if (s.equals("-typecheck-scala")) {
+            	setScala(true);
             }
             else
                 invalidFlag(s, phase);
