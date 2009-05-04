@@ -34,28 +34,31 @@ import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.nodes_util.ExprFactory
-import com.sun.fortress.useful.NI
 import com.sun.fortress.exceptions.InterpreterBug.bug;
 
-
-class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) {
+class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
+                   env: TypeEnv, analyzer: TypeAnalyzer) {
 
   var errors = List[StaticError]()
-  
-  private def signal(msg:String,node:Node) = { errors = errors ::: List(TypeError.make(msg,node)) }
 
-  private def inferredType(expr:Expr): Option[Type] = scalaify(expr.getInfo.getExprType).asInstanceOf
+  private def signal(msg:String,node:Node) =
+    errors = errors ::: List(TypeError.make(msg,node))
 
-  private def haveInferredTypes(exprs: List[Expr]): Boolean = exprs.forall((e:Expr)=>inferredType(e).isDefined)
+  private def inferredType(expr:Expr): Option[Type] =
+    scalaify(expr.getInfo.getExprType).asInstanceOf[Option[Type]]
 
-  private def isArrows(expr: Expr): Boolean = TypesUtil.isArrows(inferredType(expr).get).asInstanceOf
-  
+  private def haveInferredTypes(exprs: List[Expr]): Boolean =
+    exprs.forall((e:Expr)=>inferredType(e).isDefined)
+
+  private def isArrows(expr: Expr): Boolean =
+    TypesUtil.isArrows(inferredType(expr).get).asInstanceOf[Boolean]
+
   private def checkSubtype(subtype:Type,supertype:Type,node:Node,error:String) = {
     val judgement = analyzer.subtype(subtype,supertype).isTrue
     if (! judgement) signal(error,node)
     judgement
   }
-  
+
   private def handleAliases(name: Id,api: APIName, imports: List[Import]): Id = {
 	def getAliases(imp: Import): Option[Id] = imp match {
 	  case SImportNames(info,foreignLanguage,aliasApi,aliases) => {
@@ -78,9 +81,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
 	}
 	imports.flatMap(getAliases).find((x:Id)=>true).getOrElse(name)
   }
-  
+
   private def getEnvFromApi(api: APIName):TypeEnv = TypeEnv.make(traits.compilationUnit(api))
-  
+
   private def getTypeFromName(name: Name): Option[Type] = name match{
     case id@SId(info,api,name) => api match{
       case Some(api) => {
@@ -91,13 +94,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
     }
     case _ => None
   }
-  
+
 
   def getErrors(): List[StaticError] = errors
-  
+
   def check(node:Node):Node = node match {
-    case SComponent(info,name,imports,decls,isNative,exports)  => 
-      SComponent(info,name,imports,decls.map((n:Decl)=>check(n).asInstanceOf),isNative,exports)
+    case SComponent(info,name,imports,decls,isNative,exports)  =>
+      SComponent(info,name,imports,decls.map((n:Decl)=>check(n).asInstanceOf[Decl]),isNative,exports)
 
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
@@ -118,39 +121,39 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
         }
         case _ => returnType
       }
-      SFnDecl(info, SFnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), 
+      SFnDecl(info, SFnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf[Option[Contract]],params,newReturnType),
              unambiguousName, Some(newBody), implementsUnambiguousName)
     }
-    
+
     /* Matches if block is not an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),loc,false,withinDo,exprs) => exprs.reverse match {
       case Nil =>
-        SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),loc,false,withinDo,exprs)   
+        SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),loc,false,withinDo,exprs)
       case last::rest =>
         val allButLast = rest.map((e: Expr) => checkExpr(e,Some(Types.VOID)))
         val lastExpr = checkExpr(last)
         val newExprs = (lastExpr::allButLast).reverse
-        SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),loc,false,withinDo,newExprs)  
+        SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),loc,false,withinDo,newExprs)
     }
 
     case id@SId(info,api,name) => api match{
       case Some(api) => handleAliases(id,api,toList(current.ast.getImports))
       case _ => id
     }
-    case _ => node
+  case _ => throw new Error("Not yet implemented: " + node.getClass)
   }
 
   def checkExpr(expr: Expr):Expr = checkExpr(expr,None)
 
   def checkExpr(expr: Expr,expected:Option[Type]):Expr = expr match {
-    
+
     /* Temporary code for Tight Juxtapositions
      */
     case SJuxt(info, multi, infix, exprs, false, true) => {
       val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
       if(haveInferredTypes(checkedExprs)){
         //check if there are any functions
-        if(checkedExprs.exists((e:Expr)=>isArrows(e))){ 
+        if(checkedExprs.exists((e:Expr)=>isArrows(e))){
           //ToDo: some static checks
           //Left associate
           val leftAssociated = checkedExprs.tail.foldLeft(checkedExprs.head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)}
@@ -170,10 +173,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
       }
       else{
         SJuxt(info,multi,infix,checkedExprs,false,true)
-      }  
+      }
     }
-    
-    
+
+
     /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
      */
     case SJuxt(info, multi, infix, exprs, isApp, false) => {
@@ -231,13 +234,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
           case Nil => bug("Empty Juxt")
           case head::tail =>
             checkExpr(tail.foldLeft(head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)},expected)
-        }  
+        }
       }
       else{
-        SJuxt(info,multi,infix,checkedExprs,isApp,false)  
+        SJuxt(info,multi,infix,checkedExprs,isApp,false)
       }
     }
-    
+
     /* Tight Juxts will be rewritten as MathPrimaries
     case SJuxt(info, multi, infix, front::rest, false, true) => {
       def converter(e:Expr): MathItem = {
@@ -249,17 +252,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable, env: TypeE
       checkExpr(MathPrimary(info,multi,infix,checkExpr(front),rest.map(converter)),env,analyzer,expected)
     }
      */
-    
+
     //TODO: Handle math expressions
     case SMathPrimary(info,multi,infix,front,rest) => expr
-    
-    case _ => expr
+
+    case _ => throw new Error("Not yet implemented: " + expr.getClass)
   }
-  
+
   def checkMathItem(item: MathItem): MathItem = checkMathItem(item,None)
 
   def checkMathItem(item: MathItem, expected:Option[Type]): MathItem = item match{
-    case _ => item
-  } 
+    case _ => throw new Error("Not yet implemented: " + item.getClass)
+  }
 
 }
