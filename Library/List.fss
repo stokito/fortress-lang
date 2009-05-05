@@ -126,10 +126,7 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     getter right():Maybe[\E\] = self.extractRight.map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
-    getter asString():String =
-      "<|" (if (h,t) <- self.extractLeft then
-                h (BIG ||[e<-t] ", " e)
-            else " " end) "|>"
+    getter asString():String = "<|" || ", ".join[\E\](self) || "|>"
     (** the operator %||% returns a list containing the elements of %self% followed
         by the elements of %f% *)
     opr ||(self, other:List[\E\]): List[\E\]

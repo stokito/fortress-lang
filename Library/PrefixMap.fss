@@ -43,16 +43,14 @@ export PrefixMap
 trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
         extends { Generator[\(F,V)\], Equality[\PrefixMap[\E,F,V\]\] }
 
+    getter asString():String = "{/" (", ".join[\String\](self.map[\String\](fn(x:F,v:V) => (x.asString || " |-> " || v.asString)))) || "/}"
+
     content():Maybe[\V\]
     children():Map[\E,PrefixMap[\E,F,V\]\]
     isMember():Boolean = (if x <- content() then true else false end)
     isEmpty():Boolean = (NOT isMember()) AND children().isEmpty()
     size():ZZ32
     opr |self|:ZZ32 = self.size()
-
-
-    asString():String = "{/" seqgen[\String\](StringJoinReduction(", "), fn(x:F,v:V) => (x.asString() || " |-> " || v.asString())) "/}"
-
 
     prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: (F,V)->R):R = do
         t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
