@@ -52,6 +52,7 @@ import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.useful.Lists;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * Verifies all static properties of a valid Fortress program that require
@@ -196,15 +197,27 @@ public class StaticChecker {
             component_ast = component_ast.accept(new TypeNormalizer());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
-            // typecheck...
-            TypeCheckerResult result = typeCheck(component, env, component_ast, false);
-            // then replace inference variables...
-            InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
-            component_ast = (Component)result.ast().accept(rep);
-            // then typecheck again!!!
-            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
-                                                                 System.currentTimeMillis());
-            result = typeCheck(component, env, component_ast, true);
+            TypeCheckerResult result;
+            if ( ! Shell.getScala() ) {
+                // typecheck...
+                result = typeCheck(component, env, component_ast, false);
+                // then replace inference variables...
+                InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
+                component_ast = (Component)result.ast().accept(rep);
+                // then typecheck again!!!
+                component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
+                                                                     System.currentTimeMillis());
+                result = typeCheck(component, env, component_ast, true);
+            } else {
+                Pair<TypeEnv,TraitTable> envs = typeCheckEnv(component, env);
+        	ConstraintUtil.useScalaFormulas();
+                STypeChecker typeChecker = new STypeChecker(component, envs.second(),
+                                                            envs.first(),
+                                                            TypeAnalyzer.make(envs.second()));
+        	component_ast = typeChecker.check(component_ast);
+        	result = new TypeCheckerResult(component_ast,
+                                               Lists.toJavaList(typeChecker.getErrors()));
+            }
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
             if( TypesUtil.assertAfterTypeChecking(result.ast()) )
@@ -226,6 +239,15 @@ public class StaticChecker {
                                                GlobalEnvironment env,
                                                Node component_ast,
                                                boolean postInference) {
+        Pair<TypeEnv,TraitTable> envs = typeCheckEnv(component, env);
+        ConstraintUtil.useJavaFormulas();
+        TypeChecker typeChecker = new TypeChecker(envs.second(), envs.first(),
+                                                  component, postInference);
+        return component_ast.accept(typeChecker);
+    }
+
+    private static Pair<TypeEnv,TraitTable> typeCheckEnv(ComponentIndex component,
+                                                         GlobalEnvironment env) {
         TypeEnv typeEnv = TypeEnv.make(component);
         // Add all top-level function names to the component-level environment.
         typeEnv = typeEnv.extendWithFunctions(component.functions());
@@ -235,19 +257,7 @@ public class StaticChecker {
         // Add all top-level object names to the component-level environment.
         typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
         TraitTable traitTable= new TraitTable(component, env);
-
-        if(!Shell.getScala()){
-	        ConstraintUtil.useJavaFormulas();
-	        TypeChecker typeChecker = new TypeChecker(traitTable, typeEnv, component, postInference);
-	        return component_ast.accept(typeChecker);
-        }
-        else{
-        	ConstraintUtil.useScalaFormulas();
-        	STypeChecker typeChecker = new STypeChecker(component, traitTable, typeEnv, TypeAnalyzer.make(traitTable));
-        	typeChecker.check(component_ast);
-        	List<StaticError> staticErrors = Lists.toJavaList(typeChecker.getErrors());
-        	return new TypeCheckerResult(component_ast,staticErrors);
-        }
+        return Pair.make(typeEnv, traitTable);
     }
 
     public static TypeCheckerResult checkApi(ApiIndex api,
