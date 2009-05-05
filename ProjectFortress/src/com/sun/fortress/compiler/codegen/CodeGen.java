@@ -27,6 +27,7 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
@@ -44,10 +45,11 @@ import com.sun.fortress.useful.StringHashComparer;
 public class CodeGen extends NodeAbstractVisitor_void {
     ClassWriter cw;
     MethodVisitor mv;
-    String className;
+    private final String className;
     String packageName;
     String packageAndClassName;
-    HashMap<String, String> aliasTable;
+    private final HashMap<String, String> aliasTable;
+    private final TypeAnalyzer ta;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -82,10 +84,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    public CodeGen(String n, Symbols s) {
+    public CodeGen(String n, Symbols s, TypeAnalyzer ta) {
         className = n;
         aliasTable = new HashMap<String, String>();
         symbols = s;
+        this.ta = ta;
         debug( "Compile: Compiling ", className );
     }
 
@@ -106,6 +109,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.inAnObject = c.inAnObject;
         this.inABlock = c.inABlock;
         this.localsDepth = c.localsDepth;
+        this.ta = c.ta;
         if (c.lexEnv == null) {
             this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         } else {
@@ -623,7 +627,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
                             if (arrow instanceof IntersectionType)
                                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                        _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount));
+                                        _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount, ta));
                             else {
                                 sayWhat( x, "Neither arrow nor intersection type: " + arrow );
                             }

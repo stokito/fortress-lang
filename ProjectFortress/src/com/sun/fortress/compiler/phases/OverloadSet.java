@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.BASet;
@@ -437,26 +438,39 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public String getSignature() {
-        String s = overloadedDomainSig(paramCount);
+        String s = overloadedDomainSig();
 
         Type r = null;
-        boolean isAny = false;
 
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            Type r0 = f.getReturnType();
-            if (r == null)
-                r = r0;
-            else if (r.equals(r0)) {
-                // ok
-            } else if (!isAny) {
-                isAny = true;
-                // Locate the any at the place we realized it was necessary.
-                r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
-            }
+            r = join(r, f.getReturnType(), ta);
         }
         s += NamingCzar.only.boxedImplDesc(r);
 
         return s;
+    }
+
+    /**
+     * @param r
+     * @param r0
+     * @return
+     */
+    private static Type join(Type r, Type r0, TypeAnalyzer ta) {
+        // Eventually we want to use the join from TypeAnalyzer, once we
+        // figure out how to deal with union types.
+        if(r == null) {
+            r = r0;
+        } else if (r.equals(r0)) {
+            // ok
+        } else if (ta.subtype(r, r0).isTrue()) {
+            r = r0;
+        } else if (ta.subtype(r0, r).isTrue()) {
+            // ok
+        } else if (!(r instanceof AnyType)) {
+            // Locate the any at the place we realized it was necessary.
+            r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+        }
+        return r;
     }
 
     /**
@@ -471,18 +485,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param paramCount
      * @return
      */
-    public static String getSignature(IntersectionType t, int paramCount) {
+    public static String getSignature(IntersectionType t, int paramCount, TypeAnalyzer ta) {
 
-        String s = overloadedDomainSig(paramCount);
+        String s = overloadedDomainSig(t, paramCount, ta);
 
-        Type r = getRangeSignature(t);
+        Type r = getRangeSignature(t, ta);
 
         s += NamingCzar.only.boxedImplDesc(r);
 
         return s;
     }
 
-    public static Type getRangeSignature(IntersectionType t) {
+    private static Type getRangeSignature(IntersectionType t, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
 
         Type r = null;
@@ -494,20 +508,44 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 ArrowType at = (ArrowType) type;
                 r0 = at.getRange();
             } else if (type instanceof IntersectionType) {
-                r0 = getRangeSignature((IntersectionType) type);
+                r0 = getRangeSignature((IntersectionType) type, ta);
             } else {
                 InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
             }
 
-            if (r == null)
-                r = r0;
-            else if (r.equals(r0)) {
-                // ok
+            r = join(r, r0, ta);
+
+            if (r instanceof AnyType)
+                break;
+        }
+        return r;
+    }
+
+    private  static Type getParamType(IntersectionType t, int i, TypeAnalyzer ta) {
+        List<Type> types = t.getElements();
+
+        Type r = null;
+
+        for (Type type : types) {
+            Type r0;
+
+            if (type instanceof ArrowType) {
+                ArrowType at = (ArrowType) type;
+                r0 = at.getDomain();
+                if (r0 instanceof TupleType) {
+                    TupleType tt = (TupleType) r0;
+                    r0 = tt.getElements().get(i);
+                }
+            } else if (type instanceof IntersectionType) {
+                r0 = getParamType((IntersectionType) type, i, ta);
             } else {
-                // Locate the any at the place we realized it was necessary.
-                r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
+                return null; // not reached
             }
+
+            r = join(r, r0, ta);
+
             if (r instanceof AnyType)
                 break;
         }
@@ -518,15 +556,34 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param paramCount
      * @return
      */
-    private static String overloadedDomainSig(int paramCount) {
+    private static String overloadedDomainSig(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         String s = "(";
-        String anOverloadedArg = "Ljava/lang/Object;";
 
         for (int i = 0; i < paramCount; i++) {
-            s += anOverloadedArg;
+            s += NamingCzar.only.boxedImplDesc(getParamType(t,i,ta));
         }
         s += ")";
         return s;
+    }
+
+    private String overloadedDomainSig() {
+        String s = "(";
+
+        for (int i = 0; i < paramCount; i++) {
+            s += NamingCzar.only.boxedImplDesc(overloadedParamType(i));
+        }
+        s += ")";
+        return s;
+    }
+
+    private Type overloadedParamType(int param) {
+        Type r = null;
+        for (TaggedFunctionName f : lessSpecificThanSoFar) {
+            List<Param> params = f.tagParameters();
+            Param p = params.get(param);
+            r = join(r, p.getIdType().unwrap(), ta);
+        }
+        return r;
     }
 
     public String[] getExceptions() {
@@ -565,6 +622,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
             sig += ")";
             sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
+            if (CodeGenerationPhase.debugOverloading)
+                System.err.println("Emitting call " + f.tagF + sig);
+
 
             invokeParticularMethod(mv, f, sig);
             mv.visitInsn(Opcodes.ARETURN);
@@ -617,6 +677,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         // Not sure what to do with return type.
         String signature = getSignature();
         String[] exceptions = getExceptions();
+        if (CodeGenerationPhase.debugOverloading)
+            System.err.println("Emitting overload " + name + signature);
+
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
                 + Opcodes.ACC_STATIC, // access,
                 name, // name,
