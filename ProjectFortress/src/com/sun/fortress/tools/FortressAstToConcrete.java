@@ -584,7 +584,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String for_RewriteFnOverloadDeclOnly(_RewriteFnOverloadDecl that,
                                                           String info,
                                                           String name_result,
-                                                          List<String> fns_result) {
+                                                          List<String> fns_result,
+                                                          Option<String> ret_type_result) {
+        //
         return "(* _RewriteFnOverloadDecl(" + name_result + ") *)";
     }
 
