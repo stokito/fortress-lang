@@ -42,25 +42,6 @@ export PrefixSet
 
 
 
-(***
-   An ancillary method: joining strings by separating them with the given string
-   Is this of more general use?
- ***)
-object StringJoinReduction(s:String) extends MonoidReduction[\String\]
-    getter asString():String = "StringJoinReduction(" s ")"
-    empty():String = ""
-    join(a:String, b:String): String = do
-        if   a.isEmpty() then
-            b
-        elif b.isEmpty() then
-            a
-        else
-            a || s || b
-        end
-    end
-end
-
-
 
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
@@ -68,6 +49,8 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
 
     getter indexValuePairs():ZeroIndexed[\(ZZ32,F)\] =
         IndexValuePrefixSetGenerator[\E,F\](self)
+
+    getter asString():String = "{/" || (", ".join[\F\](self)) || "/}"
 
     isMember():Boolean
     children():Map[\E,PrefixSet[\E,F\]\]
@@ -97,9 +80,6 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     seqgen[\R\](r: Reduction[\R\], body: F->R):R = prefixSeqgen[\R\](<|[\E\] |>, r, body)
 
     seq(self): SequentialGenerator[\F\] = SeqPrefixSetGenerator[\E,F\](self)
-
-    asString():String = "{/" seqgen[\String\](StringJoinReduction(", "), fn(x:F) => x.asString()) "/}"
-
 
     opr IN(x:F, self):Boolean = do
         if (h,t) <- x.extractLeft() then

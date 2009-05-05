@@ -282,11 +282,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getter size():ZZ32 = sz
     getter asDebugString():String =
       "[" left.asDebugString() " (" key "," val ") " right.asDebugString() "]"
-    getter asString():String = do
-      (km, vm, delmin) = extractMinimum().get()
-      ("{" km "|->" vm
-           (BIG || [(k,v)<-delmin] ", " k "|->" v) "}")
-    end
+    getter asString():String = "{" || ", ".join[\String\](self.map[\String\](fn(k:Key,v:Val):String => k "|->" v)) || "}"
 
     opr |self| : ZZ32 = sz
 

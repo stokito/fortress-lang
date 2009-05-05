@@ -116,7 +116,7 @@ trait Node[\Key,Val\]
   (* The height of the current node.  Height = 0 must be a leaf *)
   getter height():ZZ32
 
-  (* Depracated.  Use |size| *)
+  (* Deprecated.  Use |size| *)
   getter size():ZZ32
 
   (* The number of values stores in this subtree.  The number of

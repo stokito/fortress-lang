@@ -214,12 +214,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     sz:ZZ32 = 1 + |left| + |right|
     getter size():ZZ32 = sz
     getter isEmpty():Boolean = false
-    getter asString():String = do
-        (h,t) = extractMinimum().get()
-        "{" h t.generate[\String\](StringReduction,
-                                    fn (e:E)=>"," e) "}"
-      end
-    
+    getter asString():String = "{" || ",".join[\E\](self) || "}"
     opr |self| : ZZ32 = sz
     subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
        elif i = |left| then val

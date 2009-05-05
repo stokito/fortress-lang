@@ -2237,7 +2237,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
    abstract writeOn(s: WriteStream): ()
    stats(): StringStats
 
+   join[\E\](g:Generator[\E\]):String
+
 end String
+
+object StringJoinReduction(s:String) extends Reduction[\Maybe[\String\]\] end
 
 (***********************************************************
 * \subsection{Top-level primitives}

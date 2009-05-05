@@ -38,12 +38,6 @@ api PrefixSet
 import CovariantCollection.{AnyCovColl}
 import List.{...}
 import Map.{...}
-object StringJoinReduction(s: String) extends MonoidReduction[\String\]
-    getter asString(): String
-
-    empty(): String
-    join(a: String, b: String): String
-end
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     extends { Generator[\F\], Equality[\PrefixSet[\E, F\]\] }

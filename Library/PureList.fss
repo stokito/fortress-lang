@@ -55,10 +55,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
-    getter asString(): String =
-      "<|" (if (h,t) <- extractLeft() then
-                h (BIG ||[e<-t] ", " e)
-            else " " end) "|>"
+    getter asString(): String = "<|" || ", ".join[\E\](self) || "|>"
     opr ||(self, other:List[\E\]): List[\E\]
     (** %addLeft% and %addRight% add an element to the left or right of
         the list, respectively *)

@@ -54,7 +54,7 @@ ignore(_:Any):() = ()
 
 identity[\T extends Any\](x:T):T = x
 
-(* Should we depracate tuple and use identity instead?  Decision: no. *)
+(* Should we deprecate tuple and use identity instead?  Decision: no. *)
 tuple[\T\](x:T):T = x
 
 (* Function composition *)
@@ -3773,7 +3773,27 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         ss
     end
 
+    (* Python-style join operator *)
+    join[\E\](g:Generator[\E\]):String = g.generate[\Maybe[\String\]\](StringJoinReduction(self), fn(x:E):Maybe[\String\] => Just[\String\]("" x)).getDefault("")
+
   end String
+
+(* Concatenates arguments with the given separator *)
+object StringJoinReduction(s:String) extends Reduction[\Maybe[\String\]\]
+    getter asString():String = "StringJoinReduction(" s ")"
+    empty():Maybe[\String\] = Nothing[\String\]
+    join(a:Maybe[\String\], b:Maybe[\String\]):Maybe[\String\] = do
+        if x <- a then
+            if y <- b then
+                Just[\String\](x || s || y)
+            else
+                a
+            end
+        else
+            b
+        end
+    end
+end
 
 (***********************************************************
 * Numeric primitives
