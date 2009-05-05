@@ -63,33 +63,36 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     static class TaggedFunctionName {
-        APIName a;
-        Function f;
+        final private APIName tagA;
+        final private Function tagF;
         TaggedFunctionName(APIName a, Function f) {
-            this.f = f;
-            this.a = a;
+            this.tagF = f;
+            this.tagA = a;
         }
-        public List<Param> parameters() {
-            return f.parameters();
+        public List<Param> tagParameters() {
+            return tagF.parameters();
+        }
+        public List<Param> callParameters() {
+            return tagF.parameters();
         }
         public Type getReturnType() {
-            return f.getReturnType();
+            return tagF.getReturnType();
         }
         public int hashCode() {
-            return f.hashCode() + MagicNumbers.a * a.hashCode();
+            return tagF.hashCode() + MagicNumbers.a * tagA.hashCode();
         }
         public boolean equals(Object o) {
             if (o instanceof TaggedFunctionName) {
                 TaggedFunctionName tfn = (TaggedFunctionName) o;
-                return f.equals(tfn.f) && a.equals(tfn.a);
+                return tagF.equals(tfn.tagF) && tagA.equals(tfn.tagA);
             }
             return false;
         }
         public List<BaseType> thrownTypes() {
-            return f.thrownTypes();
+            return tagF.thrownTypes();
         }
         public String toString() {
-            return a.toString() + ".." + f.toString();
+            return tagA.toString() + ".." + tagF.toString();
         }
     }
 
@@ -162,7 +165,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             if (CodeGenerationPhase.debugOverloading)
                 System.err.println("Overload: " + f);
-            List<Param> parameters = f.parameters();
+            List<Param> parameters = f.tagParameters();
             int this_size = parameters.size();
             if (this_size != paramCount)
                 InterpreterBug.bug("Need to handle variable arg dispatch elsewhere " + name);
@@ -196,7 +199,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
 
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
-                List<Param> parameters = f.parameters();
+                List<Param> parameters = f.tagParameters();
                 int i = 0;
                 for (Param p : parameters) {
                     if (testedIndices.contains(i)) {
@@ -288,7 +291,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     for (TaggedFunctionName f : lessSpecificThanSoFar) {
 //                        if (alreadySelected.contains(f))
 //                            continue;
-                        List<Param> parameters = f.parameters();
+                        List<Param> parameters = f.tagParameters();
                         Param p = parameters.get(dispatchParameterIndex);
                         Type pt = p.getIdType().unwrap();
                         if (ta.subtype(t, pt).isTrue()) {
@@ -325,8 +328,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             @Override
             public boolean equiv(TaggedFunctionName x, TaggedFunctionName y) {
-                List<Param> px = x.parameters();
-                List<Param> py = y.parameters();
+                List<Param> px = x.tagParameters();
+                List<Param> py = y.tagParameters();
                 for (int i = 0; i < px.size(); i++) {
                     if (childTestedIndices.contains(i))
                         continue;
@@ -342,7 +345,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             public long hash(TaggedFunctionName x) {
                 int h = MagicNumbers.T;
 
-                List<Param> px = x.parameters();
+                List<Param> px = x.tagParameters();
                 for (int i = 0; i < px.size(); i++) {
                     if (childTestedIndices.contains(i))
                         continue;
@@ -383,8 +386,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (msf == null)
                 msf = candidate;
             else {
-                List<Param> msf_parameters = msf.parameters();
-                List<Param> cand_parameters = candidate.parameters();
+                List<Param> msf_parameters = msf.tagParameters();
+                List<Param> cand_parameters = candidate.tagParameters();
                 if (msf_parameters.size() != cand_parameters.size()) {
                     InterpreterBug.bug("Diff length parameter lists, should not be possible");
                 }
@@ -550,7 +553,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // Emit casts and call of f.
             TaggedFunctionName f =  lessSpecificThanSoFar.iterator().next();
 
-            List<Param> params = f.parameters();
+            List<Param> params = f.callParameters();
             int i = firstArgIndex;
             String sig = "(";
             for (Param p : params ) {
@@ -654,7 +657,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                 String sig) {
-            String pname = NamingCzar.only.apiNameToPackageName(f.a);
+            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
             String cnameDOTmname = name.toString();
 
             int idot = cnameDOTmname.lastIndexOf(".");
@@ -701,7 +704,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                 String sig) {
-            String pname = NamingCzar.only.apiNameToPackageName(f.a);
+            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
             String cnameDOTmname = name.toString();
 
             String ownerName;

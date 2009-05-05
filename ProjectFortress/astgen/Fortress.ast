@@ -322,7 +322,7 @@ interface Node() extends HasAt;
                 /**
                  * Overloading specification
                  */
-                _RewriteFnOverloadDecl(IdOrOp name, List<IdOrOp> fns);
+                _RewriteFnOverloadDecl(IdOrOp name, List<IdOrOp> fns, Option<Type> type);
                 /* the list of object expressions is a temporary hack to allow
                    progress towards earlier rewriting and caching of ASTs. -- DRC */
                 /**

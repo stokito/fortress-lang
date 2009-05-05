@@ -34,8 +34,20 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
-    final private Map<String, List<IdOrOp>> overloadedFunctions = new BATree<String, List<IdOrOp>>(DefaultComparator.Vreversed);
-    final private Map<String, List<IdOrOp>> overloadedOperators = new BATree<String, List<IdOrOp>>(DefaultComparator.Vreversed);
+    static class TypedIdOrOpList  {
+        final List<IdOrOp> names;
+        final  Option<Type> type;
+
+        TypedIdOrOpList (List<IdOrOp> names, Option<Type> type) {
+            this.names = names;
+            this.type = type;
+        }
+
+    }
+
+
+    final private Map<String, TypedIdOrOpList> overloadedFunctions = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
+    final private Map<String, TypedIdOrOpList> overloadedOperators = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
 
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,
@@ -56,7 +68,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedFunctions.containsKey(overloadingName)) {
-                overloadedFunctions.put(overloadingName, fns);
+                overloadedFunctions.put(overloadingName, new TypedIdOrOpList(fns, that.getInfo().getExprType()));
             }
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
@@ -85,7 +97,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedOperators.containsKey(overloadingName)) {
-                overloadedOperators.put(overloadingName, ops);
+                overloadedOperators.put(overloadingName, new TypedIdOrOpList(ops, that.getInfo().getExprType()));
             }
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
@@ -95,11 +107,11 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     }
 
 
-    public Map<String, List<IdOrOp>> getOverloadedFunctions() {
+    public Map<String, TypedIdOrOpList> getOverloadedFunctions() {
         return overloadedFunctions;
     }
 
-    public Map<String, List<IdOrOp>> getOverloadedOperators() {
+    public Map<String, TypedIdOrOpList> getOverloadedOperators() {
         return overloadedOperators;
     }
 

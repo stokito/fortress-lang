@@ -17,6 +17,11 @@
 
 package com.sun.java.lang;
 
+/**
+ * This class is a mock declaration of class Object, used to satisfy
+ * Scalac, which insists on resolving java.lang.Object as
+ * com.sun.java.lang.Object
+ */
 public class Object {
 
 }

@@ -2158,8 +2158,12 @@ public class NodeFactory {
 
     public static _RewriteFnOverloadDecl make_RewriteFnOverloadDecl(Span span,
                                                                     IdOrOp overloading,
-                                                                    List<IdOrOp> overloadings) {
-        return new _RewriteFnOverloadDecl(makeSpanInfo(span), overloading, overloadings);
+                                                                    List<IdOrOp> overloadings,
+                                                                    Option<Type> t) {
+        if (t.isNone()) {
+          //   return bug("Overloading for " + overloading + " lacks type" );
+        }
+        return new _RewriteFnOverloadDecl((ASTNodeInfo) makeSpanInfo(span), overloading, overloadings, t);
     }
 
     public static _RewriteObjectExprDecl make_RewriteObjectExprDecl(Span span,

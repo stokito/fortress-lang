@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
@@ -595,58 +596,66 @@ public class CodeGen extends NodeAbstractVisitor_void {
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = type.unwrap();
 
-        if ( aliasTable.containsKey(name) ) {
-            String n = aliasTable.get(name);
-            // Cheating by assuming class is everything before the dot.
-            int lastDot = n.lastIndexOf(Naming.dot);
-            String internal_class = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
-            String _method = n.substring(lastDot+1);
-            debug("class = " + internal_class + " method = " + _method );
-             {
-                if ( arrow instanceof ArrowType )
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                       _method, Naming.emitDesc(arrow));
-                else {  // if ( ! arrow instanceof ArrowType )
+        List<IdOrOp> names = x.getNames();
 
+        if ( names.size() == 1) {
+            IdOrOp fnName = names.get(0);
+            Option<APIName> apiName = fnName.getApiName();
+            if (apiName.isSome() && ForeignJava.only.definesApi(apiName.unwrap())) {
 
+                if ( aliasTable.containsKey(name) ) {
+                    String n = aliasTable.get(name);
+                    // Cheating by assuming class is everything before the dot.
+                    int lastDot = n.lastIndexOf(Naming.dot);
+                    String internal_class = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
+                    String _method = n.substring(lastDot+1);
+                   debug("class = " + internal_class + " method = " + _method );
 
-                    debug("class = " + internal_class + " method = " + _method +
-                                 " type = " + arrow);
+                     {
+                        if ( arrow instanceof ArrowType )
+                            mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
+                                               _method, Naming.emitDesc(arrow));
+                        else {  // if ( ! arrow instanceof ArrowType )
 
-                    if (arrow instanceof IntersectionType)
-                        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount));
-                    else {
-                        sayWhat( x, "Neither arrow nor intersection type: " + arrow );
+                            Debug.debug( Debug.Type.CODEGEN, 1,
+                                         "class = " + internal_class + " method = " + _method +
+                                         " type = " + arrow);
+
+                            if (arrow instanceof IntersectionType)
+                                mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
+                                        _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount));
+                            else {
+                                sayWhat( x, "Neither arrow nor intersection type: " + arrow );
+                            }
+
+                        }
                     }
-
+                } else {
+                 sayWhat(x, "Should be a foreign function in Alias table");
                 }
-            }
-        } else {
-            List<IdOrOp> names = x.getNames();
-            // For now, assuming only 1
-            if ( names.size() == 1) {
-                IdOrOp fnName = names.get(0);
-                Option<APIName> apiName = fnName.getApiName();
-                String calleePackageAndClass =
-                    apiName.isSome() ?
-                            Naming.fortressPackage + Naming.slash + apiName.unwrap().getText() :
-                                packageAndClassName;
 
-                if ( arrow instanceof ArrowType ) {
+            } else {
+                // NOT Foreign
+
+                // deal with in component, or in imported api.
+                String calleePackageAndClass = apiName.isSome() ?
+                        Naming.fortressPackage + Naming.slash + apiName.unwrap().getText()
+                        : packageAndClassName;
+
+                if (arrow instanceof ArrowType) {
 
                     String domainType;
                     String rangeType;
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                       calleePackageAndClass,
-                                       fnName.getText(),
-                                       Naming.emitDesc(arrow));
+                            calleePackageAndClass, fnName.getText(), Naming
+                                    .emitDesc(arrow));
                 } else {
                     sayWhat(x, "Overloaded non-foreign not implemented yet.");
                 }
 
-            } else // if ( names.size() != 1 )
-                sayWhat( x, "Overloaded function references are not supported." );
+            }
+        } else {
+            sayWhat(x, "Expected to see only one name here");
         }
     }
 
