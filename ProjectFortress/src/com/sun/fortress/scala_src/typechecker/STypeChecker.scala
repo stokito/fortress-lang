@@ -41,21 +41,21 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   var errors = List[StaticError]()
 
-  private def signal(msg:String,node:Node) =
-    errors = errors ::: List(TypeError.make(msg,node))
+  private def signal(msg:String, node:Node) =
+    errors = errors ::: List(TypeError.make(msg, node))
 
   private def inferredType(expr:Expr): Option[Type] =
     scalaify(expr.getInfo.getExprType).asInstanceOf[Option[Type]]
 
   private def haveInferredTypes(exprs: List[Expr]): Boolean =
-    exprs.forall((e:Expr)=>inferredType(e).isDefined)
+    exprs.forall((e:Expr) => inferredType(e).isDefined)
 
   private def isArrows(expr: Expr): Boolean =
     TypesUtil.isArrows(inferredType(expr).get).asInstanceOf[Boolean]
 
-  private def checkSubtype(subtype:Type,supertype:Type,node:Node,error:String) = {
-    val judgement = analyzer.subtype(subtype,supertype).isTrue
-    if (! judgement) signal(error,node)
+  private def checkSubtype(subtype:Type, supertype:Type, node:Node, error:String) = {
+    val judgement = analyzer.subtype(subtype, supertype).isTrue
+    if ( ! judgement ) signal(error, node)
     judgement
   }
 
@@ -95,20 +95,22 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => None
   }
 
-
   def getErrors(): List[StaticError] = errors
 
   def check(node:Node):Node = node match {
-    case SComponent(info,name,imports,decls,isNative,exports)  =>
-      SComponent(info,name,imports,decls.map((n:Decl)=>check(n).asInstanceOf[Decl]),isNative,exports)
+    case SComponent(info, name, imports, decls, isNative, exports)  =>
+      SComponent(info, name, imports,
+                 decls.map((n:Decl) => check(n).asInstanceOf[Decl]),
+                 isNative, exports)
 
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
-    case f@SFnDecl(info,SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
-                  unambiguousName,Some(body),implementsUnambiguousName) => {
+    case f@SFnDecl(info,
+                   SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
+                   unambiguousName, Some(body), implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
-      val newAnalyzer = analyzer.extend(statics,wheres)
-      val newChecker = new STypeChecker(current,traits,newEnv,newAnalyzer)
+      val newAnalyzer = analyzer.extend(statics, wheres)
+      val newChecker = new STypeChecker(current, traits, newEnv, newAnalyzer)
       val newContract = contract match {
         case Some(c) => Some(newChecker.check(c))
         case None => contract
@@ -121,7 +123,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
         case _ => returnType
       }
-      SFnDecl(info, SFnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf[Option[Contract]],params,newReturnType),
+      SFnDecl(info,
+              SFnHeader(statics, mods, name, wheres, throws,
+                        newContract.asInstanceOf[Option[Contract]],
+                        params, newReturnType),
              unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
@@ -147,9 +152,20 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   def checkExpr(expr: Expr,expected:Option[Type]):Expr = expr match {
 
+      /* ToDo for Compiled0
+    case SFnRef(SExprInfo(span,paren,optType),
+                sargs, depth, name, names, overloadings, types) => {
+        expr
+    }
+
+    case SStringLiteralExpr(info, text) => {
+        expr
+    }
+      */
+
     /* Temporary code for Tight Juxtapositions
      */
-    case SJuxt(info, multi, infix, exprs, false, true) => {
+    case SJuxt(SExprInfo(span,paren,optType), multi, infix, exprs, false, true) => {
       val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
       if(haveInferredTypes(checkedExprs)){
         //check if there are any functions
@@ -168,18 +184,20 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           //Replace fn and arg with a _ReWriteFnApp and recurse
           val fnApp = ExprFactory.make_RewriteFnApp(fn,arg)
           val newExprs = prefix++(fnApp::suffix)
-          checkExpr(SJuxt(info,multi,infix,newExprs,false,true),expected)
+          checkExpr(SJuxt(SExprInfo(span,paren,optType),
+                          multi,infix,newExprs,false,true),expected)
         }
       }
       else{
-        SJuxt(info,multi,infix,checkedExprs,false,true)
+        SJuxt(SExprInfo(span,paren,optType),
+              multi,infix,checkedExprs,false,true)
       }
     }
 
 
     /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
      */
-    case SJuxt(info, multi, infix, exprs, isApp, false) => {
+    case SJuxt(SExprInfo(span,paren,optType), multi, infix, exprs, isApp, false) => {
       //Check subexpressions
       val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
       if(haveInferredTypes(checkedExprs)){
@@ -237,7 +255,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
       }
       else{
-        SJuxt(info,multi,infix,checkedExprs,isApp,false)
+        SJuxt(SExprInfo(span,paren,optType),
+              multi,infix,checkedExprs,isApp,false)
       }
     }
 
@@ -254,7 +273,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
      */
 
     //TODO: Handle math expressions
-    case SMathPrimary(info,multi,infix,front,rest) => expr
+    //case SMathPrimary(info,multi,infix,front,rest) => expr
 
     case _ => throw new Error("Not yet implemented: " + expr.getClass)
   }
