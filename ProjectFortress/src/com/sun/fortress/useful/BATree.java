@@ -31,12 +31,13 @@ import java.util.Set;
  *
  * Does not yet support all the SortedMap methods that it could in principle support.
  */
-public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U>, java.io.Serializable {
+public class BATree<T, U> extends AbstractMap<T,U>
+         implements Map<T,U>, java.io.Serializable, Cloneable {
 
      static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
 
+        final Comparator<? super T> comp;
         BATreeNode<T,U> root;
-        Comparator<? super T> comp;
 
         EntrySet(BATreeNode<T,U> r, Comparator<? super T> c) {
             root = r;
@@ -121,6 +122,15 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U>, java.io.
     protected BATree(BATreeNode<T,U> r, Comparator<? super T> c) {
         root = r;
         comp = c;
+    }
+
+    public BATree(BATree<T,U> t) {
+        root = t.root;
+        comp = t.comp;
+    }
+
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     public int size() {

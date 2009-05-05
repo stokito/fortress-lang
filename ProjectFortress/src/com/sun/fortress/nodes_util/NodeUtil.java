@@ -175,6 +175,20 @@ public class NodeUtil {
         return t.getHeader().getStaticParams();
     }
 
+    // TODO: we want a way to convert a decl into the corresponding type.
+    // However, this requires first having a graceful way to turn staticParams
+    // into StaticArgs.
+    // public static Type getAsType(TraitObjectDecl t) {
+    //     List<StaticParam> params = getStaticParams(t);
+    //     List<StatigArg> args = new ArrayList(params.size());
+    //     Id name = getName(t);
+    //     for (StaticParam sp : params) {
+    //         args.add(sp.getName());
+    //     }
+    //     if (params.size() == 0) {
+            
+    // }
+
     public static Option<WhereClause> getWhereClause(TraitObjectDecl o) {
         return o.getHeader().getWhereClause();
     }
