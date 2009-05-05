@@ -55,11 +55,13 @@ public class CodeGenerationPhase extends Phase {
 
 
     @Override
-        public AnalyzeResult execute() throws StaticError {
+    public AnalyzeResult execute() throws StaticError {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
         AnalyzeResult previous = parentPhase.getResult();
         FortressRepository repository = getRepository();
 
+
+        
         Debug.debug(Debug.Type.CODEGEN, 1,
                     "CodeGenerationPhase: components " + previous.components() +
                     " apis = " + previous.apis().keySet());
@@ -78,6 +80,8 @@ public class CodeGenerationPhase extends Phase {
         for ( APIName api : previous.apis().keySet() ) {
                 if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                     ApiIndex ai = previous.apis().get(api);
+                    TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, getEnv()));
+
                     Set<OverloadSet> overloads =
                         new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
 
@@ -85,7 +89,7 @@ public class CodeGenerationPhase extends Phase {
                     for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                         PredicateSet<Function> defs = fns.matchFirst(name);
                         if (defs.size() > 1) {
-                            overloads.add(foundAnOverLoadedForeignFunction(ai, name, defs));
+                            overloads.add(foundAnOverLoadedForeignFunction(ai, ta, name, defs));
                         }
                     }
                     ForeignJava.only.generateWrappersForApi(api, overloads);
@@ -98,8 +102,9 @@ public class CodeGenerationPhase extends Phase {
                         "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
             Relation<IdOrOpOrAnonymousName, Function>  fns = ci.functions();
+            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, getEnv()));
 
-            CodeGen c = new CodeGen(component.getName().getText(), symbolTable);
+            CodeGen c = new CodeGen(component.getName().getText(), symbolTable, ta);
             component.accept(c);
         }
 
@@ -115,9 +120,8 @@ public class CodeGenerationPhase extends Phase {
      * @param name
      * @param defs
      */
-    private OverloadSet foundAnOverLoadedForeignFunction(ApiIndex ai,
+    private OverloadSet foundAnOverLoadedForeignFunction(ApiIndex ai, TypeAnalyzer ta,
             IdOrOpOrAnonymousName name, PredicateSet<Function> defs) {
-        TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, getEnv()));
         // Woo-hoo, an overloaded function.
         if (debugOverloading)
             System.err.println("Found an overloaded function " + name);
