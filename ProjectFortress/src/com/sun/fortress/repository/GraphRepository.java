@@ -38,6 +38,7 @@ import java.util.Set;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.PathTaggedApiName;
@@ -680,7 +681,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (unparsed.size() == 0)
             return new AnalyzeResult(IterUtil.<StaticError>empty());
 
-        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
+        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis(unparsed));
 
         // Can we exclude non-imported pieces of the api here?
 
@@ -706,6 +707,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
                 CompilationUnit api = Parser.parseFileConvertExn(fdot);
                 if (api instanceof Api) {
+                    // Is this a good side-effect?
+                    node.setApi(IndexBuilder.builder.buildApiIndex((Api)api, fdot.lastModified()), fdot.lastModified());
                     return (Api) api;
                 } else {
                     throw StaticError.make("Unexpected parse of API " + api_name, "");
@@ -718,7 +721,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
 
     /* find all parsed APIs */
-    public Map<APIName, ApiIndex> parsedApis(){
+    public Map<APIName, ApiIndex> parsedApis(List<Api> unparsed){
 
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 
@@ -732,12 +735,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 }
             }
         }
+
         return apis;
     }
 
     /* parse a single component. */
     private AnalyzeResult parseComponent( Component component ) throws StaticError {
-        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis());
+        GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis(Collections.<Api>emptyList()));
         List<Component> components = new ArrayList<Component>();
         components.add(component);
         long now = System.currentTimeMillis();
