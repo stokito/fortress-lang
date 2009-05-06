@@ -76,7 +76,7 @@ with 'fortress_home', runs that command, and assigns its output to
 FORTRESS_HOME for the remainder of the scripts.  'fortress_home'
 determines the location of fortress_home if it is not otherwise
 specified.  This command can also be used in your own build files;
-for example, if you include the fortify macros in a latex file
+for example, if you include the fortify macros in a LaTeX file
     \input{$FORTRESS_HOME/Fortify/fortify-macros}
 you might precede the latex command with
     FORTRESS_HOME="`fortress_home`"
@@ -152,9 +152,7 @@ The first time you run a Fortress program, the static checker is
 called on the given file and the results are stored in a cache
 directory (by default this cache is kept in default_repository/caches
 in the root of your Fortress distribution).  No user-visible object
-file is generated.  (At present, the static checker has limited
-functionality.  Most significantly, static type errors are not yet
-signaled.)  A file with suffix .fsi should contain a single API
+file is generated.  A file with suffix .fsi should contain a single API
 definition.  The name of the API should match the name of the file.
 Similarly, a file with the suffix .fss should contain a single
 component definition.  The name of the component should match the name
@@ -234,7 +232,7 @@ that are prefixed with XXX.
 The directory ProjectFortress/static_tests/ contains some Fortress
 programs to test the static end.  Test programs that are supposed to
 fail have names that are prefixed with XXX.  Test programs that are
-supposed to pass the static disambiguation then fail have names that
+supposed to pass static disambiguation then fail have names that
 are prefixed with DXX.
 
 The directory ProjectFortress/parser_tests/ contains some Fortress
@@ -350,10 +348,6 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 
 * Keyword arguments
 
-* True type inference
-
-* Any checking of return types at all
-
 * Where clauses
 
 * Coercion
@@ -378,9 +372,9 @@ LANGUAGE FEATURES THAT ARE NOT IMPLEMENTED
 CHANGES SINCE FORTRESS LANGUAGE SPECIFICATION v.1.0 BETA
 --------------------------------------------------------
 
-* This release of the Fortress language interpreter is the first to be
-released in tandem with the language specification, available as open source
-and online at:
+* Fortress 1.0 is the first  release of the Fortress language
+interpreter is the first to be released in tandem with the language
+specification, available as open source and online at:
 
     http://projectfortress.sun.com
 

@@ -121,6 +121,7 @@ public final class Shell {
         System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" link [-debug [type]* [#]] somecomponent");
+        System.err.println(" build [-debug [type]* [#]] somecomponent");
         System.err.println(" run somecomponent");
         System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
@@ -161,6 +162,9 @@ public final class Shell {
          "\n"+
          "fortress link [-debug [type]* [#]] somecomponent\n"+
          "  Links compiled components implementing APIs imported by somecomponent.\n"+
+         "\n"+
+         "fortress build [-debug [type]* [#]] somecomponent\n"+
+         "  Builds and links components implementing APIs imported by somecomponent.\n"+
          "\n"+
          "fortress [walk] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
@@ -294,6 +298,12 @@ public final class Shell {
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("link")) {
+                WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
+                setTypeChecking(true);
+                setPhase( PhaseOrder.CODEGEN );
+                return_code = link(args);
+            } else if (what.equals("build")) {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
