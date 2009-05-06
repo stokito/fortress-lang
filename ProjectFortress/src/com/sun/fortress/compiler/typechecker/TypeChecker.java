@@ -399,8 +399,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      */
     private TraitIndex expectTraitIndex(TraitType trait) {
         Option<TypeConsIndex> tc_ = table.typeCons(trait.getName());
-        if( tc_.isNone() || !(tc_.unwrap() instanceof TraitIndex) ) {
-            return bug("This should never be anything but a legitimate trait index.");
+        if( tc_.isNone()) {
+            return bug("An expected trait index is not in table: " + trait);
+        } 
+        else if (!(tc_.unwrap() instanceof TraitIndex)) {
+            return bug("Expected a trait index; given " + tc_.unwrap());
         }
         else {
             return (TraitIndex)tc_.unwrap();

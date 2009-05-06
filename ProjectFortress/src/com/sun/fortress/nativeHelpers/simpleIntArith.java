@@ -22,6 +22,7 @@ public class simpleIntArith {
     public static String intToString(int x) {
         return Integer.toString(x);
     }
+    public static int parseInt(String s) { return Integer.parseInt(s); }
 
     public static int intAdd(int a, int b) { return a+b; }
     public static int intSub(int a, int b) { return a-b; }

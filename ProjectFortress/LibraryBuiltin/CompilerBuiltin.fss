@@ -25,7 +25,8 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString as jIntTo
                                             simpleIntArith.intMul as jIntMul,
                                             simpleIntArith.intLT as jIntLT,
                                             simpleIntArith.intLE as jIntLE,
-                                            simpleIntArith.intNeg as jIntNeg}
+                                            simpleIntArith.intNeg as jIntNeg,
+                                            simpleIntArith.parseInt as jParseInt}
 export CompilerBuiltin
 
 trait Object extends Any
@@ -40,6 +41,8 @@ end FlatString
 
 println(s:String):() = jPrintln(s)
 printlnZZ32(x:ZZ32):() = jPrintlnZZ32(x)
+
+parseInt(s:String):ZZ32 = jParseInt(s)
 
 trait Number
 end
