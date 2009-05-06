@@ -30,6 +30,8 @@ end FlatString
 println(s:String):()
 printlnZZ32(x:ZZ32):()
 
+parseInt(s:String):ZZ32 
+                          
 trait Number
 end
 
