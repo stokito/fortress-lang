@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.phases;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Set;
 
 import edu.rice.cs.plt.collect.PredicateSet;
@@ -66,8 +67,12 @@ public class CodeGenerationPhase extends Phase {
                     "CodeGenerationPhase: components " + previous.components() +
                     " apis = " + previous.apis().keySet());
 
-        for ( APIName api : previous.apis().keySet() )
-            symbolTable.addApi(api, previous.apis().get(api));
+//        for ( APIName api : previous.apis().keySet() )
+//            symbolTable.addApi(api, previous.apis().get(api));
+        
+        for (Map.Entry<APIName, ApiIndex> entry : repository.apis().entrySet()) {
+            symbolTable.addApi(entry.getKey(), entry.getValue());
+        }
 
         for (Component component : previous.componentIterator()) {
             APIName api = component.getName();
