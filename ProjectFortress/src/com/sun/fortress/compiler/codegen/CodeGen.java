@@ -60,6 +60,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inAnObject = false;
     boolean inABlock = false;
     int localsDepth = 0;
+    Component component;
 
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
@@ -84,8 +85,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    public CodeGen(String n, Symbols s, TypeAnalyzer ta) {
-        className = n;
+    public CodeGen(Component c, Symbols s, TypeAnalyzer ta) {
+        component = c;
+        className = c.getName().getText();
         aliasTable = new HashMap<String, String>();
         symbols = s;
         this.ta = ta;
@@ -167,7 +169,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     public void forComponent(Component x) {
         debug("forComponent ",x.getName(),NodeUtil.getSpan(x));
-        cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cw.visitSource(className, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
@@ -224,6 +226,22 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 
+    public void forChainExpr(ChainExpr x) {
+        debug( "forChainExpr" + x);
+        Expr first = x.getFirst();
+        List<Link> links = x.getLinks();
+        debug( "forChainExpr" + x + " about to call accept on " + first + " of class " + first.getClass());
+        first.accept(this);
+        Iterator<Link> i = links.iterator();
+        if (links.size() != 1) throw new CompilerError(NodeUtil.getSpan(x), x + "links.size != 1");
+        Link link = i.next();
+        link.getExpr().accept(this);
+        debug( "forChainExpr" + x + " about to call accept on " + link.getOp() + " of class " + link.getOp().getClass());
+        link.getOp().accept(this);
+
+        debug( "We've got a link " + link + " an op " + link.getOp() + " and an expr " + link.getExpr() + " What do we do now");
+    }
+
     public void forDecl(Decl x) {
         debug("forDecl", x);
         if (x instanceof TraitDecl)
@@ -252,7 +270,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 String desc = Naming.generateTypeDescriptor(f);
                 debug("about to call visitMethod with", name.getText(),
                             " and desc ", desc);
-                mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC, name.getText(), desc, null, null);
+                mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC, Naming.mangle(name.getText()), desc, null, null);
                 mv.visitMaxs(Naming.ignore, Naming.ignore);
                 mv.visitEnd();
             } else {
@@ -313,7 +331,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // First lets do the interface class
         String classFile = Naming.makeClassName(packageName, className, x);
         ClassWriter prev = cw;
-        cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cw.visitSource(classFile, null);
         cw.visit( Opcodes.V1_5,
                   Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
@@ -321,7 +339,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         dumpSigs(header.getDecls());
         dumpClass( classFile );
         // Now lets do the springboard inner class that implements this interface.
-
         String springBoardClass = classFile + Naming.underscore + Naming.springBoard;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
@@ -435,6 +452,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forOpRef(OpRef x) {
+        debug("forOpRef " + x );
         ExprInfo info = x.getInfo();
         Option<com.sun.fortress.nodes.Type> exprType = info.getExprType();
         List<StaticArg> staticArgs = x.getStaticArgs();
@@ -452,23 +470,34 @@ public class CodeGen extends NodeAbstractVisitor_void {
         boolean canCompile =
             x.getStaticArgs().isEmpty() &&
             x.getOverloadings().isNone() &&
-            exprType.isSome() &&
             names.size() == 1;
 
         if (canCompile) {
-            String name = originalName.getText();
+            String name = Naming.mangle(originalName.getText());
             IdOrOp newName = names.get(0);
             Option<APIName> api = newName.getApiName();
             if (api.isSome()) {
                 APIName apiName = api.unwrap();
                 debug("forOpRef name = ", name,
                              " api = ", apiName);
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName), newName.getText(),
-                                   Naming.emitDesc(exprType.unwrap()));
+                if (exprType.isSome())
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName), 
+                                       Naming.mangle(newName.getText()),
+                                       Naming.emitDesc(exprType.unwrap()));
+                else 
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                                       Naming.fortressPackage + Naming.slash + api.unwrap().getText(),
+                                       Naming.mangle(newName.getText()),
+                                       symbols.getTypeSignatureForIdOrOp(newName, component));
+
             } else {
                 debug("forOpRef name = ", name);
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name,
-                                   Naming.emitDesc(exprType.unwrap()));
+                if (exprType.isSome()) 
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, Naming.mangle(name),
+                                       Naming.emitDesc(exprType.unwrap()));
+                else 
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className,
+                                       Naming.mangle(name), symbols.getTypeSignatureForIdOrOp(newName, component));
             }
         } else
             debug("forOpRef can't compile staticArgs ",
@@ -523,13 +552,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
             Fixity fixity = op.getFixity();
             boolean isEnclosing = op.isEnclosing();
             Option<APIName> maybe_apiName = op.getApiName();
-
             debug("forOp ", op, " fixity = ", fixity,
                   " isEnclosing = ", isEnclosing,
                   " class = ", Naming.getJavaClassForSymbol(op));
         } else {
             sayWhat(x);
         }
+
 
         CodeGen cg = new CodeGen(this);
         cg.localsDepth = 0;
@@ -544,32 +573,65 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // Top-level function or functional method
             modifiers += Opcodes.ACC_STATIC;
         }
-
         cg.mv = cw.visitMethod(modifiers,
                                Naming.mangle(nameString),
                                Naming.emitFnDeclDesc(NodeUtil.getParamType(x),
                                                      returnType.unwrap()),
                                null, null);
-
+ 	
         // Now inside method body.  Generate code for the method body.
         for (Param p : params) {
             VarCodeGen v = cg.addParam(p);
             // v.pushValue(cg.mv);
         }
-
+ 	
         body.unwrap().accept(cg);
-
+ 	
         // Method body is complete except for returning final result if any.
         if (NodeUtil.isVoidType(returnType.unwrap()))
             cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                                   Naming.internalFortressVoid, Naming.make,
                                   Naming.makeMethodDesc(Naming.emptyString,
                                                         Naming.descFortressVoid));
-
+ 	
         cg.mv.visitInsn(Opcodes.ARETURN);
         cg.mv.visitMaxs(Naming.ignore,Naming.ignore);
         cg.mv.visitEnd();
         // Method body complete, cg now invalid.
+    }
+
+    public void forIf(If x) {
+        Debug.debug( Debug.Type.CODEGEN, 1,"forIf " + x);
+        List<IfClause> clauses = x.getClauses();
+        Option<Block> elseClause = x.getElseClause();
+        if (clauses.size() > 1) throw new CompilerError(NodeUtil.getSpan(x), "Don't know how to compile multiple if clauses yet");
+
+        org.objectweb.asm.Label action = new org.objectweb.asm.Label();
+        org.objectweb.asm.Label done = new org.objectweb.asm.Label();
+        IfClause ifclause = clauses.get(0);
+        GeneratorClause cond = ifclause.getTestClause();
+
+        if (!cond.getBind().isEmpty())
+            sayWhat(x, "Undesugared generalized if expression.");
+
+        Expr testExpr = cond.getInit();
+        debug( "about to accept " + testExpr + " of class " + testExpr.getClass());
+        testExpr.accept(this);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.internalFortressBoolean, "getValue",
+                           Naming.makeMethodDesc(Naming.emptyString,Naming.descBoolean));
+        
+        mv.visitJumpInsn(Opcodes.IFNE, action);
+        Option<Block> maybe_else = x.getElseClause();
+        if (maybe_else.isSome()) {
+            maybe_else.unwrap().accept(this);
+        }
+        mv.visitJumpInsn(Opcodes.GOTO, done);
+        mv.visitInsn(Opcodes.NOP);
+        mv.visitLabel(action);
+        mv.visitInsn(Opcodes.NOP);
+        ifclause.getBody().accept(this);        
+        mv.visitLabel(done);
+        mv.visitInsn(Opcodes.NOP);
     }
 
     public void forDo(Do x) {

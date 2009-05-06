@@ -105,7 +105,7 @@ public class Naming extends NodeAbstractVisitor<String> {
     public static String internalFortressZZ64  = makeFortressInternal("ZZ64");
     public static String internalFortressRR32  = makeFortressInternal("RR32");
     public static String internalFortressRR64  = makeFortressInternal("RR64");
-    public static String internalFortressBool  = makeFortressInternal("Bool");
+    public static String internalFortressBoolean  = makeFortressInternal("Boolean");
     public static String internalFortressChar  = makeFortressInternal("Char");
     public static String internalFortressString = makeFortressInternal("String");
     public static String internalFortressVoid   = makeFortressInternal("Void");
@@ -115,7 +115,7 @@ public class Naming extends NodeAbstractVisitor<String> {
     public static String descFortressZZ64  = internalToDesc(internalFortressZZ64);
     public static String descFortressRR32  = internalToDesc(internalFortressRR32);
     public static String descFortressRR64  = internalToDesc(internalFortressRR64);
-    public static String descFortressBool  = internalToDesc(internalFortressBool);
+    public static String descFortressBoolean  = internalToDesc(internalFortressBoolean);
     public static String descFortressChar  = internalToDesc(internalFortressChar);
     public static String descFortressString = internalToDesc(internalFortressString);
     public static String descFortressVoid   = internalToDesc(internalFortressVoid);
@@ -171,8 +171,8 @@ public class Naming extends NodeAbstractVisitor<String> {
                     result =  descFortressRR32;
                 else if ( t.getName().getText().equals("RR64") )
                     result = descFortressRR64;
-                else if ( t.getName().getText().equals("Bool"))
-                    result =  descFortressBool;
+                else if ( t.getName().getText().equals("Boolean"))
+                    result =  descFortressBoolean;
                 else if ( t.getName().getText().equals("Char"))
                     result =  descFortressChar;
                 else {
@@ -255,6 +255,10 @@ public class Naming extends NodeAbstractVisitor<String> {
     public static String mangle(String name) {
         if (name == "[ ]") 
             return "subscript";
+        else if (name == "<")
+            return "lessthan";
+        else if (name == "<=")
+            return "lessthanequals";
         else return name;
     }
 

@@ -104,7 +104,7 @@ public class CodeGenerationPhase extends Phase {
             Relation<IdOrOpOrAnonymousName, Function>  fns = ci.functions();
             TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, getEnv()));
 
-            CodeGen c = new CodeGen(component.getName().getText(), symbolTable, ta);
+            CodeGen c = new CodeGen(component, symbolTable, ta);
             component.accept(c);
         }
 
