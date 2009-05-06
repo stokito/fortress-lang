@@ -16,10 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
@@ -37,15 +34,17 @@ public class Symbols {
     Map<APIName, ComponentIndex> components = new HashMap<APIName, ComponentIndex>();
 
     public void addApi(APIName apiName, ApiIndex apiIndex) {
+        System.out.println("XXXXX add api " + apiName + " component " + apiIndex);
         apis.put(apiName, apiIndex);
     }
 
     public void addComponent(APIName apiName, ComponentIndex componentIndex) {
+        System.out.println("XXXXX add component " + apiName + " component " + componentIndex);
         components.put(apiName, componentIndex);
     }
 
     private <T> T sayWhat(ASTNode x) {
-        throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
+        throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x + " of class " + x.getClass());
     }
 
     private <T> T sayWhat(ASTNode x, String message) {
@@ -54,8 +53,8 @@ public class Symbols {
 
 
 
-    public String getTypeSignatureForIdOrOp(IdOrOp op) {
-        Function f = getFunction(op);
+    public String getTypeSignatureForIdOrOp(IdOrOp op, Component c) {
+        Function f = getFunction(op, c);
         String desc = "";
         if (f instanceof FunctionalMethod) {
             FunctionalMethod fm = (FunctionalMethod) f;
@@ -73,15 +72,31 @@ public class Symbols {
                 }
             }
             desc = desc + ")" + Naming.emitDesc(returnType);
-        }
-        else sayWhat(op);
+        } else if (f instanceof Constructor) {
+            throw new CompilerError("We can't generate code for constructors yet");
+        } else if (f instanceof DeclaredFunction) {
+            List<Param> params = f.parameters();
+            Type returnType = f.getReturnType();
+            desc = Naming.openParen;
+            for (Param p : params) {
+                Id paramName = p.getName();
+                Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
+                if (optionType.isNone())
+                    sayWhat(op);
+                else {
+                    com.sun.fortress.nodes.Type t = optionType.unwrap();
+                    desc = desc + Naming.emitDesc(t);
+                }
+            }
+            desc = desc + ")" + Naming.emitDesc(returnType);
+        } else sayWhat(op);
         return desc;            
     }
 
-    public String getJavaClassForSymbol(IdOrOp fnName) {
+    public String getJavaClassForSymbol(IdOrOp fnName, Component component) {
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "getJavaClassForSymbo:" + fnName);
-        Function f = getFunction(fnName);
+                    "getJavaClassForSymbol:" + fnName);
+        Function f = getFunction(fnName, component);
 
         if (f instanceof FunctionalMethod) {
             FunctionalMethod fm = (FunctionalMethod) f;
@@ -108,7 +123,6 @@ public class Symbols {
         throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in predicate set");
     }
             
-
     public Function lookupFunctionInApi(IdOrOp fnName, APIName api) {
         if (apis.containsKey(api)) {
             ApiIndex ind = apis.get(api);
@@ -119,39 +133,40 @@ public class Symbols {
             for (Function f : functions) {
                 return f;
             }
+            System.out.println("Got to here with ind = " + ind + " first = " + first + " n = " + n + " functions = " + functions);
         }
+
+        System.out.println("apis = " + apis);
+
         throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in Api " + api);
     }
 
-    public Function lookupFunctionInComponent(IdOrOp fnName) {
-        for (ComponentIndex ind : components.values()) {
-            Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInComponent:name = ", fnName,
-                        " component = ", ind);
-            PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
-            IdOrOp n = lookupFunctionInPredicateSet(fnName, first);
-            PredicateSet<Function> functions = ind.functions().matchFirst(n);
-            // Someday we will do overloading here
-            for (Function f : functions) {
-                return f;
-            }
+    public Function lookupFunctionInComponent(IdOrOp fnName, ComponentIndex ind) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "lookupFunctionInComponent:name = " + fnName + " component = " + ind);
+        PredicateSet<IdOrOpOrAnonymousName> first = ind.functions().firstSet();
+        IdOrOp n = lookupFunctionInPredicateSet(fnName, first);
+        PredicateSet<Function> functions = ind.functions().matchFirst(n);
+        // Someday we will do overloading here
+        for (Function f : functions) {
+            return f;
         }
         throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in component");
     }
 
-
-    public Function getFunction(IdOrOp fnName) {
+    public Function getFunction(IdOrOp fnName, Component component) {
         Option<APIName> maybe_api = fnName.getApiName();
         IdOrOp id = fnName;
         if (maybe_api.isSome()) {
             return lookupFunctionInApi(fnName, maybe_api.unwrap());
         } else {
-            return lookupFunctionInComponent(fnName);
-        }
+            ComponentIndex ind = components.get(component.getName());
+            return lookupFunctionInComponent(fnName, ind);
+        } 
     }
     
-    public boolean isFunctionalMethod(IdOrOp fnName) {
+    public boolean isFunctionalMethod(IdOrOp fnName, Component component) {
         Option<APIName> maybe_api = fnName.getApiName();
-        Function f = getFunction(fnName);
+        Function f = getFunction(fnName, component);
         if (f instanceof FunctionalMethod)
             return true;
         else return false;
@@ -169,4 +184,5 @@ public class Symbols {
         }
         return result;
     }
+
 }
