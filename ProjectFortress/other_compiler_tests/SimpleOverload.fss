@@ -18,15 +18,12 @@
 component SimpleOverload
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 import java com.sun.fortress.nativeHelpers.{simpleOverload.bar as jBar}
-
-(* Uncommenting this line causes crash in disambiguation *)
 import java com.sun.fortress.nativeHelpers.{simpleOverload.baz as jBaz}
-(* *)
 
 export Executable
 
 run() = do
-  jPrintln(jBaz("PASS")) 
+  jPrintln(jBaz("PASS"))
   jPrintln(jBaz(11))
 end
 

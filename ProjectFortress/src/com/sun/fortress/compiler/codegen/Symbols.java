@@ -34,12 +34,12 @@ public class Symbols {
     Map<APIName, ComponentIndex> components = new HashMap<APIName, ComponentIndex>();
 
     public void addApi(APIName apiName, ApiIndex apiIndex) {
-        System.out.println("XXXXX add api " + apiName + " component " + apiIndex);
+        //System.out.println("XXXXX add api " + apiName + " component " + apiIndex);
         apis.put(apiName, apiIndex);
     }
 
     public void addComponent(APIName apiName, ComponentIndex componentIndex) {
-        System.out.println("XXXXX add component " + apiName + " component " + componentIndex);
+        //System.out.println("XXXXX add component " + apiName + " component " + componentIndex);
         components.put(apiName, componentIndex);
     }
 
@@ -90,7 +90,7 @@ public class Symbols {
             }
             desc = desc + ")" + Naming.emitDesc(returnType);
         } else sayWhat(op);
-        return desc;            
+        return desc;
     }
 
     public String getJavaClassForSymbol(IdOrOp fnName, Component component) {
@@ -107,7 +107,7 @@ public class Symbols {
         throw new CompilerError(NodeUtil.getSpan(fnName), "Get Java Class For Symbol Not yet implemented");
     }
 
-    // This works around the issue with IdOrOps not matching the table provided by the type checker.  
+    // This works around the issue with IdOrOps not matching the table provided by the type checker.
     public IdOrOp lookupFunctionInPredicateSet(IdOrOp fnName, PredicateSet<IdOrOpOrAnonymousName> predSet) {
         for (IdOrOpOrAnonymousName name : predSet) {
                 if (name instanceof IdOrOp) {
@@ -122,7 +122,7 @@ public class Symbols {
         }
         throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in predicate set");
     }
-            
+
     public Function lookupFunctionInApi(IdOrOp fnName, APIName api) {
         if (apis.containsKey(api)) {
             ApiIndex ind = apis.get(api);
@@ -133,10 +133,10 @@ public class Symbols {
             for (Function f : functions) {
                 return f;
             }
-            System.out.println("Got to here with ind = " + ind + " first = " + first + " n = " + n + " functions = " + functions);
+            //System.out.println("Got to here with ind = " + ind + " first = " + first + " n = " + n + " functions = " + functions);
         }
 
-        System.out.println("apis = " + apis);
+        //System.out.println("apis = " + apis);
 
         throw new CompilerError(NodeUtil.getSpan(fnName), "Cannot find function " + fnName + " in Api " + api);
     }
@@ -161,9 +161,9 @@ public class Symbols {
         } else {
             ComponentIndex ind = components.get(component.getName());
             return lookupFunctionInComponent(fnName, ind);
-        } 
+        }
     }
-    
+
     public boolean isFunctionalMethod(IdOrOp fnName, Component component) {
         Option<APIName> maybe_api = fnName.getApiName();
         Function f = getFunction(fnName, component);
