@@ -1,0 +1,27 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled4.a
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled4.a.fss:18:11-21:\n\
+\ Component Compiled4.a exports API Executable\n\
+\ but does not define all declarations in Executable.\n\
+\ Missing declarations: {run():() at /Users/ericeallen/cleanPFC/Library/Executable.fsi:22:3-23:1}\n\
+${STATIC_TESTS_DIR}/Compiled4.a.fss:25:24-31:\n\
+\ Call to operator ! has invalid arguments, [String]\n\
+File Compiled4.a.fss has 2 errors.\n
+compile_out_equals=

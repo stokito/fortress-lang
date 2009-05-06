@@ -42,7 +42,7 @@ end FlatString
 println(s:String):() = jPrintln(s)
 printlnZZ32(x:ZZ32):() = jPrintlnZZ32(x)
 
-parseInt(s:String):ZZ32 = jParseInt(s)
+strToInt(s:String):ZZ32 = jParseInt(s)
 
 trait Number
 end
