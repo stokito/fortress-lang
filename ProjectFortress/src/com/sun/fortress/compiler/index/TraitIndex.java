@@ -22,14 +22,10 @@ import java.util.Set;
 import java.util.List;
 import java.util.Collections;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.iter.IterUtil;
-import com.sun.fortress.nodes.TraitObjectDecl;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 
 
@@ -61,6 +57,12 @@ public abstract class TraitIndex extends TypeConsIndex {
     }
 
     public TraitObjectDecl ast() { return _ast; }
+
+    public Option<Type> typeOfSelf() { 
+        if (this.ast() instanceof TraitDecl) { return ((TraitDecl)this.ast()).getSelfType(); }
+        if (this.ast() instanceof ObjectDecl) { return ((ObjectDecl)this.ast()).getSelfType(); }
+        return Option.<Type>none();
+    }
 
     public List<StaticParam> staticParameters() { return NodeUtil.getStaticParams(_ast); }
 
