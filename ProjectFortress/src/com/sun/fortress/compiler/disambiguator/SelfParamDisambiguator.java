@@ -21,6 +21,7 @@ import java.util.List;
 import static com.sun.fortress.compiler.IndexBuilder.SELF_NAME;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
@@ -31,6 +32,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitTypeHeader;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -59,7 +61,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
-        ObjectDecl that_new = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
+        ObjectDecl temp = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
+        ObjectDecl that_new = new ObjectDecl(temp.getInfo(), temp.getHeader(), temp.getParams(), Option.some(self_type));
         return super.forObjectDecl(that_new);
     }
 
@@ -68,7 +71,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
-        TraitDecl that_new = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
+        TraitDecl temp = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
+        TraitDecl that_new = new TraitDecl(temp.getInfo(),temp.getHeader(), temp.getExcludesClause(), temp.getComprisesClause(), temp.isComprisesEllipses(), Option.some(self_type));
         return super.forTraitDecl(that_new);
     }
 
@@ -78,7 +82,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     public Node forObjectExpr(ObjectExpr that) {
         // Add a type to self parameters of methods
         Type self_type = TypesUtil.getObjectExprType(that);
-        ObjectExpr that_new = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
+        ObjectExpr temp = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
+        ObjectExpr that_new = new ObjectExpr(temp.getInfo(),temp.getHeader(),Option.some(self_type));
         return super.forObjectExpr(that_new);
     }
 

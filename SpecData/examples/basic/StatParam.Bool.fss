@@ -19,6 +19,7 @@
 
 component StatParam.Bool
 
+import FortressBuiltin.{...} except Boolean
 export Executable
 
 trait BooleanLiteral[\bool b\] end

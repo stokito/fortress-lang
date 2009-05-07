@@ -218,7 +218,7 @@ interface Node() extends HasAt;
                      */
                     TraitDecl(List<BaseType> excludesClause,
                               Option<List<BaseType>> comprisesClause,
-                              boolean comprisesEllipses);
+                              boolean comprisesEllipses, Option<Type> selfType);
                     /**
                      * object declaration in components or APIs
                      *
@@ -258,7 +258,7 @@ interface Node() extends HasAt;
                      *         length() = 0
                      *       end
                      */
-                    ObjectDecl(Option<List<Param>> params)
+                    ObjectDecl(Option<List<Param>> params, Option<Type> selfType)
                               implements ObjectConstructor;
                 /**
                  * variable declaration in components or APIs
@@ -551,7 +551,7 @@ interface Node() extends HasAt;
                      *          append (xs) = xs
                      *        end
                      */
-                    ObjectExpr();
+                    ObjectExpr(Option<Type> selfType);
                     /**
                      * object expression rewritten by interpreter.rewrite.Disambiguate
                      */

@@ -47,7 +47,8 @@ TraitDecl TraitDecl =
                                            a2.getStaticParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
-                                           a3.getComprises());
+                                           a3.getComprises(),
+                                           Option.<Type>none());
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
@@ -133,7 +134,8 @@ ObjectDecl ObjectDecl =
                                             fhc.getWhereClause(),
                                             a3, a2.getParams(),
                                             fhc.getThrowsClause(),
-                                            fhc.getContractClause());
+                                            fhc.getContractClause(),
+                                            Option.<Type>none());
      };
 
 /* ObjectHeader ::=
@@ -218,7 +220,8 @@ TraitDecl AbsTraitDecl =
                                            a2.getStaticParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
-                                           a3.getComprises(), a3.getEllipses());
+                                           a3.getComprises(), a3.getEllipses(),
+                                           Option.<Type>none());
      };
 
 /* Each trait clause cannot appear more than once. */
@@ -283,7 +286,8 @@ ObjectDecl AbsObjectDecl =
                                             a2.getExtendsClause(),
                                             fhc.getWhereClause(), a3, params,
                                             fhc.getThrowsClause(),
-                                            fhc.getContractClause());
+                                            fhc.getContractClause(),
+                                            Option.<Type>none());
      };
 
 /* AbsGoInAnObject ::=

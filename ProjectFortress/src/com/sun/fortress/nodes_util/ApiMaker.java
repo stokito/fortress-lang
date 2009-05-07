@@ -118,7 +118,8 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                      that.getHeader(),
                                                      that.getExcludesClause(),
                                                      comprisesClause,
-                                                     comprisesEllipses);
+                                                     comprisesEllipses,
+                                                     that.getSelfType());
                 }
             });
         try {
@@ -143,7 +144,8 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                     NodeUtil.getWhereClause(that),
                                                     absDecls,
                                                     NodeUtil.getExcludesClause(that),
-                                                    NodeUtil.getComprisesClause(that)));
+                                                    NodeUtil.getComprisesClause(that),
+                                                    that.getSelfType()));
         } else return Option.<Node>none();
     }
 
@@ -162,7 +164,8 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                      absDecls,
                                                      NodeUtil.getParams(that),
                                                      NodeUtil.getThrowsClause(that),
-                                                     NodeUtil.getContract(that)));
+                                                     NodeUtil.getContract(that),
+                                                     that.getSelfType()));
         } else return Option.<Node>none();
     }
 
