@@ -384,10 +384,11 @@ public class TopLevelEnv extends NameEnv {
             ApiIndex api = _originalGlobalEnv.api(api_name);
 
             if( api.typeConses().containsKey(name) ) {
-                if( result_.isSome() )
-                    return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " +
-                                  name);
-
+                
+                /* if( result_.isSome() )
+                 *   Will be caught by export checker
+                 *   return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + name);
+                 */
                 result_ = Option.some(NodeFactory.makeId(api_name, name, NodeUtil.getSpan(name)));
             }
         }

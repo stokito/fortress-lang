@@ -506,12 +506,12 @@ public class TypeAnalyzerJUTest extends TestCase {
         if (absDecl) {
             ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause);
+                                            extendsClause, Option.<Type>none());
         }
         else {
             ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause);
+                                            extendsClause, Option.<Type>none());
         }
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),

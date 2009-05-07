@@ -96,14 +96,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         return opref.getOverloadings().isSome();
     }
 
-    private static TypeChecker addSelf(Option<APIName> api_, Id name, TypeChecker newChecker, List<StaticParam> static_params){
-        Id type_name;
-        if( api_.isSome() )
-            type_name = NodeFactory.makeId(api_.unwrap(), name);
-        else
-            type_name = name;
-
-        TraitType self_type = NodeFactory.makeTraitType(type_name,TypeEnv.staticParamsToArgs(static_params));
+    private static TypeChecker addSelf(TypeChecker newChecker, Type self_type){
         return newChecker.extend(Collections.singletonList(NodeFactory.makeLValue("self", self_type)));
     }
     /** Returns an error result if item is NOT an ExprMI */
@@ -3568,9 +3561,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
         method_checker = method_checker.extendWithMethods(methods);
         method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
-
+        Type temp = that.getSelfType().unwrap();
+        
         // Extend checker with self
-        method_checker = TypeChecker.addSelf(Option.<APIName>none(), NodeUtil.getName(that),method_checker,thatIndex.staticParameters());
+        method_checker = TypeChecker.addSelf(method_checker,that.getSelfType().unwrap());
 
         // Check declarations, storing them in the same order
         List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>();
@@ -3599,7 +3593,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
                 (Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
                 (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
-                contract);
+                contract,
+                that.getSelfType());
 
         return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extends_no_obj_result),
@@ -3643,9 +3638,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         method_checker = method_checker.extendWithFunctions(obj_index.functionalMethods());
 
         // Extend checker with self
-        Type obj_type = TypesUtil.getObjectExprType(that);
         method_checker = method_checker.extend(Collections.singletonList(NodeFactory.makeLValue("self",
-                obj_type)));
+                that.getSelfType().unwrap())));
 
         // Typecheck each declaration
         List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(NodeUtil.getDecls(that).size());
@@ -3669,9 +3663,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                  NodeUtil.isParenthesized(that),
                                                                  NodeUtil.getExprType(that),
                 (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClause_result),
-                (List<Decl>)TypeCheckerResult.astFromResults(decls_result)
+                (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
+                that.getSelfType()
         );
-        return TypeCheckerResult.compose(new_node, obj_type, subtypeChecker,
+        return TypeCheckerResult.compose(new_node, that.getSelfType().unwrap(), subtypeChecker,
                 TypeCheckerResult.compose(new_node, subtypeChecker, extendsClause_result),
                 TypeCheckerResult.compose(new_node, subtypeChecker, decls_result),
                 TypeCheckerResult.compose(new_node, subtypeChecker, extends_traits_result)).addNodeTypeEnvEntry(new_node, typeEnv);
@@ -4112,7 +4107,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
 
         // Extend method checker with self
-        method_checker = TypeChecker.addSelf(Option.<APIName>none(), NodeUtil.getName(that),method_checker,thatIndex.staticParameters());
+        method_checker = TypeChecker.addSelf(method_checker,that.getSelfType().unwrap());
 
         // Check declarations
         List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(NodeUtil.getDecls(that).size());
@@ -4141,7 +4136,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               where,
                                               (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
                                               (List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
-                                              (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult));
+                                              (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult),
+                                              that.getSelfType());
 
         return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extendsClauseResult),

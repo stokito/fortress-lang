@@ -97,7 +97,7 @@ public class VarRefContainer {
 
         ObjectDecl container =
             NodeFactory.makeObjectDecl( NodeUtil.getSpan(origDeclNode), containerDeclId(),
-                                        Option.<List<Param>>some(params) );
+                                        Option.<List<Param>>some(params), Option.<Type>none() );
 
         return container;
     }

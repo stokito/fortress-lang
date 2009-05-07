@@ -332,8 +332,8 @@ public final class Shell {
                 setPhase( PhaseOrder.GRAMMAR );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
-                /* TODO: remove the next line once type checking is permanently turned on */
-                Types.useTypeCheckerLibraries();
+                WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);

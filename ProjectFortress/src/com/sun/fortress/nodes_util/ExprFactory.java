@@ -890,27 +890,30 @@ public class ExprFactory {
 
     public static ObjectExpr makeObjectExpr(Span span,
                                             List<TraitTypeWhere> extendsC,
-                                            List<Decl> decls) {
+                                            List<Decl> decls,
+                                            Option<Type> selfType) {
         return makeObjectExpr(span, false, Option.<Type>none(),
-                              extendsC, decls);
+                              extendsC, decls, selfType);
     }
 
     public static ObjectExpr makeObjectExpr(Span span,
                                             boolean parenthesized,
                                             Option<Type> exprType,
                                             List<TraitTypeWhere> extendsC,
-                                            List<Decl> decls) {
+                                            List<Decl> decls,
+                                            Option<Type> selfType) {
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span, "_"),
                                                                  extendsC, decls);
-        return makeObjectExpr(span, parenthesized, exprType, header);
+        return makeObjectExpr(span, parenthesized, exprType, header,selfType);
     }
 
     public static ObjectExpr makeObjectExpr(Span span,
                                             boolean parenthesized,
                                             Option<Type> ty,
-                                            TraitTypeHeader header) {
+                                            TraitTypeHeader header,
+                                            Option<Type> selfType) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
-        return new ObjectExpr(info, header);
+        return new ObjectExpr(info, header, selfType);
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
@@ -1597,7 +1600,7 @@ public class ExprFactory {
         }
         public Expr forObjectExpr(ObjectExpr e) {
             return makeObjectExpr(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),
-                                  e.getHeader());
+                                  e.getHeader(), e.getSelfType());
         }
         public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
             return make_RewriteObjectExpr(NodeUtil.getSpan(e), true,

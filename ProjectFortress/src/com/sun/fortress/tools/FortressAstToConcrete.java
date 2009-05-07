@@ -1270,7 +1270,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
 
     @Override public String forObjectExprOnly(ObjectExpr that, String info,
-                                              String header_result) {
+                                              String header_result, Option<String> selfType) {
         StringBuilder s = new StringBuilder();
         List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
         List<String> decls_result = recurOnListOfDecl(NodeUtil.getDecls(that));

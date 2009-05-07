@@ -534,7 +534,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
                                                  NodeUtil.isParenthesized(that),
                                                  typeResult);
-        return forObjectExprOnly(that, info, header);
+        return forObjectExprOnly(that, info, header, that.getSelfType());
     }
 
     // Make sure we don't infinitely explore supertraits that are acyclic
@@ -676,7 +676,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         return forTraitDeclOnly(that, that.getInfo(), header,
 				v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
-				v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
+				v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)),
+				that.getSelfType());
     }
 
     /**
@@ -726,7 +727,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
         return forObjectDeclOnly(that, that.getInfo(), header,
-                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
+                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
+                                 that.getSelfType());
     }
 
     /**

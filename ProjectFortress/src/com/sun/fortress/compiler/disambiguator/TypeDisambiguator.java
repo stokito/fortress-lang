@@ -156,7 +156,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
         return forTraitDeclOnly(that, that.getInfo(), header,
                 v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
-                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
+                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)),
+                v.recurOnOptionOfType(that.getSelfType()));
     }
 
     /**
@@ -175,7 +176,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
         return forObjectDeclOnly(that, that.getInfo(), header,
-                v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
+                v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
+                v.recurOnOptionOfType(that.getSelfType()));
     }
 
     /**

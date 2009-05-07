@@ -27,7 +27,7 @@ unit feet: Length = foot
 unit radian = 1 meter per meter
 unit meter_squared = square meter
 
-trait Float[\unit U absorbs unit, nat e, nat s\] end
+trait Float1[\unit U absorbs unit, nat e, nat s\] end
 
 run() = println "Hello, World!"
 

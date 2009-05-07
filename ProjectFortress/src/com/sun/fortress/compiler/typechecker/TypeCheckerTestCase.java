@@ -92,7 +92,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitDecl ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name), sparams,
-                                                  extendsClause);
+                                                  extendsClause, Option.<Type>none());
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),

@@ -422,7 +422,7 @@ public class ForeignJava {
         Option<WhereClause> whereC = Option.none();
         List<BaseType> excludesC = Collections.emptyList();
         Option<List<BaseType>> comprisesC = Option.none();
-        TraitDecl td = NodeFactory.makeTraitDecl (span(imported_class), mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
+        TraitDecl td = NodeFactory.makeTraitDecl (span(imported_class), mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC, Option.<com.sun.fortress.nodes.Type>none());
         // Need to fake up an API for this class, too.
         classToTraitDecl.put(imported_class, td);
         apiToStaticDecls.putItem(api_name, td);

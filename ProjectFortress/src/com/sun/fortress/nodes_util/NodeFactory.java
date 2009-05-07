@@ -261,23 +261,13 @@ public class NodeFactory {
 
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
-                                          List<TraitTypeWhere> extendsC) {
+                                          List<TraitTypeWhere> extendsC,
+                                          Option<Type> selfType) {
         return makeTraitDecl(span, Modifiers.None, name,
                              sparams, extendsC, Option.<WhereClause>none(),
                              Collections.<Decl>emptyList(),
                              Collections.<BaseType>emptyList(),
-                             Option.<List<BaseType>>none());
-    }
-
-    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
-                                          List<StaticParam> sparams,
-                                          List<TraitTypeWhere> extendsC,
-                                          Option<WhereClause> whereC,
-                                          List<Decl> decls,
-                                          List<BaseType> excludesC,
-                                          Option<List<BaseType>> comprisesC) {
-        return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
-                             excludesC, comprisesC, false);
+                             Option.<List<BaseType>>none(),selfType);
     }
 
     public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
@@ -287,55 +277,74 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC,
-                                          boolean comprisesEllipses) {
+                                          Option<Type> selfType) {
+        return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
+                             excludesC, comprisesC, false, selfType);
+    }
+
+    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
+                                          List<StaticParam> sparams,
+                                          List<TraitTypeWhere> extendsC,
+                                          Option<WhereClause> whereC,
+                                          List<Decl> decls,
+                                          List<BaseType> excludesC,
+                                          Option<List<BaseType>> comprisesC,
+                                          boolean comprisesEllipses,
+                                          Option<Type> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      Option.<List<BaseType>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
         return makeTraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
-                             comprisesEllipses);
+                             comprisesEllipses,selfType);
     }
 
     public static TraitDecl makeTraitDecl(ASTNodeInfo info, TraitTypeHeader header,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC,
-                                          boolean comprisesEllipses) {
-        return new TraitDecl(info, header, excludesC, comprisesC, comprisesEllipses);
+                                          boolean comprisesEllipses,
+                                          Option<Type> selfType) {
+        return new TraitDecl(info, header, excludesC, comprisesC, comprisesEllipses, selfType);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             List<TraitTypeWhere> extendsC,
-                                            List<Decl> decls) {
+                                            List<Decl> decls,
+                                            Option<Type> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               extendsC, Option.<WhereClause>none(), decls,
                               Option.<List<Param>>none(),
                               Option.<List<BaseType>>none(),
-                              Option.<Contract>none());
+                              Option.<Contract>none(),
+                              selfType);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
-                                            Option<List<Param>> params) {
+                                            Option<List<Param>> params,
+                                            Option<Type> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               Collections.<TraitTypeWhere>emptyList(),
                               Option.<WhereClause>none(),
                               Collections.<Decl>emptyList(), params,
                               Option.<List<BaseType>>none(),
-                              Option.<Contract>none());
+                              Option.<Contract>none(),
+                              selfType);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             List<StaticParam> sparams,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
-                                            Option<List<Param>> params) {
+                                            Option<List<Param>> params,
+                                            Option<Type> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               sparams, extendsC,
                               Option.<WhereClause>none(), decls,
                               params,
                               Option.<List<BaseType>>none(),
-                              Option.<Contract>none());
+                              Option.<Contract>none(),selfType);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,
@@ -345,11 +354,12 @@ public class NodeFactory {
                                             List<Decl> decls,
                                             Option<List<Param>> params,
                                             Option<List<BaseType>> throwsC,
-                                            Option<Contract> contract) {
+                                            Option<Contract> contract,
+                                            Option<Type> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
                                                      decls);
-        return new ObjectDecl(makeSpanInfo(span), header, params);
+        return new ObjectDecl(makeSpanInfo(span), header, params, selfType);
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,

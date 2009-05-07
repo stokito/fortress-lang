@@ -70,13 +70,14 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     @Override
         public Node forObjectExprOnly(ObjectExpr that,
                                       ExprInfo info,
-                                      TraitTypeHeader header) {
+                                      TraitTypeHeader header,
+                                      Option<Type> selfType) {
         Span span = NodeUtil.getSpan(that);
         List<TraitTypeWhere> extendsClause = rewriteExtendsClause(that, header.getExtendsClause());
         header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                  extendsClause,
                                                  header.getDecls());
-        return super.forObjectExprOnly(that, info, header);
+        return super.forObjectExprOnly(that, info, header, selfType);
     }
 
     @Override
@@ -92,7 +93,8 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
         return super.forTraitDeclOnly(that, that.getInfo(), header_result,
                                       excludesClause_result,
-                                      comprisesClause_result);
+                                      comprisesClause_result,
+                                      that.getSelfType());
     }
 
     @Override
@@ -103,7 +105,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         header_result = NodeFactory.makeTraitTypeHeader(header_result,
                                                         rewriteExtendsClause(that, header_result.getExtendsClause()));
         return super.forObjectDeclOnly(that, that.getInfo(),
-                                       header_result, params_result);
+                                       header_result, params_result, that.getSelfType());
     }
 
     @Override
