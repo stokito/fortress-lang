@@ -127,6 +127,10 @@ public class TypeAnalyzer {
         validateEnvironment();
     }
 
+    public TypeAnalyzer(TraitTable table, TypeEnv typeEnv) { 
+        this(table, typeEnv, RootSubtypeCache.INSTANCE);
+    }
+
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
         this(enclosing._table,
              enclosing._typeEnv.extendWithStaticParams(params),
