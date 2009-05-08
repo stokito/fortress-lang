@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -58,7 +58,7 @@ public abstract class TraitIndex extends TypeConsIndex {
 
     public TraitObjectDecl ast() { return _ast; }
 
-    public Option<Type> typeOfSelf() { 
+    public Option<Type> typeOfSelf() {
         if (this.ast() instanceof TraitDecl) { return ((TraitDecl)this.ast()).getSelfType(); }
         if (this.ast() instanceof ObjectDecl) { return ((ObjectDecl)this.ast()).getSelfType(); }
         return Option.<Type>none();
