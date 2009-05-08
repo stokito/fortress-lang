@@ -25,7 +25,6 @@ import com.sun.fortress.scala_src.useful.Converter._
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 
@@ -50,15 +49,15 @@ class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer, errors: 
             // TODO Add check that there is no explicit return type declared for this coercion.
 
             val params = c.parameters
-            if (params.size != 1) { 
-              errors.signal("A coercion declaration must have exactly one parameter", c.getSpan) 
+            if (params.size != 1) {
+              errors.signal("A coercion declaration must have exactly one parameter", c.getSpan)
             }
             else {
               val param = params.get(0)
               val typ = param.getIdType
 
               scalaify(typ) match {
-                case None => errors.signal("A coercion declaration must explicitly declare its parameter type.", param) 
+                case None => errors.signal("A coercion declaration must explicitly declare its parameter type.", param)
                 case Some(from:Type) => {
                   val knownCoercions = result.getOrElseUpdate(from, Set[Type]())
 
@@ -78,7 +77,7 @@ class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer, errors: 
     }
     result
   }
-  
+
   def makeOracle(env: TypeEnv):CoercionOracle = {
     new CoercionOracle(env, traits, coercionTable, exclusionOracle)
   }
@@ -105,7 +104,7 @@ class CoercionOracle(env: TypeEnv, traits: TraitTable, coercions:Map[Type,Set[Ty
   }
 
   private def rejects(t1: Type, t2: Type) = {
-    var result = false 
+    var result = false
     for (u <- coercionsTo(t1)) {
       result = result || exclusions.excludes(u,t2)
     }

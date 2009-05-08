@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.typechecker
+package com.sun.fortress.scala_src.typechecker
 
 import _root_.java.util.Map
 //import _root_.java.util._

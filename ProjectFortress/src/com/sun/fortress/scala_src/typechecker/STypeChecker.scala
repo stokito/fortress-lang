@@ -26,7 +26,6 @@ import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.compiler.Types

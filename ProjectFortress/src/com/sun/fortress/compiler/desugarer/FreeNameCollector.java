@@ -26,7 +26,6 @@ import java.util.Stack;
 
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
@@ -35,6 +34,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;

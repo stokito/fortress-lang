@@ -31,7 +31,6 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
@@ -40,6 +39,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
@@ -62,14 +62,14 @@ public class CodeGenerationPhase extends Phase {
         FortressRepository repository = getRepository();
 
 
-        
+
         Debug.debug(Debug.Type.CODEGEN, 1,
                     "CodeGenerationPhase: components " + previous.components() +
                     " apis = " + previous.apis().keySet());
 
 //        for ( APIName api : previous.apis().keySet() )
 //            symbolTable.addApi(api, previous.apis().get(api));
-        
+
         for (Map.Entry<APIName, ApiIndex> entry : repository.apis().entrySet()) {
             symbolTable.addApi(entry.getKey(), entry.getValue());
         }
