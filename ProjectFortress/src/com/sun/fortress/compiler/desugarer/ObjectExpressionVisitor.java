@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
@@ -31,6 +30,7 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 

@@ -25,7 +25,6 @@ import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
-import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError

@@ -98,6 +98,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -127,7 +128,7 @@ public class TypeAnalyzer {
         validateEnvironment();
     }
 
-    public TypeAnalyzer(TraitTable table, TypeEnv typeEnv) { 
+    public TypeAnalyzer(TraitTable table, TypeEnv typeEnv) {
         this(table, typeEnv, RootSubtypeCache.INSTANCE);
     }
 

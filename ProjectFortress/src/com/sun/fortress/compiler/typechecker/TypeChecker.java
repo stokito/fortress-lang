@@ -64,6 +64,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
@@ -394,7 +395,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Option<TypeConsIndex> tc_ = table.typeCons(trait.getName());
         if( tc_.isNone()) {
             return bug("An expected trait index is not in table: " + trait);
-        } 
+        }
         else if (!(tc_.unwrap() instanceof TraitIndex)) {
             return bug("Expected a trait index; given " + tc_.unwrap());
         }
@@ -3562,7 +3563,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         method_checker = method_checker.extendWithMethods(methods);
         method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
         Type temp = that.getSelfType().unwrap();
-        
+
         // Extend checker with self
         method_checker = TypeChecker.addSelf(method_checker,that.getSelfType().unwrap());
 

@@ -68,6 +68,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.text.TextUtil;

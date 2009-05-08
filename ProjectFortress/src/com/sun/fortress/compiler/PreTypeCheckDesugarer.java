@@ -27,21 +27,21 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.scala_src.typechecker.TraitTable;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Pair;
 
 /**
- * Performs desugarings of Fortress programs that can be done before type checking. 
+ * Performs desugarings of Fortress programs that can be done before type checking.
  * At present, no desugarings are done in this phase, but we keep it as a placeholder
  * for later use. To add a desugaring over a component, go to method desugarComponent
  * and assign to variable comp the result of running your desugaring over comp. If you have
  * written your desugaring as a visitor, simply write:
- * 
+ *
  * comp = comp.accept(<your visitor>);
- * 
+ *
  * Assumes all names referring to APIs are fully-qualified,
  * and that the other transformations handled by the {@link com.sun.fortress.compiler.Disambiguator} have
  * been performed.
@@ -112,14 +112,13 @@ public class PreTypeCheckDesugarer {
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
      	Component comp = (Component) component.ast();
-     	
+
      	/* To add a desugaring over a component, go to method desugarComponent
      	 * and assign to variable comp the result of running your desugaring over comp. If you have
      	 * written your desugaring as a visitor, simply write:
-     	 * 
+     	 *
      	 * comp = comp.accept(<your visitor>);
      	 */
         return comp;
     }
 }
-
