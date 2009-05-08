@@ -279,8 +279,8 @@ object ExportChecker {
                 if ( typesInComp.keySet.contains(t) ) {
                     val traitOrObject = typesInComp.get(t)
                     val declInComp = NodeUtil.getDecl(traitOrObject)
-                    val diffHeaders = ! equalTraitTypeHeaders(declInAPI.getHeader,
-                                                              declInComp.getHeader)
+                    val equalHeaders = equalTraitTypeHeaders(declInAPI.getHeader,
+                                                            declInComp.getHeader)
                     val diffTraits = NodeUtil.isTrait(traitOrObject) &&
                                      ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
                                                         toList(NodeUtil.getExcludesClause(declInComp))) ||
@@ -289,10 +289,10 @@ object ExportChecker {
                                       ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
                                                            toOptList(NodeUtil.getParams(declInComp)))
                     var cause = ""
-                    if ( diffHeaders ) cause = addMessage(cause, "different headers")
+                    if ( ! equalHeaders._1 ) cause = equalHeaders._2
                     if ( diffTraits  ) cause = addMessage(cause, "different clauses for traits")
-                    if ( diffObjects ) cause = addMessage(cause, "different clauses for objects")
-                    if ( diffHeaders || diffTraits || diffObjects )
+                    if ( diffObjects ) cause = addMessage(cause, "different parameters")
+                    if ( ! equalHeaders._1 || diffTraits || diffObjects )
                         wrongDecls = (declInAPI, cause) :: wrongDecls
                 } else missingDecls = declInAPI :: missingDecls
             }
@@ -349,7 +349,7 @@ object ExportChecker {
 
     private def addMessage(original: String, added: String) =
         if ( original.equals("") ) "\n         due to " + added
-       else original + ", " + added
+        else original + ", " + added
 
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
@@ -542,17 +542,26 @@ object ExportChecker {
 
     /* Returns true if two TraitTypeHeaders are same. */
     private def equalTraitTypeHeaders(inAPI:  TraitTypeHeader,
-                                      inComp: TraitTypeHeader): Boolean =
+                                      inComp: TraitTypeHeader): (Boolean, String) =
         (inAPI, inComp) match {
             case (STraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
                                    extendsL, declsL),
                   STraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
                                    extendsR, declsR)) =>
-                equalListStaticParams(sparamsL, sparamsR) && modsL.equals(modsR) &&
-                equalOptListTypes(throwsL, throwsR) &&
-                equalListTraitTypeWheres(extendsL, extendsR) &&
-                equalListMembers(declsL, declsR)
-    }
+                var cause = ""
+                if ( ! equalListStaticParams(sparamsL, sparamsR) )
+                    cause = addMessage(cause, "different static parameters")
+                if ( ! modsL.equals(modsR) )
+                    cause = addMessage(cause, "different modifiers")
+                if ( ! equalOptListTypes(throwsL, throwsR) )
+                    cause = addMessage(cause, "different throws clauses")
+                if ( ! equalListTraitTypeWheres(extendsL, extendsR) )
+                    cause = addMessage(cause, "different extends clauses")
+                val equalDecls = equalListMembers(declsL, declsR, cause)
+                if ( ! equalDecls._1 )
+                    cause = equalDecls._2
+                (cause.equals(""), cause)
+        }
 
     /* Returns true if two lists of TraitTypeWheres are same. */
     private def equalListTraitTypeWheres(inAPI:  List[TraitTypeWhere],
@@ -589,9 +598,28 @@ object ExportChecker {
     /* Returns true if members in traits and objects in an API have
      * corresponding members in the component.
      */
-    private def equalListMembers(inAPI: List[Decl], inComp: List[Decl]): Boolean =
-        inAPI.length <= inComp.length &&
-        inAPI.forall(l => inComp.exists(r => equalMember(l, r)))
+    private def equalListMembers(inAPI: List[Decl], inComp: List[Decl],
+                                 original: String): (Boolean, String) =
+        if ( inAPI.length > inComp.length )
+            (false, "missing members of the trait/object in the component")
+        else {
+            var cause = original
+            def handleOne(l: Decl) = {
+                val eq = inComp.exists(r => equalMember(l, r))
+                if ( ! eq )
+                    l match {
+                        case SVarDecl(_,_,_) =>
+                            cause = addMessage(cause,
+                                               "different field @ " + NodeUtil.getSpan(l))
+                        case SFnDecl(_,h,_,_,_) =>
+                            cause = addMessage(cause,
+                                               "different method " + h.getName +
+                                               " @ " + NodeUtil.getSpan(l))
+                    }
+                eq
+            }
+            (inAPI.forall(handleOne), cause)
+        }
 
     /* Returns true if two members in traits and objects are same. */
     private def equalMember(inAPI: Decl, inComp: Decl): Boolean =
@@ -600,7 +628,7 @@ object ExportChecker {
                 equalListLValues(lhsL, lhsR)
             case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
                 equalFnHeaders(headerL, headerR, true)
-    }
+        }
 
     /* Returns true if two lists of LValues are same. */
     private def equalListLValues(left: List[LValue], right: List[LValue]): Boolean =
