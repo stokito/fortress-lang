@@ -757,6 +757,45 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     }
 
+    static public class Local extends OverloadSet {
+        /**
+         * Emit the invocation for a particular type of overloaded functions.
+         *
+         * @param mv
+         * @param f
+         * @param sig
+         */
+        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+                String sig) {
+            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
+            String mname = name.toString();
+
+            String ownerName;
+                ownerName = Useful.replace(pname, ".", "/") ;
+                
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+        }
+
+        /* Boilerplate follows, because this is a subtype. */
+
+        protected Local(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+                Set<TaggedFunctionName> lessSpecificThanSoFar,
+                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+        }
+
+        public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+            super(apiname, name, ta, defs, n);
+        }
+
+        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
+            return new Local(name, ta, childLSTSF,
+                    childTestedIndices, this, t, paramCount);
+        }
+
+
+    }
+
     static public class AmongApis extends OverloadSet {
         /**
          * Emit the invocation for a particular type of overloaded functions.
