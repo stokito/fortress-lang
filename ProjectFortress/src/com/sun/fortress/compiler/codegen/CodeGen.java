@@ -20,10 +20,15 @@ import java.io.FileOutputStream;
 import java.math.BigInteger;
 import java.util.*;
 import org.objectweb.asm.*;
+
+import edu.rice.cs.plt.collect.PredicateSet;
+import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.phases.OverloadSet;
@@ -61,6 +66,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inABlock = false;
     int localsDepth = 0;
     Component component;
+    private final ComponentIndex ci;
 
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
@@ -85,12 +91,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    public CodeGen(Component c, Symbols s, TypeAnalyzer ta) {
+    public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ComponentIndex ci) {
         component = c;
         className = c.getName().getText();
         aliasTable = new HashMap<String, String>();
         symbols = s;
         this.ta = ta;
+        this.ci = ci;
         debug( "Compile: Compiling ", className );
     }
 
@@ -112,6 +119,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.inABlock = c.inABlock;
         this.localsDepth = c.localsDepth;
         this.ta = c.ta;
+        this.ci = c.ci;
         if (c.lexEnv == null) {
             this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         } else {
@@ -253,7 +261,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         else if (x instanceof VarDecl)
             ((VarDecl) x).accept(this);
         else if (x instanceof _RewriteFnOverloadDecl)
-            System.err.println("Saw an overloaded function " + x );
+            ((_RewriteFnOverloadDecl) x).accept(this);
         else
             sayWhat(x);
     }
@@ -505,6 +513,19 @@ public class CodeGen extends NodeAbstractVisitor_void {
                         x.getOverloadings().isNone());
     }
 
+    public void for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
+        List<IdOrOp> fns = x.getFns();
+        IdOrOp name = x.getName();
+        Option<com.sun.fortress.nodes.Type> ot = x.getType();
+        Relation<IdOrOpOrAnonymousName, Function> fnrl = ci.functions();
+        for (IdOrOp fn : fns) {
+            PredicateSet<Function> f = fnrl.matchFirst(fn);
+            System.err.println(f);
+        }
+        
+    }
+
+    
     public void forFnDecl(FnDecl x) {
         debug("forFnDecl ", x );
         FnHeader header = x.getHeader();
@@ -664,6 +685,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         List<IdOrOp> names = x.getNames();
 
+        /* Note that after pre-processing in the overload rewriter, there is
+         * only one name here; this is not an overload check.
+         */
         if ( names.size() == 1) {
             IdOrOp fnName = names.get(0);
             Option<APIName> apiName = fnName.getApiName();
@@ -675,25 +699,18 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     int lastDot = n.lastIndexOf(Naming.dot);
                     String internal_class = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
                     String _method = n.substring(lastDot+1);
+                    
                    debug("class = " + internal_class + " method = " + _method );
 
                      {
-                        if ( arrow instanceof ArrowType )
+                        if ( arrow instanceof ArrowType ) {
                             mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                                _method, Naming.emitDesc(arrow));
-                        else {  // if ( ! arrow instanceof ArrowType )
-
-                            Debug.debug( Debug.Type.CODEGEN, 1,
-                                         "class = " + internal_class + " method = " + _method +
-                                         " type = " + arrow);
-
-                            if (arrow instanceof IntersectionType)
+                        } else if (arrow instanceof IntersectionType) {
                                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                         _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount, ta));
-                            else {
+                        } else {
                                 sayWhat( x, "Neither arrow nor intersection type: " + arrow );
-                            }
-
                         }
                     }
                 } else {
@@ -716,7 +733,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
                             calleePackageAndClass, fnName.getText(), Naming
                                     .emitDesc(arrow));
                 } else {
-                    sayWhat(x, "Overloaded non-foreign not implemented yet.");
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, calleePackageAndClass,
+                            fnName.getText(), OverloadSet.getSignature((IntersectionType) arrow, paramCount, ta));
                 }
 
             }
