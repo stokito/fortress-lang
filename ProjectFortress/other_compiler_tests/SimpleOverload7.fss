@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component SimpleOverload7
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar as jBar}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz as jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo as jDuo}
+
+export Executable
+
+print2(x:String, y:String):() = do
+  jPrintln(jDuo(x,y)) 
+end
+
+(* jDuo(x:String, y:ZZ32):String = do
+   jPrintln("cat");
+   jPrintln("dog");
+   "catdog"
+end *)
+
+local(x:ZZ64, y:ZZ64):String = "baz"
+local(x:ZZ32, y:ZZ32):String = "11"
+
+run() = do
+  print2("PA","SS")
+  
+  jPrintln(local(9000000000001, 8000000000000))
+  jPrintln(local(5,6))
+  
+end
+
+
+end

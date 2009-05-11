@@ -743,22 +743,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     String n = aliasTable.get(name);
                     // Cheating by assuming class is everything before the dot.
                     int lastDot = n.lastIndexOf(Naming.dot);
-                    String internal_class = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
+                    String calleePackageAndClass = n.substring(0, lastDot).replace(Naming.dot, Naming.slash);
                     String _method = n.substring(lastDot+1);
                     
-                   debug("class = " + internal_class + " method = " + _method );
 
-                     {
-                        if ( arrow instanceof ArrowType ) {
-                            mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                               _method, Naming.emitDesc(arrow));
-                        } else if (arrow instanceof IntersectionType) {
-                                mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                        _method, OverloadSet.getSignature((IntersectionType) arrow, paramCount, ta));
-                        } else {
-                                sayWhat( x, "Neither arrow nor intersection type: " + arrow );
-                        }
-                    }
+                   callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, _method);
                 } else {
                  sayWhat(x, "Should be a foreign function in Alias table");
                 }
@@ -770,22 +759,42 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 String calleePackageAndClass = apiName.isSome() ?
                         Naming.fortressPackage + Naming.slash + apiName.unwrap().getText()
                         : packageAndClassName;
+                String _method = fnName.getText();
 
-                if (arrow instanceof ArrowType) {
+                callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, _method);
 
-                    String domainType;
-                    String rangeType;
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                            calleePackageAndClass, fnName.getText(), Naming
-                                    .emitDesc(arrow));
-                } else {
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, calleePackageAndClass,
-                            fnName.getText(), OverloadSet.getSignature((IntersectionType) arrow, paramCount, ta));
-                }
 
             }
         } else {
             sayWhat(x, "Expected to see only one name here");
+        }
+    }
+
+    /**
+     * @param x
+     * @param arrow
+     * @param pkgAndClassName
+     * @param methodName
+     */
+    private void callStaticSingleOrOverloaded(FnRef x,
+            com.sun.fortress.nodes.Type arrow, String pkgAndClassName,
+            String methodName) {
+        {
+            debug("class = " + pkgAndClassName + " method = " + methodName );
+
+            if ( arrow instanceof ArrowType ) {
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
+                                   methodName, Naming.emitDesc(arrow));
+            } else if (arrow instanceof IntersectionType) {
+                IntersectionType it = (IntersectionType) arrow;
+
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
+                            OverloadSet.actuallyOverloaded(it, paramCount) ?
+                                    OverloadSet.oMangle(methodName) :methodName,
+                            OverloadSet.getSignature(it, paramCount, ta));
+            } else {
+                    sayWhat( x, "Neither arrow nor intersection type: " + arrow );
+            }
         }
     }
 
@@ -870,19 +879,55 @@ public class CodeGen extends NodeAbstractVisitor_void {
         debug("forIntLiteral ", x);
         BigInteger bi = x.getIntVal();
         // This might not work.
-        int y = bi.intValue();
-        switch (y) {
-        case 0: mv.visitInsn(Opcodes.ICONST_0); break;
-        case 1: mv.visitInsn(Opcodes.ICONST_1); break;
-        case 2: mv.visitInsn(Opcodes.ICONST_2); break;
-        case 3: mv.visitInsn(Opcodes.ICONST_3); break;
-        case 4: mv.visitInsn(Opcodes.ICONST_4); break;
-        case 5: mv.visitInsn(Opcodes.ICONST_5); break;
-        default: mv.visitLdcInsn(y); break;
-        }
+        int l = bi.bitLength();
+        if (l < 32) {
+            int y = bi.intValue();
+            pushInteger(y);
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.internalFortressZZ32, Naming.make,
-                           Naming.makeMethodDesc(Naming.descInt, Naming.descFortressZZ32));
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Naming.internalFortressZZ32, Naming.make, Naming
+                            .makeMethodDesc(Naming.descInt,
+                                    Naming.descFortressZZ32));
+        } else if (l < 64) {
+            long yy = bi.longValue();
+            
+            mv.visitLdcInsn(yy);
+
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Naming.internalFortressZZ64, Naming.make, Naming
+                            .makeMethodDesc(Naming.descLong,
+                                    Naming.descFortressZZ64));
+           
+        }
+    }
+
+    /**
+     * @param y
+     */
+    private void pushInteger(int y) {
+        switch (y) {
+        case 0:
+            mv.visitInsn(Opcodes.ICONST_0);
+            break;
+        case 1:
+            mv.visitInsn(Opcodes.ICONST_1);
+            break;
+        case 2:
+            mv.visitInsn(Opcodes.ICONST_2);
+            break;
+        case 3:
+            mv.visitInsn(Opcodes.ICONST_3);
+            break;
+        case 4:
+            mv.visitInsn(Opcodes.ICONST_4);
+            break;
+        case 5:
+            mv.visitInsn(Opcodes.ICONST_5);
+            break;
+        default:
+            mv.visitLdcInsn(y);
+            break;
+        }
     }
 
 
