@@ -44,12 +44,13 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
-import com.sun.fortress.scala_src.useful.ErrorLog;
+import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 import com.sun.fortress.scala_src.useful.Lists;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -212,10 +213,13 @@ public class StaticChecker {
             } else {
                 Pair<TypeEnv,TraitTable> envs = typeCheckEnv(component, env);
         	ConstraintUtil.useScalaFormulas();
-                STypeChecker typeChecker = new STypeChecker(component, envs.second(),
-                                                            envs.first(),
-                                                            TypeAnalyzer.make(envs.second()),
-                                                            new ErrorLog());
+
+                STypeChecker typeChecker = STypeCheckerFactory.make(component, envs.second(),
+                                                                    envs.first(),
+                                                                    TypeAnalyzer.make(envs.second()));
+
+                if (Shell.testCoercion()) { new CoercionTest(typeChecker).run(); }
+                    
         	component_ast = typeChecker.check(component_ast);
         	result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));

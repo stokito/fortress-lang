@@ -214,8 +214,12 @@ public final class Shell {
         return compileProperties.type_check;
     }
 
-    public static boolean getScala(){
+    public static boolean getScala() {
     	return compileProperties.use_scala;
+    }
+
+    public static boolean testCoercion() {
+        return compileProperties.test_coercion;
     }
 
     public static boolean getObjExprDesugaring(){
@@ -236,6 +240,10 @@ public final class Shell {
 
     public static void setScala(boolean use_scala){
     	compileProperties.use_scala = use_scala;
+    }
+
+    public static void setTestCoercion(boolean test_coercion) {
+        compileProperties.test_coercion = test_coercion;
     }
 
     public static void setObjExprDesugaring(boolean desugar){
@@ -341,6 +349,11 @@ public final class Shell {
             	setTypeChecking(true);
             	setScala(true);
                 setPhase( PhaseOrder.TYPECHECK );
+                return_code = compilerPhases(args, Option.<String>none(), what);
+            } else if (what.equals("test-coercion")) {
+                setTypeChecking(true);
+                setScala(true);
+                setPhase(PhaseOrder.TYPECHECK);
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
@@ -1105,6 +1118,7 @@ public final class Shell {
         boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.objexpr", false); // run obj expression desugaring or not
         boolean getter_setter_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.getset", true); // run getter/setter desugaring or not
         boolean use_scala = ProjectProperties.getBoolean("fortress.compile.useScala",false); //use the scala typechecker
+        boolean test_coercion = ProjectProperties.getBoolean("fortress.compile.testCoercion",false); // test coercion
     }
 
 }
