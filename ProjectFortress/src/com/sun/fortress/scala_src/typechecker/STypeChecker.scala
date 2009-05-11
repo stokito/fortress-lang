@@ -39,17 +39,38 @@ import com.sun.fortress.scala_src.useful.ExprUtil
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.nodes_util.ExprFactory
-import com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.useful.HasAt
 
+object STypeCheckerFactory {
+  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) = {
+    val errors = new ErrorLog()
+    new STypeChecker(current, traits, env, analyzer, errors, new CoercionOracleFactory(traits, analyzer, errors))
+  }  
+  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer, 
+           errors: ErrorLog, factory: CoercionOracleFactory) = {
+    new STypeChecker(current, traits, env, analyzer, errors, factory)
+  }
+
+}             
+             
 class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
-                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog) {
+                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog, factory: CoercionOracleFactory) {
+
+  val coercionOracle = factory.makeOracle(env)
 
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
+  private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) = 
+    STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors, factory)
+
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
-    new STypeChecker(current, traits, env.extendWithout(declSite, names),
-                     analyzer, errors)
+    STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
+                     analyzer, errors, factory)
+
+  private def signal(msg:String, hasAt:HasAt) =
+    errors.signal(msg, hasAt)
 
   private def inferredType(expr:Expr): Option[Type] =
     scalaify(expr.getInfo.getExprType).asInstanceOf[Option[Type]]
@@ -62,7 +83,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   private def checkSubtype(subtype:Type, supertype:Type, node:Node, error:String) = {
     val judgement = analyzer.subtype(subtype, supertype).isTrue
-    if ( ! judgement ) errors.signal(error, node)
+    if (! judgement) signal(error, node)
     judgement
   }
 
@@ -111,13 +132,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                    unambiguousName, Some(body), implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newAnalyzer = analyzer.extend(statics, wheres)
-      val newChecker = new STypeChecker(current, traits, newEnv, newAnalyzer, errors)
+      val newChecker = this.extend(newEnv, newAnalyzer)
+
       val newContract = contract match {
         case Some(c) => Some(newChecker.check(c))
         case None => contract
       }
-      val newBody = newChecker.checkExpr(body, returnType, "Function body",
-                                         "declared return")
+      val newBody = newChecker.checkExpr(body, returnType, "Function body", "declared return")
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
@@ -230,8 +251,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   class AtomicChecker(current: CompilationUnitIndex, traits: TraitTable,
                       env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog,
-                      enclosingExpr: String)
-      extends STypeChecker(current,traits,env,analyzer,errors) {
+                      factory: CoercionOracleFactory, enclosingExpr: String)
+      extends STypeChecker(current,traits,env,analyzer,errors,factory) {
     val message = "A 'spawn' expression must not occur inside " +
                   enclosingExpr + "."
     override def checkExpr(e: Expr): Expr = e match {
@@ -241,7 +262,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   }
 
   private def forAtomic(expr: Expr, enclosingExpr: String) =
-    new AtomicChecker(current,traits,env,analyzer,errors,enclosingExpr).checkExpr(expr)
+    new AtomicChecker(current,traits,env,analyzer,errors,factory,enclosingExpr).checkExpr(expr)
 
   def checkExpr(expr: Expr): Expr = expr match {
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {

@@ -34,10 +34,10 @@ import scala.collection.mutable.Map
 import scala.collection.mutable.Set
 
 class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer, errors: ErrorLog) {
-  val coercionTable = makeCoercionTable(traits)
+  val coercionTable = makeCoercionTable()
   val exclusionOracle = new ExclusionOracle(analyzer)
 
-  private def makeCoercionTable(traits: TraitTable) = {
+  private def makeCoercionTable() = {
     /*
      * Build a hashtable mapping types coerced *from* to the types they coerce *to*.
      */
