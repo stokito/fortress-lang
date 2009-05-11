@@ -21,12 +21,13 @@ import com.sun.fortress.exceptions.CompilerError
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.Converter._
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
+import com.sun.fortress.scala_src.useful.Converter._
+import com.sun.fortress.scala_src.useful.ErrorLog
 
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Map

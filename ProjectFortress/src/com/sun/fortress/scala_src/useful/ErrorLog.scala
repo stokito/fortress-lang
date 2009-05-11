@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-package com.sun.fortress.scala_src.typechecker
+package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.useful.HasAt
@@ -25,7 +25,7 @@ import com.sun.fortress.exceptions.TypeError
 class ErrorLog() {
   var errors = List[StaticError]()
 
-  def signal(msg:String,hasAt:HasAt) = {
+  def signal(msg:String, hasAt:HasAt) = {
     errors = errors ::: List(TypeError.make(msg,hasAt))
   }
 }

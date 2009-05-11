@@ -76,6 +76,7 @@ import edu.rice.cs.plt.tuple.Option;
 /**
  * This class is used by the type checker to represent static type environments,
  * mapping bound variables to their types.
+ * Where-clause bound variables are not yet supported.
  */
 public abstract class TypeEnv {
 
