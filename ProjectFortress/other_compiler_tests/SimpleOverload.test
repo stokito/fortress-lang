@@ -13,7 +13,7 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=SimpleOverload SimpleOverload2 SimpleOverload3 SimpleOverload4
+tests=SimpleOverload SimpleOverload2 SimpleOverload3 SimpleOverload4 SimpleOverload5  SimpleOverload6
 compile
 link
 run

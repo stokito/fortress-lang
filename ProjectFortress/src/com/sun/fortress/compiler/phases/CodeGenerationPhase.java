@@ -43,6 +43,7 @@ import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Useful;
 
 public class CodeGenerationPhase extends Phase {
@@ -95,7 +96,7 @@ public class CodeGenerationPhase extends Phase {
                     for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                         PredicateSet<Function> defs = fns.matchFirst(name);
                         if (defs.size() > 1) {
-                            overloads.add(foundAnOverLoadedForeignFunction(ai, ta, name, defs));
+                            foundAnOverLoadedForeignFunction(ai, ta, name, defs, overloads);
                         }
                     }
                     ForeignJava.only.generateWrappersForApi(api, overloads);
@@ -125,21 +126,35 @@ public class CodeGenerationPhase extends Phase {
      * @param ai
      * @param name
      * @param defs
+     * @param overloads 
      */
-    private OverloadSet foundAnOverLoadedForeignFunction(ApiIndex ai, TypeAnalyzer ta,
-            IdOrOpOrAnonymousName name, PredicateSet<Function> defs) {
+    private void foundAnOverLoadedForeignFunction(ApiIndex ai, TypeAnalyzer ta,
+            IdOrOpOrAnonymousName name, PredicateSet<Function> defs, Set<OverloadSet> overloads) {
         // Woo-hoo, an overloaded function.
         if (debugOverloading)
             System.err.println("Found an overloaded function " + name);
         
-        OverloadSet os = new OverloadSet.Foreign(ai.ast().getName(), name, ta, defs,
-                defs.iterator().next().parameters().size());
+        MultiMap<Integer, Function> partitionedByArgCount = new MultiMap<Integer, Function> ();
         
-        os.split();
-        String s = os.toString();
-        if (debugOverloading)
-            System.err.println(s);
-        return os;
+        for (Function d : defs) {
+            partitionedByArgCount.putItem(d.parameters().size(), d);
+        }
+        
+        for(Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount.entrySet()) {
+            int i = entry.getKey();
+            Set<Function> fs = entry.getValue();
+            if (fs.size() > 1) {
+                OverloadSet os = new OverloadSet.Foreign(ai.ast().getName(), name, ta, fs,
+                        i);
+                
+                os.split();
+                String s = os.toString();
+                if (debugOverloading)
+                    System.err.println(s);
+                overloads.add(os);
+            }
+        }
+     
      }
 
 }

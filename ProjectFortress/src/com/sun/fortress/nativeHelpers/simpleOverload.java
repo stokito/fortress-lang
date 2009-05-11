@@ -60,6 +60,10 @@ public class simpleOverload {
         return "baz " + (s+t);
     }
 
+    public static String duo(String s) {
+        return "baz " + s;
+    }
+
     public static String duo(int i, int j) {
         return "baz " + (i+j);
     }
