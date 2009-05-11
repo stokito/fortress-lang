@@ -66,37 +66,29 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     judgement
   }
 
-  private def handleAliases(name: Id,api: APIName, imports: List[Import]): Id = {
-	def getAliases(imp: Import): Option[Id] = imp match {
-	  case SImportNames(info,foreignLanguage,aliasApi,aliases) => {
-	    if(api.equals(aliasApi)){
-	      def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
-	        case SAliasedSimpleName(_,newName,Some(alias)) =>
-	          if(alias.equals(name))
-	            Some(newName.asInstanceOf)
-	          else
-	            None
-	        case _ => None
-	      }
-	      val matchingAliases = aliases.flatMap(getName)
-	      matchingAliases.find((x:Id)=>true)
-	    }
-	    else
-	      None
-	  }
-	  case _ => None
-	}
-	imports.flatMap(getAliases).find((x:Id)=>true).getOrElse(name)
+  private def handleAliases(name: Id, api: APIName, imports: List[Import]): Id = {
+    def getAliases(imp: Import): Option[Id] = imp match {
+      case SImportNames(info, foreignLanguage, aliasApi, aliases) =>
+        if ( api.equals(aliasApi) ) {
+          def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
+            case SAliasedSimpleName(_, newName, Some(alias)) =>
+              if ( alias.equals(name) ) Some(newName.asInstanceOf)
+              else None
+            case _ => None
+          }
+          aliases.flatMap(getName).find((x:Id) => true)
+        } else None
+      case _ => None
+    }
+    imports.flatMap(getAliases).find((x:Id) => true).getOrElse(name)
   }
 
-  private def getEnvFromApi(api: APIName):TypeEnv = TypeEnv.make(traits.compilationUnit(api))
+  private def getEnvFromApi(api: APIName): TypeEnv =
+    TypeEnv.make( traits.compilationUnit(api) )
 
-  private def getTypeFromName(name: Name): Option[Type] = name match{
-    case id@SId(info,api,name) => api match{
-      case Some(api) => {
-        val apiEnv = getEnvFromApi(api)
-        toOption(apiEnv.getType(id))
-      }
+  private def getTypeFromName(name: Name): Option[Type] = name match {
+    case id@SId(info, api, name) => api match {
+      case Some(api) => toOption(getEnvFromApi(api).getType(id))
       case _ => toOption(env.getType(id))
     }
     case _ => None
@@ -162,9 +154,42 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
-    case id@SId(info,api,name) => api match{
-      case Some(api) => handleAliases(id,api,toList(current.ast.getImports))
-      case _ => id
+    case id@SId(info,api,name) => api match {
+      case Some(api) => {
+        val newName = handleAliases(id, api, toList(current.ast.getImports))
+        getTypeFromName( newName ) match {
+          case Some(ty) =>
+            if ( ty.isInstanceOf[NamedType] ) {
+              /*
+              // Type was declared in that API, so it's not qualified;
+              // prepend it with the API.
+              if ( ty.instanceOf[NamedType].getName.getApiName.isNone )
+                ty = NodeFactory.makeNamedType(api, ty)
+              */
+              id
+            } else id
+          case _ =>
+            // Operators are never qualified in source code,
+            // so if 'name' is qualified and not found,
+            // it must be an Id, not an Op.
+            errors.signal("Attempt to reference unbound variable: " + id, id)
+            id
+        }
+      }
+      case _ => {
+        getTypeFromName( id ) match {
+          case Some(ty) => ty match {
+            case SLabelType(_) => // then, newName must be an Id
+              errors.signal("Cannot use label name " + id + " as an identifier.",
+                            id)
+              id
+            case _ => id
+          }
+          case _ =>
+            errors.signal("Variable '" + id + "' not found.", id)
+            id
+        }
+      }
     }
 
     case _ => throw new Error("not yet implemented: " + node.getClass)
