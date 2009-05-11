@@ -489,14 +489,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         String s = overloadedDomainSig(t, paramCount, ta);
 
-        Type r = getRangeSignature(t, ta);
+        Type r = getRangeSignature(t, paramCount, ta);
 
         s += NamingCzar.only.boxedImplDesc(r);
 
         return s;
     }
 
-    private static Type getRangeSignature(IntersectionType t, TypeAnalyzer ta) {
+    private static Type getRangeSignature(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
 
         Type r = null;
@@ -506,9 +506,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             if (type instanceof ArrowType) {
                 ArrowType at = (ArrowType) type;
+                
+                // Ensure that the domain count matches the paramCount
+                r0 = at.getDomain();
+                if (r0 instanceof TupleType) {
+                    TupleType tt = (TupleType) r0;
+                    if (paramCount != tt.getElements().size())
+                        continue;
+                } else if (paramCount != 1) {
+                    continue;
+                }
+                
                 r0 = at.getRange();
             } else if (type instanceof IntersectionType) {
-                r0 = getRangeSignature((IntersectionType) type, ta);
+                r0 = getRangeSignature((IntersectionType) type, paramCount, ta);
             } else {
                 InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
@@ -522,7 +533,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return r;
     }
 
-    private  static Type getParamType(IntersectionType t, int i, TypeAnalyzer ta) {
+    private  static Type getParamType(IntersectionType t, int i, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
 
         Type r = null;
@@ -533,12 +544,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (type instanceof ArrowType) {
                 ArrowType at = (ArrowType) type;
                 r0 = at.getDomain();
+                
+                // Ensure that the domain count matches the paramCount
                 if (r0 instanceof TupleType) {
                     TupleType tt = (TupleType) r0;
+                    if (paramCount != tt.getElements().size())
+                        continue;
                     r0 = tt.getElements().get(i);
+                } else if (paramCount != 1) {
+                    continue;
                 }
             } else if (type instanceof IntersectionType) {
-                r0 = getParamType((IntersectionType) type, i, ta);
+                r0 = getParamType((IntersectionType) type, i, paramCount, ta);
             } else {
                 InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
@@ -560,7 +577,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String s = "(";
 
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.only.boxedImplDesc(getParamType(t,i,ta));
+            s += NamingCzar.only.boxedImplDesc(getParamType(t,i,paramCount, ta));
         }
         s += ")";
         return s;

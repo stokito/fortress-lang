@@ -44,6 +44,7 @@ import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.StringHashComparer;
 
 // Note we have a name clash with org.objectweb.asm.Type
@@ -210,9 +211,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if ( exportsExecutable ) {
             generateMainMethod();
         }
-        for ( Import i : x.getImports() ) i.accept(this);
+        for ( Import i : x.getImports() ) {
+            i.accept(this);
+        }
 
-        for ( Decl d : x.getDecls() ) { d.accept(this);}
+        for ( Decl d : x.getDecls() ) {
+            d.accept(this);
+        }
         
         generateTopLevelOverloads();
         
@@ -220,27 +225,38 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private void generateTopLevelOverloads() {
-        Relation<IdOrOpOrAnonymousName, Function>  fns = ci.functions();
-        
-        Set<OverloadSet> overloads =
-            new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
-        
+        Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
+
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
             PredicateSet<Function> defs = fns.matchFirst(name);
             if (defs.size() > 1) {
-                // it's possible that each overload has a different size,
-                // in which case, no set in particular.
-                
-                OverloadSet os = new OverloadSet.Local(packageAndClassName, ci.ast().getName(), name, ta, defs,
-                        defs.iterator().next().parameters().size());
-                
-                os.split();
-                String s = os.toString();
-                os.generateAnOverloadDefinition(name.stringName(), cw);
 
+                // Partition overloads by size.
+                MultiMap<Integer, Function> partitionedByArgCount =
+                    new MultiMap<Integer, Function>();
+
+                for (Function d : defs) {
+                    partitionedByArgCount.putItem(d.parameters().size(), d);
+                }
+
+                for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
+                        .entrySet()) {
+                    int i = entry.getKey();
+                    Set<Function> fs = entry.getValue();
+                    if (fs.size() > 1) {
+                        OverloadSet os = new OverloadSet.Local(
+                                packageAndClassName, ci.ast().getName(), name,
+                                ta, fs, i);
+
+                        os.split();
+                        String s = os.toString();
+                        os.generateAnOverloadDefinition(name.stringName(), cw);
+
+                    }
+                }
             }
         }
-        
+
     }
 
     public void forImportNames(ImportNames x) {
