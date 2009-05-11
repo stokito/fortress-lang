@@ -30,6 +30,7 @@ import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
+import com.sun.fortress.scala_src.useful.ExprUtil
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.nodes_util.ExprFactory
@@ -114,7 +115,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case Some(c) => Some(newChecker.check(c))
         case None => contract
       }
-      val newBody = newChecker.checkExpr(body,returnType)
+      val newBody = newChecker.checkExpr(body, returnType, "Function body",
+                                         "declared return")
+      /*
       val newReturnType = inferredType(newBody) match {
         case Some(typ) => returnType match {
           case None => Some(typ)
@@ -122,11 +125,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
         case _ => returnType
       }
+      */
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
-                        params, newReturnType),
-             unambiguousName, Some(newBody), implementsUnambiguousName)
+                        params, inferredType(newBody)),
+              unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
     /* Matches if block is not an atomic block. */
@@ -144,14 +148,31 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case Some(api) => handleAliases(id,api,toList(current.ast.getImports))
       case _ => id
     }
-  case _ => throw new Error("Not yet implemented: " + node.getClass)
+
+    case _ => throw new Error("not yet implemented: " + node.getClass)
   }
 
-  def checkExpr(expr: Expr):Expr = checkExpr(expr,None)
+  def checkExpr(expr: Expr, expected: Option[Type],
+                first: String, second: String): Expr = {
+    val newExpr = checkExpr(expr)
+    val newType = inferredType(newExpr) match {
+      case Some(typ) => expected match {
+        case Some(t) =>
+          checkSubtype(typ, t, expr,
+                       first + " has type " + typ + ", but " + second +
+                       " type is " + t + ".")
+          typ
+        case _ => typ
+      }
+      case _ => throw new Error("Type is not inferred for: " + expr)
+    }
+    ExprUtil.addType(newExpr, newType)
+  }
 
-  def checkExpr(expr: Expr,expected:Option[Type]):Expr = expr match {
+  def checkExpr(expr: Expr): Expr = checkExpr(expr, None)
 
-      /* ToDo for Compiled0
+  def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
+
     case SFnRef(SExprInfo(span,paren,optType),
                 sargs, depth, name, names, overloadings, types) => {
         expr
@@ -160,7 +181,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SStringLiteralExpr(info, text) => {
         expr
     }
-      */
 
     /* Temporary code for Tight Juxtapositions
      */
