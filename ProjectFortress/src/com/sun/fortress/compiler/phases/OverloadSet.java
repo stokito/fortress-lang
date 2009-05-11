@@ -495,6 +495,50 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         return s;
     }
+    
+    /**
+     * Checks the parameter count against the intersection type to see if
+     * this is a real overloading, or one that can trivially be disambiguated
+     * by counting parameters.
+     * 
+     * @param t
+     * @param paramCount
+     * @return
+     */
+    public static boolean actuallyOverloaded(IntersectionType t, int paramCount) {
+        return matchingCount(t, paramCount) > 1;
+    }
+    public static int matchingCount(IntersectionType t, int paramCount) {
+        int sum = 0;
+        List<Type> types = t.getElements();
+
+        Type r = null;
+
+        for (Type type : types) {
+            Type r0;
+
+            if (type instanceof ArrowType) {
+                ArrowType at = (ArrowType) type;
+                r0 = at.getDomain();
+                if (r0 instanceof TupleType) {
+                    TupleType tt = (TupleType) r0;
+                    if (paramCount != tt.getElements().size())
+                        continue;
+                } else if (paramCount != 1) {
+                    continue;
+                }
+                
+                sum++;
+                
+            } else if (type instanceof IntersectionType) {
+                sum += matchingCount((IntersectionType) type, paramCount);
+            } else {
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
+            }
+        }
+        return sum;
+    }
+
 
     private static Type getRangeSignature(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
@@ -688,6 +732,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    /**
+     * Overloaded functions get a slightly mangled name.
+     * 
+     * @param name
+     * @return
+     */
+    public static String oMangle(String name) {
+        return "O$" + name;
+    }
+    
     public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
 
         // "(" anOverloadedArg^N ")" returnType
@@ -699,7 +753,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
                 + Opcodes.ACC_STATIC, // access,
-                name, // name,
+                oMangle(name), // name,
                 signature, // sp.getFortressifiedSignature(),
                 null, // signature, // depends on generics, I think
                 exceptions); // exceptions);
