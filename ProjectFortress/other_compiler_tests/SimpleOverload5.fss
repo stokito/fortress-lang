@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleOverload4
+component SimpleOverload5
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 import java com.sun.fortress.nativeHelpers.{simpleOverload.bar as jBar}
 
