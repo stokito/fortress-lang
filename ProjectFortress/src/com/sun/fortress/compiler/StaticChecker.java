@@ -49,6 +49,7 @@ import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
+import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -213,7 +214,8 @@ public class StaticChecker {
         	ConstraintUtil.useScalaFormulas();
                 STypeChecker typeChecker = new STypeChecker(component, envs.second(),
                                                             envs.first(),
-                                                            TypeAnalyzer.make(envs.second()));
+                                                            TypeAnalyzer.make(envs.second()),
+                                                            new ErrorLog());
         	component_ast = typeChecker.check(component_ast);
         	result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));
