@@ -180,7 +180,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     abstract protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t);
 
 
-    void split() {
+    public void split() {
         if (splitDone)
             return;
 
@@ -758,6 +758,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     static public class Local extends OverloadSet {
+        String packageAndClassName;
+        
         /**
          * Emit the invocation for a particular type of overloaded functions.
          *
@@ -767,29 +769,29 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                 String sig) {
-            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
             String mname = name.toString();
 
-            String ownerName;
-                ownerName = Useful.replace(pname, ".", "/") ;
+            String ownerName= packageAndClassName;
                 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
 
         /* Boilerplate follows, because this is a subtype. */
 
-        protected Local(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+        protected Local(String packageAndClassName, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<TaggedFunctionName> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
             super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+            this.packageAndClassName = packageAndClassName;
         }
 
-        public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+        public Local(String packageAndClassName, final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
             super(apiname, name, ta, defs, n);
+            this.packageAndClassName = packageAndClassName;
         }
 
         protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-            return new Local(name, ta, childLSTSF,
+            return new Local(packageAndClassName, name, ta, childLSTSF,
                     childTestedIndices, this, t, paramCount);
         }
 

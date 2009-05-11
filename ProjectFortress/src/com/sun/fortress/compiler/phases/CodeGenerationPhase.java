@@ -87,10 +87,11 @@ public class CodeGenerationPhase extends Phase {
                     ApiIndex ai = previous.apis().get(api);
                     TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, getEnv()));
 
-                    Set<OverloadSet> overloads =
-                        new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
+                   Relation<IdOrOpOrAnonymousName, Function>  fns = ai.functions();
+                   
+                   Set<OverloadSet> overloads =
+                       new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
 
-                    Relation<IdOrOpOrAnonymousName, Function>  fns = ai.functions();
                     for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                         PredicateSet<Function> defs = fns.matchFirst(name);
                         if (defs.size() > 1) {
@@ -130,8 +131,10 @@ public class CodeGenerationPhase extends Phase {
         // Woo-hoo, an overloaded function.
         if (debugOverloading)
             System.err.println("Found an overloaded function " + name);
+        
         OverloadSet os = new OverloadSet.Foreign(ai.ast().getName(), name, ta, defs,
                 defs.iterator().next().parameters().size());
+        
         os.split();
         String s = os.toString();
         if (debugOverloading)

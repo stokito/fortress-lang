@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.codegen;
 import java.io.FileOutputStream;
 import java.math.BigInteger;
 import java.util.*;
+
 import org.objectweb.asm.*;
 
 import edu.rice.cs.plt.collect.PredicateSet;
@@ -39,8 +40,10 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.StringHashComparer;
 
 // Note we have a name clash with org.objectweb.asm.Type
@@ -210,7 +213,34 @@ public class CodeGen extends NodeAbstractVisitor_void {
         for ( Import i : x.getImports() ) i.accept(this);
 
         for ( Decl d : x.getDecls() ) { d.accept(this);}
+        
+        generateTopLevelOverloads();
+        
         dumpClass( packageAndClassName );
+    }
+
+    private void generateTopLevelOverloads() {
+        Relation<IdOrOpOrAnonymousName, Function>  fns = ci.functions();
+        
+        Set<OverloadSet> overloads =
+            new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
+        
+        for (IdOrOpOrAnonymousName name : fns.firstSet()) {
+            PredicateSet<Function> defs = fns.matchFirst(name);
+            if (defs.size() > 1) {
+                // it's possible that each overload has a different size,
+                // in which case, no set in particular.
+                
+                OverloadSet os = new OverloadSet.Local(packageAndClassName, ci.ast().getName(), name, ta, defs,
+                        defs.iterator().next().parameters().size());
+                
+                os.split();
+                String s = os.toString();
+                os.generateAnOverloadDefinition(name.stringName(), cw);
+
+            }
+        }
+        
     }
 
     public void forImportNames(ImportNames x) {
