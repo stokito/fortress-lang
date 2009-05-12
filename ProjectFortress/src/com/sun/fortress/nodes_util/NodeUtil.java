@@ -186,7 +186,7 @@ public class NodeUtil {
     //         args.add(sp.getName());
     //     }
     //     if (params.size() == 0) {
-            
+
     // }
 
     public static Option<WhereClause> getWhereClause(TraitObjectDecl o) {

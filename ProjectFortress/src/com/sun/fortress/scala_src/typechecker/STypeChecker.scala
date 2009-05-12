@@ -43,26 +43,29 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.useful.HasAt
 
 object STypeCheckerFactory {
-  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer) = {
+  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
+           analyzer: TypeAnalyzer) = {
     val errors = new ErrorLog()
-    new STypeChecker(current, traits, env, analyzer, errors, new CoercionOracleFactory(traits, analyzer, errors))
-  }  
-  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv, analyzer: TypeAnalyzer, 
-           errors: ErrorLog, factory: CoercionOracleFactory) = {
+    new STypeChecker(current, traits, env, analyzer, errors,
+                     new CoercionOracleFactory(traits, analyzer, errors))
+  }
+  def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
+           analyzer: TypeAnalyzer, errors: ErrorLog,
+           factory: CoercionOracleFactory) = {
     new STypeChecker(current, traits, env, analyzer, errors, factory)
   }
+}
 
-}             
-             
 class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
-                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog, factory: CoercionOracleFactory) {
+                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog,
+                   factory: CoercionOracleFactory) {
 
   val coercionOracle = factory.makeOracle(env)
 
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
-  private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) = 
+  private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) =
     STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors, factory)
 
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
@@ -290,6 +293,113 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
       */
 
+    // For a tight juxt, create a MathPrimary
+    case SJuxt(info, multi, infix, front::rest, false, true) => {
+      def toMathItem(exp: Expr): MathItem = {
+        val span = NodeUtil.getSpan(exp)
+        if ( exp.isInstanceOf[TupleExpr] ||
+             exp.isInstanceOf[VoidLiteralExpr] ||
+             NodeUtil.isParenthesized(exp) )
+          ExprFactory.makeParenthesisDelimitedMI(span, exp)
+        else ExprFactory.makeNonParenthesisDelimitedMI(span, exp)
+      }
+      checkExpr(SMathPrimary(info, multi, infix, front, rest.map(toMathItem)))
+    }
+
+    // If this juxt is actually a fn app, then rewrite to a fn app.
+    case SJuxt(info, multi, infix, front::rest, true, true) => rest.length match {
+      case 1 => checkExpr(S_RewriteFnApp(info, front, rest.head))
+      case n => // Make sure it is just two exprs.
+        bug(expr, "TightJuxt denoted as function application but has " +
+            n + "(!= 2) expressions.")
+    }
+
+    /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
+     */
+    case SJuxt(SExprInfo(span,paren,optType),
+               multi, infix, exprs, isApp, false) => {
+      // Check subexpressions
+      val checkedExprs = exprs.map(checkExpr)
+      if ( haveInferredTypes(checkedExprs) ) {
+        // Break the list of expressions into chunks.
+        // First the loose juxtaposition is broken into nonempty chunks;
+        // wherever there is a non-function element followed
+        // by a function element, the latter begins a new chunk.
+        // Thus a chunk consists of some number (possibly zero) of
+        // functions followed by some number (possibly zero) of non-functions.
+        def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
+          case Nil => results.reverse
+          case first::rest =>
+            if ( isArrows(first) ) {
+              val arrows = first::rest.takeWhile(isArrows)
+              val dropArrows = rest.dropWhile(isArrows)
+              val nonArrows = dropArrows.takeWhile((e:Expr) => ! isArrows(e))
+              val dropNonArrows = dropArrows.dropWhile((e:Expr) => ! isArrows(e))
+              chunker(dropNonArrows, (arrows,nonArrows)::results)
+            } else {
+              val nonArrows = first::rest.takeWhile((e:Expr) => ! isArrows(e))
+              val dropNonArrows = rest.dropWhile((e:Expr) => ! isArrows(e))
+              chunker(dropNonArrows, (List(),nonArrows)::results)
+            }
+        }
+        val chunks = chunker(checkedExprs, List())
+        // Left associate nonarrows as a single OpExpr
+        def associateNonArrows(nonArrows: List[Expr]): Option[Expr] =
+          nonArrows match {
+            case Nil => None
+            case head::tail =>
+              Some(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
+                                        ExprFactory.makeOpExpr(infix,e1,e2) })
+          }
+        // Right associate everything in a chunk as a _RewriteFnApp
+        def associateArrows(fs: List[Expr], oe: Option[Expr]) = oe match {
+          case None => fs match {
+            case Nil => bug(expr, "Empty chunk")
+            case _ =>
+              fs.take(fs.size-1).foldRight(fs.last){ (f: Expr, e: Expr) =>
+                                                     ExprFactory.make_RewriteFnApp(f,e) }
+          }
+          case Some(e) =>
+            fs.foldRight(e){ (f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e) }
+        }
+        // Associate a chunk
+        def associateChunk(chunk: (List[Expr],List[Expr])): Expr = {
+          val (arrows, nonArrows) = chunk
+          associateArrows(arrows, associateNonArrows(nonArrows))
+        }
+        val associatedChunks = chunks.map(associateChunk)
+        // (1) If any element that remains has type String,
+        //     then it is a static error
+        //     if there is any pair of adjacent elements within the juxtaposition
+        //     such that neither element is of type String.
+        val types = associatedChunks.map((e: Expr) => inferredType(e).get)
+        def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
+        if ( types.exists(isStringType) ) {
+          def stringCheck(e: Type, f: Type) =
+            if ( ! (isStringType(e) || isStringType(f)) )
+              throw new Error("Neither element is of type String in " +
+                              "a juxtaposition of String elements.")
+            else e
+          types.take(types.size-1).foldRight(types.last)(stringCheck)
+        }
+        // (2) Treat the sequence that remains as a multifix application
+        //     of the juxtaposition operator.
+        //     The rules for multifix operators then apply.
+        val multiOpExpr = checkExpr(ExprFactory.makeOpExpr(span, paren, toJavaOption(optType),
+                                                           multi, toJavaList(associatedChunks)))
+        if ( inferredType(multiOpExpr).isDefined ) multiOpExpr
+        else {
+          // If not, left associate as InfixJuxts
+          associatedChunks match {
+            case Nil => bug(expr, "Empty juxt")
+            case head::tail =>
+              checkExpr(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
+                                             ExprFactory.makeOpExpr(infix,e1,e2) })
+          }
+        }
+      } else throw new Error("Type is not inferred for: " + expr)
+    }
+
     /* Temporary code for Tight Juxtapositions
      */
     case SJuxt(SExprInfo(span,paren,optType), multi, infix, exprs, false, true) => {
@@ -321,92 +431,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
-
-    /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
-     */
-    case SJuxt(SExprInfo(span,paren,optType), multi, infix, exprs, isApp, false) => {
-      //Check subexpressions
-      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
-      if(haveInferredTypes(checkedExprs)){
-        //Breaks the list of expressions into chunks
-        def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
-        case Nil => results.reverse
-        case first::rest =>
-          if(isArrows(first)){
-            val arrows = first::rest.takeWhile((e:Expr)=> isArrows(e))
-            val dropArrows = rest.dropWhile((e:Expr)=> isArrows(e))
-            val nonArrows = dropArrows.takeWhile((e:Expr)=> !isArrows(e))
-            val dropNonArrows = dropArrows.dropWhile((e:Expr)=> !isArrows(e))
-            chunker(dropNonArrows,(arrows,nonArrows)::results)
-          }
-          else{
-            val nonArrows = first::rest.takeWhile((e:Expr)=> !isArrows(e))
-            val dropNonArrows = rest.dropWhile((e:Expr)=> !isArrows(e))
-            chunker(dropNonArrows, (List(),dropNonArrows)::results)
-          }
-        }
-        val chunks = chunker(checkedExprs,List())
-        //Left associate nonarrows as as a single OpExprs
-        def associateNonArrows(nonArrows :List[Expr]):Option[Expr] = nonArrows match {
-          case Nil => None
-          case head::tail =>
-            Some(tail.foldLeft(head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)})
-        }
-        //Right associate everthing in a chunk as a _RewriteFnApp
-        def associateArrows(fs :List[Expr], oe : Option[Expr]) = oe match {
-          case None =>
-            fs match {
-              case Nil => bug("Empty Chunk")
-              case _ =>
-                val last = fs.last
-                val allButLast = fs.take(fs.size-1)
-                allButLast.foldRight(last){(f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e)}
-            }
-          case Some(e) =>
-            fs.foldRight(e){(f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e)}
-        }
-        //Associate a chunk
-        def associateChunk(chunk: (List[Expr],List[Expr])): Expr = {
-          val (arrows,nonArrows) = chunk
-          val associatedNonArrows = associateNonArrows(nonArrows)
-          associateArrows(arrows,associatedNonArrows)
-        }
-        val associatedChunks = chunks.map(associateChunk)
-        //TODO: String Check
-        //TODO: See if you can make a MultiJuxt
-        //If not left associate as InfixJuxts
-        associatedChunks match{
-          case Nil => bug("Empty Juxt")
-          case head::tail =>
-            checkExpr(tail.foldLeft(head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)})
-        }
-      }
-      else{
-        SJuxt(SExprInfo(span,paren,optType),
-              multi,infix,checkedExprs,isApp,false)
-      }
-    }
-
-    /* Tight Juxts will be rewritten as MathPrimaries
-    case SJuxt(info, multi, infix, front::rest, false, true) => {
-      def converter(e:Expr): MathItem = {
-        if (NodeUtil.isParenthesized(e) || (e.isInstanceOf[TupleExpr]) || (e.isInstanceOf[VoidLiteralExpr]))
-          ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
-        else
-          NonParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
-      }
-      checkExpr(MathPrimary(info,multi,infix,checkExpr(front),rest.map(converter)),env,analyzer)
-    }
-     */
-
-    //TODO: Handle math expressions
-    //case SMathPrimary(info,multi,infix,front,rest) => expr
-
     case _ => throw new Error("Not yet implemented: " + expr.getClass)
-  }
-
-  def checkMathItem(item: MathItem): MathItem = item match{
-    case _ => throw new Error("Not yet implemented: " + item.getClass)
   }
 
 }
