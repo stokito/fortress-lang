@@ -56,10 +56,10 @@ public class ForeignComponentWrapper extends NonApiWrapper {
 
    Map<String, InterpreterNameRewriter> rewrites =
         new BATree<String, InterpreterNameRewriter>(StringHashComparer.V);
-   
+
    private final Environment e;
    private final APIName apiname;
-   
+
    public ForeignComponentWrapper(
             APIWrapper apicw, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super(apicw, linker, implicitLibs);
@@ -72,19 +72,19 @@ public class ForeignComponentWrapper extends NonApiWrapper {
     protected  Map<String, InterpreterNameRewriter> getRewrites() {
         return rewrites;
     }
-    
+
     public CompilationUnit populateOne() {
         if (visitState != IMPORTED)
             return bug("Component wrapper " + name() + " in wrong visit state: " + visitState);
 
         visitState = POPULATED;
 
-        
+
         /* Insert code here to populate the environment from foreign code.
-            
+
         */
-        
-        
+
+
         Set<Decl> decls = ForeignJava.only.apiToStaticDecls.get(apiname);
         for (Decl d : decls) {
             if (d instanceof FnDecl) {
@@ -102,16 +102,16 @@ public class ForeignComponentWrapper extends NonApiWrapper {
                 TraitDecl td = (TraitDecl) d;
             }
         }
-        
+
         // Reset the non-function names from the disambiguator.
-       
+
         for (APIWrapper api: exports.values()) {
             api.populateOne(this);
         }
 
         return null;
     }
-    
+
     public Environment getEnvironment() {
         return e;
     }

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
+import java.lang.Long;
 
 import com.naturalbridge.misc.Unsigned;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -171,14 +172,7 @@ public static final class Less extends UU2B {
 }
 public static final class Partition extends U2U {
     protected long f(long u) {
-        long m = (u-1) >>> 1;
-        m |= m >>> 1;
-        m |= m >>> 2;
-        m |= m >>> 4;
-        m |= m >>> 8;
-        m |= m >>> 16;
-        m |= m >>> 32;
-        return m+1;
+        return Long.highestOneBit(u-1);
     }
 }
 public static final class Pow extends NativeMeth1 {

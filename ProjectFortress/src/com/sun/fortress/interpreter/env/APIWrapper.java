@@ -34,7 +34,7 @@ public class APIWrapper extends CUWrapper {
         super(api, linker, implicitLibs);
         // TODO Auto-generated constructor stub
     }
-    
+
     public CompilationUnit populateOne(NonApiWrapper exporter) {
         if (visitState != IMPORTED)
             return bug("Component wrapper in wrong visit state: " + visitState);
@@ -42,7 +42,7 @@ public class APIWrapper extends CUWrapper {
         visitState = POPULATED;
 
         getEnvBuilder().setExporterAndApi(exporter, this);
-        
+
         CompilationUnit cu = comp_unit;
 
                                       // Caches information in dis!
@@ -54,9 +54,9 @@ public class APIWrapper extends CUWrapper {
 
         return cu;
     }
-    
+
     public Set<String> getTopLevelRewriteNames() {
         return desugarer.getTopLevelRewriteNames();
     }
-    
+
 }

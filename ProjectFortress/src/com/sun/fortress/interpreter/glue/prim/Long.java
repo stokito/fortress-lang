@@ -179,14 +179,7 @@ public static final class Less extends LL2B {
 }
 public static final class Partition extends L2L {
     protected long f(long u) {
-        long m = (u-1) >> 1;
-        m |= m >> 1;
-        m |= m >> 2;
-        m |= m >> 4;
-        m |= m >> 8;
-        m |= m >> 16;
-        m |= m >> 32;
-        return m+1;
+        return java.lang.Long.highestOneBit(u-1);
     }
 }
 public static final class Pow extends NativeMeth1 {
