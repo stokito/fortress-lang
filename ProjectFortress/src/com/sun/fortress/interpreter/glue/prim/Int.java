@@ -169,13 +169,7 @@ public static final class Less extends ZZ2B {
 }
 public static final class Partition extends Z2Z {
     protected int f(int u) {
-        int m = (u-1) >> 1;
-        m |= m >> 1;
-        m |= m >> 2;
-        m |= m >> 4;
-        m |= m >> 8;
-        m |= m >> 16;
-        return m+1;
+        return Integer.highestOneBit(u-1);
     }
 }
 public static final class Pow extends NativeMeth1 {

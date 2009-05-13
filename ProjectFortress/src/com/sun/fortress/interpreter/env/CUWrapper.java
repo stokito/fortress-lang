@@ -98,7 +98,7 @@ public class CUWrapper {
     protected  Map<String, InterpreterNameRewriter> getRewrites() {
         return desugarer.getRewrites();
     }
-    
+
     int visitState;
     protected final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
@@ -245,7 +245,7 @@ public class CUWrapper {
              * rules as other name visibility.
              */
             ownNames.addAll(desugarer.getTopLevelRewriteNames());
-        } 
+        }
         for (CUWrapper api: exports.values()) {
             api.preloadTopLevel();
         }

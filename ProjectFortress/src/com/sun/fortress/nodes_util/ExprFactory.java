@@ -917,7 +917,7 @@ public class ExprFactory {
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
-                                                            BATree<String, StaticParam> implicit_type_parameters) {
+                                                            Map<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =
             new ArrayList<StaticArg>(implicit_type_parameters.size());
         List<StaticParam> stParams;
