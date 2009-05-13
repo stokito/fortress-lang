@@ -3186,7 +3186,7 @@ object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
     getter f() = f0
     getter bounds(): Range[\I\] = self.g.bounds
     getter indexValuePairs(): Indexed[\(I,F),I\] =
-        self.g.indexValuePairs.map[\(I,F)\](fn (i:I, e:E): F => (i,(self.f)(e)))
+        self.g.indexValuePairs.map[\(I,F)\](fn (i:I, e:E):(I,F) => (i,(self.f)(e)))
     getter indices(): Generator[\I\] = self.g.indices
     opr |self| : ZZ32 = |self.g|
     opr[i:I] : F = (self.f)(self.g[i])
