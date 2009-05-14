@@ -259,6 +259,10 @@ public class Naming extends NodeAbstractVisitor<String> {
             return "lessthan";
         else if (name == "<=")
             return "lessthanequals";
+        else if (name == "+")
+            return "plus";
+        else if (name == "-")
+            return "minus";
         else return name;
     }
 
