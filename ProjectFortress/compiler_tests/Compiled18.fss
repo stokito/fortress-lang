@@ -22,7 +22,7 @@ trait A[\T\] end
 object O extends A[\O\] end
 object P extends A[\P\] end
 
-anA():A = O
+anA():A[\O\] = O
 f[\T\](o:O):() = println("O")
 f[\T\](a:A[\T\]):() = println("FAIL WITH A")
 f[\T\](p:P):() = println("FAIL WITH P")

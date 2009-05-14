@@ -23,12 +23,12 @@ trait A end
 object O extends A end
 object P extends A end
 
-h(g:A->(O->A)):O->A = g(anA())
+f(g:A->(O->A)):O->A = g(anA())
 
 anA():A = O
 
 run():() = do
-  typecase f(fn(a:A) => (fn(o:O) => a))(O) of
+  typecase x = f(fn(a:A) => (fn(o:O) => a))(O) of
     O => println("O")
     else => println("FAIL")
   end
