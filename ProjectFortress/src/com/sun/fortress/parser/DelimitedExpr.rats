@@ -237,8 +237,18 @@ Block CaseElse = else w match w BlockElems ;
 
 /* TypecaseBindings ::= BindIdOrBindIdTuple (w = w Expr)? */
 private com.sun.fortress.useful.Pair<List<Id>,Option<Expr>> TypecaseBindings =
-     a1:BindIdOrBindIdTuple a2:(w void:equals w Expr)?
-     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>wrap(a2)); };
+     a1:BindIdOrBindIdTuple w void:equals w a2:Expr &(w of)
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>some(a2)); }
+   / a1:BindIdOrBindIdTuple &(w of)
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>none()); }
+   / <ErrorProduction> Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "In a typecase expression, an identifier is required.\n" +
+           "    Use a binding such as 'x = exp' instead.");
+       yyValue = new com.sun.fortress.useful.Pair(Collections.<Id>emptyList(),
+                                                  Option.<Expr>none());
+     }
+   ;
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =
