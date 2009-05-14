@@ -3340,7 +3340,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     NodeDepthFirstVisitor<Expr> op_visitor = new NodeDepthFirstVisitor<Expr>() {
                         @Override
                         public Expr forExponentiationMI(ExponentiationMI that) {
-                            // how could an expression not exist in an exponentiation?
+                            // How could an expression not exist in an exponentiation?
+                            // For ExponentOp, such as ^T
                             return ExprFactory.makeOpExpr(that.getOp(), last_expr, that.getExpr().unwrap());
                         }
                         @Override

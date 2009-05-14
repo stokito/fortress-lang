@@ -196,22 +196,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             // Operators are never qualified in source code,
             // so if 'name' is qualified and not found,
             // it must be an Id, not an Op.
-            errors.signal("Attempt to reference unbound variable: " + id, id)
-            id
+            bug(id, "Attempt to reference unbound variable: " + id)
         }
       }
       case _ => {
         getTypeFromName( id ) match {
           case Some(ty) => ty match {
             case SLabelType(_) => // then, newName must be an Id
-              errors.signal("Cannot use label name " + id + " as an identifier.",
-                            id)
-              id
+              bug(id, "Cannot use label name " + id + " as an identifier.")
             case _ => id
           }
-          case _ =>
-            errors.signal("Variable '" + id + "' not found.", id)
-            id
+          case _ => bug(id, "Variable '" + id + "' not found.")
         }
       }
     }
@@ -231,7 +226,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           typ
         case _ => typ
       }
-      case _ => throw new Error("Type is not inferred for: " + expr)
+      case _ => bug(expr, "Type is not inferred for: " + expr)
     }
     ExprUtil.addType(newExpr, newType)
   }
@@ -247,7 +242,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           typ
         case _ => typ
       }
-      case _ => throw new Error("Type is not inferred for: " + expr)
+      case _ => bug(expr, "Type is not inferred for: " + expr)
     }
     ExprUtil.addType(newExpr, newType)
   }
@@ -259,7 +254,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     val message = "A 'spawn' expression must not occur inside " +
                   enclosingExpr + "."
     override def checkExpr(e: Expr): Expr = e match {
-      case SSpawn(_, _) => errors.signal(message, e); e
+      case SSpawn(_, _) => bug(e, message)
       case _ => super.checkExpr(e)
     }
   }
@@ -272,7 +267,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val newExpr = this.extendWithout(s, labelExitTypes.keySet).checkExpr(body)
       val newType = inferredType(newExpr) match {
         case Some(typ) => typ
-        case _ => throw new Error("Type is not inferred for: " + body)
+        case _ => bug(body, "Type is not inferred for: " + body)
       }
       SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(newType))), newExpr)
     }
@@ -377,8 +372,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         if ( types.exists(isStringType) ) {
           def stringCheck(e: Type, f: Type) =
             if ( ! (isStringType(e) || isStringType(f)) )
-              throw new Error("Neither element is of type String in " +
-                              "a juxtaposition of String elements.")
+              bug(expr, "Neither element is of type String in " +
+                  "a juxtaposition of String elements.")
             else e
           types.take(types.size-1).foldRight(types.last)(stringCheck)
         }
@@ -397,37 +392,180 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                              ExprFactory.makeOpExpr(infix,e1,e2) })
           }
         }
-      } else throw new Error("Type is not inferred for: " + expr)
+      } else {
+        bug(expr, "Type is not inferred for: " + expr)
+      }
     }
 
-    /* Temporary code for Tight Juxtapositions
-     */
-    case SJuxt(SExprInfo(span,paren,optType), multi, infix, exprs, false, true) => {
-      val checkedExprs = exprs.map((e:Expr)=>checkExpr(e))
-      if(haveInferredTypes(checkedExprs)){
-        //check if there are any functions
-        if(checkedExprs.exists((e:Expr)=>isArrows(e))){
-          //ToDo: some static checks
-          //Left associate
-          val leftAssociated = checkedExprs.tail.foldLeft(checkedExprs.head){(e1: Expr, e2: Expr) => ExprFactory.makeOpExpr(infix,e1,e2)}
-          checkExpr(leftAssociated)
+    // Math primary, which is the more general case,
+    // is going to be called for both tight Juxt and MathPrimary
+
+    // Base case of recursion: If there is no 'rest', return the Expr
+    case SMathPrimary(info, multi, infix, front, Nil) => checkExpr(front)
+
+    case mp@SMathPrimary(info@SExprInfo(span,paren,optType),
+                         multi, infix, front, rest@second::remained) => {
+      /** Check for ^ followed by ^ or ^ followed by [], both static errors. */
+      def exponentiationStaticCheck(items: List[MathItem]) = {
+        var exponent: Option[MathItem] = None
+        def checkMathItem(item: MathItem) = item match {
+          case SExponentiationMI(_,_,_) => exponent match {
+            case None => exponent = Some(item)
+            case Some(e) => bug(item, "Two consecutive ^s.")
+          }
+          case SSubscriptingMI(_,_,_,_) => exponent match {
+            case Some(e) =>
+              bug(item, "Exponentiation followed by subscripting is illegal.")
+            case None =>
+          }
+          case _ => exponent = None
         }
-        else{
-          //find the left most function
-          val prefix = checkedExprs.takeWhile((e:Expr)=> !isArrows(e))
-          //ToDo: check fn is not the last element of the list
-          val fn::arg::suffix = checkedExprs.dropWhile((e:Expr)=> !isArrows(e))
-          //ToDo: check that its argument is parenthesized
-          //Replace fn and arg with a _ReWriteFnApp and recurse
-          val fnApp = ExprFactory.make_RewriteFnApp(fn,arg)
-          val newExprs = prefix++(fnApp::suffix)
-          checkExpr(SJuxt(SExprInfo(span,paren,optType),
-                          multi,infix,newExprs,false,true))
+        // Check for two exponentiations or an exponentiation and a subscript in a row
+        items.foreach(checkMathItem)
+      }
+      exponentiationStaticCheck(rest) // See if simple static errors exist
+
+      def isExprMI(expr: MathItem): Boolean = expr match {
+        case SParenthesisDelimitedMI(_, _) => true
+        case SNonParenthesisDelimitedMI(_, _) => true
+        case _ => false
+      }
+      def isParenedExprItem(item: MathItem) = item match {
+        case SParenthesisDelimitedMI(_,_) => true
+        case _ => false
+      }
+      def isFunctionItem(item: MathItem) = item match {
+        case SParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
+        case SNonParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
+        case _ =>
+      }
+      def expectParenedExprItem(item: MathItem) =
+        if ( ! isParenedExprItem(item) )
+          bug(item, "Argument to function must be parenthesized.")
+      def expectExprMI(item: MathItem) =
+        if ( ! isExprMI(item) )
+          bug(item, "Item at this location must be an expression, not an operator.")
+      // items is not an empty list.
+      def associateMathItems(first: Expr,
+                             items: List[MathItem]): (Expr, List[MathItem]) = {
+        /* For each expression element (i.e., not a subscripting, exponentiation
+         * or postfix operator), determine whether it is a function.
+         * If some function element is immediately followed by an expression
+         * element then, find the first such function element, and call the
+         * next element the argument.
+         */
+        // find the left-most function
+        val (prefix, others) = items.span((e:MathItem) =>
+                                          !isFunctionItem(e).asInstanceOf[Boolean])
+        others match {
+          case fn::arg::suffix => arg match {
+            // It is a static error if either the argument is not parenthesized,
+            case SNonParenthesisDelimitedMI(_,e) =>
+              bug(e, "Tightly juxtaposed expression should be parenthesized.")
+            case SParenthesisDelimitedMI(i,e) => {
+              // or the argument is immediately followed by a non-expression element.
+              suffix match {
+                case third::more =>
+                  if ( ! isExprMI(third) )
+                    bug(third, "An expression is expected.")
+                case _ =>
+              }
+              // Otherwise, replace the function and argument with a single element
+              // that is the application of the function to the argument.  This new
+              // element is an expression.  Reassociate the resulting sequence
+              // (which is one element shorter)
+              val fnApp =
+                new NonParenthesisDelimitedMI(i,
+                                              ExprFactory.make_RewriteFnApp(fn.asInstanceOf[ExprMI].getExpr,
+                                                                            arg.asInstanceOf[ExprMI].getExpr))
+              associateMathItems( first, prefix++(fnApp::suffix) )
+            }
+            case _ => reassociateMathItems( first, items )
+          }
+          case _ => reassociateMathItems( first, items )
         }
       }
-      else{
-        SJuxt(SExprInfo(span,paren,optType),
-              multi,infix,checkedExprs,false,true)
+      // items is not an empty list.
+      def reassociateMathItems(first: Expr, items: List[MathItem]) = {
+        val (left, right) = items.span( isExprMI )
+        val head = left match {
+          case Nil => first
+          case _ =>
+            if ( isExprMI(left.last) )
+              left.last.asInstanceOf[ExprMI].getExpr
+            else bug(left.last, "An expression is expected.")
+        }
+        right match {
+        /* If there is any non-expression element (it cannot be the first element)
+         * then replace the first such element and the element
+         * immediately preceeding it (which must be an expression) with
+         * a single element that does the appropriate operator application.
+         * This new element is an expression.  Reassociate the resulting
+         * sequence (which is one element shorter.)
+         */
+          case item::suffix => {
+            val newExpr = item match {
+              case SExponentiationMI(_,op,expr) =>
+                ExprFactory.makeOpExpr(op, head, toJavaOption(expr))
+              case SSubscriptingMI(_,op,exprs,sargs) =>
+                ExprFactory.makeSubscriptExpr(span, head,
+                                              toJavaList(exprs), some(op),
+                                              toJavaList(sargs))
+              case _ => bug(item, "Non-expression element is expected.")
+            }
+            left match {
+              case Nil => associateMathItems(newExpr, suffix)
+              case _ =>
+                val exp = new NonParenthesisDelimitedMI(newExpr.getInfo, newExpr)
+                associateMathItems(first, left.dropRight(1)++(exp::suffix))
+            }
+          }
+          case _ => (first, items)
+        }
+      }
+
+      // HANDLE THE FRONT ITEM
+      val newFront = checkExpr(front)
+      inferredType( newFront ) match {
+        case None => bug(front, "Type is not inferred for: " + front)
+        case Some(t) =>
+          // If front is a fn followed by an expr, we reassociate
+          if ( TypesUtil.isArrows(t).asInstanceOf[Boolean] && isExprMI(second) ) {
+            // It is a static error if either the argument is not parenthesized,
+            expectParenedExprItem(second)
+            // static error if the argument is immediately followed by
+            // a non-expression element.
+            remained match {
+              case hd::tl => expectExprMI(hd)
+              case Nil =>
+            }
+            // Otherwise, make a new MathPrimary that is one element shorter,
+            // and recur.
+            val fn = ExprFactory.make_RewriteFnApp(front,
+                                                   second.asInstanceOf[ExprMI].getExpr)
+            checkExpr(SMathPrimary(info, multi, infix, fn, remained))
+          // THE FRONT ITEM WAS NOT A FN FOLLOWED BY AN EXPR, REASSOCIATE REST
+          } else {
+            val (head, tail) = associateMathItems( newFront, rest )
+            // Otherwise, left-associate the sequence, which has only expression
+            // elements, only the last of which may be a function.
+            val newTail = tail.map( (e:MathItem) =>
+                                    if ( ! isExprMI(e) )
+                                      bug(e, "An expression is expected.")
+                                    else e.asInstanceOf[ExprMI].getExpr )
+            // Treat the sequence that remains as a multifix application of
+            // the juxtaposition operator.
+            // The rules for multifix operators then apply.
+            val multi_op_expr = checkExpr( ExprFactory.makeOpExpr(span, multi,
+                                                                  toJavaList(head::newTail)) )
+            inferredType(multi_op_expr) match {
+              case Some(_) => multi_op_expr
+              case None =>
+                newTail.foldLeft(head){ (r:Expr, e:Expr) =>
+                                        ExprFactory.makeOpExpr(NodeUtil.spanTwo(r, e),
+                                                               infix, r, e) }
+            }
+          }
       }
     }
 
