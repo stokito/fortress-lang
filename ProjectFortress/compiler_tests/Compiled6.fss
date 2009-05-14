@@ -25,7 +25,7 @@ object P extends A end
 anA(): A = O
 
 run():() = do
-  typecase anA() of 
+  typecase x = anA() of
     O => println("O")
     else => println("FAIL")
   end

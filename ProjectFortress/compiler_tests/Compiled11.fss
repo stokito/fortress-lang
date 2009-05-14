@@ -19,7 +19,7 @@ component Compiled11
 export Executable
 
 
-trait A 
+trait A
   x:A
 end
 
@@ -27,7 +27,7 @@ object N extends A end
 
 object O(x:A) extends A end
 
-object P extends A 
+object P extends A
   x:A = O(N).x
 end
 
@@ -35,7 +35,7 @@ anO():A = O
 anA():A = P
 
 run():() = do
-  typecase P.x of
+  typecase y = P.x of
     N => println "N"
     else => println "FAIL"
   end

@@ -75,6 +75,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def signal(msg:String, hasAt:HasAt) =
     errors.signal(msg, hasAt)
 
+  private def signal(hasAt:HasAt, msg:String) =
+    errors.signal(msg, hasAt)
+
   private def inferredType(expr:Expr): Option[Type] =
     scalaify(expr.getInfo.getExprType).asInstanceOf[Option[Type]]
 
@@ -149,6 +152,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
+    /* ToDo for Compiled6
+    case t@STraitDecl(info,header,excludes,comprises,hasEllises,self) => t
+    case o@SObjectDecl(info,header,params,self) => o
+    */
+
     /* Matches if block is an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
                 loc, true, withinDo, exprs) =>
@@ -196,17 +204,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             // Operators are never qualified in source code,
             // so if 'name' is qualified and not found,
             // it must be an Id, not an Op.
-            bug(id, "Attempt to reference unbound variable: " + id)
+            signal(id, "Attempt to reference unbound variable: " + id); id
         }
       }
       case _ => {
         getTypeFromName( id ) match {
           case Some(ty) => ty match {
             case SLabelType(_) => // then, newName must be an Id
-              bug(id, "Cannot use label name " + id + " as an identifier.")
+              signal(id, "Cannot use label name " + id + " as an identifier."); id
             case _ => id
           }
-          case _ => bug(id, "Variable '" + id + "' not found.")
+          case _ => signal(id, "Variable '" + id + "' not found."); id
         }
       }
     }
@@ -217,34 +225,32 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   def checkExpr(expr: Expr, expected: Option[Type],
                 first: String, second: String): Expr = {
     val newExpr = checkExpr(expr)
-    val newType = inferredType(newExpr) match {
+    inferredType(newExpr) match {
       case Some(typ) => expected match {
         case Some(t) =>
           checkSubtype(typ, t, expr,
                        first + " has type " + typ + ", but " + second +
                        " type is " + t + ".")
-          typ
-        case _ => typ
+          ExprUtil.addType(newExpr, typ)
+        case _ => ExprUtil.addType(newExpr, typ)
       }
-      case _ => bug(expr, "Type is not inferred for: " + expr)
+      case _ => signal(expr, "Type is not inferred for: " + expr); expr
     }
-    ExprUtil.addType(newExpr, newType)
   }
 
   def checkExpr(expr: Expr, expected: Option[Type], message: String): Expr = {
     val newExpr = checkExpr(expr)
-    val newType = inferredType(newExpr) match {
+    inferredType(newExpr) match {
       case Some(typ) => expected match {
         case Some(t) =>
           checkSubtype(typ, t, expr,
                        message + " has type " + typ + ", but it must have " +
                        t + " type.")
-          typ
-        case _ => typ
+          ExprUtil.addType(newExpr, typ)
+        case _ => ExprUtil.addType(newExpr, typ)
       }
-      case _ => bug(expr, "Type is not inferred for: " + expr)
+      case _ => signal(expr, "Type is not inferred for: " + expr); expr
     }
-    ExprUtil.addType(newExpr, newType)
   }
 
   class AtomicChecker(current: CompilationUnitIndex, traits: TraitTable,
@@ -254,7 +260,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     val message = "A 'spawn' expression must not occur inside " +
                   enclosingExpr + "."
     override def checkExpr(e: Expr): Expr = e match {
-      case SSpawn(_, _) => bug(e, message)
+      case SSpawn(_, _) => signal(e, message); e
       case _ => super.checkExpr(e)
     }
   }
@@ -265,28 +271,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   def checkExpr(expr: Expr): Expr = expr match {
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {
       val newExpr = this.extendWithout(s, labelExitTypes.keySet).checkExpr(body)
-      val newType = inferredType(newExpr) match {
-        case Some(typ) => typ
-        case _ => bug(body, "Type is not inferred for: " + body)
+      inferredType(newExpr) match {
+        case Some(typ) =>
+          SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(typ))), newExpr)
+        case _ => signal(body, "Type is not inferred for: " + body); expr
       }
-      SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(newType))), newExpr)
     }
 
     case SAtomicExpr(SExprInfo(span,paren,optType), body) => {
       val newExpr = forAtomic(body, "an 'atomic' expression")
       SAtomicExpr(SExprInfo(span,paren,inferredType(newExpr)), newExpr)
     }
-
-      /* ToDo for Compiled0
-    case SFnRef(SExprInfo(span,paren,optType),
-                sargs, depth, name, names, overloadings, types) => {
-        expr
-    }
-
-    case SStringLiteralExpr(info, text) => {
-        expr
-    }
-      */
 
     // For a tight juxt, create a MathPrimary
     case SJuxt(info, multi, infix, front::rest, false, true) => {
@@ -305,8 +300,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SJuxt(info, multi, infix, front::rest, true, true) => rest.length match {
       case 1 => checkExpr(S_RewriteFnApp(info, front, rest.head))
       case n => // Make sure it is just two exprs.
-        bug(expr, "TightJuxt denoted as function application but has " +
-            n + "(!= 2) expressions.")
+        signal(expr, "TightJuxt denoted as function application but has " +
+               n + "(!= 2) expressions.")
+        expr
     }
 
     /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
@@ -371,10 +367,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
         if ( types.exists(isStringType) ) {
           def stringCheck(e: Type, f: Type) =
-            if ( ! (isStringType(e) || isStringType(f)) )
-              bug(expr, "Neither element is of type String in " +
-                  "a juxtaposition of String elements.")
-            else e
+            if ( ! (isStringType(e) || isStringType(f)) ) {
+              signal(expr, "Neither element is of type String in " +
+                     "a juxtaposition of String elements.")
+              e
+            } else e
           types.take(types.size-1).foldRight(types.last)(stringCheck)
         }
         // (2) Treat the sequence that remains as a multifix application
@@ -393,7 +390,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           }
         }
       } else {
-        bug(expr, "Type is not inferred for: " + expr)
+        signal(expr, "Type is not inferred for: " + expr); expr
       }
     }
 
@@ -411,11 +408,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         def checkMathItem(item: MathItem) = item match {
           case SExponentiationMI(_,_,_) => exponent match {
             case None => exponent = Some(item)
-            case Some(e) => bug(item, "Two consecutive ^s.")
+            case Some(e) => signal(item, "Two consecutive ^s.")
           }
           case SSubscriptingMI(_,_,_,_) => exponent match {
             case Some(e) =>
-              bug(item, "Exponentiation followed by subscripting is illegal.")
+              signal(item, "Exponentiation followed by subscripting is illegal.")
             case None =>
           }
           case _ => exponent = None
@@ -441,10 +438,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
       def expectParenedExprItem(item: MathItem) =
         if ( ! isParenedExprItem(item) )
-          bug(item, "Argument to function must be parenthesized.")
+          signal(item, "Argument to function must be parenthesized.")
       def expectExprMI(item: MathItem) =
         if ( ! isExprMI(item) )
-          bug(item, "Item at this location must be an expression, not an operator.")
+          signal(item, "Item at this location must be an expression, not an operator.")
       // items is not an empty list.
       def associateMathItems(first: Expr,
                              items: List[MathItem]): (Expr, List[MathItem]) = {
@@ -461,13 +458,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           case fn::arg::suffix => arg match {
             // It is a static error if either the argument is not parenthesized,
             case SNonParenthesisDelimitedMI(_,e) =>
-              bug(e, "Tightly juxtaposed expression should be parenthesized.")
+              signal(e, "Tightly juxtaposed expression should be parenthesized.")
+              (first, Nil)
             case SParenthesisDelimitedMI(i,e) => {
               // or the argument is immediately followed by a non-expression element.
               suffix match {
                 case third::more =>
                   if ( ! isExprMI(third) )
-                    bug(third, "An expression is expected.")
+                    signal(third, "An expression is expected.")
                 case _ =>
               }
               // Otherwise, replace the function and argument with a single element
@@ -493,7 +491,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           case _ =>
             if ( isExprMI(left.last) )
               left.last.asInstanceOf[ExprMI].getExpr
-            else bug(left.last, "An expression is expected.")
+            else {
+              signal(left.last, "An expression is expected.")
+              first
+            }
         }
         right match {
         /* If there is any non-expression element (it cannot be the first element)
@@ -511,7 +512,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 ExprFactory.makeSubscriptExpr(span, head,
                                               toJavaList(exprs), some(op),
                                               toJavaList(sargs))
-              case _ => bug(item, "Non-expression element is expected.")
+              case _ =>
+                signal(item, "Non-expression element is expected.")
+                head
             }
             left match {
               case Nil => associateMathItems(newExpr, suffix)
@@ -527,7 +530,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // HANDLE THE FRONT ITEM
       val newFront = checkExpr(front)
       inferredType( newFront ) match {
-        case None => bug(front, "Type is not inferred for: " + front)
+        case None => signal(front, "Type is not inferred for: " + front); front
         case Some(t) =>
           // If front is a fn followed by an expr, we reassociate
           if ( TypesUtil.isArrows(t).asInstanceOf[Boolean] && isExprMI(second) ) {
@@ -550,9 +553,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             // Otherwise, left-associate the sequence, which has only expression
             // elements, only the last of which may be a function.
             val newTail = tail.map( (e:MathItem) =>
-                                    if ( ! isExprMI(e) )
-                                      bug(e, "An expression is expected.")
-                                    else e.asInstanceOf[ExprMI].getExpr )
+                                    if ( ! isExprMI(e) ) {
+                                      signal(e, "An expression is expected.")
+                                      ExprFactory.makeVoidLiteralExpr(span)
+                                    } else e.asInstanceOf[ExprMI].getExpr )
             // Treat the sequence that remains as a multifix application of
             // the juxtaposition operator.
             // The rules for multifix operators then apply.
@@ -569,7 +573,37 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
+    /* ToDo for Compiled0
+    case SFnRef(SExprInfo(span,paren,optType),
+                sargs, depth, name, names, overloadings, types) => {
+        expr
+    }
+
+    case SStringLiteralExpr(info, text) => {
+        expr
+    }
+    */
+
+    /* ToDo for Compiled1
+    case SDo(info, fronts) => {
+        expr
+    }
+    */
+
+    /* ToDo for Compiled3
+    case SIf(info, clauses, elseC) => {
+        expr
+    }
+    */
+
+    /* ToDo for Compiled6
+    case SVarRef(SExprInfo(span,paren,optType), id, sargs, depth) => {
+        expr
+    }
+    */
+
     case _ => throw new Error("Not yet implemented: " + expr.getClass)
+    // "\n" + expr.toStringVerbose())
   }
 
 }
