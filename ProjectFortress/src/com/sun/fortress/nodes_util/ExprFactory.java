@@ -235,6 +235,18 @@ public class ExprFactory {
         return makeOpExpr(NodeUtil.spanTwo(e_1, e_2), op, e_1, e_2);
     }
 
+    public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1) {
+        return makeOpExpr(NodeUtil.spanTwo(e_1, op), false, Option.<Type>none(),
+                          op, Collections.singletonList(e_1));
+    }
+
+    public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1, Option<Expr> e_2) {
+        if ( e_2.isSome() )
+            return makeOpExpr(NodeUtil.spanTwo(e_1, e_2.unwrap()), op, e_1, e_2.unwrap());
+        else
+            return makeOpExpr(op, e_1);
+    }
+
     public static OpExpr makeOpExpr(Span span, boolean parenthesized,
                                     Option<Type> ty, FunctionalRef op,
                                     List<Expr> exprs) {
