@@ -51,6 +51,10 @@ transient String idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest
 
 private String IdText  = a1:id &{ NodeUtil.validId(a1) } ;
 
+transient String reserved = s:(idstart idrest*) &{ FORTRESS_KEYWORDS.contains(s) };
+Id Reserved = a1:reserved
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
+
 Id Id =
      <FIRST> a1:IdText
      { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };

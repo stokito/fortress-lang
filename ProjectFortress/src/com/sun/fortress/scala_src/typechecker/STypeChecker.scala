@@ -573,13 +573,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
+    case SStringLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
+      SStringLiteralExpr(SExprInfo(span,parenthesized,Some(Types.STRING)), text)
+
     /* ToDo for Compiled0
     case SFnRef(SExprInfo(span,paren,optType),
                 sargs, depth, name, names, overloadings, types) => {
-        expr
-    }
-
-    case SStringLiteralExpr(info, text) => {
         expr
     }
     */
@@ -588,6 +587,26 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SDo(info, fronts) => {
         expr
     }
+
+    @Override
+    public TypeCheckerResult forDoOnly(Do that, TypeCheckerResult exprType_result, List<TypeCheckerResult> fronts_result) {
+        // Get union of all clauses' types
+        List<Type> frontTypes = new ArrayList<Type>();
+        for (TypeCheckerResult frontResult : fronts_result) {
+            if (frontResult.type().isSome()) {
+                frontTypes.add(frontResult.type().unwrap());
+            }
+        }
+
+        Type result_type = subtypeChecker.join(frontTypes);
+        Do new_node = ExprFactory.makeDo(NodeUtil.getSpan(that),
+                NodeUtil.isParenthesized(that),
+                some(result_type),
+                (List<Block>)TypeCheckerResult.astFromResults(fronts_result));
+
+        return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, fronts_result);
+    }
+
     */
 
     /* ToDo for Compiled3

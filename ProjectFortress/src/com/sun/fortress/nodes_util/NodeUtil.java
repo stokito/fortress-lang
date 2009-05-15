@@ -48,10 +48,18 @@ import com.sun.fortress.parser_util.FnHeaderFront;
 import com.sun.fortress.parser_util.FnHeaderClause;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
+import com.sun.fortress.parser.Fortress;
+
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class NodeUtil {
+
+    public static boolean isKeyword(Id id) {
+        String name = id.getText();
+        return ( ! name.equals("self") &&
+                 Fortress.FORTRESS_KEYWORDS.contains(name) );
+    }
 
     public static void log(BufferedWriter writer, Span span, String msg) {
         try {

@@ -144,11 +144,13 @@ constant inline Action<Expr> SubscriptAssign =
      };
 
 constant inline Action<Expr> FieldSelectionAssign =
-    dot a1:Id
+    dot a1:(Reserved / Id)
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              return ExprFactory.makeFieldRef(NodeUtil.spanTwo(base, a1),
-                                              base, a1);
+              Span span = NodeUtil.spanTwo(base, a1);
+              if ( NodeUtil.isKeyword(a1) )
+                  log(span, "Keyword " + a1 + " cannot be used as an identifier.");
+              return ExprFactory.makeFieldRef(span, base, a1);
           }};
     };
 
@@ -389,8 +391,18 @@ constant Expr LeftAssociatedPrimary =
  */
 /* QualifiedName is not yet implemented in the interpreter. */
 /* DottedIdChain ::= Id(. w Id)+ */
-List<Id> DottedIdChain = a1:Id a2s:(dot w Id)+
-    { yyValue = Useful.cons(a1, a2s.list()); };
+List<Id> DottedIdChain =
+    a1:(Reserved / Id) a2s:(dot w (Reserved / Id))+
+    { List<Id> ids = new ArrayList<Id>(a2s.list().size() + 1);
+      ids.add(a1);
+      ids.addAll(a2s.list());
+      for (Id id : ids) {
+          if ( NodeUtil.isKeyword(id) )
+              log(NodeUtil.getSpan(id),
+                  "Keyword " + id + " cannot be used as an identifier.");
+      }
+      yyValue = Useful.cons(a1, a2s.list());
+    };
 
 /* MathPrimary ::= PrimaryFront MathItem* */
 constant Expr MathPrimary =
@@ -508,25 +520,29 @@ constant transient Action<Expr> Selector =
    ;
 
 constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
-    dot w a1:Id a2:(w StaticArgs)? a3:ParenthesisDelimited
+     dot w a1:(Reserved / Id) a2:(w StaticArgs)? a3:ParenthesisDelimited
      a4s:ParenthesisDelimitedLeft*
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
+               Span span = NodeUtil.spanTwo(base, a3);
+               if ( NodeUtil.isKeyword(a1) )
+                   log(span, "Keyword " + a1 + " cannot be used as an identifier.");
                List<StaticArg> sargs =
                    (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
                Expr mtdInv =
-                   ExprFactory.makeMethodInvocation(NodeUtil.spanTwo(base, a3),
-                                                    base, a1, sargs, a3);
+                   ExprFactory.makeMethodInvocation(span, base, a1, sargs, a3);
                return (Expr)apply(a4s, mtdInv);
            }};
      };
 
 constant inline Action<Expr> FieldSelectionSelector =
-     dot w a1:Id a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
+     dot w a1:(Reserved / Id) a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               Expr fldSel = ExprFactory.makeFieldRef(NodeUtil.spanTwo(base, a1),
-                                                      base, a1);
+               Span span = NodeUtil.spanTwo(base, a1);
+               if ( NodeUtil.isKeyword(a1) )
+                   log(span, "Keyword " + a1 + " cannot be used as an identifier.");
+               Expr fldSel = ExprFactory.makeFieldRef(span, base, a1);
                return (Expr)apply(a3s, (Expr)apply(a2s, fldSel));
            }};
      };
