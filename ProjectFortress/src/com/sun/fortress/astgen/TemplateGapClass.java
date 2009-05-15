@@ -111,7 +111,7 @@ public class TemplateGapClass extends NodeClass {
         writer.println("");
         writeSerialize(writer);
         writer.println("");
-        writeOutputHelp(writer, this.name());
+        writeWalk(writer, this.name());
 
         //   for (CodeGenerator g : gens) { g.generateClassMembers(writer, this); }
 
@@ -239,51 +239,61 @@ public class TemplateGapClass extends NodeClass {
         writer.startLine("/** Generate a human-readable representation that can be deserialized. */");
         writer.startLine("public void serialize(java.io.Writer writer) {");
         writer.indent();
-        writer.startLine("outputHelp(new TabPrintWriter(writer, 2), true);");
+        writer.startLine("walk(new LosslessStringWalker(writer, 2));");
         writer.unindent();
         writer.startLine("}");
     }
 
-    private void writeOutputHelp(TabPrintWriter writer, String name) {
-        writer.startLine("public void outputHelp(TabPrintWriter writer, boolean lossless) {");
+    private void writeWalk(TabPrintWriter writer, String name) {
+        writer.startLine("public void walk(TreeWalker w) {");
         writer.indent();
-        writer.startLine("writer.print(\""+name+":\"); writer.indent();");
+        writer.startLine("if (w.visitNode(this, \"" + name + "\", 3)) {");
+        writer.indent();
 
         writer.startLine(infoType + " temp_info = getInfo();");
-        writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"info = \");");
-        writer.startLine("temp_info.outputHelp(writer, lossless);");
+        writer.startLine("if (w.visitNodeField(\"info\", temp_info)) {");
+        writer.indent();
+        writer.startLine("temp_info.walk(w);");
+        writer.startLine("w.endNodeField(\"info\", temp_info);");
+        writer.unindent();
+        writer.startLine("}");
 
         writer.startLine("Id temp_id = getGapId();");
-        writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"gapId = \");");
-        writer.startLine("temp_id.outputHelp(writer, lossless);");
+        writer.startLine("if (w.visitNodeField(\"gapId\", temp_id)) {");
+        writer.indent();
+        writer.startLine("temp_id.walk(w);");
+        writer.startLine("w.endNodeField(\"gapId\", temp_id);");
+        writer.unindent();
+        writer.startLine("}");
 
         writer.startLine("List<Id> temp_templateParams = getTemplateParams();");
-        writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"templateParams = \");");
-        writer.startLine("writer.print(\"{\");");
-        writer.startLine("writer.indent();");
-        writer.startLine("boolean isempty_temp_templateParams = true;");
+        writer.startLine("if (w.visitNodeField(\"templateParams\", temp_templateParams)) {");
+        writer.indent();
+        writer.startLine("if (w.visitIterated(temp_templateParams)) {");
+        writer.indent();
+        writer.startLine("int i_temp_templateParams = 0;");
         writer.startLine("for (Id elt_temp_templateParams : temp_templateParams) {");
         writer.indent();
-        writer.startLine("isempty_temp_templateParams = false;");
-        writer.startLine("writer.startLine(\"* \");");
-        writer.startLine("if (elt_temp_templateParams == null) {");
+        writer.startLine("if (w.visitIteratedElement(i_temp_templateParams, elt_temp_templateParams)) {");
         writer.indent();
-        writer.startLine("writer.print(\"null\");");
-        writer.unindent();
-        writer.startLine("} else {");
-        writer.indent();
-        writer.startLine("elt_temp_templateParams.outputHelp(writer, lossless);");
+        writer.startLine("if (elt_temp_templateParams == null) w.visitNull();");
+        writer.startLine("else elt_temp_templateParams.walk(w);");
+        writer.startLine("w.endIteratedElement(i_temp_templateParams, elt_temp_templateParams);");
         writer.unindent();
         writer.startLine("}");
+        writer.startLine("i_temp_templateParams++;");
         writer.unindent();
         writer.startLine("}");
-        writer.startLine("writer.unindent();");
-        writer.startLine("if (isempty_temp_templateParams) writer.print(\" }\");");
-        writer.startLine("else writer.startLine(\"}\");");
-        writer.startLine("writer.unindent();");
+        writer.startLine("w.endIterated(temp_templateParams, i_temp_templateParams);");
+        writer.unindent();
+        writer.startLine("}");
+        writer.startLine("w.endNodeField(\"templateParams\", temp_templateParams);");
+        writer.unindent();
+        writer.startLine("}");
+
+        writer.startLine("w.endNode(this, \"" + name + "\", 3);");
+        writer.unindent();
+        writer.startLine("}");
         writer.unindent();
         writer.startLine("}");
     }

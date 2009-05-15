@@ -98,7 +98,7 @@ public class EllipsesNode extends NodeClass {
         writer.println("");
         writeSerialize(writer);
         writer.println("");
-        writeOutputHelp(writer, this.name());
+        writeWalk(writer, this.name());
 
         //   for (CodeGenerator g : gens) { g.generateClassMembers(writer, this); }
 
@@ -228,27 +228,28 @@ public class EllipsesNode extends NodeClass {
         writer.startLine("/** Generate a human-readable representation that can be deserialized. */");
         writer.startLine("public void serialize(java.io.Writer writer) {");
         writer.indent();
-        writer.startLine("outputHelp(new TabPrintWriter(writer, 2), true);");
+        writer.startLine("walk(new LosslessStringWalker(writer, 2));");
         writer.unindent();
         writer.startLine("}");
     }
 
-    private void writeOutputHelp(TabPrintWriter writer, String name) {
-        writer.startLine("public void outputHelp(TabPrintWriter writer, boolean lossless) {");
+    private void writeWalk(TabPrintWriter writer, String name) {
+        writer.startLine("public void walk(TreeWalker w) {");
         writer.indent();
-        writer.startLine("writer.print(\""+name+":\"); writer.indent();");
+        writer.startLine("if (w.visitNode(this, \"" + name + "\", 1)) {");
+        writer.indent();
 
         writer.startLine(infoType + " temp_info = getInfo();");
-        writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"info = \");");
-        writer.startLine("if (lossless) {");
+        writer.startLine("if (w.visitNodeField(\"info\", temp_info)) {");
         writer.indent();
-        writer.startLine("writer.printSerialized(temp_info);");
-        writer.startLine("writer.print(\" \");");
-        writer.startLine("writer.printEscaped(temp_info);");
+        writer.startLine("w.visitUnknownObject(temp_info);");
+        writer.startLine("w.endNodeField(\"info\", temp_info);");
         writer.unindent();
-        writer.startLine("} else { writer.print(temp_info); }");
-        writer.startLine("writer.unindent();");
+        writer.startLine("}");
+
+        writer.startLine("w.endNode(this, \"" + name + "\", 1);");
+        writer.unindent();
+        writer.startLine("}");
         writer.unindent();
         writer.startLine("}");
     }
