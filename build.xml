@@ -440,6 +440,9 @@ maintain proper indentation.
         <exclude name="**/Fortress.ast"/>
       </fileset>
     </move>
+    <replace dir="${nodes}"
+             token="java.lang.Object"
+             value="Object" />
     <move todir="${library}">
       <fileset dir="${astgen.src}">
         <include name="FortressAst.fss" />

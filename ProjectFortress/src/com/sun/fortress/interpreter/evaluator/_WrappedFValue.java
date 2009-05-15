@@ -98,13 +98,6 @@ public class _WrappedFValue extends Expr {
         return b.toString();
     }
 
-    /**
-     * Prints this object out as a nicely tabbed tree.
-     */
-    public void output(java.io.Writer writer) {
-        outputHelp(new TabPrintWriter(writer, 2), false);
-    }
-
     /** Generate a human-readable representation that can be deserialized. */
     public java.lang.String serialize() {
         java.io.StringWriter w = new java.io.StringWriter();
@@ -113,36 +106,28 @@ public class _WrappedFValue extends Expr {
     }
     /** Generate a human-readable representation that can be deserialized. */
     public void serialize(java.io.Writer writer) {
-        outputHelp(new TabPrintWriter(writer, 2), true);
+        walk(new LosslessStringWalker(writer, 2));
     }
 
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {
-        writer.print("_WrappedFValue:");
-        writer.indent();
-
-        Span temp_span = NodeUtil.getSpan(this);
-        writer.startLine();
-        writer.print("span = ");
-        if (lossless) {
-            writer.printSerialized(temp_span);
-            writer.print(" ");
-            writer.printEscaped(temp_span);
-        } else { writer.print(temp_span); }
-
-        boolean temp_is_parenthesized = NodeUtil.isParenthesized(this);
-        writer.startLine();
-        writer.print("is_parenthesized = ");
-        writer.print(temp_is_parenthesized);
-
-        FValue temp_fValue = getFValue();
-        writer.startLine();
-        writer.print("fValue = ");
-        if (lossless) {
-            writer.printSerialized(temp_fValue);
-            writer.print(" ");
-            writer.printEscaped(temp_fValue);
-        } else { writer.print(temp_fValue); }
-        writer.unindent();
+    public void walk(TreeWalker w) {
+        if (w.visitNode(this, "_WrappedFValue", 3)) {
+            Span s = NodeUtil.getSpan(this);
+            if (w.visitNodeField("span", s)) {
+                w.visitUnknownObject(s);
+                w.endNodeField("span", s);
+            }
+            boolean p = NodeUtil.isParenthesized(this);
+            if (w.visitNodeField("is_parenthesized", p)) {
+                w.visitBoolean(p);
+                w.endNodeField("is_parenthesized", p);
+            }
+            FValue val = getFValue();
+            if (w.visitNodeField("fValue", val)) {
+                w.visitUnknownObject(val);
+                w.endNodeField("fValue", val);
+            }
+            w.endNode(this, "_WrappedFValue", 3);
+        }
     }
 
     /**

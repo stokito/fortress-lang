@@ -17,6 +17,7 @@
 package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.*;
+import java.io.Writer;
 import java.util.List;
 
 import com.sun.fortress.useful.NI;
@@ -57,11 +58,9 @@ public class RewriteHackList extends AbstractNode {
     }
     public void accept(NodeVisitor_void visitor) {}
     public void accept(AbstractNodeVisitor_void visitor) {}
-    public void output(java.io.Writer writer) {}
     public int generateHashCode() { return hashCode(); }
 
     public String serialize() { return bug(this,"Cannot serialize RewriteHackList"); }
-    public void serialize(java.io.Writer writer) { String junk = serialize(); }
-    public void outputHelp(TabPrintWriter writer, boolean lossless) { String junk = serialize(); }
-
+    public void serialize(Writer writer) { bug(this,"Cannot serialize RewriteHackList"); }
+    public void walk(TreeWalker w) { bug(this,"Cannot walk RewriteHackList"); }
 }

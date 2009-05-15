@@ -18,7 +18,10 @@
 package com.sun.fortress.nodes_util;
 
 import java.lang.Math;
+import java.io.IOException;
 import java.io.Serializable;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * Modifiers represents a set of modifiers applied to some Fortress
@@ -105,7 +108,7 @@ public final class Modifiers implements Serializable {
     /**
      * e.g.) io print(s: String): ()
      */
-    public static final Modifiers IO = modifierForBit(IO_M);
+    public static final Modifiers IO = modifiersByBit[IO_M];
     /**
      * e.g.) override m(x: ZZ32): ()
      */
@@ -378,16 +381,32 @@ public final class Modifiers implements Serializable {
      * Encodes modifiers as a quoted but otherwise rather succint string designed for machine consumption.
      */
     public String encode() {
-        if (bits==0) return "\"\"";
+        StringBuilder r = new StringBuilder();
+        try {
+            encodeTo(r);
+        } catch (IOException e) {
+            bug("Should not happen!");
+        }
+        return r.toString();
+    }
+
+    /**
+     * Append quoted encoding of modifiers to provided Appendable.
+     */
+    public void encodeTo(Appendable a) throws IOException {
+        a.append('"');
+        if (bits==0) {
+            a.append('"');
+            return;
+        }
         int i = 0;
         int MODS = 1;
-        StringBuilder r = new StringBuilder("\"");
         for (; MODS <= bits; i++) {
-            if ((bits & MODS) != 0) r.append(modifierEncodings.charAt(i));
+            if ((bits & MODS) != 0) a.append(modifierEncodings.charAt(i));
             MODS <<= 1;
         }
-        r.append('"');
-        return r.toString();
+        a.append('"');
+        return;
     }
 
     /**

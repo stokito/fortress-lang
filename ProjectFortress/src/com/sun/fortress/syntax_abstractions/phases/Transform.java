@@ -1023,7 +1023,7 @@ public class Transform extends TemplateUpdateVisitor {
             error();
         }
 
-        public void outputHelp(TabPrintWriter writer, boolean lossless){
+        public void walk(TreeWalker w){
             error();
         }
     }

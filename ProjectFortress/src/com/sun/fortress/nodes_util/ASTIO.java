@@ -37,8 +37,7 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.NodeReader;
-import com.sun.fortress.nodes.TabPrintWriter;
+import com.sun.fortress.nodes.TreeWalker;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.repository.ProjectProperties;
 
@@ -49,9 +48,13 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 public class ASTIO {
     private final static String LOG_FILE_NONE="";
     private final static boolean useAstgenSerialization =
-        ProjectProperties.getBoolean("fortress.astio.astgenserialization",false);
+        ProjectProperties.getBoolean("fortress.astio.astgenserialization", false);
     private static String logFileName =
         ProjectProperties.get("fortress.astio.logfile",LOG_FILE_NONE);
+    public static boolean useIndentation =
+        ProjectProperties.getBoolean("fortress.astio.indent",true);
+    public static boolean useFieldLabels =
+        ProjectProperties.getBoolean("fortress.astio.fieldlabels",true);
 
     private static volatile BufferedWriter logFile = null;
 
@@ -97,10 +100,11 @@ public class ASTIO {
         long t0 = logStart();
         try {
             if (useAstgenSerialization) {
+                int indent = useIndentation?2:0;
                 BufferedWriter utf8out =
                     new BufferedWriter(new OutputStreamWriter(fout, Charset.forName("UTF-8")));
-                TabPrintWriter tpw = new TabPrintWriter(utf8out, 2);
-                p.outputHelp(tpw,true);
+                TreeWalker tpw = new FortressSerializationWalker(utf8out, indent);
+                p.walk(tpw);
                 utf8out.write('\n');
                 utf8out.flush();
             } else {
@@ -149,7 +153,7 @@ public class ASTIO {
         if (useAstgenSerialization) {
             InputStreamReader ir = new InputStreamReader(fin, Charset.forName("UTF-8"));
             try {
-                CompilationUnit p = (CompilationUnit)NodeReader.read(ir);
+                CompilationUnit p = (CompilationUnit)FortressNodeReader.read(ir);
                 if (p==null) return bug("Null result from NodeReader of "+reportedFileName);
                 return Option.some(p);
             } catch (IOException ioe) {
