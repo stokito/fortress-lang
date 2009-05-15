@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component MoreOverload
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.foo as jFoo}
+
+export Executable
+
+jFoo(a:ZZ64, b:ZZ64, c:ZZ64, d:ZZ64):() = do
+  jPrintln("LLLL local!")
+end
+
+t(i:ZZ64, l:ZZ64):() = do
+  jFoo(i,i,i,i)
+  jFoo(i,i,l,i)
+  jFoo(i,i,i,l)
+  jFoo(l,l,l,l)
+end
+
+run() = 
+   t(9, 100000000000)
+
+end

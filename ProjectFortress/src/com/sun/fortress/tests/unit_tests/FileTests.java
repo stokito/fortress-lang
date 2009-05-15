@@ -122,8 +122,11 @@ public class FileTests {
         }
 
         /**
-         * Looks for properties of the from pfx+"out_contains", pfx+"out_matches",
-         * etc for out, err, exception, returns true if an expected condition fails.
+         * Looks for properties of the form
+         * compile/link/run_
+         * out/err/exceptions_
+         * contains/matches/WImatches/equals/WCIequals,
+         * returns true if an expected condition fails.
          *
          * @param pfx
          * @param props
@@ -168,6 +171,16 @@ public class FileTests {
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
                 if (!contents.matches(test))
+                    return what+"="+test;
+                any_check = true;
+           }
+
+            what = pfx+which+"_WImatches";
+            test = props.get(what);
+            test = ProjectProperties.get(test);
+            if (test != null && test.length() > 0) {
+                String wi_contents = contents.replaceAll("\\s+", " ").trim();
+                if (!wi_contents.matches(test))
                     return what+"="+test;
                 any_check = true;
            }
