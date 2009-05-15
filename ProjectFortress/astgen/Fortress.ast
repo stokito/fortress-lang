@@ -1448,7 +1448,7 @@ interface Node() extends HasAt;
                     /**
                      * identifier or operator name
                      */
-                    abstract IdOrOp(String text, Option<Type> nameType);
+                    abstract IdOrOp(String text);
                         /**
                          * identifier name
                          * e.g.) hashCode

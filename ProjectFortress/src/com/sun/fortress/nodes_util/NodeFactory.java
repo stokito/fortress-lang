@@ -1151,7 +1151,7 @@ public class NodeFactory {
 
     public static Id makeId(Span span, Option<APIName> apiName, String text) {
         SpanInfo info = makeSpanInfo(span);
-        return new Id(info, apiName, text, Option.<Type>none());
+        return new Id(info, apiName, text);
     }
 
     public static Id bogusId(Span span) {
@@ -1557,7 +1557,7 @@ public class NodeFactory {
 
     public static Op makeOp(Span span, Option<APIName> api,
                             String text, Fixity fixity, boolean b) {
-        return new Op(makeSpanInfo(span), api, text, Option.<Type>none(), fixity, b);
+        return new Op(makeSpanInfo(span), api, text, fixity, b);
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.

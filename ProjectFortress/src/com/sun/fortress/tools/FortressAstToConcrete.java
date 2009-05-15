@@ -2599,8 +2599,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forIdOnly(Id that, String info,
-                                      Option<String> api_result,
-                                      Option<String> nameType_result) {
+                                      Option<String> api_result) {
         StringBuilder s = new StringBuilder();
         if ( api_result.isSome() && !_unqualified )
             s.append( api_result.unwrap() ).append( "." );
@@ -2613,7 +2612,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forOpOnly(Op that, String info,
                                       Option<String> api_result,
-                                      Option<String> nameType_result,
                                       String fixity_result) {
         if ( that.isEnclosing() ) {
             StringBuilder s = new StringBuilder();

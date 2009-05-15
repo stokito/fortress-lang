@@ -64,8 +64,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 
   private def getTypes(typ:Id, errors:JavaList[StaticError]) = {
     val types = typ match {
-      case SId(info,Some(name),text,ty) =>
-        globalEnv.api(name).typeConses.get(SId(info,None,text,ty))
+      case SId(info,Some(name),text) =>
+        globalEnv.api(name).typeConses.get(SId(info,None,text))
       case _ => compilation_unit.typeConses.get(typ)
     }
     if (types == null) {

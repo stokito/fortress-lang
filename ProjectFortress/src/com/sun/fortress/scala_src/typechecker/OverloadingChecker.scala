@@ -237,8 +237,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
-        case SId(_,_,str,_) => IdentifierUtil.validId(str)
-        case SOp(_,_,str,_,_,_) => NodeUtil.validOp(str)
+        case SId(_,_,str) => IdentifierUtil.validId(str)
+        case SOp(_,_,str,_,_) => NodeUtil.validOp(str)
         case _ => false
     }
 

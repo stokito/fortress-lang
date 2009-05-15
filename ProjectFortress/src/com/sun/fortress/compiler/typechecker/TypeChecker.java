@@ -2796,9 +2796,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
                     // Type was declared in that API, so it's not qualified;
                     // prepend it with the API.
+                    /*
                     if (_namedType.getName().getApiName().isNone()) {
                         _type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
                     }
+                    */
                 }
                 return new TypeCheckerResult(original_name, _type);
             } else {
