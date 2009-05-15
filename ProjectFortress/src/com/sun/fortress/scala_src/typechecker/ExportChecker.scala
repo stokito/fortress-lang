@@ -441,9 +441,9 @@ object ExportChecker {
     /* Returns true if two IdOrOps denote the same type. */
     private def equalIdOrOps(left: IdOrOp, right: IdOrOp): Boolean =
         (left, right) match {
-            case (idl@SId(_,_,_), idr@SId(_,_,_)) => equalIds(idl, idr)
-            case (SOp(_, apiL, textL, fixityL, enclosingL),
-                  SOp(_, apiR, textR, fixityR, enclosingR)) =>
+            case (idl@SId(_,_,_,_), idr@SId(_,_,_,_)) => equalIds(idl, idr)
+            case (SOp(_, apiL, textL, _, fixityL, enclosingL),
+                  SOp(_, apiR, textR, _, fixityR, enclosingR)) =>
                 equalOptAPINames(apiL, apiR) && textL == textR &&
                 fixityL == fixityR && enclosingL == enclosingR
             case _ => false
@@ -452,7 +452,7 @@ object ExportChecker {
     /* Returns true if two Ids denote the same type. */
     private def equalIds(left: Id, right: Id): Boolean =
         (left, right) match {
-            case (SId(_, apiL, textL), SId(_, apiR, textR)) =>
+            case (SId(_, apiL, textL, _), SId(_, apiR, textR, _)) =>
                 equalOptAPINames(apiL, apiR) && textL == textR
         }
 

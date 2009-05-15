@@ -114,7 +114,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     TypeEnv.make( traits.compilationUnit(api) )
 
   private def getTypeFromName(name: Name): Option[Type] = name match {
-    case id@SId(info, api, name) => api match {
+    case id@SId(info, api, name, ty) => api match {
       case Some(api) => toOption(getEnvFromApi(api).getType(id))
       case _ => toOption(env.getType(id))
     }
@@ -157,36 +157,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case o@SObjectDecl(info,header,params,self) => o
     */
 
-    /* Matches if block is an atomic block. */
-    case SBlock(SExprInfo(span,parenthesized,resultType),
-                loc, true, withinDo, exprs) =>
-      forAtomic(SBlock(SExprInfo(span,parenthesized,resultType),
-                       loc, false, withinDo, exprs),
-                "an 'atomic'do block")
-
-    /* Matches if block is not an atomic block. */
-    case SBlock(SExprInfo(span,parenthesized,resultType),
-                loc, false, withinDo, exprs) => {
-      val newLoc = loc match {
-        case Some(l) =>
-          Some(checkExpr(l, Some(Types.REGION), "Location of the block"))
-        case None => loc
-      }
-      exprs.reverse match {
-        case Nil =>
-          SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),
-                 newLoc, false, withinDo, exprs)
-        case last::rest =>
-        val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
-                                                         "Non-last expression in a block"))
-          val lastExpr = checkExpr(last)
-          val newExprs = (lastExpr::allButLast).reverse
-          SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),
-                 newLoc, false, withinDo, newExprs)
-      }
-    }
-
-    case id@SId(info,api,name) => api match {
+    case id@SId(info,api,name,_) => api match {
       case Some(api) => {
         val newName = handleAliases(id, api, toList(current.ast.getImports))
         getTypeFromName( newName ) match {
@@ -269,6 +240,35 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     new AtomicChecker(current,traits,env,analyzer,errors,factory,enclosingExpr).checkExpr(expr)
 
   def checkExpr(expr: Expr): Expr = expr match {
+    /* Matches if block is an atomic block. */
+    case SBlock(SExprInfo(span,parenthesized,resultType),
+                loc, true, withinDo, exprs) =>
+      forAtomic(SBlock(SExprInfo(span,parenthesized,resultType),
+                       loc, false, withinDo, exprs),
+                "an 'atomic'do block")
+
+    /* Matches if block is not an atomic block. */
+    case SBlock(SExprInfo(span,parenthesized,resultType),
+                loc, false, withinDo, exprs) => {
+      val newLoc = loc match {
+        case Some(l) =>
+          Some(checkExpr(l, Some(Types.REGION), "Location of the block"))
+        case None => loc
+      }
+      exprs.reverse match {
+        case Nil =>
+          SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),
+                 newLoc, false, withinDo, exprs)
+        case last::rest =>
+        val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
+                                                         "Non-last expression in a block"))
+          val lastExpr = checkExpr(last)
+          val newExprs = (lastExpr::allButLast).reverse
+          SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),
+                 newLoc, false, withinDo, newExprs)
+      }
+    }
+
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {
       val newExpr = this.extendWithout(s, labelExitTypes.keySet).checkExpr(body)
       inferredType(newExpr) match {
@@ -389,9 +389,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                              ExprFactory.makeOpExpr(infix,e1,e2) })
           }
         }
-      } else {
-        signal(expr, "Type is not inferred for: " + expr); expr
-      }
+      } else signal(expr, "Type is not inferred for: " + expr); expr
     }
 
     // Math primary, which is the more general case,
@@ -581,33 +579,26 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 sargs, depth, name, names, overloadings, types) => {
         expr
     }
-    */
 
-    /* ToDo for Compiled1
-    case SDo(info, fronts) => {
-        expr
-    }
-
-    @Override
-    public TypeCheckerResult forDoOnly(Do that, TypeCheckerResult exprType_result, List<TypeCheckerResult> fronts_result) {
-        // Get union of all clauses' types
-        List<Type> frontTypes = new ArrayList<Type>();
-        for (TypeCheckerResult frontResult : fronts_result) {
-            if (frontResult.type().isSome()) {
-                frontTypes.add(frontResult.type().unwrap());
-            }
-        }
-
-        Type result_type = subtypeChecker.join(frontTypes);
-        Do new_node = ExprFactory.makeDo(NodeUtil.getSpan(that),
-                NodeUtil.isParenthesized(that),
-                some(result_type),
-                (List<Block>)TypeCheckerResult.astFromResults(fronts_result));
-
-        return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, fronts_result);
-    }
+                        abstract FunctionalRef(List<StaticArg> staticArgs,
+                                               int lexicalDepth,
+                                               IdOrOp originalName,
+                                               List<IdOrOp> names,
+                                               Option<List<FunctionalRef>> overloadings,
+                                               Option<Type> overloadingType);
 
     */
+
+    case SDo(SExprInfo(span,parenthesized,_), fronts) => {
+      val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
+      if ( haveInferredTypes(fs) ) {
+          // Get union of all clauses' types
+          val frontTypes =
+            fs.take(fs.size-1).foldRight(inferredType(fs.last).get)
+              { (e:Expr, t:Type) => analyzer.join(inferredType(e).get, t) }
+          SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
+      } else signal(expr, "Type is not inferred for: " + expr); expr
+    }
 
     /* ToDo for Compiled3
     case SIf(info, clauses, elseC) => {
