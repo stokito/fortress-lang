@@ -26,6 +26,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
@@ -38,7 +39,6 @@ import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.ExprUtil
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
-import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.useful.HasAt
 
@@ -114,7 +114,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     TypeEnv.make( traits.compilationUnit(api) )
 
   private def getTypeFromName(name: Name): Option[Type] = name match {
-    case id@SId(info, api, name, ty) => api match {
+    case id@SId(info, api, name) => api match {
       case Some(api) => toOption(getEnvFromApi(api).getType(id))
       case _ => toOption(env.getType(id))
     }
@@ -157,37 +157,53 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case o@SObjectDecl(info,header,params,self) => o
     */
 
-    case id@SId(info,api,name,_) => api match {
-      case Some(api) => {
-        val newName = handleAliases(id, api, toList(current.ast.getImports))
-        getTypeFromName( newName ) match {
-          case Some(ty) =>
-            if ( ty.isInstanceOf[NamedType] ) {
-              /*
-              // Type was declared in that API, so it's not qualified;
-              // prepend it with the API.
-              if ( ty.instanceOf[NamedType].getName.getApiName.isNone )
-                ty = NodeFactory.makeNamedType(api, ty)
-              */
-              id
-            } else id
-          case _ =>
-            // Operators are never qualified in source code,
-            // so if 'name' is qualified and not found,
-            // it must be an Id, not an Op.
-            signal(id, "Attempt to reference unbound variable: " + id); id
-        }
-      }
-      case _ => {
-        getTypeFromName( id ) match {
-          case Some(ty) => ty match {
-            case SLabelType(_) => // then, newName must be an Id
-              signal(id, "Cannot use label name " + id + " as an identifier."); id
-            case _ => id
+    case id@SId(info,api,name) => {
+      api match {
+        case Some(apiName) => {
+          val newName = handleAliases(id, apiName, toList(current.ast.getImports))
+          getTypeFromName( newName ) match {
+            case Some(ty) =>
+              if ( ty.isInstanceOf[NamedType] ) {
+                // Type was declared in that API, so it's not qualified;
+                // prepend it with the API.
+                /*
+                if ( ty.asInstanceOf[NamedType].getName.getApiName.isNone )
+                  _type = NodeFactory.makeNamedType(apiName, ty.asInstanceOf[NamedType])
+                */
+              }
+            case _ =>
+              // Operators are never qualified in source code,
+              // so if 'name' is qualified and not found,
+              // it must be an Id, not an Op.
+              signal(id, "Attempt to reference unbound variable: " + id)
           }
-          case _ => signal(id, "Variable '" + id + "' not found."); id
+        }
+        case _ => {
+          getTypeFromName( id ) match {
+            case Some(ty) => ty match {
+              case SLabelType(_) => // then, newName must be an Id
+                signal(id, "Cannot use label name " + id + " as an identifier.")
+              case _ =>
+            }
+            case _ => signal(id, "Variable '" + id + "' not found.")
+          }
         }
       }
+      id
+    }
+
+    case op@SOp(info,api,name,fixity,enclosing) => {
+      val tyEnv = api match {
+        case Some(api) => getEnvFromApi(api)
+        case _ => env
+      }
+      scalaify(tyEnv.binding(op)).asInstanceOf[Option[TypeEnv.BindingLookup]] match {
+        case None =>
+          if ( enclosing ) signal(op, "Enclosing operator not found: " + op)
+          else signal(op, "Operator not found: " + OprUtil.decorateOperator(op))
+        case _ =>
+      }
+      op
     }
 
     case _ => throw new Error("not yet implemented: " + node.getClass)
