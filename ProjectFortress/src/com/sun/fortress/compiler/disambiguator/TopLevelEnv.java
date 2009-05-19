@@ -347,7 +347,11 @@ public class TopLevelEnv extends NameEnv {
         return false;
     }
 
-    public Set<Id> explicitTypeConsNames(Id name) {
+    public Set<Id> explicitTypeConsNames(Id in_name) {
+        Id name;
+        if ( _aliases.containsKey(in_name) ) name = (Id)_aliases.get(in_name);
+        else name = in_name;
+
         Set<Id> result = Collections.emptySet();
         if (_current.typeConses().containsKey(name) ||
                 _current.dimensions().containsKey(name) ||
@@ -709,21 +713,6 @@ public class TopLevelEnv extends NameEnv {
             }};
 
         return filterMap(map, set, pred);
-    }
-
-    private static <T> Map<IdOrOpOrAnonymousName,T> alias(Map<IdOrOpOrAnonymousName,T> map, Set<AliasedSimpleName> aliases) {
-        Map<IdOrOpOrAnonymousName,T> result = new HashMap<IdOrOpOrAnonymousName,T>();
-        result.putAll(map);
-
-        for (AliasedSimpleName alias : aliases) {
-            if (alias.getAlias().isSome()) {
-                if (result.containsKey(alias.getName())) {
-                    result.put(alias.getAlias().unwrap(), result.get(alias.getName()));
-                    result.remove(alias.getName());
-                }
-            }
-        }
-        return result;
     }
 
     private Relation<IdOrOpOrAnonymousName,Function> alias(Relation<IdOrOpOrAnonymousName,Function> relation,
