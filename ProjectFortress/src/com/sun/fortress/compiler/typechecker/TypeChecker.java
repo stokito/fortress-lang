@@ -4013,13 +4013,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that, Option<TypeCheckerResult> exprType_result,
-            TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
-            Option<TypeCheckerResult> DONT_USE,
-            List<TypeCheckerResult> staticArgs_result) {
+                                                  TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
+                                                  Option<TypeCheckerResult> DONT_USE,
+                                                  List<TypeCheckerResult> staticArgs_result) {
 
         TypeCheckerResult all_result = TypeCheckerResult.compose(that, subtypeChecker, obj_result,
-                TypeCheckerResult.compose(that, subtypeChecker, subs_result),
-                TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+                                                                 TypeCheckerResult.compose(that, subtypeChecker, subs_result),
+                                                                 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 
         // ignore the op_result. A subscript op behaves like a dotted method.
         // make sure all sub-exprs are well-typed
@@ -4816,7 +4816,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeCheckerResult subscriptHelper(Node that, Option<Op> op,
-            Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
+                                              Type obj_type, List<Type> subs_types,
+                                              List<StaticArg> static_args) {
         List<TraitType> traits = traitTypesCallable(obj_type);
         // we need to have a trait otherwise we can't see its methods.
         if( traits.isEmpty() ) {

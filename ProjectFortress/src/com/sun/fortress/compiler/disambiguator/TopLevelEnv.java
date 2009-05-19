@@ -91,6 +91,7 @@ public class TopLevelEnv extends NameEnv {
     private final GlobalEnvironment _filteredGlobalEnv; // environment that only includes "imported" names
     private final CompilationUnitIndex _current;
     private List<StaticError> _errors;
+    private Map<IdOrOpOrAnonymousName, IdOrOpOrAnonymousName> _aliases;
 
     // As far as I can tell, these 'On Demand' data structures really hold all imported APIs.
     // Why are they so-named, or when did their behavior change? NEB
@@ -106,6 +107,7 @@ public class TopLevelEnv extends NameEnv {
         _originalGlobalEnv = globalEnv;
         _current = current;
         _errors = errors;
+        _aliases = new HashMap<IdOrOpOrAnonymousName, IdOrOpOrAnonymousName>();
 
 //         System.err.println("global_env for " + current.ast().getName() + ":");
 //         globalEnv.print();
@@ -384,7 +386,7 @@ public class TopLevelEnv extends NameEnv {
             ApiIndex api = _originalGlobalEnv.api(api_name);
 
             if( api.typeConses().containsKey(name) ) {
-                
+
                 /* if( result_.isSome() )
                  *   Will be caught by export checker
                  *   return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + name);
@@ -399,7 +401,10 @@ public class TopLevelEnv extends NameEnv {
             return result_.unwrap();
     }
 
-    public Set<Id> explicitVariableNames(Id name) {
+    public Set<Id> explicitVariableNames(Id in_name) {
+        Id name;
+        if ( _aliases.containsKey(in_name) ) name = (Id)_aliases.get(in_name);
+        else name = in_name;
         Set<Id> result = Collections.emptySet();
         if (_current.variables().containsKey(name) ||
                 _current.units().containsKey(name)) {
@@ -424,7 +429,10 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp in_name) {
+        IdOrOp name;
+        if ( _aliases.containsKey(in_name) ) name = (IdOrOp)_aliases.get(in_name);
+        else name = in_name;
     	Set<IdOrOp> result = Collections.emptySet();
 
     	// Add fns/ops from this component
@@ -721,28 +729,19 @@ public class TopLevelEnv extends NameEnv {
     private Relation<IdOrOpOrAnonymousName,Function> alias(Relation<IdOrOpOrAnonymousName,Function> relation,
                                                            Set<AliasedSimpleName> aliases)
     {
-//         System.err.println("alias called for functions");
-//         System.err.println("relation: " + relation);
         // Argument false to the IndexedRelation constructor avoids unnecessary indexing from seconds to firsts.
         Relation<IdOrOpOrAnonymousName,Function> result = new IndexedRelation<IdOrOpOrAnonymousName,Function>(false);
         result.addAll(relation);
-
         for (AliasedSimpleName alias : aliases) {
             if (alias.getAlias().isSome()) {
-//                 System.err.println("alias " + alias.getName() + " -> " + alias.getAlias().unwrap());
                 IdOrOpOrAnonymousName oldFirst = alias.getName();
                 IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
                 Set<Function> seconds = new HashSet<Function>(result.matchFirst(oldFirst));
                 for (Function second : seconds) {
-//                     System.err.println("Replacing " + oldFirst + " with " + newFirst);
-                    result.remove(oldFirst, second);
-                    result.add(newFirst, second);
+                    _aliases.put(newFirst, oldFirst);
                 }
-            } else {
-//                 System.err.println("alias " + alias.getName() + " empty");
             }
         }
-//         System.err.println("result: " + result);
         return result;
     }
 
@@ -758,9 +757,6 @@ public class TopLevelEnv extends NameEnv {
                     if (! (newFirst instanceof Id)) {
                         _errors.add(StaticError.make("Attempt to alias variable " + oldFirst + " with invalid variable name:" + newFirst,
                                                      NodeUtil.getSpan(alias).toString()));
-                        result.remove(oldFirst);
-                    } else {
-                        result.put((Id)newFirst, result.get(oldFirst));
                     }
                 }
             }
