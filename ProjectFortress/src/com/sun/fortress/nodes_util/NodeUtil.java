@@ -1549,4 +1549,8 @@ public class NodeUtil {
         else
             return bug("Function expected, but got " + f);
     }
+
+    public static boolean isTraitType(Type t) {
+        return (t instanceof TraitType);
+    }
 }

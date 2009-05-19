@@ -30,6 +30,7 @@ import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
+import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
@@ -259,75 +260,86 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
    * that this type could be used as for the purposes of calling methods and fields.
    */
-  private def traitTypesCallable(typ: Type): List[Type] = typ match {
+  private def traitTypesCallable(typ: Type): List[TraitType] = typ match {
     case SIntersectionType(info, ts) =>
-      ts.take(ts.size-1).foldRight(List[Type](ts.last)){ (t: Type, l: List[Type]) =>
-                                                         traitTypesCallable(t):::l }
-    case STraitType(info, name, args, params) => List[Type](typ)
+      ts.foldRight(List[TraitType]()){ (t: Type, l: List[TraitType]) =>
+                                       if ( NodeUtil.isTraitType(t) )
+                                         traitTypesCallable(t):::l
+                                       else l }
+    case t@STraitType(info, name, args, params) => List[TraitType](t)
     case SVarType(info, name, depth) =>
       env.staticParam(name).asInstanceOf[Option[StaticParam]] match {
         case Some(s@SStaticParam(info,_,ts,_,_,kind)) =>
           if ( NodeUtil.isTypeParam(s) )
-            ts.take(ts.size-1).foldRight(List[Type](ts.last)){ (t: Type, l: List[Type]) =>
-                                                   traitTypesCallable(t):::l }
-          else List[Type]()
-        case _ => List[Type]()
+            ts.foldRight(List[TraitType]()){ (t: Type, l: List[TraitType]) =>
+                                             if ( NodeUtil.isTraitType(t) )
+                                               traitTypesCallable(t):::l
+                                             else l }
+          else List[TraitType]()
+        case _ => List[TraitType]()
     }
     case SUnionType(info, ts) =>
       signal(typ, "You should be able to call methods on this type," +
-             "but this is not yet implemented.");
-      List[Type]()
-    case _ => List[Type]()
+             "but this is not yet implemented.")
+      List[TraitType]()
+    case _ => List[TraitType]()
   }
 
-  /*
+  /* Not yet implemented.
+   * Waiting for _RewriteFnApp to be implemented.
+   */
   private def findMethodsInTraitHierarchy(method_name: IdOrOpOrAnonymousName,
-                                         supers: List[TraitType], arg_type: Type,
-                                         in_static_args: List[StaticArg],
-                                         that: Node) =
-    Pair.make(Nil, Nil)
+                                          supers: List[TraitType], arg_type: Type,
+                                          in_static_args: List[StaticArg],
+                                          that: Node): (List[Method], List[Method]) =
+    (Nil, Nil)
 
-  private def subscriptHelper(expr: Expr, op: Option[Op], obj_type: Type,
-                              subs_types: List[Type],
-                              static_args: List[StaticArg]) = {
-    val traits = traitTypesCallable(obj_type)
-    traits match {
-      case Nil =>
-        // We need to have a trait otherwise we can't see its methods.
-        signal(expr, "Only traits can have subscripting methods and " + obj_type +
-                  " is not one.")
-        expr
-      case head::tail => {
-        // Make a tuple type out of given argument types.
-        val arg_type = Types.MAKE_TUPLE.value(subs_types);
-        op match {
-          case Some(opr) => {
-            val (candidates,_) = findMethodsInTraitHierarchy(opr, traits, arg_type,
-                                                             static_args, expr)
+  /* Invariant: newObj and the elements of newSubs all have type information.
+   */
+  private def subscriptHelper(expr: SubscriptExpr, newObj: Expr,
+                              newSubs: List[Expr]) = expr match {
+    case SSubscriptExpr(SExprInfo(span,parenthesized,_), _, _, op, sargs) => {
+      val obj_type = inferredType(newObj).get
+      val traits = traitTypesCallable(obj_type)
+      val subs_types = newSubs.map((e:Expr) => inferredType(e).get)
+      traits match {
+        case Nil => {
+          // We need to have a trait otherwise we can't see its methods.
+          signal(expr, "Only traits can have subscripting methods and " + obj_type +
+                 " is not one.")
+          expr
+        }
+        case head::tail => {
+          // Make a tuple type out of given argument types.
+          val arg_type = subs_types.length match {
+            case 1 => subs_types.head
+            case _ => Types.MAKE_TUPLE.value(toJavaList(subs_types))
           }
-          case _ =>
-            signal(expr,
-                   "A subscript expression requires the subscripting operator.")
-            expr
+          op match {
+            case Some(opr) => {
+              val (candidates,_) = findMethodsInTraitHierarchy(opr, traits, arg_type,
+                                                               sargs, expr)
+              candidates match {
+                case Nil =>
+                  signal("No candidate methods found for '" + opr + "' on type " +
+                         obj_type + " with argument types (" + arg_type + ").", expr)
+                  expr
+                case _ => {
+                  val newType = analyzer.meet(toJavaList(candidates.map((m:Method) => m.getReturnType)))
+                  SSubscriptExpr(SExprInfo(span,parenthesized,Some(newType)),
+                                 newObj, newSubs, op, sargs)
+                }
+              }
+            }
+            case _ =>
+              signal(expr,
+                     "A subscript expression requires the subscripting operator.")
+              expr
+          }
         }
       }
     }
   }
-
-        // Now we meet together the results, or return an error if there are no candidates.
-        if(candidates.isEmpty()){
-            String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
-            TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
-            return TypeCheckerResult.compose(that, subtypeChecker, result, err_result);
-        }
-
-        List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-            public Type value(Method arg0) { return arg0.getReturnType(); }}));
-
-        Type range = this.subtypeChecker.meet(ranges);
-        return TypeCheckerResult.compose(that, range, subtypeChecker, result);
-  */
-
 
   def checkExpr(expr: Expr): Expr = expr match {
     /* Matches if block is an atomic block. */
@@ -661,27 +673,21 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
-    /*
-    case SSubscriptExpr(SExprInfo(span,parenthesized,_), obj, subs, op, sargs) => {
-        val newSubs = subs.map(checkExpr)
-        // Ignore the op.  A subscript op behaves like a dotted method.
-        // Make sure all sub-exprs are well-typed.
-        if ( haveInferredTypes(newSubs) ) {
-            inferredType(checkExpr(obj)) match {
-              case Some(ty) =>
-                subscriptHelper(expr, op, ty,
-                                newSubs.map((e:Expr) => inferredType(e).get),
-                                sargs)
-              case _ => {
-                signal(expr, "Type is not inferred for: " + expr)
-                expr
-              }
-        } else {
-          signal(expr, "Type is not inferred for: " + expr)
-          expr
+    case s@SSubscriptExpr(info, obj, subs, _, _) => {
+      val newObj = checkExpr(obj)
+      val newSubs = subs.map(checkExpr)
+      // Ignore the op.  A subscript op behaves like a dotted method.
+      // Make sure all sub-exprs are well-typed.
+      if ( haveInferredTypes(newSubs) )
+        inferredType(newObj) match {
+          case Some(ty) => subscriptHelper(s, newObj, newSubs)
+          case _ => signal(expr, "Type is not inferred for: " + expr); expr
         }
+      else {
+        signal(expr, "Type is not inferred for: " + expr)
+        expr
+      }
     }
-    */
 
     case SStringLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SStringLiteralExpr(SExprInfo(span,parenthesized,Some(Types.STRING)), text)
