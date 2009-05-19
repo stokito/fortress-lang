@@ -347,11 +347,7 @@ public class TopLevelEnv extends NameEnv {
         return false;
     }
 
-    public Set<Id> explicitTypeConsNames(Id in_name) {
-        Id name;
-        if ( _aliases.containsKey(in_name) ) name = (Id)_aliases.get(in_name);
-        else name = in_name;
-
+    public Set<Id> explicitTypeConsNames(Id name) {
         Set<Id> result = Collections.emptySet();
         if (_current.typeConses().containsKey(name) ||
                 _current.dimensions().containsKey(name) ||
@@ -371,6 +367,10 @@ public class TopLevelEnv extends NameEnv {
         }
 
         result = CollectUtil.union(result, this.onDemandTypeConsNames(name));
+
+        if ( _aliases.containsKey(name) )
+            result = CollectUtil.union(result, explicitTypeConsNames((Id)_aliases.get(name)));
+
         return result;
     }
 
@@ -405,10 +405,7 @@ public class TopLevelEnv extends NameEnv {
             return result_.unwrap();
     }
 
-    public Set<Id> explicitVariableNames(Id in_name) {
-        Id name;
-        if ( _aliases.containsKey(in_name) ) name = (Id)_aliases.get(in_name);
-        else name = in_name;
+    public Set<Id> explicitVariableNames(Id name) {
         Set<Id> result = Collections.emptySet();
         if (_current.variables().containsKey(name) ||
                 _current.units().containsKey(name)) {
@@ -424,6 +421,10 @@ public class TopLevelEnv extends NameEnv {
         }
 
         result = CollectUtil.union(result, this.onDemandVariableNames(name));
+
+        if ( _aliases.containsKey(name) )
+            result = CollectUtil.union(result, explicitVariableNames((Id)_aliases.get(name)));
+
         return result;
     }
 
@@ -433,10 +434,7 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    public Set<IdOrOp> explicitFunctionNames(IdOrOp in_name) {
-        IdOrOp name;
-        if ( _aliases.containsKey(in_name) ) name = (IdOrOp)_aliases.get(in_name);
-        else name = in_name;
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
     	Set<IdOrOp> result = Collections.emptySet();
 
     	// Add fns/ops from this component
@@ -456,6 +454,10 @@ public class TopLevelEnv extends NameEnv {
 
         // Also add imports
         result = CollectUtil.union(result, this.onDemandFunctionNames(name));
+
+        if ( _aliases.containsKey(name) )
+            result = CollectUtil.union(result,
+                                       explicitFunctionNames((IdOrOp)_aliases.get(name)));
 
         return result;
     }
