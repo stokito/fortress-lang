@@ -28,8 +28,8 @@ public class simpleSystem {
     }
 
     public static String nativeArg(int n) {
-        if (systemHelper.cmdline.length >= n)
+        if (n >= 0 && n < nativeArgcount())
             return systemHelper.cmdline[n];
-        else throw new RuntimeException("Can't get a command line arg because none was provided");
+        else throw new RuntimeException("Can't get command line arg "+n+" because it wasn't provided");
     }
 }

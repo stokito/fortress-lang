@@ -24,4 +24,9 @@ public class CompilerBuiltin {
     public static void println(FString s) {
         simplePrintln.nativePrintln(s.toString());
     }
+
+    public static interface Object extends AnyType.Any {
+        public static class SpringBoard {
+        }
+    }
 }

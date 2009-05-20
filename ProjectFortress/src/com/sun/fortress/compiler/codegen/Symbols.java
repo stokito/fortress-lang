@@ -16,6 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
@@ -55,12 +56,11 @@ public class Symbols {
 
     public String getTypeSignatureForIdOrOp(IdOrOp op, Component c) {
         Function f = getFunction(op, c);
-        String desc = "";
-        if (f instanceof FunctionalMethod) {
-            FunctionalMethod fm = (FunctionalMethod) f;
+        if (f instanceof FunctionalMethod || f instanceof DeclaredFunction) {
+            String desc;
             List<Param> params = f.parameters();
             Type returnType = f.getReturnType();
-            desc = Naming.openParen;
+            desc = "(";
             for (Param p : params) {
                 Id paramName = p.getName();
                 Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
@@ -72,25 +72,10 @@ public class Symbols {
                 }
             }
             desc = desc + ")" + Naming.emitDesc(returnType);
+            return desc;
         } else if (f instanceof Constructor) {
             throw new CompilerError("We can't generate code for constructors yet");
-        } else if (f instanceof DeclaredFunction) {
-            List<Param> params = f.parameters();
-            Type returnType = f.getReturnType();
-            desc = Naming.openParen;
-            for (Param p : params) {
-                Id paramName = p.getName();
-                Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
-                if (optionType.isNone())
-                    sayWhat(op);
-                else {
-                    com.sun.fortress.nodes.Type t = optionType.unwrap();
-                    desc = desc + Naming.emitDesc(t);
-                }
-            }
-            desc = desc + ")" + Naming.emitDesc(returnType);
-        } else sayWhat(op);
-        return desc;
+        } else return sayWhat(op);
     }
 
     public String getJavaClassForSymbol(IdOrOp fnName, Component component) {
