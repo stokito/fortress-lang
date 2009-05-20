@@ -4834,6 +4834,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
         List<Method> candidates = candidate_pair.first();
 
+
+
         // Now we meet together the results, or return an error if there are no candidates.
         if(candidates.isEmpty()){
             String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";

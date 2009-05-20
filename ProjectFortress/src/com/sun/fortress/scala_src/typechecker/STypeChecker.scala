@@ -32,6 +32,7 @@ import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.typechecker.TypesUtil
@@ -44,8 +45,12 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.useful.HasAt
 
-/* If a subexpression does not have any inferred type,
- * type checking the subexpression failed.
+/* Quesitons
+ * 1. Do we infer types of function parameters?
+ */
+/* Invariants
+ * 1. If a subexpression does not have any inferred type,
+ *    type checking the subexpression failed.
  */
 object STypeCheckerFactory {
   def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
@@ -871,13 +876,31 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       SFor(SExprInfo(span,parenthesized,Some(Types.VOID)), newGens, newBody)
     }
 
-    /* ToDo for Compiled6
-    Quesitons: Do we infer types of function parameters?
-
-    case SVarRef(SExprInfo(span,paren,optType), id, sargs, depth) => {
-        expr
-    }
-    */
+    case v@SVarRef(SExprInfo(span,paren,_), id, sargs, depth) =>
+      getTypeFromName(id) match {
+        case Some(ty) =>
+          if ( NodeUtil.isSingletonObject(v) )
+            ty match {
+              case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
+                if ( NodeUtil.isGenericSingletonType(typ) &&
+                     StaticTypeReplacer.argsMatchParams(toJavaList(sargs),
+                                                        toJavaList(params),
+                                                        analyzer).isSome ) {
+                  // make a trait type that is GenericType instantiated
+                  val newType = NodeFactory.makeTraitType(sp, pr, name,
+                                                          toJavaList(sargs))
+                  SVarRef(SExprInfo(span,paren,Some(newType)), id, sargs, depth)
+                } else {
+                  signal(v, "Unexpected type for a singleton object reference.")
+                  v
+                }
+              case _ =>
+                signal(v, "Unexpected type for a singleton object reference.")
+                v
+            }
+          else SVarRef(SExprInfo(span,paren,Some(ty)), id, sargs, depth)
+        case None => signal(id, "Type of the variable '" + id + "' not found."); v
+      }
 
     case _ => throw new Error("Not yet implemented: " + expr.getClass)
     // "\n" + expr.toStringVerbose())
