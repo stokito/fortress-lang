@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
@@ -43,6 +44,9 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.useful.HasAt
 
+/* If a subexpression does not have any inferred type,
+ * type checking the subexpression failed.
+ */
 object STypeCheckerFactory {
   def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
            analyzer: TypeAnalyzer) = {
@@ -69,9 +73,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) =
     STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors, factory)
 
+  private def extend(bindings: List[LValue]) =
+    STypeCheckerFactory.make(current, traits,
+                             env.extendWithLValues(toJavaList(bindings)),
+                             analyzer, errors, factory)
+
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
     STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
                      analyzer, errors, factory)
+
+  private def noType(hasAt:HasAt) =
+    signal(hasAt, "Type is not inferred for: " + hasAt)
 
   private def signal(msg:String, hasAt:HasAt) =
     errors.signal(msg, hasAt)
@@ -222,7 +234,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           ExprUtil.addType(newExpr, typ)
         case _ => ExprUtil.addType(newExpr, typ)
       }
-      case _ => signal(expr, "Type is not inferred for: " + expr); expr
+      case _ => noType(expr); expr
     }
   }
 
@@ -237,7 +249,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           ExprUtil.addType(newExpr, typ)
         case _ => ExprUtil.addType(newExpr, typ)
       }
-      case _ => signal(expr, "Type is not inferred for: " + expr); expr
+      case _ => noType(expr); expr
     }
   }
 
@@ -341,6 +353,87 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
   }
 
+  /* The Java type checker had a separate postinference pass "closing bindings". */
+  private def generatorClauseGetBindings(clause: GeneratorClause,
+                                         mustBeCondition: Boolean) = clause match {
+    case SGeneratorClause(info, binds, init) =>
+      val newInit = checkExpr(init)
+      val err = "Filter expressions in generator clauses must have type Boolean, " +
+                "but " + init
+      inferredType(newInit) match {
+        case None =>
+          signal(init, err + " was not well typed.")
+          (SGeneratorClause(info, Nil, newInit), Nil)
+        case Some(ty) =>
+          checkSubtype(ty, Types.BOOLEAN, init, err + " had type " + ty + ".")
+          binds match {
+            case Nil =>
+              // If bindings are empty, then init must be of type Boolean, a filter, 13.14
+              (SGeneratorClause(info, Nil, newInit), Nil)
+            case hd::tl =>
+              def mkInferenceVarType(id: Id) =
+                NodeFactory.make_InferenceVarType(NodeUtil.getSpan(id))
+              val (lhstype, bindings) = binds.length match {
+                case 1 => // Just one binding
+                  val lhstype = mkInferenceVarType(hd)
+                  (lhstype, List[LValue](NodeFactory.makeLValue(hd, lhstype)))
+                case n =>
+                  // Because generator_type is almost certainly an _InferenceVar,
+                  // we have to declare a new tuple that is the size of the bindings
+                  // and declare one to be a subtype of the other.
+                  val inference_vars = binds.map(mkInferenceVarType)
+                  (Types.makeTuple(toJavaList(inference_vars)),
+                   binds.zip(inference_vars).map((p:(Id,Type)) =>
+                                                 NodeFactory.makeLValue(p._1,p._2)))
+              }
+              // Get the type of the Generator
+              val infer_type = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(init))
+              val generator_type = if (mustBeCondition)
+                                     Types.makeConditionType(infer_type)
+                                   else Types.makeGeneratorType(infer_type)
+              checkSubtype(ty, generator_type, init,
+                           "Init expression of generator must be a subtype of " +
+                           (if (mustBeCondition) "Condition" else "Generator") +
+                           " but is type " + ty + ".")
+              val err = "If more than one variable is bound in a generator, " +
+                        "generator must have tuple type but " + init +
+                        " does not or has different number of arguments."
+              checkSubtype(lhstype, generator_type, init, err);
+              checkSubtype(generator_type, lhstype, init, err);
+              (SGeneratorClause(info, binds, newInit), bindings)
+          }
+      }
+  }
+
+  private def handleIfClause(c: IfClause) = c match {
+    case SIfClause(info, testClause, body) =>
+      // For generalized 'if' we must introduce new bindings.
+      val (newTestClause, bindings) = generatorClauseGetBindings(testClause, true)
+      // Check body with new bindings
+      val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
+      inferredType(newBody) match {
+        case None => noType(body)
+        case _ =>
+      }
+      SIfClause(info, newTestClause, newBody)
+  }
+
+  // For each generator clause, check its body,
+  // then put its variables in scope for the next generator clause.
+  // Finally, return all of the bindings so that they can be put in scope
+  // in some larger expression, like the body of a for loop, for example.
+  def handleGens(generators: List[GeneratorClause]): (List[GeneratorClause], List[LValue]) =
+    generators match {
+      case Nil => (Nil, Nil)
+      case hd::Nil =>
+        val (clause, binds) = generatorClauseGetBindings(hd, false)
+        (List[GeneratorClause](clause), binds)
+      case hd::tl =>
+        val (clause, binds) = generatorClauseGetBindings(hd, false)
+        val (newTl, tlBinds) = this.extend(binds).handleGens(tl)
+        (clause::newTl, binds++tlBinds)
+    }
+
   def checkExpr(expr: Expr): Expr = expr match {
     /* Matches if block is an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
@@ -376,7 +469,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       inferredType(newExpr) match {
         case Some(typ) =>
           SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(typ))), newExpr)
-        case _ => signal(body, "Type is not inferred for: " + body); expr
+        case _ => noType(body); expr
       }
     }
 
@@ -491,7 +584,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                              ExprFactory.makeOpExpr(infix,e1,e2) })
           }
         }
-      } else signal(expr, "Type is not inferred for: " + expr); expr
+      } else noType(expr); expr
     }
 
     // Math primary, which is the more general case,
@@ -630,7 +723,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // HANDLE THE FRONT ITEM
       val newFront = checkExpr(front)
       inferredType( newFront ) match {
-        case None => signal(front, "Type is not inferred for: " + front); front
+        case None => noType(front); front
         case Some(t) =>
           // If front is a fn followed by an expr, we reassociate
           if ( TypesUtil.isArrows(t).asInstanceOf[Boolean] && isExprMI(second) ) {
@@ -681,16 +774,30 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       if ( haveInferredTypes(newSubs) )
         inferredType(newObj) match {
           case Some(ty) => subscriptHelper(s, newObj, newSubs)
-          case _ => signal(expr, "Type is not inferred for: " + expr); expr
+          case _ => noType(expr); expr
         }
       else {
-        signal(expr, "Type is not inferred for: " + expr)
-        expr
+        noType(expr); expr
       }
     }
 
     case SStringLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SStringLiteralExpr(SExprInfo(span,parenthesized,Some(Types.STRING)), text)
+
+    case SCharLiteralExpr(SExprInfo(span,parenthesized,_), text, charVal) =>
+      SCharLiteralExpr(SExprInfo(span,parenthesized,Some(Types.CHAR)),
+                       text, charVal)
+
+    case SIntLiteralExpr(SExprInfo(span,parenthesized,_), text, intVal) =>
+      SIntLiteralExpr(SExprInfo(span,parenthesized,Some(Types.INT_LITERAL)),
+                      text, intVal)
+
+    case SFloatLiteralExpr(SExprInfo(span,parenthesized,_), text, i, n, b, p) =>
+      SFloatLiteralExpr(SExprInfo(span,parenthesized,Some(Types.FLOAT_LITERAL)),
+                        text, i, n, b, p)
+
+    case SVoidLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
+      SVoidLiteralExpr(SExprInfo(span,parenthesized,Some(Types.VOID)), text)
 
     /* ToDo for Compiled0
     case SFnRef(SExprInfo(span,paren,optType),
@@ -707,13 +814,61 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             fs.take(fs.size-1).foldRight(inferredType(fs.last).get)
               { (e:Expr, t:Type) => analyzer.join(inferredType(e).get, t) }
           SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
-      } else signal(expr, "Type is not inferred for: " + expr); expr
+      } else noType(expr); expr
     }
 
-    /* ToDo for Compiled3
-    */
-    case SIf(info, clauses, elseC) => {
-      expr
+    case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
+      val newClauses = clauses.map( handleIfClause )
+      val types = newClauses.map( (c: IfClause) => inferredType(c.getBody) match {
+                                    case Some(ty) => ty
+                                    case None => noType(c.getBody); Types.VOID
+                                  } )
+      val (newElse, newType) = elseC match {
+        case None => {
+          // Check that each if/elif clause has void type
+          types.foreach( (ty: Type) =>
+                         checkSubtype(ty, Types.VOID, expr,
+                                      errorMsg("An 'if' clause without corresponding 'else' has type ",
+                                               ty, " instead of type ().")) )
+          (None, Types.VOID)
+        }
+        case Some(b) => {
+          val newBlock = checkExpr(b).asInstanceOf[Block]
+          inferredType(newBlock) match {
+            case None => { noType(b) ; (None, Types.VOID) }
+            case Some(ty) =>
+              // Get union of all clauses' types
+              (Some(newBlock), analyzer.join(toJavaList(ty::types)))
+          }
+        }
+      }
+      SIf(SExprInfo(span,parenthesized,Some(newType)), newClauses, newElse)
+    }
+
+    case SWhile(SExprInfo(span,parenthesized,_), testExpr, body) => {
+      val (newTestExpr, bindings) = generatorClauseGetBindings(testExpr, true)
+      val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Do]
+      inferredType(newBody) match {
+        case None => noType(body)
+        case Some(ty) =>
+          checkSubtype(ty, Types.VOID, body,
+                       "Body of while loop must have type (), but had type " +
+                       ty + ".")
+      }
+      SWhile(SExprInfo(span,parenthesized,Some(Types.VOID)), newTestExpr, newBody)
+    }
+
+    case SFor(SExprInfo(span,parenthesized,_), gens, body) => {
+      val (newGens, bindings) = handleGens(gens)
+      val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
+      inferredType(newBody) match {
+        case None => noType(body)
+        case Some(ty) =>
+          checkSubtype(ty, Types.VOID, body,
+                       "Body type of a for loop must have type () but has type " +
+                       ty + ".")
+      }
+      SFor(SExprInfo(span,parenthesized,Some(Types.VOID)), newGens, newBody)
     }
 
     /* ToDo for Compiled6
