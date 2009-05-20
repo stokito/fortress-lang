@@ -17,18 +17,25 @@
 
 package com.sun.fortress.compiler;
 
+import java.lang.StringBuffer;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
+import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -37,6 +44,8 @@ import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 
+import edu.rice.cs.plt.tuple.Option;
+
 import org.objectweb.asm.Type;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -44,13 +53,74 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class NamingCzar {
-    public final static NamingCzar only = new NamingCzar(ForeignJava.only);
+    public static final NamingCzar only = new NamingCzar(ForeignJava.only);
 
     private final ForeignJava fj;
 
     private NamingCzar(ForeignJava fj) {
         this.fj = fj;
     }
+
+    public static final String springBoard = "$SpringBoard";
+    public static final String make = "make";
+
+    public static final String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
+
+    //Asm requires you to call visitMaxs for every method
+    // but ignores the arguments.
+    public static final int ignore = 1;
+
+    // Classes: internal names
+    // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
+    public static final String internalFloat      = org.objectweb.asm.Type.getInternalName(float.class);
+    public static final String internalInt        = org.objectweb.asm.Type.getInternalName(int.class);
+    public static final String internalDouble     = org.objectweb.asm.Type.getInternalName(double.class);
+    public static final String internalLong       = org.objectweb.asm.Type.getInternalName(long.class);
+    public static final String internalBoolean    = org.objectweb.asm.Type.getInternalName(boolean.class);
+    public static final String internalChar       = org.objectweb.asm.Type.getInternalName(char.class);
+    public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
+    public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
+
+    public static final String descFloat         = org.objectweb.asm.Type.getDescriptor(float.class);
+    public static final String descInt           = org.objectweb.asm.Type.getDescriptor(int.class);
+    public static final String descDouble        = org.objectweb.asm.Type.getDescriptor(double.class);
+    public static final String descLong          = org.objectweb.asm.Type.getDescriptor(long.class);
+    public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
+    public static final String descChar          = org.objectweb.asm.Type.getDescriptor(char.class);
+    public static final String descString        = internalToDesc(internalString);
+    public static final String descVoid          = org.objectweb.asm.Type.getDescriptor(void.class);
+    public static final String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
+    public static final String voidToVoid        = makeMethodDesc("", descVoid);
+
+    public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");
+    public static final String internalFortressZZ64  = makeFortressInternal("ZZ64");
+    public static final String internalFortressRR32  = makeFortressInternal("RR32");
+    public static final String internalFortressRR64  = makeFortressInternal("RR64");
+    public static final String internalFortressBoolean  = makeFortressInternal("Boolean");
+    public static final String internalFortressChar  = makeFortressInternal("Char");
+    public static final String internalFortressString = makeFortressInternal("String");
+    public static final String internalFortressVoid   = makeFortressInternal("Void");
+
+    // fortress interpreter types: type descriptors
+    public static final String descFortressZZ32  = internalToDesc(internalFortressZZ32);
+    public static final String descFortressZZ64  = internalToDesc(internalFortressZZ64);
+    public static final String descFortressRR32  = internalToDesc(internalFortressRR32);
+    public static final String descFortressRR64  = internalToDesc(internalFortressRR64);
+    public static final String descFortressBoolean  = internalToDesc(internalFortressBoolean);
+    public static final String descFortressChar  = internalToDesc(internalFortressChar);
+    public static final String descFortressString = internalToDesc(internalFortressString);
+    public static final String descFortressVoid   = internalToDesc(internalFortressVoid);
+
+    public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
+
+
+    // fortress types
+    public static final String fortressPackage = "fortress";
+    public static final String fortressAny = fortressPackage + "/" + WellKnownNames.anyTypeLibrary() +
+                                             "$" + WellKnownNames.anyTypeName;
+
+    private static final List<String> extendsObject =
+        Collections.singletonList(internalObject);
 
     public static String deCase(String s) {
         return "_" + Integer.toString(s.hashCode()&0x7fffffff,16);
@@ -111,7 +181,7 @@ public class NamingCzar {
     static Span span = NodeFactory.internalSpan;
 
     static APIName fortLib =
-        NodeFactory.makeAPIName(span, "CompilerBuiltin");
+        NodeFactory.makeAPIName(span, WellKnownNames.fortressBuiltin());
 
     /**
      * Given an ASM Type t from foreign Java, what is the corresponding type
@@ -135,6 +205,33 @@ public class NamingCzar {
     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
         return specialForeignJavaTranslations.get(s);
     }
+
+    // Translate among Java type names
+    // (Section 2.1.3 in ASM 3.0: A Java bytecode engineering library)
+
+    public static String internalToDesc(String type) {
+        return "L" + type + ";";
+    }
+    public static String makeMethodDesc(String param, String result) {
+        return "(" + param + ")" + result;
+    }
+    public static String makeMethodDesc(List<String> params, String result) {
+        String desc ="(";
+        for (String param : params) {
+            desc = desc + param;
+        }
+        desc = desc + "(" + result;
+        return desc;
+    }
+    public static String makeArrayDesc(String element) {
+        return "[" + element;
+    }
+
+    // fortress runtime types: internal names
+    public static String makeFortressInternal(String type) {
+        return "com/sun/fortress/compiler/runtimeValues/F" + type;
+    }
+
 
     static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
 
@@ -307,6 +404,42 @@ public class NamingCzar {
     public static String mangleClassIdentifier(String identifier) {
         String mangledString = identifier.replaceAll("\\.", "\\$");
         return mangledString+deCase(mangledString);
+    }
+
+    /**
+     * @param extendsC
+     * @return The names of the Java interfaces providing the mentioned types;
+     *         if the extends clause is empty, fills in Object as required.
+     */
+    public static String [] extendsClauseToInterfaces(List<TraitTypeWhere> extendsC) {
+        String [] result = new String[extendsC.size()];
+        int i = -1;
+        for (TraitTypeWhere ttw : extendsC) {
+            i++;
+            BaseType parentType = ttw.getBaseType();
+            if ( !(parentType instanceof TraitType) ) {
+                if ( parentType instanceof AnyType ) {
+                    result[i] = fortressAny;
+                    continue;
+                }
+                throw new CompilerError(NodeUtil.getSpan(parentType),
+                              errorMsg("Invalid type ",parentType," in extends clause."));
+            }
+            Id name = ((TraitType)parentType).getName();
+            Option<APIName> apiName = name.getApiName();
+            if (apiName.isNone()) {
+                result[i] = name.toString();
+                continue;
+            }
+            StringBuilder parent = new StringBuilder();
+            String api = apiName.unwrap().getText();
+            if ( WellKnownNames.exportsDefaultLibrary( api ) ) {
+                parent.append(fortressPackage);  parent.append("/");
+            }
+            parent.append(api);  parent.append("$");  parent.append(name.getText());
+            result[i] = parent.toString();
+        }
+        return result;
     }
 
     /**
