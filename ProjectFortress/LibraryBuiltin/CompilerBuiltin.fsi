@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api CompilerBuiltin
+import AnyType.{Any}
 
 trait Object extends Any
 end Object
