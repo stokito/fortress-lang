@@ -42,7 +42,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
         };
 
         TestSuite suite = new TestSuite("SyntaxAbstractionJUTest");
-        GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(STATIC_TESTS_DIR) );
+        GraphRepository fr = Shell.specificInterpreterRepository( ProjectProperties.SOURCE_PATH.prepend(STATIC_TESTS_DIR) );
         for ( String filename : files ){
             File f = new File(STATIC_TESTS_DIR + filename );
             suite.addTest(new StaticTestSuite.StaticTestCase(f, false));

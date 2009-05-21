@@ -767,6 +767,7 @@ maintain proper indentation.
           <include name="**/*JUTests.class"/>
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+          <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
@@ -798,6 +799,7 @@ maintain proper indentation.
           <include name="**/*JUTests.class"/>
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+          <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>

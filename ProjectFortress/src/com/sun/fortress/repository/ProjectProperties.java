@@ -248,6 +248,7 @@ public class ProjectProperties {
     public static final String CACHES = get("fortress.caches", "${REPOSITORY}/caches");
 
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${CACHES}/interpreter_cache");
+    public static final String INTERPRETER_PARSED_CACHE_DIR = get("fortress.interpreter.parsed.cache", "${CACHES}/interpreter_parsed_cache");
     public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${CACHES}/presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
     public static final String ANALYZED_CACHE_DEPENDS_DIR = get("fortress.analyzed.cache.depends", "${CACHES}/analyzed_cache/depends");
@@ -262,6 +263,7 @@ public class ProjectProperties {
     static {
         ensureDirectoryExists(PRESYNTAX_CACHE_DIR);
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
+        ensureDirectoryExists(INTERPRETER_PARSED_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);

@@ -80,6 +80,8 @@ public final class Shell {
 
     private static final String defaultRepositoryDir = ProjectProperties.ANALYZED_CACHE_DIR;
     private static final CacheBasedRepository defaultCache = new CacheBasedRepository(defaultRepositoryDir);
+    private static final String interpreterRepositoryDir = ProjectProperties.INTERPRETER_PARSED_CACHE_DIR;
+    private static final CacheBasedRepository interpreterCache = new CacheBasedRepository(interpreterRepositoryDir);
 
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
@@ -109,6 +111,10 @@ public final class Shell {
 
     public static GraphRepository specificRepository(Path p) throws IOException {
         return specificRepository( p, defaultCache);
+    }
+
+    public static GraphRepository specificInterpreterRepository(Path p) throws IOException {
+        return specificRepository( p, interpreterCache);
     }
 
     /* Helper method to print usage message.*/
@@ -491,7 +497,7 @@ public final class Shell {
             throw new UserError(file + " is not a component file.");
         APIName name = NodeUtil.apiName( file );
         Path path = sourcePath( file, name );
-        GraphRepository bcr = specificRepository( path );
+        GraphRepository bcr = specificInterpreterRepository( path );
         ComponentIndex c =  bcr.getLinkedComponent(name);
         FValue result = Driver.runProgram(bcr, c, args);
         bcr.deleteComponent(c.ast().getName(), unCacheWhenDone);
@@ -1055,7 +1061,7 @@ public final class Shell {
                             throw new UserError(file + " is not a component file.");
                         APIName name = NodeUtil.apiName( file );
                         Path path = sourcePath( file, name );
-                        GraphRepository bcr = specificRepository( path );
+                        GraphRepository bcr = specificInterpreterRepository( path );
                         ComponentIndex cu =  bcr.getLinkedComponent(name);
                         Driver.runTests(bcr, cu, _verbose);
                     } catch (Throwable th) {

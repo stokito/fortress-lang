@@ -722,7 +722,7 @@ public class FileTests {
                 throws FileNotFoundException, IOException, Throwable {
             String s = f.replaceFirst(".*/", "");
             APIName apiname = NodeFactory.makeAPIName(NodeFactory.testSpan, s);
-            GraphRepository repository = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
+            GraphRepository repository = Shell.specificInterpreterRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
 
             ComponentIndex ci = repository.getLinkedComponent(apiname);
 
