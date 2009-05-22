@@ -17,6 +17,9 @@
 
 package com.sun.fortress.compiler.phases;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -63,10 +66,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    static class TaggedFunctionName {
+    public static class TaggedFunctionName {
         final private APIName tagA;
         final private Function tagF;
-        TaggedFunctionName(APIName a, Function f) {
+        public TaggedFunctionName(APIName a, Function f) {
             this.tagF = f;
             this.tagA = a;
         }
@@ -151,6 +154,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         this.paramCount = paramCount;
     }
 
+    protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+            Set<TaggedFunctionName> lessSpecificThanSoFar,
+            int paramCount) {
+        this(name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
+            null, null, paramCount);
+    }
+    
     protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
 
         this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
@@ -158,9 +168,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             @Override
             public TaggedFunctionName apply(Function f) {
                 return new TaggedFunctionName(apiname, f);
-            }} ),
-            new BASet<Integer>(DefaultComparator.<Integer>normal()),
-            null, null, n);
+            }} ), n);
 
         // Ensure that they are all the same size.
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
@@ -898,10 +906,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
         }
 
-        public AmongApis(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(apiname, name, ta, defs, n);
+        public AmongApis(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
+            super(name, ta, defs, n);
         }
-
+        
         protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
             return new AmongApis(name, ta, childLSTSF,
                     childTestedIndices, this, t, paramCount);

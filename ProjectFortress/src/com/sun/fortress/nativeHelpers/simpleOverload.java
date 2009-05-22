@@ -31,8 +31,8 @@ public class simpleOverload {
         System.out.println("IIIL " + i + " " + j + " " + k + " " + l);
     }
 
-    public static void foo(long i, long j, long k, long l) {
-        System.out.println("LLLL " + i + " " + j + " " + k + " " + l);
+    public static void foo(int i, int j, long k, long l) {
+        System.out.println("IILL " + i + " " + j + " " + k + " " + l);
     }
 
     public static void foo(int i, int j, float k, float l) {
