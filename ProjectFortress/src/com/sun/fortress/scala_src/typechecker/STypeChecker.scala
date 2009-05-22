@@ -32,6 +32,9 @@ import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.index.ProperTraitIndex
+import com.sun.fortress.compiler.index.TraitIndex
+import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
@@ -82,6 +85,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     STypeCheckerFactory.make(current, traits,
                              env.extendWithLValues(toJavaList(bindings)),
                              analyzer, errors, factory)
+
+  private def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
+    STypeCheckerFactory.make(current, traits,
+                             env.extendWithStaticParams(sparams),
+                             analyzer.extend(sparams, where), errors, factory)
 
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
     STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
@@ -141,11 +149,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   def getErrors(): List[StaticError] = errors.errors
 
-  /*
   private def assertTrait(t: BaseType, ast: Node, msg: String,
                           error_loc: Node) = t match {
     case tt@STraitType(info, name, args, params) =>
-      traits.typeCons(tt.getName) match {
+      traits.typeCons(tt.getName).asInstanceOf[Option[TypeConsIndex]] match {
         case Some(ti) =>
           if ( ! ti.isInstanceOf[ProperTraitIndex] ) signal(error_loc, msg)
         case _ => signal(error_loc, msg)
@@ -153,7 +160,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SAnyType(info) =>
     case _ => signal(error_loc, msg)
   }
-  */
 
   def check(node:Node):Node = node match {
     case SComponent(info, name, imports, decls, isNative, exports)  =>
@@ -165,7 +171,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case t@STraitDecl(info,
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, contract, extendsC, decls),
-                      excludes,comprises,hasEllipses,selfType) => {
+                      excludes, comprises, hasEllipses, selfType) => {
       val checkerWSparams = this.extend(sparams, where)
       // Verify that this trait only extends other traits
       extendsC.foreach( (t:TraitTypeWhere) =>
@@ -174,8 +180,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val newDecls = decls
       STraitDecl(info,
                  STraitTypeHeader(sparams, mods, name, where,
-                                  throwsC, contract, extendsC, newDecls)
-                 excludes,comprises,hasEllipses,selfType)
+                                  throwsC, contract, extendsC, newDecls),
+                 excludes, comprises, hasEllipses, selfType)
     }
     */
 

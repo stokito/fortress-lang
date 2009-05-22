@@ -93,7 +93,6 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             System.out.println("Evaluating " + file + "...");
             FValue original = Shell.eval(file, true);
             // Delete the cached file from evaluating the original file!!!
-            
             String name = file.substring(0, file.lastIndexOf("."));
             String tfs = name + ".tfs";
 
