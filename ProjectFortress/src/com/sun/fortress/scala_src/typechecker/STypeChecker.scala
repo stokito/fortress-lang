@@ -141,11 +141,43 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   def getErrors(): List[StaticError] = errors.errors
 
+  /*
+  private def assertTrait(t: BaseType, ast: Node, msg: String,
+                          error_loc: Node) = t match {
+    case tt@STraitType(info, name, args, params) =>
+      traits.typeCons(tt.getName) match {
+        case Some(ti) =>
+          if ( ! ti.isInstanceOf[ProperTraitIndex] ) signal(error_loc, msg)
+        case _ => signal(error_loc, msg)
+      }
+    case SAnyType(info) =>
+    case _ => signal(error_loc, msg)
+  }
+  */
+
   def check(node:Node):Node = node match {
     case SComponent(info, name, imports, decls, isNative, exports)  =>
       SComponent(info, name, imports,
                  decls.map((n:Decl) => check(n).asInstanceOf[Decl]),
                  isNative, exports)
+
+    /*
+    case t@STraitDecl(info,
+                      STraitTypeHeader(sparams, mods, name, where,
+                                       throwsC, contract, extendsC, decls),
+                      excludes,comprises,hasEllipses,selfType) => {
+      val checkerWSparams = this.extend(sparams, where)
+      // Verify that this trait only extends other traits
+      extendsC.foreach( (t:TraitTypeWhere) =>
+                        assertTrait(t.getBaseType, t,
+                                    "Traits can only extend traits.", t) )
+      val newDecls = decls
+      STraitDecl(info,
+                 STraitTypeHeader(sparams, mods, name, where,
+                                  throwsC, contract, extendsC, newDecls)
+                 excludes,comprises,hasEllipses,selfType)
+    }
+    */
 
     /* Matches if a function declaration does not have a body expression. */
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
