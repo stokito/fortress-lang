@@ -289,7 +289,7 @@ object ExportChecker {
                                       ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
                                                            toOptList(NodeUtil.getParams(declInComp)))
                     var cause = ""
-                    if ( ! equalHeaders._1 ) cause = equalHeaders._2
+                    if ( ! equalHeaders._1 ) cause = addMessage(cause, equalHeaders._2)
                     if ( diffTraits  ) cause = addMessage(cause, "different clauses for traits")
                     if ( diffObjects ) cause = addMessage(cause, "different parameters")
                     if ( ! equalHeaders._1 || diffTraits || diffObjects )
@@ -348,8 +348,12 @@ object ExportChecker {
         else n.toString + " at " + NodeUtil.getSpan(n)
 
     private def addMessage(original: String, added: String) =
-        if ( original.equals("") ) "\n         due to " + added
-        else original + ", " + added
+        if ( added.equals("") ) original
+        else if ( original.equals("") &&
+                  ! added.startsWith("\n         due to ") )
+                 "\n         due to " + added
+             else if ( original.equals("") ) added
+             else original + ", " + added
 
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
@@ -559,7 +563,7 @@ object ExportChecker {
                     cause = addMessage(cause, "different extends clauses")
                 val equalDecls = equalListMembers(declsL, declsR, cause)
                 if ( ! equalDecls._1 )
-                    cause = equalDecls._2
+                    cause = addMessage(cause, equalDecls._2)
                 (cause.equals(""), cause)
         }
 
