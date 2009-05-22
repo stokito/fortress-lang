@@ -17,10 +17,12 @@
 package com.sun.fortress.compiler.codegen;
 
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.*;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.util.*;
 
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
@@ -35,7 +37,6 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
-
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
@@ -159,7 +160,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void dumpClass( String file ) {
+        PrintWriter pw = new PrintWriter(System.out);
         cw.visitEnd();
+        
+        if (ProjectProperties.getBoolean("FORTRESS_BYTECODE_VERIFY", false))
+            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
+        
         ByteCodeWriter.writeClass(NamingCzar.cache, file, cw.toByteArray());
         debug( "Writing class ", file);
     }
