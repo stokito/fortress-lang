@@ -50,7 +50,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         try {
             if ( ! ( that instanceof ASTNode ) )
                 bug(that, "Only ASTNodes are supported.");
-            writer.write( NodeUtil.getSpan((ASTNode)that) + "\n    " + message + "\n" );
+            writer.write( NodeUtil.getSpan((ASTNode)that) + ":\n    " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the syntax checker failed!");
         }
@@ -154,6 +154,8 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     }
 
     public void forVarDeclOnly(VarDecl that) {
+        Modifiers mods = NodeUtil.getMods(writer, that);
+
         for (LValue lvb : that.getLhs()) {
             // variable declaration without a body expression or
             if ( that.getInit().isNone() ||
@@ -167,9 +169,11 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                  (inApi || inTrait || inObject) )
                 log(lvb, "Fields or top-level declarations in APIs " +
                     "cannot be named '_'.");
+            // All hidden field declarations in traits are settable.
+            if ( inTrait && mods.isHidden() && (! mods.isSettable()) )
+                log(lvb, "Hidden field declarations in traits should be settable.");
         }
 
-        Modifiers mods = NodeUtil.getMods(writer, that);
         if ( inComponent ) {
             if ( inTrait ) {
                 if (! Modifiers.AbsFldMod.containsAll(mods) )
