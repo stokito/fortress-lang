@@ -15,11 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXextendZZ32
+component Compiled6.c
 export Executable
 
-    object Mumble() extends { ZZ32 }
-    end
+object Mumble extends ZZ32
+end
 
 run() = ()
 
