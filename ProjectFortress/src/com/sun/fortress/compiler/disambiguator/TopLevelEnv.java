@@ -40,6 +40,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
@@ -793,7 +794,7 @@ public class TopLevelEnv extends NameEnv {
      * imported implicitly if it is not imported explicitly. If {@code do_not_import} contains
      * api names, those apis will not be imported no matter what.
      */
-    private Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) {
+    private Map<APIName,ApiIndex> filterApis(final Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) {
         final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
         final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
         final Map<APIName, Set<AliasedSimpleName>> aliases = new HashMap<APIName, Set<AliasedSimpleName>>();
@@ -816,7 +817,7 @@ public class TopLevelEnv extends NameEnv {
             }
 
             @Override
-            public Boolean forImportNames(ImportNames that) {
+            public Boolean forImportNames(final ImportNames that) {
                 final APIName name = that.getApiName();
 
                 // Handle aliased names
@@ -829,7 +830,14 @@ public class TopLevelEnv extends NameEnv {
                                  } else {
                                      aliases.put(name, Useful.set(arg0));
                                  }
-                                 return arg0.getName();
+                                 // Check whether the imported name is declared in the API.
+                                 IdOrOpOrAnonymousName imported_name = arg0.getName();
+                                 if ( ! apis.get(name).declared(imported_name) )
+                                     _errors.add(StaticError.make(errorMsg("Attempt to import ", imported_name,
+                                                                           " from the API ", name,
+                                                                           "\n    which does not declare ",
+                                                                           imported_name + "."), that));
+                                 return imported_name;
                              }}));
 //                 System.out.println("names: " + names);
 

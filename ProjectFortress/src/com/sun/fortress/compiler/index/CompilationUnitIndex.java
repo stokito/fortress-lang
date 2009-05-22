@@ -28,6 +28,7 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.nodes.Op;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
@@ -57,7 +58,7 @@ public abstract class CompilationUnitIndex {
         _functions = CollectUtil.immutable(functions);
         _parametricOperators = CollectUtil.immutable(parametricOperators);
         _typeConses = CollectUtil.immutable(
-                          CollectUtil.union(typeConses, 
+                          CollectUtil.union(typeConses,
                                   CollectUtil.union(dimensions, units)));
         _dimensions = CollectUtil.immutable(dimensions);
         _units = CollectUtil.immutable(units);
@@ -83,15 +84,38 @@ public abstract class CompilationUnitIndex {
     public Map<Id, Variable> variables() { return _variables; }
 
     public Relation<IdOrOpOrAnonymousName, Function> functions() { return _functions; }
-    
+
     public Set<ParametricOperator> parametricOperators() { return _parametricOperators; }
 
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
-    
+
     public Map<Id, Dimension> dimensions() { return _dimensions; }
 
     public Map<Id, Unit> units() { return _units; }
 
     public long modifiedDate() { return _modifiedDate; }
-    
+
+    public boolean declared(IdOrOpOrAnonymousName name) {
+        if ( name instanceof Id ) {
+            Id id = (Id)name;
+            return ( _variables.keySet().contains(id) ||
+                     _functions.firstSet().contains(id) ||
+                     _typeConses.keySet().contains(id) ||
+                     _dimensions.keySet().contains(id) ||
+                     _units.keySet().contains(id) );
+        } else {
+            if ( _functions.firstSet().contains(name) )
+                return true;
+            else {
+                if ( name instanceof Op ) {
+                    Op op = (Op)name;
+                    for ( ParametricOperator opr : _parametricOperators ) {
+                        if ( opr.name().getText().equals(op.getText()) )
+                            return true;
+                    }
+                    return false;
+                } else return false;
+            }
+        }
+    }
 }
