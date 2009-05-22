@@ -18,7 +18,11 @@ package com.sun.fortress.parser_util;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -41,6 +45,9 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     private boolean inObject = false;
     private boolean inBlock = false;
     private BufferedWriter writer;
+    private Set<APIName> onDemands = new HashSet<APIName>();
+    private Map<APIName, Set<AliasedSimpleName>> imports =
+        new HashMap<APIName, Set<AliasedSimpleName>>();
 
     public SyntaxChecker( BufferedWriter in_writer ) {
         writer = in_writer;
@@ -57,8 +64,23 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     }
 
     public void forImportStar(ImportStar that) {
+        APIName name = that.getApiName();
+        if ( onDemands.contains(name) )
+            log(that, "There should be at most one on-demand import statement " +
+                "from a single API.");
+        else onDemands.add(name);
         if ( that.getForeignLanguage().isSome() )
             log(that, "Foreign language imports are not allowed to have {...}.");
+    }
+
+    public void forImportNames(ImportNames that) {
+        APIName name = that.getApiName();
+        List<AliasedSimpleName> names = that.getAliasedNames();
+        Set<AliasedSimpleName> thisNames = new HashSet<AliasedSimpleName>(names.size());
+        thisNames.addAll(names);
+        if ( imports.keySet().contains(name) && imports.get(name).equals(thisNames) )
+            log(that, "No two import statements should be identical.");
+        else imports.put(name, thisNames);
     }
 
     public void forComponent(Component that) {
