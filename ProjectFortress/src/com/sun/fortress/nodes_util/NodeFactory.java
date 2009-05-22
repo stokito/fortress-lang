@@ -2473,4 +2473,19 @@ public class NodeFactory {
 
         });
     }
+
+    public static Id makeLocalId(Id fn) {
+        return new Id(fn.getInfo(), Option.<APIName>none(), fn.getText());
+    }
+    public static Op makeLocalOp(Op fn) {
+        return new Op(fn.getInfo(), Option.<APIName>none(), fn.getText(), fn.getFixity(), fn.isEnclosing());
+    }
+    public static IdOrOp makeLocalIdOrOp(IdOrOp fn) {
+        if (fn instanceof Id)
+            return makeLocalId((Id)fn);
+        else if (fn instanceof Op)
+            return makeLocalOp((Op)fn);
+        else
+            return bug("Unexpected member of IdOrOp hierarchy " + fn.getClass());
+    }
 }

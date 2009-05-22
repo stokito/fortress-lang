@@ -543,6 +543,7 @@ public class TopLevelEnv extends NameEnv {
         }
         APIName api = optApi.unwrap();
         if (_filteredGlobalEnv.definesApi(api)) {
+            name = NodeFactory.makeLocalId(name);
             return _filteredGlobalEnv.api(api).typeConses().containsKey(name);
         }
         else { return false; }
@@ -554,6 +555,7 @@ public class TopLevelEnv extends NameEnv {
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
         if (_filteredGlobalEnv.definesApi(api)) {
+            name = NodeFactory.makeLocalId(name);
             return _filteredGlobalEnv.api(api).variables().containsKey(name);
         }
         else { return false; }
@@ -565,6 +567,7 @@ public class TopLevelEnv extends NameEnv {
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
         if (_filteredGlobalEnv.definesApi(api)) {
+            name = NodeFactory.makeLocalId(name);
             return _filteredGlobalEnv.api(api).functions().containsFirst(name);
         }
         else { return false; }
@@ -576,6 +579,7 @@ public class TopLevelEnv extends NameEnv {
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
         if (_filteredGlobalEnv.definesApi(api)) {
+            name = NodeFactory.makeLocalId(name);
             return _filteredGlobalEnv.api(api).grammars().containsKey(name.getText());
         }
         else { return false; }

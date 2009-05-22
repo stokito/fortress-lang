@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -236,7 +237,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
 
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
-            PredicateSet<Function> defs = fns.matchFirst(name);
+            Set<Function> defs = fns.matchFirst(name);
             if (defs.size() <= 1) continue;
 
             // Partition overloads by size.
@@ -264,6 +265,35 @@ public class CodeGen extends NodeAbstractVisitor_void {
             }
         }
 
+    }
+    
+    private void foo(IdOrOpOrAnonymousName name, Set<Function> defs) {
+        if (defs.size() > 1) {
+
+            // Partition overloads by size.
+            MultiMap<Integer, Function> partitionedByArgCount =
+                new MultiMap<Integer, Function>();
+
+            for (Function d : defs) {
+                partitionedByArgCount.putItem(d.parameters().size(), d);
+            }
+
+            for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
+                    .entrySet()) {
+                int i = entry.getKey();
+                Set<Function> fs = entry.getValue();
+                if (fs.size() > 1) {
+                    OverloadSet os = new OverloadSet.Local(
+                            packageAndClassName, ci.ast().getName(), name,
+                            ta, fs, i);
+
+                    os.split();
+                    String s = os.toString();
+                    os.generateAnOverloadDefinition(name.stringName(), cw);
+
+                }
+            }
+        }
     }
 
     public void forImportNames(ImportNames x) {
@@ -547,13 +577,56 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
+        /* Note for refactoring -- this code does it the "right" way.
+         * And also, this code NEEDS refactoring.
+         */
         List<IdOrOp> fns = x.getFns();
         IdOrOp name = x.getName();
         Option<com.sun.fortress.nodes.Type> ot = x.getType();
         Relation<IdOrOpOrAnonymousName, Function> fnrl = ci.functions();
+        
+        MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount = 
+            new MultiMap<Integer,OverloadSet.TaggedFunctionName>();
+        
         for (IdOrOp fn : fns) {
-            PredicateSet<Function> f = fnrl.matchFirst(fn);
-            System.err.println(f);
+            
+            Option<APIName> fnapi = fn.getApiName();
+            PredicateSet<Function> set_of_f;
+            APIName apiname;
+            
+            if (fnapi.isNone()) {
+                apiname = ci.ast().getName();
+                set_of_f = fnrl.matchFirst(fn);
+            } else {
+                apiname = fnapi.unwrap();
+                ApiIndex ai = symbols.apis.get(apiname);
+                IdOrOp fnnoapi = NodeFactory.makeLocalIdOrOp(fn);
+                set_of_f = ai.functions().matchFirst(fnnoapi);
+            }
+            
+            for (Function f : set_of_f) {
+                OverloadSet.TaggedFunctionName tagged_f = new OverloadSet.TaggedFunctionName(apiname, f);
+                byCount.putItem(f.parameters().size(), tagged_f);
+            }
+            
+            for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
+                    .entrySet()) {
+                int i = entry.getKey();
+                Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
+                if (fs.size() > 1) {
+                    OverloadSet os = new OverloadSet.AmongApis(name,
+                            ta, fs, i);
+
+                    os.split();
+                    String s = os.toString();
+                    os.generateAnOverloadDefinition(name.stringName(), cw);
+
+                }
+            }
+
+            
+            // System.err.println(set_of_f);
+
         }
 
     }

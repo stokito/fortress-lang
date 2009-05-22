@@ -249,7 +249,7 @@ public class NamingCzar {
 
     static void s(String cl, APIName api, String str) {
         specialForeignJavaTranslations.put(cl,
-                NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, /* api, */ str)));
+                NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str))); /* api was commented out before... */
     }
 
     static {
