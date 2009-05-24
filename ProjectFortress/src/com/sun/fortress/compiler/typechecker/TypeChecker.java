@@ -4696,12 +4696,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 );
                 methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types));
             }
-            else {
-                // Probably ANY
-                return EmptyRelation.make();
-            }
-
-
         }
         return methods;
     }
