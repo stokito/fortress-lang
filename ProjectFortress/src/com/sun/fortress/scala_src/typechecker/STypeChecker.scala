@@ -21,6 +21,10 @@ import _root_.java.util.{Map => JavaMap}
 import _root_.java.util.{HashMap => JavaHashMap}
 import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
+import edu.rice.cs.plt.collect.EmptyRelation
+import edu.rice.cs.plt.collect.IndexedRelation
+import edu.rice.cs.plt.collect.Relation
+import edu.rice.cs.plt.collect.UnionRelation
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
@@ -30,7 +34,9 @@ import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.index.CompilationUnitIndex
+import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
@@ -78,6 +84,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
+  private def addSelf(self_type: Type) =
+    extend(List[LValue](NodeFactory.makeLValue("self", self_type)))
+
   private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) =
     STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors, factory)
 
@@ -91,9 +100,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                              env.extendWithStaticParams(sparams),
                              analyzer.extend(sparams, where), errors, factory)
 
+  private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
+    STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
+                             analyzer, errors, factory)
+
+  private def extendWithMethods(methods: Relation[IdOrOpOrAnonymousName, Method]) =
+    STypeCheckerFactory.make(current, traits, env.extendWithMethods(methods),
+                             analyzer, errors, factory)
+
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
     STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
-                     analyzer, errors, factory)
+                             analyzer, errors, factory)
 
   private def noType(hasAt:HasAt) =
     signal(hasAt, "Type is not inferred for: " + hasAt)
@@ -161,29 +178,115 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => signal(error_loc, msg)
   }
 
+  private def inheritedMethods(extendedTraits: List[TraitTypeWhere]) =
+    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
+
+  // Return all of the methods from super-traits
+  private def inheritedMethodsHelper(history: HierarchyHistory,
+                                     extended_traits: List[TraitTypeWhere])
+                                    : Relation[IdOrOpOrAnonymousName, Method] = {
+    var methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
+    var done = false
+    var h = history
+    for ( trait_ <- extended_traits ; if (! done) ) {
+      val type_ = trait_.getBaseType
+      if ( ! h.hasExplored(type_) ) {
+        h = h.explore(type_)
+        type_ match {
+          case ty@STraitType(info, name, args, params) =>
+            traits.typeCons(name).asInstanceOf[Option[TypeConsIndex]] match {
+              case Some(ti) =>
+                if ( ti.isInstanceOf[TraitIndex] ) {
+                  val trait_params = ti.staticParameters
+                  val trait_args = ty.getArgs
+                  // Instantiate methods with static args
+                  val dotted = ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Set[(IdOrOpOrAnonymousName,Method)]]
+                  /*
+                  for ( pair <- dotted ) {
+                      methods.add(pair._1, pair._2.asInstanceOf[Method].instantiate(trait_params,trait_args))
+                  }
+                  val getters = ti.asInstanceOf[TraitIndex].getters
+                  for ( getter <- getters.keySet ) {
+                      methods.add(getter,
+                                  getters.get(getter).asInstanceOf[Method].instantiate(trait_params,trait_args))
+                  }
+                  val setters = ti.asInstanceOf[TraitIndex].setters
+                  for ( setter <- setters.keySet ) {
+                      methods.add(setter,
+                                  setters.get(setter).asInstanceOf[Method].getValue.instantiate(trait_params,trait_args))
+                  }
+                  val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
+                  val instantiated_extends_types =
+                  toList(ti.asInstanceOf[TraitIndex].extendsTypes).map
+                        ( (t:TraitTypeWhere) =>
+                          t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+                  methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types))
+                  */
+done = false
+                } else done = true
+              case _ => done = true
+            }
+          case _ => done = true
+        }
+      }
+    }
+    methods
+  }
+
   def check(node:Node):Node = node match {
     case SComponent(info, name, imports, decls, isNative, exports)  =>
       SComponent(info, name, imports,
                  decls.map((n:Decl) => check(n).asInstanceOf[Decl]),
                  isNative, exports)
 
-    /*
     case t@STraitDecl(info,
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, contract, extendsC, decls),
                       excludes, comprises, hasEllipses, selfType) => {
-      val checkerWSparams = this.extend(sparams, where)
       // Verify that this trait only extends other traits
       extendsC.foreach( (t:TraitTypeWhere) =>
                         assertTrait(t.getBaseType, t,
                                     "Traits can only extend traits.", t) )
-      val newDecls = decls
-      STraitDecl(info,
-                 STraitTypeHeader(sparams, mods, name, where,
-                                  throwsC, contract, extendsC, newDecls),
-                 excludes, comprises, hasEllipses, selfType)
+      val checkerWSparams = this.extend(sparams, where)
+      var method_checker = checkerWSparams
+      var field_checker = checkerWSparams
+      // Add field declarations (getters/setters?) to method_checker
+      method_checker = decls.foldRight(method_checker)
+                                      { (d:Decl, c:STypeChecker) => d match {
+                                        case SVarDecl(_,lhs,_) => c.extend(lhs)
+                                        case _ => c } }
+      traits.typeCons(name.asInstanceOf[Id]).asInstanceOf[Option[TypeConsIndex]] match {
+        case None => signal(name, name + " is not found."); t
+        case Some(ti) =>
+          // Extend method checker with methods and functions
+          // that will now be in scope
+          val methods = new UnionRelation(inheritedMethods(extendsC),
+                                          ti.asInstanceOf[TraitIndex].dottedMethods)
+          method_checker = method_checker.extendWithMethods(methods)
+          method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
+          // Extend method checker with self
+          selfType match {
+            case Some(ty) =>
+              method_checker = method_checker.addSelf(ty)
+              // Check declarations
+              val newDecls = decls.map( (d:Decl) => d match {
+                                        case SFnDecl(_,_,_,_,_) =>
+                                          // methods see extra variables in scope
+                                          method_checker.check(d).asInstanceOf[Decl]
+                                        case SVarDecl(_,lhs,_) =>
+                                          // fields see other fields
+                                          val newD = field_checker.check(d).asInstanceOf[Decl]
+                                          field_checker = field_checker.extend(lhs)
+                                          newD
+                                        case _ => checkerWSparams.check(d).asInstanceOf[Decl] } )
+              STraitDecl(info,
+                         STraitTypeHeader(sparams, mods, name, where,
+                                          throwsC, contract, extendsC, newDecls),
+                         excludes, comprises, hasEllipses, selfType)
+            case _ => signal(t, "Self type is not inferred for " + t); t
+          }
+      }
     }
-    */
 
     /* Matches if a function declaration does not have a body expression. */
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
@@ -519,6 +622,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SAtomicExpr(SExprInfo(span,paren,optType), body) => {
       val newExpr = forAtomic(body, "an 'atomic' expression")
       SAtomicExpr(SExprInfo(span,paren,inferredType(newExpr)), newExpr)
+    }
+
+    case STryAtomicExpr(SExprInfo(span,paren,optType), body) => {
+      val newExpr = forAtomic(body, "an 'tryatomic' expression")
+      STryAtomicExpr(SExprInfo(span,paren,inferredType(newExpr)), newExpr)
     }
 
     // For a tight juxt, create a MathPrimary

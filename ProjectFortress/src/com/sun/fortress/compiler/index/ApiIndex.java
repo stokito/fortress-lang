@@ -26,6 +26,7 @@ import edu.rice.cs.plt.collect.Relation;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 
 public class ApiIndex extends CompilationUnitIndex {
@@ -41,13 +42,13 @@ public class ApiIndex extends CompilationUnitIndex {
                     Map<Id, Unit> units,
                     Map<String, GrammarIndex> grammars,
                     long modifiedDate) {
-        super(ast, variables, functions, parametricOperators, 
+        super(ast, variables, functions, parametricOperators,
               typeConses, dimensions, units, modifiedDate);
         _grammars = Collections.unmodifiableMap(grammars);
     }
 
     public Map<String, GrammarIndex> grammars() { return _grammars; }
-    
+
     public String toString() {
         return "API Index" +
             "\nVariables: " + variables() +
@@ -59,5 +60,13 @@ public class ApiIndex extends CompilationUnitIndex {
     }
 
     @Override public Set<APIName> exports() { return Collections.emptySet(); }
+
+    @Override
+    public boolean declared(IdOrOpOrAnonymousName name) {
+        if ( super.declared(name) ) return true;
+        else if ( name instanceof IdOrOp )
+            return _grammars.keySet().contains(((IdOrOp)name).getText());
+        else return false;
+    }
 
 }
