@@ -2349,6 +2349,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                       "declared return type is ", normalize(returnType.unwrap())));
         }
 
+        if ( NodeUtil.isSetter(that) ) {
+            result = TypeCheckerResult.compose(that, subtypeChecker, result,
+                                               this.checkSubtype(returnType.unwrap(), Types.VOID, that,
+                                                                 "Setter declarations must return void."));
+        }
+
         FnDecl new_node = NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
                                                          NodeUtil.getMods(that),
                                                          NodeUtil.getName(that),
@@ -2360,7 +2366,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                          contract,
                                                          Option.<Expr>some((Expr)bodyResult.ast()));
         return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
-                bodyResult, result)
+                                         bodyResult, result)
                 .addNodeTypeEnvEntry(new_node, typeEnv)
                 .removeStaticParamsFromScope(NodeUtil.getStaticParams(that));
     }
