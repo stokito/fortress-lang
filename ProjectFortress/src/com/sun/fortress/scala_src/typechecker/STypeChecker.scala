@@ -34,10 +34,12 @@ import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
@@ -99,6 +101,18 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     STypeCheckerFactory.make(current, traits,
                              env.extendWithStaticParams(sparams),
                              analyzer.extend(sparams, where), errors, factory)
+
+  private def extend(sparams: List[StaticParam], params: Option[List[Param]],
+                     where: Option[WhereClause]) = params match {
+    case Some(ps) =>
+      STypeCheckerFactory.make(current, traits,
+                               env.extendWithParams(ps).extendWithStaticParams(sparams),
+                               analyzer.extend(sparams, where), errors, factory)
+    case None =>
+      STypeCheckerFactory.make(current, traits,
+                               env.extendWithStaticParams(sparams),
+                               analyzer.extend(sparams, where), errors, factory)
+  }
 
   private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
     STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
@@ -201,28 +215,25 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                   val trait_args = ty.getArgs
                   // Instantiate methods with static args
                   val dotted = ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Set[(IdOrOpOrAnonymousName,Method)]]
-                  /*
                   for ( pair <- dotted ) {
-                      methods.add(pair._1, pair._2.asInstanceOf[Method].instantiate(trait_params,trait_args))
+                      methods.add(pair._1,
+                                  pair._2.instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
                   val getters = ti.asInstanceOf[TraitIndex].getters
-                  for ( getter <- getters.keySet ) {
+                  for ( getter <- getters.keySet.asInstanceOf[Set[IdOrOpOrAnonymousName]] ) {
                       methods.add(getter,
-                                  getters.get(getter).asInstanceOf[Method].instantiate(trait_params,trait_args))
+                                  getters.get(getter).instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
                   val setters = ti.asInstanceOf[TraitIndex].setters
-                  for ( setter <- setters.keySet ) {
+                  for ( setter <- setters.keySet.asInstanceOf[Set[IdOrOpOrAnonymousName]] ) {
                       methods.add(setter,
-                                  setters.get(setter).asInstanceOf[Method].getValue.instantiate(trait_params,trait_args))
+                                  setters.get(setter).instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
                   val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
                   val instantiated_extends_types =
-                  toList(ti.asInstanceOf[TraitIndex].extendsTypes).map
-                        ( (t:TraitTypeWhere) =>
+                    toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                           t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
                   methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types))
-                  */
-done = false
                 } else done = true
               case _ => done = true
             }
@@ -288,6 +299,60 @@ done = false
       }
     }
 
+    case o@SObjectDecl(info,
+                       STraitTypeHeader(sparams, mods, name, where,
+                                        throwsC, contract, extendsC, decls),
+                       params, selfType) => {
+      // Verify that no extends clauses try to extend an object.
+      extendsC.foreach( (t:TraitTypeWhere) =>
+                        assertTrait(t.getBaseType, o,
+                                    "Objects can only extend traits.", o) )
+      val checkerWSparams = this.extend(sparams, params, where)
+      var method_checker = checkerWSparams
+      var field_checker = checkerWSparams
+      val newContract = contract match {
+        case Some(e) => Some(method_checker.check(e).asInstanceOf[Contract])
+        case _ => contract
+      }
+      // Extend method checker with fields
+      method_checker = decls.foldRight(method_checker)
+                                      { (d:Decl, c:STypeChecker) => d match {
+                                        case SVarDecl(_,lhs,_) => c.extend(lhs)
+                                        case _ => c } }
+      // Check method declarations.
+      traits.typeCons(name.asInstanceOf[Id]).asInstanceOf[Option[TypeConsIndex]] match {
+        case None => signal(name, name + " is not found."); o
+        case Some(oi) =>
+          // Extend type checker with methods and functions
+          // that will now be in scope as regular functions
+          val methods = new UnionRelation(inheritedMethods(extendsC),
+                                          oi.asInstanceOf[TraitIndex].dottedMethods)
+          method_checker = method_checker.extendWithMethods(methods)
+          method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
+          // Extend method checker with self
+          selfType match {
+            case Some(ty) =>
+              method_checker = method_checker.addSelf(ty)
+              // Check declarations, storing them in the same order
+              val newDecls = decls.map( (d:Decl) => d match {
+                                        case SFnDecl(_,_,_,_,_) =>
+                                          // Methods get some extra vars in their declarations
+                                          method_checker.check(d).asInstanceOf[Decl]
+                                        case SVarDecl(_,lhs,_) =>
+                                          // Fields get to see earlier fields
+                                          val newD = field_checker.check(d).asInstanceOf[Decl]
+                                          field_checker = field_checker.extend(lhs)
+                                          newD
+                                        case _ => checkerWSparams.check(d).asInstanceOf[Decl] } )
+              SObjectDecl(info,
+                          STraitTypeHeader(sparams, mods, name, where,
+                                           throwsC, newContract, extendsC, newDecls),
+                          params, selfType)
+            case _ => signal(o, "Self type is not inferred for " + o); o
+          }
+      }
+    }
+
     /* Matches if a function declaration does not have a body expression. */
     case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
@@ -311,10 +376,40 @@ done = false
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
-    /* ToDo for Compiled6
-    case t@STraitDecl(info,header,excludes,comprises,hasEllises,self) => t
-    case o@SObjectDecl(info,header,params,self) => o
-    */
+    case v@SVarDecl(info, lhs, body) => body match {
+      case Some(init) =>
+        val newInit = checkExpr(init)
+        val ty = lhs match {
+          case l::Nil => // We have a single variable binding, not a tuple binding
+            l.getIdType.asInstanceOf[Option[Type]] match {
+              case Some(typ) => typ
+              case _ => // Eventually, this case will involve type inference
+                signal(v, "All inferrred types should at least be inference " +
+                       "variables by typechecking: " + v)
+                NodeFactory.makeVoidType(NodeUtil.getSpan(l))
+            }
+          case _ =>
+            def handleBinding(binding: LValue) =
+              binding.getIdType.asInstanceOf[Option[Type]] match {
+                case Some(typ) => typ
+                case _ =>
+                  signal(binding, "Missing type for " + binding + ".")
+                  NodeFactory.makeVoidType(NodeUtil.getSpan(binding))
+              }
+            NodeFactory.makeTupleType(NodeUtil.getSpan(v),
+                                      toJavaList(lhs.map(handleBinding)))
+        }
+        inferredType(newInit) match {
+          case Some(typ) =>
+            checkSubtype(typ, ty, v,
+                         errorMsg("Attempt to define variable ", v,
+                                  " with an expression of type ", typ))
+          case _ =>
+            signal(v, "The right-hand side of " + v + " could not be typed.")
+        }
+        SVarDecl(info, lhs, Some(newInit))
+      case _ => v
+    }
 
     case id@SId(info,api,name) => {
       api match {
@@ -581,6 +676,55 @@ done = false
     }
 
   def checkExpr(expr: Expr): Expr = expr match {
+    case o@SObjectExpr(SExprInfo(span,parenthesized,_),
+                     STraitTypeHeader(sparams, mods, name, where,
+                                      throwsC, contract, extendsC, decls),
+                     selfType) => {
+      // Verify that no extends clauses try to extend an object.
+      extendsC.foreach( (t:TraitTypeWhere) =>
+                        assertTrait(t.getBaseType, o,
+                                    "Objects can only extend traits.", o) )
+      var method_checker = this
+      var field_checker = this
+      val newContract = contract match {
+        case Some(e) => Some(method_checker.check(e).asInstanceOf[Contract])
+        case _ => contract
+      }
+      // Extend the type checker with all of the field decls
+      method_checker = decls.foldRight(method_checker)
+                                      { (d:Decl, c:STypeChecker) => d match {
+                                        case SVarDecl(_,lhs,_) => c.extend(lhs)
+                                        case _ => c } }
+      // Extend type checker with methods and functions
+      // that will now be in scope as regular functions
+      val oi = IndexBuilder.buildObjectExprIndex(o)
+      val methods = new UnionRelation(inheritedMethods(extendsC),
+                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods)
+      method_checker = method_checker.extendWithMethods(methods)
+      method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[ObjectTraitIndex].functionalMethods)
+      // Extend method checker with self
+      selfType match {
+        case Some(ty) =>
+          method_checker = method_checker.addSelf(ty)
+          // Typecheck each declaration
+          val newDecls = decls.map( (d:Decl) => d match {
+                                    case SFnDecl(_,_,_,_,_) =>
+                                      // Methods get a few more things in scope than everything else
+                                      method_checker.check(d).asInstanceOf[Decl]
+                                    case SVarDecl(_,lhs,_) =>
+                                      // fields get to see earlier fields
+                                      val newD = field_checker.check(d).asInstanceOf[Decl]
+                                      field_checker = field_checker.extend(lhs)
+                                      newD
+                                    case _ => check(d).asInstanceOf[Decl] } )
+          SObjectExpr(SExprInfo(span,parenthesized,Some(ty)),
+                      STraitTypeHeader(sparams, mods, name, where,
+                                       throwsC, newContract, extendsC, newDecls),
+                      selfType)
+        case _ => signal(o, "Self type is not inferred for " + o); o
+      }
+    }
+
     /* Matches if block is an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
                 loc, true, withinDo, exprs) =>
