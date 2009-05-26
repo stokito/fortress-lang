@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FVoid {
+public class FVoid  extends FValue {
     FVoid() { }
     private final static FVoid V = new FVoid();
     public String toString() { return "()";}

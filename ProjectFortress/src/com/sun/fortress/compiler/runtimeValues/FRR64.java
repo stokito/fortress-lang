@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FRR64 {
+public class FRR64  extends FValue {
     double val;
 
     FRR64(double x) { val = x; }

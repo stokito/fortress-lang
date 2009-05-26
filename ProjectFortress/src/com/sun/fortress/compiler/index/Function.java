@@ -17,10 +17,17 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+
 /** Comprises Constructor, DeclaredFunction, and FunctionalMethod. */
 public abstract class Function extends Functional {
     protected abstract String mandatoryToString();
     public String toString() {
         return mandatoryToString();
     }
+    protected abstract IdOrOpOrAnonymousName mandatoryToUndecoratedName();
+    public IdOrOpOrAnonymousName toUndecoratedName() {
+        return mandatoryToUndecoratedName();
+    }
+
 }

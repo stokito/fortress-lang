@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FZZ64 {
+public class FZZ64  extends FValue {
     long val;
 
     FZZ64(long x) { val = x; }

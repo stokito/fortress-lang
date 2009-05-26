@@ -24,6 +24,7 @@ import java.util.List;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -68,6 +69,15 @@ public class Constructor extends Function {
     protected String mandatoryToString() {
         return "constructor " + declaringTrait().toString();
     }
+    
+    @Override
+    protected IdOrOpOrAnonymousName mandatoryToUndecoratedName() {
+        // This choice is not tested yet, it could well be the wrong one.
+        return declaringTrait();
+    }
+
+
+    
 //    public List<StaticParam> staticParams() { return _staticParams; }
 //    public Option<List<Param>> params() { return _params; }
 //    public Option<List<BaseType>> throwsClause() { return _throwsClause; }

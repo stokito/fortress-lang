@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FRR32 {
+public class FRR32  extends FValue {
     float val;
 
     FRR32(float x) { val = x; }

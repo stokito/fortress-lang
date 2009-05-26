@@ -708,7 +708,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
-                lookahead = new Label();
+                if (i+1 < children.length)
+                    lookahead = new Label();
+                else lookahead = null;
             }
             mv.visitJumpInsn(Opcodes.GOTO, failLabel);
         }
@@ -887,14 +889,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                 String sig) {
-            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
-            String cnameDOTmname = name.toString();
-
-            String ownerName;
-            String mname;
-            ownerName = Useful.replace(pname, ".", "/") ;
-            mname = cnameDOTmname;
-
+            
+           
+            String ownerName = NamingCzar.only.apiAndMethodToMethodOwner(f.tagA, f.tagF);
+            String mname = NamingCzar.only.apiAndMethodToMethod(f.tagA, f.tagF);
+            
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
 

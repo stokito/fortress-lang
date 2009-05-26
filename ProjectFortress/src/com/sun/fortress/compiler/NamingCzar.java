@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
+import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -33,6 +34,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -43,6 +45,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -113,10 +116,10 @@ public class NamingCzar {
 
     public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
 
-
     // fortress types
     public static final String fortressPackage = "fortress";
-    public static final String fortressAny = fortressPackage + "/" + WellKnownNames.anyTypeLibrary() +
+    public static final String fortressAny = fortressPackage + "/" + 
+                                              WellKnownNames.anyTypeLibrary() +
                                              "$" + WellKnownNames.anyTypeName;
 
     private static final List<String> extendsObject =
@@ -355,8 +358,36 @@ public class NamingCzar {
         if (fj.definesApi(name)) {
             return name.getText();
         } else {
-            return "fortress."+name.getText();
+            return javaPackageClassForApi(name.getText(), ".").toString();
         }
+    }
+    
+    public String apiAndMethodToMethodOwner(APIName name, Function method) {
+        String p;
+        String m = method.toUndecoratedName().toString();
+        if (fj.definesApi(name)) {
+             p = name.getText();
+             int idot = m.lastIndexOf(".");
+             if (idot != -1) {
+                 p = p + "/" + m.substring(0,idot);
+             }
+
+        } else {
+             p = javaPackageClassForApi(name.getText(), ".").toString();
+        }
+        p = Useful.replace(p, ".", "/") ;
+        return p;
+    }
+    
+    public String apiAndMethodToMethod(APIName name, Function method) {
+        String m = method.toUndecoratedName().toString();
+        if (fj.definesApi(name)) {
+            int idot = m.lastIndexOf(".");
+            if (idot != -1) {
+                m = m.substring(idot+1);
+            } 
+        } 
+        return m; 
     }
 
     /**
@@ -427,19 +458,34 @@ public class NamingCzar {
             }
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
+            
             if (apiName.isNone()) {
+                // DRC -- This looks wrong to me: it should be the component/api containing the trait, not empty.
                 result[i] = name.toString();
                 continue;
             }
-            StringBuilder parent = new StringBuilder();
             String api = apiName.unwrap().getText();
-            if ( WellKnownNames.exportsDefaultLibrary( api ) ) {
-                parent.append(fortressPackage);  parent.append("/");
-            }
-            parent.append(api);  parent.append("$");  parent.append(name.getText());
+            
+            StringBuilder parent = javaPackageClassForApi(api, "/");  parent.append("$");  parent.append(name.getText());
             result[i] = parent.toString();
         }
         return result;
+    }
+
+    /**
+     * @param api
+     * @return
+     */
+    private static StringBuilder javaPackageClassForApi(String api, String sep) {
+        StringBuilder parent = new StringBuilder();
+        if (!(sep.equals("."))) {
+            api = Useful.replace(api, ".", sep);
+        }
+        if ( WellKnownNames.exportsDefaultLibrary( api ) ) {
+            parent.append(fortressPackage);  parent.append(sep);
+        }
+        parent.append(api);
+        return parent;
     }
 
     /**
@@ -481,4 +527,5 @@ public class NamingCzar {
         return mangledString;
     }
 
+    
 }

@@ -164,7 +164,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         PrintWriter pw = new PrintWriter(System.out);
         cw.visitEnd();
         
-        if (ProjectProperties.getBoolean("FORTRESS_BYTECODE_VERIFY", false))
+        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
             CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
         
         ByteCodeWriter.writeClass(NamingCzar.cache, file, cw.toByteArray());
@@ -194,6 +194,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cw.visitSource(className, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
+        
         for ( APIName export : x.getExports() ) {
             if ( WellKnownNames.exportsMain(export.getText()) )
                 exportsExecutable = true;

@@ -184,6 +184,15 @@ public class ProjectProperties {
         return result;
     }
 
+    /**
+     * Get a String property or environment variable.
+     * Use property.naming.conventions, these are automatically
+     * translated to ENVIRONMENT_NAMING_CONVENTIONS for environment
+     * variables and fields of ProjectProperties itself.
+     * @param s
+     * @param ifMissing
+     * @return
+     */
     static final public String get(String s, String ifMissing) {
         String result =  allProps.get(s);
         if (result == null)
@@ -196,6 +205,15 @@ public class ProjectProperties {
         return result;
     }
 
+    /**
+     * Get a boolean property or environment variable.
+     * Use property.naming.conventions, these are automatically
+     * translated to ENVIRONMENT_NAMING_CONVENTIONS for environment
+     * variables and fields of ProjectProperties itself.
+     * @param s
+     * @param ifMissing
+     * @return
+     */
     static final public boolean getBoolean(String s, boolean ifMissing) {
         String result =  allProps.get(s);
         if (result != null)
@@ -330,7 +348,19 @@ public class ProjectProperties {
     }
 
 
-    public static int getInt(String s, int ifMissing) {
+    /**
+     * Get an int property or environment variable.
+     * Use property.naming.conventions, these are automatically
+     * translated to ENVIRONMENT_NAMING_CONVENTIONS for environment
+     * variables and fields of ProjectProperties itself.
+     * Integers default to base 10, but a different base can be chosen,
+     * for example DEADBEEF_16 .
+     * 
+     * @param s
+     * @param ifMissing
+     * @return
+     */
+   public static int getInt(String s, int ifMissing) {
         String result =  allProps.get(s);
         if (result != null)
             result = Useful.substituteVarsCompletely(result, allProps, 1000);
