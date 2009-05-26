@@ -828,15 +828,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           case Nil => results.reverse
           case first::rest =>
             if ( isArrows(first) ) {
-              val arrows = first::rest.takeWhile(isArrows)
-              val dropArrows = rest.dropWhile(isArrows)
-              val nonArrows = dropArrows.takeWhile((e:Expr) => ! isArrows(e))
-              val dropNonArrows = dropArrows.dropWhile((e:Expr) => ! isArrows(e))
-              chunker(dropNonArrows, (arrows,nonArrows)::results)
+              val (arrows,temp) = (first::rest).span(isArrows)
+              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e)) 
+              chunker(remainingChunks, (arrows,nonArrows)::results)
             } else {
-              val nonArrows = first::rest.takeWhile((e:Expr) => ! isArrows(e))
-              val dropNonArrows = rest.dropWhile((e:Expr) => ! isArrows(e))
-              chunker(dropNonArrows, (List(),nonArrows)::results)
+              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
+              chunker(remainingChunks, (List(),nonArrows)::results)
             }
         }
         val chunks = chunker(checkedExprs, List())
