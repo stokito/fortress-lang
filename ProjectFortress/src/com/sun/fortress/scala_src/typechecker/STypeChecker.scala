@@ -354,25 +354,41 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
 
     /* Matches if a function declaration does not have a body expression. */
-    case f@SFnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
+    case f@SFnDecl(info,
+                   SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
+                   unambiguousName, None, implementsUnambiguousName) => {
+      returnType match {
+        case Some(ty) =>
+          if ( NodeUtil.isSetter(f) )
+            checkSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
+        case _ =>
+      }
+      f
+    }
 
     /* Matches if a function declaration has a body expression. */
     case f@SFnDecl(info,
                    SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
                    unambiguousName, Some(body), implementsUnambiguousName) => {
-      val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
-      val newAnalyzer = analyzer.extend(statics, wheres)
-      val newChecker = this.extend(newEnv, newAnalyzer)
-
+      val newChecker = this.extend(env.extendWithStaticParams(statics).extendWithParams(params),
+                                   analyzer.extend(statics, wheres))
       val newContract = contract match {
         case Some(c) => Some(newChecker.check(c))
-        case None => contract
+        case None => None
       }
-      val newBody = newChecker.checkExpr(body, returnType, "Function body", "declared return")
+      val newBody = newChecker.checkExpr(body, returnType, "Function body",
+                                         "declared return")
+      val newType = inferredType(newBody) match {
+        case Some(ty) =>
+          if ( NodeUtil.isSetter(f) )
+            checkSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
+          Some(ty)
+        case _ => noType(body); None
+      }
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
-                        params, inferredType(newBody)),
+                        params, newType),
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
