@@ -24,6 +24,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -44,8 +45,14 @@ public class DeclaredFunction extends Function {
 
     public FnDecl ast() { return _ast; }
 
+    @Override
     protected String mandatoryToString() {
         return "function " + ast();
+    }
+    
+    @Override
+    protected IdOrOpOrAnonymousName mandatoryToUndecoratedName() {
+        return ast().getHeader().getName();
     }
 
     @Override
@@ -99,4 +106,4 @@ public class DeclaredFunction extends Function {
 		return new DeclaredFunction((FnDecl)this._ast.accept(visitor));
 	}
 
-}
+ }

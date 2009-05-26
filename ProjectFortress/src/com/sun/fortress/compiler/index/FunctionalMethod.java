@@ -25,6 +25,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -60,6 +61,11 @@ public class FunctionalMethod extends Function {
         return "functionalMethod " + declaringTrait().toString() + "." + ast();
     }
 
+    @Override
+    protected IdOrOpOrAnonymousName mandatoryToUndecoratedName() {
+        return ast().getHeader().getName();
+    }
+    
     public Id declaringTrait() { return _declaringTrait; }
 
 	@Override

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FBoolean {
+public class FBoolean extends FValue {
     boolean val;
 
     FBoolean(boolean x) { val = x; }

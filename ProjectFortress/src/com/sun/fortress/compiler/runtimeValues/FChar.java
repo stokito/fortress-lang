@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FChar {
+public class FChar  extends FValue {
     char val;
 
     FChar(char x) { val = x; }
