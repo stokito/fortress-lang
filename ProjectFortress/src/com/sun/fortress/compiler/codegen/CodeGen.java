@@ -57,9 +57,7 @@ import com.sun.fortress.useful.StringHashComparer;
 public class CodeGen extends NodeAbstractVisitor_void {
     ClassWriter cw;
     MethodVisitor mv;
-    private final String className;
-    String packageName;
-    String packageAndClassName;
+    final String packageAndClassName;
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
 
@@ -83,7 +81,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper",
                            "registerArgs", NamingCzar.stringArrayToVoid);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", NamingCzar.voidToFortressVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "run", NamingCzar.voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
@@ -101,12 +99,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ComponentIndex ci) {
         component = c;
-        className = c.getName().getText();
+        packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName().getText(), "/").toString();
         aliasTable = new HashMap<String, String>();
         symbols = s;
         this.ta = ta;
         this.ci = ci;
-        debug( "Compile: Compiling ", className );
+        debug( "Compile: Compiling ", packageAndClassName );
     }
 
     // Create a fresh codegen object for a nested scope.  Technically,
@@ -117,9 +115,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private CodeGen(CodeGen c) {
         this.cw = c.cw;
         this.mv = c.mv;
-        this.className = c.className;
-        this.packageName = c.packageName;
-        this.packageAndClassName = c.packageAndClassName;
+         this.packageAndClassName = c.packageAndClassName;
         this.aliasTable = c.aliasTable;
         this.symbols = c.symbols;
         this.inATrait = c.inATrait;
@@ -191,7 +187,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void forComponent(Component x) {
         debug("forComponent ",x.getName(),NodeUtil.getSpan(x));
         cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES );
-        cw.visitSource(className, null);
+        cw.visitSource(packageAndClassName, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
         
@@ -201,14 +197,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if ( WellKnownNames.exportsDefaultLibrary(export.getText()) )
                 exportsDefaultLibrary = true;
         }
-        // If this component implements a default library,
-        // generate "package fortress;"
-        if ( exportsDefaultLibrary )
-            packageName = NamingCzar.fortressPackage + "/";
-        else
-            packageName = "";
-
-        packageAndClassName = packageName + className;
 
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                 packageAndClassName, null, NamingCzar.internalObject, null);
@@ -547,10 +535,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             } else {
                 if (exprType.isSome())
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, NamingCzar.mangleIdentifier(name),
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, NamingCzar.mangleIdentifier(name),
                                        Naming.emitDesc(exprType.unwrap()));
                 else
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, className,
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName,
                                        NamingCzar.mangleIdentifier(name), symbols.getTypeSignatureForIdOrOp(newName, component));
             }
         } else
