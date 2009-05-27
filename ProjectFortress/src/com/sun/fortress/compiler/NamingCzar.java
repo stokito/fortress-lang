@@ -511,13 +511,13 @@ public class NamingCzar {
      * @param api
      * @return
      */
-    private static StringBuilder javaPackageClassForApi(String api, String sep) {
+    public static StringBuilder javaPackageClassForApi(String api, String sep) {
         StringBuilder parent = new StringBuilder();
-        if (!(sep.equals("."))) {
-            api = Useful.replace(api, ".", sep);
-        }
         if ( WellKnownNames.exportsDefaultLibrary( api ) ) {
             parent.append(fortressPackage);  parent.append(sep);
+        }
+        if (!(sep.equals("."))) {
+            api = Useful.replace(api, ".", sep);
         }
         parent.append(api);
         return parent;
