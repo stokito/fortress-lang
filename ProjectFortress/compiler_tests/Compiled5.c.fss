@@ -1,0 +1,53 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Compiled5.c
+import CompilerSystem.args
+export { Executable }
+
+trait List 
+  nth(n:ZZ32):ZZ32
+  append(self,xs:List):List
+  reverse():List
+  (*) asString():String
+end
+
+object Cons(car:ZZ32, cdr:List) extends List 
+  nth(n:ZZ32):ZZ32 = 
+    if n = 0 then car
+    else cdr.nth(n-1) end
+  append(self,xs:List) = Cons(car,append(cdr,xs))
+  reverse():List = append(cdr.reverse(),Cons(car,Empty))
+  (*) asString():String = "[" car.asString() " " cdr.asString() "]"
+end
+
+object Empty extends List 
+  nth(n:ZZ32):ZZ32 = nth(n)
+  append(self,xs:List) = xs
+  reverse():List = self
+  (*) asString():String = "[]"
+end
+
+run():() = do
+  ns = Cons(1,Cons(2,Cons(3,Cons(4,Empty))))
+  printlnZZ32(ns.reverse().nth(0))
+  printlnZZ32(ns.reverse().nth(1))
+  printlnZZ32(ns.reverse().nth(2))
+  printlnZZ32(ns.reverse().nth(3))  
+end
+
+end
