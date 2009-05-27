@@ -791,96 +791,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     }
 
+     static public class Local extends AmongApis {
+        public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+            super(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
 
-
-    static public class Foreign extends OverloadSet {
-        /**
-         * Emit the invocation for a particular type of overloaded functions.
-         *
-         * @param mv
-         * @param f
-         * @param sig
-         */
-        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
-                String sig) {
-            String pname = NamingCzar.only.apiNameToPackageName(f.tagA);
-            String cnameDOTmname = name.toString();
-
-            int idot = cnameDOTmname.lastIndexOf(".");
-            String ownerName;
-            String mname;
-            if (idot == -1) {
-                ownerName = Useful.replace(pname, ".", "/") ;
-                mname = cnameDOTmname;
-            } else {
-                ownerName = Useful.replace(pname, ".", "/") + "/" + cnameDOTmname.substring(0,idot);
-                mname = cnameDOTmname.substring(idot+1);
-            }
-
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+                @Override
+                public TaggedFunctionName apply(Function f) {
+                    return new TaggedFunctionName(apiname, f);
+                }} ), n);
         }
-
-        /* Boilerplate follows, because this is a subtype. */
-
-        protected Foreign(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                Set<TaggedFunctionName> lessSpecificThanSoFar,
-                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
-            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
-        }
-
-        public Foreign(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(apiname, name, ta, defs, n);
-        }
-
-        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-            return new Foreign(name, ta, childLSTSF,
-                    childTestedIndices, this, t, paramCount);
-        }
-
-
+      
     }
-
-    static public class Local extends OverloadSet {
-        String packageAndClassName;
-        
-        /**
-         * Emit the invocation for a particular type of overloaded functions.
-         *
-         * @param mv
-         * @param f
-         * @param sig
-         */
-        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
-                String sig) {
-            String mname = name.toString();
-
-            String ownerName= packageAndClassName;
-                
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
-        }
-
-        /* Boilerplate follows, because this is a subtype. */
-
-        protected Local(String packageAndClassName, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                Set<TaggedFunctionName> lessSpecificThanSoFar,
-                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
-            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
-            this.packageAndClassName = packageAndClassName;
-        }
-
-        public Local(String packageAndClassName, final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(apiname, name, ta, defs, n);
-            this.packageAndClassName = packageAndClassName;
-        }
-
-        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-            return new Local(packageAndClassName, name, ta, childLSTSF,
-                    childTestedIndices, this, t, paramCount);
-        }
-
-
-    }
-
+    
     static public class AmongApis extends OverloadSet {
         /**
          * Emit the invocation for a particular type of overloaded functions.

@@ -105,8 +105,8 @@ public class Naming extends NodeAbstractVisitor<String> {
             });
     }
 
-    public static String makeClassName(String packageName, String className, TraitObjectDecl t) {
-        return packageName + className + "$" + NodeUtil.getName(t).getText();
+     public static String makeClassName(String packageAndClassName, TraitObjectDecl t) {
+        return packageAndClassName + "$" + NodeUtil.getName(t).getText();
     }
 
     public static String getJavaClassForSymbol(IdOrOp fnName) {
