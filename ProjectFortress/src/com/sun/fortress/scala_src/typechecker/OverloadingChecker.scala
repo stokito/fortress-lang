@@ -24,6 +24,7 @@ import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import scala.collection.Set
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
+import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
@@ -69,6 +70,35 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val fnsInComp = compilation_unit.functions
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
             checkOverloading(f, fnsInComp.matchFirst(f))
+        }
+        val typesInComp = compilation_unit.typeConses
+        for ( t <- toSet(typesInComp.keySet) ;
+              if NodeUtil.isTraitOrObject(typesInComp.get(t)) ) {
+            val traitOrObject = typesInComp.get(t).asInstanceOf[TraitIndex]
+            /* The parameter type of a setter must be the same as the return type
+             * of a getter with the same name, if any.
+             */
+            for ( f <- toSet(traitOrObject.setters.keySet) ) {
+                if ( traitOrObject.getters.keySet.contains(f) ) {
+                    val getter = traitOrObject.getters.get(f)
+                    // Setter declarations are guaranteed to have a single parameter.
+                    val param = traitOrObject.setters.get(f).parameters.get(0)
+                    val span = getter.getSpan.toString
+                    if ( param.getIdType.isSome &&
+                         ! typeAnalyzer.equivalent(param.getIdType.unwrap,
+                                                   getter.getReturnType).isTrue )
+                        error(span,
+                              "The parameter type of a setter must be " +
+                              "the same as\n    the return type of a getter " +
+                              "with the same name, if any.")
+                }
+            }
+            /*
+            val methods = typesInComp.get(t).asInstanceOf[TraitIndex].dottedMethods
+            for ( f <- toSet(methods.firstSet) ; if isDeclaredName(f) ) {
+                checkOverloading(f, methods.matchFirst(f).asInstanceOf[JavaSet[JavaFunctional]])
+            }
+            */
         }
         toJavaList(errors)
     }

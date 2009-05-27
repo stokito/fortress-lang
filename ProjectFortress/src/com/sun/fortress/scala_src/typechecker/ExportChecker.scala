@@ -280,7 +280,7 @@ object ExportChecker {
                     val traitOrObject = typesInComp.get(t)
                     val declInComp = NodeUtil.getDecl(traitOrObject)
                     val equalHeaders = equalTraitTypeHeaders(declInAPI.getHeader,
-                                                            declInComp.getHeader)
+                                                             declInComp.getHeader)
                     val diffTraits = NodeUtil.isTrait(traitOrObject) &&
                                      ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
                                                         toList(NodeUtil.getExcludesClause(declInComp))) ||
