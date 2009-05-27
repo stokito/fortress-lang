@@ -144,13 +144,11 @@ public class CodeGenerationPhase extends Phase {
             int i = entry.getKey();
             Set<Function> fs = entry.getValue();
             if (fs.size() > 1) {
-                OverloadSet os = new OverloadSet.Foreign(ai.ast().getName(), name, ta, fs,
+                OverloadSet os = new OverloadSet.Local(ai.ast().getName(), name, ta, fs,
                         i);
                 
                 os.split();
                 String s = os.toString();
-                if (debugOverloading)
-                    System.err.println(s);
                 overloads.add(os);
             }
         }

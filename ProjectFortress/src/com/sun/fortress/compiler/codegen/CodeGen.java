@@ -242,61 +242,44 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if (defs.size() <= 1) continue;
 
             // Partition overloads by size.
-            MultiMap<Integer, Function> partitionedByArgCount =
-                new MultiMap<Integer, Function>();
-
-            for (Function d : defs) {
-                partitionedByArgCount.putItem(d.parameters().size(), d);
-            }
-
-            for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
-                     .entrySet()) {
-                int i = entry.getKey();
-                Set<Function> fs = entry.getValue();
-                if (fs.size() <= 1) continue;
-
-                OverloadSet os =
-                    new OverloadSet.Local(packageAndClassName, ci.ast().getName(), name,
-                                          ta, fs, i);
-
-                os.split();
-                String s = os.toString();
-                os.generateAnOverloadDefinition(name.stringName(), cw);
-
-            }
+            emitLocalOverloadingsPartitionedBySize( name, defs);
         }
 
+    }
+
+    /**
+     * @param name
+     * @param defs
+     * @return
+     */
+    private MultiMap<Integer, Function> emitLocalOverloadingsPartitionedBySize(
+            IdOrOpOrAnonymousName name, Set<Function> defs) {
+        MultiMap<Integer, Function> partitionedByArgCount =
+            new MultiMap<Integer, Function>();
+
+        for (Function d : defs) {
+            partitionedByArgCount.putItem(d.parameters().size(), d);
+        }
+
+        for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
+                 .entrySet()) {
+            int i = entry.getKey();
+            Set<Function> fs = entry.getValue();
+            if (fs.size() <= 1) continue;
+
+            OverloadSet os =
+                new OverloadSet.Local(ci.ast().getName(), name,
+                                      ta, fs, i);
+
+            os.split();
+            String s = os.toString();
+            os.generateAnOverloadDefinition(name.stringName(), cw);
+
+        }
+        return partitionedByArgCount;
     }
     
-    private void foo(IdOrOpOrAnonymousName name, Set<Function> defs) {
-        if (defs.size() > 1) {
-
-            // Partition overloads by size.
-            MultiMap<Integer, Function> partitionedByArgCount =
-                new MultiMap<Integer, Function>();
-
-            for (Function d : defs) {
-                partitionedByArgCount.putItem(d.parameters().size(), d);
-            }
-
-            for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
-                    .entrySet()) {
-                int i = entry.getKey();
-                Set<Function> fs = entry.getValue();
-                if (fs.size() > 1) {
-                    OverloadSet os = new OverloadSet.Local(
-                            packageAndClassName, ci.ast().getName(), name,
-                            ta, fs, i);
-
-                    os.split();
-                    String s = os.toString();
-                    os.generateAnOverloadDefinition(name.stringName(), cw);
-
-                }
-            }
-        }
-    }
-
+    
     public void forImportNames(ImportNames x) {
         debug("forImportNames", x);
         Option<String> foreign = x.getForeignLanguage();
@@ -397,7 +380,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC);
 
         // First let's do the interface class
-        String classFile = Naming.makeClassName(packageName, className, x);
+        String classFile = Naming.makeClassName(packageAndClassName, x);
         if (classFile.equals("fortress/AnyType$Any")) {
             superInterfaces = new String[0];
         }
@@ -471,7 +454,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             mv.visitEnd();
         }
 
-        String classFile = Naming.makeClassName(packageName, className, x);
+        String classFile = Naming.makeClassName(packageAndClassName, x);
         ClassWriter prev = cw;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
