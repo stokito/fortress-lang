@@ -272,8 +272,10 @@ public class NamingCzar {
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
     }
 
-    static final String runtimeValues = "Lcom/sun/fortress/compiler/runtimeValues/";
+    static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
 
+    static final String FValueType = runtimeValues + "FValue";
+    static final String FValueDesc = "L" + FValueType + ";";
 
     /**
      * Given a Fortress type (expressed as AST node for a Type),
@@ -284,17 +286,24 @@ public class NamingCzar {
      * @return
      */
     static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
-        return specialFortressTypes.get(t);
+        return specialFortressDescriptors.get(t);
     }
 
+    /**
+     * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
+     */
+    static Map<com.sun.fortress.nodes.Type, String> specialFortressDescriptors = new HashMap<com.sun.fortress.nodes.Type, String>();
+    /**
+     * Java descriptors for (boxed) Fortress types, WITHOUT leading L and trailing ;
+     */
     static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
 
     static void bl(APIName api, String str, String cl) {
-        b(api,str, runtimeValues+cl+";");
+        b(api,str, runtimeValues+cl);
     }
 
     static void bl(com.sun.fortress.nodes.Type t, String cl) {
-        b(t, runtimeValues+cl+";");
+        b(t, runtimeValues+cl);
     }
 
     static void b(APIName api, String str, String cl) {
@@ -303,7 +312,8 @@ public class NamingCzar {
     }
 
     static void b(com.sun.fortress.nodes.Type t, String cl) {
-        specialFortressTypes.put(t, cl);
+        specialFortressDescriptors.put(t, "L" + cl + ";");
+        specialFortressTypes.put(t, cl );
     }
 
     static {
@@ -339,12 +349,37 @@ public class NamingCzar {
 
         } else if (t instanceof BaseType) {
             if (t instanceof AnyType) {
-                return runtimeValues + "FValue;";
+                return FValueDesc;
             } else if (t instanceof BottomType) {
                 return bug("Not sure how bottom type translates into Java");
             } else if (t instanceof NamedType) {
                 if (t instanceof TraitType) {
-                    return runtimeValues + "FValue;";
+                    return FValueDesc;
+                } else if (t instanceof VarType) {
+                    return bug("Need a binding to translate a VarType into Java");
+                }
+            }
+        }
+        return bug ("unhandled type translation, Fortress type " + t);
+
+    }
+    
+    public String boxedImplType( com.sun.fortress.nodes.Type t ) {
+        String desc = specialFortressTypes.get(t);
+
+        if (desc != null)
+            return desc;
+
+        if (t instanceof ArrowType) {
+
+        } else if (t instanceof BaseType) {
+            if (t instanceof AnyType) {
+                return FValueType;
+            } else if (t instanceof BottomType) {
+                return bug("Not sure how bottom type translates into Java");
+            } else if (t instanceof NamedType) {
+                if (t instanceof TraitType) {
+                    return FValueType;
                 } else if (t instanceof VarType) {
                     return bug("Need a binding to translate a VarType into Java");
                 }
@@ -506,6 +541,7 @@ public class NamingCzar {
         String mangledString = identifier.replaceAll("\\\\", "\\\\-");
 
         // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
+
         mangledString = mangledString.replaceAll("/", "\\\\|");
         mangledString = mangledString.replaceAll("\\.", "\\\\,");
         mangledString = mangledString.replaceAll(";", "\\\\?");
