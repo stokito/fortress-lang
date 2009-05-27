@@ -190,7 +190,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     public void forComponent(Component x) {
         debug("forComponent ",x.getName(),NodeUtil.getSpan(x));
-        cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES );
         cw.visitSource(className, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;

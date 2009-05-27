@@ -684,9 +684,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             String sig = "(";
             for (Param p : params ) {
                 mv.visitVarInsn(Opcodes.ALOAD, i);
-                String toType = NamingCzar.only.boxedImplDesc(p.getIdType().unwrap());
+                
+                Type ty = p.getIdType().unwrap();
+                String toType = NamingCzar.only.boxedImplDesc(ty);
                 sig += toType;
-                mv.visitTypeInsn(Opcodes.CHECKCAST, toType);
+                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.only.boxedImplType(ty));
                 i++;
             }
             sig += ")";
@@ -704,7 +706,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (int i = 0; i < children.length; i++) {
                 OverloadSet os = children[i];
                 mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
-                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.only.boxedImplDesc(os.selectedParameterType));
+                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.only.boxedImplType(os.selectedParameterType));
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
