@@ -71,6 +71,10 @@ public class Naming extends NodeAbstractVisitor<String> {
                     return sayWhat( t );
                 }
             }
+            public String forAnyType (AnyType t) {
+                return NamingCzar.descFortressAny;
+                
+            }
             public String forTraitType(TraitType t) {
                 String result;
                 if ( t.getName().getText().equals("String") )
