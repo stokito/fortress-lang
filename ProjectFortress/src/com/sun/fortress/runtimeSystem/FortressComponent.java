@@ -22,12 +22,9 @@ import com.sun.fortress.compiler.runtimeValues.FVoid;
 // we have defined it and we need to pass an instance of it to the primordial task.
 // We need a run method here because the one in the generated class isn't visisble yet.
 
-public class FortressComponent {
+public abstract class FortressComponent {
   
-    public FVoid run() {
-        System.out.println("RuhRohRaggy");
-        return FVoid.make();
-    }
+    public abstract FVoid run();
 
 }
 
