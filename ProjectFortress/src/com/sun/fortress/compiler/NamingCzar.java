@@ -73,6 +73,13 @@ public class NamingCzar {
     // but ignores the arguments.
     public static final int ignore = 1;
 
+    // fortress types
+    public static final String fortressPackage = "fortress";
+    public static final String fortressAny = fortressPackage + "/" + 
+                                              WellKnownNames.anyTypeLibrary() +
+                                             "$" + WellKnownNames.anyTypeName;
+
+
     // Base class for all executable Fortress Components
     public static final String fortressComponent = "com/sun/fortress/runtimeSystem/FortressComponent";
     public static final String primordialTask    = "com/sun/fortress/runtimeSystem/PrimordialTask";
@@ -117,14 +124,9 @@ public class NamingCzar {
     public static final String descFortressChar  = internalToDesc(internalFortressChar);
     public static final String descFortressString = internalToDesc(internalFortressString);
     public static final String descFortressVoid   = internalToDesc(internalFortressVoid);
+    public static final String descFortressAny        = internalToDesc(fortressAny);
 
     public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
-
-    // fortress types
-    public static final String fortressPackage = "fortress";
-    public static final String fortressAny = fortressPackage + "/" + 
-                                              WellKnownNames.anyTypeLibrary() +
-                                             "$" + WellKnownNames.anyTypeName;
 
     private static final List<String> extendsObject =
         Collections.singletonList(internalObject);

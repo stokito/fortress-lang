@@ -27,6 +27,9 @@ jFoo(a:ZZ64, b:ZZ64, c:ZZ64, d:ZZ64):() = do
   jPrintln("LLLL local!")
 end
 
+u(x:Any, y:Any):Any = x
+v(x:Any):() = ()
+
 t(i:ZZ64, l:ZZ64):() = do
   jFoo(i,i,i,i)
   jFoo(i,i,l,i)
@@ -34,7 +37,9 @@ t(i:ZZ64, l:ZZ64):() = do
   jFoo(l,l,l,l)
 end
 
-run() =
+run():() = do
    t(9, 100000000000)
+   v u(u(1,2),u("cat", "dog"))
+   end
 
 end
