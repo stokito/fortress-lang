@@ -18,6 +18,7 @@
 component Compiled10
 export Executable
 
+(* Dotted methods. Also, inheritance of methods (or not). *)
 
 trait A 
   m(a:A):String = a.m(self)

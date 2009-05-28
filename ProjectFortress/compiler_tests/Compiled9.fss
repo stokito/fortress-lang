@@ -18,6 +18,7 @@
 component Compiled9
 export Executable
 
+(* Higher order functions. Also local functions. *)
 
 trait A end
 object O extends A end

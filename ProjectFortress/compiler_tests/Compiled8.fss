@@ -18,6 +18,8 @@
 component Compiled8
 export Executable
 
+(* asif -- we may defer this, since it is hard and not widely used. *)
+
 trait A end
 object O extends A end
 object P extends A end
