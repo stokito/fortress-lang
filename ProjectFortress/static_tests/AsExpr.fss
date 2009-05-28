@@ -22,7 +22,7 @@ export Executable
 
 run():() = do
   x:IntLiteral = 5
-  y:Any = x as Any
+  y:Any = x typed Any
 end
 
 end

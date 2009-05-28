@@ -190,7 +190,7 @@ private String ForeignLang =
      (ForeignLang w)? APIName . w { w ... w } (w except w SimpleNames)?
    |  ForeignLang w   APIName . w { w AliasedQualifiedNameList (w , w ...)? w }
    | (ForeignLang w)? APIName . w { w AliasedSimpleNameList (w , w ...)? w }
-   | (ForeignLang w)? QualifiedName (w as w Id)?
+   | (ForeignLang w)? QualifiedName (w => w Id)?
  */
 private List<Import> ImportedNames =
      a1:(ForeignLang w)? a2:APIName dot w opencurly w ellipses w closecurly
@@ -222,7 +222,7 @@ private List<Import> ImportedNames =
                                                           Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
-   / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w as w Id)?
+   / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w match w Id)?
      { Option<String> f = ( a1 == null ) ? Option.<String>none()
                                          : Option.<String>some(a1);
        APIName api;
@@ -241,7 +241,7 @@ private List<Import> ImportedNames =
        yyValue = Useful.list(imp);
      }
    / <ErrorProduction>
-     Id (w as w Id)?
+     Id (w match w Id)?
      { log(createSpan(yyStart,yyCount), "Try \"import api APIName\"");
        yyValue = Collections.<Import>emptyList();
      };
@@ -254,18 +254,18 @@ private List<IdOrOpOrAnonymousName> SimpleNames =
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AliasedSimpleName ::=
-     Id (w as w Id)?
-   | opr (w BIG)? w (Encloser | Op) (w as w (Encloser | Op))?
-   | opr (w BIG)? w EncloserPair (w as w EncloserPair)?
+     Id (w => w Id)?
+   | opr (w BIG)? w (Encloser | Op) (w => w (Encloser | Op))?
+   | opr (w BIG)? w EncloserPair (w => w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
-     a1:Id a2:(w as w Id)?
+     a1:Id a2:(w match w Id)?
      { if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else
            yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
      }
-   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
+   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w match w (Encloser / Op))?
      { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
@@ -276,7 +276,7 @@ private AliasedSimpleName AliasedSimpleName =
                yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
      }
-   / opr big:(w BIG)? w a1:EncloserPair a2:(w as w EncloserPair)?
+   / opr big:(w BIG)? w a1:EncloserPair a2:(w match w EncloserPair)?
      { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
@@ -293,9 +293,9 @@ private List<AliasedSimpleName> AliasedSimpleNameList =
      a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)*
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* AliasedQualifiedName ::= QualifiedName (w as w QualifiedName)? */
+/* AliasedQualifiedName ::= QualifiedName (w => w QualifiedName)? */
 private AliasedSimpleName AliasedQualifiedName =
-     a1:QualifiedName a2:(w as w QualifiedName)?
+     a1:QualifiedName a2:(w match w QualifiedName)?
      { a1 = NodeFactory.makeDottedId(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
@@ -322,9 +322,9 @@ private List<AliasedAPIName> AliasedAPINames =
      void:closecurly
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* AliasedAPIName ::= APIName (w as w Id)? */
+/* AliasedAPIName ::= APIName (w => w Id)? */
 private AliasedAPIName AliasedAPIName =
-     a1:APIName a2:(w as w Id)?
+     a1:APIName a2:(w match w Id)?
      { if (a2 == null)
            yyValue = NodeFactory.makeAliasedAPIName(a1);
        else

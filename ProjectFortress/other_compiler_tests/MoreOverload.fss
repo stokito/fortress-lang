@@ -17,9 +17,9 @@
 
 component MoreOverload
 
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
 
-import java com.sun.fortress.nativeHelpers.{simpleOverload.foo as jFoo}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.foo => jFoo}
 
 export Executable
 
@@ -34,7 +34,7 @@ t(i:ZZ64, l:ZZ64):() = do
   jFoo(l,l,l,l)
 end
 
-run() = 
+run() =
    t(9, 100000000000)
 
 end

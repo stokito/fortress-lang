@@ -19,6 +19,6 @@ component AsExprSimple
 
 export Executable
 
-run() = println (3 as Number)
+run() = println (3 typed Number)
 
 end

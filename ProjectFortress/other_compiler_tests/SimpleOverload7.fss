@@ -17,16 +17,16 @@
 
 component SimpleOverload7
 
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
-import java com.sun.fortress.nativeHelpers.{simpleOverload.bar as jBar}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
 
-import java com.sun.fortress.nativeHelpers.{simpleOverload.baz as jBaz}
-import java com.sun.fortress.nativeHelpers.{simpleOverload.duo as jDuo}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
 
 export Executable
 
 print2(x:String, y:String):() = do
-  jPrintln(jDuo(x,y)) 
+  jPrintln(jDuo(x,y))
 end
 
 (* jDuo(x:String, y:ZZ32):String = do
@@ -40,10 +40,10 @@ local(x:ZZ32, y:ZZ32):String = "11"
 
 run() = do
   print2("PA","SS")
-  
+
   jPrintln(local(9000000000001, 8000000000000))
   jPrintln(local(5,6))
-  
+
 end
 
 

@@ -18,7 +18,7 @@
 component XXXPreparser.c
 export Executable
 
-import List.{Cons as CC, opr <| as ||}
+import List.{Cons => CC, opr <| => ||}
 
 run() = ()
 

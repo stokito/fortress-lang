@@ -16,9 +16,9 @@
  ******************************************************************************)
 
 component SimpleOverload
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
-import java com.sun.fortress.nativeHelpers.{simpleOverload.bar as jBar}
-import java com.sun.fortress.nativeHelpers.{simpleOverload.baz as jBaz}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
 
 export Executable
 

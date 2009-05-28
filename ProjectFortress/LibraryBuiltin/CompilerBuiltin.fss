@@ -16,18 +16,18 @@
  ******************************************************************************)
 
 component CompilerBuiltin
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
-import java com.sun.fortress.nativeHelpers.{simplePrintZZ32.nativePrintZZ32 as jPrintlnZZ32}
-import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate as jConcatenate}
-import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString as jIntToString,
-                                            simpleIntArith.intAdd as jIntAdd,
-                                            simpleIntArith.intSub as jIntSub,
-                                            simpleIntArith.intMul as jIntMul,
-                                            simpleIntArith.intLT as jIntLT,
-                                            simpleIntArith.intLE as jIntLE,
-                                            simpleIntArith.intEQ as jIntEQ,
-                                            simpleIntArith.intNeg as jIntNeg,
-                                            simpleIntArith.parseInt as jParseInt}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simplePrintZZ32.nativePrintZZ32 => jPrintlnZZ32}
+import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate}
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
+                                            simpleIntArith.intAdd => jIntAdd,
+                                            simpleIntArith.intSub => jIntSub,
+                                            simpleIntArith.intMul => jIntMul,
+                                            simpleIntArith.intLT => jIntLT,
+                                            simpleIntArith.intLE => jIntLE,
+                                            simpleIntArith.intEQ => jIntEQ,
+                                            simpleIntArith.intNeg => jIntNeg,
+                                            simpleIntArith.parseInt => jParseInt}
 import AnyType.{Any}
 export CompilerBuiltin
 

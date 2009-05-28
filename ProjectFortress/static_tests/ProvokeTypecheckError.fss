@@ -27,9 +27,9 @@ export Executable
     assert(|hw|, |stuff| + |more|)
     assert(hw, "Hello World")
     assert(hw, CatString("Hell", "o World"))
-    assert(hw[(2 as ZZ32):(7 as ZZ32)], "llo Wo")
-    assert(hw[(0 as ZZ32):(3 as ZZ32)], "Hell")
-    assert(hw[(5 as ZZ32):(2 as ZZ32)], "")
+    assert(hw[(2 typed ZZ32):(7 typed ZZ32)], "llo Wo")
+    assert(hw[(0 typed ZZ32):(3 typed ZZ32)], "Hell")
+    assert(hw[(5 typed ZZ32):(2 typed ZZ32)], "")
   end
 
 end

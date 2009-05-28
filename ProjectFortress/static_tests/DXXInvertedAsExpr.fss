@@ -22,7 +22,7 @@ export Executable
 
 run():() = do
   x:Any = 5
-  y:ZZ32 = x as ZZ32
+  y:ZZ32 = x typed ZZ32
 end
 
 end

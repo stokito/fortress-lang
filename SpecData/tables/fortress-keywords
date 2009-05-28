@@ -5,7 +5,6 @@ absorbs
 abstract
 also
 api
-as
 asif
 at
 atomic
@@ -69,6 +68,7 @@ try
 tryatomic
 type
 typecase
+typed
 unit
 value
 var

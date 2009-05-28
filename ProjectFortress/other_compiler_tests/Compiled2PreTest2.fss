@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Compiled2PreTest2
-import java com.sun.fortress.nativeHelpers.{simpleSystem.nativeArg as jArg}
+import java com.sun.fortress.nativeHelpers.{simpleSystem.nativeArg => jArg}
 export Executable
 
 run() = println(jArg(0))

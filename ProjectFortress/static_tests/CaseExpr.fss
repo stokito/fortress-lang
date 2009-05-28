@@ -23,7 +23,7 @@ export Executable
 
 foo(z:ZZ32,g:Generator[\ZZ32\]) : String = do
   ignore(case z IN of
-           g => "this?" end as String)
+           g => "this?" end typed String)
 
   case z of
     g => "Did this work?"
@@ -35,7 +35,7 @@ run():() = do
   ignore(case 5 of
            1=> "1"
            2=> "2"
-         end as String)
+         end typed String)
 
 (*
 
@@ -45,18 +45,18 @@ run():() = do
     1    => 1
     5:10 => 1
     else => -1
-  end as IntLiteral)
+  end typed IntLiteral)
   ignore(case 5 of
     1 => "1"
     2 => "2"
     (* 3:10 => "range" won't work because of stupid IntLiteral *)
-  end as String)
+  end typed String)
   ignore(case 5 of
     1 => "1"
     2 => "2"
     (* 6:10 => "range" Won't work because of stupid IntLiteral *)
     else => "else"
-  end as String)
+  end typed String)
   *)
     (* Operator *)
     (*
@@ -65,13 +65,13 @@ run():() = do
       {"Mercury", "Venus", "Earth", "Mars"} => "inner"
       {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
       else => "remote"
-    end as String)
+    end typed String)
 
     ignore(case 5 > of
       4 => true
     6 => false
     else => false
-  end as Boolean)
+  end typed Boolean)
 *)
 
 end
