@@ -74,14 +74,38 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private final ComponentIndex ci;
 
 
+
     private void generateMainMethod() {
+
+        // We generate two methods.  First a springboard method that creates an 
+        // instance of the class we are generating, and then the real main method
+        // which takes the instance and uses it to pass to the primordial task.
+
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             NamingCzar.stringArrayToVoid, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper",
                            "registerArgs", NamingCzar.stringArrayToVoid);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "run", NamingCzar.voidToFortressVoid);
+
+        mv.visitTypeInsn(Opcodes.NEW, packageAndClassName);
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, packageAndClassName, "<init>", "()V");
+        
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "main", 
+                           "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V");
+        
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
+        mv.visitEnd();
+        
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
+                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V", 
+                            null, null);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.primordialTask, "startFortress",
+                           "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)Lcom/sun/fortress/runtimeSystem/PrimordialTask;");
+        
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
@@ -199,8 +223,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                packageAndClassName, null, NamingCzar.internalObject, null);
-
+                 packageAndClassName, null, NamingCzar.fortressComponent, 
+                 null);
+        
         // Always generate the init method
         generateInitMethod();
 
@@ -667,7 +692,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // with just stashing a null as we're not using it to
             // determine stack sizing or anything similarly crucial.
             cg.addLocalVar(new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null));
-        } else {
+        } else if (!nameString.equals("run")) {
             // Top-level function or functional method
             modifiers += Opcodes.ACC_STATIC;
         }
