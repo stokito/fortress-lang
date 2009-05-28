@@ -19,7 +19,7 @@ api simpleNameTest
 
 import List.{...} except { emptyList, singleton }
 import Set.{ opr { } }
-import AliasTest.{ opr OPLUS as MYPLUS }
+import AliasTest.{ opr OPLUS => MYPLUS }
 import api Map
 import api { File, FileSupport }
 

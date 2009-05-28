@@ -25,8 +25,8 @@ export Executable
     ignore((spawn do
       label l
         exit l
-      end l as ()
-    end) as Thread[\()\])
+      end l typed ()
+    end) typed Thread[\()\])
     ()
 
   end

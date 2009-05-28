@@ -28,9 +28,9 @@ export Executable
         exit inner with 1
         exit outer with true
         5
-      end inner as IntLiteral)
+      end inner typed IntLiteral)
       false
-    end outer as Boolean)
+    end outer typed Boolean)
 
     (* type of outer should be ZZ32 OR ZZ32 *)
     ignore(label outer
@@ -39,9 +39,9 @@ export Executable
         exit inner with true (* remove the 'inner' when disambiguator works *)
         exit outer with 5
         false
-      end inner as Boolean)
+      end inner typed Boolean)
       3
-    end outer as IntLiteral)
+    end outer typed IntLiteral)
     ()
   end
 

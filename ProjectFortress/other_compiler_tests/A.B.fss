@@ -17,11 +17,11 @@
 
 component A.B
 
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
 
 export Executable
 
 run() = jPrintln("A.B PASS")
-   
+
 
 end

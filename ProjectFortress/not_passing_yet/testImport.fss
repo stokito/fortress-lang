@@ -18,7 +18,7 @@
 component testImport
 
 import Foo.{...} except z
-import TestNative.{ TNFoo as MyFoo }
+import TestNative.{ TNFoo => MyFoo }
 
 export Executable
 

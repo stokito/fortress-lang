@@ -41,7 +41,7 @@ import Spacing;
    | DelimitedExpr
    | FlowExpr
    | fn w ValParam (w IsType)? (w Throws)? w => w Expr
-   | Expr w as w Type
+   | Expr w typed w Type
    | Expr w asif w Type
  */
 Expr Expr =
@@ -69,7 +69,7 @@ constant transient Action<Expr> ExprTail =
    ;
 
 constant inline Action<Expr> As =
-     w as w a1:Type
+     w typed w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
                return ExprFactory.makeAsExpr(createSpan(yyStart,yyCount),

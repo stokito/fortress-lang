@@ -29,9 +29,9 @@ export Executable
         exit with true
         exit outer with 5
         false
-      end inner as Boolean)
+      end inner typed Boolean)
       3
-    end outer as IntLiteral)
+    end outer typed IntLiteral)
     ()
 
   end

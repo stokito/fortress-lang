@@ -31,7 +31,7 @@ body {
         "reciprocal",   "static",
 
         "BIG",          "SI_unit",      "absorbs",      "abstract",
-        "also",         "api",          "as",           "asif",
+        "also",         "api",          "asif",
         "at",           "atomic",       "bool",         "case",
         "catch",        "coerce",       "coerces",      "component",
         "comprises",    "default",      "dim",          "do",
@@ -46,8 +46,8 @@ body {
         "private",      "property",     "provided",     "requires",
         "self",         "settable",     "setter",       "spawn",
         "syntax",       "test",         "then",         "throw",
-        "throws",       "trait",        "try",
-        "tryatomic",    "type",         "typecase",     "unit",
+        "throws",       "trait",        "try",          "tryatomic",
+        "type",         "typecase",     "typed",        "unit",
         "value",        "var",          "where",        "while",
         "widens",       "with",         "wrapped"
     });
@@ -74,7 +74,6 @@ transient void static = "static" !(idrest);
 transient void absorbs = "absorbs" !(idrest);
 transient void also = "also" !(idrest);
 transient void api = "api" !(idrest);
-transient void as = "as" !(idrest);
 transient void asif = "asif" !(idrest);
 transient void at = "at" !(idrest);
 transient void bool = "bool" !(idrest);
@@ -121,6 +120,7 @@ transient void try = "try" !(idrest);
 transient void tryatomic = "tryatomic" !(idrest);
 transient void type = "type" !(idrest);
 transient void typecase = "typecase" !(idrest);
+transient void typed = "typed" !(idrest);
 transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);

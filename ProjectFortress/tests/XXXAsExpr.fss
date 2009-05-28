@@ -19,6 +19,6 @@ component XXXAsExpr
 
 export Executable
 
-run() = println (3 as String)
+run() = println (3 typed String)
 
 end

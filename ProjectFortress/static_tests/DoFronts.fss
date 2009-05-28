@@ -32,7 +32,7 @@ export Executable
     also do
       ()
       false
-    end as Boolean
+    end typed Boolean
     ()
 
   end
