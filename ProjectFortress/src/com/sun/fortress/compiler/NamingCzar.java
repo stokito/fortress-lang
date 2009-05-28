@@ -73,6 +73,10 @@ public class NamingCzar {
     // but ignores the arguments.
     public static final int ignore = 1;
 
+    // Base class for all executable Fortress Components
+    public static final String fortressComponent = "com/sun/fortress/runtimeSystem/FortressComponent";
+    public static final String primordialTask    = "com/sun/fortress/runtimeSystem/PrimordialTask";
+
     // Classes: internal names
     // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
     public static final String internalFloat      = org.objectweb.asm.Type.getInternalName(float.class);
