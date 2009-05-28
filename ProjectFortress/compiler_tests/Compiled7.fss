@@ -18,6 +18,8 @@
 component Compiled7
 export Executable
 
+(* Local overloading. *)
+
 trait A end
 object O extends A end
 object P extends A end

@@ -18,6 +18,8 @@
 component Compiled6
 export Executable
 
+(* Simple typecase (no generics).  Also traits, and singleton objects. *)
+
 trait A end
 object O extends A end
 object P extends A end
