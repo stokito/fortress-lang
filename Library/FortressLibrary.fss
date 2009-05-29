@@ -961,6 +961,9 @@ opr NOTNI[\E\](this: Contains[\E\], x:E): Boolean = x NOTIN this
 trait Generator[\E\] extends { Contains[\E\] }
         excludes { Number }
 
+    (** reverse returns a generator which generates the same objects
+        in reverse order **)
+    getter reverse(): Generator[\E\] = SimpleReversedGenerator[\E\](self)
     getter asString(): String = (BIG ||[i <- self] "," i)[1:]
 
     (** generate is the core of Generator.  It generates elements of
@@ -1208,6 +1211,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter indices(): Generator[\ZZ32\] = self.bounds
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
+    getter reverse() : Condition[\E\] = self
     opr |self|: ZZ32 = if self.holds then 1 else 0 end
     opr [i:ZZ32]:E throws NotFound = if i=0 then self.get else throw NotFound end
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
@@ -1570,6 +1574,10 @@ trait Indexed[\E, I\] extends Generator[\E\]
         underlying object as closely as possible.  *)
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         self.indices.map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
+    (** reverse gives us an indexed object which is back-to-front:
+        the reversed object from the lower bound to the upper bound is the
+        original object from upper to lower *)
+    getter reverse():Indexed[\E,I\] = SimpleReversedIndexed[\E,I\](self)
     (** self.indices yields the indices corresponding to the elements of
         the indexed object---it corresponds to the index component of
         self.indexValuePairs.  This may in general be a subset of all the
@@ -2743,8 +2751,16 @@ end
 ************************************************************)
 
 trait Reduction[\L\]
+    getter reverse():Reduction[\L\] = ReversedReduction[\L\](self)
     empty(): L
     join(a: L, b: L): L
+end
+
+object ReversedReduction[\R\](r:Reduction[\R\]) extends Reduction[\R\]
+  getter reverse():Reduction[\R\] = r
+  getter asString():String = "ReversedReduction(" || r.asString || ")"
+  empty():R = r.empty()
+  join(x:R,y:R):R = r.join(y,x)
 end
 
 (** Invariants:
@@ -2846,7 +2862,9 @@ end
 
 trait SomeCommutativeReduction end
 
-trait CommutativeReduction[\R\] extends { AssociativeReduction[\R\], SomeCommutativeReduction } end
+trait CommutativeReduction[\R\] extends { AssociativeReduction[\R\], SomeCommutativeReduction }
+    getter reverse():CommutativeReduction[\R\] = self
+end
 
 (** Monoids don't require a special lift and unlift operation. **)
 trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
@@ -2854,7 +2872,9 @@ trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
     unlift(r:R): R = r
 end
 
-trait CommutativeMonoidReduction[\R\] extends { MonoidReduction[\R\], SomeCommutativeReduction} end
+trait CommutativeMonoidReduction[\R\] extends { MonoidReduction[\R\], SomeCommutativeReduction}
+    getter reverse():CommutativeMonoidReduction[\R\] = self
+end
 
 trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isLeftZero(l:L): Boolean = isZero(l)
@@ -2883,6 +2903,7 @@ end
     our program) but not void distributing over other things. **)
 object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     getter asString(): String = "VoidReduction"
+    getter reverse(): Reduction[\()\] = VoidReduction
     empty(): () = ()
     join(a: (), b: ()): () = ()
 end
@@ -3164,6 +3185,7 @@ trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
     getter asString(): String = "mapped(" (self asif Generator[\F\]).asString ")"
+    getter reverse(): SimpleMappedGenerator[\E,F\] = SimpleMappedGenerator[\E,F\](self.g.reverse, self.f)
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r, m COMPOSE self.f)
     reduce(r: Reduction[\F\]): F =
@@ -3211,6 +3233,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
     getter asString(): String = self.g ".filter(p)"
+    getter reverse(): FilterGenerator[\E\] = SimpleFilterGenerator[\E\](self.g.reverse, self.p)
     generate[\R\](r:Reduction[\R\], m: E->R): R =
         self.g.generate[\R\](r, fn(e:E):R => if (self.p)(e).holds then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
@@ -3238,6 +3261,9 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> Generator[\F\]
     getter asString(): String
+    getter reverse(): NestedGenerator[\E,F\] =
+        SimpleNestedGenerator[\E,F\](self.g.reverse,
+            fn(e:E):Generator[\F\] => f(e).reverse)
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r,fn (e:E):R => (self.f)(e).generate[\R\](r,m))
     mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
@@ -3285,6 +3311,7 @@ trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
     getter f(): Generator[\F\]
     getter asString(): String
     getter size():ZZ32 = |self|
+    getter reverse(): PairGenerator[\E,F\] = SimplePairGenerator[\E,F\](self.e.reverse, self.f.reverse)
     opr |self| : ZZ32 = |self.e| |self.f|
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
         self.e.generate[\R\](r, fn (a: E): R =>
@@ -3305,6 +3332,45 @@ object SimplePairSeqGenerator[\E,F\]
     getter e() = e0
     getter f() = f0
     getter asString()=("seq(" e ".cross(" f "))" )
+end
+
+(** Helpers for reversing generators and indexed objects. *)
+trait ReversedGenerator[\E\] extends Generator[\E\]
+    getter g():Generator[\E\]
+    getter reverse(): Generator[\E\] = self.g
+    generate[\R\](r:Reduction[\R\], body:E->R): R = self.g.generate[\R\](r.reverse, body)
+    map[\G\](f: E->G): Generator[\G\] = self.g.map[\G\](f).reverse
+    filter(f: E -> Condition[\()\]): Generator[\E\] = self.g.filter(f).reverse
+end
+
+object SimpleReversedGenerator[\E\](g0:Generator[\E\]) extends ReversedGenerator[\E\]
+    getter g():Generator[\E\] = g0
+    getter asString(): String = "SimpleReversedGenerator(" self.g.asString ")"
+end
+
+trait ReversedIndexed[\E,I\] extends { Indexed[\E,I\], ReversedGenerator[\E\] }
+    getter g():Indexed[\E,I\]
+
+    getter isEmpty(): Boolean = self.g.isEmpty
+    getter bounds(): CompactFullRange[\I\] = self.g.bounds
+    getter indices(): Generator[\I\] = self.g.indices
+
+    getter reverse(): Indexed[\E,I\] = self.g
+    getter indexValuePairs(): Indexed[\(I,E),I\] = self.g.indexValuePairs.reverse
+
+    opr |self|: ZZ32 = |(self.g)|
+    opr[i:I] : E = self.g[i]
+    opr[r:Range[\I\]] : Indexed[\E,I\] = (self.g)[r].reverse
+
+    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = self.g.ivmap[\R\](f).reverse
+    map[\R\](f:E->R): Indexed[\R, I\] = self.g.map[\R\](f).reverse
+
+    indexOf(e:E): Maybe[\I\] = self.g.indexOf(e)
+end
+
+object SimpleReversedIndexed[\E,I\](g0:Indexed[\E,I\]) extends ReversedIndexed[\E,I\]
+    getter g():Indexed[\E,I\] = g0
+    getter asString(): String = "SimpleReversedIndexed(" self.g.asString ")"
 end
 
 (** Helper for serializing generators naively.  This code should make
