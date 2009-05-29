@@ -24,6 +24,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Node;
@@ -70,9 +71,9 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
         Option<Contract> contract_result = recurOnOptionOfContract(header.getContract());
         List<Param> params_result = recurOnListOfParam(header.getParams());
         Option<Type> returnType_result = recurOnOptionOfType(header.getReturnType());
-        Id unambiguousName_result = (Id) recur(that.getUnambiguousName());
+        IdOrOp unambiguousName_result = (IdOrOp) recur(that.getUnambiguousName());
         Option<Expr> body_result = recurOnOptionOfExpr(that.getBody());
-        Option<Id> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
+        Option<IdOrOp> implementsUnambiguousName_result = recurOnOptionOfIdOrOp(that.getImplementsUnambiguousName());
         return  forFnDeclOnly(that, that.getInfo(), name_result, staticParams_result, params_result,
                               returnType_result, throwsClause_result,
                               where_result, contract_result, unambiguousName_result,
@@ -87,9 +88,9 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
                               Option<List<BaseType>> throwsClause_result,
                               Option<WhereClause> where_result,
                               Option<Contract> contract_result,
-                              Id unambiguousName_result,
+                              IdOrOp unambiguousName_result,
                               Option<Expr> body_result,
-                              Option<Id> implementsUnambiguousName_result) {
+                              Option<IdOrOp> implementsUnambiguousName_result) {
         // Is the return type given?
         Option<Type> new_ret_type =
             returnType_result.isNone() ?

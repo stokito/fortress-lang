@@ -612,7 +612,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         Option<String> contract_result = recurOnOptionOfContract(header.getContract());
         String unambiguousName_result = recur(that.getUnambiguousName());
         Option<String> body_result = recurOnOptionOfExpr(that.getBody());
-        Option<String> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
+        Option<String> implementsUnambiguousName_result = recurOnOptionOfIdOrOp(that.getImplementsUnambiguousName());
         return forFnDeclOnly(that, name_result, staticParams_result,
                              params_result, returnType_result,
                              throwsClause_result, whereClause_result,

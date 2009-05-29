@@ -316,8 +316,8 @@ interface Node() extends HasAt;
                  * by this declaration. If this declaration doesn't match an exported
                  * declaration, the field is set to Option.none.
                  */
-                FnDecl(FnHeader header, Id unambiguousName,
-                       Option<Expr> body, Option<Id> implementsUnambiguousName)
+                FnDecl(FnHeader header, IdOrOp unambiguousName,
+                       Option<Expr> body, Option<IdOrOp> implementsUnambiguousName)
                       implements Applicable, Generic;
                 /**
                  * Overloading specification
