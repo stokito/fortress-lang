@@ -17,14 +17,26 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+TP=third_party
+SCALAVER=2.7.4
+
 if (uname | egrep -q CYGWIN) ; then 
-  CP="build;third_party/junit/junit.jar;third_party/unsigned/unsigned.jar;third_party/asm/asm-3.1.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar;third_party/astgen/astgen.jar"
+  CP="build;$TP/junit/junit.jar;$TP/unsigned/unsigned.jar;$TP/asm/asm-all-3.1.jar;$TP/xtc/xtc.jar;$TP/jsr166y/jsr166y.jar;$TP/plt/plt.jar;$TP/astgen/astgen.jar;$TP/scala/scala-library-$SCALAVER.jar"
 else
-  CP="build:third_party/junit/junit.jar:third_party/unsigned/unsigned.jar:third_party/asm/asm-3.1.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar:third_party/astgen/astgen.jar"
+  CP="build:$TP/junit/junit.jar:$TP/unsigned/unsigned.jar:$TP/asm/asm-all-3.1.jar:$TP/xtc/xtc.jar:$TP/jsr166y/jsr166y.jar:$TP/plt/plt.jar:$TP/astgen/astgen.jar:$TP/scala/scala-library-$SCALAVER.jar"
 fi
+echo classpath=$CP
 
+TEST=com.sun.fortress.tests.unit_tests.SystemJUTest
 
+if [ $# -ge 1 ] ; then
+  TEST="$1"
+  TEST=`echo "$TEST" | sed -e '1,\$s?/?.?g'`
+  echo Testing "$TEST"
+  java -cp "$CP" -Xmx800m -Xms400m \
+  junit.swingui.TestRunner "$TEST" >& test.log
 
-java -cp "$CP" -Xmx800m -Xms400m \
-junit.swingui.TestRunner \
-com.sun.fortress.tests.unit_tests.SystemJUTest >& test.log
+else
+  java -cp "$CP" -Xmx800m -Xms400m \
+  junit.swingui.TestRunner "$TEST" >& test.log
+fi
