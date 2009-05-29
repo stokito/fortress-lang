@@ -449,10 +449,15 @@ public class NodeFactory {
                                     Option<List<BaseType>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract) {
+    	IdOrOp unambiguousName;
+    	if (name instanceof Op) {
+    		unambiguousName = makeOp((Op)name, "OP$"+span.toString());
+    	} else {
+    		unambiguousName = makeId(span, "FN$"+span.toString());
+    	}
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
-                          throwsC, whereC, contract,
-                          makeId(span, "FN$"+span.toString()),
-                          Option.<Expr>none(), Option.<Id>none());
+                          throwsC, whereC, contract, unambiguousName,
+                          Option.<Expr>none(), Option.<IdOrOp>none());
     }
 
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
@@ -464,10 +469,15 @@ public class NodeFactory {
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract,
                                     Option<Expr> body) {
+    	IdOrOp unambiguousName;
+    	if (name instanceof Op) {
+    		unambiguousName = makeOp((Op)name, "OP$"+span.toString());
+    	} else {
+    		unambiguousName = makeId(span, "FN$"+span.toString());
+    	}
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
-                          throwsC, whereC, contract,
-                          makeId(span, "FN$"+span.toString()),
-                          body, Option.<Id>none());
+                          throwsC, whereC, contract, unambiguousName,
+                          body, Option.<IdOrOp>none());
     }
 
     public static FnHeader makeFnHeader(Modifiers mods,
@@ -490,9 +500,9 @@ public class NodeFactory {
                                     Option<List<BaseType>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract,
-                                    Id unambiguousName,
+                                    IdOrOp unambiguousName,
                                     Option<Expr> body,
-                                    Option<Id> implementsUnambiguousName) {
+                                    Option<IdOrOp> implementsUnambiguousName) {
         FnHeader header = makeFnHeader(mods, name, staticParams, whereC, throwsC,
                                        contract, params, returnType);
         return new FnDecl(makeSpanInfo(span), header, unambiguousName, body, implementsUnambiguousName);

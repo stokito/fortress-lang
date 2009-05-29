@@ -570,9 +570,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Option<Contract> contract_result = recurOnOptionOfContract(header.getContract());
         List<Param> params_result = recurOnListOfParam(header.getParams());
         Option<Type> returnType_result = recurOnOptionOfType(header.getReturnType());
-        Id unambiguousName_result = (Id) recur(that.getUnambiguousName());
+        IdOrOp unambiguousName_result = (IdOrOp) recur(that.getUnambiguousName());
         Option<Expr> body_result = recurOnOptionOfExpr(that.getBody());
-        Option<Id> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
+        Option<IdOrOp> implementsUnambiguousName_result = recurOnOptionOfIdOrOp(that.getImplementsUnambiguousName());
         return  NodeFactory.makeFnDecl(NodeUtil.getSpan(that), removeGetterSetterMod(NodeUtil.getMods(that)),
                                        name_result, staticParams_result, params_result,
                                        returnType_result, throwsClause_result,

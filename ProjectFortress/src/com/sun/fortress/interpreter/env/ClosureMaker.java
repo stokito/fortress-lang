@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.NotFound;
@@ -62,7 +63,7 @@ public class ClosureMaker  implements Opcodes {
 
     public static byte[] forTopLevelFunction (APIName apiname,  FnDecl fd, String closureClass,  String aClass, String aMethod) throws Exception {
 
-        Id ua_name = fd.getUnambiguousName();
+    	IdOrOp ua_name = fd.getUnambiguousName();
         /*
          This is a cheat; ought to be more algorithmic, so this will
          work in general, not just for native wrappers.  Proper

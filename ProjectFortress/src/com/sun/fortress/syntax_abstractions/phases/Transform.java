@@ -432,12 +432,15 @@ public class Transform extends TemplateUpdateVisitor {
                         public Node forFnDeclOnly(FnDecl that,
                                                   ASTNodeInfo info_result,
                                                   FnHeader header_result,
-                                                  Id name_result,
+                                                  IdOrOp name_result,
                                                   Option<Expr> body_result,
-                                                  Option<Id> implementsUnambiguousName_result) {
-                            Id old = (Id) ((Id)name_result).accept(transformer);
-                            final Id generatedId = generateId(name_result, old);
-                            extendSyntaxEnvironment(old, generatedId);
+                                                  Option<IdOrOp> implementsUnambiguousName_result) {
+                        	IdOrOp generatedId = name_result;
+                        	if (generatedId instanceof Id) {
+	                            Id old = (Id) ((Id)name_result).accept(transformer);
+	                            generatedId = generateId(name_result, old);
+	                            extendSyntaxEnvironment(old, (Id)generatedId);
+                        	}
 
                             FnHeader new_fnHeader =
                                 (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
