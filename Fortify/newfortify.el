@@ -1,3 +1,18 @@
+;;    Copyright 2009 Sun Microsystems, Inc.,
+;;    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+;;    All rights reserved.
+;;
+;;    U.S. Government Rights - Commercial software.
+;;    Government users are subject to the Sun Microsystems, Inc. standard
+;;    license agreement and applicable provisions of the FAR and its supplements.
+;;
+;;    Use is subject to license terms.
+;;
+;;    This distribution may include materials developed by third parties.
+;;
+;;    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+;;    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
 (global-set-key "\M-#" 'newfortify)
 (require 'cl)
 
@@ -600,11 +615,11 @@
   (prog2 (backward-char)
       (cond ((posix-looking-at "\\([-=~][-=~]+\\|[-=~]+\\(/+\\|[\\]+\\||+\\|[*]\\)[-=~]+\\)")
 	     ;; LongArrowBody
-	     (posix-looking-at 
+	     (posix-looking-at
 	      ;; LongArrowBody (RightArrowHead | RightHarpoonHead | LeftArrowTail)?
 	      "\\([-=~][-=~]+\\|[-=~]+\\(/+\\|[\\]+\\||+\\|[*]\\)[-=~]+\\)\\([*]?\\([|<>][*]?\\)*>\\([*]?|\\)*\\|\\(\\([*]?[\\]\\)+\\|\\([*]?/\\)+\\)\\([*]?|\\)*\\|\\(\\([*]?<\\)+\\([*]?|\\)*\\|\\([*]?|\\)+\\)\\)?"))
 	    (t
-	     (or (posix-looking-at 
+	     (or (posix-looking-at
 		  ;; ArrowBody RightArrowHead
 		  "\\([-=~]+\\|[-=~]+\\(/+\\|[\\]+\\||+\\|[*]\\)[-=~]+\\)[*]?\\([|<>][*]?\\)*>\\([*]?|\\)*")
 		 (posix-looking-at
@@ -748,7 +763,7 @@
   (mapcar 'fortify-single-token tokens))
 
 (defun fortify-single-token (token)
-  (list (car token) 
+  (list (car token)
 	(cadr token)
 	(ecase (car token)
 	       (AMPERSAND (fortress-render-ampersand (cadr token)))
@@ -977,11 +992,11 @@
 						  (cond ((string= (car (last portions)) "_")
 							 (cond ((string= (first portions) "_") 3) (t 1)))
 							(t (cond ((string= (first portions) "_") 2) (t 0)))))))
-				   
+
 				   (cond (face (fortress-render-identifier-general-case-loop
 						(concat face "{" base "}"))
 					       (= (length principal-portion) 1)
-					       "" 
+					       ""
 					       ""
 					       other-portions)
 					 (t (fortress-render-identifier-general-case-loop
@@ -992,7 +1007,7 @@
 						     base
 						     "}")
 					     nil
-					     "" 
+					     ""
 					     ""
 					     other-portions)))
 				   ))))))))))
@@ -1092,7 +1107,7 @@
 	      (gethash (cadr other-portions) *fortress-operator-hashtable*))
 	 (fortress-render-identifier-general-case-loop
 	  basevar singletonflag
-	  (fortress-add-s-script subscript 
+	  (fortress-add-s-script subscript
 				 (gethash (cadr other-portions) *fortress-operator-hashtable*))
 	  superscript (cddr other-portions)))
 	((and singletonflag (null (cdddr other-portions)))
@@ -1149,7 +1164,7 @@
 		   (result "" (concat "'" result)))
 		  ((= k n) result)))
 	(t (concat "^{" str "}")))))
-			   
+
 (defun fortress-add-s-script (subscript str)
   (let ((z (cond ((every 'unicode-is-digit str) (concat "(" (fortress-tex-id-render str) ")"))
 		 (t (concat "\\mathrm{" (fortress-tex-id-render str) "}")))))
@@ -1310,7 +1325,7 @@
 (defun fortress-render-circumflex (str)
   (concat "\\OPR{" (fortress-render-string-contents str) "}"))
 
-(defun fortress-render-ampersand (str) 
+(defun fortress-render-ampersand (str)
   (concat "\\OPR{" (fortress-render-string-contents str) "}"))
 
 (defun fortress-render-string (str)
@@ -1374,7 +1389,7 @@
 (defun fortress-render-newline (str) " \\\\\n")
 
 (defun fortress-render-whitespace (str) str)
- 
+
 (defun fortress-render-comment (str)
   (let ((startpos (position-if-not '(lambda (x) (= x ?\*)) str :start 1))
 	(endpos (+ 1 (position-if-not '(lambda (x) (= x ?\*)) str :end  (- (length str) 1) :from-end t))))
@@ -1719,7 +1734,7 @@
 				  '((?\] . ?\[) (?\) . ?\() (?\> . ?\<) (?\} . ?\{) (?\/ . ?\\) (?\\ . ?\/))
 				'((?\] . ?\[) (?\) . ?\() (?\> . ?\<) (?\} . ?\{)))
 			      (reverse (string-to-list rightname)))))))
-	     
+
 (defun fortify-keyword-encloser-match (leftname rightname)
   (or (string= rightname "end")
       (and (string= rightname "also")
@@ -1859,7 +1874,7 @@
 	     (top-text (and top-mid-space
 			    (substring first-trimmed (+ top-mid-space 1))))
 	     (top-rule (and (> (length first-trimmed) 0)
-			    (or (not top-nonstar) top-backslash)))			     
+			    (or (not top-nonstar) top-backslash)))
 	     (bottom-tag (and bottom-nonstar
 			      (not bottom-backslash)
 			      (or (not bottom-mid-space)
@@ -1999,13 +2014,13 @@
 			    (push (concat "\\fortressleftindent{" (number-to-string (or curindent 0)) "}"
 					  (fortress-render-string-contents
 					   (fortress-trim-string-right
-					    (substring (car lns) 
+					    (substring (car lns)
 						       (if (string= (car lns) "}}}")
 							   (+ begin-indent 1)
 							 (min begin-indent
 							      (or (position-if '(lambda (c) (not (= c ?\s))) (car lns))
 								  (length (car lns)))))))))
-				  result) 
+				  result)
 			    (setq lns (cdr lns)))
 			  (setq indented-par-last nil)
 			  (setq par-in-progress nil)
@@ -2292,13 +2307,13 @@
 	       (do ((items (fortress-balanced-expression-items (cdr toks)) (cdr items))
 		    (first t nil))
 		   ((null items))
-		 ;; 
+		 ;;
 		 (unless first
 		   (rplacd (last (cadr toks)) (list "\\genfrac{}{}{0pt}{1}{")))
 		 (rplaca (cddr (car (cdr (memq (cadr (car items)) toks))))
 			 (if (null (cdr items))
 			     (if first "}" "}}")
-			   (if first "}{" "}}{"))))))		 
+			   (if first "}{" "}}{"))))))
 	    ((and (eq (car (car toks)) 'IDENTIFIER)
 		  (fortress-balanced-expression-suitable-subscript (cdr toks)))
 	     (let ((end (gethash (cadr toks) *fortress-matching-hashtable*)))
@@ -2723,10 +2738,10 @@
 	(result t))
     (do ((k start (+ k 1))
 	 (level 1 (let ((c (elt str k)))
-		    (cond ((= c ?\{) 
+		    (cond ((= c ?\{)
 			   (when (= level 0) (setq result nil))
 			   (+ level 1))
-			  ((= c ?\}) 
+			  ((= c ?\})
 			   (when (= level 0) (error "Too many right braces in %s" str))
 			   (- level 1))
 			  (t (when (= level 0) (setq result nil))
