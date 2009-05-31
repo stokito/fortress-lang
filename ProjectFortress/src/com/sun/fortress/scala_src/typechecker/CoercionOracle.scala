@@ -35,7 +35,7 @@ import scala.collection.mutable.Set
 
 class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer, errors: ErrorLog) {
   val coercionTable = makeCoercionTable()
-  val exclusionOracle = new ExclusionOracle(analyzer)
+  val exclusionOracle = new ExclusionOracle(analyzer, errors)
 
   private def makeCoercionTable() = {
     /*

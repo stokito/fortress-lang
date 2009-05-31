@@ -26,6 +26,8 @@ import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
+import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
+import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
@@ -59,8 +61,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                          globalEnv: GlobalEnvironment,
                          repository: FortressRepository) {
 
-    val typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
-    val exclusionOracle = new ExclusionOracle(typeAnalyzer)
+    var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
@@ -69,7 +70,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     def checkOverloading(): JavaList[StaticError] = {
         val fnsInComp = compilation_unit.functions
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
-            checkOverloading(f, fnsInComp.matchFirst(f))
+            checkOverloading(f, toSet(fnsInComp.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
         }
         val typesInComp = compilation_unit.typeConses
         for ( t <- toSet(typesInComp.keySet) ;
@@ -93,31 +94,37 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                               "with the same name, if any.")
                 }
             }
-            /*
-            val methods = typesInComp.get(t).asInstanceOf[TraitIndex].dottedMethods
+            val methods = traitOrObject.dottedMethods
+            val staticParameters = new ArrayList[StaticParam]()
+            // Add static parameters of the enclosing trait or object
+            staticParameters.addAll( traitOrObject.staticParameters )
+            // Extend the type analyzer with the collected static parameters
+            val oldTypeAnalyzer = typeAnalyzer
             for ( f <- toSet(methods.firstSet) ; if isDeclaredName(f) ) {
-                checkOverloading(f, methods.matchFirst(f).asInstanceOf[JavaSet[JavaFunctional]])
+                typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+                checkOverloading(f, toSet(methods.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
             }
-            */
+            typeAnalyzer = oldTypeAnalyzer
         }
         toJavaList(errors)
     }
 
     /* Checks the validity of the overloaded function declarations. */
     private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: JavaSet[JavaFunction]) = {
-        var signatures = List[((Type,Type),Span)]()
-        for ( f <- toSet(set) ; if isDeclaredFunction(f) ) {
+                                 set: Set[JavaFunctional]) = {
+        var signatures = List[((JavaList[StaticParam],Type,Type),Span)]()
+        for ( f <- set ; if isDeclaredFunctional(f) ) {
             val result = f.getReturnType
             val param = paramsToType(f.parameters, f.getSpan)
-            signatures.find(p => p._1 == (param,result)) match {
+            val sparams = f.staticParameters
+            signatures.find(p => p._1 == (sparams,param,result)) match {
                 case Some((_,span)) =>
                     error(mergeSpan(span, f.getSpan),
                           "There are multiple declarations of " +
                           name + " with the same type: " +
                           param + " -> " + result)
                 case _ =>
-                    signatures = ((param, result), f.getSpan) :: signatures
+                    signatures = ((sparams, param, result), f.getSpan) :: signatures
             }
         }
         var index = 1
@@ -139,30 +146,34 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     /* Checks the overloading rules: subtype / exclusion / meet */
-    private def validOverloading(first: ((Type,Type),Span),
-                                 second: ((Type,Type),Span),
-                                 set: List[((Type,Type),Span)]) =
+    private def validOverloading(first: ((JavaList[StaticParam],Type,Type),Span),
+                                 second: ((JavaList[StaticParam],Type,Type),Span),
+                                 set: List[((JavaList[StaticParam],Type,Type),Span)]) =
         subtype(first, second) || subtype(second, first) ||
         exclusion(first, second) || meet(first, second, set)
 
     /* Checks the overloading rule: subtype */
-    private def subtype(newTypeAnalyzer: TypeAnalyzer, f: JavaFunction,
-                        g: JavaFunction): Boolean =
-        subtype(newTypeAnalyzer, paramsToType(g.parameters, g.getSpan),
+    private def subtype(f: JavaFunction, g: JavaFunction): Boolean =
+        subtype(paramsToType(g.parameters, g.getSpan),
                 paramsToType(f.parameters, f.getSpan)) &&
-        subtype(newTypeAnalyzer, f.getReturnType, g.getReturnType)
-
-    private def subtype(newTypeAnalyzer: TypeAnalyzer, sub_type: Type,
-                        super_type: Type): Boolean =
-        newTypeAnalyzer.subtype(sub_type, super_type).isTrue
+        subtype(f.getReturnType, g.getReturnType)
 
     private def subtype(sub_type: Type, super_type: Type): Boolean =
-        subtype(typeAnalyzer, sub_type, super_type)
+        typeAnalyzer.subtype(sub_type, super_type).isTrue
 
-    private def subtype(sub_type: ((Type,Type),Span),
-                        super_type: ((Type,Type),Span)): Boolean =
-        subtype(super_type._1._1, sub_type._1._1) &&
-        subtype(sub_type._1._2, super_type._1._2)
+    private def subtype(sub_type: ((JavaList[StaticParam],Type,Type),Span),
+                        super_type: ((JavaList[StaticParam],Type,Type),Span)): Boolean = {
+        val oldTypeAnalyzer = typeAnalyzer
+        // Add static parameters of the method
+        val staticParameters = new ArrayList[StaticParam]()
+        staticParameters.addAll(sub_type._1._1)
+        staticParameters.addAll(super_type._1._1)
+        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        val result = subtype(super_type._1._2, sub_type._1._2) &&
+                     subtype(sub_type._1._3, super_type._1._3)
+        typeAnalyzer = oldTypeAnalyzer
+        result
+    }
 
     /* Checks the overloading rule: exclusion
      * Invariant: firstParam is not equal to secondParam
@@ -174,23 +185,42 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
      *     Union types
      *     Fixed-point types
      */
-    private def exclusion(first: ((Type,Type),Span),
-                          second: ((Type,Type),Span)): Boolean =
-        exclusionOracle.excludes(first._1._1, second._1._1)
+    private def exclusion(first: ((JavaList[StaticParam],Type,Type),Span),
+                          second: ((JavaList[StaticParam],Type,Type),Span)): Boolean = {
+        val oldTypeAnalyzer = typeAnalyzer
+        // Add static parameters of the method
+        val staticParameters = new ArrayList[StaticParam]()
+        staticParameters.addAll(first._1._1)
+        staticParameters.addAll(second._1._1)
+        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        val result = new ExclusionOracle(typeAnalyzer,
+                                         new ErrorLog()).excludes(first._1._2,
+                                                                  second._1._2)
+        typeAnalyzer = oldTypeAnalyzer
+        result
+    }
 
     /* Checks the overloading rule: meet */
     /* Not yet fully implemented... */
-    private def meet(first: ((Type,Type),Span), second: ((Type,Type),Span),
-                     set: List[((Type,Type),Span)]) = {
+    private def meet(first: ((JavaList[StaticParam],Type,Type),Span),
+                     second: ((JavaList[StaticParam],Type,Type),Span),
+                     set: List[((JavaList[StaticParam],Type,Type),Span)]) = {
+        val oldTypeAnalyzer = typeAnalyzer
+        // Add static parameters of the method
+        val staticParameters = new ArrayList[StaticParam]()
+        staticParameters.addAll(first._1._1)
+        staticParameters.addAll(second._1._1)
+        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
         var result = false
-        val meet = (reduce(typeAnalyzer.meet(first._1._1, second._1._1)),
-                    reduce(typeAnalyzer.meet(first._1._2, second._1._2)))
+        val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2)),
+                    reduce(typeAnalyzer.meet(first._1._3, second._1._3)))
         for ( f <- set ; if ! result )
-            if ( subtype(f._1._1, meet._1) &&
-                 subtype(meet._1, f._1._1) &&
-                 subtype(meet._2, f._1._2) &&
-                 subtype(f._1._2, meet._2))
+            if ( subtype(f._1._2, meet._1) &&
+                 subtype(meet._1, f._1._2) &&
+                 subtype(meet._2, f._1._3) &&
+                 subtype(f._1._3, meet._2))
                 result = true
+        typeAnalyzer = oldTypeAnalyzer
         result
     }
 
@@ -259,11 +289,13 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         // Add static parameters of "g"
         for ( s <- toList(g.staticParameters) ) staticParameters.add(s)
         // Extend the type analyzer with the collected static parameters
-        val newTypeAnalyzer = typeAnalyzer.extend(staticParameters,
-                                                  none[WhereClause])
+        val oldTypeAnalyzer = typeAnalyzer
         // Whether "g"'s parameter type is a subtype of "f"'s parameter type
         // and "f"'s return type is a subtype of "g"'s return type
-        subtype(newTypeAnalyzer, f, g)
+        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        val result = subtype(f, g)
+        typeAnalyzer = oldTypeAnalyzer
+        result
     }
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
@@ -272,13 +304,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         case _ => false
     }
 
-    def isDeclaredFunction(f: JavaFunction) = f match {
+    def isDeclaredFunctional(f: JavaFunctional) = f match {
         case DeclaredFunction(fd) => true
+        case DeclaredMethod(_,_) => true
         case _ => false
     }
 
-    private def mergeSpan(sub_type: ((Type,Type),Span),
-                          super_type: ((Type,Type),Span)): String =
+    private def mergeSpan(sub_type: ((JavaList[StaticParam],Type,Type),Span),
+                          super_type: ((JavaList[StaticParam],Type,Type),Span)): String =
         mergeSpan(sub_type._2, super_type._2)
 
     private def mergeSpan(first: Span, second: Span): String =
@@ -287,8 +320,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         else
             second.toString + ":\n" + first.toString
 
-    private def toString(ty: ((Type,Type), Span)): String =
-        ty._1._1 + " -> " + ty._1._2 + " @ " + ty._2
+    private def toString(ty: ((JavaList[StaticParam],Type,Type), Span)): String =
+        ty._1._2 + " -> " + ty._1._3 + " @ " + ty._2
 
     /* Returns the type of the given list of parameters. */
     private def paramsToType(params: JavaList[Param], span: Span): Type =
@@ -304,8 +337,15 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     private def paramToType(param: Param): Type =
         toOption(param.getIdType) match {
             case Some(ty) => ty
-            case _ => InterpreterBug.bug(param,
-                                         "Type checking couldn't infer the type of " + param)
+            case _ =>
+                toOption(param.getVarargsType) match {
+                    case Some(ty) => ty
+                    case _ =>
+                        val span = NodeUtil.getSpan(param)
+                        error(span.toString,
+                              "Type checking couldn't infer the type of " + param)
+                        NodeFactory.makeVoidType(span)
+                }
         }
 
     private def error(loc: String, msg: String) =

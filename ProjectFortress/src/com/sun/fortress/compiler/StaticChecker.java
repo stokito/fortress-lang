@@ -219,7 +219,7 @@ public class StaticChecker {
                                                                     TypeAnalyzer.make(envs.second()));
 
                 if (Shell.testCoercion()) { new CoercionTest(typeChecker).run(); }
-                    
+
         	component_ast = typeChecker.check(component_ast);
         	result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));

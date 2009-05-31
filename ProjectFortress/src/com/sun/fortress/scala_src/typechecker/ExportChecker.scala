@@ -30,6 +30,9 @@ import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.ParametricOperator
 import com.sun.fortress.compiler.index.{Constructor => JavaConstructor}
 import com.sun.fortress.compiler.index.{DeclaredFunction => JavaDeclaredFunction}
+import com.sun.fortress.compiler.index.{DeclaredMethod => JavaDeclaredMethod}
+import com.sun.fortress.compiler.index.{FieldGetterMethod => JavaFieldGetterMethod}
+import com.sun.fortress.compiler.index.{FieldSetterMethod => JavaFieldSetterMethod}
 import com.sun.fortress.compiler.index.{DeclaredVariable => JavaDeclaredVariable}
 import com.sun.fortress.compiler.index.{Dimension => JavaDimension}
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
@@ -712,7 +715,28 @@ object DeclaredFunction {
 
 object FunctionalMethod {
     def unapply(function:JavaFunctionalMethod) =
-        Some(function.ast, function.declaringTrait)
+        Some((function.ast, function.declaringTrait))
     def apply(fndecl:FnDecl, id:Id) =
         new JavaFunctionalMethod(fndecl, id)
+}
+
+object DeclaredMethod {
+    def unapply(method:JavaDeclaredMethod) =
+        Some((method.ast, method.getDeclaringTrait))
+    def apply(fndecl:FnDecl, id:Id) =
+        new JavaDeclaredMethod(fndecl, id)
+}
+
+object FieldGetterMethod {
+    def unapply(method:JavaFieldGetterMethod) =
+        Some((method.ast, method.getDeclaringTrait))
+    def apply(binding:Binding, id:Id) =
+        new JavaFieldGetterMethod(binding, id)
+}
+
+object FieldSetterMethod {
+    def unapply(method:JavaFieldSetterMethod) =
+        Some((method.ast, method.getDeclaringTrait))
+    def apply(binding:Binding, id:Id) =
+        new JavaFieldSetterMethod(binding, id)
 }

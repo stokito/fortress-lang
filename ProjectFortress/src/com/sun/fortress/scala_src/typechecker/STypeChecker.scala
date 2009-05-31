@@ -53,7 +53,6 @@ import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.ExprUtil
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
-import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.useful.HasAt
 
 /* Quesitons
@@ -829,7 +828,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           case first::rest =>
             if ( isArrows(first) ) {
               val (arrows,temp) = (first::rest).span(isArrows)
-              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e)) 
+              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
               chunker(remainingChunks, (arrows,nonArrows)::results)
             } else {
               val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
@@ -848,7 +847,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         // Right associate everything in a chunk as a _RewriteFnApp
         def associateArrows(fs: List[Expr], oe: Option[Expr]) = oe match {
           case None => fs match {
-            case Nil => bug(expr, "Empty chunk")
+            case Nil =>
+              errors.signal("Empty chunk", expr)
+              expr
             case _ =>
               fs.take(fs.size-1).foldRight(fs.last){ (f: Expr, e: Expr) =>
                                                      ExprFactory.make_RewriteFnApp(f,e) }
@@ -886,7 +887,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         else {
           // If not, left associate as InfixJuxts
           associatedChunks match {
-            case Nil => bug(expr, "Empty juxt")
+            case Nil =>
+              errors.signal("Empty juxt", expr)
+              expr
             case head::tail =>
               checkExpr(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
                                              ExprFactory.makeOpExpr(infix,e1,e2) })
