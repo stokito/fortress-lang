@@ -351,6 +351,14 @@ public class IndexBuilder {
         for (Decl decl : NodeUtil.getDecls(ast)) {
             decl.accept(handleFnDecl);
         }
+        for (Id id : getters.keySet()) {
+            if ( dottedMethods.firstSet().contains(id) )
+                error("Getter declarations should not be overloaded with method declarations.", id);
+        }
+        for (Id id : setters.keySet()) {
+            if ( dottedMethods.firstSet().contains(id) )
+                error("Setter declarations should not be overloaded with method declarations.", id);
+        }
 
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forVarDecl(VarDecl d) {
