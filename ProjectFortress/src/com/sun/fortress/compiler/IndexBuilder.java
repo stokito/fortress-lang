@@ -64,8 +64,6 @@ import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
 public class IndexBuilder {
 
     static public IndexBuilder builder = new IndexBuilder();
@@ -295,14 +293,19 @@ public class IndexBuilder {
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
 
-        NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
-            @Override public void forVarDecl(VarDecl d) {
-                buildTraitFields(d, name, getters, setters);
-            }
+        NodeAbstractVisitor_void handleFnDecl = new NodeAbstractVisitor_void() {
             @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, NodeUtil.getStaticParams(ast),
                             getters, setters, coercions, dottedMethods,
                             functionalMethods, functions, parametricOperators);
+            }
+        };
+        for (Decl decl : NodeUtil.getDecls(ast)) {
+            decl.accept(handleFnDecl);
+        }
+        NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
+            @Override public void forVarDecl(VarDecl d) {
+                buildTraitFields(d, name, getters, setters);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
@@ -338,6 +341,31 @@ public class IndexBuilder {
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
 
+        NodeAbstractVisitor_void handleFnDecl = new NodeAbstractVisitor_void() {
+            @Override public void forFnDecl(FnDecl d) {
+                buildMethod(d, name, NodeUtil.getStaticParams(ast),
+                            getters, setters, coercions, dottedMethods,
+                            functionalMethods, functions, parametricOperators);
+            }
+        };
+        for (Decl decl : NodeUtil.getDecls(ast)) {
+            decl.accept(handleFnDecl);
+        }
+
+        NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
+            @Override public void forVarDecl(VarDecl d) {
+                buildFields(d, name, fields, getters, setters);
+                if (d.getInit().isSome())
+                    initializers.add(d);
+            }
+            @Override public void forPropertyDecl(PropertyDecl d) {
+                NI.nyi();
+            }
+        };
+        for (Decl decl : NodeUtil.getDecls(ast)) {
+            decl.accept(handleDecl);
+        }
+
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
             for (Param p : ast.getParams().unwrap()) {
@@ -348,13 +376,13 @@ public class IndexBuilder {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         getters.put(paramName, new FieldGetterMethod(p, name));
                     else
-                        bug(p, "Varargs object parameters should not define getters.");
+                        error("Varargs object parameters should not define getters.", p);
                 }
                 if (mods.isSettable() || mods.isVar()) {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         setters.put(paramName, new FieldSetterMethod(p, name));
                     else
-                        bug(p, "Varargs object parameters should not define setters.");
+                        error("Varargs object parameters should not define setters.", p);
                 }
             }
             Constructor c = new Constructor(name,
@@ -370,24 +398,6 @@ public class IndexBuilder {
             variables.put(name, new SingletonVariable(name));
         }
 
-        NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
-            @Override public void forVarDecl(VarDecl d) {
-                buildFields(d, name, fields, getters, setters);
-                if (d.getInit().isSome())
-                    initializers.add(d);
-            }
-            @Override public void forFnDecl(FnDecl d) {
-                buildMethod(d, name, NodeUtil.getStaticParams(ast),
-                            getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions, parametricOperators);
-            }
-            @Override public void forPropertyDecl(PropertyDecl d) {
-                NI.nyi();
-            }
-        };
-        for (Decl decl : NodeUtil.getDecls(ast)) {
-            decl.accept(handleDecl);
-        }
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,
                                                 getters, setters, coercions,
                                                 dottedMethods, functionalMethods);
@@ -501,7 +511,9 @@ public class IndexBuilder {
         IdOrOpOrAnonymousName name = NodeUtil.getName(ast);
         if (mods.isGetter()) {
             if (name instanceof Id) {
-                getters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
+                if ( getters.keySet().contains((Id)name) )
+                    error("Getter declarations should not be overloaded.", ast);
+                else getters.put((Id)name, new DeclaredMethod(ast, declaringTrait));
             }
             else {
                 String s = NodeUtil.nameString(name);
@@ -510,7 +522,9 @@ public class IndexBuilder {
         }
         else if (mods.isSetter()) {
             if (name instanceof Id) {
-                setters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
+                if ( setters.keySet().contains((Id)name) )
+                    error("Setter declarations should not be overloaded.", ast);
+                else setters.put((Id)name, new DeclaredMethod(ast, declaringTrait));
             }
             else {
                 String s = NodeUtil.nameString(name);
