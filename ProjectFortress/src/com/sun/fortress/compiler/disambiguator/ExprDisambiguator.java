@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -101,6 +102,7 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -276,33 +278,46 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._innerMostLabel);
     }
 
-    private ExprDisambiguator extendWithLocalFns(Set<? extends IdOrOpOrAnonymousName> definedNames) {
-        checkForShadowingLocalFunctions(definedNames);
-        return extendWithFnsNoCheck(definedNames);
+    private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls) {
+        return extendWithLocalFns(definedDecls, CollectUtil.<Id>emptySet());
     }
 
-    private ExprDisambiguator extendWithLocalFns(Set<? extends IdOrOpOrAnonymousName> definedNames,
+    private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls,
                                             Set<Id> allowedShadowings)
     {
-        checkForShadowingLocalFunctions(definedNames, allowedShadowings);
-        return extendWithFnsNoCheck(definedNames);
+        checkForShadowingLocalFunctions(extractDefinedFnNames(definedDecls), allowedShadowings);
+        return extendWithFnsNoCheck(definedDecls);
     }
 
-    private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames) {
-        checkForShadowingFunctions(definedNames);
-        return extendWithFnsNoCheck(definedNames);
+    private ExprDisambiguator extendWithFns(Set<FnDecl> definedDecls) {
+        return extendWithFns(definedDecls, CollectUtil.<Id>emptySet());
+    }
+    
+    private ExprDisambiguator extendWithGetterSetter(Set<Id> definedNames){
+    	return extendWithGetterSetter(definedNames, CollectUtil.<Id>emptySet());
     }
 
-    private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames,
+    private ExprDisambiguator extendWithFns(Set<FnDecl> definedDecls,
                                             Set<Id> allowedShadowings)
     {
-        checkForShadowingFunctions(definedNames, allowedShadowings);
-        return extendWithFnsNoCheck(definedNames);
+    	
+        checkForShadowingFunctions(extractDefinedFnNames(definedDecls), allowedShadowings);
+        return extendWithFnsNoCheck(definedDecls);
+    }
+    
+    private ExprDisambiguator extendWithGetterSetter(Set<Id> getterSetter, Set<Id> allowedShadowings){
+    	checkForShadowingFunctions(getterSetter, allowedShadowings);
+        return extendWithGetterSetterNoCheck(getterSetter);
     }
 
-    private ExprDisambiguator extendWithFnsNoCheck(Set<? extends IdOrOpOrAnonymousName> definedNames) {
-        NameEnv newEnv = new LocalFnEnv(_env, CollectUtil.makeSet(IterUtil.relax(definedNames)));
+    private ExprDisambiguator extendWithFnsNoCheck(Set<FnDecl> definedFunctions) {
+        NameEnv newEnv = new LocalFnEnv(_env, definedFunctions);
         return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
+    }
+    
+    private ExprDisambiguator extendWithGetterSetterNoCheck(Set<Id> getterSetter){
+    	NameEnv newEnv = new LocalGetterSetterEnv(_env, getterSetter);
+    	return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
     }
 
     private ExprDisambiguator extendWithSelf(Span span) {
@@ -393,11 +408,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         return result;
     }
-
-    private Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>>
-        extractDeclNames(List<Decl> decls) {
-        final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
-
+    
+    /**
+     * Partition decls into three sets. Partition all the given decls into three
+     * sets: a set of variable Ids, a set of FnDecls for accessors, and a set of
+     * FnDecls for other functions.
+     */
+    private Triple<Set<Id>, Set<Id>, Set<FnDecl>>
+    		partitionDecls(List<Decl> decls) {
+    	
+    	// Collect the variable names.
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
 
             @Override
@@ -411,91 +431,42 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
 
         };
-        NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder =
-            new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>() {
+        Set<Id> vars = new HashSet<Id>();
+        for (Decl decl : decls) {
+            vars.addAll(decl.accept(var_finder));
+        }
+        
+        // Collect the functions and simultaneously collect any accessors.
+        final Set<Id> accessors = new HashSet<Id>();
+        NodeDepthFirstVisitor<Set<FnDecl>> fn_finder =
+            	new NodeDepthFirstVisitor<Set<FnDecl>>() {
 
             @Override
-            public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
+            public Set<FnDecl> forVarDecl(VarDecl that) {
                 return Collections.emptySet();
             }
 
             @Override
-            public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
+            public Set<FnDecl> forFnDecl(FnDecl that) {
                 if (NodeUtil.getMods(that).isGetterSetter()) {
-                    accessors.add(NodeUtil.getName(that));
+                    accessors.add((Id)that.getHeader().getName());
                     return Collections.emptySet();
                 } else if (NodeUtil.isFunctionalMethod(NodeUtil.getParams(that))) {
                     // don't add functional methods! they go at the top level...
                     return Collections.emptySet();
                 } else {
-                    return Collections.singleton(NodeUtil.getName(that));
+                    return Collections.singleton(that);
                 }
             }
         };
 
-        Set<Id> vars = new HashSet<Id>();
-        for (Decl decl : decls) {
-            vars.addAll(decl.accept(var_finder));
-        }
-
-        Set<IdOrOpOrAnonymousName> fns = new HashSet<IdOrOpOrAnonymousName>();
+        Set<FnDecl> fns = new HashSet<FnDecl>();
         for (Decl decl : decls) {
             fns.addAll(decl.accept(fn_finder));
         }
 
         return Triple.make(vars, accessors, fns);
     }
-
-//     private Pair<Set<Id>,Set<IdOrOpOrAnonymousName>> extractDeclNames(List<Decl> decls) {
-//         final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
-
-//         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
-//             @Override
-//             public Set<Id> forVarDecl(VarDecl that) {
-//                 return extractDefinedVarNames(that.getLhs());
-//             }
-
-//             @Override
-//             public Set<Id> forFnDecl(FnDecl that) {
-//                 return Collections.emptySet();
-//             }
-
-//         };
-//         NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder = new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>(){
-//             @Override
-//             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
-//                 return Collections.emptySet();
-//             }
-
-//             @Override
-//             public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
-//                 if( isSetterOrGetter(that.getMods()) )
-//                     accessors.add(that.getName());
-//                 if( NodeUtil.isFunctionalMethod(that.getParams()) ) {
-//                     // don't add functional methods! they go at the top level...
-//                     return Collections.emptySet();
-//                 }
-//                 else {
-//                     return Collections.singleton(that.getName());
-//                 }
-//             }
-//         };
-//         List<Set<Id>> vars_ = var_finder.recurOnListOfDecl(decls);
-//         List<Set<IdOrOpOrAnonymousName>> fns_ = fn_finder.recurOnListOfDecl(decls);
-
-//         Set<Id> vars = Useful.union(vars_);
-//         Set<IdOrOpOrAnonymousName> fns = new HashSet<IdOrOpOrAnonymousName>(Useful.union(fns_));
-
-//         // For every accessor, remove that fn from fns if there is also a variable.
-//         // See shadowing rules in section 7.3
-//         for( IdOrOpOrAnonymousName ioooan : accessors ) {
-//             if( vars.contains(ioooan) ) {
-//                 fns.remove(ioooan);
-//             }
-//         }
-
-//         return Pair.make(vars, fns);
-//     }
 
     /**
      * When recurring on an ObjExpr, we first need to extend the
@@ -507,16 +478,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(NodeUtil.getDecls(that));
+        Triple<Set<Id>,Set<Id>, Set<FnDecl>> declNames = partitionDecls(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
-        Set<IdOrOpOrAnonymousName> fns = declNames.third();
+        Set<Id> gettersAndSetters = declNames.second();
+        Set<FnDecl> fns = declNames.third();
 
         Option<Type> typeResult = recurOnOptionOfType(NodeUtil.getExprType(that));
 
-        Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
+        Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
-        Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
+        Set<FnDecl> inheritedMethods = inherited.second();
 
         ExprDisambiguator v = this.
             extendWithVarsNoCheck(vars).
@@ -526,8 +497,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             // TODO The following two extensions are problematic; getters and setters should
             // not be referred to without explicit receivers in most (all?) cases. But the
             // libraries break horribly if we leave them off.
-            extendWithFns(inheritedGettersAndSetters, vars).
-            extendWithFns(gettersAndSetters, vars);
+            extendWithGetterSetter(inheritedGettersAndSetters, vars).
+            extendWithGetterSetter(gettersAndSetters, vars);
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeUtil.getSpan(that), extendsClause,
                                                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
@@ -555,7 +526,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /**
      * Given a list of TraitTypeWhere that some trait or object extends,
-     * this method returns a pair of lists of getters/setter ids and method ids that
+     * this method returns a pair of sets of getters/setter ids and method declarations that
      * the trait receives through inheritance. The implementation of this method is somewhat
      * involved, since at this stage of compilation, not all types are
      * fully formed. (In particular, types in extends clauses of types that
@@ -563,14 +534,21 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * @param extended_traits
      * @return
      */
-    private Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inheritedMethods(List<TraitTypeWhere> extended_traits) {
+    private Pair<Set<Id>, Set<FnDecl>> inheritedMethods(List<TraitTypeWhere> extended_traits) {
         return inheritedMethodsHelper(new HierarchyHistory(), extended_traits);
     }
 
-    private Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inheritedMethodsHelper(HierarchyHistory h,
+    private Pair<Set<Id>, Set<FnDecl>> inheritedMethodsHelper(HierarchyHistory h,
                                                               List<TraitTypeWhere> extended_traits) {
         Set<Id> gettersAndSetters = new HashSet<Id>();
-        Set<IdOrOpOrAnonymousName> methods = new HashSet<IdOrOpOrAnonymousName>();
+        Set<FnDecl> methods = new HashSet<FnDecl>();
+        
+        Lambda<DeclaredMethod, FnDecl> methToDecl = new Lambda<DeclaredMethod, FnDecl>() {
+        	@Override public FnDecl value(DeclaredMethod arg0) {
+				return arg0.ast();
+			}
+        };
+        
         for( TraitTypeWhere trait_ : extended_traits ) {
 
             BaseType type_ = trait_.getBaseType();
@@ -589,15 +567,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
             else {
                 // Probably ANY
-                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(),
-                                                                     Collections.<IdOrOpOrAnonymousName>emptySet());
+                return new Pair<Set<Id>, Set<FnDecl>>(Collections.<Id>emptySet(),
+                                                      Collections.<FnDecl>emptySet());
              }
 
             TypeConsIndex tci = this._env.typeConsIndex(trait_name);
             if( tci instanceof TraitIndex ) {
                 TraitIndex ti = (TraitIndex)tci;
                 // Add dotted methods
-                methods.addAll(ti.dottedMethods().firstSet());
+                methods.addAll(CollectUtil.asCollection(IterUtil.map(ti.dottedMethods().secondSet(), methToDecl)));
                 // Add getters
                 gettersAndSetters.addAll(ti.getters().keySet());
                 // Add setters
@@ -605,19 +583,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // For now we won't add functional methods. They are not received through inheritance.
 
                 // Now recursively add methods from trait's extends clause
-                Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethodsHelper(h, ti.extendsTypes());
+                Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethodsHelper(h, ti.extendsTypes());
                 gettersAndSetters.addAll(inherited.first());
                 methods.addAll(inherited.second());
             }
             else {
                 // Probably ANY
-                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(),
-                                                                     Collections.<IdOrOpOrAnonymousName>emptySet());
+                return new Pair<Set<Id>, Set<FnDecl>>(Collections.<Id>emptySet(),
+                                                                     Collections.<FnDecl>emptySet());
             }
 
 
         }
-        return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(gettersAndSetters, methods);
+        return new Pair<Set<Id>, Set<FnDecl>>(gettersAndSetters, methods);
     }
 
     @Override public Node forComponent(final Component that) {
@@ -637,21 +615,20 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames =
-            extractDeclNames(NodeUtil.getDecls(that));
+        Triple<Set<Id>, Set<Id>, Set<FnDecl>> declNames =
+            partitionDecls(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
-        Set<IdOrOpOrAnonymousName> fns = declNames.third();
+        Set<Id> gettersAndSetters = declNames.second();
+        Set<FnDecl> fns = declNames.third();
 
-        Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
+        Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
-        Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
+        Set<FnDecl> inheritedMethods = inherited.second();
 
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
         v = this.
             extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that))).
-            extendWithFns(inheritedGettersAndSetters).
             extendWithFns(inheritedMethods).
             extendWithSelf(NodeUtil.getSpan(that)).
             extendWithVars(vars).
@@ -659,8 +636,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             // TODO The following two extensions are problematic; getters and setters should
             // not be referred to without explicit receivers in most (all?) cases. But the
             // libraries break horribly if we leave them off.
-            extendWithFns(inheritedGettersAndSetters).
-            extendWithFns(gettersAndSetters);
+            extendWithGetterSetter(inheritedGettersAndSetters).
+            extendWithGetterSetter(gettersAndSetters);
 
         if ( ! inComponent )
             v.checkForShadowingVars(vars);
@@ -692,18 +669,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(NodeUtil.getDecls(that));
+        Triple<Set<Id>,Set<Id>, Set<FnDecl>> declNames =
+        	partitionDecls(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
+        Set<Id> gettersAndSetters = declNames.second();
         // fns does not contain getters and setters
-        Set<IdOrOpOrAnonymousName> fns = declNames.third();
+        Set<FnDecl> fns = declNames.third();
 
         Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         Set<Id> fields = CollectUtil.union(params, vars);
 
-        Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
+        Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
-        Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
+        Set<FnDecl> inheritedMethods = inherited.second();
 
         v = this.extendWithVars(extractStaticExprVars
 				(NodeUtil.getStaticParams(that))).
@@ -714,8 +692,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             // TODO The following two extensions are problematic; getters and setters should
             // not be referred to without explicit receivers in most (all?) cases. But the
             // libraries break horribly if we leave them off.
-            extendWithFns(inheritedGettersAndSetters, fields).
-            extendWithFns(gettersAndSetters, fields);
+            extendWithGetterSetter(inheritedGettersAndSetters, fields).
+            extendWithGetterSetter(gettersAndSetters, fields);
 
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
                                  v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
@@ -957,8 +935,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /** LetFns introduce local functions in scope within the body. */
     @Override public Node forLetFn(LetFn that) {
-        Set<IdOrOpOrAnonymousName> definedNames = extractDefinedFnNames(that.getFns());
-        ExprDisambiguator v = extendWithLocalFns(definedNames);
+        ExprDisambiguator v = extendWithLocalFns(CollectUtil.asSet(that.getFns()));
         List<FnDecl> fnsResult = v.recurOnListOfFnDecl(that.getFns());
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
@@ -1046,8 +1023,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             Set<Id> vars = _env.explicitVariableNames(name);
             Set<IdOrOp> fns = _env.explicitFunctionNames(name);
             Set<Id> objs = _env.explicitTypeConsNames(name);
-
-            if ( vars.size() == 1 && fns.isEmpty() && objs.isEmpty() ) {
+            
+            if ( vars.size() == 1 && fns.size() == 0 && objs.isEmpty() ) {
                 Id newName = IterUtil.first(vars);
 
                 if (newName.getApiName().isNone() && newName == name && fields.isEmpty()) {
@@ -1056,14 +1033,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 }
                 else { result = ExprFactory.makeVarRef(NodeUtil.getSpan(that), newName); }
             }
-            else if (vars.isEmpty() && !fns.isEmpty() ) {
+            else if (vars.isEmpty() && fns.size() > 0 ) {
                 result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
                 // TODO: insert correct number of to-infer arguments?
             }
-            else if( vars.size() == 1&& fns.isEmpty() && objs.size() == 1 ) {
+            else if( vars.size() == 1&& fns.size() == 0 && objs.size() == 1 ) {
                 result = ExprFactory.make_RewriteObjectRef(NodeUtil.isParenthesized(that), IterUtil.first(objs));
             }
-            else if (!vars.isEmpty() || !fns.isEmpty() || !objs.isEmpty()) {
+            else if (!vars.isEmpty() || fns.size() > 0 || !objs.isEmpty()) {
                 // To be replaced by a 'shadowing' pass
                 //Set<Id> varsFnsAndObjs = CollectUtil.union(CollectUtil.union(vars, fns), objs);
                 //error("Name may refer to: " + NodeUtil.namesString(varsFnsAndObjs), name);
@@ -1151,11 +1128,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Option<FunctionalRef> opRefHelper(FunctionalRef that) {
         Op op_name = (Op)that.getNames().get(0);
         Set<? extends IdOrOp> ops = _env.explicitFunctionNames(op_name);
-        if (ops.isEmpty()) {
-            ops = _env.onDemandFunctionNames(op_name);
-        }
 
-        if (ops.isEmpty()) {
+        if (ops.size() == 0) {
             return Option.none();
         }
 

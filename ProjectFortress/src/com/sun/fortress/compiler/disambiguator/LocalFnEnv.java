@@ -21,52 +21,61 @@ import java.util.Set;
 import java.util.Collections;
 
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes_util.NodeFactory;
 
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.IndexedRelation;
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 public class LocalFnEnv extends DelegatingNameEnv {
-    private Set<IdOrOpOrAnonymousName> _fns;
+    private Relation<IdOrOpOrAnonymousName, FnDecl> _fns;
 
-    public LocalFnEnv(NameEnv parent, Set<IdOrOpOrAnonymousName> fns) {
+    public LocalFnEnv(NameEnv parent, Set<FnDecl> fns) {
         super(parent);
-        _fns = fns;
+        _fns = new IndexedRelation<IdOrOpOrAnonymousName, FnDecl>();
+        
+        // Add mapping of each function's name to its decl, and its unambiguous
+        // name to its decl.
+        for (FnDecl fn : fns) {
+        	_fns.add(fn.getHeader().getName(), fn);
+        	_fns.add(fn.getUnambiguousName(), fn);
+        }
     }
 
-    @Override public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
-        if (_fns.contains(name)) {
+    @Override
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
+        if (_fns.containsFirst(name)) {
             return Collections.singleton(name);
         }
         else { return super.explicitFunctionNames(name); }
     }
-
-	@Override
-	public Set<Id> explicitGrammarNames(String name) {
-		return Collections.emptySet();
-	}
-
-	@Override
-	public boolean hasGrammar(String name) {
-		return false;
-	}
-
-	@Override
-	public boolean hasQualifiedGrammar(Id name) {
-		return false;
-	}
-
-	@Override
-	public Set<Id> onDemandGrammarNames(String name) {
-		return Collections.emptySet();
-	}
-
-	@Override
-	public Option<GrammarIndex> grammarIndex(Id name) {
-		return Option.none();
-	}
+    
+    @Override
+    public Set<IdOrOp> unambiguousFunctionNames(IdOrOp name) {
+    	
+    	// Get all the FnDecls with this name.
+    	Set<FnDecl> decls = _fns.matchFirst(name);
+    	Lambda<FnDecl, IdOrOp> getUnambiguousName = new Lambda<FnDecl,IdOrOp>() {
+			@Override
+			public IdOrOp value(FnDecl arg0) {
+				return arg0.getUnambiguousName();
+			}
+    	};
+    	
+    	// Get all the unambiguous names from the decls.
+    	Set<IdOrOp> allNames = CollectUtil.asSet(
+    			IterUtil.map(decls,getUnambiguousName));
+    	
+    	// Combine them with those of the parent environments.
+    	return CollectUtil.union(allNames, super.unambiguousFunctionNames(name));
+    }
 
 }

@@ -271,7 +271,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           // Extend method checker with methods and functions
           // that will now be in scope
           val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          ti.asInstanceOf[TraitIndex].dottedMethods)
+                                          ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf)
           method_checker = method_checker.extendWithMethods(methods)
           method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
@@ -325,7 +325,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           // Extend type checker with methods and functions
           // that will now be in scope as regular functions
           val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          oi.asInstanceOf[TraitIndex].dottedMethods)
+                                          oi.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf)
           method_checker = method_checker.extendWithMethods(methods)
           method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
@@ -714,7 +714,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // that will now be in scope as regular functions
       val oi = IndexBuilder.buildObjectExprIndex(o)
       val methods = new UnionRelation(inheritedMethods(extendsC),
-                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods)
+                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods.asInstanceOf)
       method_checker = method_checker.extendWithMethods(methods)
       method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[ObjectTraitIndex].functionalMethods)
       // Extend method checker with self

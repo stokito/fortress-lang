@@ -32,8 +32,10 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ParametricOperator;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -46,6 +48,7 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -54,6 +57,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Op;
@@ -72,6 +76,7 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
+import edu.rice.cs.plt.lambda.LambdaUtil;
 import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Predicate2;
 import edu.rice.cs.plt.tuple.Option;
@@ -110,9 +115,6 @@ public class TopLevelEnv extends NameEnv {
         _errors = errors;
         _aliases = new HashMap<IdOrOpOrAnonymousName, IdOrOpOrAnonymousName>();
 
-//         System.err.println("global_env for " + current.ast().getName() + ":");
-//         globalEnv.print();
-
         GlobalEnvironment filtered_global_env;
         if (current instanceof ApiIndex) {
          // Filter env based on what this api imports
@@ -122,11 +124,7 @@ public class TopLevelEnv extends NameEnv {
         else if (current instanceof ComponentIndex) {
             //  Filter env based on what this component imports
             Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), ((Component)current.ast()));
-//             System.err.println("filtered for " + current.ast().getName() + ":");
-//             System.err.println(filtered);
             filtered_global_env = new GlobalEnvironment.FromMap(filtered);
-//             System.err.println("filtered_global_env for " + current.ast().getName() + ":");
-//            filtered_global_env.print();
         }
         else {
             throw new IllegalArgumentException("Unanticipated subtype of CompilationUnitIndex.");
@@ -461,6 +459,50 @@ public class TopLevelEnv extends NameEnv {
                                        explicitFunctionNames((IdOrOp)_aliases.get(name)));
 
         return result;
+    }
+    
+    public Set<IdOrOp> unambiguousFunctionNames(final IdOrOp name) {
+    	
+    	// Function that gets an unambiguous name out of a Function. If it is
+    	// not a DeclaredFunction or FunctionalMethod, the original name will
+    	// be returned.
+    	Lambda<Function, IdOrOp> unambiguousNameFromFunction =
+    			new Lambda<Function, IdOrOp>() {
+			@Override public IdOrOp value(Function fn) {
+				if (fn instanceof DeclaredFunction) {
+					return ((DeclaredFunction) fn).ast().getUnambiguousName();
+				} else if (fn instanceof FunctionalMethod) {
+					return ((FunctionalMethod) fn).ast().getUnambiguousName();
+				} else {
+					return name;
+				}
+			}
+    	};
+    	
+    	// First get all the declarations from this compilation unit.
+    	Set<? extends Function> functions = _current.functions().matchFirst(name);
+    	Iterable<IdOrOp> results = IterUtil.map(functions, unambiguousNameFromFunction);
+    	
+    	// Loop over all the imported APIs.
+    	for (final ApiIndex api : _onDemandImportedApis.values()) {
+    		
+    		// Qualifies the names with this API.
+    		Lambda<IdOrOp, IdOrOp> addApi = new Lambda<IdOrOp, IdOrOp>() {
+				@Override public IdOrOp value(IdOrOp name) {
+	                if (name instanceof Id) {
+	                    return NodeFactory.makeId(api.ast().getName(), (Id)name, NodeUtil.getSpan(name));
+	                } else {
+	                    return NodeFactory.makeOp(api.ast().getName(), (Op)name);
+	                }
+				}
+    		};
+    		
+    		// Get all the declarations from this API and qualify the names.
+    		functions = api.functions().matchFirst(name);
+    		results = IterUtil.compose(results, IterUtil.map(functions,
+    				LambdaUtil.compose(unambiguousNameFromFunction, addApi)));
+    	}
+    	return CollectUtil.asSet(results);
     }
 
     public Set<ParametricOperator> explicitParametricOperators(IdOrOp name) {
