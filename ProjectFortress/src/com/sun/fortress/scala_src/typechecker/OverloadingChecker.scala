@@ -21,13 +21,18 @@ import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
+import scala.collection.Map
 import scala.collection.Set
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
+import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
+import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
@@ -60,7 +65,6 @@ import com.sun.fortress.scala_src.nodes._
 class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                          globalEnv: GlobalEnvironment,
                          repository: FortressRepository) {
-
     var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
@@ -76,6 +80,29 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         for ( t <- toSet(typesInComp.keySet) ;
               if NodeUtil.isTraitOrObject(typesInComp.get(t)) ) {
             val traitOrObject = typesInComp.get(t).asInstanceOf[TraitIndex]
+            /* All inherited abstract methods in object definitions and
+             * object expressions should be defined,
+             * with compatible signatures and modifiers.
+             */
+            if ( compilation_unit.ast.isInstanceOf[Component] &&
+                 traitOrObject.isInstanceOf[ObjectTraitIndex] ) {
+                val ast = traitOrObject.ast
+                val toCheck = inheritedAbstractMethods(toList(NodeUtil.getExtendsClause(ast)))
+                for ( t <- toCheck.keySet ) {
+                  for ( ds <- toCheck.get(t) ) {
+                    for ( d <- ds ) {
+                        if ( ! implement(d, toList(NodeUtil.getDecls(ast))) )
+                            error(NodeUtil.getSpan(d).toString,
+                                  "The inherited abstract method " + d +
+                                  " from the trait " + t +
+                                  "\n    in the object " + NodeUtil.getName(ast) +
+                                  " is not defined in the component " +
+                                  compilation_unit.ast.getName + ".")
+                     }
+                  }
+                }
+            }
+
             /* The parameter type of a setter must be the same as the return type
              * of a getter with the same name, if any.
              */
@@ -349,5 +376,65 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         }
 
     private def error(loc: String, msg: String) =
-        errors = errors ::: List(TypeError.make(msg, loc.toString()))
+        errors = errors ::: List(TypeError.make(msg, loc.toString))
+
+    /* Returns true if any of the concrete method declarations in "decls"
+       implements the abstract method declaration "d".
+     */
+    private def implement(d: FnDecl, decls: List[Decl]): Boolean =
+        decls.exists( (decl: Decl) => decl match {
+                      case fd@SFnDecl(_,_,_,_,_) => implement(d, fd)
+                      case _ => false
+                    } )
+
+    /* Returns true if the concrete method declaration "decl"
+       implements the abstract method declaration "d".
+     */
+    private def implement(d: FnDecl, decl: FnDecl): Boolean =
+        NodeUtil.getName(d).asInstanceOf[Id].getText.equals(NodeUtil.getName(decl).asInstanceOf[Id].getText) &&
+        NodeUtil.getMods(d).containsAll(NodeUtil.getMods(decl)) &&
+        typeAnalyzer.equivalent(NodeUtil.getParamType(d),
+                                NodeUtil.getParamType(decl)).isTrue &&
+        typeAnalyzer.equivalent(NodeUtil.getReturnType(d).unwrap,
+                                NodeUtil.getReturnType(decl).unwrap).isTrue
+
+    private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) =
+        inheritedAbstractMethodsHelper(new HierarchyHistory(), extended_traits)
+
+    private def inheritedAbstractMethodsHelper(hist: HierarchyHistory,
+                                               extended_traits: List[TraitTypeWhere]):
+                                              Map[Id, Set[FnDecl]] = {
+        var h = hist
+        var map = new HashMap[Id, Set[FnDecl]]()
+        for ( trait_ <- extended_traits ; if ! h.hasExplored(trait_.getBaseType) ) {
+            trait_.getBaseType match {
+                case ty@STraitType(info, name, args, params) =>
+                    h = h.explore(ty)
+                    val tci = typeAnalyzer.traitTable.typeCons(name)
+                    if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
+                        val ti = tci.unwrap.asInstanceOf[TraitIndex]
+                        map.put(name, collectAbstractMethods(name, toList(NodeUtil.getDecls(ti.ast))))
+                        map ++= inheritedAbstractMethodsHelper(h, toList(ti.extendsTypes))
+                    } else error(NodeUtil.getSpan(trait_).toString,
+                                 "Trait types are expected in an extends clause but found "
+                                 + ty.toStringVerbose + "\n" + tci.getClass)
+                case SAnyType(_) =>
+                case ty => error(NodeUtil.getSpan(trait_).toString,
+                                 "Trait types are expected in an extends clause but found "
+                                 + ty.toStringVerbose)
+            }
+        }
+        map
+    }
+
+    private def collectAbstractMethods(name: Id, decls: List[Decl]) = {
+        val set = new HashSet[FnDecl]
+        decls.foreach( (d: Decl) => d match {
+                       case fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) =>
+                           if ( compilation_unit.typeConses.keySet.contains(name) ) {
+                               if ( ! body.isDefined ) set += fd
+                           } else if ( mods.isAbstract ) set += fd
+                       case _ => })
+        set
+    }
 }

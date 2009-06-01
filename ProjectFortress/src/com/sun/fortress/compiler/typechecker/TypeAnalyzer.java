@@ -143,7 +143,7 @@ public class TypeAnalyzer {
     public TypeEnv typeEnv() { return _typeEnv; }
 
     private TypeAnalyzer(TraitTable table, TypeEnv typeEnv,
-            SubtypeCache parentCache) {
+                         SubtypeCache parentCache) {
         _table = table;
         _typeEnv = typeEnv;
         _cache = new ChildSubtypeCache(parentCache);
