@@ -50,29 +50,5 @@ public class LocalVarEnv extends DelegatingNameEnv {
         result.addAll(_parent.explicitVariableNames());
         return result;
     }
-    @Override
-	public Set<Id> explicitGrammarNames(String name) {
-        return Collections.emptySet();
-    }
-    
-    @Override
-	public boolean hasGrammar(String name) {
-        return false;
-    }
-    
-    @Override
-	public boolean hasQualifiedGrammar(Id name) {
-        return false;
-    }
-    
-    @Override
-        public Set<Id> onDemandGrammarNames(String name) {
-        return Collections.emptySet();
-    }
-
-    @Override
-	public Option<GrammarIndex> grammarIndex(Id name) {
-        return Option.none();
-    }
     
 }

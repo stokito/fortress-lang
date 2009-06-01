@@ -39,10 +39,16 @@ public abstract class NameEnv extends TypeNameEnv {
     public abstract List<Id> explicitVariableNames();
     /**
      * Produce the set of unaliased qualified names corresponding to the given
-     * function name; on-demand imports are ignored.  An undefined reference
+     * function name.  Imported names are included.  An undefined reference
      * produces an empty set.
      */
     public abstract Set<IdOrOp> explicitFunctionNames(IdOrOp name);
+    /**
+     * Produce the set of unqualified, unambiguous names corresponding to the
+     * given function name.  Imported names are included. An undefined reference
+     * produces an empty set.
+     */
+    public abstract Set<IdOrOp> unambiguousFunctionNames(IdOrOp name);
 
     /**
      * Produce the set of unaliased qualified names available via on-demand imports

@@ -288,8 +288,8 @@ public class IndexBuilder {
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
         final Set<Function> coercions = new HashSet<Function>();
-        final Relation<IdOrOpOrAnonymousName, Method> dottedMethods =
-            new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
+        final Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods =
+            new IndexedRelation<IdOrOpOrAnonymousName, DeclaredMethod>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
 
@@ -336,8 +336,8 @@ public class IndexBuilder {
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
         final Set<Function> coercions = new HashSet<Function>();
-        final Relation<IdOrOpOrAnonymousName, Method> dottedMethods =
-            new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
+        final Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods =
+            new IndexedRelation<IdOrOpOrAnonymousName, DeclaredMethod>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
 
@@ -510,7 +510,7 @@ public class IndexBuilder {
                              Map<Id, Method> getters,
                              Map<Id, Method> setters,
                              Set<Function> coercions,
-                             Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
+                             Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
                              Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
                              Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions,
                              Set<ParametricOperator> parametricOperators) {

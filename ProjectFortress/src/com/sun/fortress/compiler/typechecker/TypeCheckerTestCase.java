@@ -26,6 +26,7 @@ import java.util.regex.*;
 
 import junit.framework.TestCase;
 
+import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.Method;
@@ -97,7 +98,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Function>emptySet(),
-                                    CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
+                                    CollectUtil.<IdOrOpOrAnonymousName, DeclaredMethod>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
 

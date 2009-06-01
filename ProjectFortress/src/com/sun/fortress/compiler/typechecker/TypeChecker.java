@@ -42,6 +42,7 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
+import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.DeclaredVariable;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -677,7 +678,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             // Get methods with the right name:
             // Add all dotted methods,
-            Set<Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
+            Set<? extends Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
 
             for( Method m : methods_with_name ) {
                 List<StaticArg> static_args = new ArrayList<StaticArg>(in_static_args);
@@ -3567,8 +3568,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         // Extend type checker with methods and functions that will now be in scope as regular functions
         TraitIndex thatIndex = (TraitIndex)ind.unwrap();
-        Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
-        methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
+        Relation<IdOrOpOrAnonymousName,Method> methods = new IndexedRelation<IdOrOpOrAnonymousName,Method>();
+        for(Pair<IdOrOpOrAnonymousName,DeclaredMethod> meth : thatIndex.dottedMethods()){
+        	methods.add(meth.first(),meth.second());
+        }
+        methods = new UnionRelation<IdOrOpOrAnonymousName,Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
         method_checker = method_checker.extendWithMethods(methods);
         method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
         Type temp = that.getSelfType().unwrap();
@@ -3642,8 +3646,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Extend type checker with methods and functions that will now be in scope as regular functions
         ObjectTraitIndex obj_index = IndexBuilder.buildObjectExprIndex(that);
-        Relation<IdOrOpOrAnonymousName,Method> methods = obj_index.dottedMethods();
+        Relation<IdOrOpOrAnonymousName,Method> methods = new IndexedRelation<IdOrOpOrAnonymousName, Method>();
+        for(Pair<IdOrOpOrAnonymousName,DeclaredMethod> meth : obj_index.dottedMethods()){
+        	methods.add(meth.first(),meth.second());
+        }
         methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
+
         method_checker = method_checker.extendWithMethods(methods);
         method_checker = method_checker.extendWithFunctions(obj_index.functionalMethods());
 
@@ -4111,7 +4119,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // Extend method checker with methods and functions that will now be in scope
         TraitIndex thatIndex = (TraitIndex)ind.unwrap();
-        Relation<IdOrOpOrAnonymousName,Method> methods = thatIndex.dottedMethods();
+        Relation<IdOrOpOrAnonymousName,Method> methods = new IndexedRelation<IdOrOpOrAnonymousName,Method>();
+        for(Pair<IdOrOpOrAnonymousName,DeclaredMethod> meth : thatIndex.dottedMethods()){
+        	methods.add(meth.first(),meth.second());
+        }
         methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
         method_checker = method_checker.extendWithMethods(methods);
         method_checker = method_checker.extendWithFunctions(thatIndex.functionalMethods());
@@ -4666,9 +4677,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
                 // Instantiate methods with static args
                 // Add dotted methods
-                Iterator<Pair<IdOrOpOrAnonymousName,Method>> iter = ti.dottedMethods().iterator();
+                Iterator<Pair<IdOrOpOrAnonymousName,DeclaredMethod>> iter =  ti.dottedMethods().iterator();
                 while( iter.hasNext() ) {
-                    Pair<IdOrOpOrAnonymousName,Method> p = iter.next();
+                    Pair<IdOrOpOrAnonymousName,DeclaredMethod> p = iter.next();
                     Method new_method = (Method)p.second().instantiate(trait_params, trait_args);
                     methods.add(p.first(), new_method);
                 }

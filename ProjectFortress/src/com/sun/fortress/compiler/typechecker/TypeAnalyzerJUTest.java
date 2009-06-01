@@ -37,6 +37,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -518,7 +519,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Function>emptySet(),
-                                    CollectUtil.<IdOrOpOrAnonymousName, Method>emptyRelation(),
+                                    CollectUtil.<IdOrOpOrAnonymousName, DeclaredMethod>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }
 

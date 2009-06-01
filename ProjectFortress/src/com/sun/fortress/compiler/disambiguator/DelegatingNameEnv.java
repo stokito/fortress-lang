@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
@@ -26,6 +27,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 
 public abstract class DelegatingNameEnv extends NameEnv {
@@ -55,6 +57,9 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
         return _parent.explicitFunctionNames(name);
     }
+    public Set<IdOrOp> unambiguousFunctionNames(IdOrOp name) {
+        return _parent.unambiguousFunctionNames(name);
+    }
 
     public Set<Id> onDemandTypeConsNames(Id name) {
         return _parent.onDemandTypeConsNames(name);
@@ -82,6 +87,31 @@ public abstract class DelegatingNameEnv extends NameEnv {
 
     public TypeConsIndex typeConsIndex(Id name) {
         return _parent.typeConsIndex(name);
+    }
+    
+	@Override
+	public Set<Id> explicitGrammarNames(String name) {
+        return Collections.emptySet();
+    }
+    
+    @Override
+	public boolean hasGrammar(String name) {
+        return false;
+    }
+    
+    @Override
+	public boolean hasQualifiedGrammar(Id name) {
+        return false;
+    }
+    
+    @Override
+        public Set<Id> onDemandGrammarNames(String name) {
+        return Collections.emptySet();
+    }
+
+    @Override
+	public Option<GrammarIndex> grammarIndex(Id name) {
+        return Option.none();
     }
 
 }
