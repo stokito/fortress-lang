@@ -45,7 +45,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
-import com.sun.fortress.scala_src.typechecker.CoercionJavaTest;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
@@ -156,8 +155,6 @@ public class StaticChecker {
                         GlobalEnvironment env,
                         FortressRepository repository)
     {
-//         System.out.println("checkComponents");
-
         HashSet<Component> checkedComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         List<APIName> failedComponents = new ArrayList<APIName>();
@@ -165,7 +162,6 @@ public class StaticChecker {
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
         for (APIName componentName : components.keySet()) {
-//            System.out.println("next");
             TypeCheckerResult checked = checkComponent(components.get(componentName), env,
                                                        repository);
             checkedComponents.add((Component)checked.ast());
@@ -200,26 +196,30 @@ public class StaticChecker {
             component_ast = component_ast.accept(new TypeNormalizer());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
+            TraitTable traitTable = new TraitTable(component, env);
+            TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
+
+            if (Shell.testCoercion())
+                errors.addAll(new CoercionTest(typeAnalyzer).run());
+
             TypeCheckerResult result;
             if ( ! Shell.getScala() ) {
                 // typecheck...
-                result = typeCheck(component, env, component_ast, false);
+                result = typeCheck(component, env, traitTable, component_ast, false);
                 // then replace inference variables...
                 InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
                 component_ast = (Component)result.ast().accept(rep);
                 // then typecheck again!!!
                 component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                      System.currentTimeMillis());
-                result = typeCheck(component, env, component_ast, true);
+                result = typeCheck(component, env, traitTable, component_ast, true);
             } else {
-                Pair<TypeEnv,TraitTable> envs = typeCheckEnv(component, env);
+                TypeEnv typeEnv = typeCheckEnv(component, env);
         	ConstraintUtil.useScalaFormulas();
 
-                STypeChecker typeChecker = STypeCheckerFactory.make(component, envs.second(),
-                                                                    envs.first(),
-                                                                    TypeAnalyzer.make(envs.second()));
+                STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable,
+                                                                    typeEnv, typeAnalyzer);
         	component_ast = typeChecker.check(component_ast);
-                if (Shell.testCoercion()) { new CoercionTest(typeChecker).run(); }
         	result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));
             }
@@ -229,7 +229,7 @@ public class StaticChecker {
                 bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                     result.ast());
             // Check overloadings in this component.
-            errors = new OverloadingChecker(component, env, repository).checkOverloading();
+            errors.addAll(new OverloadingChecker(component, env, repository).checkOverloading());
             result = addErrors(errors, result);
             // Check the set of exported APIs in this component.
             errors = ExportChecker.checkExports(component, env, repository);
@@ -242,21 +242,18 @@ public class StaticChecker {
 
     private static TypeCheckerResult typeCheck(ComponentIndex component,
                                                GlobalEnvironment env,
+                                               TraitTable traitTable,
                                                Node component_ast,
                                                boolean postInference) {
-        Pair<TypeEnv,TraitTable> envs = typeCheckEnv(component, env);
+        TypeEnv typeEnv = typeCheckEnv(component, env);
         ConstraintUtil.useJavaFormulas();
-        TypeChecker typeChecker = new TypeChecker(envs.second(), envs.first(),
+        TypeChecker typeChecker = new TypeChecker(traitTable, typeEnv,
                                                   component, postInference);
-        TypeCheckerResult result = component_ast.accept(typeChecker);
-        if (Shell.testCoercion() && postInference) {
-            result = addErrors(new CoercionJavaTest(typeChecker).run(), result);
-        }
-        return result;
+        return component_ast.accept(typeChecker);
     }
 
-    private static Pair<TypeEnv,TraitTable> typeCheckEnv(ComponentIndex component,
-                                                         GlobalEnvironment env) {
+    private static TypeEnv typeCheckEnv(ComponentIndex component,
+                                        GlobalEnvironment env) {
         TypeEnv typeEnv = TypeEnv.make(component);
         // Add all top-level function names to the component-level environment.
         typeEnv = typeEnv.extendWithFunctions(component.functions());
@@ -265,8 +262,7 @@ public class StaticChecker {
         typeEnv = typeEnv.extend(component.variables());
         // Add all top-level object names to the component-level environment.
         typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
-        TraitTable traitTable= new TraitTable(component, env);
-        return Pair.make(typeEnv, traitTable);
+        return typeEnv;
     }
 
     public static TypeCheckerResult checkApi(ApiIndex api,

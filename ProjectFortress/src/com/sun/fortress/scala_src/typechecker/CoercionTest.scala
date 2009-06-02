@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option
 
 import com.sun.fortress.Shell
 import com.sun.fortress.compiler.{NamingCzar => JavaNamingCzar}
-import com.sun.fortress.compiler.typechecker.TypeChecker
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.WrappedException
@@ -45,16 +45,8 @@ import com.sun.fortress.useful.WireTappedPrintStream
  * Error messages are read via stderr.
  * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
  */
-class CoercionTest(checker:STypeChecker) {
+class CoercionTest(analyzer:TypeAnalyzer) {
   def run() = {
-    val oracle = checker.coercionOracle
-    ()
-  }
-}
-
-class CoercionJavaTest(checker:TypeChecker) {
-  def run() = {
-    val analyzer = checker.typeAnalyzer
     val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer, new ErrorLog())
     val oracle = factory.makeOracle(analyzer.typeEnv)
     factory.getErrors

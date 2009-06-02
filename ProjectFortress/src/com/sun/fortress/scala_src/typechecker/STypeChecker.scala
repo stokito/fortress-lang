@@ -64,23 +64,15 @@ import com.sun.fortress.useful.HasAt
  */
 object STypeCheckerFactory {
   def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
-           analyzer: TypeAnalyzer) = {
-    val errors = new ErrorLog()
-    new STypeChecker(current, traits, env, analyzer, errors,
-                     new CoercionOracleFactory(traits, analyzer, errors))
-  }
+           analyzer: TypeAnalyzer) =
+    new STypeChecker(current, traits, env, analyzer, new ErrorLog())
   def make(current: CompilationUnitIndex, traits: TraitTable, env: TypeEnv,
-           analyzer: TypeAnalyzer, errors: ErrorLog,
-           factory: CoercionOracleFactory) = {
-    new STypeChecker(current, traits, env, analyzer, errors, factory)
-  }
+           analyzer: TypeAnalyzer, errors: ErrorLog) =
+    new STypeChecker(current, traits, env, analyzer, errors)
 }
 
 class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
-                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog,
-                   factory: CoercionOracleFactory) {
-
-  val coercionOracle = factory.makeOracle(env)
+                   env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog) {
 
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -89,41 +81,41 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     extend(List[LValue](NodeFactory.makeLValue("self", self_type)))
 
   private def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) =
-    STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors, factory)
+    STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors)
 
   private def extend(bindings: List[LValue]) =
     STypeCheckerFactory.make(current, traits,
                              env.extendWithLValues(toJavaList(bindings)),
-                             analyzer, errors, factory)
+                             analyzer, errors)
 
   private def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
     STypeCheckerFactory.make(current, traits,
                              env.extendWithStaticParams(sparams),
-                             analyzer.extend(sparams, where), errors, factory)
+                             analyzer.extend(sparams, where), errors)
 
   private def extend(sparams: List[StaticParam], params: Option[List[Param]],
                      where: Option[WhereClause]) = params match {
     case Some(ps) =>
       STypeCheckerFactory.make(current, traits,
                                env.extendWithParams(ps).extendWithStaticParams(sparams),
-                               analyzer.extend(sparams, where), errors, factory)
+                               analyzer.extend(sparams, where), errors)
     case None =>
       STypeCheckerFactory.make(current, traits,
                                env.extendWithStaticParams(sparams),
-                               analyzer.extend(sparams, where), errors, factory)
+                               analyzer.extend(sparams, where), errors)
   }
 
   private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
     STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
-                             analyzer, errors, factory)
+                             analyzer, errors)
 
   private def extendWithMethods(methods: Relation[IdOrOpOrAnonymousName, Method]) =
     STypeCheckerFactory.make(current, traits, env.extendWithMethods(methods),
-                             analyzer, errors, factory)
+                             analyzer, errors)
 
   private def extendWithout(declSite: Node, names: JavaSet[Id]) =
     STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
-                             analyzer, errors, factory)
+                             analyzer, errors)
 
   private def noType(hasAt:HasAt) =
     signal(hasAt, "Type is not inferred for: " + hasAt)
@@ -511,8 +503,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   class AtomicChecker(current: CompilationUnitIndex, traits: TraitTable,
                       env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog,
-                      factory: CoercionOracleFactory, enclosingExpr: String)
-      extends STypeChecker(current,traits,env,analyzer,errors,factory) {
+                      enclosingExpr: String)
+      extends STypeChecker(current,traits,env,analyzer,errors) {
     val message = "A 'spawn' expression must not occur inside " +
                   enclosingExpr + "."
     override def checkExpr(e: Expr): Expr = e match {
@@ -522,7 +514,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   }
 
   private def forAtomic(expr: Expr, enclosingExpr: String) =
-    new AtomicChecker(current,traits,env,analyzer,errors,factory,enclosingExpr).checkExpr(expr)
+    new AtomicChecker(current,traits,env,analyzer,errors,enclosingExpr).checkExpr(expr)
 
   /**
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
