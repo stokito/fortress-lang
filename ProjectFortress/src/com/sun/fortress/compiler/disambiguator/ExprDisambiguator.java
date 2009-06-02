@@ -30,6 +30,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.Overloading;
 import com.sun.fortress.nodes.TypeInfo;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TraitTypeHeader;
@@ -954,7 +955,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     /** VarRefs can be made qualified or translated into FnRefs. */
-    @Override public Node forVarRef(VarRef that) {
+    @Override public Node forVarRef(final VarRef that) {
         Id name = that.getVarId();
 
         // singleton object
@@ -1034,7 +1035,21 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 else { result = ExprFactory.makeVarRef(NodeUtil.getSpan(that), newName); }
             }
             else if (vars.isEmpty() && fns.size() > 0 ) {
-                result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
+            	
+            	// Create a list of overloadings for this FnRef from the
+            	// matching function names.
+            	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+					@Override public Overloading value(IdOrOp fn) {
+						return new Overloading(that.getInfo(), fn,
+											   Collections.<StaticArg>emptyList(),
+											   Option.<Type>none());
+					}
+            	};
+            	List<Overloading> overloadings = CollectUtil.makeArrayList(
+            			IterUtil.map(fns, makeOverloadings));
+            	
+                result = ExprFactory.makeFnRef(name, CollectUtil.makeList(fns), overloadings);
+                
                 // TODO: insert correct number of to-infer arguments?
             }
             else if( vars.size() == 1&& fns.size() == 0 && objs.size() == 1 ) {
@@ -1092,7 +1107,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     }
 
-    @Override public Node forFnRef(FnRef that) {
+    @Override public Node forFnRef(final FnRef that) {
         // Many FnRefs will be covered by the VarRef case, since many functions are parsed
         // as variables. FnRefs can be parsed if, for example, explicit static arguments are
         // provided. These function references must still be disambiguated.
@@ -1110,15 +1125,24 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return obj.accept(this);
                 }
             } else {
-                //error("Function " + that + " could not be disambiguated.", that);
-                // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-                return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
-                                             that.getNames(),that.getStaticArgs());
+            	return that;
             }
         }
+    	
+    	// Create a list of overloadings for this FnRef from the matching
+        // function names.
+    	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+			@Override public Overloading value(IdOrOp fn) {
+				return new Overloading(that.getInfo(), fn,
+									   Collections.<StaticArg>emptyList(),
+									   Option.<Type>none());
+			}
+    	};
+    	List<Overloading> overloadings = CollectUtil.makeArrayList(
+    			IterUtil.map(fns, makeOverloadings));
 
         return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
-                                     CollectUtil.makeList(fns), that.getStaticArgs());
+                                     CollectUtil.makeList(fns), that.getStaticArgs(), overloadings);
     }
 
     /**
@@ -1126,13 +1150,25 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * disambiguated, it returns NONE, which other methods can then use to decide
      * if they want to report an error.
      */
-    private Option<FunctionalRef> opRefHelper(FunctionalRef that) {
+    private Option<FunctionalRef> opRefHelper(final FunctionalRef that) {
         Op op_name = (Op)that.getNames().get(0);
         Set<? extends IdOrOp> ops = _env.explicitFunctionNames(op_name);
 
         if (ops.size() == 0) {
             return Option.none();
         }
+    	
+    	// Create a list of overloadings for this OpRef from the matching
+        // operator names.
+    	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+			@Override public Overloading value(IdOrOp op) {
+				return new Overloading(that.getInfo(), op,
+									   Collections.<StaticArg>emptyList(),
+									   Option.<Type>none());
+			}
+    	};
+    	List<Overloading> overloadings = CollectUtil.makeArrayList(
+    			IterUtil.map(ops, makeOverloadings));
 
         FunctionalRef result = ExprFactory.makeOpRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                                      NodeUtil.getExprType(that),
@@ -1140,7 +1176,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                                      that.getLexicalDepth(),
                                                      op_name, CollectUtil.makeList(ops),
                                                      that.getOverloadings(),
-                                                     that.getNewOverloadings(),
+                                                     overloadings,
                                                      that.getOverloadingType());
         return Option.<FunctionalRef>some(result);
     }

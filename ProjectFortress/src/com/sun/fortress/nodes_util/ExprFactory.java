@@ -355,16 +355,38 @@ public class ExprFactory {
                          Option.<Type>none());
     }
 
+    public static FnRef makeFnRef(Span span,
+    							  boolean paren,
+                                  Id original_fn,
+                                  List<IdOrOp> fns,
+                                  List<StaticArg> sargs,
+                                  List<Overloading> overloadings) {
+        return makeFnRef(span, paren, Option.<Type>none(), sargs,
+                         defaultLexicalDepth, original_fn, fns,
+                         Option.<List<FunctionalRef>>none(),
+                         overloadings,
+                         Option.<Type>none());
+    }
+
     public static FnRef makeFnRef(Id name, Id orig){
         return makeFnRef(NodeUtil.getSpan(name), orig);
     }
 
+    public static FnRef makeFnRef(Id orig, List<IdOrOp> names, List<Overloading> overloadings){
+        return makeFnRef(NodeUtil.getSpan(orig), false, Option.<Type>none(),
+                         Collections.<StaticArg>emptyList(),
+                         defaultLexicalDepth, orig, names,
+                         Option.<List<FunctionalRef>>none(),
+                         overloadings,
+                         Option.<Type>none());
+    }
+    
     public static FnRef makeFnRef(Id orig, List<IdOrOp> names){
         return makeFnRef(NodeUtil.getSpan(orig), false, Option.<Type>none(),
                          Collections.<StaticArg>emptyList(),
                          defaultLexicalDepth, orig, names,
                          Option.<List<FunctionalRef>>none(),
-                         Collections.<Overloading>emptyList(),
+                         CollectUtil.<Overloading>emptyList(),
                          Option.<Type>none());
     }
 
