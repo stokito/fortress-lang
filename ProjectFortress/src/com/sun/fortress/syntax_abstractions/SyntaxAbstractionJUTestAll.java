@@ -34,7 +34,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
 
     private static final char SEP = File.separatorChar;
     private final static String STATIC_TESTS_DIR =
-        ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction";
+        ProjectProperties.BASEDIR + "syntax_abstraction_tests";
 
     public static TestSuite suite() throws IOException {
         FilenameFilter fssFilter = new FilenameFilter() {

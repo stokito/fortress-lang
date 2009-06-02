@@ -33,7 +33,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 
     private static final char SEP = File.separatorChar;
     private final static String STATIC_TESTS_DIR =
-        ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction" + SEP;
+        ProjectProperties.BASEDIR + "syntax_abstraction_tests" + SEP;
 
     public static TestSuite suite() throws IOException {
         String[] files = new String[]{
