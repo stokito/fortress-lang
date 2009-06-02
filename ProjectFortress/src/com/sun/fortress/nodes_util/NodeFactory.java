@@ -394,8 +394,8 @@ public class NodeFactory {
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
-                                 FnHeaderFront fhf,
-                                 FnHeaderClause fhc, Expr expr) {
+                                  FnHeaderFront fhf,
+                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
@@ -406,8 +406,8 @@ public class NodeFactory {
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
-                                 List<StaticParam> sparams, List<Param> params,
-                                 FnHeaderClause fhc, Option<Expr> expr) {
+                                  List<StaticParam> sparams, List<Param> params,
+                                  FnHeaderClause fhc, Option<Expr> expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();

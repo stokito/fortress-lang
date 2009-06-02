@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option
 
 import com.sun.fortress.Shell
 import com.sun.fortress.compiler.{NamingCzar => JavaNamingCzar}
-import com.sun.fortress.compiler.phases.PhaseOrder
+import com.sun.fortress.compiler.typechecker.TypeChecker
 import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.WrappedException
@@ -33,6 +33,7 @@ import com.sun.fortress.nodes_util.ASTIO
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.repository.ProjectProperties
+import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.useful.Path
 import com.sun.fortress.useful.TestCaseWrapper
 import com.sun.fortress.useful.WireTappedPrintStream
@@ -49,6 +50,13 @@ class CoercionTest(checker:STypeChecker) {
     val oracle = checker.coercionOracle
     ()
   }
+}
 
-
+class CoercionJavaTest(checker:TypeChecker) {
+  def run() = {
+    val analyzer = checker.typeAnalyzer
+    val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer, new ErrorLog())
+    val oracle = factory.makeOracle(analyzer.typeEnv)
+    factory.getErrors
+  }
 }

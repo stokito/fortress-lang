@@ -374,6 +374,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
     }
 
+    public TypeAnalyzer typeAnalyzer() {
+        return subtypeChecker;
+    }
 
     @Override
     public TypeCheckerResult defaultCase(Node that) {
