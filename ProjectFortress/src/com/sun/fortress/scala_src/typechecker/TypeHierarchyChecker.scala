@@ -39,8 +39,8 @@ import com.sun.fortress.nodes.TraitType
 import com.sun.fortress.nodes.TraitTypeWhere
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.ASTGenHelper.javaify
-import com.sun.fortress.scala_src.useful.ASTGenHelper.scalaify
+import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.Lists._
 
 /* Check type hierarchy to ensure the followings:
  *  - acyclicity
@@ -54,12 +54,19 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                            repository: FortressRepository) {
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
-
-    for (typ <- scalaify(compilation_unit.typeConses.keySet).asInstanceOf[Set[Id]]) {
+    for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       errors.addAll(checkDeclAcyclicity(typ, List()))
       errors.addAll(checkDeclComprises(typ))
     }
-    javaify(removeDuplicates(scalaify(errors).asInstanceOf[List[StaticError]])).asInstanceOf[JavaList[StaticError]]
+    toJavaList(removeDuplicates(toList(errors)))
+  }
+
+  def checkAcyclicHierarchy(): JavaList[StaticError] = {
+    val errors = new ArrayList[StaticError]()
+    for (typ <- toSet(compilation_unit.typeConses.keySet)) {
+      errors.addAll(checkAcyclicity(typ, List()))
+    }
+    toJavaList(removeDuplicates(toList(errors)))
   }
 
   private def getTypes(typ:Id, errors:JavaList[StaticError]) = {
@@ -98,7 +105,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     else {
       types match {
         case ti:TraitIndex =>
-          for (extension <- scalaify(ti.extendsTypes).asInstanceOf[List[TraitTypeWhere]]) {
+          for (extension <- toList(ti.extendsTypes)) {
             extension match {
               // TODO: Extend to handle non-empty where clauses.
               case STraitTypeWhere(_,SAnyType(_),_) => {}
@@ -109,6 +116,41 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
             }
           }
       }
+    }
+    errors
+  }
+
+  /* Check the given declaration to ensure acyclicity including coercions */
+  def checkAcyclicity(decl:Id, children:List[Id]): JavaList[StaticError] = {
+    val errors = new ArrayList[StaticError]()
+    getTypes(decl, errors) match {
+      case ti:TraitIndex =>
+        var kids = children
+        for ( c <- toSet(ti.coercions) ) {
+          // The parser checks that:
+          // 1) a coercion declaration should have exactly one parameter,
+          // 2) it should not have an explicitly declared return type, and
+          // 3) it should explicitly declare its parameter type.
+          c.parameters.get(0).getIdType.unwrap match {
+            case STraitType(_,name,_,_) => kids = name::kids
+            case _ =>
+          }
+        }
+        if (kids contains decl) {
+          error(errors, "Cyclic type hierarchy: Type " + decl +
+                " transitively extends/coerces to itself.", ti.ast)
+        } else {
+          for (extension <- toList(ti.extendsTypes)) {
+            extension match {
+              // TODO: Extend to handle non-empty where clauses.
+              case STraitTypeWhere(_,SAnyType(_),_) => {}
+              case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
+                  errors.addAll(checkAcyclicity(name,decl::kids))
+              case _ => error(errors, "Invalid type in extends clause: " +
+                              extension.getBaseType, extension)
+            }
+          }
+        }
     }
     errors
   }
@@ -126,7 +168,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     val errors = new ArrayList[StaticError]()
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
-        for (extension <- scalaify(ti.extendsTypes).asInstanceOf[List[TraitTypeWhere]]) {
+        for (extension <- toList(ti.extendsTypes)) {
           extension match {
             // TODO: Extend to handle non-empty where clauses.
             case STraitTypeWhere(_,SAnyType(_),_) => {}
@@ -150,7 +192,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
         }
         ti match {
           case si:ProperTraitIndex =>
-            for (ty <- scalaify(si.comprisesTypes).asInstanceOf[Set[TraitType]]) {
+            for (ty <- toSet(si.comprisesTypes)) {
               ty match {
                 case STraitType(_,name,_,_) =>
                   getTypes(name, errors) match {
@@ -170,7 +212,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 
   private def comprisesContains(comprises: JavaSet[TraitType], decl:Id): Boolean = {
     var result = false
-    for (ty <- scalaify(comprises).asInstanceOf[Set[TraitType]]) {
+    for (ty <- toSet(comprises)) {
       ty match {
         case STraitType(_,name,_,_) =>
           if ( name.getText.equals(decl.getText) ) result = true
@@ -181,7 +223,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 
   private def extendsContains(extendsC: JavaList[TraitTypeWhere], decl:Id): Boolean = {
     var result = false
-    for (ty <- scalaify(extendsC).asInstanceOf[List[TraitTypeWhere]]) {
+    for (ty <- toList(extendsC)) {
       ty match {
         case STraitTypeWhere(_,SAnyType(_),_) =>
           if ( decl.getText.equals("Any") ) result = true
