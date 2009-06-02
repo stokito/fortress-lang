@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -40,9 +40,9 @@ public class LocalVarEnv extends DelegatingNameEnv {
         for (Id var : _vars) {
             if (var.getText().equals(name.getText())) {
                 return Collections.singleton(var);
-            }                
+            }
         }
-        return super.explicitVariableNames(name); 
+        return super.explicitVariableNames(name);
     }
     @Override public List<Id> explicitVariableNames() {
         List<Id> result = new LinkedList<Id>();
@@ -50,5 +50,5 @@ public class LocalVarEnv extends DelegatingNameEnv {
         result.addAll(_parent.explicitVariableNames());
         return result;
     }
-    
+
 }

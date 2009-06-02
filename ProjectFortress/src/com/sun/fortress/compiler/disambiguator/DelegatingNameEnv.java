@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -88,22 +88,22 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public TypeConsIndex typeConsIndex(Id name) {
         return _parent.typeConsIndex(name);
     }
-    
+
 	@Override
 	public Set<Id> explicitGrammarNames(String name) {
         return Collections.emptySet();
     }
-    
+
     @Override
 	public boolean hasGrammar(String name) {
         return false;
     }
-    
+
     @Override
 	public boolean hasQualifiedGrammar(Id name) {
         return false;
     }
-    
+
     @Override
         public Set<Id> onDemandGrammarNames(String name) {
         return Collections.emptySet();
