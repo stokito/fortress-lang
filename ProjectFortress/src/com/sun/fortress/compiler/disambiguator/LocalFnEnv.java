@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -41,7 +41,7 @@ public class LocalFnEnv extends DelegatingNameEnv {
     public LocalFnEnv(NameEnv parent, Set<FnDecl> fns) {
         super(parent);
         _fns = new IndexedRelation<IdOrOpOrAnonymousName, FnDecl>();
-        
+
         // Add mapping of each function's name to its decl, and its unambiguous
         // name to its decl.
         for (FnDecl fn : fns) {
@@ -57,10 +57,10 @@ public class LocalFnEnv extends DelegatingNameEnv {
         }
         else { return super.explicitFunctionNames(name); }
     }
-    
+
     @Override
     public Set<IdOrOp> unambiguousFunctionNames(IdOrOp name) {
-    	
+
     	// Get all the FnDecls with this name.
     	Set<FnDecl> decls = _fns.matchFirst(name);
     	Lambda<FnDecl, IdOrOp> getUnambiguousName = new Lambda<FnDecl,IdOrOp>() {
@@ -69,11 +69,11 @@ public class LocalFnEnv extends DelegatingNameEnv {
 				return arg0.getUnambiguousName();
 			}
     	};
-    	
+
     	// Get all the unambiguous names from the decls.
     	Set<IdOrOp> allNames = CollectUtil.asSet(
     			IterUtil.map(decls,getUnambiguousName));
-    	
+
     	// Combine them with those of the parent environments.
     	return CollectUtil.union(allNames, super.unambiguousFunctionNames(name));
     }
