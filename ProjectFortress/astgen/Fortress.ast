@@ -1622,7 +1622,6 @@ interface Node() extends HasAt;
              * One of possibly many overloadings for some function application.
              */
             Overloading(IdOrOp unambiguousName,
-                        IdOrOp name,
                         List<StaticArg> inferredArgs,
                         Option<Type> type);
 

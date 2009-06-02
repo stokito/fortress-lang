@@ -20,6 +20,6 @@
 # Large stack necessary on some platforms, harmless on others.
 
 if [ -z "$ANT_OPTS" ] ; then
-  export ANT_OPTS="-Xmx256m -Xss8m"
+  export ANT_OPTS="-Xmx512m -Xss8m"
   echo Using ANT_OPTS="\"$ANT_OPTS\""
 fi
