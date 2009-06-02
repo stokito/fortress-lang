@@ -202,6 +202,8 @@ public class StaticChecker {
             if (Shell.testCoercion())
                 errors.addAll(new CoercionTest(typeAnalyzer).run());
 
+            errors.addAll(new TypeHierarchyChecker(component, env, repository).checkAcyclicHierarchy());
+
             TypeCheckerResult result;
             if ( ! Shell.getScala() ) {
                 // typecheck...
