@@ -109,13 +109,13 @@ object ExprUtil {
     case SFieldRef(SExprInfo(span, paren, ty), obj, field) =>
       SFieldRef(SExprInfo(span, paren, Some(inferred)), obj, field)
     case SFnRef(SExprInfo(span, paren, ty), staticArgs, lexicalDepth, originalName,
-               names, overloadings, overloadingType) =>
+               names, overloadings, newOverloadings, overloadingType) =>
       SFnRef(SExprInfo(span, paren, Some(inferred)), staticArgs, lexicalDepth,
-             originalName, names, overloadings, overloadingType)
+             originalName, names, overloadings, newOverloadings, overloadingType)
     case SOpRef(SExprInfo(span, paren, ty), staticArgs, lexicalDepth, originalName,
-               names, overloadings, overloadingType) =>
+               names, overloadings, newOverloadings, overloadingType) =>
       SOpRef(SExprInfo(span, paren, Some(inferred)), staticArgs, lexicalDepth,
-             originalName, names, overloadings, overloadingType)
+             originalName, names, overloadings, newOverloadings, overloadingType)
     case S_RewriteFnRef(SExprInfo(span, paren, ty), fnExpr, staticArgs) =>
       S_RewriteFnRef(SExprInfo(span, paren, Some(inferred)), fnExpr, staticArgs)
     case S_RewriteObjectExprRef(SExprInfo(span, paren, ty), name, sargs) =>

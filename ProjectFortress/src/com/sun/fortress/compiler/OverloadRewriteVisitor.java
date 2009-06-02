@@ -53,6 +53,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
                              Option<List<FunctionalRef>> overloadings,
+                             List<Overloading> newOverloadings,
                              Option<Type> type_result) {
         if (fns.size() > 1) {
             Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
@@ -74,7 +75,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
-                                  overloadings, type_result);
+                                  overloadings, Collections.<Overloading>emptyList(), type_result);
     }
 
 
@@ -82,6 +83,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     public Node forOpRefOnly(OpRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
                              Option<List<FunctionalRef>> overloadings,
+                             List<Overloading> newOverloadings,
                              Option<Type> type_result) {
         if (ops.size() > 1) {
             Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
@@ -103,7 +105,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
-                                  overloadings, type_result);
+                                  overloadings, newOverloadings, type_result);
     }
 
 

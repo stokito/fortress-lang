@@ -2480,6 +2480,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> fns_result,
                                               Option<List<TypeCheckerResult>> overloadings_result,
+                                              List<TypeCheckerResult> newOverloadings_result,
                                               Option<TypeCheckerResult> type_result) {
 
         // Could we give a type to each of our fns?
@@ -2536,14 +2537,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
                     // create new FnRef for this application of static params
                     FnRef fn_ref = ExprFactory.makeFnRef(NodeUtil.getSpan(thatFnRef),
-                                                                             NodeUtil.isParenthesized(thatFnRef),
-                                                                             some(new_type),
-                                                                             new_args,
-                                                                             thatFnRef.getLexicalDepth(),
-                                                                             thatFnRef.getOriginalName(),
-                                                                             thatFnRef.getNames(),
-                                                                             thatFnRef.getOverloadings(),
-                                                                             Option.<Type>none());
+                                                         NodeUtil.isParenthesized(thatFnRef),
+                                                         some(new_type),
+                                                         new_args,
+                                                         thatFnRef.getLexicalDepth(),
+                                                         thatFnRef.getOriginalName(),
+                                                         thatFnRef.getNames(),
+                                                         thatFnRef.getOverloadings(),
+                                                         thatFnRef.getNewOverloadings(),
+                                                         Option.<Type>none());
                     fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(NodeUtil.getSpan(thatFnRef), fn_ref, new_type));
                     arrow_types.add(new_type);
                     accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(), new SubtypeHistory(subtypeChecker));
@@ -2562,6 +2564,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                          thatFnRef.getOriginalName(),
                                                                          thatFnRef.getNames(),
                                                                          Option.<List<FunctionalRef>>some(fn_overloadings),
+                                                                         thatFnRef.getNewOverloadings(),
                                                                          Option.<Type>none());
         }
         else {
@@ -2595,6 +2598,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                          thatFnRef.getOriginalName(),
                                                                          thatFnRef.getNames(),
                                                                          Option.<List<FunctionalRef>>none(),
+                                                                         thatFnRef.getNewOverloadings(),
                                                                          Option.<Type>none());
         }
 
@@ -3849,6 +3853,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> ops_result,
                                               Option<List<TypeCheckerResult>> overloadings_result,
+                                              List<TypeCheckerResult> newOverloadings_result,
                                               Option<TypeCheckerResult> type_result) {
         // Did all ops typecheck?
         for( TypeCheckerResult o_r : ops_result ) {
@@ -3911,6 +3916,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                                          thatOpRef.getOriginalName(),
                                                                                          thatOpRef.getNames(),
                                                                                          thatOpRef.getOverloadings(),
+                                                                                         thatOpRef.getNewOverloadings(),
                                                                                          Option.<Type>none());
 
                     overloadings.add(ExprFactory.make_RewriteOpRefOverloading(NodeUtil.getSpan(thatOpRef), new_op_ref, new_type));
@@ -3929,6 +3935,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                          thatOpRef.getOriginalName(),
                                                                          thatOpRef.getNames(),
                                                                          Option.<List<FunctionalRef>>some(overloadings),
+                                                                         thatOpRef.getNewOverloadings(),
                                                                          Option.<Type>none());
                     constraints = accumulated_constraints;
         }
@@ -3957,6 +3964,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                              thatOpRef.getOriginalName(),
                                                              (List<IdOrOp>)TypeCheckerResult.astFromResults(ops_result),
                                                                          Option.<List<FunctionalRef>>none(),
+                                                                         thatOpRef.getNewOverloadings(),
                                                              Option.<Type>none());
         }
 
