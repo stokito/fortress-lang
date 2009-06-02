@@ -1084,6 +1084,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                          (Op)that.getNames().get(0),
                                          that.getNames(),
                                          that.getOverloadings(),
+                                         that.getNewOverloadings(),
                                          that.getOverloadingType());
         }
         else {
@@ -1112,7 +1113,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 //error("Function " + that + " could not be disambiguated.", that);
                 // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
                 return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
-                                             that.getNames(), that.getStaticArgs());
+                                             that.getNames(),that.getStaticArgs());
             }
         }
 
@@ -1139,6 +1140,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                                      that.getLexicalDepth(),
                                                      op_name, CollectUtil.makeList(ops),
                                                      that.getOverloadings(),
+                                                     that.getNewOverloadings(),
                                                      that.getOverloadingType());
         return Option.<FunctionalRef>some(result);
     }

@@ -78,6 +78,7 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
                                          Environment.TOP_LEVEL,
                                          n_originalName, n_ops,
                                          op.getOverloadings(),
+                                         op.getNewOverloadings(),
                                          op.getOverloadingType());
         }
 

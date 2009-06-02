@@ -799,6 +799,7 @@ interface Node() extends HasAt;
                                                IdOrOp originalName,
                                                List<IdOrOp> names,
                                                Option<List<FunctionalRef>> overloadings,
+                                               List<Overloading> newOverloadings,
                                                Option<Type> overloadingType);
                             /**
                              * expression with static instantiations
@@ -1616,6 +1617,14 @@ interface Node() extends HasAt;
                      */
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
+        
+            /**
+             * One of possibly many overloadings for some function application.
+             */
+            Overloading(IdOrOp unambiguousName,
+                        IdOrOp name,
+                        List<StaticArg> inferredArgs,
+                        Option<Type> type);
 
             /** syntactic abstraction nodes ************************************/
 
