@@ -730,6 +730,9 @@ public final class Shell {
             else if (s.equals("-typecheck-scala")) {
             	setScala(true);
             }
+            else if (s.equals("-coercion")) {
+            	setTestCoercion(true);
+            }
             else
                 invalidFlag(s, phase);
             return_code = compilerPhases(rest, out, phase);

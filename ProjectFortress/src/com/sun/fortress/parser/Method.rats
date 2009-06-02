@@ -94,13 +94,28 @@ FnHeaderFront AbsNamedMdHeaderFront =
      CoercionWhereConstraint (w , w CoercionWhereConstraint)*
  */
 Decl Coercion =
-     coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
+     coerce a1:(w StaticParams)? w openparen w a2:BindId a3:(w IsType)? w closeparen
      a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
-     { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
-       List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
+     { Span span = createSpan(yyStart,yyCount);
+       if (a1 == null) a1 = Collections.<StaticParam>emptyList();
+       List<Param> params;
+       if (a3 == null) {
+           log(span, "A coercion declaration should explicitly declare its parameter type.");
+           params = Useful.list(NodeFactory.makeParam(a2));
+       } else params = Useful.list(NodeFactory.makeParam(a2, a3));
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
-       Span span = createSpan(yyStart,yyCount);
        NodeUtil.checkCoercionClauses(writer, span, a4);
        yyValue = NodeFactory.mkFnDecl(span, mods, NodeFactory.makeId(span,"coerce"),
                                       a1, params, a4, Option.<Expr>wrap(a6));
+     }
+   / coerce a1:(w StaticParams)? w a2:ValParam a3:(w IsType)?
+     a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "A coercion declaration should have exactly one parameter.");
+       if (a4 != null)
+           log(span, "A coercion declaration should not have an explicitly declared return type.");
+       yyValue = NodeFactory.makeFnDecl(span, Modifiers.None,
+                                        NodeFactory.makeId(span,"coerce"),
+                                        Collections.<StaticParam>emptyList(),
+                                        a2, Option.<Type>wrap(a3));
      };

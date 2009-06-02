@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
+import com.sun.fortress.scala_src.typechecker.CoercionJavaTest;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
@@ -217,10 +218,8 @@ public class StaticChecker {
                 STypeChecker typeChecker = STypeCheckerFactory.make(component, envs.second(),
                                                                     envs.first(),
                                                                     TypeAnalyzer.make(envs.second()));
-
-                if (Shell.testCoercion()) { new CoercionTest(typeChecker).run(); }
-
         	component_ast = typeChecker.check(component_ast);
+                if (Shell.testCoercion()) { new CoercionTest(typeChecker).run(); }
         	result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));
             }
@@ -249,7 +248,11 @@ public class StaticChecker {
         ConstraintUtil.useJavaFormulas();
         TypeChecker typeChecker = new TypeChecker(envs.second(), envs.first(),
                                                   component, postInference);
-        return component_ast.accept(typeChecker);
+        TypeCheckerResult result = component_ast.accept(typeChecker);
+        if (Shell.testCoercion() && postInference) {
+            result = addErrors(new CoercionJavaTest(typeChecker).run(), result);
+        }
+        return result;
     }
 
     private static Pair<TypeEnv,TraitTable> typeCheckEnv(ComponentIndex component,

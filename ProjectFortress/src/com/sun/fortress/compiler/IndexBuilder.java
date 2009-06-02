@@ -540,7 +540,7 @@ public class IndexBuilder {
                 error("Getter declared with an operator name, '" + s + "'", ast);
             }
         }
-        else if (name.equals(COERCION_NAME)) {
+        else if (name instanceof Id && ((Id)name).getText().equals(COERCION_NAME)) {
             coercions.add(new DeclaredFunction(ast));
         }
         else {
@@ -633,7 +633,7 @@ public class IndexBuilder {
     }
 
 
-    public static final Id COERCION_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "coercion");
+    public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
 }

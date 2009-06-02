@@ -279,8 +279,14 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
             isOprMethod = (! (((Op)name).isEnclosing()) ) ||
                            ((Op)name).getText().equals("| |");
         }
+
+        boolean isCoercion = name instanceof Id &&
+                             ((Id)name).getText().equals("coerce");
+        if ( isCoercion && inComponent && ! hasBody )
+            log(that, "The coercion body is required.");
+
         boolean hasSelf = false;
-        if ( (! hasBody) && NodeUtil.getReturnType(that).isNone() )
+        if ( (! hasBody) && NodeUtil.getReturnType(that).isNone() && ! isCoercion )
             log(that, "The return type of " + name + " is required.");
 
         for ( Param p : NodeUtil.getParams(that) ) {
