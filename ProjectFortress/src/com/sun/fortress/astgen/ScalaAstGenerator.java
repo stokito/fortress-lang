@@ -150,7 +150,7 @@ public class ScalaAstGenerator extends CodeGenerator {
      * Given a TypeName, return a string representation of the corresponding
      * type in Java.
      */
-    private String javaFieldType(TypeName type) { 
+    private String javaFieldType(TypeName type) {
         return type.accept(new TypeNameVisitor<String>() {
 
                 // A type declared in the AST.  Has 0 type arguments.
@@ -445,6 +445,27 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
     /**
+     * Given a NodeType, return a string consisting of references to the fields of that type,
+     * separated by commas and enclosed in parentheses.
+     */
+    private String fieldsNames(NodeType box) {
+        if (mkList(box.allFields(ast)).isEmpty()) {
+            return "";
+        } else {
+            StringBuffer buffer = new StringBuffer("(");
+            boolean first = true;
+            for ( Field field : box.allFields(ast)) {
+                if (first) { first = false; }
+                else { buffer.append( ", " ); }
+
+                buffer.append(sub("@name", "@name", field.getGetterName()));
+            }
+            buffer.append(")");
+            return buffer.toString();
+        }
+    }
+
+    /**
      * Given a String (denoting a receiver name) and a NodeType, return a string denoting calls
      * to the getters of that type, separated by commas and enclosed in parentheses.
      */
@@ -496,10 +517,11 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("@wrapper(@receiver@name).asInstanceOf",
+                buffer.append(sub("@wrapper(@receiver@name).asInstanceOf[@type]",
                                   "@wrapper", wrapper,
                                   "@receiver", receiver,
-                                  "@name", field.getGetterName()));
+                                  "@name", field.getGetterName(),
+                                  "@type", fieldType(field.type())));
             }
             buffer.append(")");
             return buffer.toString();
@@ -585,7 +607,6 @@ public class ScalaAstGenerator extends CodeGenerator {
             }
             writer.println(sub("}"));
         }
-/*
         // Generate walker.
         writer.println();
         writer.println("trait Walker {");
@@ -595,19 +616,19 @@ public class ScalaAstGenerator extends CodeGenerator {
             if (ignoreClass(c.name())) { continue; }
             if ( c.isAbstract() ){ continue; }
 
-            writer.println(sub( "         case @name@fieldsNoTypes =>",
+            writer.println(sub( "         case S@name@fieldsNoTypes =>",
                                 "@name", c.name(),
-                                "@fieldsNoTypes", fieldsNoTypes(c)));
-            writer.println(sub("             @name@fieldsNoTypes",
+                                "@fieldsNoTypes", fieldsNames(c)));
+            writer.println(sub("             S@name@fieldsNoTypes",
                                "@name", c.name(),
                                "@fieldsNoTypes", wrappedFieldCalls("walk", c)));
         }
         writer.println("         case xs:List[_] => xs.map(walk _)");
+        writer.println("         case xs:Option[_] => xs.map(walk _)");
         writer.println("         case _ => node");
         writer.println("      }");
         writer.println("   }");
         writer.println("}");
-        */
     }
 
     /**

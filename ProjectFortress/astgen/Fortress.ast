@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Set;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.*;
 import com.sun.fortress.parser_util.precedence_opexpr.*;
@@ -1617,7 +1616,7 @@ interface Node() extends HasAt;
                      */
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
-        
+
             /**
              * One of possibly many overloadings for some function application.
              */

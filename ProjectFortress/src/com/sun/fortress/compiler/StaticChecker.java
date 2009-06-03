@@ -48,6 +48,7 @@ import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
+import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
@@ -203,6 +204,7 @@ public class StaticChecker {
                 errors.addAll(new CoercionTest(typeAnalyzer).run());
 
             errors.addAll(new TypeHierarchyChecker(component, env, repository).checkAcyclicHierarchy());
+            errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
 
             TypeCheckerResult result;
             if ( ! Shell.getScala() ) {
@@ -230,6 +232,19 @@ public class StaticChecker {
             if( TypesUtil.assertAfterTypeChecking(result.ast()) )
                 bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                     result.ast());
+
+            //errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
+            /*
+import java.io.*;
+import com.sun.fortress.nodes_util.ASTIO;
+            try {
+            ASTIO.writeJavaAst((Component)component.ast(), "first.tfi");
+            } catch (IOException e) {}
+            try {
+            ASTIO.writeJavaAst((Component)component.ast(), "second.tfi");
+            } catch (IOException e) {}
+            */
+
             // Check overloadings in this component.
             errors.addAll(new OverloadingChecker(component, env, repository).checkOverloading());
             result = addErrors(errors, result);
