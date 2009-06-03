@@ -46,13 +46,13 @@ import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
-import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.ErrorLog
-import com.sun.fortress.scala_src.useful.ExprUtil
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.SExprUtil
+import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.useful.HasAt
 
 /* Quesitons
@@ -126,37 +126,58 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def signal(hasAt:HasAt, msg:String) =
     errors.signal(msg, hasAt)
 
-  private def inferredType(expr:Expr): Option[Type] =
-    scalaify(expr.getInfo.getExprType).asInstanceOf[Option[Type]]
+  // TODO: The name seems a bit misleading since it's used to get any type from
+  // and expression. Maybe change the name?
+  private def inferredType(expr:Expr): Option[Type] = SExprUtil.getType(expr)
 
+  /**
+   * Determine if all of the given expressions have types previously inferred
+   * by the typechecker.
+   */
   private def haveInferredTypes(exprs: List[Expr]): Boolean =
     exprs.forall((e:Expr) => inferredType(e).isDefined)
 
-  private def isArrows(expr: Expr): Boolean =
-    TypesUtil.isArrows(inferredType(expr).get).asInstanceOf[Boolean]
-
-  private def checkSubtype(subtype:Type, supertype:Type, node:Node, error:String) = {
-    val judgement = analyzer.subtype(subtype, supertype).isTrue
-    if (! judgement) signal(error, node)
+  /**
+   * Determine if subtype <: supertype. If false, then the given error message
+   * is signaled for the given location.
+   */
+  private def checkSubtype(subtype:Type, supertype:Type, location:HasAt, error:String): Boolean = {
+    val judgement = checkSubtype(subtype, supertype)
+    if (! judgement) signal(error, location)
     judgement
   }
 
-  private def handleAliases(name: Id, api: APIName, imports: List[Import]): Id = {
-    def getAliases(imp: Import): Option[Id] = imp match {
-      case SImportNames(info, foreignLanguage, aliasApi, aliases) =>
-        if ( api.equals(aliasApi) ) {
-          def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
-            case SAliasedSimpleName(_, newName, Some(alias)) =>
-              if ( alias.equals(name) ) Some(newName.asInstanceOf)
-              else None
-            case _ => None
-          }
-          aliases.flatMap(getName).find((x:Id) => true)
-        } else None
-      case _ => None
+  /**
+   * Determine if subtype <: supertype.
+   */
+  private def checkSubtype(subtype:Type, supertype:Type): Boolean
+    = analyzer.subtype(subtype, supertype).isTrue
+
+  /**
+   * Replaces the given name with the name it aliases 
+   * (or leaves it alone if it doesn't alias any thing)
+   */
+  private def handleAliases(name: Id, imports: List[Import]): Id =
+    name match {
+      case SId(_, Some(api), _) =>
+
+        def getAliases(imp: Import): Option[Id] = imp match {
+          case SImportNames(info, foreignLanguage, aliasApi, aliases) =>
+            if (api.equals(aliasApi) ) {
+              def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
+                case SAliasedSimpleName(_, newName, Some(alias)) =>
+                  if ( alias.equals(name) ) Some(newName.asInstanceOf)
+                  else None
+                case _ => None
+              }
+              aliases.flatMap(getName).find((x:Id) => true)
+            } else None
+          case _ => None
+        }
+
+        imports.flatMap(getAliases).find((x:Id) => true).getOrElse(name)
+      case _ => name
     }
-    imports.flatMap(getAliases).find((x:Id) => true).getOrElse(name)
-  }
 
   private def getEnvFromApi(api: APIName): TypeEnv =
     TypeEnv.make( traits.compilationUnit(api) )
@@ -420,8 +441,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case id@SId(info,api,name) => {
       api match {
-        case Some(apiName) => {
-          val newName = handleAliases(id, apiName, toList(current.ast.getImports))
+        case Some(_) => {
+          val newName = handleAliases(id, toList(current.ast.getImports))
           getTypeFromName( newName ) match {
             case Some(ty) =>
               if ( ty.isInstanceOf[NamedType] ) {
@@ -453,6 +474,25 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       id
     }
 
+    case SOverloading(info, name, sargs, _) => {
+	  val checkedName = check(name).asInstanceOf[IdOrOp]
+
+	  // Get the arrow type for this name and check that the supplied static
+      // args match its declared static params. If so, the overloading is
+      // returned with the arrow type filled in.
+      getTypeFromName(checkedName) match {
+        case Some(checkedType) => {
+          val sparams = STypesUtil.getStaticParams(checkedType)
+          if (sargs.isEmpty || STypesUtil.staticArgsMatchStaticParams(sargs, sparams, this.checkSubtype)) {
+              val replacedType = STypesUtil.substituteStaticArgsForParams(sargs, sparams, checkedType)
+              SOverloading(info, checkedName, sargs, Some(replacedType))
+          }
+          else node
+        }
+        case None => node
+      }
+    }
+
     case op@SOp(info,api,name,fixity,enclosing) => {
       val tyEnv = api match {
         case Some(api) => getEnvFromApi(api)
@@ -479,8 +519,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           checkSubtype(typ, t, expr,
                        first + " has type " + typ + ", but " + second +
                        " type is " + t + ".")
-          ExprUtil.addType(newExpr, typ)
-        case _ => ExprUtil.addType(newExpr, typ)
+          SExprUtil.addType(newExpr, typ)
+        case _ => SExprUtil.addType(newExpr, typ)
       }
       case _ => noType(expr); expr
     }
@@ -494,8 +534,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           checkSubtype(typ, t, expr,
                        message + " has type " + typ + ", but it must have " +
                        t + " type.")
-          ExprUtil.addType(newExpr, typ)
-        case _ => ExprUtil.addType(newExpr, typ)
+          SExprUtil.addType(newExpr, typ)
+        case _ => SExprUtil.addType(newExpr, typ)
       }
       case _ => noType(expr); expr
     }
@@ -818,12 +858,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
           case Nil => results.reverse
           case first::rest =>
-            if ( isArrows(first) ) {
-              val (arrows,temp) = (first::rest).span(isArrows)
-              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
+            if ( STypesUtil.isArrows(first) ) {
+              val (arrows,temp) = (first::rest).span(STypesUtil.isArrows)
+              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! STypesUtil.isArrows(e))
               chunker(remainingChunks, (arrows,nonArrows)::results)
             } else {
-              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
+              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! STypesUtil.isArrows(e))
               chunker(remainingChunks, (List(),nonArrows)::results)
             }
         }
@@ -928,8 +968,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case _ => false
       }
       def isFunctionItem(item: MathItem) = item match {
-        case SParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
-        case SNonParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
+        case SParenthesisDelimitedMI(_,e) => STypesUtil.isArrows(checkExpr(e))
+        case SNonParenthesisDelimitedMI(_,e) => STypesUtil.isArrows(checkExpr(e))
         case _ =>
       }
       def expectParenedExprItem(item: MathItem) =
@@ -1029,7 +1069,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case None => noType(front); front
         case Some(t) =>
           // If front is a fn followed by an expr, we reassociate
-          if ( TypesUtil.isArrows(t).asInstanceOf[Boolean] && isExprMI(second) ) {
+          if ( STypesUtil.isArrows(t) && isExprMI(second) ) {
             // It is a static error if either the argument is not parenthesized,
             expectParenedExprItem(second)
             // static error if the argument is immediately followed by
@@ -1102,12 +1142,43 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SVoidLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SVoidLiteralExpr(SExprInfo(span,parenthesized,Some(Types.VOID)), text)
 
-    /* ToDo for Compiled0
+    
     case SFnRef(SExprInfo(span,paren,optType),
-                sargs, depth, name, names, overloadings, types) => {
-        expr
+                sargs, depth, name, a, b , overloadings, c) => {
+      
+        // Check all the overloadings and filter out any that have the wrong
+        // number or kind of static parameters.
+		val checkedOverloadings =
+		    overloadings.map(check(_).asInstanceOf[Overloading]).
+		        filter((ov:Overloading) => ov.getType.isSome)
+        
+        if (checkedOverloadings.isEmpty)
+          signal(expr, "Wrong number or kind of static arguments for function: "+name)
+        
+        // Make the intersection type of all the overloadings.
+        val overloadingTypes = overloadings.map((ov:Overloading) => ov.getType.unwrap)
+        val intersectionType = NodeFactory.makeIntersectionType(span, toJavaList(overloadingTypes))
+        
+        SFnRef(SExprInfo(span, paren, Some(intersectionType)),
+               sargs, depth, name, a, b, checkedOverloadings, c)
     }
-    */
+    
+    case S_RewriteFnApp(SExprInfo(span, paren, optType), fn, arg) => {
+      val checkedFn = checkExpr(fn)
+      val checkedArg = checkExpr(arg)
+      
+      // Check fn and arg and get their types.
+      (inferredType(checkedFn), inferredType(checkedArg)) match {
+        case (Some(fnType), Some(_)) if !STypesUtil.isArrows(fnType) => {
+          signal(expr, fnType + " is not an arrow type.")
+          expr
+        }
+        case (Some(fnType), Some(argType)) => {
+          expr
+        }
+        case _ => expr
+      }
+    }
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
       val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
@@ -1181,9 +1252,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             ty match {
               case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
                 if ( NodeUtil.isGenericSingletonType(typ) &&
-                     StaticTypeReplacer.argsMatchParams(toJavaList(sargs),
-                                                        toJavaList(params),
-                                                        analyzer).isSome ) {
+                     STypesUtil.staticArgsMatchStaticParams(sargs, params, this.checkSubtype)) {
                   // make a trait type that is GenericType instantiated
                   val newType = NodeFactory.makeTraitType(sp, pr, name,
                                                           toJavaList(sargs))

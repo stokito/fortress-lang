@@ -19,9 +19,21 @@ package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Options._
 
-object ExprUtil {
+object SExprUtil {
 
+  /**
+   * Get the type previously inferred by the typechecker from an expression, if
+   * it has one.
+   */
+  def getType(expr: Expr): Option[Type] = toOption(expr.getInfo.getExprType)
+  
+  /**
+   * Given an expression, return an identical expression with the given type
+   * inserted into its ExprInfo.
+   */
   def addType(expr: Expr, inferred: Type): Expr = expr match {
     case SAsExpr(SExprInfo(span, paren, ty), exp, annType) =>
       SAsExpr(SExprInfo(span, paren, Some(inferred)), exp, annType)

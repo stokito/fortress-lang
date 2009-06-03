@@ -1035,19 +1035,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 else { result = ExprFactory.makeVarRef(NodeUtil.getSpan(that), newName); }
             }
             else if (vars.isEmpty() && fns.size() > 0 ) {
-            	
-            	// Create a list of overloadings for this FnRef from the
-            	// matching function names.
-            	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
-					@Override public Overloading value(IdOrOp fn) {
-						return new Overloading(that.getInfo(), fn,
-											   Collections.<StaticArg>emptyList(),
-											   Option.<Type>none());
-					}
-            	};
-            	List<Overloading> overloadings = CollectUtil.makeArrayList(
-            			IterUtil.map(fns, makeOverloadings));
-            	
+                
+                // Create a list of overloadings for this FnRef from the
+                // matching function names.
+                Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+                @Override public Overloading value(IdOrOp fn) {
+                    return new Overloading(that.getInfo(), fn,
+                                           Collections.<StaticArg>emptyList(),
+                                           Option.<Type>none());
+                    }
+                };
+                List<Overloading> overloadings = CollectUtil.makeArrayList(
+                        IterUtil.map(fns, makeOverloadings));
+                
                 result = ExprFactory.makeFnRef(name, CollectUtil.makeList(fns), overloadings);
                 
                 // TODO: insert correct number of to-infer arguments?
@@ -1128,18 +1128,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             	return that;
             }
         }
-    	
-    	// Create a list of overloadings for this FnRef from the matching
+        
+        // Create a list of overloadings for this FnRef from the matching
         // function names.
-    	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
-			@Override public Overloading value(IdOrOp fn) {
-				return new Overloading(that.getInfo(), fn,
-									   Collections.<StaticArg>emptyList(),
-									   Option.<Type>none());
-			}
-    	};
-    	List<Overloading> overloadings = CollectUtil.makeArrayList(
-    			IterUtil.map(fns, makeOverloadings));
+        Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+            @Override public Overloading value(IdOrOp fn) {
+                return new Overloading(that.getInfo(), fn,
+                                       that.getStaticArgs(),
+                                       Option.<Type>none());
+            }
+        };
+        List<Overloading> overloadings = CollectUtil.makeArrayList(
+                IterUtil.map(fns, makeOverloadings));
 
         return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
                                      CollectUtil.makeList(fns), that.getStaticArgs(), overloadings);
