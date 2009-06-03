@@ -39,8 +39,9 @@ import com.sun.fortress.nodes.TraitType
 import com.sun.fortress.nodes.TraitTypeWhere
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Sets._
 
 /* Check type hierarchy to ensure the followings:
  *  - acyclicity
@@ -83,15 +84,6 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 
   private def error(errors:JavaList[StaticError], s:String, n:Node) =
     errors.add(TypeError.make(s,n))
-
-  private def removeDuplicates(errors:List[StaticError]):List[StaticError] = {
-    errors match {
-      case Nil => errors
-      case fst::rst =>
-        if (rst contains fst) { removeDuplicates(rst) }
-        else { fst :: removeDuplicates(rst) }
-    }
-  }
 
   /* Check the given declaration to ensure acyclicity */
   def checkDeclAcyclicity(decl:Id, children:List[Id]): JavaList[StaticError] = {

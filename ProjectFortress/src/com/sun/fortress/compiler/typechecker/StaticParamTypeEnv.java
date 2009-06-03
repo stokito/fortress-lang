@@ -77,6 +77,14 @@ public class StaticParamTypeEnv extends TypeEnv {
         return Option.none();
     }
 
+    public boolean bound(Id name) {
+        for ( StaticParam param : entries ) {
+            if ( param.getName().getText().equals(name.getText()) )
+                return true;
+        }
+        return false;
+    }
+
 	@Override
 	public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }

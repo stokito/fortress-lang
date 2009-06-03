@@ -13,5 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled2.g Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v
-desugar
+tests=Compiled6.q
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.q.fss:22:6-10:\n\
+\ Ill-formed type: A[\\()\\]\n\
+\ The static argument () does not satisfy the corresponding bound String.\n\
+File Compiled6.q.fss has 1 error.\n
+compile_out_equals=

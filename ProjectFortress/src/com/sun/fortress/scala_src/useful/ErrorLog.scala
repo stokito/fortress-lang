@@ -29,3 +29,14 @@ class ErrorLog() {
     errors = errors ::: List(TypeError.make(msg,hasAt))
   }
 }
+
+object Errors {
+  def removeDuplicates(errors:List[StaticError]):List[StaticError] = {
+    errors match {
+      case Nil => errors
+      case fst::rst =>
+        if (rst contains fst) { removeDuplicates(rst) }
+        else { fst :: removeDuplicates(rst) }
+    }
+  }
+}
