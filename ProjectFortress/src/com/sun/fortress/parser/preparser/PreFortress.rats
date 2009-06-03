@@ -77,11 +77,12 @@ body {
     private BufferedWriter writer;
 
     void initParser() {
+        String s = column(0).file + ".preparserError.log";
         try {
             Debug.debug( Debug.Type.PARSER, 1, "Preparsing " + column(0).file + "...");
-            writer = Useful.filenameToBufferedWriter( column(0).file + ".preparserError.log" );
+            writer = Useful.filenameToBufferedWriter( s );
         } catch (IOException error) {
-            error("Creating a log file for the parser failed!");
+            error("Creating log file " + s + " for the parser failed, exception " + error.getMessage());
         }
     }
 
