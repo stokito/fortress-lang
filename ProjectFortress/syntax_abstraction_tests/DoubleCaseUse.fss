@@ -20,9 +20,9 @@ import DoubleCase.{...}
 export Executable
 
 run() = do
-    (foo 1, 2, 3,)
+    (foo 1,2, 3,)
     (foo 1,)
-    (foo)
+    (foo )
 end
 
 end
