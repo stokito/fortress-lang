@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
@@ -78,13 +95,43 @@ object STypesUtil {
    */
   def isArrows(ty: Type): Boolean =
     TypesUtil.isArrows(ty).asInstanceOf[Boolean]
+  
+  
+  private def typeSubstitution[K <: Type, V <: Type]
+                               (substitution: Map[K, V],
+                                body: Type): Type = {
     
-  def argMatchesParams(arg: Type, params: List[Param]): ScalaConstraint = {
+    // Walks an AST, performing the given substitution. 
+    object substitutionWalker extends Walker {
+      override def walk(node: Any): Any = node match {
+        case ty:K => substitution.get(ty).getOrElse(super.walk(ty))
+        case _ => super.walk(node)
+      }
+    }
+    
+    // Perform the substitution on the body type.
+    substitutionWalker(body).asInstanceOf
+  }
+  
+  
+  def betaConversion(substitution: Map[StaticParam, StaticArg],
+                      body: Type): Type = {
     null
   }
   
-  def staticallyMostApplicableArrow(arrow: Type,
-                                    argTypes: List[Type]): Type = {
+  def checkApplicable(fnType: ArrowType,
+                      argType: Type,
+                      expectedType: Option[Type]): Option[List[StaticArg]] = {
+    // Substitute inference variables for static parameters in fnType.
+    
+    
+    
+    null
+  }
+  
+  def staticallyMostApplicableArrow(fnType: Type,
+                                    argType: Type,
+                                    expectedType: Option[Type]): Type = {
     null
   }
 }
