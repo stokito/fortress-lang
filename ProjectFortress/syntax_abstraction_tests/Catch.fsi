@@ -30,7 +30,7 @@ api Catch
                         try
                             fs
                         catch z
-                            IndexOutOfBounds[\ZZ32\] => (foobar bs**)
+                            FailCalled => (foobar bs**)
                         end
                     end
                 ]>

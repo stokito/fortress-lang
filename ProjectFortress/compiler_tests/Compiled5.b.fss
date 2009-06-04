@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component Compiled5.b
+import CompilerBuiltin.{...} except Boolean
 export Executable
 
 trait Boolean

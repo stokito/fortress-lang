@@ -23,7 +23,7 @@ run():() = do
   assert(foo, 1)
   assert(bar, 2)
   assert((fn(baz) => baz)1, 1)
-  (*  assert((fn(foo) => foo)1, 1) *) (* illegal because foo is a keyword *)
+  (*) assert((fn(foo) => foo)1, 1)  (*) illegal because foo is a keyword 
   println("A okay")
 end
 

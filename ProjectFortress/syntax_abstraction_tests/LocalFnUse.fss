@@ -20,7 +20,7 @@ import LocalFn.{...}
 export Executable
 
 run() = do
-    println(foo 2, 0)
+    println(foo 3, 2, 1, 0)
     println(foo)
 end
 

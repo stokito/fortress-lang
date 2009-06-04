@@ -25,6 +25,7 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intMul => jIntMul,
                                             simpleIntArith.intLT => jIntLT,
                                             simpleIntArith.intLE => jIntLE,
+                                            simpleIntArith.intGT => jIntGT,
                                             simpleIntArith.intEQ => jIntEQ,
                                             simpleIntArith.intNeg => jIntNeg,
                                             simpleIntArith.parseInt => jParseInt}
@@ -60,6 +61,7 @@ trait ZZ32 extends ZZ64 comprises { IntLiteral }
     opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
     opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
     opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
+    opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
     opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)

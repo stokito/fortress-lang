@@ -19,7 +19,12 @@ import LetCC.{...}
 export Executable
 
 run(args:String...) = do
-  println (letcc cont do println "before"; cont("continuation"); println "after" end)
+  x = letcc cont do 
+        println "before"
+        cont("continuation")
+        println "after" 
+      end
+  println x
 end
 
 end

@@ -43,7 +43,7 @@ import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Sets._
 
-/* Check type hierarchy to ensure the followings:
+/* Check type hierarchy to ensure the following:
  *  - acyclicity
  *  - comprises clauses
  *   = for each trait T with a comprises clause "comprises { S... }"
