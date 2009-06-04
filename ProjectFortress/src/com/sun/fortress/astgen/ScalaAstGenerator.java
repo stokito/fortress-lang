@@ -610,6 +610,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         // Generate walker.
         writer.println();
         writer.println("trait Walker {");
+        writer.println("   def apply(node:Any):Any = walk(node)");
         writer.println("   def walk(node:Any):Any = {");
         writer.println("       node match {");
         for (NodeClass c : sort(ast.classes())) {
