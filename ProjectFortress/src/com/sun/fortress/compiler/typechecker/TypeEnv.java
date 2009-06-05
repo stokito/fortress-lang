@@ -254,6 +254,11 @@ public abstract class TypeEnv {
     public abstract Option<StaticParam> staticParam(IdOrOpOrAnonymousName id);
 
     /**
+     * Return true iff the given id is bound as a StaticParam. 
+     */
+    public boolean boundStaticParam(Id id) { return staticParam(id).isSome(); }
+
+    /**
      * Return the {@code Node} that declared the given id, or None if the id does not
      * exist. Note that this method should not be passed the id of a function, since
      * functions have multiple declaration sites. You can tell if an id is a function
