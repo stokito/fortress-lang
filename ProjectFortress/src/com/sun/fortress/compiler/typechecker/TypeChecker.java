@@ -336,6 +336,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with a generic error message will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast) {
+        // System.err.println("checkSubtype(" + subtype + "," + supertype + "," + ast);
+
         return checkSubtype(subtype,
                 supertype,
                 ast,
@@ -349,6 +351,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
      * for the given node with the a TypeError and the given error message will be returned.
      */
     private TypeCheckerResult checkSubtype(Type subtype, Type supertype, Node ast, String error) {
+        // System.err.println("checkSubtype(" + subtype + "," + supertype + "," + ast + "," + error);
+
         ConstraintFormula constraint = subtypeChecker.subtype(subtype, supertype);
         if( !constraint.isSatisfiable() ) {
             // note that if it's satisfiable, it could still be later found to not be
@@ -2306,6 +2310,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forFnDecl(FnDecl that) {
                 if (NodeUtil.getBody(that).isNone())
                     return super.forFnDecl(that);
+                                                                        
+                // System.err.println("Checking function decl " + that);
 
         TypeChecker newChecker = this.extend(NodeUtil.getStaticParams(that), NodeUtil.getParams(that), NodeUtil.getWhereClause(that));
 
@@ -3408,6 +3414,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forMethodInvocation(MethodInvocation that) {
+        // System.err.println("forMethodInvocation(" + that + ")");
+
         Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         TypeCheckerResult obj_result = recur(that.getObj());
         TypeCheckerResult method_result = recur(that.getMethod());
