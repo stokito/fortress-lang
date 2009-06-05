@@ -186,7 +186,7 @@ Setting up Eclipse to follow the Fortress project coding style
 conventions is a two-step process. The following instructions are
 known to work on Eclipse 3.4, and should work on Eclipse 3.3 as well.
 These will change preferences for all your Eclipse projects.
-Open up Window --> Preferences to start configuring your global
+Open up Eclipse Preferences to start configuring your global
 settings. First select General --> Editors --> Text Editors
 and make sure the checkbox is enabled for "Insert spaces for tabs".
 Second select Java --> Code Style --> Formatter and click on the "Edit..."
