@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fact64
+export Executable
+
+(* Computing factorial, in 64 bits.  Notice the call to "widen";
+   this is necessary at least with the current interpreter, which 
+   otherwise cheerfully multiplies two 32-bit integers giving a 32-bit
+   result, in a way that would not surprise Kernighan and Ritchie
+   in the least. *)
+
+run() = do 
+   for i <- seq(0#20) do
+     j:ZZ64 = widen(i)
+     println("fact(" j ")= " f(j))
+   end
+end
+
+f(x:ZZ64):ZZ64 = if x < 2 then 1 else x f(x-1) end
+end

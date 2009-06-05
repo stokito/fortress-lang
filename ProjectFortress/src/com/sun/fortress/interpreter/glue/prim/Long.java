@@ -114,7 +114,9 @@ public static final class Sub extends LL2L {
     protected long f(long x, long y) { return x - y; }
 }
 public static final class Mul extends LL2L {
-    protected long f(long x, long y) { return x * y; }
+    protected long f(long x, long y) {
+        return x * y;
+        }
 }
 public static final class Div extends LL2L {
     protected long f(long x, long y) { return x / y; }
