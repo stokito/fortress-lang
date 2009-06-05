@@ -22,6 +22,7 @@ import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticParamTypeEnv
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
@@ -94,26 +95,27 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case SAnyType(_) => // OK
       case SBottomType(_) => // OK
       case t@SVarType(_, name, _) =>
-        if (! analyzer.typeEnv.boundStaticParam(name)) {
+        if ( ! analyzer.typeEnv.boundStaticParam(name) )
           error("Unbound type: " + name, t)
-        } 
       case t@STraitType(_, name, sargs, _) =>
         getTypes(name) match {
           case si:TraitIndex => // Trait name should be defined.
             // Static arguments should satisfy the corresponding bounds.
-            def wfStaticArgs(pair:(StaticArg,StaticParam)) =
-              for ( bound <- toList(pair._2.getExtendsClause);
-                    if pair._1.isInstanceOf[TypeArg] ) {
-                if ( ! analyzer.subtype(pair._1.asInstanceOf[TypeArg].getTypeArg,
-                                        bound).isTrue )
-                  error("Ill-formed type: " + t +
-                        "\n    The static argument " + pair._1 +
-                        " does not satisfy the corresponding bound " + bound + ".", t)
-              }
             val sparams = si.staticParameters
-            if ( sargs.size == sparams.size )
+            if ( sargs.size == sparams.size ) {
+              val replacer = new StaticTypeReplacer(sparams, toJavaList(sargs))
+              def wfStaticArgs(pair:(StaticArg,StaticParam)) =
+                for ( bound <- toList(pair._2.getExtendsClause);
+                      if pair._1.isInstanceOf[TypeArg] ) {
+                  val new_bound = replacer.replaceIn(bound)
+                  if ( ! analyzer.subtype(pair._1.asInstanceOf[TypeArg].getTypeArg,
+                                          new_bound).isTrue )
+                    error("Ill-formed type: " + t +
+                          "\n    The static argument " + pair._1 +
+                          " does not satisfy the corresponding bound " + new_bound + ".", t)
+                }
               sargs.zip(toList(sparams)).foreach(wfStaticArgs)
-            else error("Ill-formed type: " + t +
+            } else error("Ill-formed type: " + t +
                        "\n    The numbers of the static parameters and " +
                        "the static arguments do not match.", t)
           case _ => error("Unbound type: " + name, t)
