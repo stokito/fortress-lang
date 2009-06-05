@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+export Executable
+
+trait A[\X extends String\]
+  x: A[\X\]
+  y: X
+end
+
+object O(x:A[\String\]) extends A[\String\] 
+  getter y():String = "hello"
+end
+
+object P extends A[\String\]
+  getter x():A[\String\] = O(P)
+  getter y():String = self.x.y
+  getter z():A[\String\] = self.x
+end
+
+run() = do
+  println P.y
+  (*) z (*) Intentional static error, to avoid tripping up codegen
+end
+

@@ -15,21 +15,27 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-export Executable
+import CompilerSystem.args
+export { Executable }
 
-trait A[\X extends String\]
-  x: A[\X\]
-  y: X
+trait A extends Object comprises {E,C} end
+trait B extends Object comprises {F,C} end
+trait C extends {A,B} end
+trait E extends A excludes B end
+trait F extends B excludes A end
+
+f(o:Object) = "Object"
+f(a:A) = "A"
+f(b:B) = "B"
+f(c:C) = "C"
+
+object A1 extends E end
+object B1 extends F end
+object C1 extends C end
+
+run() = do
+  println f(A1)
+  println f(B1)
+  println f(C1)
 end
-
-object O(x:A[\String\]) extends A[\String\] 
-  getter y():String = "hello"
-end
-
-object P extends A[\String\]
-  getter x():A[\String\] = O(P)
-  getter y():String = self.x.y
-end
-
-run() = println P.y
 
