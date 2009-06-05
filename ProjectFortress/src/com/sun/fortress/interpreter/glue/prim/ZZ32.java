@@ -99,7 +99,9 @@ public static final class Sub extends ZZ2Z {
     protected int f(int x, int y) { return x - y; }
 }
 public static final class Mul extends ZZ2Z {
-    protected int f(int x, int y) { return x * y; }
+    protected int f(int x, int y) {
+        return x * y;
+        }
 }
 public static final class Div extends ZZ2Z {
     protected int f(int x, int y) { return x / y; }
