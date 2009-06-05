@@ -73,6 +73,19 @@ object STypeCheckerFactory {
 
 class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                    env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog) {
+  
+  /**
+   * An object of this class, created by the typechecker, allows one to check
+   * subtypes and signal static errors.
+   */
+  class Hook {
+    
+    def signal(loc: HasAt, msg: String) = STypeChecker.this.signal(loc, msg)
+    def checkSubtype(subtype: Type, supertype: Type, loc: HasAt, msg: String): Boolean =
+      STypeChecker.this.checkSubtype(subtype, supertype, loc, msg)
+    def checkSubtype(subtype: Type, supertype: Type): Boolean =
+      STypeChecker.this.checkSubtype(subtype, supertype)
+  }
 
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -153,6 +166,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def checkSubtype(subtype:Type, supertype:Type): Boolean
     = analyzer.subtype(subtype, supertype).isTrue
 
+  
+  
   /**
    * Replaces the given name with the name it aliases 
    * (or leaves it alone if it doesn't alias any thing)
@@ -481,14 +496,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // args match its declared static params. If so, the overloading is
       // returned with the arrow type filled in.
       getTypeFromName(checkedName) match {
-        case Some(checkedType) => {
-          val sparams = STypesUtil.getStaticParams(checkedType)
-          if (sargs.isEmpty || STypesUtil.staticArgsMatchStaticParams(sargs, sparams, this.checkSubtype)) {
-              val replacedType = STypesUtil.substituteStaticArgsForParams(sargs, sparams, checkedType)
-              SOverloading(info, checkedName, sargs, Some(replacedType))
-          }
+        case Some(checkedType) =>
+          if (!sargs.isEmpty)
+            STypesUtil.staticInstantiation(sargs, checkedType, new Hook).
+              map((t:Type) => SOverloading(info, checkedName, sargs, Some(t))).
+              getOrElse(node)
           else node
-        }
         case None => node
       }
     }
@@ -1252,7 +1265,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             ty match {
               case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
                 if ( NodeUtil.isGenericSingletonType(typ) &&
-                     STypesUtil.staticArgsMatchStaticParams(sargs, params, this.checkSubtype)) {
+                     STypesUtil.staticArgsMatchStaticParams(sargs, params, new Hook)) {
                   // make a trait type that is GenericType instantiated
                   val newType = NodeFactory.makeTraitType(sp, pr, name,
                                                           toJavaList(sargs))
