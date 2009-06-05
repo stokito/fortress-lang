@@ -23,25 +23,15 @@ import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ScalaConstraint
+import com.sun.fortress.scala_src.typechecker.STypeChecker
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.HasAt
 
+import scala.collection.immutable.HashMap
+
 object STypesUtil {
-  
-  /**
-   * Substitute statics args for static parameters in the given type. This is
-   * useful primarily for a single replacement of this sort; to perform this
-   * substitution repeatedly, use an instance of StaticTypeReplacer instead.
-   */
-  def substituteStaticArgsForParams(args: List[StaticArg],
-                                    params: List[StaticParam],
-                                    ty: Type): Type = {
-    val javaArgs = toJavaList(args)
-    val javaParams = toJavaList(params)
-    new StaticTypeReplacer(javaParams, javaArgs).replaceIn(ty)
-  }
-  
+
   /**
    * Determines if the kinds of the given static args match those of the static
    * parameters. In the case of type arguments, the type is checked to be a
@@ -53,7 +43,7 @@ object STypesUtil {
    */
   def staticArgsMatchStaticParams(args: List[StaticArg],
                                   params: List[StaticParam],
-                                  checkSubtype: (Type, Type, HasAt, String) => Boolean): Boolean = {
+                                  hook: STypeChecker#Hook): Boolean = {
     if (args.length != params.length) return false
     
     // Match a single pair.
@@ -62,8 +52,8 @@ object STypesUtil {
       (arg, param.getKind) match {
         case (STypeArg(_, argType), SKindType(_)) =>
             toList(param.getExtendsClause).forall((bound:Type) =>
-              checkSubtype(argType, bound, arg,
-                           argType + " not a subtype of " + bound))
+              hook.checkSubtype(argType, bound, arg,
+                                argType + " not a subtype of " + bound))
         case (SIntArg(_, _), SKindInt(_)) => true
         case (SBoolArg(_, _), SKindBool(_)) => true
         case (SDimArg(_, _), SKindDim(_)) => true
@@ -96,10 +86,11 @@ object STypesUtil {
   def isArrows(ty: Type): Boolean =
     TypesUtil.isArrows(ty).asInstanceOf[Boolean]
   
-  
+  /**
+   * Performs the given substitution on the body type.
+   */
   private def typeSubstitution[K <: Type, V <: Type]
-                               (substitution: Map[K, V],
-                                body: Type): Type = {
+                              (substitution: Map[K, V], body: Type): Type = {
     
     // Walks an AST, performing the given substitution. 
     object substitutionWalker extends Walker {
@@ -113,16 +104,64 @@ object STypesUtil {
     substitutionWalker(body).asInstanceOf
   }
   
+  /**
+   * Perform the substitution as described in typeSubstitution.
+   */
+  def substituteInferenceVarsForVars(substitution: Map[VarType, _InferenceVarType],
+                                     body: Type): Type =
+    typeSubstitution(substitution, body)
   
-  def betaConversion(substitution: Map[StaticParam, StaticArg],
-                      body: Type): Type = {
-    null
+  
+  def staticInstantiation(args: List[StaticArg],
+                          body: Type,
+                          hook: STypeChecker#Hook): Option[Type] = {
+    val params = getStaticParams(body)
+    
+    // Check that the args match.
+    if (!staticArgsMatchStaticParams(args, params, hook)) return None
+    
+    // Create map from parameter names to static args.
+    val paramMap = HashMap(params.map(_.getName).zip(args): _*)
+    
+    // Gets the actual value out of a static arg.
+    def argToVal(arg: StaticArg): Node = arg match {
+      case arg:TypeArg => arg.getTypeArg
+      case arg:IntArg => arg.getIntVal
+      case arg:BoolArg => arg.getBoolArg
+      case arg:OpArg => arg.getName
+      case arg:DimArg => arg.getDimArg
+      case arg:UnitArg => arg.getUnitArg
+      case _ => null    // Cannot occur.
+    }
+    
+    // Replaces all the params with args in a node.
+    object staticReplacer extends Walker {
+      override def walk(node: Any): Any = node match {
+        case n:VarType => paramMap.get(n.getName).map(argToVal).getOrElse(n)
+        // TODO: Check proper name for OpArgs.
+        case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+        case n:IntRef => paramMap.get(n.getName).map(argToVal).getOrElse(n)
+        case n:BoolRef => paramMap.get(n.getName).map(argToVal).getOrElse(n)
+        case n:DimRef => paramMap.get(n.getName).map(argToVal).getOrElse(n)
+        case n:UnitRef => paramMap.get(n.getName).map(argToVal).getOrElse(n)
+      }
+    }
+    staticReplacer(body).asInstanceOf
   }
   
   def checkApplicable(fnType: ArrowType,
                       argType: Type,
-                      expectedType: Option[Type]): Option[List[StaticArg]] = {
+                      expectedType: Option[Type]): Option[(ArrowType, List[StaticArg])] = {
     // Substitute inference variables for static parameters in fnType.
+    
+    // 1. build substitution S = [T_i -> $T_i]
+    // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
+    // 3. build bounds map B = [$T_i -> S(UB(T_i))]
+    // 4. argType <:? dom(infArrow) yields a constraint, C
+    // 5. if expectedType given, C := C AND range(infArrow) <:? expectedType
+    // 6. solve C to yield a substitution S' = [$T_i -> U_i]
+    // 7. instantiate fnType with [U_i]
+    // 8. return StaticArgs([U_i])
     
     
     
