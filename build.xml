@@ -65,7 +65,7 @@ maintain proper indentation.
   <property name="unsigned" location="${PF}/third_party/unsigned"/>
 
   <!-- Scala jar files -->
-  <property name="scala-version" value="2.7.4"/> 
+  <property name="scala-version" value="2.7.4"/>
   <property name="scala-compiler.jar"
             value="${PF}/third_party/scala/scala-compiler-${scala-version}.jar"/>
   <property name="scala-library.jar"
@@ -768,6 +768,8 @@ maintain proper indentation.
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
+          <exclude name="**/StaticJUTest.class"/>
+          <exclude name="**/TypeInferenceJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
@@ -800,6 +802,8 @@ maintain proper indentation.
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
+          <exclude name="**/StaticJUTest.class"/>
+          <exclude name="**/TypeInferenceJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
