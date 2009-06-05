@@ -233,17 +233,7 @@ public class StaticChecker {
                 bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                     result.ast());
 
-            //errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
-            /*
-import java.io.*;
-import com.sun.fortress.nodes_util.ASTIO;
-            try {
-            ASTIO.writeJavaAst((Component)component.ast(), "first.tfi");
-            } catch (IOException e) {}
-            try {
-            ASTIO.writeJavaAst((Component)component.ast(), "second.tfi");
-            } catch (IOException e) {}
-            */
+            errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
 
             // Check overloadings in this component.
             errors.addAll(new OverloadingChecker(component, env, repository).checkOverloading());
