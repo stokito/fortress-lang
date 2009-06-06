@@ -81,7 +81,7 @@ List<LValue> VarMayTypes =
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* VarMayType ::= BindId (w IsType)? */
-LValue VarMayType = a1:BindId a2:(w IsType)
+LValue VarMayType = a1:BindId a2:(w IsType)?
      { if (a2 == null)
            yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
        else
