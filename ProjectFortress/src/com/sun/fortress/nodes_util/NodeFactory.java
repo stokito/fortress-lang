@@ -1034,6 +1034,15 @@ public class NodeFactory {
         return makeIntersectionType(span, false, CollectUtil.makeList(types));
     }
 
+    public static IntersectionType makeIntersectionType(List<? extends Type> types) {
+        Span span;
+        if ( types.isEmpty() )
+            span = typeSpan;
+        else
+            span = NodeUtil.spanAll(types);
+        return makeIntersectionType(span, false, new ArrayList<Type>(types));
+    }
+
     public static IntersectionType makeIntersectionType(scala.collection.Set<Type> types){
     	return makeIntersectionType(Sets.toJavaSet(types));
     }

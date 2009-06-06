@@ -66,8 +66,9 @@ object ScalaConstraintUtil{
       //CnAnd(empty,lbounds,newhistory)
       CnTrue
   }
-  def trueFormula(): ConstraintFormula = CnTrue
+  
+  def TRUE_FORMULA() = CnTrue
 
-  def falseFormula(): ConstraintFormula = CnFalse
+  def FALSE_FORMULA() = CnFalse
   
 }

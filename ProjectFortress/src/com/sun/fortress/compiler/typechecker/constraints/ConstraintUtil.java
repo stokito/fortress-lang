@@ -46,13 +46,13 @@ public class ConstraintUtil {
 		if(java)
 			return JavaConstraintUtil.trueFormula();
 		else
-			return ScalaConstraintUtil.trueFormula();
+			return ScalaConstraintUtil.TRUE_FORMULA();
 	}
 	public static ConstraintFormula falseFormula() {
 		if(java)
 			return JavaConstraintUtil.falseFormula();
 		else
-			return ScalaConstraintUtil.falseFormula();
+			return ScalaConstraintUtil.FALSE_FORMULA();
 	}
 
 	public static ConstraintFormula upperBound(_InferenceVarType ivar, Type type, SubtypeHistory h) {
