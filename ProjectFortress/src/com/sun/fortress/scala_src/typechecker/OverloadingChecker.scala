@@ -391,7 +391,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
        implements the abstract method declaration "d".
      */
     private def implement(d: FnDecl, decl: FnDecl): Boolean =
-        NodeUtil.getName(d).asInstanceOf[Id].getText.equals(NodeUtil.getName(decl).asInstanceOf[Id].getText) &&
+        NodeUtil.getName(d).asInstanceOf[IdOrOp].getText.equals(NodeUtil.getName(decl).asInstanceOf[IdOrOp].getText) &&
         NodeUtil.getMods(d).containsAll(NodeUtil.getMods(decl)) &&
         typeAnalyzer.equivalent(NodeUtil.getParamType(d),
                                 NodeUtil.getParamType(decl)).isTrue &&
@@ -403,9 +403,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     private def inheritedAbstractMethodsHelper(hist: HierarchyHistory,
                                                extended_traits: List[TraitTypeWhere]):
-                                              Map[Id, Set[FnDecl]] = {
+                                              Map[IdOrOp, Set[FnDecl]] = {
         var h = hist
-        var map = new HashMap[Id, Set[FnDecl]]()
+        var map = new HashMap[IdOrOp, Set[FnDecl]]()
         for ( trait_ <- extended_traits ; if ! h.hasExplored(trait_.getBaseType) ) {
             trait_.getBaseType match {
                 case ty@STraitType(info, name, args, params) =>
@@ -427,7 +427,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         map
     }
 
-    private def collectAbstractMethods(name: Id, decls: List[Decl]) = {
+    private def collectAbstractMethods(name: IdOrOp, decls: List[Decl]) = {
         val set = new HashSet[FnDecl]
         decls.foreach( (d: Decl) => d match {
                        case fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) =>

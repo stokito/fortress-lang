@@ -27,7 +27,7 @@ trait Boolean
     opr <->(self, other: Boolean): Boolean
 end
 
-value object true extends Boolean 
+value object true extends Boolean
     opr NOT(self): Boolean = false
     opr AND(self, other: Boolean): Boolean = other
     opr OR(self, other: Boolean): Boolean = true
@@ -35,7 +35,7 @@ value object true extends Boolean
     opr <->(self, other: Boolean): Boolean = other
 end
 
-value object false extends Boolean 
+value object false extends Boolean
     opr NOT(self): Boolean = true
     opr AND(self, other: Boolean): Boolean = self
     opr OR(self, other: Boolean): Boolean = other

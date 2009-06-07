@@ -13,5 +13,5 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled2.g Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v
+tests=Compiled2.g Compiled2.t Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v Compiled3.x
 desugar
