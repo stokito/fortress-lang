@@ -16,8 +16,8 @@
  ******************************************************************************)
 
 component Compiled2PreTest
-export SimpleExecutable
+export Executable
 
-run() = println("Hello, " || "world" || "!")
+run() = println("Hello, " || "World" || "!")
 
 end
