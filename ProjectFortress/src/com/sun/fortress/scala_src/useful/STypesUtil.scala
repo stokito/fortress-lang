@@ -98,7 +98,7 @@ object STypesUtil {
         case _ => super.walk(node)
       }
     }
-    paramWalker(typ).asInstanceOf
+    paramWalker(typ).asInstanceOf[Type]
   }
   
   /**
@@ -189,7 +189,7 @@ object STypesUtil {
     }
     
     // Get the replaced type and clear out its static params, if any.
-    Some(clearStaticParams(staticReplacer(body).asInstanceOf))
+    Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type]))
   }
   
   /**
@@ -222,7 +222,7 @@ object STypesUtil {
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
     val sargs = sparams.map(makeInferenceArg)
     val infArrow = staticInstantiation(sargs, sparams, fnType, hook).
-      asInstanceOf[ArrowType]
+      getOrElse(return None).asInstanceOf[ArrowType]
    
     // 3. argType <:? dom(infArrow) yields a constraint, C1
     val domainConstraint = hook.checkSubtype(argType, infArrow.getDomain)
@@ -272,7 +272,7 @@ object STypesUtil {
     
     // Filter applicable arrows and their instantiated args.
     val arrowsAndInstantiations = allArrows.
-      flatMap((ty) => checkApplicable(ty.asInstanceOf, argType, expectedType, hook))
+      flatMap((ty) => checkApplicable(ty.asInstanceOf[ArrowType], argType, expectedType, hook))
     
     // Define an ordering relation on arrows with their instantiations.
     def lessThan(overloading1: (ArrowType, List[StaticArg]),

@@ -1040,6 +1040,7 @@ public class NodeFactory {
             span = typeSpan;
         else
             span = NodeUtil.spanAll(types);
+        
         return makeIntersectionType(span, false, new ArrayList<Type>(types));
     }
 

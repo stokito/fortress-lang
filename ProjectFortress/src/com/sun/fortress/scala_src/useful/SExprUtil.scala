@@ -37,12 +37,16 @@ object SExprUtil {
    */
   def addType(expr: Expr, typ: Type): Expr = {
     object adder extends Walker {
+      var swap = false
       override def walk(node: Any): Any = node match {
-        case SExprInfo(a, b, _) => SExprInfo(a, b, Some(typ))
-        case _ => super.walk(node)
+        case SExprInfo(a, b, _) if !swap =>
+          swap = true
+          SExprInfo(a, b, Some(typ))          
+        case _ if(!swap) => super.walk(node)
+        case _ => node
       }
     }
-    adder(expr).asInstanceOf
+    adder(expr).asInstanceOf[Expr]
   }
   
   /**

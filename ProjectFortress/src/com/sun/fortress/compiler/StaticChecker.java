@@ -219,12 +219,12 @@ public class StaticChecker {
                 result = typeCheck(component, env, traitTable, component_ast, true);
             } else {
                 TypeEnv typeEnv = typeCheckEnv(component, env);
-        	ConstraintUtil.useScalaFormulas();
-
-                STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable,
-                                                                    typeEnv, typeAnalyzer);
-        	component_ast = typeChecker.check(component_ast);
-        	result = new TypeCheckerResult(component_ast,
+                ConstraintUtil.useScalaFormulas();
+                STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable, typeEnv, typeAnalyzer);
+                component_ast = typeChecker.check(component_ast);
+                component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
+                    System.currentTimeMillis());
+                result = new TypeCheckerResult(component_ast,
                                                Lists.toJavaList(typeChecker.getErrors()));
             }
             result.setAst(result.ast().accept(new TypeNormalizer()));
