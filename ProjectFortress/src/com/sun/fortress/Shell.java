@@ -352,6 +352,8 @@ public final class Shell {
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-scala")){
+              WellKnownNames.useCompilerLibraries();
+              Types.useCompilerLibraries();
             	setTypeChecking(true);
             	setScala(true);
                 setPhase( PhaseOrder.TYPECHECK );

@@ -174,7 +174,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * Return the conditions for subtype <: supertype to hold. 
    */
   private def checkSubtype(subtype:Type, supertype:Type): ScalaConstraint =
-    analyzer.subtype(subtype, supertype).asInstanceOf
+    analyzer.subtype(subtype, supertype).asInstanceOf[ScalaConstraint]
 
   
   /**
@@ -453,19 +453,20 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                               smaArrow: ArrowType,
                               inferredStaticArgs: List[StaticArg]): Boolean = {
     
-    // Get the arrow type out of the overloading.
-    var overloadingType =
-      toOption(overloading.getType).get.asInstanceOf[ArrowType]
+    def arrowTypeIsApplicable(overloadingType: ArrowType): Boolean = {
+      // If static args given, then instantiate the overloading.
+      var typ = overloadingType
+      if (!inferredStaticArgs.isEmpty) typ =
+        STypesUtil.staticInstantiation(inferredStaticArgs,
+                                       overloadingType,
+                                       new Hook).
+                                         getOrElse(return false).
+                                         asInstanceOf[ArrowType]
+      isSubtype(typ.getDomain, smaArrow.getDomain)
+    }
     
-    // If static args given, then instantiate the overloading.
-    if (!inferredStaticArgs.isEmpty) overloadingType =
-      STypesUtil.staticInstantiation(inferredStaticArgs,
-                                     overloadingType,
-                                     new Hook).
-                                       getOrElse(return false).
-                                       asInstanceOf[ArrowType]
-    
-    isSubtype(overloadingType.getDomain, smaArrow.getDomain)
+    return STypesUtil.conjuncts(toOption(overloading.getType).get)
+      .exists((t) => arrowTypeIsApplicable(t.asInstanceOf[ArrowType]))
   }
   
   // ------------------------------------------------------------------------
@@ -703,7 +704,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               STypesUtil.staticInstantiation(sargs, checkedType, new Hook).
                 map((t:Type) => SOverloading(info, checkedName, sargs, Some(t))).
                 getOrElse(node)
-            else node
+            else SOverloading(info, checkedName, sargs, Some(checkedType))
           case None => node
         }
       }
@@ -1190,7 +1191,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           signal(expr, "Wrong number or kind of static arguments for function: "+name)
         
         // Make the intersection type of all the overloadings.
-        val overloadingTypes = overloadings.map((ov:Overloading) => ov.getType.unwrap)
+        val overloadingTypes = checkedOverloadings.map((ov:Overloading) => ov.getType.unwrap)
         val intersectionType = NodeFactory.makeIntersectionType(span, toJavaList(overloadingTypes))
         
         SFnRef(SExprInfo(span, paren, Some(intersectionType)),
@@ -1213,13 +1214,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             
             case Some((smostApp, sargs)) => {
               
-              val newFn = fn match {
+              val newFn = checkedFn match {
                 case fn: FunctionalRef => SExprUtil.addOverloadings(
                   fn, toList(fn.getNewOverloadings).filter(
                     (o) => isDynamicallyApplicable(o, smostApp, sargs)))
-                case _ => fn
+                case _ => checkedFn
               }
-              SExprUtil.addType(newFn, smostApp)
+              
+              S_RewriteFnApp(SExprInfo(span, paren, Some(smostApp.getRange)), newFn, checkedArg)
             }
             
             case None => {
@@ -1241,7 +1243,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             fs.take(fs.size-1).foldRight(inferredType(fs.last).get)
               { (e:Expr, t:Type) => analyzer.join(inferredType(e).get, t) }
           SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
-      } else noType(expr); expr
+      } else {
+        noType(expr)
+        expr
+      }
     }
 
     case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
