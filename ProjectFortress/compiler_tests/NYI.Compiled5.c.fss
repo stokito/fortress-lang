@@ -15,19 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled5.c
 import CompilerSystem.args
 export { Executable }
 
-trait List 
+trait List
   nth(n:ZZ32):ZZ32
   append(self,xs:List):List
   reverse():List
   (*) asString():String
 end
 
-object Cons(car:ZZ32, cdr:List) extends List 
-  nth(n:ZZ32):ZZ32 = 
+object Cons(car:ZZ32, cdr:List) extends List
+  nth(n:ZZ32):ZZ32 =
     if n = 0 then car
     else cdr.nth(n-1) end
   append(self,xs:List) = Cons(car,append(cdr,xs))
@@ -35,7 +34,7 @@ object Cons(car:ZZ32, cdr:List) extends List
   (*) asString():String = "[" car.asString() " " cdr.asString() "]"
 end
 
-object Empty extends List 
+object Empty extends List
   nth(n:ZZ32):ZZ32 = nth(n)
   append(self,xs:List) = xs
   reverse():List = self
@@ -47,7 +46,5 @@ run():() = do
   printlnZZ32(ns.reverse().nth(0))
   printlnZZ32(ns.reverse().nth(1))
   printlnZZ32(ns.reverse().nth(2))
-  printlnZZ32(ns.reverse().nth(3))  
-end
-
+  printlnZZ32(ns.reverse().nth(3))
 end

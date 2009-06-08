@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled6.o
 export Executable
 
 trait T
@@ -27,5 +26,3 @@ object O extends T
 end
 
 run() = ()
-
-end
