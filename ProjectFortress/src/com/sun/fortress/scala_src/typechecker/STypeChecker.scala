@@ -51,6 +51,7 @@ import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil
 import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.useful.HasAt
@@ -219,7 +220,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def assertTrait(t: BaseType, ast: Node, msg: String,
                           error_loc: Node) = t match {
     case tt@STraitType(info, name, args, params) =>
-      traits.typeCons(tt.getName).asInstanceOf[Option[TypeConsIndex]] match {
+      toOption(traits.typeCons(tt.getName)).asInstanceOf[Option[TypeConsIndex]] match {
         case Some(ti) =>
           if ( ! ti.isInstanceOf[ProperTraitIndex] ) signal(error_loc, msg)
         case _ => signal(error_loc, msg)
@@ -244,24 +245,24 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         h = h.explore(type_)
         type_ match {
           case ty@STraitType(info, name, args, params) =>
-            traits.typeCons(name).asInstanceOf[Option[TypeConsIndex]] match {
+            toOption(traits.typeCons(name)) match {
               case Some(ti) =>
                 if ( ti.isInstanceOf[TraitIndex] ) {
                   val trait_params = ti.staticParameters
                   val trait_args = ty.getArgs
                   // Instantiate methods with static args
-                  val dotted = ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Set[(IdOrOpOrAnonymousName,Method)]]
+                  val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => (t.first, t.second))
                   for ( pair <- dotted ) {
                       methods.add(pair._1,
                                   pair._2.instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
                   val getters = ti.asInstanceOf[TraitIndex].getters
-                  for ( getter <- getters.keySet.asInstanceOf[Set[IdOrOpOrAnonymousName]] ) {
+                  for ( getter <- toSet(getters.keySet) ) {
                       methods.add(getter,
                                   getters.get(getter).instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
                   val setters = ti.asInstanceOf[TraitIndex].setters
-                  for ( setter <- setters.keySet.asInstanceOf[Set[IdOrOpOrAnonymousName]] ) {
+                  for ( setter <- toSet(setters.keySet) ) {
                       methods.add(setter,
                                   setters.get(setter).instantiate(trait_params,trait_args).asInstanceOf[Method])
                   }
@@ -409,8 +410,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               val err = "If more than one variable is bound in a generator, " +
                         "generator must have tuple type but " + init +
                         " does not or has different number of arguments."
-              isSubtype(lhstype, generator_type, init, err);
-              isSubtype(generator_type, lhstype, init, err);
+              isSubtype(lhstype, generator_type, init, err)
+              isSubtype(generator_type, lhstype, init, err)
               (SGeneratorClause(info, binds, newInit), bindings)
           }
       }
@@ -496,13 +497,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                       { (d:Decl, c:STypeChecker) => d match {
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c } }
-      traits.typeCons(name.asInstanceOf[Id]).asInstanceOf[Option[TypeConsIndex]] match {
+      toOption(traits.typeCons(name.asInstanceOf[Id])).asInstanceOf[Option[TypeConsIndex]] match {
         case None => signal(name, name + " is not found."); t
         case Some(ti) =>
           // Extend method checker with methods and functions
           // that will now be in scope
           val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf)
+                                          ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
           method_checker = method_checker.extendWithMethods(methods)
           method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
@@ -550,7 +551,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c } }
       // Check method declarations.
-      traits.typeCons(name.asInstanceOf[Id]).asInstanceOf[Option[TypeConsIndex]] match {
+      toOption(traits.typeCons(name.asInstanceOf[Id])).asInstanceOf[Option[TypeConsIndex]] match {
         case None => signal(name, name + " is not found."); o
         case Some(oi) =>
           // Extend type checker with methods and functions
@@ -627,7 +628,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         val newInit = checkExpr(init)
         val ty = lhs match {
           case l::Nil => // We have a single variable binding, not a tuple binding
-            l.getIdType.asInstanceOf[Option[Type]] match {
+            toOption(l.getIdType).asInstanceOf[Option[Type]] match {
               case Some(typ) => typ
               case _ => // Eventually, this case will involve type inference
                 signal(v, "All inferrred types should at least be inference " +
@@ -636,7 +637,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             }
           case _ =>
             def handleBinding(binding: LValue) =
-              binding.getIdType.asInstanceOf[Option[Type]] match {
+              toOption(binding.getIdType).asInstanceOf[Option[Type]] match {
                 case Some(typ) => typ
                 case _ =>
                   signal(binding, "Missing type for " + binding + ".")
@@ -662,20 +663,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case Some(_) => {
           val newName = handleAliases(id, toList(current.ast.getImports))
           getTypeFromName( newName ) match {
-            case Some(ty) =>
-              if ( ty.isInstanceOf[NamedType] ) {
-                // Type was declared in that API, so it's not qualified;
-                // prepend it with the API.
-                /*
-                if ( ty.asInstanceOf[NamedType].getName.getApiName.isNone )
-                  _type = NodeFactory.makeNamedType(apiName, ty.asInstanceOf[NamedType])
-                */
-              }
-            case _ =>
+            case None =>
               // Operators are never qualified in source code,
               // so if 'name' is qualified and not found,
               // it must be an Id, not an Op.
               signal(id, "Attempt to reference unbound variable: " + id)
+            case _ => id
           }
         }
         case _ => {
@@ -962,7 +955,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                              ExprFactory.makeOpExpr(infix,e1,e2) })
           }
         }
-      } else noType(expr); expr
+      } else { noType(expr); expr }
     }
 
     // Math primary, which is the more general case,
@@ -1154,9 +1147,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           case Some(ty) => subscriptHelper(s, newObj, newSubs)
           case _ => noType(expr); expr
         }
-      else {
-        noType(expr); expr
-      }
+      else { noType(expr); expr }
     }
 
     case SStringLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
@@ -1243,10 +1234,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             fs.take(fs.size-1).foldRight(inferredType(fs.last).get)
               { (e:Expr, t:Type) => analyzer.join(inferredType(e).get, t) }
           SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
-      } else {
-        noType(expr)
-        expr
-      }
+      } else { noType(expr); expr }
     }
 
     case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
