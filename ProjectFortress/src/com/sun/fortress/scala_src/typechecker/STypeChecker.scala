@@ -57,6 +57,7 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
+import com.sun.fortress.useful.NI
 
 /* Quesitons
  */
@@ -467,8 +468,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * that instantiated that arrow type.
    */
   private def staticallyMostApplicableArrow(fnType: Type,
-                                    argType: Type,
-                                    expectedType: Option[Type]):
+                                            argType: Type,
+                                            expectedType: Option[Type]):
                                       Option[(ArrowType, List[StaticArg])] = {
     
     // Get a list of arrow types from the fnType.
@@ -476,7 +477,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     
     // Filter applicable arrows and their instantiated args.
     val arrowsAndInstantiations = allArrows.
-      flatMap((ty) => checkApplicable(ty.asInstanceOf[ArrowType], argType, expectedType))
+      flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType], argType, expectedType))
     
     // Define an ordering relation on arrows with their instantiations.
     def lessThan(overloading1: (ArrowType, List[StaticArg]),
@@ -609,7 +610,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    *                     subtype <:? supertype.
    */
   private def staticArgsMatchStaticParams(args: List[StaticArg],
-                                  params: List[StaticParam]): Boolean = {
+                                          params: List[StaticParam]): Boolean = {
     if (args.length != params.length) return false
     
     // Match a single pair.
@@ -633,6 +634,34 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     // Match every pair.
     args.zip(params).forall(argMatchesParam(_))
   }
+    
+  /**
+   * Given an applicand, the statically most applicable arrow type for it,
+   * and the static args from the application, return the applicand updated
+   * with the dynamically applicable overloadings, arrow type, and static args.
+   */
+  def rewriteApplicand(fn: Expr,
+                       arrow: ArrowType,
+                       sargs: List[StaticArg]): Expr = fn match {
+    case fn: FunctionalRef =>
+                
+      // Get the dynamically applicable overloadings.
+      val overloadings =
+        toList(fn.getNewOverloadings).
+        filter(o => isDynamicallyApplicable(o, arrow, sargs))
+      
+      // Add in the filtered overloadings, the inferred static args,
+      // and the statically most applicable arrow to the fn.
+      addType(
+        addStaticArgs(
+          addOverloadings(fn, overloadings), sargs), arrow)
+    
+    case _ if !sargs.isEmpty =>
+      NI.nyi("No place to put inferred static args in application.") 
+    
+    // Just add the arrow type if the applicand is not a FunctionalRef.
+    case _ => addType(fn, arrow)
+  } 
   
   // ------------------------------------------------------------------------
   // END HELPER METHODS -----------------------------------------------------
@@ -1333,24 +1362,24 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       SVoidLiteralExpr(SExprInfo(span,parenthesized,Some(Types.VOID)), text)
 
     
-    case SFnRef(SExprInfo(span,paren,optType),
-                sargs, depth, name, a, b , overloadings, c) => {
+    case fn@SFunctionalRef(_, _, _, name, _, _, overloadings, _) => {
+      // Note that ExprDisambiguator inserts the static args from a
+      // FunctionalRef into each of its Overloadings.
+    
+      // Check all the overloadings and filter out any that have the wrong
+      // number or kind of static parameters.
+      val checkedOverloadings = overloadings.
+        map(check(_).asInstanceOf[Overloading]).filter(_.getType.isSome)
       
-        // Check all the overloadings and filter out any that have the wrong
-        // number or kind of static parameters.
-		val checkedOverloadings =
-		    overloadings.map(check(_).asInstanceOf[Overloading]).
-		        filter((ov:Overloading) => ov.getType.isSome)
-        
-        if (checkedOverloadings.isEmpty)
-          signal(expr, "Wrong number or kind of static arguments for function: "+name)
-        
-        // Make the intersection type of all the overloadings.
-        val overloadingTypes = checkedOverloadings.map((ov:Overloading) => ov.getType.unwrap)
-        val intersectionType = NodeFactory.makeIntersectionType(span, toJavaList(overloadingTypes))
-        
-        SFnRef(SExprInfo(span, paren, Some(intersectionType)),
-               sargs, depth, name, a, b, checkedOverloadings, c)
+      if (checkedOverloadings.isEmpty)
+        signal(expr, "Wrong number or kind of static arguments for function: "+name)
+      
+      // Make the intersection type of all the overloadings.
+      val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
+      val intersectionType =
+        NodeFactory.makeIntersectionType(NodeUtil.getSpan(fn),
+                                         toJavaList(overloadingTypes))
+      addType(addOverloadings(fn, checkedOverloadings), intersectionType)
     }
     
     case S_RewriteFnApp(SExprInfo(span, paren, optType), fn, arg) => {
@@ -1359,35 +1388,79 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       
       // Check fn and arg and get their types.
       (getType(checkedFn), getType(checkedArg)) match {
-        case (Some(fnType), Some(_)) if !isArrows(fnType) => {
-          signal(expr, fnType + " is not an arrow type.")
+        case (Some(fnType), Some(_)) if !isArrows(fnType) =>
+          signal(expr, "Applicand has a type that is not an arrow: "+fnType)
           expr
-        }
         case (Some(fnType), Some(argType)) =>
           
           staticallyMostApplicableArrow(fnType, argType, None) match {
-            
-            case Some((smostApp, sargs)) => {
+            case Some((smostApp, sargs)) =>
               
-              val newFn = checkedFn match {
-                case fn: FunctionalRef => addOverloadings(
-                  fn, toList(fn.getNewOverloadings).filter(
-                    (o) => isDynamicallyApplicable(o, smostApp, sargs)))
-                case _ => checkedFn
-              }
-              
+              // Rewrite the applicand to include the arrow and static args
+              // and update the application.
+              val newFn = rewriteApplicand(checkedFn, smostApp, sargs)
               S_RewriteFnApp(SExprInfo(span, paren, Some(smostApp.getRange)), newFn, checkedArg)
-            }
-            
-            case None => {
+              
+            case None =>
               // TODO: Better error message.
               signal(expr, "Could not find statically most applicable function.")
-              expr
-            }
-          }
-        
+              expr    
+        }
+
         case _ => expr
       }
+    }            
+    
+    // First try to type check this expression as a multifix operator expression.
+    // If that fails, type check it as some number of applications of the infix
+    // operator, left associatively.
+    case SAmbiguousMultifixOpExpr(info@SExprInfo(span, paren, _),
+                                  infixOp, multifixOp, args) => {
+      val checkedMultifixOp = checkExpr(multifixOp)
+      val checkedArgs = args.map(checkExpr)
+      
+      val opType = getType(checkedMultifixOp).getOrElse(return expr)
+      if (!haveTypes(checkedArgs)) return expr
+      val argType =
+        NodeFactory.makeTupleType(info.getSpan,
+                                  toJavaList(checkedArgs.map(t => getType(t).get)))
+      
+      staticallyMostApplicableArrow(opType, argType, None) match {
+      
+        // If a most applicable arrow, rewrite the applicand and return the
+        // resulting operator expression.
+        case Some((smostApp, sargs)) =>
+          val newOp:FunctionalRef =
+            rewriteApplicand(checkedMultifixOp, smostApp, sargs).asInstanceOf
+          SOpExpr(SExprInfo(span, paren, Some(smostApp.getRange)),
+                  newOp, checkedArgs)
+        
+        // Check as infix operator expressions.
+        case None => 
+          checkExpr(args.reduceLeft(
+            (e1, e2) => SOpExpr(info, infixOp, List(e1, e2))))
+      }
+    }
+    
+    case SOpExpr(info, fn, args) => {
+      val checkedOp = checkExpr(fn)
+      val checkedArgs = args.map(checkExpr)
+      val opType = getType(checkedOp).getOrElse(return expr)
+      if (!haveTypes(checkedArgs)) return expr
+      val argType =
+        NodeFactory.makeTupleType(info.getSpan,
+                                  toJavaList(checkedArgs.map(t => getType(t).get)))
+      staticallyMostApplicableArrow(opType, argType, None) match {
+        case Some((smostApp, sargs)) =>
+          val newOp: OpRef = rewriteApplicand(checkedOp,smostApp,sargs).asInstanceOf
+          addType(SOpExpr(info, newOp, checkedArgs),smostApp.getRange)
+        
+        case None =>
+          // TODO: Better error message.
+          signal(expr, "Could not find statically most applicable function.")
+          expr      
+      }
+      
     }
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
