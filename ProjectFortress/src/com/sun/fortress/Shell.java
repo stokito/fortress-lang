@@ -245,7 +245,7 @@ public final class Shell {
     }
 
     public static void setScala(boolean use_scala){
-    	compileProperties.use_scala = use_scala;
+    	  compileProperties.use_scala = use_scala;
     }
 
     public static void setTestCoercion(boolean test_coercion) {
@@ -300,6 +300,7 @@ public final class Shell {
     public static int subMain(String[] tokens) throws InterruptedException,
             Throwable {
         int return_code = 0;
+        setScala(false);
 
         // Now match the assembled string.
         try {
@@ -352,10 +353,10 @@ public final class Shell {
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-scala")){
-              WellKnownNames.useCompilerLibraries();
-              Types.useCompilerLibraries();
-            	setTypeChecking(true);
-            	setScala(true);
+                WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
+              	setTypeChecking(true);
+              	setScala(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test-coercion")) {

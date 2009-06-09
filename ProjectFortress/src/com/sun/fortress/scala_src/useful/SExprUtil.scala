@@ -30,6 +30,15 @@ object SExprUtil {
    * it has one.
    */
   def getType(expr: Expr): Option[Type] = toOption(expr.getInfo.getExprType)
+
+  /**
+   * Determine if all of the given expressions have types previously inferred
+   * by the typechecker.
+   */
+  def haveTypes(exprs: List[Expr]): Boolean =
+    exprs.forall((e:Expr) => getType(e).isDefined)
+  
+  
   
   /**
    * Given an expression, return an identical expression with the given type

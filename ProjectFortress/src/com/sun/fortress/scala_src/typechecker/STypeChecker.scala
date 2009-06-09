@@ -25,15 +25,6 @@ import edu.rice.cs.plt.collect.EmptyRelation
 import edu.rice.cs.plt.collect.IndexedRelation
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
-import com.sun.fortress.nodes._
-import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.ExprFactory
-import com.sun.fortress.nodes_util.NodeUtil
-import com.sun.fortress.nodes_util.OprUtil
-import com.sun.fortress.exceptions.StaticError
-import com.sun.fortress.exceptions.StaticError.errorMsg
-import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.index.CompilationUnitIndex
@@ -47,17 +38,27 @@ import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.exceptions.StaticError.errorMsg
+import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.NodeFactory
+import com.sun.fortress.nodes_util.ExprFactory
+import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.OprUtil
+import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
+import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
-import com.sun.fortress.scala_src.useful.SExprUtil
-import com.sun.fortress.scala_src.useful.STypesUtil
+import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
 
 /* Quesitons
- * 1. Do we infer types of function parameters?
  */
 /* Invariants
  * 1. If a subexpression does not have any inferred type,
@@ -74,23 +75,6 @@ object STypeCheckerFactory {
 
 class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                    env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog) {
-  
-  /**
-   * An object of this class, created by the typechecker, allows one to check
-   * subtypes and signal static errors.
-   */
-  class Hook {
-    
-    def signal(loc: HasAt, msg: String) = STypeChecker.this.signal(loc, msg)
-    def isSubtype(subtype: Type, supertype: Type, loc: HasAt, msg: String): Boolean =
-      STypeChecker.this.isSubtype(subtype, supertype, loc, msg)
-    def isSubtype(subtype: Type, supertype: Type): Boolean =
-      STypeChecker.this.isSubtype(subtype, supertype)
-    def checkSubtype(subtype: Type, supertype: Type): ScalaConstraint =
-      STypeChecker.this.checkSubtype(subtype, supertype)
-    def equivalentTypes(t1: Type, t2: Type): Boolean =
-      STypeChecker.this.analyzer.equivalent(t1, t2).isTrue
-  }
 
   private var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -144,17 +128,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def signal(hasAt:HasAt, msg:String) =
     errors.signal(msg, hasAt)
 
-  // TODO: The name seems a bit misleading since it's used to get any type from
-  // and expression. Maybe change the name?
-  private def inferredType(expr:Expr): Option[Type] = SExprUtil.getType(expr)
-
-  /**
-   * Determine if all of the given expressions have types previously inferred
-   * by the typechecker.
-   */
-  private def haveInferredTypes(exprs: List[Expr]): Boolean =
-    exprs.forall((e:Expr) => inferredType(e).isDefined)
-
   /**
    * Determine if subtype <: supertype. If false, then the given error message
    * is signaled for the given location.
@@ -177,58 +150,68 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def checkSubtype(subtype:Type, supertype:Type): ScalaConstraint =
     analyzer.subtype(subtype, supertype).asInstanceOf[ScalaConstraint]
 
+  private def equivalentTypes(t1: Type, t2: Type): Boolean =
+      analyzer.equivalent(t1, t2).isTrue
   
   /**
    * Replaces the given name with the name it aliases 
    * (or leaves it alone if it doesn't alias any thing)
    */
-  private def handleAliases(name: Id, imports: List[Import]): Id =
-    name match {
-      case SId(_, Some(api), _) =>
+  private def handleAlias(name: Id, imports: List[Import]): Id = name match {
+    case SId(_, Some(api), _) =>
 
-        def getAliases(imp: Import): Option[Id] = imp match {
-          case SImportNames(info, foreignLanguage, aliasApi, aliases) =>
-            if (api.equals(aliasApi) ) {
-              def getName(aliasedName: AliasedSimpleName): Option[Id] = aliasedName match {
-                case SAliasedSimpleName(_, newName, Some(alias)) =>
-                  if ( alias.equals(name) ) Some(newName.asInstanceOf)
-                  else None
-                case _ => None
-              }
-              aliases.flatMap(getName).find((x:Id) => true)
-            } else None
-          case _ => None
-        }
+      // Get the alias for `name` from this import, if it exists.
+      def getAlias(imp: Import): Option[Id] = imp match {
+        case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
+          
+          // Get the name from an aliased name.
+          def getName(aliasedName: AliasedSimpleName): Option[Id] =
+            aliasedName match {
+              case SAliasedSimpleName(_, newName, Some(alias))
+                if alias.equals(name) => Some(newName.asInstanceOf)
+              case _ => None
+            }
+          
+          // Get the first name that matched.
+          aliases.flatMap(getName).firstOption
+        case _ => None
+      }
 
-        imports.flatMap(getAliases).find((x:Id) => true).getOrElse(name)
-      case _ => name
-    }
+      // Get the first name that matched within any import, or return name.
+      imports.flatMap(getAlias).firstOption.getOrElse(name)
+    case _ => name
+  }
 
+  /**
+   * Get the TypeEnv that corresponds to this API.
+   */
   private def getEnvFromApi(api: APIName): TypeEnv =
-    TypeEnv.make( traits.compilationUnit(api) )
+    TypeEnv.make(traits.compilationUnit(api))
 
+  /**
+   * Lookup the type of the given name in the proper type environment.
+   */
   private def getTypeFromName(name: Name): Option[Type] = name match {
-    case id@SId(info, api, name) => api match {
-      case Some(api) => toOption(getEnvFromApi(api).getType(id))
-      case _ => toOption(env.getType(id))
-    }
+    case id@SId(_, Some(api), _) => toOption(getEnvFromApi(api).getType(id))
+    case id@SId(_, None, _) => toOption(env.getType(id))
     case _ => None
   }
 
   def getErrors(): List[StaticError] = errors.errors
 
-  private def assertTrait(t: BaseType, ast: Node, msg: String,
-                          error_loc: Node) = t match {
-    case tt@STraitType(info, name, args, params) =>
-      toOption(traits.typeCons(tt.getName)).asInstanceOf[Option[TypeConsIndex]] match {
-        case Some(ti) =>
-          if ( ! ti.isInstanceOf[ProperTraitIndex] ) signal(error_loc, msg)
-        case _ => signal(error_loc, msg)
-      }
-    case SAnyType(info) =>
+  /**
+   * Signal an error if the given type is not a trait.
+   */
+  private def assertTrait(t: BaseType, msg: String, error_loc: Node) = t match {
+    case tt:TraitType => toOption(traits.typeCons(tt.getName)) match {
+      case Some(ti) if ti.isInstanceOf[ProperTraitIndex] =>
+      case _ => signal(error_loc, msg)
+    }
+    case SAnyType(info) => 
     case _ => signal(error_loc, msg)
   }
 
+  // TODO: Rewrite this method!
   private def inheritedMethods(extendedTraits: List[TraitTypeWhere]) =
     inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
 
@@ -280,52 +263,54 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
     methods
   }
-    /**
+  
+  /**
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
    * that this type could be used as for the purposes of calling methods and fields.
    */
-  private def traitTypesCallable(typ: Type): List[TraitType] = typ match {
-    case SIntersectionType(info, ts) =>
-      ts.foldRight(List[TraitType]()){ (t: Type, l: List[TraitType]) =>
-                                       if ( NodeUtil.isTraitType(t) )
-                                         traitTypesCallable(t):::l
-                                       else l }
-    case t@STraitType(info, name, args, params) => List[TraitType](t)
-    case SVarType(info, name, depth) =>
-      env.staticParam(name).asInstanceOf[Option[StaticParam]] match {
-        case Some(s@SStaticParam(info,_,ts,_,_,kind)) =>
-          if ( NodeUtil.isTypeParam(s) )
-            ts.foldRight(List[TraitType]()){ (t: Type, l: List[TraitType]) =>
-                                             if ( NodeUtil.isTraitType(t) )
-                                               traitTypesCallable(t):::l
-                                             else l }
-          else List[TraitType]()
-        case _ => List[TraitType]()
+  private def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
+    case t:TraitType => Set(t)
+    
+    // Combine all the trait types callable from constituents.
+    case typ:IntersectionType =>
+      conjuncts(typ).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
+    
+    // Get the trait types callable from the upper bounds of this parameter.
+    case SVarType(_, name, _) => toOption(env.staticParam(name)) match {
+      case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
+        Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
+      case _ => Set.empty[TraitType]
     }
-    case SUnionType(info, ts) =>
+    
+    case SUnionType(_, ts) =>
       signal(typ, "You should be able to call methods on this type," +
              "but this is not yet implemented.")
-      List[TraitType]()
-    case _ => List[TraitType]()
+      Set.empty[TraitType]
+    
+    case _ => Set.empty[TraitType]
   }
 
-  /* Not yet implemented.
+  /**
+   * Not yet implemented.
    * Waiting for _RewriteFnApp to be implemented.
    */
-  private def findMethodsInTraitHierarchy(method_name: IdOrOpOrAnonymousName,
+  private def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
                                           supers: List[TraitType], arg_type: Type,
                                           in_static_args: List[StaticArg],
                                           that: Node): (List[Method], List[Method]) =
     (Nil, Nil)
 
-  /* Invariant: newObj and the elements of newSubs all have type information.
+  /**
+   * Invariant: newObj and the elements of newSubs all have type information.
+   * @TODO: Look over this method.
    */
-  private def subscriptHelper(expr: SubscriptExpr, newObj: Expr,
+  private def subscriptHelper(expr: SubscriptExpr,
+                              newObj: Expr,
                               newSubs: List[Expr]) = expr match {
     case SSubscriptExpr(SExprInfo(span,parenthesized,_), _, _, op, sargs) => {
-      val obj_type = inferredType(newObj).get
-      val traits = traitTypesCallable(obj_type)
-      val subs_types = newSubs.map((e:Expr) => inferredType(e).get)
+      val obj_type = getType(newObj).get
+      val traits = traitTypesCallable(obj_type).toList
+      val subs_types = newSubs.map((e:Expr) => getType(e).get)
       traits match {
         case Nil => {
           // We need to have a trait otherwise we can't see its methods.
@@ -365,14 +350,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
   }
 
-  /* The Java type checker had a separate postinference pass "closing bindings". */
+  /**
+   * The Java type checker had a separate postinference pass "closing bindings".
+   * @TODO: Look over this method.
+   */
   private def generatorClauseGetBindings(clause: GeneratorClause,
                                          mustBeCondition: Boolean) = clause match {
     case SGeneratorClause(info, binds, init) =>
       val newInit = checkExpr(init)
       val err = "Filter expressions in generator clauses must have type Boolean, " +
                 "but " + init
-      inferredType(newInit) match {
+      getType(newInit) match {
         case None =>
           signal(init, err + " was not well typed.")
           (SGeneratorClause(info, Nil, newInit), Nil)
@@ -417,13 +405,16 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
   }
 
+  /**
+   * @TODO: Look over this method.
+   */
   private def handleIfClause(c: IfClause) = c match {
     case SIfClause(info, testClause, body) =>
       // For generalized 'if' we must introduce new bindings.
       val (newTestClause, bindings) = generatorClauseGetBindings(testClause, true)
       // Check body with new bindings
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
-      inferredType(newBody) match {
+      getType(newBody) match {
         case None => noType(body)
         case _ =>
       }
@@ -434,6 +425,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   // then put its variables in scope for the next generator clause.
   // Finally, return all of the bindings so that they can be put in scope
   // in some larger expression, like the body of a for loop, for example.
+  // @TODO: Look over this method.
   def handleGens(generators: List[GeneratorClause]): (List[GeneratorClause], List[LValue]) =
     generators match {
       case Nil => (Nil, Nil)
@@ -446,28 +438,200 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         (clause::newTl, binds++tlBinds)
     }
   
-  
   /**
    * Determines if the given overloading is dynamically applicable.
    */
-  def isDynamicallyApplicable(overloading: Overloading,
+  private def isDynamicallyApplicable(overloading: Overloading,
                               smaArrow: ArrowType,
                               inferredStaticArgs: List[StaticArg]): Boolean = {
-    
+    // Is this arrow type applicable.
     def arrowTypeIsApplicable(overloadingType: ArrowType): Boolean = {
-      // If static args given, then instantiate the overloading.
-      var typ = overloadingType
-      if (!inferredStaticArgs.isEmpty) typ =
-        STypesUtil.staticInstantiation(inferredStaticArgs,
-                                       overloadingType,
-                                       new Hook).
-                                         getOrElse(return false).
-                                         asInstanceOf[ArrowType]
+      val typ =
+        // If static args given, then instantiate the overloading first.
+        if (inferredStaticArgs.isEmpty) overloadingType
+        else staticInstantiation(inferredStaticArgs,
+                                 overloadingType).getOrElse(return false).
+                                           asInstanceOf[ArrowType]
       isSubtype(typ.getDomain, smaArrow.getDomain)
     }
     
-    return STypesUtil.conjuncts(toOption(overloading.getType).get)
-      .exists((t) => arrowTypeIsApplicable(t.asInstanceOf[ArrowType]))
+    // If overloading type is an intersection, check that any of its
+    // constituents is applicable.
+    conjuncts(toOption(overloading.getType).get).
+      map(_.asInstanceOf[ArrowType]).
+      exists(arrowTypeIsApplicable)
+  }
+  
+  /**
+   * Return the statically most applicable arrow type along with the static args
+   * that instantiated that arrow type.
+   */
+  private def staticallyMostApplicableArrow(fnType: Type,
+                                    argType: Type,
+                                    expectedType: Option[Type]):
+                                      Option[(ArrowType, List[StaticArg])] = {
+    
+    // Get a list of arrow types from the fnType.
+    val allArrows = conjuncts(fnType).toList
+    
+    // Filter applicable arrows and their instantiated args.
+    val arrowsAndInstantiations = allArrows.
+      flatMap((ty) => checkApplicable(ty.asInstanceOf[ArrowType], argType, expectedType))
+    
+    // Define an ordering relation on arrows with their instantiations.
+    def lessThan(overloading1: (ArrowType, List[StaticArg]),
+                 overloading2: (ArrowType, List[StaticArg])): Boolean = {
+      
+      val SArrowType(_, domain1, range1, _) = overloading1
+      val SArrowType(_, domain2, range2, _) = overloading2
+      
+      if (equivalentTypes(domain1, domain2)) false
+      else isSubtype(domain1, domain2)
+    }
+    
+    // Sort the arrows and instantiations to find the statically most
+    // applicable. Return None if none were applicable.
+    arrowsAndInstantiations.sort(lessThan).firstOption
+  }
+
+  /**
+   * Identical to the overloading but with an explicitly given list of static
+   * parameters.
+   */
+  private def staticInstantiation(sargs: List[StaticArg],
+                          sparams: List[StaticParam],
+                          body: Type): Option[Type] = {
+    
+    // Check that the args match.
+    if (!staticArgsMatchStaticParams(sargs, sparams)) return None
+    
+    // Create mapping from parameter names to static args.
+    val paramMap = Map(sparams.map(_.getName).zip(sargs): _*)
+    
+    // Gets the actual value out of a static arg.
+    def sargToVal(sarg: StaticArg): Node = sarg match {
+      case sarg:TypeArg => sarg.getTypeArg
+      case sarg:IntArg => sarg.getIntVal
+      case sarg:BoolArg => sarg.getBoolArg
+      case sarg:OpArg => sarg.getName
+      case sarg:DimArg => sarg.getDimArg
+      case sarg:UnitArg => sarg.getUnitArg
+      case _ => bug("unexpected kind of static arg")
+    }
+    
+    // Replaces all the params with args in a node.
+    object staticReplacer extends Walker {
+      override def walk(node: Any): Any = node match {
+        case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        // TODO: Check proper name for OpArgs.
+        case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+        case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case _ => super.walk(node)
+      }
+    }
+    
+    // Get the replaced type and clear out its static params, if any.
+    Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type]))
+  }
+  
+  /**
+   * Instantiates a generic type with some static arguments. The static
+   * parameters are retrieved from the body type and replaced inside body with
+   * their corresponding static arguments. In the end, any static parameters
+   * in the replaced type will be cleared.
+   * 
+   * @param args A list of static arguments to apply to the generic type body.
+   * @param body The generic type whose static parameters are to be replaced.
+   * @return An option of a type identical to body but with every occurrence of
+   *         one of its declared static parameters replaced by corresponding
+   *         static args. If None, then the instantiation failed.
+   */
+  private def staticInstantiation(sargs: List[StaticArg],
+                          body: Type): Option[Type] =
+    staticInstantiation(sargs, getStaticParams(body), body)
+  
+  private def checkApplicable(fnType: ArrowType,
+                      argType: Type,
+                      expectedType: Option[Type]): Option[(ArrowType, List[StaticArg])] = {
+    val sparams = getStaticParams(fnType)
+    
+    // Substitute inference variables for static parameters in fnType.
+    
+    // 1. build substitution S = [T_i -> $T_i]
+    // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
+    val sargs = sparams.map(makeInferenceArg)
+    val infArrow = staticInstantiation(sargs, sparams, fnType).
+      getOrElse(return None).asInstanceOf[ArrowType]
+   
+    // 3. argType <:? dom(infArrow) yields a constraint, C1
+    val domainConstraint = checkSubtype(argType, infArrow.getDomain)
+    
+    // 4. if expectedType given, C := C1 AND range(infArrow) <:? expectedType
+    val rangeConstraint = expectedType.map(
+      t => checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
+    val constraint = domainConstraint.scalaAnd(rangeConstraint, isSubtype)
+    
+    // Get an inference variable type out of a static arg.
+    def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
+      case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf)
+      case _ => None
+    }
+    
+    // 5. build bounds map B = [$T_i -> S(UB(T_i))]
+    val infVars = sargs.flatMap(staticArgType)
+    val sparamBounds = sparams.flatMap(staticParamBoundType).
+      map(t => insertStaticParams(t, sparams))
+    val boundsMap = Map(infVars.zip(sparamBounds): _*)
+    
+    // 6. solve C to yield a substitution S' = [$T_i -> U_i]
+    val subst = constraint.scalaSolve(boundsMap).getOrElse(return None)
+    
+    // 7. instantiate infArrow with [U_i] to get resultArrow
+    val resultArrow = substituteTypesForInferenceVars(subst, infArrow).
+      asInstanceOf[ArrowType]
+    
+    // 8. return (resultArrow,StaticArgs([U_i])) 
+    val resultArgs = infVars.map((t) => 
+      NodeFactory.makeTypeArg(resultArrow.getInfo.getSpan, subst.apply(t)))
+    Some((resultArrow,resultArgs))
+  }
+  
+  /**
+   * Determines if the kinds of the given static args match those of the static
+   * parameters. In the case of type arguments, the type is checked to be a
+   * subtype of the corresponding type parameter's bounds.
+   * 
+   * @param checkSubtype A function that is called with a subtype, supertype,
+   *                     an error string, and a node to be signaled, and returns
+   *                     subtype <:? supertype.
+   */
+  private def staticArgsMatchStaticParams(args: List[StaticArg],
+                                  params: List[StaticParam]): Boolean = {
+    if (args.length != params.length) return false
+    
+    // Match a single pair.
+    def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
+      val (arg, param) = argAndParam
+      (arg, param.getKind) match {
+        case (STypeArg(_, argType), SKindType(_)) =>
+            toList(param.getExtendsClause).forall((bound:Type) =>
+              isSubtype(argType, bound, arg,
+                             argType + " not a subtype of " + bound))
+        case (SIntArg(_, _), SKindInt(_)) => true
+        case (SBoolArg(_, _), SKindBool(_)) => true
+        case (SDimArg(_, _), SKindDim(_)) => true
+        case (SOpArg(_, _), SKindOp(_)) => true
+        case (SUnitArg(_, _), SKindUnit(_)) => true
+        case (SIntArg(_, _), SKindNat(_)) => true
+        case (_, _) => false
+      }
+    }
+    
+    // Match every pair.
+    args.zip(params).forall(argMatchesParam(_))
   }
   
   // ------------------------------------------------------------------------
@@ -487,7 +651,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                       excludes, comprises, hasEllipses, selfType) => {
       // Verify that this trait only extends other traits
       extendsC.foreach( (t:TraitTypeWhere) =>
-                        assertTrait(t.getBaseType, t,
+                        assertTrait(t.getBaseType,
                                     "Traits can only extend traits.", t) )
       val checkerWSparams = this.extend(sparams, where)
       var method_checker = checkerWSparams
@@ -536,7 +700,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                        params, selfType) => {
       // Verify that no extends clauses try to extend an object.
       extendsC.foreach( (t:TraitTypeWhere) =>
-                        assertTrait(t.getBaseType, o,
+                        assertTrait(t.getBaseType,
                                     "Objects can only extend traits.", o) )
       val checkerWSparams = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
@@ -609,7 +773,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
       val newBody = newChecker.checkExpr(body, returnType, "Function body",
                                          "declared return")
-      val newType = inferredType(newBody) match {
+      val newType = getType(newBody) match {
         case Some(ty) =>
           if ( NodeUtil.isSetter(f) )
             isSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
@@ -646,7 +810,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             NodeFactory.makeTupleType(NodeUtil.getSpan(v),
                                       toJavaList(lhs.map(handleBinding)))
         }
-        inferredType(newInit) match {
+        getType(newInit) match {
           case Some(typ) =>
             isSubtype(typ, ty, v,
                          errorMsg("Attempt to define variable ", v,
@@ -661,7 +825,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case id@SId(info,api,name) => {
       api match {
         case Some(_) => {
-          val newName = handleAliases(id, toList(current.ast.getImports))
+          val newName = handleAlias(id, toList(current.ast.getImports))
           getTypeFromName( newName ) match {
             case None =>
               // Operators are never qualified in source code,
@@ -694,7 +858,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         getTypeFromName(checkedName) match {
           case Some(checkedType) =>
             if (!sargs.isEmpty)
-              STypesUtil.staticInstantiation(sargs, checkedType, new Hook).
+              staticInstantiation(sargs, checkedType).
                 map((t:Type) => SOverloading(info, checkedName, sargs, Some(t))).
                 getOrElse(node)
             else SOverloading(info, checkedName, sargs, Some(checkedType))
@@ -722,14 +886,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   def checkExpr(expr: Expr, expected: Option[Type],
                 first: String, second: String): Expr = {
     val newExpr = checkExpr(expr)
-    inferredType(newExpr) match {
+    getType(newExpr) match {
       case Some(typ) => expected match {
         case Some(t) =>
           isSubtype(typ, t, expr,
                        first + " has type " + typ + ", but " + second +
                        " type is " + t + ".")
-          SExprUtil.addType(newExpr, typ)
-        case _ => SExprUtil.addType(newExpr, typ)
+          addType(newExpr, typ)
+        case _ => addType(newExpr, typ)
       }
       case _ => noType(expr); expr
     }
@@ -737,14 +901,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   def checkExpr(expr: Expr, expected: Option[Type], message: String): Expr = {
     val newExpr = checkExpr(expr)
-    inferredType(newExpr) match {
+    getType(newExpr) match {
       case Some(typ) => expected match {
         case Some(t) =>
           isSubtype(typ, t, expr,
                        message + " has type " + typ + ", but it must have " +
                        t + " type.")
-          SExprUtil.addType(newExpr, typ)
-        case _ => SExprUtil.addType(newExpr, typ)
+          addType(newExpr, typ)
+        case _ => addType(newExpr, typ)
       }
       case _ => noType(expr); expr
     }
@@ -757,7 +921,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                      selfType) => {
       // Verify that no extends clauses try to extend an object.
       extendsC.foreach( (t:TraitTypeWhere) =>
-                        assertTrait(t.getBaseType, o,
+                        assertTrait(t.getBaseType,
                                     "Objects can only extend traits.", o) )
       var method_checker = this
       var field_checker = this
@@ -824,14 +988,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                                          "Non-last expression in a block"))
           val lastExpr = checkExpr(last)
           val newExprs = (lastExpr::allButLast).reverse
-          SBlock(SExprInfo(span,parenthesized,inferredType(lastExpr)),
+          SBlock(SExprInfo(span,parenthesized,getType(lastExpr)),
                  newLoc, false, withinDo, newExprs)
       }
     }
 
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {
       val newExpr = this.extendWithout(s, labelExitTypes.keySet).checkExpr(body)
-      inferredType(newExpr) match {
+      getType(newExpr) match {
         case Some(typ) =>
           SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(typ))), newExpr)
         case _ => noType(body); expr
@@ -840,12 +1004,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case SAtomicExpr(SExprInfo(span,paren,optType), body) => {
       val newExpr = forAtomic(body, "an 'atomic' expression")
-      SAtomicExpr(SExprInfo(span,paren,inferredType(newExpr)), newExpr)
+      SAtomicExpr(SExprInfo(span,paren,getType(newExpr)), newExpr)
     }
 
     case STryAtomicExpr(SExprInfo(span,paren,optType), body) => {
       val newExpr = forAtomic(body, "an 'tryatomic' expression")
-      STryAtomicExpr(SExprInfo(span,paren,inferredType(newExpr)), newExpr)
+      STryAtomicExpr(SExprInfo(span,paren,getType(newExpr)), newExpr)
     }
 
     // For a tight juxt, create a MathPrimary
@@ -876,7 +1040,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                multi, infix, exprs, isApp, false) => {
       // Check subexpressions
       val checkedExprs = exprs.map(checkExpr)
-      if ( haveInferredTypes(checkedExprs) ) {
+      if ( haveTypes(checkedExprs) ) {
         // Break the list of expressions into chunks.
         // First the loose juxtaposition is broken into nonempty chunks;
         // wherever there is a non-function element followed
@@ -886,12 +1050,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
           case Nil => results.reverse
           case first::rest =>
-            if ( STypesUtil.isArrows(first) ) {
-              val (arrows,temp) = (first::rest).span(STypesUtil.isArrows)
-              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! STypesUtil.isArrows(e))
+            if ( isArrows(first) ) {
+              val (arrows,temp) = (first::rest).span(isArrows)
+              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
               chunker(remainingChunks, (arrows,nonArrows)::results)
             } else {
-              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! STypesUtil.isArrows(e))
+              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
               chunker(remainingChunks, (List(),nonArrows)::results)
             }
         }
@@ -927,7 +1091,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         //     then it is a static error
         //     if there is any pair of adjacent elements within the juxtaposition
         //     such that neither element is of type String.
-        val types = associatedChunks.map((e: Expr) => inferredType(e).get)
+        val types = associatedChunks.map((e: Expr) => getType(e).get)
         def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
         if ( types.exists(isStringType) ) {
           def stringCheck(e: Type, f: Type) =
@@ -943,7 +1107,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         //     The rules for multifix operators then apply.
         val multiOpExpr = checkExpr(ExprFactory.makeOpExpr(span, paren, toJavaOption(optType),
                                                            multi, toJavaList(associatedChunks)))
-        if ( inferredType(multiOpExpr).isDefined ) multiOpExpr
+        if ( getType(multiOpExpr).isDefined ) multiOpExpr
         else {
           // If not, left associate as InfixJuxts
           associatedChunks match {
@@ -996,8 +1160,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case _ => false
       }
       def isFunctionItem(item: MathItem) = item match {
-        case SParenthesisDelimitedMI(_,e) => STypesUtil.isArrows(checkExpr(e))
-        case SNonParenthesisDelimitedMI(_,e) => STypesUtil.isArrows(checkExpr(e))
+        case SParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
+        case SNonParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
         case _ =>
       }
       def expectParenedExprItem(item: MathItem) =
@@ -1093,11 +1257,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
       // HANDLE THE FRONT ITEM
       val newFront = checkExpr(front)
-      inferredType( newFront ) match {
+      getType( newFront ) match {
         case None => noType(front); front
         case Some(t) =>
           // If front is a fn followed by an expr, we reassociate
-          if ( STypesUtil.isArrows(t) && isExprMI(second) ) {
+          if ( isArrows(t) && isExprMI(second) ) {
             // It is a static error if either the argument is not parenthesized,
             expectParenedExprItem(second)
             // static error if the argument is immediately followed by
@@ -1126,7 +1290,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             // The rules for multifix operators then apply.
             val multi_op_expr = checkExpr( ExprFactory.makeOpExpr(span, multi,
                                                                   toJavaList(head::newTail)) )
-            inferredType(multi_op_expr) match {
+            getType(multi_op_expr) match {
               case Some(_) => multi_op_expr
               case None =>
                 newTail.foldLeft(head){ (r:Expr, e:Expr) =>
@@ -1142,8 +1306,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val newSubs = subs.map(checkExpr)
       // Ignore the op.  A subscript op behaves like a dotted method.
       // Make sure all sub-exprs are well-typed.
-      if ( haveInferredTypes(newSubs) )
-        inferredType(newObj) match {
+      if ( haveTypes(newSubs) )
+        getType(newObj) match {
           case Some(ty) => subscriptHelper(s, newObj, newSubs)
           case _ => noType(expr); expr
         }
@@ -1194,19 +1358,19 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val checkedArg = checkExpr(arg)
       
       // Check fn and arg and get their types.
-      (inferredType(checkedFn), inferredType(checkedArg)) match {
-        case (Some(fnType), Some(_)) if !STypesUtil.isArrows(fnType) => {
+      (getType(checkedFn), getType(checkedArg)) match {
+        case (Some(fnType), Some(_)) if !isArrows(fnType) => {
           signal(expr, fnType + " is not an arrow type.")
           expr
         }
         case (Some(fnType), Some(argType)) =>
           
-          STypesUtil.staticallyMostApplicableArrow(fnType, argType, None, new Hook) match {
+          staticallyMostApplicableArrow(fnType, argType, None) match {
             
             case Some((smostApp, sargs)) => {
               
               val newFn = checkedFn match {
-                case fn: FunctionalRef => SExprUtil.addOverloadings(
+                case fn: FunctionalRef => addOverloadings(
                   fn, toList(fn.getNewOverloadings).filter(
                     (o) => isDynamicallyApplicable(o, smostApp, sargs)))
                 case _ => checkedFn
@@ -1228,18 +1392,18 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
       val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
-      if ( haveInferredTypes(fs) ) {
+      if ( haveTypes(fs) ) {
           // Get union of all clauses' types
           val frontTypes =
-            fs.take(fs.size-1).foldRight(inferredType(fs.last).get)
-              { (e:Expr, t:Type) => analyzer.join(inferredType(e).get, t) }
+            fs.take(fs.size-1).foldRight(getType(fs.last).get)
+              { (e:Expr, t:Type) => analyzer.join(getType(e).get, t) }
           SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
       } else { noType(expr); expr }
     }
 
     case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
       val newClauses = clauses.map( handleIfClause )
-      val types = newClauses.map( (c: IfClause) => inferredType(c.getBody) match {
+      val types = newClauses.map( (c: IfClause) => getType(c.getBody) match {
                                     case Some(ty) => ty
                                     case None => noType(c.getBody); Types.VOID
                                   } )
@@ -1254,7 +1418,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
         case Some(b) => {
           val newBlock = checkExpr(b).asInstanceOf[Block]
-          inferredType(newBlock) match {
+          getType(newBlock) match {
             case None => { noType(b) ; (None, Types.VOID) }
             case Some(ty) =>
               // Get union of all clauses' types
@@ -1268,7 +1432,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SWhile(SExprInfo(span,parenthesized,_), testExpr, body) => {
       val (newTestExpr, bindings) = generatorClauseGetBindings(testExpr, true)
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Do]
-      inferredType(newBody) match {
+      getType(newBody) match {
         case None => noType(body)
         case Some(ty) =>
           isSubtype(ty, Types.VOID, body,
@@ -1281,7 +1445,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SFor(SExprInfo(span,parenthesized,_), gens, body) => {
       val (newGens, bindings) = handleGens(gens)
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
-      inferredType(newBody) match {
+      getType(newBody) match {
         case None => noType(body)
         case Some(ty) =>
           isSubtype(ty, Types.VOID, body,
@@ -1298,7 +1462,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             ty match {
               case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
                 if ( NodeUtil.isGenericSingletonType(typ) &&
-                     STypesUtil.staticArgsMatchStaticParams(sargs, params, new Hook)) {
+                     staticArgsMatchStaticParams(sargs, params)) {
                   // make a trait type that is GenericType instantiated
                   val newType = NodeFactory.makeTraitType(sp, pr, name,
                                                           toJavaList(sargs))
