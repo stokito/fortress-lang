@@ -639,6 +639,36 @@ public class FileTests {
 
     }
 
+    public static class TypeCheckTest extends SourceFileTest {
+
+        private final StringMap props;
+        public TypeCheckTest(StringMap props, String path, String d, String s,
+                boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
+            super(path, d, s, unexpected_only, knownFailure, shouldFail );
+            this.props = props;
+        }
+
+        @Override
+        protected int justTheTest()
+                throws FileNotFoundException, IOException, Throwable {
+            String[] tokens = {"typecheck-scala", dir+"/"+makeTestFileName(name)};
+            int rc = com.sun.fortress.Shell.subMain(tokens);
+            return rc;
+
+        }
+
+        @Override
+        public String tag() {
+            // TODO Auto-generated method stub
+            return "typecheck";
+        }
+
+        public  String testFailed(String out, String err, String exc) {
+            return generalTestFailed("typecheck_", props, out, err, exc);
+        }
+
+    }
+
     public static class DesugarTest extends SourceFileTest {
 
         private final StringMap props;
@@ -866,6 +896,7 @@ public class FileTests {
         int i = testCount;
 
         List<Test> compileTests = new ArrayList<Test>();
+        List<Test> typecheckTests = new ArrayList<Test>();
         List<Test> desugarTests = new ArrayList<Test>();
         List<Test> linkTests = new ArrayList<Test>();
         List<Test> runTests = new ArrayList<Test>();
@@ -908,16 +939,16 @@ public class FileTests {
                               String token = st.nextToken();
                               standardCompilerTests(props, dir, dirname, token,
                                                     expect_failure, shouldFail, failsOnly,
-                                                    compileTests, desugarTests,
-                                                    linkTests, runTests);
+                                                    compileTests, typecheckTests,
+                                                    desugarTests, linkTests, runTests);
                           }
                       }
                       else {
 
                           standardCompilerTests(props, dir, dirname, testname,
                                                 expect_failure, shouldFail, failsOnly,
-                                                compileTests, desugarTests,
-                                                linkTests, runTests);
+                                                compileTests, typecheckTests,
+                                                desugarTests, linkTests, runTests);
                       }
                   } else {
                       System.out.println("Not compiling file " + s);
@@ -934,6 +965,9 @@ public class FileTests {
         if (i > 0) {
             for (Test test: compileTests)
                 suite.addTest(test);
+            
+            for (Test test: typecheckTests)
+              suite.addTest(test);
 
             for (Test test: desugarTests)
                 suite.addTest(test);
@@ -967,6 +1001,7 @@ public class FileTests {
                                               boolean shouldFail,
                                               boolean failsOnly,
                                               List<Test> compileTests,
+                                              List<Test> typecheckTests,
                                               List<Test> desugarTests,
                                               List<Test> linkTests,
                                               List<Test> runTests) throws IOException {
@@ -974,6 +1009,10 @@ public class FileTests {
             compileTests.add(new CompileTest(props, dir.getCanonicalPath(),
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
+        if (props.get("typecheck") != null)
+            typecheckTests.add(new TypeCheckTest(props, dir.getCanonicalPath(),
+                                                 dirname, testname, failsOnly,
+                                                 expect_not_passing, shouldFail));
         if (props.get("desugar") != null)
             desugarTests.add(new DesugarTest(props, dir.getCanonicalPath(),
                                              dirname, testname, failsOnly,
