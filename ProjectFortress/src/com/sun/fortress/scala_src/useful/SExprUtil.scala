@@ -63,9 +63,20 @@ object SExprUtil {
    */
   def addOverloadings(fnRef: FunctionalRef,
                       overs: List[Overloading]): FunctionalRef = fnRef match {
-    case SFnRef(a, b, c, d, e, f, _, g) => SFnRef(a, b, c, d, e, f, overs, g)
-    case SOpRef(a, b, c, d, e, f, _, g) => SOpRef(a, b, c, d, e, f, overs, g)
+    case SFnRef(a, b, c, d, e, f, _, h) => SFnRef(a, b, c, d, e, f, overs, h)
+    case SOpRef(a, b, c, d, e, f, _, h) => SOpRef(a, b, c, d, e, f, overs, h)
     case _ => NI.nyi()
   }
+  
+  /**
+   * Replaces the static args in a FunctionalRef with the given ones.
+   */
+  def addStaticArgs(fnRef: FunctionalRef,
+                    sargs: List[StaticArg]): FunctionalRef = fnRef match {
+    case SFnRef(a, _, c, d, e, f, g, h) => SFnRef(a, sargs, c, d, e, f, g, h)
+    case SOpRef(a, _, c, d, e, f, g, h) => SOpRef(a, sargs, c, d, e, f, g, h)
+    case _ => NI.nyi()
+  }
+  
   
 }
