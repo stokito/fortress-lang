@@ -28,7 +28,7 @@ import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
-import com.sun.fortress.scala_src.useful.Converter._
+import com.sun.fortress.scala_src.useful.Iterators._
 
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set

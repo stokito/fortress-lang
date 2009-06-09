@@ -14,20 +14,27 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-
 package com.sun.fortress.scala_src.useful
-import _root_.java.util.{Iterator => JIterator}
-import _root_.java.lang.{Iterable => JIterable}
+import _root_.junit.framework.TestCase
+import _root_.edu.rice.cs.plt.tuple.{Pair=>JPair}
 
-case class WrappedIterator[T](elts: JIterator[T]) {
-    def foreach(f: T => Unit): Unit = {
-        while(elts.hasNext) {
-          f(elts.next)
-        }
-    }
+object Pairs {
+
+  def toPair[S,T](jpair: JPair[S,T]): (S,T) = (jpair.first,jpair.second)
+  def toJavaPair[S,T](pair: (S,T)): JPair[S,T] = JPair.make(pair._1,pair._2)
+  
 }
 
-object Iterators {
-    implicit def wrapIterator[T](iter: JIterator[T]): WrappedIterator[T] = WrappedIterator(iter)
-    implicit def wrapIterable[T](iter: JIterable[T]): WrappedIterator[T] = WrappedIterator(iter.iterator())
+
+class PairTest extends TestCase {
+  
+  def testPair() = {
+    val pair = Pairs.toPair(JPair.make(1,2))
+    assert(pair._1==1)
+    assert(pair._2==2)
+    pair match {
+      case (1,2) => assert(true)
+      case _ => assert(false)
+    }
+  }
 }

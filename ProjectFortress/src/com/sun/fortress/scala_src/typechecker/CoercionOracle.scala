@@ -26,7 +26,7 @@ import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
-import com.sun.fortress.scala_src.useful.Converter._
+import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 
