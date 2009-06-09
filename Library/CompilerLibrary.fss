@@ -16,6 +16,212 @@
  ******************************************************************************)
 
 component CompilerLibrary
+(*) import java com.sun.fortress.nativeHelpers.equality.SEQV => jSEQV
 export CompilerLibrary
+
+(************************************************************
+ * Simple Combinators
+ ************************************************************)
+
+(** Useful functions *)
+
+ignore(_:Any):() = ()
+
+(************************************************************
+ * Control over locality and location
+ ************************************************************)
+
+(*) isShared(x:Any): Boolean = true
+
+(************************************************************
+ * Equality and ordering
+ ************************************************************)
+
+(*) opr =(a:Any, b:Any):Boolean = a SEQV b
+
+(*) opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+
+(*
+(** Assertion *)
+assert(flag:Boolean): () =
+    if NOT flag then
+        fail("Assertion failed!")
+    end
+
+assert(flag: Boolean, failMsg: String): () =
+    if NOT flag then
+        fail(failMsg)
+    end
+
+
+assert(x:Any, y:Any, failMsg: Any...): () =
+    if x =/= y then
+        msg = x.asDebugString " =/= " y.asDebugString "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
+        fail(msg)
+    end
+*) 
+
+(*
+deny(flag:Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
+
+
+deny(x:Any, y:Any, failMsg: Any...): () =
+    if x = y then
+        msg = x.asDebugString " = " y.asDebugString "; " (BIG || failMsg)
+        fail(msg)
+    end
+*)
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+(*
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+(* Exceptions which are not checked *)
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+object FailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+object DivisionByZero extends UncheckedException
+    getter asString(): String = "Division by zero"
+end
+
+object UnpastingError extends UncheckedException
+    getter asString(): String = "Unpasting error"
+end
+
+object CallerViolation extends UncheckedException
+    getter asString(): String = "Caller violation"
+end
+
+object CalleeViolation extends UncheckedException
+    getter asString(): String = "Callee violation"
+end
+
+object LabelException extends UncheckedException
+    getter asString(): String = "Exiting without an enclosing label block"
+end
+
+object TestFailure extends UncheckedException
+    getter asString(): String = "Test failure"
+end
+
+object ContractHierarchyViolation extends UncheckedException
+    getter asString(): String = "Contract hierarchy violation"
+end
+
+object NoEqualityOnFunctions extends UncheckedException
+    getter asString(): String = "No equality on functions"
+end
+
+object InvalidRange extends UncheckedException
+    getter asString(): String = "Invalid range"
+end
+
+object ForbiddenException(chain : Exception) extends UncheckedException
+    getter asString(): String = "Forbidden exception"
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NotFound extends UncheckedException
+    getter asString(): String = "Not found"
+end
+
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
+    getter asString(): String = index " is outside the range " range
+end
+
+object EmptyReduction extends UncheckedException
+    getter asString(): String = "EmptyReduction: no identity, no elements"
+end
+
+object NegativeLength extends UncheckedException
+    getter asString(): String = "Negative length"
+end
+
+object IntegerOverflow extends UncheckedException
+    getter asString(): String = "Integer Overflow"
+end
+
+object RationalComparisonError extends UncheckedException
+    getter asString(): String = "Rational comparison error"
+end
+
+object FloatingComparisonError extends UncheckedException
+    getter asString(): String = "Floating comparison error"
+end
+
+(* Checked Exceptions *)
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+object CastError extends CheckedException
+    getter asString(): String = "Cast error"
+end
+
+object IOFailure extends CheckedException
+    getter asString(): String = "I/O error"
+end
+
+object MatchFailure extends CheckedException
+    getter asString(): String = "Match failure"
+end
+
+(* SetsNotDisjoint? *)
+object DisjointUnionError extends CheckedException
+    getter asString(): String = "Disjoint union error"
+end
+
+object APIMissing extends CheckedException
+    getter asString(): String = "Api is missing"
+end
+
+object APINameCollision extends CheckedException
+    getter asString(): String = "Api name collides with another"
+end
+
+object ExportedAPIMissing extends CheckedException
+    getter asString(): String = "Exported api is missing"
+end
+
+object HiddenAPIMissing extends CheckedException
+    getter asString(): String = "Hidden api is missing"
+end
+
+object TryAtomicFailure extends CheckedException
+    getter asString(): String = "Try/atomic failure"
+end
+
+(* Should take a spawned thread as an argument *)
+object AtomicSpawnSynchronization extends {UncheckedException}
+    getter asString(): String = "Atomic spawn synchronization"
+end
+*)
+
+(*) opr SEQV(a:Any, b:Any) = jSEQV(a,b)
+
+(*
+opr XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
+opr OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
+opr NOT(a:Boolean):Boolean = if a then false else true end
+opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
+opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
+opr <->(a: Boolean, b:Boolean):Boolean = a=b
+*)
+
+(*) true : Boolean = () SEQV ()
+(*) false : Boolean = true SEQV ()
 
 end
