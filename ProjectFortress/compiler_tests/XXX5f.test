@@ -1,0 +1,33 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled5.f
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:21:35-36:\n\
+\ Operator name, AT, is not a valid type name.\n\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:22:35-36:\n\
+\ Operator name, BT, is not a valid type name.\n\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:24:1-17:\n\
+\ AT is not a valid trait name.\n\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:25:1-17:\n\
+\ BT is not a valid trait name.\n\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:32:19:\n\
+\ Operator name, AT, is not a valid type name.\n\
+${STATIC_TESTS_DIR}/Compiled5.f.fss:33:19:\n\
+\ Operator name, BT, is not a valid type name.\n\
+File Compiled5.f.fss has 6 errors.\n
+compile_out_equals=
