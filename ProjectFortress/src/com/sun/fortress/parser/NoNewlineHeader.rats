@@ -35,14 +35,19 @@ import Spacing;
 /* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
 /* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
 List<TraitTypeWhere> ExtendsWhere =
-     extends w a1:TraitTypeWhere { yyValue = Useful.list(a1); }
+     extends w a1:TraitTypeWhere
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypeWheres(writer, yyValue);
+     }
    / extends w void:opencurly w a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
      w void:closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypeWheres(writer, yyValue);
+     };
 
 /* TraitTypeWhere ::= TraitType (w Where)? */
 private TraitTypeWhere TraitTypeWhere =
-     a1:TraitType a2:(w Where)?
+     a1:TraitTypeWithError a2:(w Where)?
      { Option<WhereClause> where;
        if (a2 == null)
            where = Option.<WhereClause>none();
@@ -63,16 +68,23 @@ List<BaseType> Excludes = excludes w TraitTypes ;
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
 List<BaseType> TraitTypes =
-     a1:TraitType { yyValue = Useful.list(a1); }
-   / void:opencurly w a1:TraitType a2s:(w comma w TraitType)* w void:closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:TraitTypeWithError
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypes(writer, yyValue);
+     }
+   / void:opencurly w a1:TraitTypeWithError a2s:(w comma w TraitTypeWithError)* w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypes(writer, yyValue);
+     };
 
 /*    Comprises ::= comprises w TraitTypes */
 /* AbsComprises ::= comprises w ComprisingTypes */
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
 Comprises Comprises =
-     comprises w a1:TraitType
-     { yyValue = new Comprises(createSpan(yyStart,yyCount), Useful.list(a1)); }
+     comprises w a1:TraitTypeWithError
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), Useful.list(a1));
+       NodeUtil.validTraitTypes(writer, Useful.list(a1));
+     }
    / comprises w void:opencurly w ComprisingTypeList w void:closecurly ;
 
 /* ComprisingTypeList ::=
@@ -84,10 +96,11 @@ private Comprises ComprisingTypeList =
      { yyValue = new Comprises(createSpan(yyStart,yyCount),
                                Collections.<BaseType>emptyList(), true);
      }
-   / a1:TraitType a2s:(w comma w TraitType)* a3:(w comma w ellipses)?
-     { yyValue = new Comprises(createSpan(yyStart,yyCount),
-                               Useful.cons(a1, a2s.list()),
-                               a3 != null);
+   / a1:TraitTypeWithError a2s:(w comma w TraitTypeWithError)* a3:(w comma w ellipses)?
+     { List<BaseType> types = Useful.cons(a1, a2s.list());
+       yyValue = new Comprises(createSpan(yyStart,yyCount),
+                               types, a3 != null);
+       NodeUtil.validTraitTypes(writer, types);
      };
 
 /* Where ::=

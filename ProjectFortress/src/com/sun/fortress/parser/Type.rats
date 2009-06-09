@@ -460,3 +460,41 @@ constant inline Action<Type> ExponentiationTrait =
                                                      a2, a3s.list());
            }};
      };
+
+/* TraitTypeWithError ::=
+     TraitTypeFrontWithError TraitTypeTail+
+   | TypeRefWithError
+ */
+BaseType TraitTypeWithError =
+     seed:TraitTypeFrontWithError list:TraitTypeTail+
+     { yyValue = (BaseType)apply(list, seed); }
+   / TypeRefWithError ;
+
+/* TraitTypeFrontWithError ::=
+     ParenthesizedType
+   | TupleType
+   | TypeRefWithError
+   | VoidType
+ */
+private Type TraitTypeFrontWithError =
+     ParenthesizedType
+   / TupleType
+   / TypeRefWithError
+   / VoidType
+   ;
+
+/* TypeRef ::= DottedIdChain (w StaticArgs)? */
+/* TypeRefWithError ::= Id (w StaticArgs)? | Op (w StaticArgs)? */
+private Type TypeRefWithError =
+     "Unity"
+     { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,yyCount), false); }
+   / a1:Id w a2:StaticArgs
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeTraitType(span, a1, a2);
+     }
+   / a1:Id
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); }
+   / a1:Op a2:(w StaticArgs)?
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount),
+                                         a1.getText());
+     };

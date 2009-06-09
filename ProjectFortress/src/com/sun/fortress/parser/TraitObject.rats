@@ -56,6 +56,8 @@ private TraitHeader TraitHeaderFront =
      <ErrorProduction>
      trait w a1:OpName a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       if (a3 == null) a3 = Collections.<TraitTypeWhere>emptyList();
        log(span, a1 + " is not a valid trait name.");
        yyValue = new TraitHeader(NodeFactory.bogusId(span), a2, a3);
      }

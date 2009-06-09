@@ -999,6 +999,29 @@ public class NodeUtil {
     }
 
     /* for Type and StaticExpr **********************************************/
+    public static void validTraitTypes(BufferedWriter writer,
+                                       List<BaseType> types) {
+        for (BaseType ty: types) {
+            if ( ty instanceof NamedType &&
+                 validOp(((NamedType)ty).getName().getText()) )
+                log(writer, getSpan(ty), "Operator name, " +
+                    ((NamedType)ty).getName().getText() +
+                    ", is not a valid type name.");
+        }
+    }
+
+    public static void validTraitTypeWheres(BufferedWriter writer,
+                                            List<TraitTypeWhere> types) {
+        for (TraitTypeWhere typ: types) {
+            BaseType ty = typ.getBaseType();
+            if ( ty instanceof NamedType &&
+                 validOp(((NamedType)ty).getName().getText()) )
+                log(writer, getSpan(ty), "Operator name, " +
+                    ((NamedType)ty).getName().getText() +
+                    ", is not a valid type name.");
+        }
+    }
+
     public static boolean isExponentiation(Type type) {
         return (type instanceof ArrayType ||
                 type instanceof MatrixType ||
