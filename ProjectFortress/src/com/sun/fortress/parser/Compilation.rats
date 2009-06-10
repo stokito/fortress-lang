@@ -58,7 +58,7 @@ CompilationUnit Program =
    / a1:ImportOrExports (w semicolon)? w w a2:Decls (w semicolon)?
      { Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
        List<Import>  imports = a1.getA();
        List<APIName> exports = a1.getB();
        if ( ! exports.isEmpty() )
@@ -74,7 +74,7 @@ CompilationUnit Program =
      { if (a2 == null) a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
        if ( ! a1.getB().isEmpty() )
            log(span, "APIs should not have export statements.");
        yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
@@ -84,7 +84,7 @@ CompilationUnit Program =
                                            : a1.getA();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
        if ( a1 != null && ! a1.getB().isEmpty() )
            log(span, "APIs should not have export statements.");
        yyValue = NodeFactory.makeApi(span, name, imports, a2);

@@ -40,7 +40,7 @@ CompilationUnit Program =
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
        if ( ! a1.getB().isEmpty() )
            yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2,
                                                Collections.<APIName>emptyList());
@@ -51,7 +51,7 @@ CompilationUnit Program =
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
        yyValue = NodeFactory.makeApi(span, name, Collections.<Import>emptyList(), a2);
      };
 
