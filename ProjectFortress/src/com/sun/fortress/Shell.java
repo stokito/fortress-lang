@@ -245,7 +245,7 @@ public final class Shell {
     }
 
     public static void setScala(boolean use_scala){
-    	  compileProperties.use_scala = use_scala;
+        compileProperties.use_scala = use_scala;
     }
 
     public static void setTestCoercion(boolean test_coercion) {
@@ -921,6 +921,9 @@ public final class Shell {
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
+            }
+            else if (s.equals("-typecheck-scala")) {
+            	setScala(true);
             }
             else
                 invalidFlag(s, "link");
