@@ -17,7 +17,6 @@
 
 package com.sun.fortress.scala_src.useful
 
-import scala.collection.Set
 import _root_.java.util.{HashSet => JHashSet}
 import _root_.java.util.{Set => JavaSet}
 import scala.collection.jcl.Conversions
@@ -31,10 +30,6 @@ object Sets {
     temp
   }
 
-  def toSet[T](jset: JavaSet[T]): Set[T] = Set() ++ Conversions.convertSet(jset)
-
-  def union[T](set1: Set[T], set2: Set[T]):Set[T] = {
-    Set() ++ (set1.toList.union(set2.toList))
-  }
+  def toSet[T](jset: JavaSet[T]): Set[T] = Set(Conversions.convertSet(jset).toSeq:_*)
   
 }

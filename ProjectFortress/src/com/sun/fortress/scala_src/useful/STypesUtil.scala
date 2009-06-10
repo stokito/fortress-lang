@@ -17,6 +17,10 @@
 
 package com.sun.fortress.scala_src.useful
 
+import com.sun.fortress.compiler.index.DeclaredMethod
+import com.sun.fortress.compiler.index.FieldGetterMethod
+import com.sun.fortress.compiler.index.FieldSetterMethod
+import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypesUtil
@@ -36,6 +40,34 @@ object STypesUtil {
    * A function type that takes two types and returns a boolean.
    */
   type Subtype = (Type, Type) => Boolean
+  
+  /**
+   * Return the arrow type of the given Method.
+   */
+  def getArrowFromMethod(m: Method): ArrowType = {
+    val returnType = m.getReturnType
+    val argType = toList(m.parameters).map(NodeUtil.getParamType) match {
+      case t :: Nil => t
+      case t => NodeFactory.makeTupleType(m.getSpan, toJavaList(t))
+    }
+    m match {
+      case m:DeclaredMethod =>
+        val sparams = m.ast.getHeader.getStaticParams
+        val where = m.ast.getHeader.getWhereClause
+        val throws = m.ast.getHeader.getThrowsClause
+        NodeFactory.makeArrowType(NodeUtil.getSpan(m.ast),
+                                  false,
+                                  argType,
+                                  returnType,
+                                  NodeFactory.makeEffect(throws),
+                                  sparams,
+                                  where)
+      case g:FieldGetterMethod =>
+        NodeFactory.makeArrowType(NodeUtil.getSpan(g.ast), argType, returnType)
+      case s:FieldSetterMethod =>
+        NodeFactory.makeArrowType(NodeUtil.getSpan(s.ast), argType, returnType)
+    }
+  }
   
   /**
    * Get all the static parameters out of the given type.
