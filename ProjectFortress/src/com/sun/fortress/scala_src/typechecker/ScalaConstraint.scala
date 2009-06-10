@@ -24,13 +24,13 @@ import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
-import edu.rice.cs.plt.lambda.Lambda
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.scala_src.useful.STypesUtil.Subtype
+import edu.rice.cs.plt.lambda.Lambda
 
 /**
  * This class represents the constraints accummulated on inference variables. All
@@ -222,7 +222,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   private def mergeBounds(bounds1: Map[_InferenceVarType,Type],
                   bounds2: Map[_InferenceVarType,Type],
                   merge:(Type,Type)=>Type): Map[_InferenceVarType,Type] = {
-      val boundKeys = union(bounds1.keySet,bounds2.keySet)
+      val boundKeys = bounds1.keySet ++ bounds2.keySet
       var newBounds = Map.empty[_InferenceVarType,Type]
       for(ivar <- boundKeys){
         val bound1 = bounds1.get(ivar)
@@ -245,7 +245,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
                     defaultBound1: Type,
                     defaultBound2: Type,
                     compare: (Type,Type)=>Boolean): Boolean = {
-    val boundKeys = union(bounds1.keySet,bounds2.keySet)
+    val boundKeys = bounds1.keySet ++ bounds2.keySet
     val pred = (ivar: _InferenceVarType) => {
       val bound1 = bounds1.get(ivar)
       val bound2 = bounds2.get(ivar)
@@ -277,7 +277,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
 
   override def toString():String = {
     val result = new StringBuffer("[") 
-    val allKeys = union(uppers.keySet,lowers.keySet)
+    val allKeys = uppers.keySet ++ lowers.keySet
     var counter = 1
     for(ivar <- allKeys){
       val upperBound = uppers.get(ivar)

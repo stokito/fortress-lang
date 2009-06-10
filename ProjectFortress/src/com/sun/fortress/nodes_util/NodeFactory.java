@@ -937,7 +937,7 @@ public class NodeFactory {
                              CollectUtil.makeList(types));
     }
 
-    public static UnionType makeUnionType(scala.collection.Set<Type> types){
+    public static UnionType makeUnionType(scala.collection.immutable.Set<Type> types){
     	return makeUnionType(Sets.toJavaSet(types));
     }
 
@@ -1044,7 +1044,7 @@ public class NodeFactory {
         return makeIntersectionType(span, false, new ArrayList<Type>(types));
     }
 
-    public static IntersectionType makeIntersectionType(scala.collection.Set<Type> types){
+    public static IntersectionType makeIntersectionType(scala.collection.immutable.Set<Type> types){
     	return makeIntersectionType(Sets.toJavaSet(types));
     }
 
