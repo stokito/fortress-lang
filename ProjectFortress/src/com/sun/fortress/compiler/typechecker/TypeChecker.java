@@ -2310,7 +2310,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forFnDecl(FnDecl that) {
                 if (NodeUtil.getBody(that).isNone())
                     return super.forFnDecl(that);
-                                                                        
+
                 // System.err.println("Checking function decl " + that);
 
         TypeChecker newChecker = this.extend(NodeUtil.getStaticParams(that), NodeUtil.getParams(that), NodeUtil.getWhereClause(that));
@@ -2354,9 +2354,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //                         System.err.println("equal? " + bodyType.equals(returnType.unwrap()));
             result = newChecker.checkSubtype(normalize(bodyType),
                                              normalize(returnType.unwrap()),
-                                             that,
+                                             NodeUtil.getBody(that).unwrap(),
                                              errorMsg("Function body has type ", normalize(bodyType), ", but ",
-                                                      "declared return type is ", normalize(returnType.unwrap())));
+                                                      "declared return type is ", normalize(returnType.unwrap()),
+                                                      "."));
         }
 
         if ( NodeUtil.isSetter(that) ) {

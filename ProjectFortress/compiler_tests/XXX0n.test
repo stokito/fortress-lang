@@ -17,7 +17,7 @@ tests=Compiled0.n
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.n.fss:20:3-17:\n\
-\ Function body has type ()->(), but declared return type is ()\n\
+${STATIC_TESTS_DIR}/Compiled0.n.fss:20:14-15:\n\
+\ Function body has type ()->(), but declared return type is ().\n\
 File Compiled0.n.fss has 1 error.\n
 compile_out_equals=
