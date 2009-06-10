@@ -1040,7 +1040,7 @@ public class NodeFactory {
             span = typeSpan;
         else
             span = NodeUtil.spanAll(types);
-        
+
         return makeIntersectionType(span, false, new ArrayList<Type>(types));
     }
 
@@ -1556,13 +1556,18 @@ public class NodeFactory {
             return makeTupleType(span, false, elements, varargs, keywords);
     }
 
-    public static APIName makeAPINameFromPath(Span span, String path, String delimiter) {
+    public static APIName makeAPINameFromPath(BufferedWriter writer,
+                                              Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
         if (file.length() <= 4) {
             return error(makeId(span, "_"), "Invalid file name.");
         }
         for (String n : file.substring(0, file.length()-4).split(delimiter)) {
+            // writer == null for NodeFactoryJUTest and ImportCollector
+            if ( writer != null && ! NodeUtil.validId(n) )
+                NodeUtil.log(writer, span,
+                             n + " is not a valid Fortress identifier.");
             ids.add(makeId(span, n));
         }
         ids = Useful.immutableTrimmedList(ids);
