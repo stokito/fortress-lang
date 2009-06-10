@@ -17,6 +17,7 @@
 
 package com.sun.fortress.scala_src.typechecker
 
+import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Map => JavaMap}
 import _root_.java.util.{HashMap => JavaHashMap}
 import _root_.java.util.{Set => JavaSet}
@@ -34,6 +35,7 @@ import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
+import com.sun.fortress.compiler.typechecker.TypeNormalizer
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypeEnv
@@ -146,16 +148,19 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     = analyzer.subtype(subtype, supertype).isTrue
 
   /**
-   * Return the conditions for subtype <: supertype to hold. 
+   * Return the conditions for subtype <: supertype to hold.
    */
   private def checkSubtype(subtype:Type, supertype:Type): ScalaConstraint =
     analyzer.subtype(subtype, supertype).asInstanceOf[ScalaConstraint]
 
   private def equivalentTypes(t1: Type, t2: Type): Boolean =
-      analyzer.equivalent(t1, t2).isTrue
-  
+    analyzer.equivalent(t1, t2).isTrue
+
+  private def normalize(ty: Type): Type =
+    TypeNormalizer.normalize(ty)
+
   /**
-   * Replaces the given name with the name it aliases 
+   * Replaces the given name with the name it aliases
    * (or leaves it alone if it doesn't alias any thing)
    */
   private def handleAlias(name: Id, imports: List[Import]): Id = name match {
@@ -164,7 +169,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // Get the alias for `name` from this import, if it exists.
       def getAlias(imp: Import): Option[Id] = imp match {
         case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
-          
+
           // Get the name from an aliased name.
           def getName(aliasedName: AliasedSimpleName): Option[Id] =
             aliasedName match {
@@ -172,7 +177,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 if alias.equals(name) => Some(newName.asInstanceOf)
               case _ => None
             }
-          
+
           // Get the first name that matched.
           aliases.flatMap(getName).firstOption
         case _ => None
@@ -208,7 +213,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case Some(ti) if ti.isInstanceOf[ProperTraitIndex] =>
       case _ => signal(error_loc, msg)
     }
-    case SAnyType(info) => 
+    case SAnyType(info) =>
     case _ => signal(error_loc, msg)
   }
 
@@ -264,30 +269,30 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
     methods
   }
-  
+
   /**
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
    * that this type could be used as for the purposes of calling methods and fields.
    */
   private def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
     case t:TraitType => Set(t)
-    
+
     // Combine all the trait types callable from constituents.
     case typ:IntersectionType =>
       conjuncts(typ).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
-    
+
     // Get the trait types callable from the upper bounds of this parameter.
     case SVarType(_, name, _) => toOption(env.staticParam(name)) match {
       case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
         Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
       case _ => Set.empty[TraitType]
     }
-    
+
     case SUnionType(_, ts) =>
       signal(typ, "You should be able to call methods on this type," +
              "but this is not yet implemented.")
       Set.empty[TraitType]
-    
+
     case _ => Set.empty[TraitType]
   }
 
@@ -335,7 +340,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                          obj_type + " with argument types (" + arg_type + ").", expr)
                   expr
                 case _ => {
-                  val newType = analyzer.meet(toJavaList(candidates.map((m:Method) => m.getReturnType)))
+                  val newType = normalize(analyzer.meet(toJavaList(candidates.map((m:Method) => m.getReturnType))))
                   SSubscriptExpr(SExprInfo(span,parenthesized,Some(newType)),
                                  newObj, newSubs, op, sargs)
                 }
@@ -438,7 +443,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         val (newTl, tlBinds) = this.extend(binds).handleGens(tl)
         (clause::newTl, binds++tlBinds)
     }
-  
+
   /**
    * Determines if the given overloading is dynamically applicable.
    */
@@ -455,14 +460,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                            asInstanceOf[ArrowType]
       isSubtype(typ.getDomain, smaArrow.getDomain)
     }
-    
+
     // If overloading type is an intersection, check that any of its
     // constituents is applicable.
     conjuncts(toOption(overloading.getType).get).
       map(_.asInstanceOf[ArrowType]).
       exists(arrowTypeIsApplicable)
   }
-  
+
   /**
    * Return the statically most applicable arrow type along with the static args
    * that instantiated that arrow type.
@@ -471,25 +476,25 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                             argType: Type,
                                             expectedType: Option[Type]):
                                       Option[(ArrowType, List[StaticArg])] = {
-    
+
     // Get a list of arrow types from the fnType.
     val allArrows = conjuncts(fnType).toList
-    
+
     // Filter applicable arrows and their instantiated args.
     val arrowsAndInstantiations = allArrows.
       flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType], argType, expectedType))
-    
+
     // Define an ordering relation on arrows with their instantiations.
     def lessThan(overloading1: (ArrowType, List[StaticArg]),
                  overloading2: (ArrowType, List[StaticArg])): Boolean = {
-      
+
       val SArrowType(_, domain1, range1, _) = overloading1
       val SArrowType(_, domain2, range2, _) = overloading2
-      
+
       if (equivalentTypes(domain1, domain2)) false
       else isSubtype(domain1, domain2)
     }
-    
+
     // Sort the arrows and instantiations to find the statically most
     // applicable. Return None if none were applicable.
     arrowsAndInstantiations.sort(lessThan).firstOption
@@ -502,13 +507,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def staticInstantiation(sargs: List[StaticArg],
                           sparams: List[StaticParam],
                           body: Type): Option[Type] = {
-    
+
     // Check that the args match.
     if (!staticArgsMatchStaticParams(sargs, sparams)) return None
-    
+
     // Create mapping from parameter names to static args.
     val paramMap = Map(sparams.map(_.getName).zip(sargs): _*)
-    
+
     // Gets the actual value out of a static arg.
     def sargToVal(sarg: StaticArg): Node = sarg match {
       case sarg:TypeArg => sarg.getTypeArg
@@ -519,7 +524,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case sarg:UnitArg => sarg.getUnitArg
       case _ => bug("unexpected kind of static arg")
     }
-    
+
     // Replaces all the params with args in a node.
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
@@ -533,17 +538,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case _ => super.walk(node)
       }
     }
-    
+
     // Get the replaced type and clear out its static params, if any.
     Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type]))
   }
-  
+
   /**
    * Instantiates a generic type with some static arguments. The static
    * parameters are retrieved from the body type and replaced inside body with
    * their corresponding static arguments. In the end, any static parameters
    * in the replaced type will be cleared.
-   * 
+   *
    * @param args A list of static arguments to apply to the generic type body.
    * @param body The generic type whose static parameters are to be replaced.
    * @return An option of a type identical to body but with every occurrence of
@@ -553,58 +558,58 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def staticInstantiation(sargs: List[StaticArg],
                           body: Type): Option[Type] =
     staticInstantiation(sargs, getStaticParams(body), body)
-  
+
   private def checkApplicable(fnType: ArrowType,
                       argType: Type,
                       expectedType: Option[Type]): Option[(ArrowType, List[StaticArg])] = {
     val sparams = getStaticParams(fnType)
-    
+
     // Substitute inference variables for static parameters in fnType.
-    
+
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
     val sargs = sparams.map(makeInferenceArg)
     val infArrow = staticInstantiation(sargs, sparams, fnType).
       getOrElse(return None).asInstanceOf[ArrowType]
-   
+
     // 3. argType <:? dom(infArrow) yields a constraint, C1
     val domainConstraint = checkSubtype(argType, infArrow.getDomain)
-    
+
     // 4. if expectedType given, C := C1 AND range(infArrow) <:? expectedType
     val rangeConstraint = expectedType.map(
       t => checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
     val constraint = domainConstraint.scalaAnd(rangeConstraint, isSubtype)
-    
+
     // Get an inference variable type out of a static arg.
     def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
       case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf)
       case _ => None
     }
-    
+
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
     val sparamBounds = sparams.flatMap(staticParamBoundType).
       map(t => insertStaticParams(t, sparams))
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
-    
+
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
     val subst = constraint.scalaSolve(boundsMap).getOrElse(return None)
-    
+
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val resultArrow = substituteTypesForInferenceVars(subst, infArrow).
       asInstanceOf[ArrowType]
-    
-    // 8. return (resultArrow,StaticArgs([U_i])) 
-    val resultArgs = infVars.map((t) => 
+
+    // 8. return (resultArrow,StaticArgs([U_i]))
+    val resultArgs = infVars.map((t) =>
       NodeFactory.makeTypeArg(resultArrow.getInfo.getSpan, subst.apply(t)))
     Some((resultArrow,resultArgs))
   }
-  
+
   /**
    * Determines if the kinds of the given static args match those of the static
    * parameters. In the case of type arguments, the type is checked to be a
    * subtype of the corresponding type parameter's bounds.
-   * 
+   *
    * @param checkSubtype A function that is called with a subtype, supertype,
    *                     an error string, and a node to be signaled, and returns
    *                     subtype <:? supertype.
@@ -612,7 +617,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def staticArgsMatchStaticParams(args: List[StaticArg],
                                           params: List[StaticParam]): Boolean = {
     if (args.length != params.length) return false
-    
+
     // Match a single pair.
     def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
       val (arg, param) = argAndParam
@@ -630,11 +635,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case (_, _) => false
       }
     }
-    
+
     // Match every pair.
     args.zip(params).forall(argMatchesParam(_))
   }
-    
+
   /**
    * Given an applicand, the statically most applicable arrow type for it,
    * and the static args from the application, return the applicand updated
@@ -644,25 +649,25 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                        arrow: ArrowType,
                        sargs: List[StaticArg]): Expr = fn match {
     case fn: FunctionalRef =>
-                
+
       // Get the dynamically applicable overloadings.
       val overloadings =
         toList(fn.getNewOverloadings).
         filter(o => isDynamicallyApplicable(o, arrow, sargs))
-      
+
       // Add in the filtered overloadings, the inferred static args,
       // and the statically most applicable arrow to the fn.
       addType(
         addStaticArgs(
           addOverloadings(fn, overloadings), sargs), arrow)
-    
+
     case _ if !sargs.isEmpty =>
-      NI.nyi("No place to put inferred static args in application.") 
-    
+      NI.nyi("No place to put inferred static args in application.")
+
     // Just add the arrow type if the applicand is not a FunctionalRef.
     case _ => addType(fn, arrow)
-  } 
-  
+  }
+
   // ------------------------------------------------------------------------
   // END HELPER METHODS -----------------------------------------------------
   // ------------------------------------------------------------------------
@@ -750,7 +755,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           // Extend type checker with methods and functions
           // that will now be in scope as regular functions
           val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          oi.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf)
+                                          oi.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]])
           method_checker = method_checker.extendWithMethods(methods)
           method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
@@ -807,7 +812,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           if ( NodeUtil.isSetter(f) )
             isSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
           Some(ty)
-        case _ => noType(body); None
+        case _ => noType(body); returnType
       }
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
@@ -880,7 +885,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case SOverloading(info, name, sargs, _) => {
   	  val checkedName = check(name).asInstanceOf[IdOrOp]
-  
+
   	  // Get the arrow type for this name and check that the supplied static
         // args match its declared static params. If so, the overloading is
         // returned with the arrow type filled in.
@@ -911,7 +916,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case _ => throw new Error("not yet implemented: " + node.getClass)
   }
-  
+
   def checkExpr(expr: Expr, expected: Option[Type],
                 first: String, second: String): Expr = {
     val newExpr = checkExpr(expr)
@@ -919,8 +924,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case Some(typ) => expected match {
         case Some(t) =>
           isSubtype(typ, t, expr,
-                       first + " has type " + typ + ", but " + second +
-                       " type is " + t + ".")
+                    first + " has type " + normalize(typ) + ", but " + second +
+                    " type is " + normalize(t) + ".")
           addType(newExpr, typ)
         case _ => addType(newExpr, typ)
       }
@@ -934,8 +939,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case Some(typ) => expected match {
         case Some(t) =>
           isSubtype(typ, t, expr,
-                       message + " has type " + typ + ", but it must have " +
-                       t + " type.")
+                    message + " has type " + normalize(typ) + ", but it must have " +
+                    normalize(t) + " type.")
           addType(newExpr, typ)
         case _ => addType(newExpr, typ)
       }
@@ -985,7 +990,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                       field_checker = field_checker.extend(lhs)
                                       newD
                                     case _ => check(d).asInstanceOf[Decl] } )
-          SObjectExpr(SExprInfo(span,parenthesized,Some(ty)),
+          SObjectExpr(SExprInfo(span,parenthesized,Some(normalize(ty))),
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, newContract, extendsC, newDecls),
                       selfType)
@@ -1361,19 +1366,34 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case SVoidLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SVoidLiteralExpr(SExprInfo(span,parenthesized,Some(Types.VOID)), text)
 
-    
+    // Type checking of varargs and keyword arguments are not yet implemented.
+    case STupleExpr(SExprInfo(span,parenthesized,_), es, vs, ks, inApp) => {
+      if ( vs.isDefined || ks.size > 0 ) { // ArgExpr
+        signal(expr, "Type checking of varargs and keyword arguments are " +
+               "not yet implemented.")
+        expr
+      } else {
+        val newEs = es.map(checkExpr)
+        val types = newEs.map((e:Expr) =>
+                              if (getType(e).isDefined) getType(e).get
+                              else { noType(e); Types.VOID })
+        val newType = NodeFactory.makeTupleType(span, toJavaList(types).asInstanceOf[JavaList[Type]])
+        STupleExpr(SExprInfo(span,parenthesized,Some(newType)), newEs, vs, ks, inApp)
+      }
+    }
+
     case fn@SFunctionalRef(_, _, _, name, _, _, overloadings, _) => {
       // Note that ExprDisambiguator inserts the static args from a
       // FunctionalRef into each of its Overloadings.
-    
+
       // Check all the overloadings and filter out any that have the wrong
       // number or kind of static parameters.
       val checkedOverloadings = overloadings.
         map(check(_).asInstanceOf[Overloading]).filter(_.getType.isSome)
-      
+
       if (checkedOverloadings.isEmpty)
         signal(expr, "Wrong number or kind of static arguments for function: "+name)
-      
+
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
       val intersectionType =
@@ -1381,36 +1401,36 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                          toJavaList(overloadingTypes))
       addType(addOverloadings(fn, checkedOverloadings), intersectionType)
     }
-    
+
     case S_RewriteFnApp(SExprInfo(span, paren, optType), fn, arg) => {
       val checkedFn = checkExpr(fn)
       val checkedArg = checkExpr(arg)
-      
+
       // Check fn and arg and get their types.
       (getType(checkedFn), getType(checkedArg)) match {
         case (Some(fnType), Some(_)) if !isArrows(fnType) =>
           signal(expr, "Applicand has a type that is not an arrow: "+fnType)
           expr
         case (Some(fnType), Some(argType)) =>
-          
+
           staticallyMostApplicableArrow(fnType, argType, None) match {
             case Some((smostApp, sargs)) =>
-              
+
               // Rewrite the applicand to include the arrow and static args
               // and update the application.
               val newFn = rewriteApplicand(checkedFn, smostApp, sargs)
               S_RewriteFnApp(SExprInfo(span, paren, Some(smostApp.getRange)), newFn, checkedArg)
-              
+
             case None =>
               // TODO: Better error message.
               signal(expr, "Could not find statically most applicable function.")
-              expr    
+              expr
         }
 
         case _ => expr
       }
-    }            
-    
+    }
+
     // First try to type check this expression as a multifix operator expression.
     // If that fails, type check it as some number of applications of the infix
     // operator, left associatively.
@@ -1418,15 +1438,15 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                   infixOp, multifixOp, args) => {
       val checkedMultifixOp = checkExpr(multifixOp)
       val checkedArgs = args.map(checkExpr)
-      
+
       val opType = getType(checkedMultifixOp).getOrElse(return expr)
       if (!haveTypes(checkedArgs)) return expr
       val argType =
         NodeFactory.makeTupleType(info.getSpan,
                                   toJavaList(checkedArgs.map(t => getType(t).get)))
-      
+
       staticallyMostApplicableArrow(opType, argType, None) match {
-      
+
         // If a most applicable arrow, rewrite the applicand and return the
         // resulting operator expression.
         case Some((smostApp, sargs)) =>
@@ -1434,14 +1454,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             rewriteApplicand(checkedMultifixOp, smostApp, sargs).asInstanceOf
           SOpExpr(SExprInfo(span, paren, Some(smostApp.getRange)),
                   newOp, checkedArgs)
-        
+
         // Check as infix operator expressions.
-        case None => 
+        case None =>
           checkExpr(args.reduceLeft(
             (e1, e2) => SOpExpr(info, infixOp, List(e1, e2))))
       }
     }
-    
+
     case SOpExpr(info, fn, args) => {
       val checkedOp = checkExpr(fn)
       val checkedArgs = args.map(checkExpr)
@@ -1454,13 +1474,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case Some((smostApp, sargs)) =>
           val newOp: OpRef = rewriteApplicand(checkedOp,smostApp,sargs).asInstanceOf
           addType(SOpExpr(info, newOp, checkedArgs),smostApp.getRange)
-        
+
         case None =>
           // TODO: Better error message.
           signal(expr, "Could not find statically most applicable function.")
-          expr      
+          expr
       }
-      
+
     }
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
@@ -1470,7 +1490,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           val frontTypes =
             fs.take(fs.size-1).foldRight(getType(fs.last).get)
               { (e:Expr, t:Type) => analyzer.join(getType(e).get, t) }
-          SDo(SExprInfo(span,parenthesized,Some(frontTypes)), fs)
+          SDo(SExprInfo(span,parenthesized,Some(normalize(frontTypes))), fs)
       } else { noType(expr); expr }
     }
 
@@ -1499,7 +1519,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           }
         }
       }
-      SIf(SExprInfo(span,parenthesized,Some(newType)), newClauses, newElse)
+      SIf(SExprInfo(span,parenthesized,Some(normalize(newType))), newClauses, newElse)
     }
 
     case SWhile(SExprInfo(span,parenthesized,_), testExpr, body) => {
@@ -1548,14 +1568,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 signal(v, "Unexpected type for a singleton object reference.")
                 v
             }
-          else SVarRef(SExprInfo(span,paren,Some(ty)), id, sargs, depth)
+          else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), id, sargs, depth)
         case None => signal(id, "Type of the variable '" + id + "' not found."); v
       }
 
     case _ => throw new Error("Not yet implemented: " + expr.getClass)
     // "\n" + expr.toStringVerbose())
   }
-  
+
     class AtomicChecker(current: CompilationUnitIndex, traits: TraitTable,
                       env: TypeEnv, analyzer: TypeAnalyzer, errors: ErrorLog,
                       enclosingExpr: String)

@@ -964,11 +964,10 @@ public class FileTests {
 
     private static boolean addTest(boolean scala_test,
                                    String test_name) {
-        return ( ! scala_test
+        return ( ! scala_test || test_name.startsWith("Compiled0")
+                 || test_name.startsWith("Compiled1")
                  /*
-|| test_name.startsWith("Compiled0")
-                 ||
-                 test_name.startsWith("Compiled1")
+                 || test_name.startsWith("Compiled2")
                  */
                  );
     }

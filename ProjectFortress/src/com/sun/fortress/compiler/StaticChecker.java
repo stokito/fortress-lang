@@ -224,8 +224,8 @@ public class StaticChecker {
                 component_ast = typeChecker.check(component_ast);
                 component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                     System.currentTimeMillis());
-                result = new TypeCheckerResult(component_ast,
-                                               Lists.toJavaList(typeChecker.getErrors()));
+                errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
+                result = new TypeCheckerResult(component_ast, errors);
             }
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
@@ -234,12 +234,20 @@ public class StaticChecker {
                     result.ast());
 
             errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
+            if ( ! errors.isEmpty() ) {
+                result = addErrors(errors, result);
+                return result;
+            }
 
             // Check overloadings in this component.
             errors.addAll(new OverloadingChecker(component, env, repository).checkOverloading());
-            result = addErrors(errors, result);
+            if ( ! errors.isEmpty() ) {
+                result = addErrors(errors, result);
+                return result;
+            }
+
             // Check the set of exported APIs in this component.
-            errors = ExportChecker.checkExports(component, env, repository);
+            errors.addAll(ExportChecker.checkExports(component, env, repository));
             result = addErrors(errors, result);
             return result;
          } else {
