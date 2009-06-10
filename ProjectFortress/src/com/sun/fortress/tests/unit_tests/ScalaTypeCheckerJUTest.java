@@ -16,29 +16,24 @@
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
-import java.io.IOException;
 
+import java.io.IOException;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-
-// This is for tests that don't fit in the CompiledX.fss group.
-
-public class OtherCompilerJUTest {
-
-
+public class ScalaTypeCheckerJUTest {
     public static void main(String[] args) throws IOException {
-
         junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "other_compiler_tests";
-
+        String testDir1 = ProjectProperties.BASEDIR + "compiler_tests";
         boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
-
-        return FileTests.compilerSuite(testDir, false, failsOnly, false, false);
+        TestSuite suite = new TestSuite("Test all .test files in 'ProjectFortress/compiler_tests'.");
+        //$JUnit-BEGIN$
+        suite.addTest(FileTests.compilerSuite(testDir1, true, failsOnly, false, true));
+        return suite;
     }
 
 }

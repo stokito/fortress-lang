@@ -55,6 +55,8 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class FileTests {
 
+    private static String option = "";
+
     public static class BaseTest extends TestCase {
         /**
          * Directory-qualified file name
@@ -84,8 +86,8 @@ public class FileTests {
         final boolean printFailure;
 
         public BaseTest(String path, String d, String s, boolean unexpected_only,
-                boolean knownFailure,
-                boolean shouldFail) {
+                        boolean knownFailure,
+                        boolean shouldFail) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
@@ -613,7 +615,7 @@ public class FileTests {
 //            this.props = props;
 //        }
         public CompileTest(StringMap props, String path, String d, String s,
-                boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
+                           boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
             super(path, d, s, unexpected_only, knownFailure, shouldFail );
             this.props = props;
         }
@@ -621,7 +623,11 @@ public class FileTests {
         @Override
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = {"compile", dir+"/"+makeTestFileName(name)};
+            String[] tokens;
+            if ( option.equals("") )
+                tokens = new String [] {"compile", dir+"/"+makeTestFileName(name)};
+            else
+                tokens = new String [] {"compile", option, dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -635,36 +641,6 @@ public class FileTests {
 
         public  String testFailed(String out, String err, String exc) {
             return generalTestFailed("compile_", props, out, err, exc);
-        }
-
-    }
-
-    public static class TypeCheckTest extends SourceFileTest {
-
-        private final StringMap props;
-        public TypeCheckTest(StringMap props, String path, String d, String s,
-                boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
-            super(path, d, s, unexpected_only, knownFailure, shouldFail );
-            this.props = props;
-        }
-
-        @Override
-        protected int justTheTest()
-                throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = {"typecheck-scala", dir+"/"+makeTestFileName(name)};
-            int rc = com.sun.fortress.Shell.subMain(tokens);
-            return rc;
-
-        }
-
-        @Override
-        public String tag() {
-            // TODO Auto-generated method stub
-            return "typecheck";
-        }
-
-        public  String testFailed(String out, String err, String exc) {
-            return generalTestFailed("typecheck_", props, out, err, exc);
         }
 
     }
@@ -683,7 +659,11 @@ public class FileTests {
         protected int justTheTest()
             throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = {"desugar", dir+"/"+makeTestFileName(name)};
+            String[] tokens;
+            if ( option.equals("") )
+                tokens = new String [] {"desugar", dir+"/"+makeTestFileName(name)};
+            else
+                tokens = new String [] {"desugar", option, dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
         }
@@ -714,7 +694,11 @@ public class FileTests {
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = {"link", dir+"/"+makeTestFileName(name)};
+            String[] tokens;
+            if ( option.equals("") )
+                tokens = new String [] {"link", dir+"/"+makeTestFileName(name)};
+            else
+                tokens = new String [] {"link", option, dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -871,11 +855,13 @@ public class FileTests {
      * @return
      * @throws IOException
      */
-    public static TestSuite compilerSuite(
-            String dir_name,
-            boolean shuffle,
-            boolean failsOnly,
-            boolean expect_failure) throws IOException {
+    public static TestSuite compilerSuite(String dir_name,
+                                          boolean shuffle,
+                                          boolean failsOnly,
+                                          boolean expect_failure,
+                                          boolean scala_test) throws IOException {
+
+        if (scala_test) option = "-typecheck-scala";
 
         TestSuite suite = new TestSuite("Runs all tests in " + dir_name) {
             public void run(TestResult result) {
@@ -896,7 +882,6 @@ public class FileTests {
         int i = testCount;
 
         List<Test> compileTests = new ArrayList<Test>();
-        List<Test> typecheckTests = new ArrayList<Test>();
         List<Test> desugarTests = new ArrayList<Test>();
         List<Test> linkTests = new ArrayList<Test>();
         List<Test> runTests = new ArrayList<Test>();
@@ -919,7 +904,6 @@ public class FileTests {
                       suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else if (s.endsWith(".test")) { // need to define the test of tests.
 
-
                       StringMap props = new StringMap.FromFileProps(dirname+"/"+s);
                       props = ProjectProperties.composedWith(props);
 
@@ -932,23 +916,23 @@ public class FileTests {
                       else
                           testNames = testNames.trim();
 
-
                       if (testNames.length() > 0) {
                           StringTokenizer st = new StringTokenizer(testNames);
                           while  (st.hasMoreTokens()) {
                               String token = st.nextToken();
-                              standardCompilerTests(props, dir, dirname, token,
-                                                    expect_failure, shouldFail, failsOnly,
-                                                    compileTests, typecheckTests,
-                                                    desugarTests, linkTests, runTests);
+                              if (addTest(scala_test, token))
+                                  standardCompilerTests(props, dir, dirname, token,
+                                                        expect_failure, shouldFail, failsOnly,
+                                                        compileTests, desugarTests,
+                                                        linkTests, runTests);
                           }
                       }
                       else {
-
-                          standardCompilerTests(props, dir, dirname, testname,
-                                                expect_failure, shouldFail, failsOnly,
-                                                compileTests, typecheckTests,
-                                                desugarTests, linkTests, runTests);
+                          if (addTest(scala_test, testname))
+                              standardCompilerTests(props, dir, dirname, testname,
+                                                    expect_failure, shouldFail, failsOnly,
+                                                    compileTests, desugarTests,
+                                                    linkTests, runTests);
                       }
                   } else {
                       System.out.println("Not compiling file " + s);
@@ -965,9 +949,6 @@ public class FileTests {
         if (i > 0) {
             for (Test test: compileTests)
                 suite.addTest(test);
-            
-            for (Test test: typecheckTests)
-              suite.addTest(test);
 
             for (Test test: desugarTests)
                 suite.addTest(test);
@@ -979,6 +960,17 @@ public class FileTests {
                 suite.addTest(test);
         }
         return suite;
+    }
+
+    private static boolean addTest(boolean scala_test,
+                                   String test_name) {
+        return ( ! scala_test
+                 /*
+|| test_name.startsWith("Compiled0")
+                 ||
+                 test_name.startsWith("Compiled1")
+                 */
+                 );
     }
 
     /**
@@ -1001,7 +993,6 @@ public class FileTests {
                                               boolean shouldFail,
                                               boolean failsOnly,
                                               List<Test> compileTests,
-                                              List<Test> typecheckTests,
                                               List<Test> desugarTests,
                                               List<Test> linkTests,
                                               List<Test> runTests) throws IOException {
@@ -1009,10 +1000,6 @@ public class FileTests {
             compileTests.add(new CompileTest(props, dir.getCanonicalPath(),
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
-        if (props.get("typecheck") != null)
-            typecheckTests.add(new TypeCheckTest(props, dir.getCanonicalPath(),
-                                                 dirname, testname, failsOnly,
-                                                 expect_not_passing, shouldFail));
         if (props.get("desugar") != null)
             desugarTests.add(new DesugarTest(props, dir.getCanonicalPath(),
                                              dirname, testname, failsOnly,
@@ -1087,10 +1074,10 @@ public class FileTests {
             System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
         }
         Random random = new java.util.Random(seed);
-        
+
         Iterable<String> shuffled = shuffle ? IterUtil.shuffle(Arrays.asList(files),
                 random) : Arrays.asList(files);
-        
+
         System.err.println("Test shuffling seed env var = FORTRESS_UNITTESTS_SEED="
                 + Long.toHexString(seed) + "_16");
         return shuffled;
