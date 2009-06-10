@@ -22,5 +22,3 @@ f(x:ZZ32) = x
 g(x:ZZ32) = x
 
 run(): () = printlnZZ32(g(3))
-
-end
