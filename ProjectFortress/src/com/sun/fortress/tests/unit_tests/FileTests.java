@@ -966,9 +966,8 @@ public class FileTests {
                                    String test_name) {
         return ( ! scala_test || test_name.startsWith("Compiled0")
                  || test_name.startsWith("Compiled1")
-                 /*
                  || test_name.startsWith("Compiled2")
-                 */
+                 
                  );
     }
 

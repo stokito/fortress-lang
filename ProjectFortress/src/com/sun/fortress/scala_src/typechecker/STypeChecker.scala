@@ -43,6 +43,7 @@ import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
+import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.ProgramError.error
 import com.sun.fortress.nodes._
@@ -202,8 +203,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * Lookup the type of the given name in the proper type environment.
    */
   private def getTypeFromName(name: Name): Option[Type] = name match {
-    case id@SId(_, Some(api), _) => toOption(getEnvFromApi(api).getType(id))
-    case id@SId(_, None, _) => toOption(env.getType(id))
+    case id@SIdOrOpOrAnonymousName(_, Some(api)) => toOption(getEnvFromApi(api).getType(id))
+    case id@SIdOrOpOrAnonymousName(_, None) => toOption(env.getType(id))
     case _ => None
   }
 
@@ -1050,6 +1051,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
 
     /* Loose Juxts are handled using the algorithm in 16.8 of Fortress Spec 1.0
+     * ToDo: Revisit
      */
     case SJuxt(SExprInfo(span,paren,optType),
                multi, infix, exprs, isApp, false) => {
@@ -1486,7 +1488,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                   toJavaList(checkedArgs.map(t => getType(t).get)))
       staticallyMostApplicableArrow(opType, argType, None) match {
         case Some((smostApp, sargs)) =>
-          val newOp: OpRef = rewriteApplicand(checkedOp,smostApp,sargs).asInstanceOf
+          val newOp = rewriteApplicand(checkedOp,smostApp,sargs).asInstanceOf[OpRef]
           addType(SOpExpr(info, newOp, checkedArgs),smostApp.getRange)
 
         case None =>
@@ -1630,8 +1632,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
      * Adds to error log and throws the exception it made.
      */
     override protected def signal(msg:String, hasAt:HasAt) = {
-      errors.signal(msg, hasAt)
-      throw errors.errors.last
+      //errors.signal(msg, hasAt)
+      throw TypeError.make(msg,hasAt)
     }
 
     /**
