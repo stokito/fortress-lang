@@ -15,16 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXCantExtendObject3
+component Compiled0.x
   export Executable
-  
+
   (* Neither traits nor objects should be allowed to
-     extend objects. *) 
+     extend objects. *)
 
   object DontExtendMe end
 
-  foo() : () =
-    ignore( object extends DontExtendMe end )
+  object Loser extends DontExtendMe end
 
   run():() = ()
 end
