@@ -15,15 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TypesAreSame
-  export Executable
+component Compiled1.ak
+  export ObjectFromInterface
 
-  (* Check that self's type, which is fully qualified,
-     matches the declared type which is not. *)
+  (* The point of this test is to make sure that object names, which
+     were not API-qualified, will have the same type as declared types,
+     which will be qualified if they are in an exported API.
+     This test did not work in revision 2701. *)
+  object KingFish end
 
-  object BigObject
-    getABigObject() : BigObject = self
-  end
+  foo():KingFish = KingFish
 
-  run():() = ()
 end

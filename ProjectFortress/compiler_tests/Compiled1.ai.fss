@@ -15,13 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleTrait
-export Executable
+component Compiled1.ai
+  export Executable
 
-trait A
-  method1(x:ZZ32):ZZ32 = x
-end
+  trait Makers[\MyParam\]
+    foo():MyParam
+  end
 
-run():() = ()
+  trait CoolDude extends Makers[\ZZ32\]
+    bar():ZZ32 = foo()
+  end
 
+  run():() = ()
 end
