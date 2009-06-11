@@ -17,4 +17,6 @@
 
 api CompilerLibrary
 
+ignore(_:Any):()
+
 end

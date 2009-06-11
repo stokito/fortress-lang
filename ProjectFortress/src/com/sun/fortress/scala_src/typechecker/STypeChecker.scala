@@ -303,7 +303,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
                                           receiverType: Type):
                                               Set[Method] = {
-    
+
     val traitTypes = traitTypesCallable(receiverType)
     val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
     val allMethods = inheritedMethods(ttAsWheres.toList)
@@ -429,11 +429,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                             argType: Type,
                                             expectedType: Option[Type]):
                                       Option[(ArrowType, List[StaticArg])] = {
-    
+
     val arrows = conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType])
     staticallyMostApplicableArrow(arrows, argType, expectedType)
   }
-  
+
   /**
    * Return the statically most applicable arrow type along with the static args
    * that instantiated that arrow type. This method assumes that all the arrow
@@ -444,7 +444,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                             argType: Type,
                                             expectedType: Option[Type]):
                                         Option[(ArrowType, List[StaticArg])] = {
-    
+
     // Filter applicable arrows and their instantiated args.
     val arrowsAndInstantiations =
       allArrows.flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType],
@@ -704,7 +704,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // Verify that no extends clauses try to extend an object.
       extendsC.foreach( (t:TraitTypeWhere) =>
                         assertTrait(t.getBaseType,
-                                    "Objects can only extend traits.", o) )
+                                    "Objects can only extend traits.", t.getBaseType) )
       val checkerWSparams = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
@@ -926,7 +926,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // Verify that no extends clauses try to extend an object.
       extendsC.foreach( (t:TraitTypeWhere) =>
                         assertTrait(t.getBaseType,
-                                    "Objects can only extend traits.", o) )
+                                    "Objects can only extend traits.", t.getBaseType) )
       var method_checker = this
       var field_checker = this
       val newContract = contract match {
@@ -942,7 +942,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // that will now be in scope as regular functions
       val oi = IndexBuilder.buildObjectExprIndex(o)
       val methods = new UnionRelation(inheritedMethods(extendsC),
-                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods.asInstanceOf)
+                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
       method_checker = method_checker.extendWithMethods(methods)
       method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[ObjectTraitIndex].functionalMethods)
       // Extend method checker with self
@@ -1307,11 +1307,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
     }
 
-    case SSubscriptExpr(SExprInfo(span, paren, _), obj, subs, op, sargs) => {    
+    case SSubscriptExpr(SExprInfo(span, paren, _), obj, subs, op, sargs) => {
       val checkedObj = checkExpr(obj)
       val checkedSubs = subs.map(checkExpr)
       val objType = getType(checkedObj).getOrElse(return expr)
-      
+
       // Convert sub types into a single type or tuple of types.
       if (!haveTypes(checkedSubs)) return expr
       val subsType = checkedSubs.map(s => getType(s).get) match {
@@ -1319,7 +1319,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case t =>
           NodeFactory.makeTupleType(NodeUtil.getSpan(expr), toJavaList(t))
       }
-      
+
       // Get the methods and arrows from the op.
       val methods = findMethodsInTraitHierarchy(op.get, objType)
       val arrows =
@@ -1327,7 +1327,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         else methods.
                flatMap(m => staticInstantiation(sargs, getArrowFromMethod(m))).
                map(_.asInstanceOf[ArrowType])
-      
+
       staticallyMostApplicableArrow(arrows.toList, subsType, None) match {
         case Some((arrow, sargs)) =>
           SSubscriptExpr(SExprInfo(span, paren, Some(arrow.getRange)),
@@ -1335,14 +1335,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                          checkedSubs,
                          op,
                          sargs)
-        case one => 
+        case one =>
           // TODO: Better error message.
           signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
                          format(objType, op.get, subsType))
           expr
       }
     }
-    
+
     case SStringLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SStringLiteralExpr(SExprInfo(span,parenthesized,Some(Types.STRING)), text)
 
@@ -1435,16 +1435,16 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                   infixOp, multifixOp, args) => {
       val checkedArgs = args.map(checkExpr)
       if (!haveTypes(checkedArgs)) return expr
-      
+
       def checkAsInfix() = checkExpr(checkedArgs.reduceLeft(
         (e1, e2) => SOpExpr(info, infixOp, List(e1, e2))))
 
-      // Attempt to check the multifix.      
+      // Attempt to check the multifix.
       val checkedMultifixOp =
         new TryChecker(current, traits, env, analyzer).
           tryCheckExpr(multifixOp).
           getOrElse(return checkAsInfix())
-      
+
       val opType = getType(checkedMultifixOp).getOrElse(return expr)
       val argType =
         NodeFactory.makeTupleType(info.getSpan,
@@ -1601,7 +1601,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
     // "\n" + expr.toStringVerbose())
   }
-  
+
   /**
    * A type checker that doesn't report its errors. Use the tryCheck() and
    * tryCheckExpr() methods instead of check() and checkExpr() to determine if
@@ -1622,12 +1622,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       errors.signal(msg, hasAt)
       throw errors.errors.last
     }
-  
+
     /**
      * Adds to error log and throws the exception it made.
      */
     override protected def signal(hasAt:HasAt, msg:String) = signal(msg, hasAt)
-    
+
     /**
      * Check the given node; return it if successful, None otherwise.
      */
@@ -1640,7 +1640,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case e => throw e
       }
     }
-    
+
     /**
      * Check the given expression; return it if successful, None otherwise.
      */
