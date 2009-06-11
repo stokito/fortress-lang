@@ -15,12 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXUndefinedArrayRef
-export Executable
+component Compiled1.l
+  import ApiDisambiguation.{...}
+  export Executable
 
-run():() = do
-  x:ZZ64 = 0
-  y[x] := 23
-end
-
+  run():() = ()
 end

@@ -15,18 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXMutualSeperateLetFn
-export Executable
+component Compiled1.n
+  export Executable
 
-(* Tests that mutually recursive, *nonconsecutive* local function definitions
- * do not work. *)
+  trait C[\T extends C[\Garbage\]\] end
 
-run():() = do
-  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
-  odd(5)
-  f(x:ZZ32):ZZ32 = 0
-  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
-  even(5)
-end
-
+  run():() = ()
 end

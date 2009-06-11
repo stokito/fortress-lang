@@ -15,12 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXUndefinedVar
+component Compiled1.r
 export Executable
 
+(* Tests that mutually recursive, *nonconsecutive* local function definitions
+ * do not work. *)
+
 run():() = do
-  x:ZZ64 = 0
-  y
+  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
+  odd(5)
+  f(x:ZZ32):ZZ32 = 0
+  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
+  even(5)
 end
 
 end

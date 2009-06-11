@@ -15,10 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXTypeArgUndefined
- export Executable
- object blah[\T\]
-  foo():() = ()
- end
- run(): () = blah[\ZZZ32\].foo()
+component Compiled1.m
+export Executable
+
+  (* An exit outside of a label with no target should generate error. *)
+
+  run():() = do
+
+    exit with 5
+
+  end
+
 end

@@ -15,15 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXExitWithoutTarget
+component Compiled1.ac
 export Executable
 
-  (* An exit outside of a label with no target should generate error. *)
-
-  run():() = do
-
-    exit with 5
-
-  end
+run():() = do
+    for i <- 0#9 do
+        huh
+    end
+end
 
 end
