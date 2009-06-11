@@ -15,15 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXIntArgUndefined
-  export Executable
-  object Blah[\int n\]
-   foo():ZZ32 = n
-  end
+component Compiled1.z
+export Executable
 
-  run():()=do
-    b = bar[\1\]()
-  end
-  bar[\int n\]():ZZ32 = Blah[\m\].foo()
+run():() = do
+  x:ZZ64 = 0
+  y[x] := 23
+end
 
 end

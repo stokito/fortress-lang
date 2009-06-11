@@ -15,13 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXUndefinedRefInLoop
+component Compiled1.q
 export Executable
 
 run():() = do
-    for i <- 0#9 do
-        huh
-    end
+    x
+    if y then z else t end
 end
 
 end

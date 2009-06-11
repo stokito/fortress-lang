@@ -15,10 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXGarbageExtendsClause
+component Compiled1.p
   export Executable
+  object Blah[\int n\]
+   foo():ZZ32 = n
+  end
 
-  trait C[\T extends C[\Garbage\]\] end
+  run():()=do
+    b = bar[\1\]()
+  end
+  bar[\int n\]():ZZ32 = Blah[\m\].foo()
 
-  run():() = ()
 end

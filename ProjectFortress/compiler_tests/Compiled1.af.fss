@@ -15,12 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXUndefinedInitializer
+component Compiled1.af
 export Executable
 
 run():() = do
   x:ZZ64 = 0
-  y:ZZ64 = z
+  y
 end
 
 end

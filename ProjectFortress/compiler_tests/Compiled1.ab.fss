@@ -15,8 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXParseErrorMissingEnd
+component Compiled1.ab
 export Executable
 
-run():() =
+run():() = do
+  atomic do
+    if true then 34
+    elif
+      label foo
+        z
+      end foo
+      then 49
+    else 88 end
+  end
+end
+
 end

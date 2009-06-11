@@ -15,12 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXMultipleRefErrors
+component Compiled1.s
 export Executable
 
-run():() = do
-    x
-    if y then z else t end
-end
-
+run():() =
 end

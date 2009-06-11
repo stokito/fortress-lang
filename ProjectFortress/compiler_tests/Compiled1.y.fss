@@ -15,19 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXUndefinedNestedRef
-export Executable
-
-run():() = do
-  atomic do
-    if true then 34
-    elif
-      label foo
-        z
-      end foo
-      then 49
-    else 88 end
-  end
-end
-
+component Compiled1.y
+ export Executable
+ object blah[\T\]
+  foo():() = ()
+ end
+ run(): () = blah[\ZZZ32\].foo()
 end
