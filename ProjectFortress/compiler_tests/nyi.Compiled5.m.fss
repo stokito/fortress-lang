@@ -21,4 +21,4 @@ export Executable
 f() = x
 object x end
 
-run() = ()
+run(): () = ()

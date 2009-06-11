@@ -17,8 +17,8 @@ tests=Compiled0.v
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.v.fss:19:1-18:\n\
-${STATIC_TESTS_DIR}/Compiled0.v.fss:20:1-18:\n\
+${STATIC_TESTS_DIR}/Compiled0.v.fss:19:1-22:\n\
+${STATIC_TESTS_DIR}/Compiled0.v.fss:20:1-22:\n\
 \ There are multiple declarations of run with the same type: String -> ()\n\
 File Compiled0.v.fss has 1 error.\n
 compile_out_equals=

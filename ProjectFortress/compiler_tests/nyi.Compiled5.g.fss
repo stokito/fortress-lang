@@ -22,6 +22,6 @@ object O
   m():ZZ32 = 1
 end
 
-run() = do
+run(): () = do
   printlnZZ32 O.m()
 end

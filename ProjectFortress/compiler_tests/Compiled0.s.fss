@@ -18,7 +18,7 @@ component Compiled0.s
 component Compiled0.s
 export Executable
 
-run() = println "Hello, World!"
+run(): () = println "Hello, World!"
 
 end
 end

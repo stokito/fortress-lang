@@ -21,6 +21,6 @@ export Executable
 trait A extends B end
 trait B extends A end
 
-run() = ()
+run(): () = ()
 
 end

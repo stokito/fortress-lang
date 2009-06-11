@@ -17,11 +17,7 @@ tests=Compiled4.a
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled4.a.fss:18:11-21:\n\
-\ Component Compiled4.a exports API Executable\n\
-\ but does not define all declarations in Executable.\n\
-\ Missing declarations: {run():() at ${FORTRESS_AUTOHOME}/Library/Executable.fsi:22:3-23:1}\n\
 ${STATIC_TESTS_DIR}/Compiled4.a.fss:25:24-31:\n\
 \ Call to operator ! has invalid arguments, [String]\n\
-File Compiled4.a.fss has 2 errors.\n
+File Compiled4.a.fss has 1 error.\n
 compile_out_equals=

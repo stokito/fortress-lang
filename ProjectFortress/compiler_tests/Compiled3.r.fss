@@ -23,6 +23,6 @@ trait T comprises { O, P } end
 object O extends T end
 object P end
 
-run() = ()
+run(): () = ()
 
 end

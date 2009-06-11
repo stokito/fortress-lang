@@ -18,7 +18,7 @@
 component Compiled1.d
 export Executable
 
-run() = do
+run(): () = do
  println("Hello, World!")
 
 end

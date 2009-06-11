@@ -27,6 +27,6 @@ trait T[\X extends A\]
   f(x: B):()
 end
 
-run() = ()
+run(): () = ()
 
 end

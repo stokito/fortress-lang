@@ -23,6 +23,6 @@ trait B extends C end
 trait C extends {D,A} end
 trait D extends Object end
 
-run() = ()
+run(): () = ()
 
 end

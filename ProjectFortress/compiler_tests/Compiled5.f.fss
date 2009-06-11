@@ -33,7 +33,7 @@ object A1 extends AT end
 object B1 extends BT end
 object C1 extends C end
 
-run() = do
+run(): () = do
   println f(A1)
   println f(B1)
   println f(C1)

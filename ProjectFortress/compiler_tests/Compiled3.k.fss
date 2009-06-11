@@ -25,6 +25,6 @@ f():()
 f(x: T[\String\]):()
 f(x: S[\String\]):()
 
-run() = ()
+run(): () = ()
 
 end

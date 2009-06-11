@@ -23,6 +23,6 @@ object O
   getter x(y:ZZ32) = ()
 end
 
-run() = ()
+run(): () = ()
 
 end

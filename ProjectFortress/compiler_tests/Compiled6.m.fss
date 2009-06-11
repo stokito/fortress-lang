@@ -27,6 +27,6 @@ object O extends T
   f(y:ZZ32) = ()
 end
 
-run() = ()
+run(): () = ()
 
 end

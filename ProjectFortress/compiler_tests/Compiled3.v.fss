@@ -21,6 +21,6 @@ export Executable
 f(x:String, y:String):String = "f_SS"
 f(x:ZZ32, y:ZZ32) = "f_ZZ"
 
-run() = ()
+run(): () = ()
 
 end

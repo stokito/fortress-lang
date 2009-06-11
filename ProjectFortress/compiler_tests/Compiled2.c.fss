@@ -22,6 +22,6 @@ trait A extends B end
 trait B extends C end
 trait C extends A end
 
-run() = ()
+run(): () = ()
 
 end

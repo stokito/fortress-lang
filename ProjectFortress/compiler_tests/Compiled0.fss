@@ -19,6 +19,6 @@ component Compiled0
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
 export Executable
 
-run() = jPrintln("Hello, World!")
+run(): () = jPrintln("Hello, World!")
 
 end

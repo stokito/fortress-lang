@@ -24,6 +24,6 @@ import Foo.{x, z}
 import Foo.{z, x}
 export Executable
 
-run() = ()
+run(): () = ()
 
 end

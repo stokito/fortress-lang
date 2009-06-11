@@ -19,6 +19,6 @@ component Compiled2
 import CompilerSystem.{args}
 export Executable
 
-run() = println("Hello, " || args[0] || "!")
+run(): () = println("Hello, " || args[0] || "!")
 
 end

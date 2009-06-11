@@ -28,6 +28,6 @@ object O extends T
   zero: T = O
 end
 
-run() = ()
+run(): () = ()
 
 end

@@ -24,6 +24,6 @@ object O extends T end
 object P extends T end
 object Q extends T end
 
-run() = ()
+run(): () = ()
 
 end

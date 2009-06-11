@@ -23,6 +23,6 @@ object O
   setter x(y: String) = ()
 end
 
-run() = ()
+run(): () = ()
 
 end

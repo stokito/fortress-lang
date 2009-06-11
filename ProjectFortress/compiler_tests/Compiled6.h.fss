@@ -23,6 +23,6 @@ object O
   getter x(): String = ""
 end
 
-run() = ()
+run(): () = ()
 
 end

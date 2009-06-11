@@ -19,7 +19,7 @@ component Compiled2.r
 import CompilerSystem.{args
 export Executable
 
-run() = do
+run(): () = do
  println("Hello, " || args[0] || "!")
 end
 
