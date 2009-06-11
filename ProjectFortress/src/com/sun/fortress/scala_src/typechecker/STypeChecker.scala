@@ -43,7 +43,8 @@ import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
-import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.exceptions.ProgramError
+import com.sun.fortress.exceptions.ProgramError.error
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.ExprFactory
@@ -130,6 +131,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
   protected def signal(hasAt:HasAt, msg:String) =
     errors.signal(msg, hasAt)
+
+  private def syntaxError(hasAt:HasAt, msg:String) =
+    error(hasAt, msg)
 
   /**
    * Determine if subtype <: supertype. If false, then the given error message
@@ -641,8 +645,15 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   // END HELPER METHODS -----------------------------------------------------
   // ------------------------------------------------------------------------
 
+  def typecheck(node:Node):Node =
+    try { check(node) }
+    catch { case e:ProgramError =>
+              errors.errors = List[StaticError]()
+              errors.signal(e.getOriginalMessage, e.getLoc.unwrap)
+              node
+          }
 
-  def check(node:Node):Node = node match {
+  private def check(node:Node):Node = node match {
     case SComponent(info, name, imports, decls, isNative, exports)  =>
       SComponent(info, name, imports,
                  decls.map((n:Decl) => check(n).asInstanceOf[Decl]),
@@ -1142,11 +1153,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         def checkMathItem(item: MathItem) = item match {
           case SExponentiationMI(_,_,_) => exponent match {
             case None => exponent = Some(item)
-            case Some(e) => signal(item, "Two consecutive ^s.")
+            case Some(e) => syntaxError(item, "Two consecutive ^s.")
           }
           case SSubscriptingMI(_,_,_,_) => exponent match {
             case Some(e) =>
-              signal(item, "Exponentiation followed by subscripting is illegal.")
+              syntaxError(item, "Exponentiation followed by subscripting is illegal.")
             case None =>
           }
           case _ => exponent = None
@@ -1168,14 +1179,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       def isFunctionItem(item: MathItem) = item match {
         case SParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
         case SNonParenthesisDelimitedMI(_,e) => isArrows(checkExpr(e))
-        case _ =>
+        case _ => false
       }
       def expectParenedExprItem(item: MathItem) =
         if ( ! isParenedExprItem(item) )
-          signal(item, "Argument to function must be parenthesized.")
+          syntaxError(item, "Argument to function must be parenthesized.")
       def expectExprMI(item: MathItem) =
         if ( ! isExprMI(item) )
-          signal(item, "Item at this location must be an expression, not an operator.")
+          syntaxError(item, "Item at this location must be an expression, not an operator.")
       // items is not an empty list.
       def associateMathItems(first: Expr,
                              items: List[MathItem]): (Expr, List[MathItem]) = {
@@ -1187,19 +1198,19 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
          */
         // find the left-most function
         val (prefix, others) = items.span((e:MathItem) =>
-                                          !isFunctionItem(e).asInstanceOf[Boolean])
+                                          !isFunctionItem(e))
         others match {
           case fn::arg::suffix => arg match {
             // It is a static error if either the argument is not parenthesized,
             case SNonParenthesisDelimitedMI(_,e) =>
-              signal(e, "Tightly juxtaposed expression should be parenthesized.")
+              syntaxError(e, "Tightly juxtaposed expression should be parenthesized.")
               (first, Nil)
             case SParenthesisDelimitedMI(i,e) => {
               // or the argument is immediately followed by a non-expression element.
               suffix match {
                 case third::more =>
                   if ( ! isExprMI(third) )
-                    signal(third, "An expression is expected.")
+                    syntaxError(third, "An expression is expected.")
                 case _ =>
               }
               // Otherwise, replace the function and argument with a single element
@@ -1226,7 +1237,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             if ( isExprMI(left.last) )
               left.last.asInstanceOf[ExprMI].getExpr
             else {
-              signal(left.last, "An expression is expected.")
+              syntaxError(left.last, "An expression is expected.")
               first
             }
         }
@@ -1247,7 +1258,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                               toJavaList(exprs), some(op),
                                               toJavaList(sargs))
               case _ =>
-                signal(item, "Non-expression element is expected.")
+                syntaxError(item, "Non-expression element is expected.")
                 head
             }
             left match {
@@ -1288,7 +1299,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             // elements, only the last of which may be a function.
             val newTail = tail.map( (e:MathItem) =>
                                     if ( ! isExprMI(e) ) {
-                                      signal(e, "An expression is expected.")
+                                      syntaxError(e, "An expression is expected.")
                                       ExprFactory.makeVoidLiteralExpr(span)
                                     } else e.asInstanceOf[ExprMI].getExpr )
             // Treat the sequence that remains as a multifix application of

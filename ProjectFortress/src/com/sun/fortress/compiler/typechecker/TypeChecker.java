@@ -431,10 +431,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return new TypeCheckerResult(that);
                 }
                 else{
-                    String err_message = "Two consecutive ^s";
+                    String err_message = "Two consecutive ^s.";
                     StaticError err=TypeError.make(err_message,
-                                                                       new Span(NodeUtil.getSpan((ASTNode)exponent.unwrap()),
-                                                                                NodeUtil.getSpan(that)).toString());
+                                                   NodeUtil.getSpan(that).toString());
                     return new TypeCheckerResult(that,err);
                 }
             }
@@ -445,10 +444,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return new TypeCheckerResult(that);
                 }
                 else{
-                    String err_message = "Exponentiation followed by subscripting is illegal";
+                    String err_message = "Exponentiation followed by subscripting is illegal.";
                     StaticError err=TypeError.make(err_message,
-                                                                       new Span(NodeUtil.getSpan((ASTNode)exponent.unwrap()),
-                                                                                NodeUtil.getSpan(that)).toString());
+                                                   NodeUtil.getSpan(that).toString());
                     exponent = Option.none();
                     return new TypeCheckerResult(that,err);
                 }

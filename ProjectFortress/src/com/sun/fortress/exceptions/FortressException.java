@@ -22,6 +22,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
@@ -110,6 +111,16 @@ public abstract class FortressException extends RuntimeException {
 
     public FortressException(Iterable<? extends StaticError> errors) {
         this.staticErrors = errors;
+    }
+
+    public Option<HasAt> getLoc() {
+        if ( this.where.isEmpty() )
+            return Option.none();
+        else return Option.wrap(this.where.get(0));
+    }
+
+    public String getOriginalMessage() {
+        return super.getMessage();
     }
 
     /* (non-Javadoc)
