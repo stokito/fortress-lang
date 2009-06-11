@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,12 +20,12 @@ component SyntaxRepetition
 
   export SyntaxRepetition
 
-  object SelectQuery(val:List[\String\]) 
+  object SelectQuery(val:List[\String\])
     asString():String = val
   end
 
-(*  object GrammarHelper() 
-    makeObjectInstance(ls:List[\Expr\]):TightJuxt = 
+(*  object GrammarHelper()
+    makeObjectInstance(ls:List[\Expr\]):TightJuxt =
           exprs:List[\Expr\] = emptyList[\Expr\](2);
           ids:List[\Id\] = emptyList[\Id\]();
           ids1:List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "SyntaxRepetition"));

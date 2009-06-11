@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -39,7 +39,7 @@ api SyntaxOption
         ]>
 
   end
- 
+
   grammar A
       Hello :StringLiteralExpr:=
          hello       do StringLiteralExpr(hello.in_text) end
