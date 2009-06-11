@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,13 +21,13 @@ api GrammarComposition
     import FortressSyntax.{...}
 
     grammar A extends { Expression }
-      Expr |:= 
+      Expr |:=
           foo => <[ 1 ]>
         | bar => <[ 2 ]>
     end
 
     grammar B extends { Expression, A }
-      Expr |:= 
+      Expr |:=
           baz => <[ (foo) + (bar) ]> (* implicit private import from A *)
     end
 
@@ -43,8 +43,8 @@ api GrammarComposition
         | Expr from A
     end
 
-    (* The following grammars test uses of identifiers within 
-     * templates. Consequently, they don't have corresponding 
+    (* The following grammars test uses of identifiers within
+     * templates. Consequently, they don't have corresponding
      * .fss source files to test them.
      *)
 

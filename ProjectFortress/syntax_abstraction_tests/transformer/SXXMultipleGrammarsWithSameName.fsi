@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,12 +21,12 @@ api SXXMultipleGrammarsWithSameName
   import FortressSyntax.{Expression}
 
   grammar Wrong extends Expression
-    Bar :Expr:= 
+    Bar :Expr:=
       bar do StringLiteral("") end
   end
 
   grammar Wrong extends Expression
-    Foo :Expr:= 
+    Foo :Expr:=
       foo do StringLiteral("") end
   end
 

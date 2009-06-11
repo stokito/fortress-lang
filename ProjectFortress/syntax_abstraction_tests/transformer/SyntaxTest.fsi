@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,7 +25,7 @@ api SyntaxTest
   grammar Helloworld extends { Expression }
       Expr |Expr:=
         Fortress is very? a:cool# b:, indeed Verys* c:cool
-        do 
+        do
           ids: List[\Id\] = emptyList[\Id\](1)
           ids1: List[\Id\] = ids.addRight(Id(Nothing[\APIName\], "FortressLibrary"))
           apiName:APIName = APIName1(ids1)
@@ -45,8 +45,8 @@ api SyntaxTest
 
         end
 
-      Verys :Expr:= 
+      Verys :Expr:=
         SPACE a:very <[ a ]>
   end
- 
+
 end

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,18 +21,18 @@ api SyntaxRepetition
   import FortressSyntax.{...}
   import List.{...}
 
-  object SelectQuery(val:List[\String\]) 
+  object SelectQuery(val:List[\String\])
     toString():String
   end
 (*
-  object GrammarHelper() 
+  object GrammarHelper()
     makeObjectInstance(ls:List[\Expr\]):TightJuxt
   end
 *)
   grammar Select1 extends { A, B, Expression }
       Expr |Expr:=
         SELECT tuples:ATuples* world
-        do 
+        do
 (*          GrammarHelper().makeObjectInstance(ATuples) *)
           exprs:List[\Expr\] = emptyList[\Expr\](2)
           ids:List[\Id\] = emptyList[\Id\]()
@@ -75,7 +75,7 @@ api SyntaxRepetition
 
         end
       | SELECT BTuples* world
-        do 
+        do
           StringLiteralExpr("BBBB")
 (*          exprs:List[\Expr\] = emptyList[\Expr\](2)
           ids:List[\Id\] = emptyList[\Id\]()
@@ -118,10 +118,10 @@ api SyntaxRepetition
       | SELECT BTuples* from
         <[ SelectQuery( BTuples ) ]>
   end
- 
+
   grammar A
     ATuples :Expr:=
-      a SPACE do 
+      a SPACE do
         exprs:List[\Expr\] = emptyList[\Expr\](2)
         exprs1:List[\Expr\] = exprs.addRight(StringLiteralExpr(""))
         exprs2:List[\Expr\] = exprs1.addRight(StringLiteralExpr(a.in_text))
