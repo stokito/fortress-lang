@@ -27,7 +27,7 @@ f(a:A):String
 f(o:O) = "O"
 f(p:P) = "P"
 
-run() = do
+run(): () = do
   println f(O)
   println f(P)
 end

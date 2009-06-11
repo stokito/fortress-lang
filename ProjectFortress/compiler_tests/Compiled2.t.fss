@@ -21,6 +21,6 @@ export Executable
   x:Number = 1 
   x:String = "hello"
 
-  run() = ()
+  run(): () = ()
 end
 

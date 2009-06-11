@@ -22,4 +22,4 @@ object O
   x(y) = 2
 end
 
-run() = ()
+run(): () = ()

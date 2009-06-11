@@ -69,7 +69,7 @@ f(i:I) = "I"
 f(j:J) = "J"
 f(ff:F2) = "F2"
 
-run() = do
+run(): () = do
   println f(A1)
   println f(B1)
   println f(C1)

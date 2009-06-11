@@ -193,7 +193,13 @@ public class StaticChecker {
 
             Node component_ast = component.ast();
             // Replace implicit types with explicit ones.
-            component_ast = component_ast.accept(new InferenceVarInserter());
+            if (!Shell.getScala()) {
+                component_ast = component_ast.accept(new InferenceVarInserter());
+            } else {
+                errors.addAll(new ReturnTypeChecker().getErrors(component_ast));
+                if(!errors.isEmpty())
+                    return new TypeCheckerResult(component_ast,errors);
+            }
             component_ast = component_ast.accept(new TypeNormalizer());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());

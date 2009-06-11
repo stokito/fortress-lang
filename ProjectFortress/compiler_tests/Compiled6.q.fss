@@ -22,6 +22,6 @@ trait A[\X extends String\]
   x: A[\()\]
 end
 
-run() = ()
+run(): () = ()
 
 end

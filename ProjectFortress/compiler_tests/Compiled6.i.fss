@@ -23,6 +23,6 @@ object O
   x(y: ZZ32) = ()
 end
 
-run() = ()
+run(): () = ()
 
 end

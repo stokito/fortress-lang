@@ -27,4 +27,4 @@ object O(x)
   f(x) = x
 end
 
-run() = ()
+run(): () = ()

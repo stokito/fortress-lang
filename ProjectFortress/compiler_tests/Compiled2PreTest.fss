@@ -18,6 +18,6 @@
 component Compiled2PreTest
 export Executable
 
-run() = println("Hello, " || "World" || "!")
+run(): () = println("Hello, " || "World" || "!")
 
 end

@@ -19,6 +19,6 @@ component Compiled6.d
 import XXXExplicitImportOfNonExistingName.{Foo}
 export Executable
 
-run() = ()
+run(): () = ()
 
 end

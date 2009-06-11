@@ -408,23 +408,33 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    */
   private def isDynamicallyApplicable(overloading: Overloading,
                               smaArrow: ArrowType,
-                              inferredStaticArgs: List[StaticArg]): Boolean = {
+                              inferredStaticArgs: List[StaticArg]): Option[Overloading] = {
     // Is this arrow type applicable.
-    def arrowTypeIsApplicable(overloadingType: ArrowType): Boolean = {
+    def arrowTypeIsApplicable(overloadingType: ArrowType): Option[Type] = {
       val typ =
         // If static args given, then instantiate the overloading first.
         if (inferredStaticArgs.isEmpty) overloadingType
         else staticInstantiation(inferredStaticArgs,
-                                 overloadingType).getOrElse(return false).
+                                 overloadingType).getOrElse(return None).
                                            asInstanceOf[ArrowType]
-      isSubtype(typ.getDomain, smaArrow.getDomain)
+      if (isSubtype(typ.getDomain, smaArrow.getDomain)) Some(typ) else None
     }
 
     // If overloading type is an intersection, check that any of its
     // constituents is applicable.
-    conjuncts(toOption(overloading.getType).get).
+    val applicableArrows = conjuncts(toOption(overloading.getType).get).
       map(_.asInstanceOf[ArrowType]).
-      exists(arrowTypeIsApplicable)
+      flatMap(arrowTypeIsApplicable)
+    
+    val overloadingType = applicableArrows.toList match {
+      case Nil => return None
+      case t::Nil => t
+      case _ => NodeFactory.makeIntersectionType(applicableArrows)
+    }
+    Some(SOverloading(overloading.getInfo,
+                      overloading.getUnambiguousName,
+                      inferredStaticArgs,
+                      Some(overloadingType)))
   }
 
   /**
@@ -627,7 +637,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // Get the dynamically applicable overloadings.
       val overloadings =
         toList(fn.getNewOverloadings).
-        filter(o => isDynamicallyApplicable(o, arrow, sargs))
+        flatMap(o => isDynamicallyApplicable(o, arrow, sargs))
 
       // Add in the filtered overloadings, the inferred static args,
       // and the statically most applicable arrow to the fn.
@@ -641,6 +651,36 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     // Just add the arrow type if the applicand is not a FunctionalRef.
     case _ => addType(fn, arrow)
   }
+  
+  /**
+   * Signal a static error for an application for which there were no applicable
+   * functions.
+   */
+  def noApplicableFunctions(application: Expr,
+                            fn: Expr,
+                            fnType: Type,
+                            argType: Type) = {
+    val kind = fn match {
+      case _:FnRef => "function"
+      case _:OpRef => "operator"
+      case _ => ""
+    }
+    val message = fn match {
+      case fn:FunctionalRef =>
+        val name = fn.getOriginalName
+        val sargs = fn.getStaticArgs
+        if (sargs.isEmpty)
+          "Could not find %s %s applicable to argument type %s.".
+            format(kind, name, argType)
+        else
+          "Could not find %s %s applicable to argument type %s and static args %s.".
+            format(kind, name, argType, sargs)
+      case _ =>
+        "Expression of type %s is not applicable to argument type %s.".
+          format(fnType, argType)     
+      }
+      signal(application, message)
+    }
 
   // ------------------------------------------------------------------------
   // END HELPER METHODS -----------------------------------------------------
@@ -783,19 +823,19 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                    unambiguousName, Some(body), implementsUnambiguousName) => {
       val newChecker = this.extend(env.extendWithStaticParams(statics).extendWithParams(params),
                                    analyzer.extend(statics, wheres))
-      val newContract = contract match {
-        case Some(c) => Some(newChecker.check(c))
-        case None => None
-      }
+      val newContract = contract.map(c => newChecker.check(c))
       val newBody = newChecker.checkExpr(body, returnType, "Function body",
                                          "declared return")
-      val newType = getType(newBody) match {
-        case Some(ty) =>
-          if ( NodeUtil.isSetter(f) )
-            isSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
-          Some(ty)
-        case _ => noType(body); returnType
+      
+      
+      val newType = (returnType, getType(newBody)) match {
+        case (_, Some(bt)) if NodeUtil.isSetter(f) =>
+          isSubtype(bt, Types.VOID, f, "Setter declarations must return void.")
+          Some(Types.VOID)
+        case (None, bt) => bt
+        case (rt, _) => rt
       }
+      
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
@@ -1349,7 +1389,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                          op,
                          sargs)
         case one =>
-          // TODO: Better error message.
           signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
                          format(objType, op.get, subsType))
           expr
@@ -1432,8 +1471,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               S_RewriteFnApp(SExprInfo(span, paren, Some(smostApp.getRange)), newFn, checkedArg)
 
             case None =>
-              // TODO: Better error message.
-              signal(expr, "Could not find statically most applicable function.")
+              noApplicableFunctions(expr, checkedFn, fnType, argType)
               expr
         }
 
@@ -1444,38 +1482,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     // First try to type check this expression as a multifix operator expression.
     // If that fails, type check it as some number of applications of the infix
     // operator, left associatively.
-    case SAmbiguousMultifixOpExpr(info@SExprInfo(span, paren, _),
-                                  infixOp, multifixOp, args) => {
-      val checkedArgs = args.map(checkExpr)
-      if (!haveTypes(checkedArgs)) return expr
-
-      def checkAsInfix() = checkExpr(checkedArgs.reduceLeft(
-        (e1, e2) => SOpExpr(info, infixOp, List(e1, e2))))
-
-      // Attempt to check the multifix.
-      val checkedMultifixOp =
-        new TryChecker(current, traits, env, analyzer).
-          tryCheckExpr(multifixOp).
-          getOrElse(return checkAsInfix())
-
-      val opType = getType(checkedMultifixOp).getOrElse(return expr)
-      val argType =
-        NodeFactory.makeTupleType(info.getSpan,
-                                  toJavaList(checkedArgs.map(t => getType(t).get)))
-
-      staticallyMostApplicableArrow(opType, argType, None) match {
-
-        // If a most applicable arrow, rewrite the applicand and return the
-        // resulting operator expression.
-        case Some((smostApp, sargs)) =>
-          val newOp:FunctionalRef =
-            rewriteApplicand(checkedMultifixOp, smostApp, sargs).asInstanceOf
-          SOpExpr(SExprInfo(span, paren, Some(smostApp.getRange)),
-                  newOp, checkedArgs)
-
-        // Check as infix operator expressions.
-        case None => checkAsInfix()
-      }
+    case SAmbiguousMultifixOpExpr(info, infixOp, multifixOp, args) => {
+      def infixAssociate(e1: Expr, e2: Expr) = SOpExpr(info, infixOp, List(e1, e2))
+      new TryChecker(current, traits, env, analyzer).
+        tryCheckExpr(SOpExpr(info, multifixOp, args)).
+        getOrElse(checkExpr(args.reduceLeft(infixAssociate)))
     }
 
     case SOpExpr(info, fn, args) => {
@@ -1492,8 +1503,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           addType(SOpExpr(info, newOp, checkedArgs),smostApp.getRange)
 
         case None =>
-          // TODO: Better error message.
-          signal(expr, "Could not find statically most applicable function.")
+          noApplicableFunctions(expr, checkedOp, opType, argType)
           expr
       }
 

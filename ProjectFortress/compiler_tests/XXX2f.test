@@ -19,11 +19,11 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled2.f.fss:25:1-18:\n\
-${STATIC_TESTS_DIR}/Compiled2.f.fss:26:1-19:\n\
+${STATIC_TESTS_DIR}/Compiled2.f.fss:25:1-22:\n\
+${STATIC_TESTS_DIR}/Compiled2.f.fss:26:1-23:\n\
 \ Invalid overloading of f:\n\
-\ (O, T) -> () @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:25:1-18\n\
-\ and (T, O) -> () @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:26:1-19\n\
+\ (O, T) -> () @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:25:1-22\n\
+\ and (T, O) -> () @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:26:1-23\n\
 File Compiled2.f.fss has 1 error.\n\
 
 compile_out_equals=

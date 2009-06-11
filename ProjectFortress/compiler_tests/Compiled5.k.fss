@@ -20,6 +20,6 @@ export Executable
 
 x := 0
 
-run() = ()
+run(): () = ()
 
 end

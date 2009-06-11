@@ -22,6 +22,6 @@ object O
   setter x(y:ZZ32) = y
 end
 
-run() = ()
+run(): () = ()
 
 end

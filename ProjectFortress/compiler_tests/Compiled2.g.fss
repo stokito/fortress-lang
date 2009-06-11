@@ -26,6 +26,6 @@ f(x: O, y: T) = ()
 f(x: T, y: O) = ()
 f(x: O, y: O) = ()
 
-run() = ()
+run(): () = ()
 
 end

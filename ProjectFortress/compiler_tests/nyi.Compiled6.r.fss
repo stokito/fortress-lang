@@ -32,7 +32,7 @@ object P extends A[\String\]
   getter z():A[\String\] = self.x
 end
 
-run() = do
+run(): () = do
   println P.y
   (*) z (*) Intentional static error, to avoid tripping up codegen
 end

@@ -19,9 +19,9 @@ component Compiled4
 import CompilerSystem.args
 export { Executable }
 
-opr (n:ZZ32)! = if n <= 1 then 1 else n (n - 1)! end
+opr (n:ZZ32)! : ZZ32 = if n <= 1 then 1 else n (n - 1)! end
 
-run() = do
+run():() = do
   printlnZZ32(strToInt(args[0])!)
 end
 
