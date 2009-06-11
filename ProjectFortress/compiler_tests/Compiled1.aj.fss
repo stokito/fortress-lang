@@ -15,16 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component VarTypeAsReturn
-  export Executable
+component Compiled1.aj
+export Executable
 
-  trait Makers[\MyParam\]
-    foo():MyParam
-  end
+trait A
+  method1(x:ZZ32):ZZ32 = x
+end
 
-  trait CoolDude extends Makers[\ZZ32\]
-    bar():ZZ32 = foo()
-  end
+run():() = ()
 
-  run():() = ()
 end
