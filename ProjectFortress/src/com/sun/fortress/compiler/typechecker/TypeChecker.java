@@ -4206,7 +4206,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeCheckerResult forTryAtomicExpr(TryAtomicExpr that) {
         TypeCheckerResult expr_result =
             forAtomic(that.getExpr(),
-                    errorMsg("A 'spawn' expression must not occur inside a 'try atomic' expression."));
+                    errorMsg("A 'spawn' expression must not occur inside a 'tryatomic' expression."));
 
         TryAtomicExpr new_node = ExprFactory.makeTryAtomicExpr(NodeUtil.getSpan(that),
                 NodeUtil.isParenthesized(that),

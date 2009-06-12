@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXSpawnInsideTryAtomic
+component Compiled1.ap
     export Executable
     run():() = do
         tryatomic (spawn ())

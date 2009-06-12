@@ -425,7 +425,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     val applicableArrows = conjuncts(toOption(overloading.getType).get).
       map(_.asInstanceOf[ArrowType]).
       flatMap(arrowTypeIsApplicable)
-    
+
     val overloadingType = applicableArrows.toList match {
       case Nil => return None
       case t::Nil => t
@@ -651,7 +651,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     // Just add the arrow type if the applicand is not a FunctionalRef.
     case _ => addType(fn, arrow)
   }
-  
+
   /**
    * Signal a static error for an application for which there were no applicable
    * functions.
@@ -677,7 +677,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             format(kind, name, argType, sargs)
       case _ =>
         "Expression of type %s is not applicable to argument type %s.".
-          format(fnType, argType)     
+          format(fnType, argType)
       }
       signal(application, message)
     }
@@ -826,8 +826,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val newContract = contract.map(c => newChecker.check(c))
       val newBody = newChecker.checkExpr(body, returnType, "Function body",
                                          "declared return")
-      
-      
+
+
       val newType = (returnType, getType(newBody)) match {
         case (_, Some(bt)) if NodeUtil.isSetter(f) =>
           isSubtype(bt, Types.VOID, f, "Setter declarations must return void.")
@@ -835,7 +835,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case (None, bt) => bt
         case (rt, _) => rt
       }
-      
+
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
@@ -1068,7 +1068,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
 
     case STryAtomicExpr(SExprInfo(span,paren,optType), body) => {
-      val newExpr = forAtomic(body, "an 'tryatomic' expression")
+      val newExpr = forAtomic(body, "a 'tryatomic' expression")
       STryAtomicExpr(SExprInfo(span,paren,getType(newExpr)), newExpr)
     }
 

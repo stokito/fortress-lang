@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXSpawnInsideAtomic
+component Compiled1.am
 export Executable
 
   (* A spawn expression should not occur inside an atomic expression. *)

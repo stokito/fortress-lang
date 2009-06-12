@@ -1,0 +1,25 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled1.ao
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.ao.fss:18:11-22:\n\
+\ Component Compiled1.ao exports API DXXmatchingFnDecls\n\
+\ but does not define all declarations in DXXmatchingFnDecls.\n\
+\ Missing declarations: {f:String->() at ${STATIC_TESTS_DIR}/DXXmatchingFnDecls.fsi:19:3-21:2}\n\
+File Compiled1.ao.fss has 1 error.\n
+compile_out_equals=

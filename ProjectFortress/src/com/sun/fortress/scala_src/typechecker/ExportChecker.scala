@@ -300,8 +300,11 @@ object ExportChecker {
                 } else missingDecls = declInAPI :: missingDecls
             }
 
+            def toString(x:ASTNode) = x.getInfo.getSpan.toString
             // Collect the error messages for the missing declarations.
             if ( ! missingDecls.isEmpty ) {
+                def comp(x:ASTNode,y:ASTNode) = toString(x) < toString(y)
+                missingDecls = missingDecls.sort(comp)
                 var message = "" + getMessage(missingDecls.head)
                 for ( f <- missingDecls.tail )
                     message += ",\n                           " + getMessage(f)
@@ -313,6 +316,8 @@ object ExportChecker {
 
             // Collect the error messages for the multiple declarations.
             if ( ! multipleDecls.isEmpty ) {
+                def comp(x:(String,String),y:(String,String)) = x._1 < y._1
+                multipleDecls = multipleDecls.sort(comp)
                 var message = "" + multipleDecls.head
                 for ( f <- multipleDecls.tail )
                     message += ",\n                           " + f
@@ -324,9 +329,12 @@ object ExportChecker {
 
             // Collect the error messages for the wrong declarations.
             if ( ! wrongDecls.isEmpty ) {
+                def comp(x:(ASTNode,String), y:(ASTNode,String)) =
+                  toString(x._1) < toString(y._1)
+                wrongDecls = wrongDecls.sort(comp)
                 var message = "" + wrongDecls.head
                 for ( f <- wrongDecls.tail )
-                    message += ",\n                               " + f
+                    message += ",\n        " + f
                 error(errors, componentName,
                       "The following declarations in API " + apiName +
                       " are not matched\n    by the declarations in component " +
