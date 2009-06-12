@@ -868,8 +868,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
         getType(newInit) match {
           case Some(typ) =>
+            val left = lhs match {
+              case hd::Nil => hd
+              case _ => lhs
+            }
             isSubtype(typ, ty, v,
-                         errorMsg("Attempt to define variable ", v,
+                         errorMsg("Attempt to define variable ", left,
                                   " with an expression of type ", normalize(typ)))
           case _ =>
             signal(v, errorMsg("The right-hand side of ", v, " could not be typed."))
@@ -1688,7 +1692,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     val message = errorMsg("A 'spawn' expression must not occur inside ",
                            enclosingExpr, ".")
     override def checkExpr(e: Expr): Expr = e match {
-      case SSpawn(_, _) => signal(e, message); e
+      case SSpawn(_, _) => syntaxError(e, message); e
       case _ => super.checkExpr(e)
     }
   }
