@@ -286,6 +286,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              String name_result,
                                              List<String> imports_result,
                                              List<String> decls_result,
+                                             List<String> comprises_result,
                                              List<String> exports_result) {
         inComponent = true;
         // note objectExprs parameter is a temporary hack.
@@ -310,7 +311,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forApiOnly(Api that, String info, String name_result,
                                        List<String> imports_result,
-                                       List<String> decls_result) {
+                                       List<String> decls_result,
+                                       List<String> comprises_result) {
         inComponent = false;
         //increaseIndent();
         StringBuilder s = new StringBuilder();

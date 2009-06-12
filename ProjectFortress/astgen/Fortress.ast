@@ -100,7 +100,7 @@ interface Node() extends HasAt;
              * CompilationUnit ::= Component | Api
              */
             abstract CompilationUnit(APIName name, List<Import> imports,
-                                     List<Decl> decls);
+                                     List<Decl> decls, List<APIName> comprises);
                 /**
                  * component declaration
                  * Component ::= native? component APIName Imports? Exports Decls? end

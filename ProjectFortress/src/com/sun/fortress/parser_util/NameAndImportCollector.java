@@ -47,13 +47,15 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
             public List<Import> forComponentOnly(Component that, List<Import> info,
                                                  List<Import> name_result, List<List<Import>> imports_result,
                                                  List<List<Import>> decls_result,
+                                                 List<List<Import>> comprises_result,
                                                  List<List<Import>> exports_result) {
 		this.namesAndImports = new NameAndImportCollection();
 		this.namesAndImports.setComponentName(that.getName());
 		this.namesAndImports.setImports(collapseList(imports_result));
 
-		return super.forComponentOnly(that, info, name_result, imports_result,
-                                              decls_result, exports_result);
+		return super.forComponentOnly(that, info, name_result,
+                                              imports_result, decls_result,
+                                              comprises_result, exports_result);
 	}
 
 	@Override

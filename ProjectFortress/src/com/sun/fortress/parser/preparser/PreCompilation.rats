@@ -79,10 +79,18 @@ stateful void Token =
    / typecase    { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
    / also        { yyState.left(createSpan(yyStart,yyCount), "also"); }
    / end w a1:Id { yyState.handleLabelEnd(createSpan(yyStart,yyCount), a1); }
+   / end s component // ignore the component keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s api   // ignore the api keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s trait // ignore the trait keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s object // ignore the object keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
    / end         { yyState.right(createSpan(yyStart,yyCount), "end"); }
    / do          { yyState.handleDo(createSpan(yyStart,yyCount)); }
    / at          { yyState.handleAt(createSpan(yyStart,yyCount)); }
-   / Encloser   // ignore vertical bars
+   / Encloser    // ignore vertical bars
    / a1:LeftEncloser  { yyState.left(a1); }
    / a1:RightEncloser { yyState.right(a1); }
    / a1:"("      { yyState.left(createSpan(yyStart,yyCount), a1); }

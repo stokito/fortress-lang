@@ -64,11 +64,26 @@ private CompilationUnit CompilationUnit =
    / Api ;
 
 /* Component ::=
-     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
+     (native w)? component w APIName w comprises w APINames
+     w end ((s component)? s APIName)?
+   | (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
      (w Decls w ;?)? w end ((s component)? s APIName)?
  */
 private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)?
+     a1:(native w)? component w a2:APIName w comprises w a3:APINames
+     a4:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null)
+           log(span, "Compound component " + a2 + " should not include new declarations.");
+       List<Import>  imports = Collections.<Import>emptyList();
+       List<APIName> exports = Collections.<APIName>emptyList();
+       List<Decl>    decls   = Collections.<Decl>emptyList();
+       if (a1 == null)
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, false, exports);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, true, exports);
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)?
      w (_)*
      { Span span = createSpan(yyStart,yyCount);
        List<Import>  imports = ( a3 == null ) ? Collections.<Import>emptyList()
@@ -82,12 +97,24 @@ private Component Component =
            yyValue = NodeFactory.makeComponent(span, a2, imports, decls, true, exports);
      };
 
-/* Api ::= api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
-           ((s api)? s APIName)?
+/* Api ::=
+     api w APIName w comprises w APINames w end ((s api)? s APIName)?
+   | api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
+     ((s api)? s APIName)?
    Imports ::= Import (br Import)*
  */
 private Api Api =
-     a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
+     a0:(native w)? api w a1:APIName w comprises w a2:APINames
+     a3:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a0 != null )
+           log(span, "The native modifier is only for components not for APIs.");
+       if (a3 != null)
+           log(span, "Compound API " + a1 + " should not include new declarations.");
+       yyValue = NodeFactory.makeApi(span, a1, Collections.<Import>emptyList(),
+                                     Collections.<Decl>emptyList(), a2);
+     }
+   / a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
      { Span span = createSpan(yyStart,yyCount);
        List<Import> imports = (a2 == null) ? Collections.<Import>emptyList()
                                            : a2.getA();

@@ -196,7 +196,18 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           boolean isNative,
                                           List<APIName> exports) {
-        return new Component(makeSpanInfo(span), name, imports, decls, isNative, exports);
+        return makeComponent(span, name, imports, decls, Collections.<APIName>emptyList(),
+                             isNative, exports);
+    }
+
+    public static Component makeComponent(Span span, APIName name,
+                                          List<Import> imports,
+                                          List<Decl> decls,
+                                          List<APIName> comprises,
+                                          boolean isNative,
+                                          List<APIName> exports) {
+        return new Component(makeSpanInfo(span), name, imports, decls, comprises,
+                             isNative, exports);
     }
 
     public static Api makeApi(Span span, APIName name) {
@@ -208,7 +219,14 @@ public class NodeFactory {
     public static Api makeApi(Span span, APIName name,
                               List<Import> imports,
                               List<Decl> decls) {
-        return new Api(makeSpanInfo(span), name, imports, decls);
+        return makeApi(span, name, imports, decls, Collections.<APIName>emptyList());
+    }
+
+    public static Api makeApi(Span span, APIName name,
+                              List<Import> imports,
+                              List<Decl> decls,
+                              List<APIName> comprises) {
+        return new Api(makeSpanInfo(span), name, imports, decls, comprises);
     }
 
     public static ImportApi makeImportApi(Span span, Option<String> foreign,
