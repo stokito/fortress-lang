@@ -21,9 +21,9 @@ export Executable
 trait T excludes O end
 object O end
 
-f() = ()
-f(x: O) = ()
-f(x: T) = ()
+f(): () = ()
+f(x: O): () = ()
+f(x: T): () = ()
 
 run(): () = ()
 

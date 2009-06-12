@@ -1040,9 +1040,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // matching function names.
                 Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
                 @Override public Overloading value(IdOrOp fn) {
-                    return new Overloading(that.getInfo(), fn,
-                                           Collections.<StaticArg>emptyList(),
-                                           Option.<Type>none());
+                    return new Overloading(that.getInfo(), fn, Option.<Type>none());
                     }
                 };
                 List<Overloading> overloadings = CollectUtil.makeArrayList(
@@ -1134,7 +1132,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
             @Override public Overloading value(IdOrOp fn) {
                 return new Overloading(that.getInfo(), fn,
-                                       that.getStaticArgs(),
                                        Option.<Type>none());
             }
         };
@@ -1159,13 +1156,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     	
     	// Create a list of overloadings for this OpRef from the matching
-        // operator names.
+      // operator names.
     	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
-			@Override public Overloading value(IdOrOp op) {
-				return new Overloading(that.getInfo(), op,
-									   Collections.<StaticArg>emptyList(),
-									   Option.<Type>none());
-			}
+    			@Override public Overloading value(IdOrOp op) {
+    				  return new Overloading(that.getInfo(), op,
+    									   Option.<Type>none());
+    			}
     	};
     	List<Overloading> overloadings = CollectUtil.makeArrayList(
     			IterUtil.map(ops, makeOverloadings));
