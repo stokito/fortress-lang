@@ -18,7 +18,7 @@
 component TightJuxt
   export Executable
 
-  foo(a:ZZ32,b:ZZ32) = (a)(b)
+  foo(a:ZZ32,b:ZZ32):ZZ32 = (a)(b)
 
   run():() = ()
 end

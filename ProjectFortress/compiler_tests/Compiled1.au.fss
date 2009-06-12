@@ -14,10 +14,11 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component NatParamAsExpr
- export Executable
 
- foo[\nat n\]():ZZ32 = n+n
+component Compiled1.au
+  export Executable
 
- run():() = ()
+  doIt(a:ZZ32, b:ZZ32):ZZ32 = a+b
+
+  run():() =()
 end
