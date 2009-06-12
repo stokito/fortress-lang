@@ -32,9 +32,9 @@ object S extends P end
 
 object U extends P end
 
-f() = ()
-f(x: O) = ()
-f(x: P) = ()
+f(): () = ()
+f(x: O): () = ()
+f(x: P): () = ()
 
 run(): () = ()
 

@@ -124,9 +124,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     STypeCheckerFactory.make(current, traits, env.extendWithout(declSite, names),
                              analyzer, errors)
 
-  private def noType(hasAt:HasAt) =
-    signal(hasAt, errorMsg("Type is not inferred for: ", hasAt))
-
   protected def signal(msg:String, hasAt:HasAt) =
     errors.signal(msg, hasAt)
 
@@ -379,10 +376,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val (newTestClause, bindings) = generatorClauseGetBindings(testClause, true)
       // Check body with new bindings
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
-      getType(newBody) match {
-        case None => noType(body)
-        case _ =>
-      }
       SIfClause(info, newTestClause, newBody)
   }
 
@@ -413,11 +406,16 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     def arrowTypeIsApplicable(overloadingType: ArrowType): Option[Type] = {
       val typ =
         // If static args given, then instantiate the overloading first.
-        if (inferredStaticArgs.isEmpty) overloadingType
-        else staticInstantiation(inferredStaticArgs,
-                                 overloadingType).getOrElse(return None).
-                                           asInstanceOf[ArrowType]
-      if (isSubtype(typ.getDomain, smaArrow.getDomain)) Some(typ) else None
+        if (inferredStaticArgs.isEmpty)
+          overloadingType
+        else
+          staticInstantiation(inferredStaticArgs, overloadingType).
+            getOrElse(return None).asInstanceOf[ArrowType]
+    
+      if (isSubtype(typ.getDomain, smaArrow.getDomain))
+        Some(typ)
+      else
+        None
     }
 
     // If overloading type is an intersection, check that any of its
@@ -433,7 +431,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
     Some(SOverloading(overloading.getInfo,
                       overloading.getUnambiguousName,
-                      inferredStaticArgs,
                       Some(overloadingType)))
   }
 
@@ -629,7 +626,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * and the static args from the application, return the applicand updated
    * with the dynamically applicable overloadings, arrow type, and static args.
    */
-  def rewriteApplicand(fn: Expr,
+  private def rewriteApplicand(fn: Expr,
                        arrow: ArrowType,
                        sargs: List[StaticArg]): Expr = fn match {
     case fn: FunctionalRef =>
@@ -656,7 +653,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * Signal a static error for an application for which there were no applicable
    * functions.
    */
-  def noApplicableFunctions(application: Expr,
+  private def noApplicableFunctions(application: Expr,
                             fn: Expr,
                             fnType: Type,
                             argType: Type) = {
@@ -665,19 +662,23 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       case _:OpRef => "operator"
       case _ => ""
     }
+    val argTypeStr = normalize(argType) match {
+      case tt:TupleType => tt.getElements.toString
+      case _ => "[" + argType.toString + "]"
+    }
     val message = fn match {
       case fn:FunctionalRef =>
         val name = fn.getOriginalName
         val sargs = fn.getStaticArgs
         if (sargs.isEmpty)
-          "Could not find %s %s applicable to argument type %s.".
-            format(kind, name, normalize(argType))
+          "Call to %s %s has invalid arguments, %s".
+            format(kind, name, argTypeStr)
         else
-          "Could not find %s %s applicable to argument type %s and static args %s.".
-            format(kind, name, normalize(argType), sargs)
+          "Call to %s %s with static arguments %s has invalid arguments, %s".
+            format(kind, name, sargs, argTypeStr)
       case _ =>
         "Expression of type %s is not applicable to argument type %s.".
-            format(normalize(fnType), normalize(argType))
+          format(normalize(fnType), argTypeStr)
       }
       signal(application, message)
     }
@@ -909,22 +910,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       id
     }
 
-    case SOverloading(info, name, sargs, _) => {
+    case SOverloading(info, name, _) => {
   	  val checkedName = check(name).asInstanceOf[IdOrOp]
-
-  	  // Get the arrow type for this name and check that the supplied static
-        // args match its declared static params. If so, the overloading is
-        // returned with the arrow type filled in.
-        getTypeFromName(checkedName) match {
-          case Some(checkedType) =>
-            if (!sargs.isEmpty)
-              staticInstantiation(sargs, checkedType).
-                map((t:Type) => SOverloading(info, checkedName, sargs, Some(t))).
-                getOrElse(node)
-            else SOverloading(info, checkedName, sargs, Some(checkedType))
-          case None => node
-        }
+      getTypeFromName(checkedName) match {
+        case Some(checkedType) =>
+          SOverloading(info, checkedName, Some(checkedType))
+        case None => node
       }
+    }
 
     case op@SOp(info,api,name,fixity,enclosing) => {
       val tyEnv = api match {
@@ -938,6 +931,10 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case _ =>
       }
       op
+    }
+    
+    case SLink(info,op,expr) =>{
+      SLink(info,checkExpr(op).asInstanceOf[FunctionalRef],checkExpr(expr))
     }
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
@@ -955,7 +952,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           addType(newExpr, typ)
         case _ => addType(newExpr, typ)
       }
-      case _ => noType(expr); expr
+      case _ => expr
     }
   }
 
@@ -970,7 +967,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           addType(newExpr, typ)
         case _ => addType(newExpr, typ)
       }
-      case _ => noType(expr); expr
+      case _ => expr
     }
   }
 
@@ -1058,7 +1055,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       getType(newExpr) match {
         case Some(typ) =>
           SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(typ))), newExpr)
-        case _ => noType(body); expr
+        case _ => expr
       }
     }
 
@@ -1101,88 +1098,92 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                multi, infix, exprs, isApp, false) => {
       // Check subexpressions
       val checkedExprs = exprs.map(checkExpr)
-      if ( haveTypes(checkedExprs) ) {
-        // Break the list of expressions into chunks.
-        // First the loose juxtaposition is broken into nonempty chunks;
-        // wherever there is a non-function element followed
-        // by a function element, the latter begins a new chunk.
-        // Thus a chunk consists of some number (possibly zero) of
-        // functions followed by some number (possibly zero) of non-functions.
-        def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
-          case Nil => results.reverse
-          case first::rest =>
-            if ( isArrows(first) ) {
-              val (arrows,temp) = (first::rest).span(isArrows)
-              val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
-              chunker(remainingChunks, (arrows,nonArrows)::results)
-            } else {
-              val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
-              chunker(remainingChunks, (List(),nonArrows)::results)
-            }
-        }
-        val chunks = chunker(checkedExprs, List())
-        // Left associate nonarrows as a single OpExpr
-        def associateNonArrows(nonArrows: List[Expr]): Option[Expr] =
-          nonArrows match {
-            case Nil => None
-            case head::tail =>
-              Some(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
-                                        ExprFactory.makeOpExpr(infix,e1,e2) })
+      if (!haveTypes(checkedExprs)) { return expr }
+      
+      // Break the list of expressions into chunks.
+      // First the loose juxtaposition is broken into nonempty chunks;
+      // wherever there is a non-function element followed
+      // by a function element, the latter begins a new chunk.
+      // Thus a chunk consists of some number (possibly zero) of
+      // functions followed by some number (possibly zero) of non-functions.
+      def chunker(exprs: List[Expr], results: List[(List[Expr],List[Expr])]): List[(List[Expr],List[Expr])] = exprs match {
+        case Nil => results.reverse
+        case first::rest =>
+          if ( isArrows(first) ) {
+            val (arrows,temp) = (first::rest).span(isArrows)
+            val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
+            chunker(remainingChunks, (arrows,nonArrows)::results)
+          } else {
+            val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
+            chunker(remainingChunks, (List(),nonArrows)::results)
           }
-        // Right associate everything in a chunk as a _RewriteFnApp
-        def associateArrows(fs: List[Expr], oe: Option[Expr]) = oe match {
-          case None => fs match {
-            case Nil =>
-              errors.signal("Empty chunk", expr)
-              expr
-            case _ =>
-              fs.take(fs.size-1).foldRight(fs.last){ (f: Expr, e: Expr) =>
-                                                     ExprFactory.make_RewriteFnApp(f,e) }
-          }
-          case Some(e) =>
-            fs.foldRight(e){ (f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e) }
+      }
+      val chunks = chunker(checkedExprs, List())
+      // Left associate nonarrows as a single OpExpr
+      def associateNonArrows(nonArrows: List[Expr]): Option[Expr] =
+        nonArrows match {
+          case Nil => None
+          case head::tail =>
+            Some(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
+                                      ExprFactory.makeOpExpr(infix,e1,e2) })
         }
-        // Associate a chunk
-        def associateChunk(chunk: (List[Expr],List[Expr])): Expr = {
-          val (arrows, nonArrows) = chunk
-          associateArrows(arrows, associateNonArrows(nonArrows))
+      // Right associate everything in a chunk as a _RewriteFnApp
+      def associateArrows(fs: List[Expr], oe: Option[Expr]) = oe match {
+        case None => fs match {
+          case Nil =>
+            errors.signal("Empty chunk", expr)
+            expr
+          case _ =>
+            fs.take(fs.size-1).foldRight(fs.last){ (f: Expr, e: Expr) =>
+                                                   ExprFactory.make_RewriteFnApp(f,e) }
         }
-        val associatedChunks = chunks.map(associateChunk)
-        // (1) If any element that remains has type String,
-        //     then it is a static error
-        //     if there is any pair of adjacent elements within the juxtaposition
-        //     such that neither element is of type String.
-        val types = if ( haveTypes(associatedChunks) )
-                      associatedChunks.map((e: Expr) => getType(e).get)
-                    else List()
-        def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
-        if ( types.exists(isStringType) ) {
-          def stringCheck(e: Type, f: Type) =
-            if ( ! (isStringType(e) || isStringType(f)) ) {
-              signal(expr, errorMsg("Neither element is of type String in ",
-                                    "a juxtaposition of String elements."))
-              e
-            } else e
-          types.take(types.size-1).foldRight(types.last)(stringCheck)
+        case Some(e) =>
+          fs.foldRight(e){ (f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e) }
+      }
+      // Associate a chunk
+      def associateChunk(chunk: (List[Expr],List[Expr])): Expr = {
+        val (arrows, nonArrows) = chunk
+        associateArrows(arrows, associateNonArrows(nonArrows))
+      }
+      val associatedChunks = chunks.map(associateChunk)
+      // (1) If any element that remains has type String,
+      //     then it is a static error
+      //     if there is any pair of adjacent elements within the juxtaposition
+      //     such that neither element is of type String.
+      val types = if ( haveTypes(associatedChunks) )
+                    associatedChunks.map((e: Expr) => getType(e).get)
+                  else List()
+      def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
+      if ( types.exists(isStringType) ) {
+        def stringCheck(e: Type, f: Type) =
+          if ( ! (isStringType(e) || isStringType(f)) ) {
+            signal(expr, errorMsg("Neither element is of type String in ",
+                                  "a juxtaposition of String elements."))
+            e
+          } else e
+        types.take(types.size-1).foldRight(types.last)(stringCheck)
+      }
+      // (2) Treat the sequence that remains as a multifix application
+      //     of the juxtaposition operator.
+      //     The rules for multifix operators then apply.
+      val multiOpExpr =
+        new TryChecker(current, traits, env, analyzer).
+          tryCheckExpr(ExprFactory.makeOpExpr(span,
+                                              paren,
+                                              toJavaOption(optType),
+                                              multi,
+                                              toJavaList(associatedChunks)))
+      multiOpExpr.getOrElse {
+        // If not, left associate as InfixJuxts
+        associatedChunks match {
+          case Nil =>
+            errors.signal("Empty juxt", expr)
+            expr
+          case head::tail =>
+            checkExpr(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
+                                           ExprFactory.makeOpExpr(infix,e1,e2) })
         }
-        // (2) Treat the sequence that remains as a multifix application
-        //     of the juxtaposition operator.
-        //     The rules for multifix operators then apply.
-        val multiOpExpr = checkExpr(ExprFactory.makeOpExpr(span, paren, toJavaOption(optType),
-                                                           multi, toJavaList(associatedChunks)))
-        if ( getType(multiOpExpr).isDefined ) multiOpExpr
-        else {
-          // If not, left associate as InfixJuxts
-          associatedChunks match {
-            case Nil =>
-              errors.signal("Empty juxt", expr)
-              expr
-            case head::tail =>
-              checkExpr(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
-                                             ExprFactory.makeOpExpr(infix,e1,e2) })
-          }
-        }
-      } else { noType(expr); expr }
+      }
     }
 
     // Math primary, which is the more general case,
@@ -1321,7 +1322,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // HANDLE THE FRONT ITEM
       val newFront = checkExpr(front)
       getType( newFront ) match {
-        case None => noType(front); front
+        case None => front
         case Some(t) =>
           // If front is a fn followed by an expr, we reassociate
           if ( isArrows(t) && isExprMI(second) ) {
@@ -1427,21 +1428,25 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         val newEs = es.map(checkExpr)
         val types = newEs.map((e:Expr) =>
                               if (getType(e).isDefined) getType(e).get
-                              else { noType(e); Types.VOID })
+                              else { Types.VOID })
         val newType = NodeFactory.makeTupleType(span, toJavaList(types).asInstanceOf[JavaList[Type]])
         STupleExpr(SExprInfo(span,parenthesized,Some(newType)), newEs, vs, ks, inApp)
       }
     }
 
-    case fn@SFunctionalRef(_, _, _, name, _, _, overloadings, _) => {
+    case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _) => {
       // Note that ExprDisambiguator inserts the static args from a
       // FunctionalRef into each of its Overloadings.
 
       // Check all the overloadings and filter out any that have the wrong
       // number or kind of static parameters.
-      val checkedOverloadings = overloadings.
-        map(check(_).asInstanceOf[Overloading]).filter(_.getType.isSome)
-
+      def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
+        case  SOverloading(info, name, Some(ty)) =>
+          staticInstantiation(sargs, ty).map(t => SOverloading(info,name,Some(t)))
+        case _ => None
+      }
+      val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
+ 
       if (checkedOverloadings.isEmpty)
         signal(expr, errorMsg("Wrong number or kind of static arguments for function: ",
                               name))
@@ -1513,28 +1518,41 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     }
 
-    case SChainExpr(SExprInfo(span,parenthesized,_), first, links) => {
-      val newFirst = checkExpr(first)
-      var prev = newFirst
-      def checkLink(link:Link) = {
-        val op = checkExpr(link.getOp).asInstanceOf[FunctionalRef]
-        val next = checkExpr(link.getExpr)
-        // Check a temporary binary op, to see if the result is <: Boolean
-        val tempOpExpr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(prev,next),
-                                                op, prev, next)
-        getType(tempOpExpr) match {
-          case Some(ty) =>
-            isSubtype(ty, Types.BOOLEAN, tempOpExpr,
-                      errorMsg("The chained expression ", tempOpExpr,
-                               " should have type Boolean, but had type ", normalize(ty), "."))
-          case _ => noType(tempOpExpr)
-        }
-        prev = next
-        SLink(link.getInfo, op, next)
+    case SChainExpr(SExprInfo(span,parenthesized,_), first, links) => {      
+      // Build up a list of OpExprs from the Links (in reverse).
+      def makeOpExpr(prevAndResult: (Expr, List[Expr]),
+                       nextLink: Link): (Expr, List[Expr]) = {
+        val (prev, result) = prevAndResult
+        val next = nextLink.getExpr()
+        val op = nextLink.getOp()
+        val newExpr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(prev, next),
+                                             op,
+                                             prev,
+                                             next)
+        (next, newExpr :: result)
       }
-      SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), newFirst,
-                 links.map(checkLink))
+      val (_, conjuncts) = links.foldLeft((first, List[Expr]()))(makeOpExpr) 
+        
+      
+      // Check that an expr is a Boolean.
+      def checkBoolean(expr: Expr): Boolean = {
+        getType(checkExpr(expr)) match {
+          case Some(ty) =>
+            isSubtype(ty, Types.BOOLEAN, expr,
+                      errorMsg("The chained expression ", expr,
+                               " should have type Boolean, but had type ", normalize(ty), "."))
+          case _ => false
+        }
+      }
+      if (!conjuncts.forall(checkBoolean)) return expr
+      
+      // Reduce the OpExprs with an AND operation.
+      
+      
+      SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), checkExpr(first),
+                 links.map(t => check(t).asInstanceOf[Link]))
     }
+    
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
       val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
@@ -1544,15 +1562,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             fs.take(fs.size-1).foldRight(getType(fs.last).get)
               { (e:Expr, t:Type) => analyzer.join(getType(e).get, t) }
           SDo(SExprInfo(span,parenthesized,Some(normalize(frontTypes))), fs)
-      } else { noType(expr); expr }
+      } else { expr }
     }
 
     case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
       val newClauses = clauses.map( handleIfClause )
-      val types = newClauses.map( (c: IfClause) => getType(c.getBody) match {
-                                    case Some(ty) => ty
-                                    case None => noType(c.getBody); Types.VOID
-                                  } )
+      val types = newClauses.flatMap(c => getType(c.getBody))
       val (newElse, newType) = elseC match {
         case None => {
           // Check that each if/elif clause has void type
@@ -1560,26 +1575,26 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                          isSubtype(ty, Types.VOID, expr,
                                    errorMsg("An 'if' clause without corresponding 'else' has type ",
                                             normalize(ty), " instead of type ().")) )
-          (None, Types.VOID)
+          (None, Some(Types.VOID))
         }
         case Some(b) => {
           val newBlock = checkExpr(b).asInstanceOf[Block]
           getType(newBlock) match {
-            case None => { noType(b) ; (None, Types.VOID) }
+            case None => { (None, None) }
             case Some(ty) =>
               // Get union of all clauses' types
-              (Some(newBlock), analyzer.join(toJavaList(ty::types)))
+              (Some(newBlock), Some(normalize(analyzer.join(toJavaList(ty::types)))))
           }
         }
       }
-      SIf(SExprInfo(span,parenthesized,Some(normalize(newType))), newClauses, newElse)
+      SIf(SExprInfo(span,parenthesized, newType), newClauses, newElse)
     }
 
     case SWhile(SExprInfo(span,parenthesized,_), testExpr, body) => {
       val (newTestExpr, bindings) = generatorClauseGetBindings(testExpr, true)
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Do]
       getType(newBody) match {
-        case None => noType(body)
+        case None => return expr
         case Some(ty) =>
           isSubtype(ty, Types.VOID, body,
                     errorMsg("Body of while loop must have type (), but had type ",
@@ -1592,7 +1607,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val (newGens, bindings) = handleGens(gens)
       val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
       getType(newBody) match {
-        case None => noType(body)
+        case None => return expr
         case Some(ty) =>
           isSubtype(ty, Types.VOID, body,
                     errorMsg("Body type of a for loop must have type () but has type ",

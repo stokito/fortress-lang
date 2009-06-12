@@ -1756,12 +1756,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forOverloadingOnly(Overloading that, String info,
                                                String unambiguousName_result,
-                                               List<String> inferredArgs_result,
                                                Option<String> type_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( unambiguousName_result );
-        inOxfordBrackets(s, inferredArgs_result);
+        if(type_result.isSome())
+          s.append(": " + type_result.unwrap());
 
         return "(* " + s.toString() + "*)";
     }

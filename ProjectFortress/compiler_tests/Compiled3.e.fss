@@ -21,9 +21,9 @@ export Executable
 trait T[\X extends Any\] end
 trait S excludes T[\String\] end
 
-f() = ()
-f(x: S -> S) = ()
-f(x: T[\()\]) = ()
+f(): () = ()
+f(x: S -> S): () = ()
+f(x: T[\()\]): () = ()
 
 run(): () = ()
 
