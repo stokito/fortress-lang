@@ -15,10 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component OpTest
+component Compiled1.as
   export Executable
 
-  doIt(a:ZZ32, b:ZZ32):ZZ32 = a+b
+  foo(a:ZZ32, b:ZZ32, c:ZZ32, d:ZZ32) : Boolean = do
+    ignore(a < b = c < d)
+    (a = b)
+  end
 
-  run():() =()
+  run():() = ()
 end
