@@ -244,6 +244,7 @@ LValue VarWoType =
      { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount), a1); }
    / Unpasting
      { Span span = createSpan(yyStart,yyCount);
+       log(span, "Matrix unpasting is not yet implemented.");
        yyValue = NodeFactory.makeLValue(span, NodeFactory.makeId(span, "_"));
      };
 
