@@ -30,29 +30,48 @@ import scala.collection.jcl.Conversions
 
 object ASTGenHelper {
   def scalaify(typ: Any): Any = typ match {
-    case o:JOption[_] => {
+    case o:JOption[Object] => {
       if(o.isSome)
-        Some(o.unwrap)
+        Some(scalaify(o.unwrap))
       else
         None
     }
 
-    case l:JList[_] => List()++Conversions.convertList(l)
+    case l:JList[Object] => {
+      var accum = List[Any]()
+      for (e <- (List()++Conversions.convertList(l))) {
+        accum = accum:::List(scalaify(e))
+      }
+      accum
+    }
 
-    case m:JMap[_,_] => Map.empty++Conversions.convertMap(m)
+    case m:JMap[Object,Object] => {
+      var accum = Map[Any,Any]()
+      for (k <- (Map.empty++Conversions.convertMap(m)).keySet) {
+          accum += ((scalaify(k), scalaify(m.get(k))))
+      }
+      accum
+    }
 
-    case s:JSet[_] => Set.empty++Conversions.convertSet(s)
+    case s:JSet[Object] => {
+      var accum = Set[Any]()
+      for (e <- Set.empty++Conversions.convertSet(s)) {
+        accum = accum + scalaify(e)
+      }
+      accum
+    }
+
     case _ => typ
   }
 
-  def javaify(typ: Any): Any = typ match {
-    case Some(t) => JOption.some(t)
+  def javaify(typ: Any): Object = typ match {
+    case Some(t) => JOption.some(javaify(t))
     case None => JOption.none
 
     case l:List[Object] => {
       val accum = new JLinkedList[Object]()
       for (e <- l) {
-        accum.addLast(e)
+        accum.addLast(javaify(e))
       }
       accum
     }
@@ -61,7 +80,7 @@ object ASTGenHelper {
       val accum = new JHashMap[Object,Object]()
       val keyset = m.keys
       for (k <- keyset) {
-          accum.put(k,m.apply(k))
+        accum.put(javaify(k),javaify(m.apply(k)))
       }
       accum
     }
@@ -69,11 +88,11 @@ object ASTGenHelper {
     case s:Set[Object] => {
       val accum = new JHashSet[Object]()
       for (e <- s) {
-        accum.add(e)
+        accum.add(javaify(e))
       }
       accum
     }
 
-    case _ => typ
+    case _ => typ.asInstanceOf[Object]
   }
 }

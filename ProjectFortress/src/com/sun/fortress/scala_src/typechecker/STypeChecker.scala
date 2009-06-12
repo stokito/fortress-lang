@@ -671,13 +671,13 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         val sargs = fn.getStaticArgs
         if (sargs.isEmpty)
           "Could not find %s %s applicable to argument type %s.".
-            format(kind, name, argType)
+            format(kind, name, normalize(argType))
         else
           "Could not find %s %s applicable to argument type %s and static args %s.".
-            format(kind, name, argType, sargs)
+            format(kind, name, normalize(argType), sargs)
       case _ =>
         "Expression of type %s is not applicable to argument type %s.".
-          format(fnType, argType)
+            format(normalize(fnType), normalize(argType))
       }
       signal(application, message)
     }

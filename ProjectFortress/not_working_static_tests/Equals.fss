@@ -22,7 +22,7 @@ component Equals
      saying no '=' could be found for two ZZ32s. *)
 
   object Const(n:ZZ32)
-    opr =(self, t:Const) = n = t.n
+    opr =(self, t:Const): Boolean = n = t.n
   end
 
   run():() = ()
