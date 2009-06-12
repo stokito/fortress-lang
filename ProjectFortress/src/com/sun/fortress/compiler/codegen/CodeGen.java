@@ -77,7 +77,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     private void generateMainMethod() {
 
-        // We generate two methods.  First a springboard method that creates an 
+        // We generate two methods.  First a springboard method that creates an
         // instance of the class we are generating, and then the real main method
         // which takes the instance and uses it to pass to the primordial task.
 
@@ -91,21 +91,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitTypeInsn(Opcodes.NEW, packageAndClassName);
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, packageAndClassName, "<init>", "()V");
-        
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "main", 
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "main",
                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V");
-        
+
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
-        
+
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
-                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V", 
+                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V",
                             null, null);
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.primordialTask, "startFortress",
                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)Lcom/sun/fortress/runtimeSystem/PrimordialTask;");
-        
+
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
@@ -183,10 +183,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void dumpClass( String file ) {
         PrintWriter pw = new PrintWriter(System.out);
         cw.visitEnd();
-        
+
         if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
             CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
-        
+
         ByteCodeWriter.writeClass(NamingCzar.cache, file, cw.toByteArray());
         debug( "Writing class ", file);
     }
@@ -214,7 +214,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cw.visitSource(packageAndClassName, null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
-        
+
         for ( APIName export : x.getExports() ) {
             if ( WellKnownNames.exportsMain(export.getText()) )
                 exportsExecutable = true;
@@ -223,9 +223,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageAndClassName, null, NamingCzar.fortressComponent, 
+                 packageAndClassName, null, NamingCzar.fortressComponent,
                  null);
-        
+
         // Always generate the init method
         generateInitMethod();
 
@@ -291,8 +291,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         return partitionedByArgCount;
     }
-    
-    
+
+
     public void forImportNames(ImportNames x) {
         debug("forImportNames", x);
         Option<String> foreign = x.getForeignLanguage();
@@ -581,16 +581,16 @@ public class CodeGen extends NodeAbstractVisitor_void {
         IdOrOp name = x.getName();
         Option<com.sun.fortress.nodes.Type> ot = x.getType();
         Relation<IdOrOpOrAnonymousName, Function> fnrl = ci.functions();
-        
-        MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount = 
+
+        MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount =
             new MultiMap<Integer,OverloadSet.TaggedFunctionName>();
-        
+
         for (IdOrOp fn : fns) {
-            
+
             Option<APIName> fnapi = fn.getApiName();
             PredicateSet<Function> set_of_f;
             APIName apiname;
-            
+
             if (fnapi.isNone()) {
                 apiname = ci.ast().getName();
                 set_of_f = fnrl.matchFirst(fn);
@@ -600,12 +600,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 IdOrOp fnnoapi = NodeFactory.makeLocalIdOrOp(fn);
                 set_of_f = ai.functions().matchFirst(fnnoapi);
             }
-            
+
             for (Function f : set_of_f) {
                 OverloadSet.TaggedFunctionName tagged_f = new OverloadSet.TaggedFunctionName(apiname, f);
                 byCount.putItem(f.parameters().size(), tagged_f);
             }
-            
+
             for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
                     .entrySet()) {
                 int i = entry.getKey();
@@ -621,7 +621,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 }
             }
 
-            
+
             // System.err.println(set_of_f);
 
         }
@@ -711,10 +711,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         body.unwrap().accept(cg);
 
         // Method body is complete except for returning final result if any.
-        if (NodeUtil.isVoidType(returnType.unwrap()))
-            cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                              NamingCzar.internalFortressVoid, NamingCzar.make,
-                              NamingCzar.makeMethodDesc("", NamingCzar.descFortressVoid));
+        // TODO: Fancy footwork here later on if we need to return a non-pointer;
+        // for now every fortress functional returns a single pointer result.
         cg.mv.visitInsn(Opcodes.ARETURN);
         cg.mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         cg.mv.visitEnd();
@@ -748,27 +746,46 @@ public class CodeGen extends NodeAbstractVisitor_void {
             maybe_else.unwrap().accept(this);
         }
         mv.visitJumpInsn(Opcodes.GOTO, done);
-        mv.visitInsn(Opcodes.NOP);
         mv.visitLabel(action);
-        mv.visitInsn(Opcodes.NOP);
         ifclause.getBody().accept(this);
         mv.visitLabel(done);
-        mv.visitInsn(Opcodes.NOP);
+    }
+
+    private void popAll(int onStack) {
+        if (onStack > 0) {
+            for (; onStack > 1; onStack -= 2) {
+                mv.visitInsn(Opcodes.POP2);
+            }
+            if (onStack==1) {
+                mv.visitInsn(Opcodes.POP);
+            }
+        }
     }
 
     public void forDo(Do x) {
         debug("forDo ", x);
+        int onStack = 0;
         for ( Block b : x.getFronts() ) {
+            popAll(onStack);
             b.accept(this);
+            onStack = 1;
         }
     }
 
     public void forBlock(Block x) {
         boolean oldInABlock = inABlock;
         inABlock = true;
+        int onStack = 0;
         debug("forBlock ", x);
         for ( Expr e : x.getExprs() ) {
+            popAll(onStack);
             e.accept(this);
+            onStack = 1;
+            // TODO: can we have multiple values on stack in future?
+            // Whither primitive types?
+            // May require some tracking of abstract stack state.
+            // For now we always have 1 pointer on stack and this doesn't
+            // matter.
         }
         inABlock=oldInABlock;
     }

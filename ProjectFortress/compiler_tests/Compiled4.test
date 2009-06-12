@@ -18,6 +18,7 @@ arg1=5
 compile
 link
 run
-run_out_matches=120\n
+run_out_matches=120\n\
+Should be 120.\n
 run_err_matches=
 
