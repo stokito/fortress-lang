@@ -696,9 +696,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           }
 
   private def check(node:Node):Node = node match {
-    case SComponent(info, name, imports, decls, isNative, exports)  =>
+    case SComponent(info, name, imports, decls, comprises, isNative, exports)  =>
       SComponent(info, name, imports,
-                 decls.map((n:Decl) => check(n).asInstanceOf[Decl]),
+                 decls.map((n:Decl) => check(n).asInstanceOf[Decl]), comprises,
                  isNative, exports)
 
     case t@STraitDecl(info,

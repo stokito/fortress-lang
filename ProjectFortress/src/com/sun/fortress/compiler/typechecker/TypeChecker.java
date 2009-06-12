@@ -2038,16 +2038,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forComponentOnly(Component that,
-                                                  TypeCheckerResult info,
-                                                  TypeCheckerResult name_result,
-                                                  List<TypeCheckerResult> imports_result,
-                                                  List<TypeCheckerResult> decls_result,
-                                                  List<TypeCheckerResult> exports_result) {
+                                              TypeCheckerResult info,
+                                              TypeCheckerResult name_result,
+                                              List<TypeCheckerResult> imports_result,
+                                              List<TypeCheckerResult> decls_result,
+                                              List<TypeCheckerResult> comprises_result,
+                                              List<TypeCheckerResult> exports_result) {
         Component new_comp =
                     NodeFactory.makeComponent(NodeUtil.getSpan(that),
                                               (APIName)name_result.ast(),
                                               (List<Import>)TypeCheckerResult.astFromResults(imports_result),
                                               (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
+                                              that.getComprises(),
                                               that.is_native(),
                                               (List<APIName>)TypeCheckerResult.astFromResults(exports_result));
 

@@ -99,11 +99,30 @@ private CompilationUnit CompilationUnit =
    / Api ;
 
 /* Component ::=
-     (native w)? component w APIName w ImportOrExports (w ;)?
+     (native w)? component w APIName w comprises w APINames
+     w end ((s component)? s APIName)?
+   | (native w)? component w APIName w ImportOrExports (w ;)?
      (w Decls (w ;)?)? w end ((s component)? s APIName)?
  */
 private Component Component =
-     a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)? w
+     a1:(native w)? component w a2:APIName w comprises w a3:APINames
+     a4:(w yyValue:ImportOrExports (w semicolon)?)? w
+     a5:(w yyValue:Decls (w semicolon)?)? w end a6:((s component)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a6 + " at the end.");
+       if (a4 != null || a5 != null)
+           log(span, "Compound component " + a2 + " should not include new declarations.");
+       List<Import>  imports = Collections.<Import>emptyList();
+       List<APIName> exports = Collections.<APIName>emptyList();
+       List<Decl>    decls   = Collections.<Decl>emptyList();
+       if (a1 == null)
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, false, exports);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, true, exports);
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)? w
      a4:(w yyValue:Decls (w semicolon)?)? w end a5:((s component)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
        if ( a3 == null ||
@@ -123,12 +142,28 @@ private Component Component =
            yyValue = NodeFactory.makeComponent(span, a2, imports, a4, true, exports);
      };
 
-/* Api ::= api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
-           ((s api)? s APIName)?
+/* Api ::=
+     api w APIName w comprises w APINames w end ((s api)? s APIName)?
+   | api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
+     ((s api)? s APIName)?
    Imports ::= Import (br Import)*
  */
 private Api Api =
-     a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)?
+     a0:(native w)? api w a1:APIName w comprises w a2:APINames
+     a3:(w yyValue:ImportOrExports (w semicolon)?)?
+     a4:(w yyValue:AbsDecls (w semicolon)?)? w end a5:((s api)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a0 != null )
+           log(span, "The native modifier is only for components not for APIs.");
+       if ( a5 != null && !NodeUtil.nameString(a5).equals(NodeUtil.nameString(a1)) )
+           log(span, "An API declaration of " + a1 +
+               " has the different name " + a5 + " at the end.");
+       if (a3 != null || a4 != null)
+           log(span, "Compound API " + a1 + " should not include new declarations.");
+       yyValue = NodeFactory.makeApi(span, a1, Collections.<Import>emptyList(),
+                                     Collections.<Decl>emptyList(), a2);
+     }
+   / a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)?
      a3:(w yyValue:AbsDecls (w semicolon)?)? w end
      a4:((s api)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
