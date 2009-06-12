@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXNoParenTightJuxt
+component Compiled1.al
   export Executable
 
   foo(f:ZZ32->ZZ32,a:ZZ32,b:ZZ32) : ZZ32 = f(a)^b
