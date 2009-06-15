@@ -110,6 +110,11 @@ public class CodeGenerationPhase extends Phase {
             ComponentIndex ci = previous.components().get(component.getName());
             Relation<IdOrOpOrAnonymousName, Function>  fns = ci.functions();
             TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, getEnv()));
+            
+            // Temporary code
+            ParallelismAnalyzer pa = new ParallelismAnalyzer();
+            component.accept(pa);
+            pa.printTable();
 
             CodeGen c = new CodeGen(component, symbolTable, ta, ci);
             component.accept(c);
