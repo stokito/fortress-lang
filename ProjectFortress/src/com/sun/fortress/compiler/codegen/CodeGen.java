@@ -40,6 +40,7 @@ import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
@@ -60,6 +61,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
     final String packageAndClassName;
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
+    private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
+    private HashSet<String> overloadedNamesAndSigs = new HashSet<String>();
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -128,6 +131,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         symbols = s;
         this.ta = ta;
         this.ci = ci;
+        this.topLevelOverloads = 
+            sizePartitionedOverloads(ci.functions());
+        
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
@@ -148,6 +154,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.localsDepth = c.localsDepth;
         this.ta = c.ta;
         this.ci = c.ci;
+        this.topLevelOverloads = c.topLevelOverloads;
         if (c.lexEnv == null) {
             this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         } else {
@@ -238,60 +245,84 @@ public class CodeGen extends NodeAbstractVisitor_void {
             i.accept(this);
         }
 
+        // determineOverloadedNames(x.getDecls() );
+        
+        // Must do this first, to get local decls right.
+        generateTopLevelOverloads();
+        
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
         }
-
-        generateTopLevelOverloads();
+        
+        
 
         dumpClass( packageAndClassName );
     }
-
+   
+    /**
+     * Creates overloaded functions for any overloads present at the top level
+     * of this component.  Top level overloads are those that might be exported;
+     * Reference overloads are rewritten into _RewriteFnOverloadDecl nodes
+     * and generated in the normal visits.
+     */
     private void generateTopLevelOverloads() {
-        Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
+                
+        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 : topLevelOverloads.entrySet()) {
+            IdOrOpOrAnonymousName  name = entry1.getKey();
+            MultiMap<Integer, Function> partitionedByArgCount = entry1.getValue();
+            
+            for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
+                    .entrySet()) {
+               int i = entry.getKey();
+               Set<Function> fs = entry.getValue();
 
+               OverloadSet os =
+                   new OverloadSet.Local(ci.ast().getName(), name,
+                                         ta, fs, i);
+
+               os.split(true);
+               
+               String s = name.stringName();
+               
+               os.generateAnOverloadDefinition(s, cw);
+               
+               for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
+                   String ss = o_entry.getKey();
+                   ss = s + ss;
+                   overloadedNamesAndSigs.add(ss);
+               }
+           }
+        }
+    }
+
+    Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+       sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, Function> fns) {
+        
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> result = 
+            new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
+        
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
             Set<Function> defs = fns.matchFirst(name);
             if (defs.size() <= 1) continue;
 
-            // Partition overloads by size.
-            emitLocalOverloadingsPartitionedBySize( name, defs);
-        }
+            MultiMap<Integer, Function> partitionedByArgCount =
+                new MultiMap<Integer, Function>();
 
+            for (Function d : defs) {
+                partitionedByArgCount.putItem(d.parameters().size(), d);
+            }
+            
+            for (Function d : defs) {
+                Set<Function> sf = partitionedByArgCount.get(d.parameters().size());
+                if (sf != null && sf.size() <= 1)
+                    partitionedByArgCount.remove(d.parameters().size());
+            }
+            if (partitionedByArgCount.size() > 0)
+                result.put(name, partitionedByArgCount);
+        }
+        
+        return result;
     }
-
-    /**
-     * @param name
-     * @param defs
-     * @return
-     */
-    private MultiMap<Integer, Function> emitLocalOverloadingsPartitionedBySize(
-            IdOrOpOrAnonymousName name, Set<Function> defs) {
-        MultiMap<Integer, Function> partitionedByArgCount =
-            new MultiMap<Integer, Function>();
-
-        for (Function d : defs) {
-            partitionedByArgCount.putItem(d.parameters().size(), d);
-        }
-
-        for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
-                 .entrySet()) {
-            int i = entry.getKey();
-            Set<Function> fs = entry.getValue();
-            if (fs.size() <= 1) continue;
-
-            OverloadSet os =
-                new OverloadSet.Local(ci.ast().getName(), name,
-                                      ta, fs, i);
-
-            os.split();
-            String s = os.toString();
-            os.generateAnOverloadDefinition(name.stringName(), cw);
-
-        }
-        return partitionedByArgCount;
-    }
-
 
     public void forImportNames(ImportNames x) {
         debug("forImportNames", x);
@@ -516,6 +547,20 @@ public class CodeGen extends NodeAbstractVisitor_void {
         m.visitLineNumber(begin.getLine(), bogus_label);
     }
 
+    public static String jvmSignatureFor(Function f) {
+        String sig;
+        List<Param> params = f.parameters();
+        sig = "(";
+        for (Param p : params ) {                
+            Type ty = p.getIdType().unwrap();
+            String toType = NamingCzar.only.boxedImplDesc(ty);
+            sig += toType;
+        }
+        sig += ")";
+        sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
+        return sig;
+    }
+    
     public void forOpRef(OpRef x) {
         debug("forOpRef " + x );
         ExprInfo info = x.getInfo();
@@ -614,18 +659,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     OverloadSet os = new OverloadSet.AmongApis(name,
                             ta, fs, i);
 
-                    os.split();
-                    String s = os.toString();
+                    os.split(false);
                     os.generateAnOverloadDefinition(name.stringName(), cw);
 
                 }
             }
-
-
-            // System.err.println(set_of_f);
-
         }
-
     }
 
     public void forFnDecl(FnDecl x) {
@@ -697,10 +736,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
             modifiers += Opcodes.ACC_STATIC;
         }
 
+        String mname = NamingCzar.mangleIdentifier(nameString);
+        String sig = Naming.emitFnDeclDesc(NodeUtil.getParamType(x),
+                returnType.unwrap());
+        
+        if (overloadedNamesAndSigs.contains(mname+sig)) {
+            mname = NamingCzar.only.mangleAwayFromOverload(mname);
+        }
+        
         cg.mv = cw.visitMethod(modifiers,
-                               NamingCzar.mangleIdentifier(nameString),
-                               Naming.emitFnDeclDesc(NodeUtil.getParamType(x),
-                                                     returnType.unwrap()),
+                               mname,
+                               sig,
                                null, null);
 
         // Now inside method body.  Generate code for the method body.
