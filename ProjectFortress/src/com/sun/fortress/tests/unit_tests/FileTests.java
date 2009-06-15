@@ -971,6 +971,9 @@ public class FileTests {
                  || test_name.startsWith("Compiled3")
                  || test_name.startsWith("Compiled4")
                  || test_name.startsWith("Compiled5")
+                 //|| test_name.startsWith("Compiled6")
+                // || test_name.startsWith("Compiled7")
+                // || test_name.startsWith("Compiled8")
                  );
     }
 

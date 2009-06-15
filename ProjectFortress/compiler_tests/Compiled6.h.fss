@@ -19,7 +19,7 @@ component Compiled6.h
 export Executable
 
 object O
-  setter x(y:ZZ32) = ()
+  setter x(y:ZZ32): () = ()
   getter x(): String = ""
 end
 

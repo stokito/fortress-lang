@@ -17,8 +17,8 @@ tests=Compiled6.i
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.i.fss:22:3-17:\n\
-${STATIC_TESTS_DIR}/Compiled6.i.fss:23:3-17:\n\
+${STATIC_TESTS_DIR}/Compiled6.i.fss:22:3-21:\n\
+${STATIC_TESTS_DIR}/Compiled6.i.fss:23:3-21:\n\
 \ There are multiple declarations of x with the same type: ZZ32 -> ()\n\
 File Compiled6.i.fss has 1 error.\n
 compile_out_equals=
