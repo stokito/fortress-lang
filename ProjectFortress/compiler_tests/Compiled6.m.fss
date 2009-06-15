@@ -24,7 +24,7 @@ trait T
 end
 
 object O extends T
-  f(y:ZZ32) = ()
+  f(y:ZZ32): () = ()
 end
 
 run(): () = ()

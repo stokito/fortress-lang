@@ -111,6 +111,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                env.extendWithStaticParams(sparams),
                                analyzer.extend(sparams, where), errors)
   }
+  
+  private def extend(id: Id, typ: Type): STypeChecker =
+    extend(List[LValue](NodeFactory.makeLValue(id, typ)))
 
   private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
     STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
@@ -826,12 +829,11 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                    analyzer.extend(statics, wheres))
       val newContract = contract.map(c => newChecker.check(c))
       val newBody = newChecker.checkExpr(body, returnType, "Function body",
-                                         "declared return")
-
+                                                           "declared return")
 
       val newType = (returnType, getType(newBody)) match {
-        case (_, Some(bt)) if NodeUtil.isSetter(f) =>
-          isSubtype(bt, Types.VOID, f, "Setter declarations must return void.")
+        case (Some(rt), _) if NodeUtil.isSetter(f) =>
+          isSubtype(rt, Types.VOID, f, "Setter declarations must return void.")
           Some(Types.VOID)
         case (None, bt) => bt
         case (rt, _) => rt
@@ -1639,6 +1641,68 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), id, sargs, depth)
         case None => signal(id, errorMsg("Type of the variable '", id, "' not found.")); v
       }
+      
+    case STypecase(SExprInfo(span, paren, _),
+                   bindIds, bindExpr, clauses, elseClause) => {
+      if (bindIds.size != 1)
+        NI.nyi("Typecase only supports a single identifier for now.")
+      
+      // Make sure the bindId is not shadowing.
+      val bindId = bindIds.first
+      if (getTypeFromName(bindId).isDefined) {
+        signal(bindId, "Cannot shadow name: %s".format(bindId))
+        return expr
+      }
+      
+      // Make sure the expr has a type.
+      val checkedExpr = bindExpr.map(checkExpr).
+        getOrElse(NI.nyi("Typecase currently must have a bound expression."))
+      val checkedType = getType(checkedExpr).getOrElse(return expr)
+      
+      // Check each clause with the bound id having static type of the guard.
+      def checkClause(c: TypecaseClause): TypecaseClause = c match {        
+        case STypecaseClause(info, List(matchType), body) =>
+          val checkedBody =
+            this.extend(bindId, matchType).
+            checkExpr(body).asInstanceOf[Block]
+          STypecaseClause(info, List(matchType), checkedBody)
+          
+        case _ =>
+          NI.nyi("Typecase only supports a single match type for now.")
+      }
+      val checkedClauses = clauses.map(checkClause)
+      val clauseTypes =
+        checkedClauses.map(c => getType(c.getBody).getOrElse(return expr))
+      
+      // Check the else clause with the new binding.
+      val checkedElse =
+        elseClause.map(e => this.extend(bindId, checkedType).
+                              checkExpr(e).asInstanceOf[Block])
+      val elseType = checkedElse.map(getType(_).getOrElse(return expr))
+      
+      // Build union type of all clauses and else.
+      val allTypes = elseType match {
+        case Some(t) => Set(clauseTypes:_*) + t
+        case _ => Set(clauseTypes:_*)
+      }
+      val unionType = NodeFactory.makeUnionType(allTypes)
+      
+      STypecase(SExprInfo(span, paren, Some(unionType)),
+                bindIds,
+                Some(checkedExpr),
+                checkedClauses,
+                checkedElse)
+    }
+    
+    case SAsExpr(SExprInfo(span, paren, _), sub, typ) => {
+      val checkedSub = checkExpr(sub, Some(typ), "Expression", "ascripted")
+      SAsExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
+    }
+    
+    case SAsIfExpr(SExprInfo(span, paren, _), sub, typ) => {
+      val checkedSub = checkExpr(sub, Some(typ), "Expression", "assumed")
+      SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
+    }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
     // "\n" + expr.toStringVerbose())

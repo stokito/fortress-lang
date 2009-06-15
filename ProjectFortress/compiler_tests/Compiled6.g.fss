@@ -19,7 +19,7 @@ component Compiled6.g
 export Executable
 
 object O
-  setter x(y:ZZ32) = y
+  setter x(y:ZZ32): () = y
 end
 
 run(): () = ()

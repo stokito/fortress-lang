@@ -19,8 +19,8 @@ component Compiled6.i
 export Executable
 
 object O
-  x(y: ZZ32) = ()
-  x(y: ZZ32) = ()
+  x(y: ZZ32): () = ()
+  x(y: ZZ32): () = ()
 end
 
 run(): () = ()

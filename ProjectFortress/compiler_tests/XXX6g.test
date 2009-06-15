@@ -17,7 +17,7 @@ tests=Compiled6.g
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.g.fss:22:3-22:\n\
-\ Setter declarations must return void.\n\
+${STATIC_TESTS_DIR}/Compiled6.g.fss:22:26:\n\
+\ Function body has type ZZ32, but declared return type is ().\n\
 File Compiled6.g.fss has 1 error.\n
 compile_out_equals=
