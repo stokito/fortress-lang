@@ -27,6 +27,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -569,5 +571,11 @@ public class NamingCzar {
         return mangledString;
     }
 
+    public String mangleAwayFromOverload(String mname) {
+            mname += "$SINGLE";
+        return mname;
+    }
+
+   
     
 }
