@@ -62,7 +62,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
-    private HashSet<String> overloadedNamesAndSigs = new HashSet<String>();
+    private HashSet<String> overloadedNamesAndSigs;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -133,7 +133,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.ci = ci;
         this.topLevelOverloads = 
             sizePartitionedOverloads(ci.functions());
-        
+        this.overloadedNamesAndSigs = new HashSet<String>();
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
@@ -155,6 +155,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.ta = c.ta;
         this.ci = c.ci;
         this.topLevelOverloads = c.topLevelOverloads;
+        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
         if (c.lexEnv == null) {
             this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         } else {
@@ -684,6 +685,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         IdOrOpOrAnonymousName name = header.getName();
         List<Param> params = header.getParams();
         boolean functionalMethod = false;
+        boolean emitUnambiguous = false;
 
         for (Param p : params) {
             debug("iterating params looking for self : param = ", p);
@@ -721,7 +723,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
             sayWhat(x);
         }
 
-
         CodeGen cg = new CodeGen(this);
         cg.localsDepth = 0;
 
@@ -733,6 +734,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
             cg.addLocalVar(new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null));
         } else if (!nameString.equals("run")) {
             // Top-level function or functional method
+            
+            // I'm a little puzzled about how else "run" might be called,
+            // if it is not static.  (DRC)
             modifiers += Opcodes.ACC_STATIC;
         }
 
@@ -763,6 +767,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         cg.mv.visitEnd();
         // Method body complete, cg now invalid.
+        
+        // Check to see if a wrapper is needed.
+        if (topLevelOverloads.containsKey(name)) {
+            
+        }
+        
+        Option<IdOrOp> iun = x.getImplementsUnambiguousName();
+        
+        if (iun.isSome()) {
+            
+        }
     }
 
     public void forIf(If x) {
