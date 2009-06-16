@@ -1398,7 +1398,7 @@ public class NodeUtil {
                  d instanceof PropertyDecl );
     }
 
-    private static boolean isCoercion(Decl d) {
+    public static boolean isCoercion(Decl d) {
         return ( d instanceof FnDecl &&
                  getName((FnDecl)d) instanceof Id &&
                  ((Id)getName((FnDecl)d)).getText().equals("coerce") );
