@@ -4400,8 +4400,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 assert(lookup.isSome());
                 // According to spec, ids must be immutable b/c they are rebound
                 if( lookup.unwrap().isMutable() ) {
-                    String err = "For a typecase expression without a binding expression,\n" +
-                                 "    the identifiers must be immutable variables.";
+                    String err = errorMsg("Identifier for a typecase expression without a ",
+                                          "binding expression cannot be a mutable variable: ", id);
                     TypeCheckerResult mut_result = new TypeCheckerResult(that, TypeError.make(err, id));
                     bind_results.add(mut_result);
                     return TypeCheckerResult.compose(that, subtypeChecker, bind_results);

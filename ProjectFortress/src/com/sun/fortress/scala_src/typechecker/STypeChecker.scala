@@ -1657,69 +1657,91 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     case STypecase(SExprInfo(span, paren, _),
                    bindIds, bindExpr, clauses, elseClause) => {
-      // Make sure the expr has a type.
       val (checkedExpr, checkedType) = bindExpr.map(checkExpr) match {
+        
+        // If expr exists and was checked properly, make sure the bindIds are
+        // not shadowing.
         case Some(checkedE) =>
-          // Make sure the bindIds are not shadowing.
-          bindIds.foreach( i => if (getTypeFromName(i).isDefined) {
-                                  signal(i, "Cannot shadow name: %s".format(i))
-                                  return expr
-                                })
+          bindIds.foreach(i =>
+            if (getTypeFromName(i).isDefined) {
+              signal(i, "Cannot shadow name: %s".format(i))
+              return expr
+            })
           (Some(checkedE), getType(checkedE).getOrElse(return expr))
+        
+        // If expr does not exist, make sure thr bindIds are not mutable.
         case _ =>
-          bindIds.foreach( i => if ( getModsFromName(i).getOrElse(Modifiers.None).isMutable )
-                                  signal(i, errorMsg("For a typecase expression without a binding expression,\n",
-                                                     "    the identifiers must be immutable variables.")))
+          bindIds.foreach(id =>
+            if (getModsFromName(id).getOrElse(Modifiers.None).isMutable)
+              signal(id, ("Identifier for a typecase expression without a " +
+                         "binding expression cannot be a mutable variable: %s").
+                           format(id)))
+          
+          val idTypes = bindIds.map(getTypeFromName(_).getOrElse(return expr))
           (None, NodeFactory.makeMaybeTupleType(NodeUtil.getSpan(expr),
-                                                toJavaList(bindIds.map(i => getTypeFromName(i).getOrElse(return expr)))))
+                                                toJavaList(idTypes)))
       }
+      
+      // Check that the number of bindIds matches the size of the bindExpr.
       val isMultipleIds = bindIds.size > 1
-      if ( isMultipleIds && bindExpr.isDefined ) {
-        if ( checkedType.isInstanceOf[TupleType] ) {
-          if ( checkedType.asInstanceOf[TupleType].getElements.size != bindIds.size ) {
+      if (isMultipleIds && bindExpr.isDefined) {
+        checkedType match {
+          case STupleType(_, elts, _, _) =>
+            if (elts.size != bindIds.size) {
+              signal(bindExpr.get,
+                     errorMsg("A typecase expression has multiple identifiers\n    but ",
+                              "the sizes of the identifiers and the binding ",
+                              "expression do not match."))
+              return expr
+            }
+          case _ =>
             signal(bindExpr.get,
                    errorMsg("A typecase expression has multiple identifiers\n    but ",
-                            "the sizes of the identifiers and the binding ",
-                            "expression do not match."))
+                            "the binding expression does not have a tuple type."))
             return expr
-          }
-        } else {
-          signal(bindExpr.get,
-                 errorMsg("A typecase expression has multiple identifiers\n    but ",
-                          "the binding expression does not have a tuple type."))
-          return expr
         }
       }
       // Check each clause with the bound ids having types of
       // intersection of the static types of the guard and the checkedType
-      def checkClause(c: TypecaseClause): TypecaseClause = c match {
-        case STypecaseClause(info, matchType, body) =>
-          if (matchType.size != bindIds.size) {
-            signal(c, "A typecase expression has a different number of cases in a clause.")
-            return c
+      def checkClause(c: TypecaseClause): TypecaseClause = {
+        val STypecaseClause(info, matchType, body) = c
+        if (matchType.size != bindIds.size) {
+          signal(c, "A typecase expression has a different number of cases in a clause.")
+          return c
+        }
+        
+        // Construct the types that correspond to each id.
+        val newType =
+          if (isMultipleIds) {
+            val STupleType(_, eltTypes, _, _) = checkedType
+            eltTypes.zip(matchType).map((p:(Type, Type)) =>
+                normalize(NodeFactory.makeIntersectionType(p._1, p._2)))
+          } else {
+            List[Type](normalize(NodeFactory.makeIntersectionType(checkedType, matchType.first)))
           }
-          val newType =
-            if ( isMultipleIds ) {
-              toList(checkedType.asInstanceOf[TupleType].getElements).
-                zip(matchType).
-                  map((p:(Type,Type)) => normalize(NodeFactory.makeIntersectionType(p._1,p._2)))
-            } else List[Type](normalize(NodeFactory.makeIntersectionType(checkedType, matchType.first)))
-          val checkedBody =
-            this.extend(bindIds, newType).
-              checkExpr(body).asInstanceOf[Block]
-          STypecaseClause(info, matchType, checkedBody)
+        
+        val checkedBody =
+          this.extend(bindIds, newType).
+          checkExpr(body).asInstanceOf[Block]
+        
+        STypecaseClause(info, matchType, checkedBody)
       }
       val checkedClauses = clauses.map(checkClause)
       val clauseTypes =
         checkedClauses.map(c => getType(c.getBody).getOrElse(return expr))
+      
       // Check the else clause with the new binding.
       val newType =
-        if ( isMultipleIds ) toList(checkedType.asInstanceOf[TupleType].getElements)
-        else List[Type](checkedType)
+        if (isMultipleIds)
+          toList(checkedType.asInstanceOf[TupleType].getElements)
+        else
+          List[Type](checkedType)
       val checkedElse =
-        elseClause.map(e => this.extend(bindIds, newType).
-                              checkExpr(e).asInstanceOf[Block])
+        elseClause.map(e =>
+          this.extend(bindIds, newType).
+            checkExpr(e).asInstanceOf[Block])
       val elseType = checkedElse.map(getType(_).getOrElse(return expr))
+      
       // Build union type of all clauses and else.
       val allTypes = elseType match {
         case Some(t) => Set(clauseTypes:_*) + t
