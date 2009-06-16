@@ -20,13 +20,15 @@ package com.sun.fortress.compiler.codegen.stubs.compiled3.fortress;
 import com.sun.fortress.compiler.runtimeValues.*;
 import com.sun.fortress.nativeHelpers.*;
 
-public class CompilerBuiltin {
-    public static void println(FString s) {
+public final class CompilerBuiltin {
+    public static FVoid println(FString s) {
         simplePrintln.nativePrintln(s.toString());
+        return FVoid.make();
     }
 
     // Total hack to work around lack of overloading.
-    public static void println(FZZ32 n) {
+    public static FVoid println(FZZ32 n) {
         System.out.println(n.toString());
+        return FVoid.make();
     }
 }

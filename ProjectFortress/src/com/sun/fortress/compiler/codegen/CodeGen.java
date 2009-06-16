@@ -124,31 +124,22 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             NamingCzar.stringArrayToVoid, null, null);
         mv.visitCode();
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper",
-                           "registerArgs", NamingCzar.stringArrayToVoid);
-
+        // new packageAndClassName()
         mv.visitTypeInsn(Opcodes.NEW, packageAndClassName);
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, packageAndClassName, "<init>", "()V");
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "main",
-                           "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V");
-
-        mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
-        mv.visitEnd();
-
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
-                            "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)V",
-                            null, null);
+        // .runExecutable(args)
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.primordialTask, "startFortress",
-                           "(Lcom/sun/fortress/runtimeSystem/FortressComponent;)Lcom/sun/fortress/runtimeSystem/PrimordialTask;");
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                           NamingCzar.fortressExecutable,
+                           NamingCzar.fortressExecutableRun,
+                           NamingCzar.fortressExecutableRunType);
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
+        // return
     }
 
     private void generateInitMethod() {
@@ -381,8 +372,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 exportsDefaultLibrary = true;
         }
 
+        String extendedJavaClass;
+        if ( exportsExecutable ) {
+            extendedJavaClass = NamingCzar.fortressExecutable;
+        } else {
+            extendedJavaClass = NamingCzar.fortressComponent;
+        }
+
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageAndClassName, null, NamingCzar.fortressComponent,
+                 packageAndClassName, null, extendedJavaClass,
                  null);
 
         // Always generate the init method
