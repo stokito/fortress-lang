@@ -276,7 +276,25 @@ PureList<PrecedenceOpExpr> OpExprPrefix =
    / <Prefix>  a1:Op wr a2:OpExprPrefix
      { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
    / <Left>    a1:Op wr a2:OpExprLeftEncloser
-     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); };
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / caret w a2:OpExprPrimary
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     }
+   / caret w a2:OpExprPrefix
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     }
+   / caret w a2:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     };
 
 /* TightInfixPostfix ::=
      Op OpExprPrimary
@@ -300,6 +318,30 @@ PureList<PrecedenceOpExpr> TightInfixPostfix =
      { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
    / <Left>    a1:Op wr a2:OpExprLeftEncloser
      { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / caret wr a2:OpExprPrimary
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret wr a2:OpExprPrefix
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret wr a2:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = PureList.make((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
    / a1:Op
      { yyValue = PureList.make((PrecedenceOpExpr)new Postfix(a1)); };
 
