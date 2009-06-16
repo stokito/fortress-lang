@@ -4359,14 +4359,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             if( bindings.size() > 1 ) {
                 // typecase (a,b,c) = someX of ...
                 if(!(original_type instanceof TupleType)){
-                    String err="Right hand side of binding not a tuple";
+                    String err="A typecase expression has multiple identifiers\n"+
+                               "    but the binding expression does not have a tuple type.";
                     return TypeCheckerResult.compose(that,
                             subtypeChecker,
                             new TypeCheckerResult(that,TypeError.make(err, that.getBindExpr().unwrap())), bind_expr_result_.unwrap());
                 }
                 TupleType tuple=(TupleType)original_type;
                 if(tuple.getElements().size()!=bindings.size()){
-                    String err="Number of bindings does not match type of expression";
+                    String err="A typecase expression has multiple identifiers\n" +
+                               "    but the sizes of the identifiers and the binding expression do not match.";
                     return TypeCheckerResult.compose(that,
                             subtypeChecker,
                             new TypeCheckerResult(that,TypeError.make(err, that.getBindExpr().unwrap())), bind_expr_result_.unwrap());
