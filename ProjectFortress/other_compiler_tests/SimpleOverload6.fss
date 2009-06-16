@@ -28,7 +28,7 @@ print2(x:String, y:String):() = do
   jPrintln(jDuo(x,y))
 end
 
-run() = do
+run(): () = do
   print2("PA","SS")
 
   jPrintln(jDuo("11"))

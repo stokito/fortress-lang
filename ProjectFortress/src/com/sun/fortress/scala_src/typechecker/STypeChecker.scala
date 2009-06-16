@@ -483,8 +483,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     def lessThan(overloading1: (ArrowType, List[StaticArg]),
                  overloading2: (ArrowType, List[StaticArg])): Boolean = {
 
-      val SArrowType(_, domain1, range1, _) = overloading1
-      val SArrowType(_, domain2, range2, _) = overloading2
+      val SArrowType(_, domain1, range1, _) = overloading1._1
+      val SArrowType(_, domain2, range2, _) = overloading2._1
 
       if (equivalentTypes(domain1, domain2)) false
       else isSubtype(domain1, domain2)
