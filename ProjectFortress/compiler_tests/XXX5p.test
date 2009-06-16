@@ -13,5 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled1.ag Compiled1.ah Compiled1.ai Compiled1.aj Compiled1.ak Compiled1.as Compiled1.au Compiled1.av Compiled2.g Compiled2.t Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v Compiled3.x Compiled5.o Compiled5.q Compiled6 Compiled7 Compiled8
-desugar
+tests=Compiled5.p
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.p.fss:23:22:\n\
+\ For a typecase expression without a binding expression,\n\
+\ the identifiers must be immutable variables.\n\
+File Compiled5.p.fss has 1 error.\n
+compile_out_equals=

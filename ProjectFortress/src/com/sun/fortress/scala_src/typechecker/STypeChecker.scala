@@ -49,6 +49,7 @@ import com.sun.fortress.exceptions.ProgramError.error
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.ExprFactory
+import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
@@ -111,9 +112,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                env.extendWithStaticParams(sparams),
                                analyzer.extend(sparams, where), errors)
   }
-  
+
   private def extend(id: Id, typ: Type): STypeChecker =
     extend(List[LValue](NodeFactory.makeLValue(id, typ)))
+
+  private def extend(ids: List[Id], types: List[Type]): STypeChecker =
+    extend(ids.zip(types).map((p:(Id,Type)) => NodeFactory.makeLValue(p._1,p._2)))
 
   private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
     STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
@@ -208,7 +212,16 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => None
   }
 
-  def getErrors(): List[StaticError] = errors.errors
+  /**
+   * Lookup the modifiers of the given name in the proper type environment.
+   */
+  private def getModsFromName(name: Name): Option[Modifiers] = name match {
+    case id@SIdOrOpOrAnonymousName(_, Some(api)) => toOption(getEnvFromApi(api).mods(id))
+    case id@SIdOrOpOrAnonymousName(_, None) => toOption(env.mods(id))
+    case _ => None
+  }
+
+ def getErrors(): List[StaticError] = errors.errors
 
   /**
    * Signal an error if the given type is not a trait.
@@ -414,7 +427,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         else
           staticInstantiation(inferredStaticArgs, overloadingType).
             getOrElse(return None).asInstanceOf[ArrowType]
-    
+
       if (isSubtype(typ.getDomain, smaArrow.getDomain))
         Some(typ)
       else
@@ -934,7 +947,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
       op
     }
-    
+
     case SLink(info,op,expr) =>{
       SLink(info,checkExpr(op).asInstanceOf[FunctionalRef],checkExpr(expr))
     }
@@ -1101,7 +1114,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // Check subexpressions
       val checkedExprs = exprs.map(checkExpr)
       if (!haveTypes(checkedExprs)) { return expr }
-      
+
       // Break the list of expressions into chunks.
       // First the loose juxtaposition is broken into nonempty chunks;
       // wherever there is a non-function element followed
@@ -1448,7 +1461,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         case _ => None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
- 
+
       if (checkedOverloadings.isEmpty)
         signal(expr, errorMsg("Wrong number or kind of static arguments for function: ",
                               name))
@@ -1520,7 +1533,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
 
     }
 
-    case SChainExpr(SExprInfo(span,parenthesized,_), first, links) => {      
+    case SChainExpr(SExprInfo(span,parenthesized,_), first, links) => {
       // Build up a list of OpExprs from the Links (in reverse).
       def makeOpExpr(prevAndResult: (Expr, List[Expr]),
                        nextLink: Link): (Expr, List[Expr]) = {
@@ -1533,9 +1546,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                              next)
         (next, newExpr :: result)
       }
-      val (_, conjuncts) = links.foldLeft((first, List[Expr]()))(makeOpExpr) 
-        
-      
+      val (_, conjuncts) = links.foldLeft((first, List[Expr]()))(makeOpExpr)
+
+
       // Check that an expr is a Boolean.
       def checkBoolean(expr: Expr): Boolean = {
         getType(checkExpr(expr)) match {
@@ -1547,14 +1560,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         }
       }
       if (!conjuncts.forall(checkBoolean)) return expr
-      
+
       // Reduce the OpExprs with an AND operation.
-      
-      
+
+
       SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), checkExpr(first),
                  links.map(t => check(t).asInstanceOf[Link]))
     }
-    
+
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
       val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
@@ -1641,64 +1654,91 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), id, sargs, depth)
         case None => signal(id, errorMsg("Type of the variable '", id, "' not found.")); v
       }
-      
+
     case STypecase(SExprInfo(span, paren, _),
                    bindIds, bindExpr, clauses, elseClause) => {
-      if (bindIds.size != 1)
-        NI.nyi("Typecase only supports a single identifier for now.")
-      
-      // Make sure the bindId is not shadowing.
-      val bindId = bindIds.first
-      if (getTypeFromName(bindId).isDefined) {
-        signal(bindId, "Cannot shadow name: %s".format(bindId))
-        return expr
-      }
-      
       // Make sure the expr has a type.
-      val checkedExpr = bindExpr.map(checkExpr).
-        getOrElse(NI.nyi("Typecase currently must have a bound expression."))
-      val checkedType = getType(checkedExpr).getOrElse(return expr)
-      
-      // Check each clause with the bound id having static type of the guard.
-      def checkClause(c: TypecaseClause): TypecaseClause = c match {        
-        case STypecaseClause(info, List(matchType), body) =>
-          val checkedBody =
-            this.extend(bindId, matchType).
-            checkExpr(body).asInstanceOf[Block]
-          STypecaseClause(info, List(matchType), checkedBody)
-          
+      val (checkedExpr, checkedType) = bindExpr.map(checkExpr) match {
+        case Some(checkedE) =>
+          // Make sure the bindIds are not shadowing.
+          bindIds.foreach( i => if (getTypeFromName(i).isDefined) {
+                                  signal(i, "Cannot shadow name: %s".format(i))
+                                  return expr
+                                })
+          (Some(checkedE), getType(checkedE).getOrElse(return expr))
         case _ =>
-          NI.nyi("Typecase only supports a single match type for now.")
+          bindIds.foreach( i => if ( getModsFromName(i).getOrElse(Modifiers.None).isMutable )
+                                  signal(i, errorMsg("For a typecase expression without a binding expression,\n",
+                                                     "    the identifiers must be immutable variables.")))
+          (None, NodeFactory.makeMaybeTupleType(NodeUtil.getSpan(expr),
+                                                toJavaList(bindIds.map(i => getTypeFromName(i).getOrElse(return expr)))))
+      }
+      val isMultipleIds = bindIds.size > 1
+      if ( isMultipleIds ) {
+        if ( checkedType.isInstanceOf[TupleType] ) {
+          if ( checkedType.asInstanceOf[TupleType].getElements.size != bindIds.size ) {
+            signal(expr,
+                   errorMsg("A typecase expression has multiple identifiers\n    but ",
+                            "the sizes of the identifiers and the binding ",
+                            "expression do not match."))
+            return expr
+          }
+        } else {
+          signal(expr,
+                 errorMsg("A typecase expression has multiple identifiers\n    but ",
+                          "the binding expression does not have a tuple type."))
+          return expr
+        }
+      }
+      // Check each clause with the bound ids having types of
+      // intersection of the static types of the guard and the checkedType
+      def checkClause(c: TypecaseClause): TypecaseClause = c match {
+        case STypecaseClause(info, matchType, body) =>
+          if (matchType.size != bindIds.size) {
+            signal(c, "A typecase expression has a different number of cases in a clause.")
+            return c
+          }
+          val newType =
+            if ( isMultipleIds ) {
+              toList(checkedType.asInstanceOf[TupleType].getElements).
+                zip(matchType).
+                  map((p:(Type,Type)) => normalize(NodeFactory.makeIntersectionType(p._1,p._2)))
+            } else List[Type](normalize(NodeFactory.makeIntersectionType(checkedType, matchType.first)))
+          val checkedBody =
+            this.extend(bindIds, newType).
+              checkExpr(body).asInstanceOf[Block]
+          STypecaseClause(info, matchType, checkedBody)
       }
       val checkedClauses = clauses.map(checkClause)
       val clauseTypes =
         checkedClauses.map(c => getType(c.getBody).getOrElse(return expr))
-      
       // Check the else clause with the new binding.
+      val newType =
+        if ( isMultipleIds ) toList(checkedType.asInstanceOf[TupleType].getElements)
+        else List[Type](checkedType)
       val checkedElse =
-        elseClause.map(e => this.extend(bindId, checkedType).
+        elseClause.map(e => this.extend(bindIds, newType).
                               checkExpr(e).asInstanceOf[Block])
       val elseType = checkedElse.map(getType(_).getOrElse(return expr))
-      
       // Build union type of all clauses and else.
       val allTypes = elseType match {
         case Some(t) => Set(clauseTypes:_*) + t
         case _ => Set(clauseTypes:_*)
       }
       val unionType = NodeFactory.makeUnionType(allTypes)
-      
+      // TODO: A nonexhaustive typecase is an error.
       STypecase(SExprInfo(span, paren, Some(unionType)),
                 bindIds,
-                Some(checkedExpr),
+                checkedExpr,
                 checkedClauses,
                 checkedElse)
     }
-    
+
     case SAsExpr(SExprInfo(span, paren, _), sub, typ) => {
       val checkedSub = checkExpr(sub, Some(typ), "Expression", "ascripted")
       SAsExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
-    
+
     case SAsIfExpr(SExprInfo(span, paren, _), sub, typ) => {
       val checkedSub = checkExpr(sub, Some(typ), "Expression", "assumed")
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)

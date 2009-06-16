@@ -745,8 +745,21 @@ public class NodeFactory {
         return new ArrowType(info, domain, range, effect);
     }
 
+    public static Type makeMaybeTupleType(Span span, List<Type> elements) {
+        if ( elements.size() > 1 )
+            return makeTupleType(span, elements);
+        else if ( elements.size() == 1 )
+            return elements.get(0);
+        else
+            return makeVoidType(span);
+    }
+
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
         return makeTupleType(NodeUtil.getSpan(t), tys);
+    }
+
+    public static TupleType makeTupleType(List<Type> elements) {
+        return makeTupleType(NodeUtil.spanAll(elements), elements);
     }
 
     public static TupleType makeTupleType(Span span, List<Type> elements) {
