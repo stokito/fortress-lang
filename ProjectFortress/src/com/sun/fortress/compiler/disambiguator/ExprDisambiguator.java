@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -1045,8 +1046,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 };
                 List<Overloading> overloadings = CollectUtil.makeArrayList(
                         IterUtil.map(fns, makeOverloadings));
-                
-                result = ExprFactory.makeFnRef(name, CollectUtil.makeList(fns), overloadings);
+
+                // TODO: Remove this when Scala type checker is online.
+                List<IdOrOp> names = Shell.getScala() ?
+                    CollectUtil.<IdOrOp>emptyList() :
+                    CollectUtil.makeList(fns);
+                result = ExprFactory.makeFnRef(name, names, overloadings);
                 
                 // TODO: insert correct number of to-infer arguments?
             }
@@ -1138,8 +1143,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<Overloading> overloadings = CollectUtil.makeArrayList(
                 IterUtil.map(fns, makeOverloadings));
 
+
+        // TODO: Remove this when Scala type checker is online.
+        List<IdOrOp> names = Shell.getScala() ?
+            CollectUtil.<IdOrOp>emptyList() :
+            CollectUtil.makeList(fns);
+        
         return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
-                                     CollectUtil.makeList(fns), that.getStaticArgs(), overloadings);
+                                     names, that.getStaticArgs(), overloadings);
     }
 
     /**
@@ -1155,22 +1166,28 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
     	
-    	// Create a list of overloadings for this OpRef from the matching
-      // operator names.
-    	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
-    			@Override public Overloading value(IdOrOp op) {
-    				  return new Overloading(that.getInfo(), op,
-    									   Option.<Type>none());
-    			}
-    	};
-    	List<Overloading> overloadings = CollectUtil.makeArrayList(
-    			IterUtil.map(ops, makeOverloadings));
+      	// Create a list of overloadings for this OpRef from the matching
+        // operator names.
+      	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
+      			@Override public Overloading value(IdOrOp op) {
+      				  return new Overloading(that.getInfo(), op,
+      									   Option.<Type>none());
+      			}
+      	};
+      	List<Overloading> overloadings = CollectUtil.makeArrayList(
+      			IterUtil.map(ops, makeOverloadings));
+      	
+  
+      	// TODO: Remove this when Scala type checker is online.
+        List<IdOrOp> names = Shell.getScala() ?
+            CollectUtil.<IdOrOp>emptyList() :
+            CollectUtil.makeList(ops);
 
         FunctionalRef result = ExprFactory.makeOpRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                                      NodeUtil.getExprType(that),
                                                      that.getStaticArgs(),
                                                      that.getLexicalDepth(),
-                                                     op_name, CollectUtil.makeList(ops),
+                                                     op_name, names,
                                                      that.getOverloadings(),
                                                      overloadings,
                                                      that.getOverloadingType());

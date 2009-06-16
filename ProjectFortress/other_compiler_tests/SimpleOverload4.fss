@@ -37,7 +37,7 @@ end *)
 local(x:String, y:String):String = "baz"
 local(x:ZZ32, y:ZZ32):String = "11"
 
-run() = do
+run(): () = do
   print2("PA","SS")
   
   (* Sorta-bug:

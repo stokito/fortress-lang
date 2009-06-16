@@ -38,7 +38,7 @@ end *)
 local(x:ZZ64, y:ZZ64):String = "baz"
 local(x:ZZ32, y:ZZ32):String = "11"
 
-run() = do
+run(): () = do
   print2("PA","SS")
 
   jPrintln(local(9000000000001, 8000000000000))
