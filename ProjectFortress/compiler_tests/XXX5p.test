@@ -18,7 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.p.fss:23:22:\n\
-\ For a typecase expression without a binding expression,\n\
-\ the identifiers must be immutable variables.\n\
+\ Identifier for a typecase expression without a binding expression\
+\ cannot be a mutable variable: x\n\
 File Compiled5.p.fss has 1 error.\n
 compile_out_equals=
