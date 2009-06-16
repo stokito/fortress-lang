@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
 
-package com.sun.fortress.compiler.phases;
+package com.sun.fortress.compiler.codegen;
 
 import java.util.*;
 import com.sun.fortress.nodes.*;
@@ -30,7 +30,7 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
     private final static Boolean f = new Boolean(false);
     private final static Boolean t = new Boolean(true);
 
-    ParallelismAnalyzer() {
+    public ParallelismAnalyzer() {
         worthy = new HashMap<ASTNode, Boolean>();
     }
 

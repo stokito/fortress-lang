@@ -29,6 +29,8 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.F;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -49,12 +51,26 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     final private Map<String, TypedIdOrOpList> overloadedFunctions = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
     final private Map<String, TypedIdOrOpList> overloadedOperators = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
 
+    final private static F<FunctionalRef, IdOrOp> functionalRefToIdOrOp = new F<FunctionalRef, IdOrOp>() {
+        @Override
+        public IdOrOp apply(FunctionalRef x) {
+            return x.getOriginalName();
+        }
+    };
+    
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
-                             Option<List<FunctionalRef>> overloadings,
+                             Option<List<FunctionalRef>> opt_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
+        
+        if (opt_overloadings.isSome()) {
+            List<FunctionalRef> overloadings = opt_overloadings.unwrap();
+            fns = Useful.applyToAll(overloadings, functionalRefToIdOrOp);
+            
+        }
+        
         if (fns.size() > 1) {
             Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
@@ -74,17 +90,23 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
+  
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
-                                  overloadings, Collections.<Overloading>emptyList(), type_result);
+                opt_overloadings, Collections.<Overloading>emptyList(), type_result);
     }
 
 
     @Override
     public Node forOpRefOnly(OpRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
-                             Option<List<FunctionalRef>> overloadings,
+                             Option<List<FunctionalRef>> opt_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
+        if (opt_overloadings.isSome()) {
+            List<FunctionalRef> overloadings = opt_overloadings.unwrap();
+            ops = Useful.applyToAll(overloadings, functionalRefToIdOrOp);
+            
+        }
         if (ops.size() > 1) {
             Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
@@ -105,7 +127,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
-                                  overloadings, newOverloadings, type_result);
+                opt_overloadings, newOverloadings, type_result);
     }
 
 

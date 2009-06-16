@@ -524,6 +524,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitEnd();
         // Method body complete, cg now invalid.
         
+        // TODO need to emit wrappers for unambiguous names
         // Check to see if a wrapper is needed.
         if (topLevelOverloads.containsKey(name)) {
             
