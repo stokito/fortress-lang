@@ -1674,17 +1674,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                                                 toJavaList(bindIds.map(i => getTypeFromName(i).getOrElse(return expr)))))
       }
       val isMultipleIds = bindIds.size > 1
-      if ( isMultipleIds ) {
+      if ( isMultipleIds && bindExpr.isDefined ) {
         if ( checkedType.isInstanceOf[TupleType] ) {
           if ( checkedType.asInstanceOf[TupleType].getElements.size != bindIds.size ) {
-            signal(expr,
+            signal(bindExpr.get,
                    errorMsg("A typecase expression has multiple identifiers\n    but ",
                             "the sizes of the identifiers and the binding ",
                             "expression do not match."))
             return expr
           }
         } else {
-          signal(expr,
+          signal(bindExpr.get,
                  errorMsg("A typecase expression has multiple identifiers\n    but ",
                           "the binding expression does not have a tuple type."))
           return expr
