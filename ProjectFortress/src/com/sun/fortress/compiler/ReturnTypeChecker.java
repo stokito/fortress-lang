@@ -21,11 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 
@@ -45,11 +44,8 @@ public class ReturnTypeChecker extends NodeDepthFirstVisitor_void {
 
   @Override
   public void forFnDecl(FnDecl that) {
-      IdOrOpOrAnonymousName name = that.getHeader().getName();
-      boolean isCoercion = (name instanceof IdOrOp) ?
-          ((IdOrOp)name).getText().equals("coerce") :
-          false;
-      if (!isCoercion && that.getHeader().getReturnType().isNone()) {
+      if (that.getHeader().getReturnType().isNone() &&
+          ! NodeUtil.isCoercion(that)) {
         errors.add(StaticError.make("The Scala Typechecker requires return types on function:" + that.getUnambiguousName(), that));
       }
   }
