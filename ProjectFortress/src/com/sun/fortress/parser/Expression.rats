@@ -180,6 +180,13 @@ Expr OpExpr =
 PureList<PrecedenceOpExpr> OpExprNoEnc =
      <FIRST> OpExprPrimary
    / OpExprPrefix
+   / caret
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(span, op));
+       yyValue = PureList.make(e);
+       log(span, "^ is always an infix operator but used as a nofix operator.");
+     }
    / a1:Op
      { PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
        yyValue = PureList.make(e);
