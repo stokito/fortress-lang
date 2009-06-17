@@ -1150,8 +1150,8 @@ public final class Shell {
         boolean type_check = ProjectProperties.getBoolean("fortress.compile.typecheck", false); // run type checker or not
         boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.objexpr", false); // run obj expression desugaring or not
         boolean getter_setter_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.getset", true); // run getter/setter desugaring or not
-        boolean use_scala = ProjectProperties.getBoolean("fortress.compile.useScala",false); //use the scala typechecker
-        boolean test_coercion = ProjectProperties.getBoolean("fortress.compile.testCoercion",false); // test coercion
+        boolean use_scala = ProjectProperties.getBoolean("fortress.compile.usescala",true); //use the scala typechecker
+        boolean test_coercion = ProjectProperties.getBoolean("fortress.compile.testcoercion",false); // test coercion
     }
 
 }

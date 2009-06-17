@@ -51,10 +51,10 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     final private Map<String, TypedIdOrOpList> overloadedFunctions = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
     final private Map<String, TypedIdOrOpList> overloadedOperators = new BATree<String, TypedIdOrOpList>(DefaultComparator.Vreversed);
 
-    final private static F<FunctionalRef, IdOrOp> functionalRefToIdOrOp = new F<FunctionalRef, IdOrOp>() {
+    final private static F<Overloading, IdOrOp> overloadingToIdOrOp = new F<Overloading, IdOrOp>() {
         @Override
-        public IdOrOp apply(FunctionalRef x) {
-            return x.getOriginalName();
+        public IdOrOp apply(Overloading x) {
+            return x.getUnambiguousName();
         }
     };
     
@@ -65,11 +65,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
         
-        if (opt_overloadings.isSome()) {
-            List<FunctionalRef> overloadings = opt_overloadings.unwrap();
-            fns = Useful.applyToAll(overloadings, functionalRefToIdOrOp);
-            
-        }
+        fns = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
         
         if (fns.size() > 1) {
             Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
@@ -102,12 +98,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              Option<List<FunctionalRef>> opt_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
-        if (opt_overloadings.isSome()) {
-            List<FunctionalRef> overloadings = opt_overloadings.unwrap();
-            ops = Useful.applyToAll(overloadings, functionalRefToIdOrOp);
-            
-        }
-        if (ops.size() > 1) {
+       ops = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
+       if (ops.size() > 1) {
             Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
             buffer.append(NodeUtil.nameString(originalName));
