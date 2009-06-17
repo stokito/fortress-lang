@@ -698,6 +698,20 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
       signal(application, message)
     }
+  
+  /**
+   * Create an error message that will have type and expected type inserted.
+   * There should be no string format operators in the message.
+   */
+  private def errorString(message: String): String =
+    message + " has type %s, but it must have %s type."
+  
+  /**
+   * Create an error message that will have type and expected type inserted.
+   * There should be no string format operators in either supplied message.
+   */
+  private def errorString(first: String, second: String): String =
+    first + " has type %s, but " + second + " type is %s."
 
   // ------------------------------------------------------------------------
   // END HELPER METHODS -----------------------------------------------------
@@ -711,7 +725,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               node
           }
 
-  private def check(node:Node):Node = node match {
+  def check(node:Node):Node = node match {
     case SComponent(info, name, imports, decls, comprises, isNative, exports)  =>
       SComponent(info, name, imports,
                  decls.map((n:Decl) => check(n).asInstanceOf[Decl]), comprises,
@@ -836,26 +850,39 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     /* Matches if a function declaration has a body expression. */
     // @TODO: Only change return type of FnHeader if it was an inf var.
     case f@SFnDecl(info,
-                   SFnHeader(statics,mods,name,wheres,throws,contract,params,returnType),
+                   SFnHeader(statics,mods,name,wheres,throws,contract,params,rType),
                    unambiguousName, Some(body), implementsUnambiguousName) => {
       val newChecker = this.extend(env.extendWithStaticParams(statics).extendWithParams(params),
                                    analyzer.extend(statics, wheres))
       val newContract = contract.map(c => newChecker.check(c))
-      val newBody = newChecker.checkExpr(body, returnType, "Function body",
-                                                           "declared return")
-
-      val newType = (returnType, getType(newBody)) match {
-        case (Some(rt), _) if NodeUtil.isSetter(f) =>
-          isSubtype(rt, Types.VOID, f, "Setter declarations must return void.")
+      
+      // If setter decl and no return type given, make it void.
+      val returnType =
+        if (rType.isEmpty && NodeUtil.isSetter(f))
           Some(Types.VOID)
-        case (None, bt) => bt
-        case (rt, _) => rt
+        else
+          rType
+      
+      // Get the new return type and body.
+      val (newReturnType, newBody) = returnType match {
+        
+        // If there is a declared return type, check the body, expecting this
+        // type. If this is a setter, check that the return type is a void too.
+        case Some(rt) =>
+          if (NodeUtil.isSetter(f))
+            isSubtype(rt, Types.VOID, f, "Setter declarations must return void.")
+          (Some(rt), newChecker.checkExpr(body, rt, errorString("Function body",
+                                                                "declared return")))
+          
+        case None =>
+          val newBody = newChecker.checkExpr(body)
+          (getType(newBody), newBody)
       }
 
       SFnDecl(info,
               SFnHeader(statics, mods, name, wheres, throws,
                         newContract.asInstanceOf[Option[Contract]],
-                        params, newType),
+                        params, newReturnType),
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
@@ -955,38 +982,71 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
 
-  def checkExpr(expr: Expr, expected: Option[Type],
-                first: String, second: String): Expr = {
-    val newExpr = checkExpr(expr)
-    getType(newExpr) match {
-      case Some(typ) => expected match {
-        case Some(t) =>
-          isSubtype(typ, t, expr,
-                    errorMsg(first, " has type ", normalize(typ), ", but ", second,
-                             " type is ", normalize(t), "."))
-          addType(newExpr, typ)
-        case _ => addType(newExpr, typ)
-      }
+  
+  /**
+   * Check an expression and guarantee that its type is substitutable for the
+   * expected type. That is, the resulting type should be a subtype of or
+   * coerced to the expected type. If this is not the case, signal an error
+   * with the given message. This message should have two "%s" string format
+   * operators in it; the first is replaced with the actual type and the second
+   * with the expected type.
+   * 
+   * @param expr The expression node to type check.
+   * @param expected The expected type of this expression.
+   * @param message The message for the error if the expression is well-typed
+   *                but fails the expected type check. Must contain two %s
+   *                format specifiers.
+   * @return The rewritten node if the check succeeded. Otherwise, the original
+   *         node.
+   */
+  def checkExpr(expr: Expr,
+                expected: Type,
+                message: String): Expr = {
+    val checkedExpr = checkExpr(expr, Some(expected))
+    getType(checkedExpr) match {
+      case Some(typ) => 
+        isSubtype(typ, expected, expr, message.format(normalize(typ), normalize(expected)))
+        addType(checkedExpr, typ)
       case _ => expr
     }
   }
 
-  def checkExpr(expr: Expr, expected: Option[Type], message: String): Expr = {
-    val newExpr = checkExpr(expr)
-    getType(newExpr) match {
-      case Some(typ) => expected match {
-        case Some(t) =>
-          isSubtype(typ, t, expr,
-                    errorMsg(message, " has type ", normalize(typ), ", but it must have ",
-                             normalize(t), " type."))
-          addType(newExpr, typ)
-        case _ => addType(newExpr, typ)
-      }
-      case _ => expr
-    }
+  /**
+   * This overloading is identical to the one above, except that the expected
+   * type is optional. If defined, it calls the overloading above. If undefined,
+   * it calls the checkExpr that does not perform any subtype checks.
+   */
+  def checkExpr(expr: Expr,
+                expected: Option[Type],
+                message: String): Expr = expected match {
+    case Some(t) => checkExpr(expr, t, message)
+    case _ => checkExpr(expr)
   }
 
-  def checkExpr(expr: Expr): Expr = expr match {
+  /**
+   * Check an expression, returning the rewritten node. This overloading should
+   * be called whenever there is no expected type.
+   * 
+   * @param expr The expression node to type check.
+   * @return The rewritten expression node.
+   */
+  def checkExpr(expr: Expr): Expr = checkExpr(expr, None)
+
+  /**
+   * Check an expression, returning the rewritten node. The actual
+   * implementation of the type checking is contained herein. This overloading
+   * should only ever be called by the other two overloadings. That is, no cases
+   * in the implementation should call this method itself.
+   * 
+   * @param expr The expression node to type check.
+   * @param expected The expected type of this expression, if there is one.
+   *                 This should only be explicitly used when doing type
+   *                 inference.
+   * @return The rewritten expression node.
+   */
+  def checkExpr(expr: Expr,
+                expected: Option[Type]): Expr = expr match {
+    
     case o@SObjectExpr(SExprInfo(span,parenthesized,_),
                      STraitTypeHeader(sparams, mods, name, where,
                                       throwsC, contract, extendsC, decls),
@@ -1048,7 +1108,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 loc, false, withinDo, exprs) => {
       val newLoc = loc match {
         case Some(l) =>
-          Some(checkExpr(l, Some(Types.REGION), "Location of the block"))
+          Some(checkExpr(l, Some(Types.REGION), errorString("Location of the block")))
         case None => loc
       }
       exprs.reverse match {
@@ -1057,7 +1117,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                  newLoc, false, withinDo, exprs)
         case last::rest =>
         val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
-                                                         "Non-last expression in a block"))
+                                                         errorString("Non-last expression in a block")))
           val lastExpr = checkExpr(last)
           val newExprs = (lastExpr::allButLast).reverse
           SBlock(SExprInfo(span,parenthesized,getType(lastExpr)),
@@ -1757,12 +1817,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     }
 
     case SAsExpr(SExprInfo(span, paren, _), sub, typ) => {
-      val checkedSub = checkExpr(sub, Some(typ), "Expression", "ascripted")
+      val checkedSub = checkExpr(sub, Some(typ), errorString("Expression", "ascripted"))
       SAsExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
     case SAsIfExpr(SExprInfo(span, paren, _), sub, typ) => {
-      val checkedSub = checkExpr(sub, Some(typ), "Expression", "assumed")
+      val checkedSub = checkExpr(sub, Some(typ), errorString("Expression", "assumed"))
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
