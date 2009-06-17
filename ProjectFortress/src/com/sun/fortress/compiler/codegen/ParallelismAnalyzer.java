@@ -18,9 +18,11 @@
 package com.sun.fortress.compiler.codegen;
 
 import java.util.*;
+import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.Debug;
+
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -29,6 +31,10 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
 
     private final static Boolean f = new Boolean(false);
     private final static Boolean t = new Boolean(true);
+
+    public Boolean worthParallelizing(ASTNode n) {
+        return worthy.get(n);
+    }
 
     public ParallelismAnalyzer() {
         worthy = new HashMap<ASTNode, Boolean>();
@@ -46,9 +52,11 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
         Debug.debug(Debug.Type.CODEGEN,1, "ParallelismAnalyzer: " + "::" + message);        
     }
 
-    public Boolean defaultCase(ASTNode x) {
-        debug(x,"defaultCase");
-        worthy.put(x, f);
+    public Boolean forBlock(Block x) {
+        debug(x,"forBlock"); 
+        for (Expr e : x.getExprs()) {
+            e.accept(this);
+        }
         return f;
     }
 
@@ -99,19 +107,16 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
     public Boolean forOpExpr(OpExpr x) {
         debug(x,"forOpExpr");
         List<Expr> args = x.getArgs();
-        boolean argsWorthy[] = new boolean[args.size()];
-        int i = 0;
         int count = 0;
 
-        for (Expr e : args) {
-            Boolean temp = e.accept(this);
-            argsWorthy[i++] = temp;
-            if (temp) {
-                count++;
-            }
-        }
-        worthy.put(x, f);
-        return f;
+        for (Expr e : args) 
+            if (e.accept(this)) count++;
+    
+        if (count >= 2) 
+            worthy.put(x,t);
+        else 
+            worthy.put(x, f);
+        return t;
     }
 
     public Boolean forTraitDecl(TraitDecl x) {
@@ -126,26 +131,31 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
         debug(x,"for_RewriteFnApp");
 
         Expr arg = x.getArgument();
-        if (arg instanceof VoidLiteralExpr) {
-            
-        } else if (arg instanceof TupleExpr) {
+        
+        if (arg instanceof TupleExpr) {
             TupleExpr targ = (TupleExpr) arg;
             List<Expr> exprs = targ.getExprs();
+            int count = 0;
                 
-            for (Expr expr : exprs) {
-                expr.accept(this);
-            }
+            for (Expr expr : exprs) 
+                if (expr.accept(this)) count++;
+
+            if (count >= 2)
+                worthy.put(x,t);
+            else 
+                worthy.put(x,f);
+
         } else {
             arg.accept(this);
+            worthy.put(x,f);
         }
         x.getFunction().accept(this);
-        worthy.put(x, f);
-        return f;
+        return t;
     }
 
     // Why doesn't the defaultCase handle these?
 
-    public Boolean forBlock(Block x) {debug(x,"forBlock"); return f;}
+
     public Boolean forChainExpr(ChainExpr x) {debug(x,"forChainExpr"); return f;}
     public Boolean forDecl(Decl x) {debug(x,"forDecl"); return f;}
     public Boolean forDo(Do x) {debug(x,"forDo"); return f;}

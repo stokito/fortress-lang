@@ -61,6 +61,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     final String packageAndClassName;
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
+    private final ParallelismAnalyzer pa;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
     private HashSet<String> overloadedNamesAndSigs;
 
@@ -76,12 +77,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
     Component component;
     private final ComponentIndex ci;
 
-    public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ComponentIndex ci) {
+    public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName().getText(), "/").toString();
         aliasTable = new HashMap<String, String>();
         symbols = s;
         this.ta = ta;
+        this.pa = pa;
         this.ci = ci;
         this.topLevelOverloads = 
             sizePartitionedOverloads(ci.functions());
@@ -105,6 +107,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.inABlock = c.inABlock;
         this.localsDepth = c.localsDepth;
         this.ta = c.ta;
+        this.pa = c.pa;
         this.ci = c.ci;
         this.topLevelOverloads = c.topLevelOverloads;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
