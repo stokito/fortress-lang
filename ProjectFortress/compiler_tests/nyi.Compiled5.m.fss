@@ -18,7 +18,7 @@
 import CompilerSystem.args
 export Executable
 
-f() = x
+f():x = x
 object x end
 
 run(): () = ()

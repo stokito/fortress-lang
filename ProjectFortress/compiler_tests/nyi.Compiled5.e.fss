@@ -24,10 +24,10 @@ trait C extends {A,B} end
 trait E extends A excludes B end
 trait F extends B excludes A end
 
-f(o:Object) = "Object"
-f(a:A) = "A"
-f(b:B) = "B"
-f(c:C) = "C"
+f(o:Object):String = "Object"
+f(a:A):String = "A"
+f(b:B):String = "B"
+f(c:C):String = "C"
 
 object A1 extends E end
 object B1 extends F end
@@ -38,4 +38,3 @@ run(): () = do
   println f(B1)
   println f(C1)
 end
-
