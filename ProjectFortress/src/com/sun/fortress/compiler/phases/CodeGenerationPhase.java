@@ -116,7 +116,7 @@ public class CodeGenerationPhase extends Phase {
             component.accept(pa);
             pa.printTable();
 
-            CodeGen c = new CodeGen(component, symbolTable, ta, ci);
+            CodeGen c = new CodeGen(component, symbolTable, ta, pa, ci);
             component.accept(c);
         }
 
