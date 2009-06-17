@@ -24,10 +24,10 @@ trait C extends {A,B} end
 trait At extends A end
 trait Bt extends B end
 
-f(o:Object) = "Object"
-f(a:A) = "A"
-f(b:B) = "B"
-f(c:C) = "C"
+f(o:Object):String = "Object"
+f(a:A):String = "A"
+f(b:B):String = "B"
+f(c:C):String = "C"
 
 object A1 extends At end
 object B1 extends Bt end

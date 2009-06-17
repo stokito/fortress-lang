@@ -393,10 +393,20 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     private def implement(d: FnDecl, decl: FnDecl): Boolean =
         NodeUtil.getName(d).asInstanceOf[IdOrOp].getText.equals(NodeUtil.getName(decl).asInstanceOf[IdOrOp].getText) &&
         NodeUtil.getMods(d).containsAll(NodeUtil.getMods(decl)) &&
-        typeAnalyzer.equivalent(NodeUtil.getParamType(d),
-                                NodeUtil.getParamType(decl)).isTrue &&
+        ( typeAnalyzer.equivalent(NodeUtil.getParamType(d),
+                                  NodeUtil.getParamType(decl)).isTrue ||
+          implement(toList(NodeUtil.getParams(d)), toList(NodeUtil.getParams(decl))) ) &&
         typeAnalyzer.equivalent(NodeUtil.getReturnType(d).unwrap,
                                 NodeUtil.getReturnType(decl).unwrap).isTrue
+
+    /* Returns true if the parameters of the concrete method declaration "params"
+       `implements' the parameters of the abstract method declaration "ps".
+     */
+    private def implement(ps: List[Param], params: List[Param]): Boolean =
+        ! ps.zip(params).exists( (p:(Param,Param)) =>
+                                 typeAnalyzer.equivalent(NodeUtil.getParamType(p._1),
+                                                         NodeUtil.getParamType(p._2)).isFalse &&
+                                 ! p._1.getName.getText.equals("self") )
 
     private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) =
         inheritedAbstractMethodsHelper(new HierarchyHistory(), extended_traits)

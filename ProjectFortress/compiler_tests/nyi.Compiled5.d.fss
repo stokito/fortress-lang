@@ -19,8 +19,8 @@ import CompilerSystem.args
 export { Executable }
 
 trait A extends Object comprises {D,F,A1,D2,F2} end
-trait B extends Object 
-        comprises {D,E,G,H,J,B1,D2,E2,G2,H2,J2,J3,J4,J5,J6,J7} 
+trait B extends Object
+        comprises {D,E,G,H,J,B1,D2,E2,G2,H2,J2,J3,J4,J5,J6,J7}
 end
 trait C extends Object end
 trait D extends {A,B} end
@@ -56,18 +56,18 @@ object J5 extends {G,B,I} end
 object J6 extends {B,I,G} end
 object J7 extends {B,G,I} end
 
-f(o:Object) = "Object"
-f(a:A) = "A"
-f(b:B) = "B"
-f(c:C) = "C"
-f(d:D) = "D"
-f(e:E) = "E"
-f(ff:F) = "F"
-f(g:G) = "G"
-f(h:H) = "H"
-f(i:I) = "I"
-f(j:J) = "J"
-f(ff:F2) = "F2"
+f(o:Object):String = "Object"
+f(a:A):String = "A"
+f(b:B):String = "B"
+f(c:C):String = "C"
+f(d:D):String = "D"
+f(e:E):String = "E"
+f(ff:F):String = "F"
+f(g:G):String = "G"
+f(h:H):String = "H"
+f(i:I):String = "I"
+f(j:J):String = "J"
+f(ff:F2):String = "F2"
 
 run(): () = do
   println f(A1)
@@ -95,4 +95,3 @@ run(): () = do
   println f(J6)
   println f(J7)
 end
-
