@@ -295,15 +295,36 @@ public class StaticChecker {
             return new TypeCheckerResult(api.ast(), errors);
         }
         Node api_ast = api.ast();
+        api_ast = api_ast.accept(new TypeNormalizer());
+        api = IndexBuilder.builder.buildApiIndex((Api)api_ast,
+                                                 System.currentTimeMillis());
+        TraitTable traitTable = new TraitTable(api, env);
+        TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
+
+        if (Shell.testCoercion())
+            errors.addAll(new CoercionTest(typeAnalyzer).run());
+
+        errors.addAll(new TypeHierarchyChecker(api, env, repository).checkAcyclicHierarchy());
+        errors.addAll(new TypeWellFormedChecker(api, env, typeAnalyzer).check());
+
         TypeCheckerResult result = new TypeCheckerResult(api_ast, errors);
         result.setAst(result.ast().accept(new TypeNormalizer()));
         // There should be no Inference vars left at this point
         if( TypesUtil.assertAfterTypeChecking(result.ast()) )
             bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                 result.ast());
+
+        errors.addAll(new TypeWellFormedChecker(api, env, typeAnalyzer).check());
+        if ( ! errors.isEmpty() ) {
+            result = addErrors(errors, result);
+            return result;
+        }
+
         // Check overloadings in this API.
         errors = new OverloadingChecker(api, env, repository).checkOverloading();
-        result = addErrors(errors, result);
+        if ( ! errors.isEmpty() ) {
+            result = addErrors(errors, result);
+        }
         return result;
     }
 

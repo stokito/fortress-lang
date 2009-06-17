@@ -22,6 +22,7 @@ import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set  => JavaSet}
 
 import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
@@ -53,6 +54,8 @@ import com.sun.fortress.scala_src.useful.Sets._
 class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                            globalEnv: GlobalEnvironment,
                            repository: FortressRepository) {
+  val isApi = compilation_unit.isInstanceOf[ApiIndex]
+
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
@@ -148,13 +151,15 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
   }
 
   /* Check the given declaration to check its comprises clause
-   *   - for each trait T
-   *       for each trait/object S in T's comprises clause
-   *         T should be in S's extends clause
    *   - for each trait/object T
    *       for each trait S in T's extends clause
    *         either S does not have any comprises clause
-   *         or T should be in S's comprises clause
+   *         or T should be in S's comprises clause;
+   *         if S has comprises ... and T is not in S's comprises clause,
+   *         T should not be exposed at all!
+   *   - for each trait T
+   *       for each trait/object S in T's comprises clause
+   *         T should be in S's extends clause
    */
   def checkDeclComprises(decl:Id): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
@@ -168,13 +173,18 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               getTypes(name, errors) match {
                 case si:ProperTraitIndex =>
                   val comprises = si.comprisesTypes
-                  if ( ! NodeUtil.isComprisesEllipses(si.ast) &&
-                       ! comprises.isEmpty && // extension has a comprises clause
+                  if ( ! comprises.isEmpty && // extension has a comprises clause
                        // decl is not in the comprises clause
-                       ! comprisesContains(comprises, decl) )
+                       ! comprisesContains(comprises, decl) &&
+                       ! NodeUtil.isComprisesEllipses(si.ast) )
                       error(errors, "Invalid comprises clause: " + name +
                             " has a comprises clause\n    but its immediate subtype " + decl +
                             " is not included in the comprises clause.", ti.ast)
+                  if ( isApi && NodeUtil.isComprisesEllipses(si.ast) &&
+                       ! comprisesContains(comprises, decl) )
+                      error(errors, "Invalid comprises clause: " + name +
+                            " has a comprises ...\n    but its immediate subtype " + decl +
+                            " is exposed in the API.", ti.ast)
                 case _ => error(errors, "Invalid type in extends clause: " +
                                 extension.getBaseType, extension)
               }
