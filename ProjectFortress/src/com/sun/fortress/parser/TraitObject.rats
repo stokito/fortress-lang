@@ -201,7 +201,7 @@ List<Decl> GoInAnObject =
 private Decl GoesInAnObject =
      Coercion
    / VarDecl
-   / MdDef
+   / MdDecl
    / PropertyDecl ;
 
 /* AbsTraitDecl ::=
