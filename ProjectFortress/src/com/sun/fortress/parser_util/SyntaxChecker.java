@@ -153,9 +153,19 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                             " cannot modify an object parameter, " + p.getName());
                 }
             }
+        } else { // singleton object
+            if ( NodeUtil.getContract(that).isSome() )
+                log(that, "Singleton object " + NodeUtil.getName(that) +
+                    " must not have a contract.");
         }
 
         super.forObjectDecl( that );
+        inObject = false;
+    }
+
+    public void forObjectExpr(ObjectExpr that) {
+        inObject = true;
+        super.forObjectExpr( that );
         inObject = false;
     }
 
@@ -240,6 +250,9 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
             if (!Modifiers.LocalFnMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.LocalFnMod) + " cannot modify a local function, " +
                     NodeUtil.getName(that));
+            }
+            if ( inObject && !hasBody ) {
+                log(that, "Object method " + NodeUtil.getName(that) + " lacks a body.");
             }
         } else if ( inTrait || inObject ) {
             if (!Modifiers.MethodMod.containsAll(mods)) {
