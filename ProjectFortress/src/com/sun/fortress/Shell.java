@@ -300,7 +300,6 @@ public final class Shell {
     public static int subMain(String[] tokens) throws InterruptedException,
             Throwable {
         int return_code = 0;
-        setScala(false);
 
         // Now match the assembled string.
         try {
@@ -316,7 +315,7 @@ public final class Shell {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
-                setScala(true);
+                //setScala(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("link")) {
@@ -339,6 +338,7 @@ public final class Shell {
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = link(args);
             } else if (what.equals("walk")) {
+                setScala(false);
                 setPhase( PhaseOrder.ENVGEN );
                 walk(args);
             } else if ( what.equals("api" ) ){

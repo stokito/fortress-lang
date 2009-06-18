@@ -37,6 +37,7 @@ import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.APIName;
@@ -729,27 +730,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         for (Type type : types) {
             Type r0;
 
-            if (type instanceof ArrowType) {
-                ArrowType at = (ArrowType) type;
-                r0 = at.getDomain();
-                
-                // Ensure that the domain count matches the paramCount
-                if (r0 instanceof TupleType) {
-                    TupleType tt = (TupleType) r0;
-                    if (paramCount != tt.getElements().size())
-                        continue;
-                    r0 = tt.getElements().get(i);
-                } else if (paramCount != 1) {
-                    continue;
-                }
-            } else if (type instanceof IntersectionType) {
-                r0 = getParamType((IntersectionType) type, i, paramCount, ta);
-            } else {
-                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
-                return null; // not reached
-            }
+            r0 = getParamType(type, i, paramCount, ta);
 
-            r = join(r, r0, ta);
+            if (r0 != null)
+                r = join(r, r0, ta);
 
             if (r instanceof AnyType)
                 break;
@@ -757,6 +741,56 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return r;
     }
 
+    /**
+     * @param type
+     * @param i
+     * @param paramCount
+     * @param ta
+     * @return
+     */
+    public static Type getParamType(Type type, int i, int paramCount,
+            TypeAnalyzer ta) {
+        Type r0;
+        if (type instanceof ArrowType) {
+            ArrowType at = (ArrowType) type;
+            r0 = at.getDomain();
+            
+            // Ensure that the domain count matches the paramCount
+            if (r0 instanceof TupleType) {
+                TupleType tt = (TupleType) r0;
+                if (paramCount != tt.getElements().size())
+                    r0 = null;
+                else
+                    r0 = tt.getElements().get(i);
+            } else if (paramCount != 1) {
+                r0 = null;
+            }
+        } else if (type instanceof IntersectionType) {
+            r0 = getParamType((IntersectionType) type, i, paramCount, ta);
+        } else {
+            r0 = InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
+            // not reached
+        }
+        return r0;
+    }
+
+    public static boolean functionInstanceofType(Functional f, com.sun.fortress.nodes.Type ty, TypeAnalyzer ta) {
+        List<Param> params = f.parameters();
+        int l = params.size();
+        int i = 0;
+        // TODO this check is imperfect in a land of intersection types.
+        // ought to iteratively ask the question, not reify the parameter type.
+        for (Param p : params) {
+            com.sun.fortress.nodes.Type ti = getParamType(ty, i, l, ta);
+            com.sun.fortress.nodes.Type tp = p.getIdType().unwrap();
+            if (ti == null)
+                return false;
+            if (! ta.subtype(tp, ti).isTrue())
+                return false;
+        }
+        return true;
+    }
+    
     /**
      * @param paramCount
      * @return
