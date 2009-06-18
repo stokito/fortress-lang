@@ -957,6 +957,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         List<IdOrOp> fns = x.getFns();
         IdOrOp name = x.getName();
         Option<com.sun.fortress.nodes.Type> ot = x.getType();
+        com.sun.fortress.nodes.Type ty = ot.unwrap();
         Relation<IdOrOpOrAnonymousName, Function> fnrl = ci.functions();
 
         MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount =
@@ -979,24 +980,32 @@ public class CodeGen extends NodeAbstractVisitor_void {
             }
 
             for (Function f : set_of_f) {
-                OverloadSet.TaggedFunctionName tagged_f = new OverloadSet.TaggedFunctionName(apiname, f);
-                byCount.putItem(f.parameters().size(), tagged_f);
-            }
-
-            for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
-                    .entrySet()) {
-                int i = entry.getKey();
-                Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
-                if (fs.size() > 1) {
-                    OverloadSet os = new OverloadSet.AmongApis(name,
-                            ta, fs, i);
-
-                    os.split(false);
-                    os.generateAnOverloadDefinition(name.stringName(), cw);
-
+                /* This guard should be unnecessary when proper overload
+                   disambiguation is working.  Right now, the types are
+                   "too accurate" which causes a call to an otherwise
+                   non-existent static method.
+                */
+                if (OverloadSet.functionInstanceofType(f, ty, ta)) {
+                    OverloadSet.TaggedFunctionName tagged_f = new OverloadSet.TaggedFunctionName(apiname, f);
+                    byCount.putItem(f.parameters().size(), tagged_f);
                 }
             }
         }
+            
+        for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
+                .entrySet()) {
+            int i = entry.getKey();
+            Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
+            if (fs.size() > 1) {
+                OverloadSet os = new OverloadSet.AmongApis(name,
+                        ta, fs, i);
+
+                os.split(false);
+                os.generateAnOverloadDefinition(name.stringName(), cw);
+
+            }
+        }
+        
     }
 
    

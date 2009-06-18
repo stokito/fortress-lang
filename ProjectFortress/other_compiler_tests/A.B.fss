@@ -21,7 +21,7 @@ import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrin
 
 export Executable
 
-run() = jPrintln("A.B PASS")
+run():() = jPrintln("A.B PASS")
 
 
 end

@@ -32,4 +32,5 @@ public class simpleIntArith {
     public static boolean intLE(int a, int b) {return a <= b;}
     public static boolean intGT(int a, int b) {return a > b;}
     public static boolean intEQ(int a, int b) {return a == b;}
+    public static long iMulL(int a, int b) { return (long) a * (long) b; }
 }
