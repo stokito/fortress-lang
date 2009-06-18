@@ -28,6 +28,7 @@ import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ObjectTraitIndex
+import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
@@ -46,6 +47,7 @@ import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.nodes._
 
@@ -251,12 +253,26 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         result
     }
 
+    /* If "t" is an intersection type of "elements",
+     *  - if there are tuple types and non-tuple types in "elements"
+     *    return BottomType
+     *  - if "elements" are all non-tuple types
+     *    check comprises clauses
+     *  - if "elements" are all tuple types
+     *    simplif "t"
+     */
     private def reduce(t: Type): Type = t match {
         case SIntersectionType(info, elements) =>
-            val (tuples, nots) = elements.partition(ty => NodeUtil.isTupleType(ty))
+            val (tuples, nots) = elements.partition(NodeUtil.isTupleType)
             if ( ! tuples.isEmpty && ! nots.isEmpty ) NodeFactory.makeBottomType(info)
-            else if ( tuples.isEmpty ) t
-            else {
+            else if ( tuples.isEmpty ) {
+                // If all the "elements" have comprises clauses
+                // and they all include type "M", then "M" is the meet.
+                existComprisedMeet(elements) match {
+                    case Some(m) => m
+                    case _ => t
+                }
+            } else {
                 val size = NodeUtil.getTupleTypeSize(tuples.head)
                 if ( tuples.forall(ty => NodeUtil.getTupleTypeSize(ty) == size &&
                                          ! NodeUtil.hasVarargs(ty) &&
@@ -272,6 +288,30 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                 } else t
             }
         case _ => t
+    }
+
+    /* If all the "types" have comprises clauses
+     * and they all include type "M", then "M" is the meet.
+     */
+    private def existComprisedMeet(types: List[Type]): Option[TraitType] = {
+      var meet: List[TraitType] = null
+      for ( t <- types ) {
+        if ( t.isInstanceOf[TraitType] ) {
+          STypesUtil.getTypes(t.asInstanceOf[TraitType].getName,
+                              globalEnv, compilation_unit) match {
+            case ti:ProperTraitIndex =>
+              var comprises = List[TraitType]()
+            for ( s <- toSet(ti.comprisesTypes) ) comprises = s::comprises
+              if ( ! comprises.isEmpty ) {
+                if ( meet == null ) meet = comprises
+                else meet = meet.intersect(comprises)
+              } else return None // no comprises clause
+            case _ => return None // not a trait
+          }
+        } else return None
+      }
+      if ( meet.length == 1 ) Some(meet.head)
+      else  None
     }
 
     /* Returns the set of overloaded function declarations

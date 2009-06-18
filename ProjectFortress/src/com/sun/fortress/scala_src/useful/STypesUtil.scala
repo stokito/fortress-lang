@@ -17,14 +17,18 @@
 
 package com.sun.fortress.scala_src.useful
 
+import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.DeclaredMethod
 import com.sun.fortress.compiler.index.FieldGetterMethod
 import com.sun.fortress.compiler.index.FieldSetterMethod
 import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
@@ -40,7 +44,7 @@ object STypesUtil {
    * A function type that takes two types and returns a boolean.
    */
   type Subtype = (Type, Type) => Boolean
-  
+
   /**
    * Return the arrow type of the given Method.
    */
@@ -68,19 +72,19 @@ object STypesUtil {
         NodeFactory.makeArrowType(NodeUtil.getSpan(s.ast), argType, returnType)
     }
   }
-  
+
   /**
    * Get all the static parameters out of the given type.
    */
   def getStaticParams(typ: Type): List[StaticParam] =
     toList(typ.getInfo.getStaticParams)
-  
+
   /**
    * Return an identical type that has no static params.
    * TODO: How to handle where clauses in TypeInfos?
    */
   def clearStaticParams(typ: Type): Type = {
-    
+
     // A walker that clears static params out of TypeInfos.
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
@@ -91,13 +95,13 @@ object STypesUtil {
     }
     paramWalker(typ).asInstanceOf[Type]
   }
-  
+
   /**
    * Insert static parameters into a type. If the type already has static
    * parameters, a bug is thrown.
    */
   def insertStaticParams(typ: Type, sparams: List[StaticParam]): Type = {
-    
+
     // A walker that clears static params out of TypeInfos.
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
@@ -115,30 +119,30 @@ object STypesUtil {
    * given expression is an arrow or intersection of arrow types.
    */
   def isArrows(expr: Expr): Boolean = isArrows(SExprUtil.getType(expr).get)
-  
+
   /**
    * Determine if the given type is an arrow or intersection of arrow types.
    */
   def isArrows(ty: Type): Boolean =
     TypesUtil.isArrows(ty).asInstanceOf[Boolean]
-  
+
   /**
    * Performs the given substitution on the body type.
    */
   def substituteTypesForInferenceVars(substitution: Map[_InferenceVarType, Type],
                                       body: Type): Type = {
-   
+
     object substitutionWalker extends Walker {
       override def walk(node: Any): Any = node match {
         case ty:_InferenceVarType => substitution.get(ty).getOrElse(super.walk(ty))
         case _ => super.walk(node)
       }
     }
-    
+
     // Perform the substitution on the body type.
     substitutionWalker(body).asInstanceOf[Type]
   }
-  
+
   /**
    * Returns the type of the static parameter's bound if it is a type parameter.
    */
@@ -147,7 +151,7 @@ object STypesUtil {
       case SKindType(_) => Some(NodeFactory.makeIntersectionType(sparam.getExtendsClause))
       case _ => None
     }
-  
+
   /**
    * Given a static parameters, returns a static arg containing a fresh
    * inference variable.
@@ -166,7 +170,7 @@ object STypesUtil {
     case SKindNat(_) => NI.nyi()
     case _ => bug("unexpected kind of static parameter")
   }
-  
+
   /**
    * Returns a list of conjuncts of the given type. If given an intersection
    * type, this is the set of the constituents. If ANY, this is empty. If some
@@ -176,5 +180,15 @@ object STypesUtil {
     case _:AnyType => Set.empty[Type]
     case SIntersectionType(_, elts) => Set(elts:_*).flatMap(conjuncts)
     case _ => Set(ty)
+  }
+
+  /**
+   * Returns TypeConsIndex of "typ".
+   */
+  def getTypes(typ:Id, globalEnv: GlobalEnvironment,
+               compilation_unit: CompilationUnitIndex): TypeConsIndex = typ match {
+    case SId(info,Some(name),text) =>
+      globalEnv.api(name).typeConses.get(SId(info,None,text))
+    case _ => compilation_unit.typeConses.get(typ)
   }
 }

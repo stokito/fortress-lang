@@ -42,6 +42,7 @@ import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.scala_src.useful.Sets._
 
 /* Check type hierarchy to ensure the following:
@@ -74,11 +75,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
   }
 
   private def getTypes(typ:Id, errors:JavaList[StaticError]) = {
-    val types = typ match {
-      case SId(info,Some(name),text) =>
-        globalEnv.api(name).typeConses.get(SId(info,None,text))
-      case _ => compilation_unit.typeConses.get(typ)
-    }
+    val types = STypesUtil.getTypes(typ, globalEnv, compilation_unit)
     if (types == null) {
       error(errors, "Unknown type: " + typ, typ)
     }
