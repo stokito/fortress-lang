@@ -402,11 +402,12 @@ object ExportChecker {
                 equalListTypes(elmsL, elmsR) &&
                 equalOptTypes(varargsL, varargsR) &&
                 equalListKeywordTypes(kwdL, kwdR)
-            case (SArrowType(_, domL, ranL, effL),
-                  SArrowType(_, domR, ranR, effR)) =>
+            case (SArrowType(_, domL, ranL, effL, ioL),
+                  SArrowType(_, domR, ranR, effR, ioR)) =>
                   equalTypes(domL, domR) &&
                   equalTypes(ranL, ranR) &&
-                  equalEffects(effL, effR)
+                  equalEffects(effL, effR) &&
+                  ioL == ioR
             case _ => false
         }
 

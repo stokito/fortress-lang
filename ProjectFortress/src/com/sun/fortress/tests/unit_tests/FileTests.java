@@ -55,8 +55,6 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class FileTests {
 
-    private static String option = "";
-
     public static class BaseTest extends TestCase {
         /**
          * Directory-qualified file name
@@ -623,11 +621,7 @@ public class FileTests {
         @Override
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
-            String[] tokens;
-            if ( option.equals("") )
-                tokens = new String [] {"compile", dir+"/"+makeTestFileName(name)};
-            else
-                tokens = new String [] {"compile", option, dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"compile", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -659,11 +653,7 @@ public class FileTests {
         protected int justTheTest()
             throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens;
-            if ( option.equals("") )
-                tokens = new String [] {"desugar", dir+"/"+makeTestFileName(name)};
-            else
-                tokens = new String [] {"desugar", option, dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"desugar", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
         }
@@ -694,15 +684,9 @@ public class FileTests {
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens;
-            if ( option.equals("") )
-                tokens = new String [] {"link", dir+"/"+makeTestFileName(name)};
-            else
-                tokens = new String [] {"link", option, dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"link", dir+"/"+makeTestFileName(name)};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
-
-
         }
 
         @Override
@@ -859,9 +843,7 @@ public class FileTests {
                                           boolean shuffle,
                                           boolean failsOnly,
                                           boolean expect_failure,
-                                          boolean scala_test) throws IOException {
-
-        if (scala_test) option = "-typecheck-scala";
+                                          boolean typechecker_test) throws IOException {
 
         TestSuite suite = new TestSuite("Runs all tests in " + dir_name) {
             public void run(TestResult result) {
@@ -920,7 +902,7 @@ public class FileTests {
                           StringTokenizer st = new StringTokenizer(testNames);
                           while  (st.hasMoreTokens()) {
                               String token = st.nextToken();
-                              if (addTest(scala_test, token))
+                              if (addTest(typechecker_test, token))
                                   standardCompilerTests(props, dir, dirname, token,
                                                         expect_failure, shouldFail, failsOnly,
                                                         compileTests, desugarTests,
@@ -928,7 +910,7 @@ public class FileTests {
                           }
                       }
                       else {
-                          if (addTest(scala_test, testname))
+                          if (addTest(typechecker_test, testname))
                               standardCompilerTests(props, dir, dirname, testname,
                                                     expect_failure, shouldFail, failsOnly,
                                                     compileTests, desugarTests,
@@ -962,9 +944,9 @@ public class FileTests {
         return suite;
     }
 
-    private static boolean addTest(boolean scala_test,
+    private static boolean addTest(boolean typechecker_test,
                                    String test_name) {
-        return ( ! scala_test
+        return ( ! typechecker_test
                  || test_name.startsWith("Compiled0")
                  || test_name.startsWith("Compiled1")
                  || test_name.startsWith("Compiled2")

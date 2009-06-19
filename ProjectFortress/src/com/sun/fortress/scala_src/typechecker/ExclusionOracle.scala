@@ -55,7 +55,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
    * Invariant: firstParam is not equal to secondParam
    * The following types are not yet supported:
    *     Types tagged with dimensions or units
-   *     Effects on arrow types
+   *     Effects and io on arrow types
    *     Keyword parameters and varargs parameters
    *     Intersection types
    *     Union types
@@ -133,9 +133,9 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
                           s, NodeUtil.getSpan(s))
             false
         }
-      case (SArrowType(_,_,_,_), SArrowType(_,_,_,_)) => false
-      case (SArrowType(_,_,_,_), _) => true
-      case (_, SArrowType(_,_,_,_)) => true
+      case (SArrowType(_,_,_,_,_), SArrowType(_,_,_,_,_)) => false
+      case (SArrowType(_,_,_,_,_), _) => true
+      case (_, SArrowType(_,_,_,_,_)) => true
       case (f@STupleType(_,_,_,_), s@STupleType(_,_,_,_)) =>
         NodeUtil.differentArity(f, s) || {
           f.getVarargs.isNone && s.getVarargs.isNone &&
@@ -214,7 +214,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
         }
       case STraitType(i,n,a,p) => STraitType(i, n, a.map(saSubst), p.map(spSubst))
       case STupleType(i,e,v,k) => STupleType(i, e.map(tySubst), v, k)
-      case SArrowType(i,d,r,e) => SArrowType(i, tySubst(d), tySubst(r), e)
+      case SArrowType(i,d,r,e,b) => SArrowType(i, tySubst(d), tySubst(r), e, b)
       case _ => tau
     }
     excludes = excludes.map( tySubst ).asInstanceOf[Set[TraitType]]

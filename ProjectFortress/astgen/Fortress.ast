@@ -1064,14 +1064,14 @@ interface Node() extends HasAt;
                           List<KeywordType> keywords);
                 /**
                  * arrow type
-                 * Type ::= Type -> Type Throws?
+                 * Type ::= io? Type -> Type Throws?
                  * e.g.) (String, NN..., p = Printer) -> NN throws IOException
                  *
                  * <staticParams>
                  * <whereClause>
                  * type of a generic function, used during static checking
                  */
-                ArrowType(Type domain, Type range, Effect effect);
+                ArrowType(Type domain, Type range, Effect effect, boolean io);
                 /**
                  * inferred type
                  * Used internally for type analysis

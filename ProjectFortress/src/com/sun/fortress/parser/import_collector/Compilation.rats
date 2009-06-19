@@ -64,9 +64,7 @@ private CompilationUnit CompilationUnit =
    / Api ;
 
 /* Component ::=
-     (native w)? component w APIName w comprises w APINames
-     w end ((s component)? s APIName)?
-   | (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
+     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
      (w Decls w ;?)? w end ((s component)? s APIName)?
  */
 private Component Component =

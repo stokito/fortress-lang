@@ -311,23 +311,9 @@ public final class Shell {
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = compilerPhases(args, Option.<String>none(), what);
-            } else if (what.equals("compile-scala")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
-                setTypeChecking(true);
-                //setScala(true);
-                setPhase( PhaseOrder.CODEGEN );
-                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("link")) {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
-                setTypeChecking(true);
-                setPhase( PhaseOrder.CODEGEN );
-                return_code = link(args);
-            } else if (what.equals("link-scala")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
-                setScala(true);
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = link(args);
@@ -352,10 +338,6 @@ public final class Shell {
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 return_code = compilerPhases(args, Option.<String>none(), what);
-            } else if ( what.equals( "disambiguate-scala" ) ){
-                setScala(true);
-                setPhase( PhaseOrder.DISAMBIGUATE );
-                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
@@ -370,16 +352,8 @@ public final class Shell {
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
-            } else if (what.equals("typecheck-scala")){
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
-              	setTypeChecking(true);
-              	setScala(true);
-                setPhase( PhaseOrder.TYPECHECK );
-                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test-coercion")) {
                 setTypeChecking(true);
-                setScala(true);
                 setPhase(PhaseOrder.TYPECHECK);
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
@@ -748,8 +722,8 @@ public final class Shell {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
             }
-            else if (s.equals("-typecheck-scala")) {
-            	setScala(true);
+            else if (s.equals("-typecheck-java")) {
+            	setScala(false);
             }
             else if (s.equals("-coercion")) {
             	setTestCoercion(true);
@@ -939,9 +913,6 @@ public final class Shell {
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
-            }
-            else if (s.equals("-typecheck-scala")) {
-            	setScala(true);
             }
             else
                 invalidFlag(s, "link");
