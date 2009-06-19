@@ -742,7 +742,7 @@ public class NodeFactory {
                                           List<StaticParam> sparams,
                                           Option<WhereClause> where) {
         TypeInfo info = makeTypeInfo(span, parenthesized, sparams, where);
-        return new ArrowType(info, domain, range, effect);
+        return new ArrowType(info, domain, range, effect, false);
     }
 
     public static Type makeMaybeTupleType(Span span, List<Type> elements) {

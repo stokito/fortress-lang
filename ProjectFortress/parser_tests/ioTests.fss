@@ -15,10 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-import Foo.{ f => g }
+component ioTests
 export Executable
 
-f(x:ZZ32):ZZ32 = x
-g(x:ZZ32):ZZ32 = x
+object Error extends Exception end
 
-run(): () = printlnZZ32(g(3))
+run() = do
+  a: io ZZ32->String
+  e: io ZZ32->String throws Error
+  f: io ZZ32 Length -> (String Time / Length) throws Error
+  g: ZZ32 -> (io String -> ())
+  h: io ZZ32 -> (String -> ())
+end
+
+end

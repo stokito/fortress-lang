@@ -241,8 +241,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         staticParameters.addAll(second._1._1)
         typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
         var result = false
-        val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2)),
-                    reduce(typeAnalyzer.meet(first._1._3, second._1._3)))
+        val exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog())
+        val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2), exclusionOracle),
+                    reduce(typeAnalyzer.meet(first._1._3, second._1._3), exclusionOracle))
         for ( f <- set ; if ! result )
             if ( subtype(f._1._2, meet._1) &&
                  subtype(meet._1, f._1._2) &&
@@ -261,14 +262,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
      *  - if "elements" are all tuple types
      *    simplif "t"
      */
-    private def reduce(t: Type): Type = t match {
+    private def reduce(t: Type, exclusionOracle: ExclusionOracle): Type = t match {
         case SIntersectionType(info, elements) =>
             val (tuples, nots) = elements.partition(NodeUtil.isTupleType)
             if ( ! tuples.isEmpty && ! nots.isEmpty ) NodeFactory.makeBottomType(info)
             else if ( tuples.isEmpty ) {
                 // If all the "elements" have comprises clauses
                 // and they all include type "M", then "M" is the meet.
-                existComprisedMeet(elements) match {
+                existComprisedMeet(elements, exclusionOracle) match {
                     case Some(m) => m
                     case _ => t
                 }
@@ -291,27 +292,50 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     /* If all the "types" have comprises clauses
-     * and they all include type "M", then "M" is the meet.
+     * and they all include types "comprised",
+     * then if "comprised" = {"M"} and all the others are exclusive
+     *      then "M" is the meet
      */
-    private def existComprisedMeet(types: List[Type]): Option[TraitType] = {
-      var meet: List[TraitType] = null
+    private def existComprisedMeet(types: List[Type],
+                                   exclusionOracle: ExclusionOracle): Option[TraitType] = {
+      var allComprises = List[(Id, List[TraitType])]()
+      var meets: List[TraitType] = null
       for ( t <- types ) {
         if ( t.isInstanceOf[TraitType] ) {
-          STypesUtil.getTypes(t.asInstanceOf[TraitType].getName,
-                              globalEnv, compilation_unit) match {
+          val name = t.asInstanceOf[TraitType].getName
+          STypesUtil.getTypes(name, globalEnv, compilation_unit) match {
             case ti:ProperTraitIndex =>
               var comprises = List[TraitType]()
-            for ( s <- toSet(ti.comprisesTypes) ) comprises = s::comprises
+              for ( s <- toSet(ti.comprisesTypes) ) comprises = s::comprises
+              allComprises = (name, comprises)::allComprises
               if ( ! comprises.isEmpty ) {
-                if ( meet == null ) meet = comprises
-                else meet = meet.intersect(comprises)
+                if ( meets == null ) meets = comprises
+                else meets = meets.intersect(comprises)
               } else return None // no comprises clause
             case _ => return None // not a trait
           }
         } else return None
       }
-      if ( meet.length == 1 ) Some(meet.head)
-      else  None
+      if ( meets.length == 1 ) {
+        val meet = meets.head
+        def nonExclusive(pair: (List[TraitType], List[TraitType])): Boolean = {
+          for ( first <- pair._1 - meet ) {
+            for ( second <- pair._2 - meet ) {
+              if ( typeAnalyzer.equivalent(first, second).isFalse &&
+                   ! exclusionOracle.excludes(first, second) )
+                return true
+            }
+          }
+          false
+        }
+        for ( first <- allComprises ) {
+          for ( second <- allComprises ;
+                if ! first._1.getText.equals(second._1.getText) ) {
+            if ( nonExclusive(first._2, second._2) ) return None
+          }
+        }
+        Some(meet)
+      } else  None
     }
 
     /* Returns the set of overloaded function declarations

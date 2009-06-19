@@ -483,8 +483,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     def lessThan(overloading1: (ArrowType, List[StaticArg]),
                  overloading2: (ArrowType, List[StaticArg])): Boolean = {
 
-      val SArrowType(_, domain1, range1, _) = overloading1._1
-      val SArrowType(_, domain2, range2, _) = overloading2._1
+      val SArrowType(_, domain1, range1, _, _) = overloading1._1
+      val SArrowType(_, domain2, range2, _, _) = overloading2._1
 
       if (equivalentTypes(domain1, domain2)) false
       else isSubtype(domain1, domain2)
@@ -698,14 +698,14 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       }
       signal(application, message)
     }
-  
+
   /**
    * Create an error message that will have type and expected type inserted.
    * There should be no string format operators in the message.
    */
   private def errorString(message: String): String =
     message + " has type %s, but it must have %s type."
-  
+
   /**
    * Create an error message that will have type and expected type inserted.
    * There should be no string format operators in either supplied message.
@@ -855,17 +855,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       val newChecker = this.extend(env.extendWithStaticParams(statics).extendWithParams(params),
                                    analyzer.extend(statics, wheres))
       val newContract = contract.map(c => newChecker.check(c))
-      
+
       // If setter decl and no return type given, make it void.
       val returnType =
         if (rType.isEmpty && NodeUtil.isSetter(f))
           Some(Types.VOID)
         else
           rType
-      
+
       // Get the new return type and body.
       val (newReturnType, newBody) = returnType match {
-        
+
         // If there is a declared return type, check the body, expecting this
         // type. If this is a setter, check that the return type is a void too.
         case Some(rt) =>
@@ -873,7 +873,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
             isSubtype(rt, Types.VOID, f, "Setter declarations must return void.")
           (Some(rt), newChecker.checkExpr(body, rt, errorString("Function body",
                                                                 "declared return")))
-          
+
         case None =>
           val newBody = newChecker.checkExpr(body)
           (getType(newBody), newBody)
@@ -982,7 +982,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
 
-  
+
   /**
    * Check an expression and guarantee that its type is substitutable for the
    * expected type. That is, the resulting type should be a subtype of or
@@ -990,7 +990,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * with the given message. This message should have two "%s" string format
    * operators in it; the first is replaced with the actual type and the second
    * with the expected type.
-   * 
+   *
    * @param expr The expression node to type check.
    * @param expected The expected type of this expression.
    * @param message The message for the error if the expression is well-typed
@@ -1004,7 +1004,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                 message: String): Expr = {
     val checkedExpr = checkExpr(expr, Some(expected))
     getType(checkedExpr) match {
-      case Some(typ) => 
+      case Some(typ) =>
         isSubtype(typ, expected, expr, message.format(normalize(typ), normalize(expected)))
         addType(checkedExpr, typ)
       case _ => expr
@@ -1026,7 +1026,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   /**
    * Check an expression, returning the rewritten node. This overloading should
    * be called whenever there is no expected type.
-   * 
+   *
    * @param expr The expression node to type check.
    * @return The rewritten expression node.
    */
@@ -1037,7 +1037,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    * implementation of the type checking is contained herein. This overloading
    * should only ever be called by the other two overloadings. That is, no cases
    * in the implementation should call this method itself.
-   * 
+   *
    * @param expr The expression node to type check.
    * @param expected The expected type of this expression, if there is one.
    *                 This should only be explicitly used when doing type
@@ -1046,7 +1046,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
    */
   def checkExpr(expr: Expr,
                 expected: Option[Type]): Expr = expr match {
-    
+
     case o@SObjectExpr(SExprInfo(span,parenthesized,_),
                      STraitTypeHeader(sparams, mods, name, where,
                                       throwsC, contract, extendsC, decls),
@@ -1718,7 +1718,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
     case STypecase(SExprInfo(span, paren, _),
                    bindIds, bindExpr, clauses, elseClause) => {
       val (checkedExpr, checkedType) = bindExpr.map(checkExpr) match {
-        
+
         // If expr exists and was checked properly, make sure the bindIds are
         // not shadowing.
         case Some(checkedE) =>
@@ -1728,7 +1728,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               return expr
             })
           (Some(checkedE), getType(checkedE).getOrElse(return expr))
-        
+
         // If expr does not exist, make sure thr bindIds are not mutable.
         case _ =>
           bindIds.foreach(id =>
@@ -1736,12 +1736,12 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
               signal(id, ("Identifier for a typecase expression without a " +
                          "binding expression cannot be a mutable variable: %s").
                            format(id)))
-          
+
           val idTypes = bindIds.map(getTypeFromName(_).getOrElse(return expr))
           (None, NodeFactory.makeMaybeTupleType(NodeUtil.getSpan(expr),
                                                 toJavaList(idTypes)))
       }
-      
+
       // Check that the number of bindIds matches the size of the bindExpr.
       val isMultipleIds = bindIds.size > 1
       if (isMultipleIds && bindExpr.isDefined) {
@@ -1769,7 +1769,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           signal(c, "A typecase expression has a different number of cases in a clause.")
           return c
         }
-        
+
         // Construct the types that correspond to each id.
         val newType =
           if (isMultipleIds) {
@@ -1779,17 +1779,17 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           } else {
             List[Type](normalize(NodeFactory.makeIntersectionType(checkedType, matchType.first)))
           }
-        
+
         val checkedBody =
           this.extend(bindIds, newType).
           checkExpr(body).asInstanceOf[Block]
-        
+
         STypecaseClause(info, matchType, checkedBody)
       }
       val checkedClauses = clauses.map(checkClause)
       val clauseTypes =
         checkedClauses.map(c => getType(c.getBody).getOrElse(return expr))
-      
+
       // Check the else clause with the new binding.
       val newType =
         if (isMultipleIds)
@@ -1801,7 +1801,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           this.extend(bindIds, newType).
             checkExpr(e).asInstanceOf[Block])
       val elseType = checkedElse.map(getType(_).getOrElse(return expr))
-      
+
       // Build union type of all clauses and else.
       val allTypes = elseType match {
         case Some(t) => Set(clauseTypes:_*) + t
