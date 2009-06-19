@@ -64,7 +64,6 @@ public class ComponentIndex extends CompilationUnitIndex {
             "\nUnits: " + units();
     }
 
-
     @Override
     public Set<APIName> exports() {
         List<APIName> exports = ((Component)ast()).getExports();

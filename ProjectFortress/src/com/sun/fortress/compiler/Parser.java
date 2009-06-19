@@ -216,7 +216,7 @@ public class Parser {
         final List<GrammarIndex> grammars = new ArrayList<GrammarIndex>();
         c.accept(new TemplateNodeDepthFirstVisitor_void() {
                 @Override public void forImportApiOnly(ImportApi that) {
-                    bug(that, errorMsg("NYI 'Import api APIName'; ",
+                    bug(that, errorMsg("Not yet implemented: 'import api APIName'; ",
                                        "try 'import APIName.{...}' instead."));
                 }
 

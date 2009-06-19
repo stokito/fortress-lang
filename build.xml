@@ -633,7 +633,11 @@ maintain proper indentation.
     </javac>
   </target>
 
-  <target name="compileCommon" depends="init"
+  <!-- Whenever any part of the compiler source code is recompiled, we need to clean the cache
+       because we can't ensure that existing target code is still valid (or even sensical).
+       EricAllen 6/18/2009
+  -->
+  <target name="compileCommon" depends="init, cleanCache"
           description="Compile interpreter-indepedent code.">
     <depend srcdir="${src}"
             destdir="${build}"
