@@ -44,6 +44,8 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.scala_src.linker.ApiLinker;
+import com.sun.fortress.scala_src.linker.CompoundApiChecker;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
@@ -289,8 +291,16 @@ public class StaticChecker {
     public static TypeCheckerResult checkApi(ApiIndex api,
                                              GlobalEnvironment env,
                                              FortressRepository repository) {
+
+        // Check if this is a compound API, and, if so, link it into a single API.
+        List<StaticError> errors = new CompoundApiChecker(env, repository).check(api);
+        if (! errors.isEmpty()) { 
+            return new TypeCheckerResult(api.ast(), errors);
+        }
+        api = new ApiLinker(env, repository).link(api);
+
         // Check type hierarchy to ensure acyclicity.
-        List<StaticError> errors = new TypeHierarchyChecker(api, env, repository).checkHierarchy();
+        errors = new TypeHierarchyChecker(api, env, repository).checkHierarchy();
         if (! errors.isEmpty()) {
             return new TypeCheckerResult(api.ast(), errors);
         }

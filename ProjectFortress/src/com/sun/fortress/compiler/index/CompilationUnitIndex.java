@@ -81,6 +81,14 @@ public abstract class CompilationUnitIndex {
         return result;
     }
 
+    public Set<APIName> comprises() { 
+        final Set<APIName> result = new HashSet<APIName>();
+        for (APIName _apiName : ast().getComprises()) { 
+            result.add(_apiName);
+        }
+        return result;
+    }
+
     public Map<Id, Variable> variables() { return _variables; }
 
     public Relation<IdOrOpOrAnonymousName, Function> functions() { return _functions; }
