@@ -1171,8 +1171,8 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
       // A LocalVarDecl is like a let. It has a body, and its type is the type of the body
       val newBody = body.map(newChecker.checkExpr)
       if (!haveTypes(newBody)) { return expr }
-      newBody.foreach(e => isSubtype(getType(e).get, Types.VOID, e,
-                                     errorString("Non-last expression in a block")))
+      newBody.dropRight(1).foreach(e => isSubtype(getType(e).get, Types.VOID, e,
+                                                  errorString("Non-last expression in a block")))
       val newType = body.size match {
         case 0 => Some(Types.VOID)
         case _ => getType(newBody.last)
