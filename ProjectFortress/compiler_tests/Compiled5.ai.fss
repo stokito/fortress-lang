@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,14 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXInvertedAsExpr
-export Executable
+  import MyOwnLiterals.{...}
+  export AsIfInterface
 
-(* Test that supertype cannot be ascripted to a subtype. *)
+(* Test that expression type <: ascripted type. *)
 
-run():() = do
-  x:Any = 5
-  y:ZZ32 = x typed ZZ32
-end
+  trait MyOwnZZ32 end
 
-end
+  foo():MyOwnZZ32 = (MyOwn0 asif MyOwnZZ32)

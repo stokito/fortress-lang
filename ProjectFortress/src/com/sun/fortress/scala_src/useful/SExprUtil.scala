@@ -37,9 +37,7 @@ object SExprUtil {
    */
   def haveTypes(exprs: List[Expr]): Boolean =
     exprs.forall((e:Expr) => getType(e).isDefined)
-  
-  
-  
+
   /**
    * Given an expression, return an identical expression with the given type
    * inserted into its ExprInfo.
@@ -50,14 +48,14 @@ object SExprUtil {
       override def walk(node: Any): Any = node match {
         case SExprInfo(a, b, _) if !swap =>
           swap = true
-          SExprInfo(a, b, Some(typ))          
+          SExprInfo(a, b, Some(typ))
         case _ if(!swap) => super.walk(node)
         case _ => node
       }
     }
     adder(expr).asInstanceOf[Expr]
   }
-  
+
   /**
    * Replaces the overloadings in a FunctionalRef with the given overloadings
    */
@@ -67,7 +65,7 @@ object SExprUtil {
     case SOpRef(a, b, c, d, e, f, _, h) => SOpRef(a, b, c, d, e, f, overs, h)
     case _ => NI.nyi()
   }
-  
+
   /**
    * Replaces the static args in a FunctionalRef with the given ones.
    */
@@ -77,6 +75,6 @@ object SExprUtil {
     case SOpRef(a, _, c, d, e, f, g, h) => SOpRef(a, sargs, c, d, e, f, g, h)
     case _ => NI.nyi()
   }
-  
-  
+
+
 }

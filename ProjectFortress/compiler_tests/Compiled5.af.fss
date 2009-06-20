@@ -15,16 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXEqualityTesting
-  export Executable
+ export Executable
 
-  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
-    (a = b)
-    (b = c)
-    (c = a)
-    ()
-  end
+   trait B
+   end
 
-  run():() = ()
+   object A
+   end
 
-end
+   foo[\T extends B\](x:T):T = x
+
+   run():() = ignore(foo(A))

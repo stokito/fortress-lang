@@ -15,18 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXChainTest2
   export Executable
 
-  trait Foo
-    (* This test will begin to fail if there is ever a < defined for Any,Any *)
-    opr < (self, x:Foo): ZZ32
-  end
-
-  foo(a:Foo, b:Foo, c:Foo, d:Foo) : Boolean = do
-    ignore(a < b < c < d)
-    (a < b)
+  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
+    (a = b)
+    (b = c)
+    (c = a)
+    ()
   end
 
   run():() = ()
-end

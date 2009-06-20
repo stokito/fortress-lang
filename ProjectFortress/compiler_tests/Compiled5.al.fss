@@ -15,18 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component GenericSingleton
 export Executable
 
-object A end
-object B[\T\](t:T) end
-object C[\T\] end
-
-run():() = do
-  v1 = A
-  v2a = B[\ZZ32\]
-  v2b = B[\IntLiteral\](0)
-  v3 = C[\Boolean\]
+object Point(x:RR64, y:RR64)
+  getX():RR64 = x
+  getY():RR64 = y
 end
 
+run():() = do
+  p1 = Point(0.0, 0.0)
+  p2 = Point(1.0, 1.0)
 end
