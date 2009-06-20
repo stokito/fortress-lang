@@ -13,5 +13,15 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled1.ag Compiled1.ah Compiled1.ai Compiled1.aj Compiled1.ak Compiled1.as Compiled1.au Compiled1.av Compiled2.g Compiled2.t Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v Compiled3.x Compiled5.e Compiled5.o Compiled5.q Compiled5.ah Compiled5.ai Compiled5.aj Compiled5.ak Compiled5.al Compiled5.am Compiled6 Compiled7 Compiled8
-desugar
+tests=Compiled5.an
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.an.fss:21:7:\n\
+\ Right-hand side, IntLiteral, must be a subtype of left-hand side, String.\n\
+${STATIC_TESTS_DIR}/Compiled5.an.fss:22:3-23:2:\n\
+\ Right-hand side, IntLiteral, must be a subtype of left-hand side, String.\n\
+${STATIC_TESTS_DIR}/Compiled5.an.fss:23:3-28:\n\
+\ Right-hand side, IntLiteral, is not a tuple type but left-hand side declares multiple variables.\n\
+File Compiled5.an.fss has 3 errors.\n
+compile_out_equals=

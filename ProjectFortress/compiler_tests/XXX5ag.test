@@ -13,5 +13,11 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled1.ag Compiled1.ah Compiled1.ai Compiled1.aj Compiled1.ak Compiled1.as Compiled1.au Compiled1.av Compiled2.g Compiled2.t Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.q Compiled3.t Compiled3.v Compiled3.x Compiled5.e Compiled5.o Compiled5.q Compiled5.ah Compiled5.ai Compiled5.aj Compiled5.ak Compiled5.al Compiled5.am Compiled6 Compiled7 Compiled8
-desugar
+tests=Compiled5.ag
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.ag.fss:24:12:\n\
+\ Expression has type Any, but ascripted type is ZZ32.\n\
+File Compiled5.ag.fss has 1 error.\n
+compile_out_equals=
