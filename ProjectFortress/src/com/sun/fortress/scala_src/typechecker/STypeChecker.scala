@@ -119,6 +119,9 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
   private def extend(ids: List[Id], types: List[Type]): STypeChecker =
     extend(ids.zip(types).map((p:(Id,Type)) => NodeFactory.makeLValue(p._1,p._2)))
 
+  private def extend(decl: LocalVarDecl): STypeChecker =
+    STypeCheckerFactory.make(current, traits, env.extend(decl), analyzer, errors)
+
   private def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod]) =
     STypeCheckerFactory.make(current, traits, env.extendWithFunctions(methods),
                              analyzer, errors)
@@ -1116,13 +1119,65 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
           SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),
                  newLoc, false, withinDo, exprs)
         case last::rest =>
-        val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
-                                                         errorString("Non-last expression in a block")))
+          val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
+                                                           errorString("Non-last expression in a block")))
           val lastExpr = checkExpr(last)
           val newExprs = (lastExpr::allButLast).reverse
           SBlock(SExprInfo(span,parenthesized,getType(lastExpr)),
                  newLoc, false, withinDo, newExprs)
       }
+    }
+
+    case d@SLocalVarDecl(SExprInfo(span,paren,_), body, lhs, rhs) => {
+      val newRhs = rhs.map(checkExpr)
+      val newLhs = newRhs match {
+        case Some(e) => getType(e) match {
+          case Some(typ@STupleType(_,elts,_,_)) =>
+            if ( lhs.size != elts.size ) {
+              signal(expr, errorMsg("The size of right-hand side, ", typ,
+                                    ", does not match with the size of left-hand side."))
+              return expr
+            }
+            lhs.zip(elts).map( (p:(LValue,Type)) => p._1 match {
+                               case SLValue(i,n,m,None,mt) =>
+                                 SLValue(i,n,m,Some(p._2),mt)
+                               case SLValue(i,n,m,Some(t),mt) =>
+                                 isSubtype(p._2, t, p._1,
+                                           errorMsg("Right-hand side, ", p._2,
+                                                    ", must be a subtype of left-hand side, ",
+                                                    t, "."))
+                                 p._1 } )
+          case Some(typ) => lhs match {
+            case List(SLValue(i,name,mods,Some(idType),mutable)) =>
+              isSubtype(typ, idType, expr,
+                        errorMsg("Right-hand side, ", typ,
+                                 ", must be a subtype of left-hand side, ", idType, "."))
+              lhs
+            case List(SLValue(i,name,mods,None,mutable)) =>
+              List(SLValue(i,name,mods,Some(typ),mutable))
+            case _ =>
+              signal(expr, errorMsg("Right-hand side, ", typ,
+                                    ", is not a tuple type but left-hand side ",
+                                    "declares multiple variables."))
+              return expr
+          }
+          case _ => return expr
+        }
+        case _ => lhs
+      }
+
+      // Extend typechecker with new bindings from the RHS types
+      val newChecker = this.extend(d)
+      // A LocalVarDecl is like a let. It has a body, and its type is the type of the body
+      val newBody = body.map(newChecker.checkExpr)
+      if (!haveTypes(newBody)) { return expr }
+      newBody.foreach(e => isSubtype(getType(e).get, Types.VOID, e,
+                                     errorString("Non-last expression in a block")))
+      val newType = body.size match {
+        case 0 => Some(Types.VOID)
+        case _ => getType(newBody.last)
+      }
+      SLocalVarDecl(SExprInfo(span,paren,newType), newBody, newLhs, newRhs)
     }
 
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {
@@ -1614,7 +1669,7 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
         getType(checkExpr(expr)) match {
           case Some(ty) =>
             isSubtype(ty, Types.BOOLEAN, expr,
-                      errorMsg("The chained expression ", expr,
+                      errorMsg("The chained expression ",
                                " should have type Boolean, but had type ", normalize(ty), "."))
           case _ => false
         }

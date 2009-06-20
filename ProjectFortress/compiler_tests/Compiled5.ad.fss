@@ -15,18 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalVarRef
-export Executable
+  export Executable
 
-(* Tests that LocalVarDecl correctly binds each variable over successive
- * definitions and its enclosing Block. *)
+  foo(a:ZZ32, b:String, c:ZZ32, d:ZZ32) : Boolean = do
+    ignore(a < b < c < d)
+    (a = b)
+  end
 
-run():() = do
-  x:IntLiteral = 23
-  y:IntLiteral = x
-  ignore(y)
-  ignore(x)
-  ()
-end
-
-end
+  run():() = ()

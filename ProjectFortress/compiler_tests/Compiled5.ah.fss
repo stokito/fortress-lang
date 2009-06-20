@@ -15,13 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXChainTest1
-  export Executable
+export Executable
 
-  foo(a:ZZ32, b:String, c:ZZ32, d:ZZ32) : Boolean = do
-    ignore(a < b < c < d)
-    (a = b)
-  end
+(* Test that expression type <: ascripted type. *)
 
-  run():() = ()
+run():() = do
+  x:IntLiteral = 5
+  y:Any = x typed Any
 end

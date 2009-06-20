@@ -15,14 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component AsExpr
 export Executable
 
-(* Test that expression type <: ascripted type. *)
+(* Tests that LocalVarDecl correctly binds each variable over successive
+ * definitions and its enclosing Block. *)
 
 run():() = do
-  x:IntLiteral = 5
-  y:Any = x typed Any
-end
-
+  x:IntLiteral = 23
+  y:IntLiteral = x
+  ignore(y)
+  ignore(x)
+  ()
 end

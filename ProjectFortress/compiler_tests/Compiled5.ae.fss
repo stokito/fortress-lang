@@ -15,17 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component SimpleObject
-export Executable
+  export Executable
 
-object Point(x:RR64, y:RR64)
-  getX():RR64 = x
-  getY():RR64 = y
-end
+  trait Foo
+    (* This test will begin to fail if there is ever a < defined for Any,Any *)
+    opr < (self, x:Foo): ZZ32
+  end
 
-run():() = do
-  p1 = Point(0.0, 0.0)
-  p2 = Point(1.0, 1.0)
-end
+  foo(a:Foo, b:Foo, c:Foo, d:Foo) : Boolean = do
+    ignore(a < b < c < d)
+    (a < b)
+  end
 
-end
+  run():() = ()

@@ -260,7 +260,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
      *  - if "elements" are all non-tuple types
      *    check comprises clauses
      *  - if "elements" are all tuple types
-     *    simplif "t"
+     *    simplify "t"
      */
     private def reduce(t: Type, exclusionOracle: ExclusionOracle): Type = t match {
         case SIntersectionType(info, elements) =>

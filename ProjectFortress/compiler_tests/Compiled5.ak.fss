@@ -15,18 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
- component DXXStaticParamFunctionCall
- export Executable
+export Executable
 
-   trait B
-   end
+object A end
+object B[\T\](t:T) end
+object C[\T\] end
 
-   object A
-   end
-
-   foo[\T extends B\](x:T):T = x
-
-   run():() = ignore(foo(A))
-
-
- end
+run():() = do
+  v1 = A
+  v2a = B[\ZZ32\]
+  v2b = B[\IntLiteral\](0)
+  v3 = C[\Boolean\]
+end
