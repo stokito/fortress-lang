@@ -15,9 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api MyOwnLiterals
-  import AsIfInterface.{...}
+export Executable
 
-  object MyOwn0 extends MyOwnZZ32 end
-
+trait T[\X\] extends X
+  wrapped x:X
 end
+object O[\Y\](wrapped x:Y) extends Y end
+
+run():() = ()
