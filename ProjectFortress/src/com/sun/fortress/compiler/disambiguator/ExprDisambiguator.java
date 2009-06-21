@@ -294,7 +294,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private ExprDisambiguator extendWithFns(Set<FnDecl> definedDecls) {
         return extendWithFns(definedDecls, CollectUtil.<Id>emptySet());
     }
-    
+
     private ExprDisambiguator extendWithGetterSetter(Set<Id> definedNames){
     	return extendWithGetterSetter(definedNames, CollectUtil.<Id>emptySet());
     }
@@ -302,11 +302,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private ExprDisambiguator extendWithFns(Set<FnDecl> definedDecls,
                                             Set<Id> allowedShadowings)
     {
-    	
+
         checkForShadowingFunctions(extractDefinedFnNames(definedDecls), allowedShadowings);
         return extendWithFnsNoCheck(definedDecls);
     }
-    
+
     private ExprDisambiguator extendWithGetterSetter(Set<Id> getterSetter, Set<Id> allowedShadowings){
     	checkForShadowingFunctions(getterSetter, allowedShadowings);
         return extendWithGetterSetterNoCheck(getterSetter);
@@ -316,7 +316,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         NameEnv newEnv = new LocalFnEnv(_env, definedFunctions);
         return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
     }
-    
+
     private ExprDisambiguator extendWithGetterSetterNoCheck(Set<Id> getterSetter){
     	NameEnv newEnv = new LocalGetterSetterEnv(_env, getterSetter);
     	return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
@@ -410,7 +410,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         return result;
     }
-    
+
     /**
      * Partition decls into three sets. Partition all the given decls into three
      * sets: a set of variable Ids, a set of FnDecls for accessors, and a set of
@@ -418,7 +418,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     private Triple<Set<Id>, Set<Id>, Set<FnDecl>>
     		partitionDecls(List<Decl> decls) {
-    	
+
     	// Collect the variable names.
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
 
@@ -437,7 +437,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         for (Decl decl : decls) {
             vars.addAll(decl.accept(var_finder));
         }
-        
+
         // Collect the functions and simultaneously collect any accessors.
         final Set<Id> accessors = new HashSet<Id>();
         NodeDepthFirstVisitor<Set<FnDecl>> fn_finder =
@@ -544,13 +544,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                                               List<TraitTypeWhere> extended_traits) {
         Set<Id> gettersAndSetters = new HashSet<Id>();
         Set<FnDecl> methods = new HashSet<FnDecl>();
-        
+
         Lambda<DeclaredMethod, FnDecl> methToDecl = new Lambda<DeclaredMethod, FnDecl>() {
         	@Override public FnDecl value(DeclaredMethod arg0) {
 				return arg0.ast();
 			}
         };
-        
+
         for( TraitTypeWhere trait_ : extended_traits ) {
 
             BaseType type_ = trait_.getBaseType();
@@ -574,6 +574,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
              }
 
             TypeConsIndex tci = this._env.typeConsIndex(trait_name);
+            if ( tci == null )
+                error("Type variable " + trait_name +
+                      " must not appear in the extends clause of a trait or object declaration.",
+                      trait_name);
+
             if( tci instanceof TraitIndex ) {
                 TraitIndex ti = (TraitIndex)tci;
                 // Add dotted methods
@@ -622,6 +627,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> vars = declNames.first();
         Set<Id> gettersAndSetters = declNames.second();
         Set<FnDecl> fns = declNames.third();
+
+        // Check that wrapped fields must not have naked type variables.
+        for (Decl decl : NodeUtil.getDecls(that)) {
+            if ( decl instanceof VarDecl ) {
+                for (LValue lv : ((VarDecl)decl).getLhs()) {
+                    if ( lv.getMods().isWrapped() &&
+                         lv.getIdType().isSome() &&
+                         lv.getIdType().unwrap() instanceof VarType ) {
+                        Id tyVar = ((VarType)lv.getIdType().unwrap()).getName();
+                        if ( this._env.typeConsIndex(tyVar) == null )
+                            error("A wrapped field " + lv.getName() +
+                                  " must not have a naked type variable " + tyVar + ".",
+                                  tyVar);
+                    }
+                }
+            }
+        }
 
         Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
@@ -680,6 +702,45 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         Set<Id> fields = CollectUtil.union(params, vars);
+
+        // Check that wrapped fields must not have naked type variables.
+        for (Decl decl : NodeUtil.getDecls(that)) {
+            if ( decl instanceof VarDecl ) {
+                for (LValue lv : ((VarDecl)decl).getLhs()) {
+                    if ( lv.getMods().isWrapped() &&
+                         lv.getIdType().isSome() &&
+                         lv.getIdType().unwrap() instanceof VarType ) {
+                        Id tyVar = ((VarType)lv.getIdType().unwrap()).getName();
+                        if ( this._env.typeConsIndex(tyVar) == null )
+                            error("A wrapped field " + lv.getName() +
+                                  " must not have a naked type variable " + tyVar + ".",
+                                  tyVar);
+                    }
+                }
+            }
+        }
+        if ( NodeUtil.getParams(that).isSome() ) {
+            for (Param param : NodeUtil.getParams(that).unwrap()) {
+                if ( param.getMods().isWrapped() ) {
+                    if ( param.getIdType().isSome() &&
+                         param.getIdType().unwrap() instanceof VarType ) {
+                        Id tyVar = ((VarType)param.getIdType().unwrap()).getName();
+                        if ( this._env.typeConsIndex(tyVar) == null )
+                            error("A wrapped field " + param.getName() +
+                                  " must not have a naked type variable " + tyVar + ".",
+                                  tyVar);
+                    }
+                    if ( param.getVarargsType().isSome() &&
+                         param.getVarargsType().unwrap() instanceof VarType ) {
+                        Id tyVar = ((VarType)param.getVarargsType().unwrap()).getName();
+                        if ( this._env.typeConsIndex(tyVar) == null )
+                            error("A wrapped field " + param.getName() +
+                                  " must not have a naked type variable " + tyVar + ".",
+                                  tyVar);
+                    }
+                }
+            }
+        }
 
         Pair<Set<Id>, Set<FnDecl>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
@@ -1025,7 +1086,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             Set<Id> vars = _env.explicitVariableNames(name);
             Set<IdOrOp> fns = _env.explicitFunctionNames(name);
             Set<Id> objs = _env.explicitTypeConsNames(name);
-            
+
             if ( vars.size() == 1 && fns.size() == 0 && objs.isEmpty() ) {
                 Id newName = IterUtil.first(vars);
 
@@ -1036,7 +1097,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 else { result = ExprFactory.makeVarRef(NodeUtil.getSpan(that), newName); }
             }
             else if (vars.isEmpty() && fns.size() > 0 ) {
-                
+
                 // Create a list of overloadings for this FnRef from the
                 // matching function names.
                 Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
@@ -1052,7 +1113,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     CollectUtil.<IdOrOp>emptyList() :
                     CollectUtil.makeList(fns);
                 result = ExprFactory.makeFnRef(name, names, overloadings);
-                
+
                 // TODO: insert correct number of to-infer arguments?
             }
             else if( vars.size() == 1&& fns.size() == 0 && objs.size() == 1 ) {
@@ -1131,7 +1192,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             	return that;
             }
         }
-        
+
         // Create a list of overloadings for this FnRef from the matching
         // function names.
         Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
@@ -1148,7 +1209,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<IdOrOp> names = Shell.getScala() ?
             CollectUtil.<IdOrOp>emptyList() :
             CollectUtil.makeList(fns);
-        
+
         return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
                                      names, that.getStaticArgs(), overloadings);
     }
@@ -1165,7 +1226,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (ops.size() == 0) {
             return Option.none();
         }
-    	
+
       	// Create a list of overloadings for this OpRef from the matching
         // operator names.
       	Lambda<IdOrOp, Overloading> makeOverloadings = new Lambda<IdOrOp, Overloading>() {
@@ -1176,8 +1237,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
       	};
       	List<Overloading> overloadings = CollectUtil.makeArrayList(
       			IterUtil.map(ops, makeOverloadings));
-      	
-  
+
+
       	// TODO: Remove this when Scala type checker is online.
         List<IdOrOp> names = Shell.getScala() ?
             CollectUtil.<IdOrOp>emptyList() :

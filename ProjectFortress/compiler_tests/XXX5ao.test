@@ -1,0 +1,29 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled5.ao
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:20:22:\n\
+\ Type variable X must not appear in the extends clause of a trait or object declaration.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:21:13:\n\
+\ A wrapped field x must not have a naked type variable X.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:23:25:\n\
+\ A wrapped field x must not have a naked type variable Y.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:23:36:\n\
+\ Type variable Y must not appear in the extends clause of a trait or object declaration.\n\
+File Compiled5.ao.fss has 4 errors.\n
+compile_out_equals=

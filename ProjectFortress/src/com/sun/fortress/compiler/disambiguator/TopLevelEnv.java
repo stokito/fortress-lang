@@ -460,9 +460,9 @@ public class TopLevelEnv extends NameEnv {
 
         return result;
     }
-    
+
     public Set<IdOrOp> unambiguousFunctionNames(final IdOrOp name) {
-    	
+
     	// Function that gets an unambiguous name out of a Function. If it is
     	// not a DeclaredFunction or FunctionalMethod, the original name will
     	// be returned.
@@ -478,14 +478,14 @@ public class TopLevelEnv extends NameEnv {
 				}
 			}
     	};
-    	
+
     	// First get all the declarations from this compilation unit.
     	Set<? extends Function> functions = _current.functions().matchFirst(name);
     	Iterable<IdOrOp> results = IterUtil.map(functions, unambiguousNameFromFunction);
-    	
+
     	// Loop over all the imported APIs.
     	for (final ApiIndex api : _onDemandImportedApis.values()) {
-    		
+
     		// Qualifies the names with this API.
     		Lambda<IdOrOp, IdOrOp> addApi = new Lambda<IdOrOp, IdOrOp>() {
 				@Override public IdOrOp value(IdOrOp name) {
@@ -496,7 +496,7 @@ public class TopLevelEnv extends NameEnv {
 	                }
 				}
     		};
-    		
+
     		// Get all the declarations from this API and qualify the names.
     		functions = api.functions().matchFirst(name);
     		results = IterUtil.compose(results, IterUtil.map(functions,
@@ -630,6 +630,7 @@ public class TopLevelEnv extends NameEnv {
     public TypeConsIndex typeConsIndex(final Id name) {
         Option<APIName> api = name.getApiName();
         APIName actualApi;
+        Id actualName = ignoreApi(name);
         // If no API in name or it's the current API, use its own typeCons.
         // Otherwise, try to find the API in the global env and use its typeCons.
         if (api.isNone()) {
@@ -638,17 +639,20 @@ public class TopLevelEnv extends NameEnv {
             actualApi = api.unwrap();
         }
         if (api.isNone() || _current.ast().getName().equals(actualApi)) {
-            TypeConsIndex res = _current.typeConses().get(ignoreApi(name));
-            if (res != null) return res;
+            Map<Id, TypeConsIndex> typeConses = _current.typeConses();
+            if ( typeConses.keySet().contains(actualName) )
+                return typeConses.get(actualName);
 //             System.err.println("Lookup of "+name+" in current api was null!\n  Trying qualified lookup, api = "+api);
+            else return null;
         }
 
         // By this point it should be okay to use the unfiltered environment because this
         // method should only be called after the name is disambiguated.
-        TypeConsIndex res = _originalGlobalEnv.api(actualApi).typeConses().get(ignoreApi(name));
-        if (res != null) return res;
+        Map<Id, TypeConsIndex> typeConses = _originalGlobalEnv.api(actualApi).typeConses();
+        if ( typeConses.keySet().contains(actualName) )
+            return typeConses.get(actualName);
 //         System.err.println("Still couldn't find "+name);
-        return null;
+        else return null;
     }
 
     private Id ignoreApi(Id id) {
