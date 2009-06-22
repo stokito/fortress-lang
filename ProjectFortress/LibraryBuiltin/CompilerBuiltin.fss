@@ -35,7 +35,7 @@ export CompilerBuiltin
 trait Object extends Any
 end Object
 
-trait String
+trait String excludes { Number }
     opr ||(self, b:String): String =  jConcatenate(self, b)
 end
 
@@ -47,7 +47,7 @@ printlnZZ32(x:ZZ32):() = jPrintlnZZ32(x)
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 
-trait Number
+trait Number excludes { String }
 end
 
 trait ZZ64 extends Number

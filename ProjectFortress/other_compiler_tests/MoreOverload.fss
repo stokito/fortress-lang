@@ -24,7 +24,11 @@ import java com.sun.fortress.nativeHelpers.{simpleOverload.foo => jFoo}
 export Executable
 
 jFoo(a:ZZ64, b:ZZ64, c:ZZ64, d:ZZ64):() = do
-  jPrintln("LLLL local!")
+  jPrintln("LLLL local1!")
+end
+
+jFoo(a:String, b:String, c:String, d:String):() = do
+  jPrintln("LLLL local2!")
 end
 
 u(x:Any, y:Any):Any = x
@@ -40,6 +44,7 @@ end
 run():() = do
    t(9, 100000000000)
    v u(u(1,2),u("cat", "dog"))
+   jFoo("a", "b", "c", "d")
    end
 
 end
