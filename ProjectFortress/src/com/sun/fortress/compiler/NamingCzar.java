@@ -29,17 +29,24 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -47,6 +54,7 @@ import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -77,7 +85,7 @@ public class NamingCzar {
 
     // fortress types
     public static final String fortressPackage = "fortress";
-    public static final String fortressAny = fortressPackage + "/" + 
+    public static final String fortressAny = fortressPackage + "/" +
                                               WellKnownNames.anyTypeLibrary() +
                                              "$" + WellKnownNames.anyTypeName;
 
@@ -237,9 +245,9 @@ public class NamingCzar {
     public static String makeMethodDesc(List<String> params, String result) {
         String desc ="(";
         for (String param : params) {
-            desc = desc + param;
+            desc += param;
         }
-        desc = desc + "(" + result;
+        desc += ")" + result;
         return desc;
     }
     public static String makeArrayDesc(String element) {
@@ -294,18 +302,6 @@ public class NamingCzar {
     static final String FValueDesc = "L" + FValueType + ";";
 
     /**
-     * Given a Fortress type (expressed as AST node for a Type),
-     * what is the descriptor ("Ljava/lang/Object;", V, I, [J, etc)
-     * of the type implementing it in boxed form?
-     *
-     * @param t
-     * @return
-     */
-    static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
-        return specialFortressDescriptors.get(t);
-    }
-
-    /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
      */
     static Map<com.sun.fortress.nodes.Type, String> specialFortressDescriptors = new HashMap<com.sun.fortress.nodes.Type, String>();
@@ -355,32 +351,12 @@ public class NamingCzar {
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
-    public String boxedImplDesc(com.sun.fortress.nodes.Type t) {
-        String desc = javaDescriptorImplementingFortressType(t);
-
-        if (desc != null)
-            return desc;
-
-        if (t instanceof ArrowType) {
-
-        } else if (t instanceof BaseType) {
-            if (t instanceof AnyType) {
-                return FValueDesc;
-            } else if (t instanceof BottomType) {
-                return bug("Not sure how bottom type translates into Java");
-            } else if (t instanceof NamedType) {
-                if (t instanceof TraitType) {
-                    return FValueDesc;
-                } else if (t instanceof VarType) {
-                    return bug("Need a binding to translate a VarType into Java");
-                }
-            }
-        }
-        return bug ("unhandled type translation, Fortress type " + t);
-
+    public static String boxedImplDesc(com.sun.fortress.nodes.Type t) {
+        return jvmTypeDesc(t);
     }
-    
-    public String boxedImplType( com.sun.fortress.nodes.Type t ) {
+
+    public static String boxedImplType( com.sun.fortress.nodes.Type t ) {
+        // TODO: refactor to be like boxedImplDesc.  Somehow.
         String desc = specialFortressTypes.get(t);
 
         if (desc != null)
@@ -412,7 +388,7 @@ public class NamingCzar {
             return javaPackageClassForApi(name.getText(), ".").toString();
         }
     }
-    
+
     public String apiAndMethodToMethodOwner(APIName name, Function method) {
         String p;
         String m = method.toUndecoratedName().toString();
@@ -429,16 +405,16 @@ public class NamingCzar {
         p = Useful.replace(p, ".", "/") ;
         return p;
     }
-    
+
     public String apiAndMethodToMethod(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
         if (fj.definesApi(name)) {
             int idot = m.lastIndexOf(".");
             if (idot != -1) {
                 m = m.substring(idot+1);
-            } 
-        } 
-        return m; 
+            }
+        }
+        return m;
     }
 
     /**
@@ -509,14 +485,14 @@ public class NamingCzar {
             }
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
-            
+
             if (apiName.isNone()) {
                 // DRC -- This looks wrong to me: it should be the component/api containing the trait, not empty.
                 result[i] = name.toString();
                 continue;
             }
             String api = apiName.unwrap().getText();
-            
+
             StringBuilder parent = javaPackageClassForApi(api, "/");  parent.append("$");  parent.append(name.getText());
             result[i] = parent.toString();
         }
@@ -584,6 +560,117 @@ public class NamingCzar {
         return mname;
     }
 
-   
-    
+    public static String makeInnerClassName(Id id) {
+        return makeInnerClassName(jvmClassForSymbol(id), id.getText());
+    }
+
+    public static String makeInnerClassName(String packageAndClassName, String t) {
+        return packageAndClassName + "$" + t;
+    }
+
+    public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
+                                         com.sun.fortress.nodes.Type range) {
+        return makeMethodDesc(
+                   NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain),
+                   jvmTypeDesc(range));
+    }
+
+    public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
+                                         com.sun.fortress.nodes.Type range) {
+        String args = "";
+        // This special case handles single void argument type properly.
+        if (domain.size() == 1)
+            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), range);
+        for (Param p : domain) {
+            args += jvmTypeDesc(p.getIdType());
+        }
+        return makeMethodDesc(args, jvmTypeDesc(range));
+    }
+
+    public static String jvmSignatureFor(Function f) {
+        return jvmSignatureFor(f.parameters(), f.getReturnType());
+    }
+
+    public static String jvmSignatureFor(FnDecl f) {
+        FnHeader h = f.getHeader();
+        return jvmSignatureFor(h.getParams(), h.getReturnType().unwrap());
+    }
+
+    public static String jvmClassForSymbol(IdOrOp fnName) {
+        Option<APIName> maybe_api = fnName.getApiName();
+        String result = "";
+        if (maybe_api.isSome()) {
+            APIName apiName = maybe_api.unwrap();
+            if (WellKnownNames.exportsDefaultLibrary(apiName.getText()))
+                result = result + "fortress/";
+            result = result + apiName.getText();
+        }
+        //        result = result + fnName.getText();
+
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "jvmClassForSymbol(" + fnName +")=" + result);
+        return result;
+    }
+
+    public static String jvmTypeDesc(com.sun.fortress.nodes.Type type) {
+        return type.accept(new NodeAbstractVisitor<String>() {
+            public void defaultCase(ASTNode x) {
+                throw new CompilerError(NodeUtil.getSpan(x),
+                                        "emitDesc of type failed");
+            }
+            public String forArrowType(ArrowType t) {
+                if (NodeUtil.isVoidType(t.getDomain()))
+                    return makeMethodDesc("", jvmTypeDesc(t.getRange()));
+                else return makeMethodDesc(jvmTypeDesc(t.getDomain()),
+                                           jvmTypeDesc(t.getRange()));
+            }
+            public String forTupleType(TupleType t) {
+                if ( NodeUtil.isVoidType(t) )
+                    return descFortressVoid;
+                if (t.getVarargs().isSome())
+                    throw new CompilerError(NodeUtil.getSpan(t),
+                                            "Can't compile VarArgs yet");
+                if (!t.getKeywords().isEmpty())
+                    throw new CompilerError(NodeUtil.getSpan(t),
+                                            "Can't compile Keyword args yet");
+                String res = "";
+                for (com.sun.fortress.nodes.Type ty : t.getElements()) {
+                    res += jvmTypeDesc(ty);
+                }
+                return res;
+            }
+            public String forAnyType (AnyType t) {
+                return descFortressAny;
+            }
+            public String forTraitType(TraitType t) {
+                Id id = t.getName();
+                String name = id.getText();
+                String result = specialFortressDescriptors.get(t);
+                if (result != null) {
+                    Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
+                                " builtin ", result);
+                    return result;
+                }
+                Option<APIName> maybeApi = id.getApiName();
+                if (!maybeApi.isSome()) {
+                    throw new CompilerError(NodeUtil.getSpan(id),
+                                            "no api name given for id");
+                }
+                APIName api = maybeApi.unwrap();
+                result = "L" + makeInnerClassName(api.getText(), name) + ";";
+
+                Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
+
+                return result;
+            }
+            });
+    }
+
+    public static String jvmTypeDesc(Option<com.sun.fortress.nodes.Type> otype) {
+        if (!otype.isSome()) {
+            throw new CompilerError("Expected type information was absent.");
+        }
+        return jvmTypeDesc(otype.unwrap());
+    }
+
 }

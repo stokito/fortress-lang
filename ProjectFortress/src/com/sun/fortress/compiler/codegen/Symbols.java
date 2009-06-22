@@ -57,39 +57,10 @@ public class Symbols {
     public String getTypeSignatureForIdOrOp(IdOrOp op, Component c) {
         Function f = getFunction(op, c);
         if (f instanceof FunctionalMethod || f instanceof DeclaredFunction) {
-            String desc;
-            List<Param> params = f.parameters();
-            Type returnType = f.getReturnType();
-            desc = "(";
-            for (Param p : params) {
-                Id paramName = p.getName();
-                Option<com.sun.fortress.nodes.Type> optionType = p.getIdType();
-                if (optionType.isNone())
-                    sayWhat(op);
-                else {
-                    com.sun.fortress.nodes.Type t = optionType.unwrap();
-                    desc = desc + Naming.emitDesc(t);
-                }
-            }
-            desc = desc + ")" + Naming.emitDesc(returnType);
-            return desc;
+            return NamingCzar.jvmSignatureFor(f);
         } else if (f instanceof Constructor) {
             throw new CompilerError("We can't generate code for constructors yet");
         } else return sayWhat(op);
-    }
-
-    public String getJavaClassForSymbol(IdOrOp fnName, Component component) {
-        Debug.debug(Debug.Type.CODEGEN, 1,
-                    "getJavaClassForSymbol:" + fnName);
-        Function f = getFunction(fnName, component);
-
-        if (f instanceof FunctionalMethod) {
-            FunctionalMethod fm = (FunctionalMethod) f;
-            Id i = fm.declaringTrait();
-            return i.getText();
-        }
-
-        throw new CompilerError(NodeUtil.getSpan(fnName), "Get Java Class For Symbol Not yet implemented");
     }
 
     // This works around the issue with IdOrOps not matching the table provided by the type checker.

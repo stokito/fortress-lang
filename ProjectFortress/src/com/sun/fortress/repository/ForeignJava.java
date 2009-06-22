@@ -725,18 +725,18 @@ public class ForeignJava {
             return NamingCzar.dependenceFileNameForCompAst(node.getName(), node.getSourcePath());
         }
     }
-    
+
     public boolean foreignApiNeedingCompilation(APIName name) {
         return foreignApisNeedingCompilation.contains(name);
     }
-    
+
     /**
      * @param name
-     * @param overloads 
+     * @param overloads
      */
     public void generateWrappersForApi(APIName name, Set<OverloadSet> overloads) {
         foreignApisNeedingCompilation.remove(name);
-        
+
         Set<Type> classes = classesIncludedInForeignAPI.get(name);
 
         // Need to generate wrappers for all these classes,
@@ -750,18 +750,18 @@ public class ForeignJava {
                 s = Useful.substring(s, i+1, Integer.MAX_VALUE);
             }
             final String startswith = s + ".";
-            
+
             Set<OverloadSet> some_overloads = Useful.matchingSubset(overloads,
                     new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
-                        
+
                         @Override
                         public Boolean apply(OverloadSet x) {
                             String name = x.getName().stringName();
                             return name.startsWith(startswith);
                         }
-                
+
             });
-            
+
             FortressTransformer.transform(t.getClassName(), some_overloads);
         }
     }
