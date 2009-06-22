@@ -85,7 +85,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.ta = ta;
         this.pa = pa;
         this.ci = ci;
-        this.topLevelOverloads = 
+        this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
         this.overloadedNamesAndSigs = new HashSet<String>();
         debug( "Compile: Compiling ", packageAndClassName );
@@ -229,21 +229,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         m.visitLineNumber(begin.getLine(), bogus_label);
     }
 
-    public static String jvmSignatureFor(Function f) {
-        String sig;
-        List<Param> params = f.parameters();
-        sig = "(";
-        for (Param p : params ) {                
-            Type ty = p.getIdType().unwrap();
-            String toType = NamingCzar.only.boxedImplDesc(ty);
-            sig += toType;
-        }
-        sig += ")";
-        sig += NamingCzar.only.boxedImplDesc(f.getReturnType());
-        return sig;
-    }
-    
-
     /**
      * @param x
      * @param arrow
@@ -259,7 +244,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if ( arrow instanceof ArrowType ) {
                 addLineNumberInfo(x);
                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                                   methodName, Naming.emitDesc(arrow));
+                                   methodName, NamingCzar.jvmTypeDesc(arrow));
             } else if (arrow instanceof IntersectionType) {
                 addLineNumberInfo(x);
                 IntersectionType it = (IntersectionType) arrow;
@@ -399,15 +384,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         // determineOverloadedNames(x.getDecls() );
-        
+
         // Must do this first, to get local decls right.
         generateTopLevelOverloads();
-        
+
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
         }
-        
-        
+
+
 
         dumpClass( packageAndClassName );
     }
@@ -469,7 +454,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if ( name instanceof Id ) {
             Id id = (Id) name;
             debug("forId ", id,
-                  " class = ", Naming.getJavaClassForSymbol(id));
+                  " class = ", NamingCzar.jvmClassForSymbol(id));
         } else if ( name instanceof Op ) {
             Op op = (Op) name;
             Fixity fixity = op.getFixity();
@@ -477,7 +462,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             Option<APIName> maybe_apiName = op.getApiName();
             debug("forOp ", op, " fixity = ", fixity,
                   " isEnclosing = ", isEnclosing,
-                  " class = ", Naming.getJavaClassForSymbol(op));
+                  " class = ", NamingCzar.jvmClassForSymbol(op));
         } else {
             sayWhat(x);
         }
@@ -493,20 +478,20 @@ public class CodeGen extends NodeAbstractVisitor_void {
             cg.addLocalVar(new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null));
         } else if (!nameString.equals("run")) {
             // Top-level function or functional method
-            
+
             // I'm a little puzzled about how else "run" might be called,
             // if it is not static.  (DRC)
             modifiers += Opcodes.ACC_STATIC;
         }
 
         String mname = NamingCzar.mangleIdentifier(nameString);
-        String sig = Naming.emitFnDeclDesc(NodeUtil.getParamType(x),
-                returnType.unwrap());
-        
+        String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                                                returnType.unwrap());
+
         if (overloadedNamesAndSigs.contains(mname+sig)) {
             mname = NamingCzar.only.mangleAwayFromOverload(mname);
         }
-        
+
         cg.mv = cw.visitMethod(modifiers,
                                mname,
                                sig,
@@ -526,17 +511,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         cg.mv.visitEnd();
         // Method body complete, cg now invalid.
-        
+
         // TODO need to emit wrappers for unambiguous names
         // Check to see if a wrapper is needed.
         if (topLevelOverloads.containsKey(name)) {
-            
+
         }
-        
+
         Option<IdOrOp> iun = x.getImplementsUnambiguousName();
-        
+
         if (iun.isSome()) {
-            
+
         }
     }
 
@@ -717,7 +702,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
             mv.visitEnd();
         }
 
-        String classFile = Naming.makeClassName(packageAndClassName, x);
+        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+                                                         NodeUtil.getName(x).getText());
         ClassWriter prev = cw;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
@@ -785,9 +771,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 debug("forOpRef name = ", name,
                              " api = ", apiName);
                 if (exprType.isSome())
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.getJavaClassForSymbol(newName),
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.jvmClassForSymbol(newName),
                                        NamingCzar.mangleIdentifier(newName.getText()),
-                                       Naming.emitDesc(exprType.unwrap()));
+                                       NamingCzar.jvmTypeDesc(exprType.unwrap()));
                 else
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                                        NamingCzar.fortressPackage + "/" + api.unwrap().getText(),
@@ -797,7 +783,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             } else {
                 if (exprType.isSome())
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, NamingCzar.mangleIdentifier(name),
-                                       Naming.emitDesc(exprType.unwrap()));
+                                       NamingCzar.jvmTypeDesc(exprType.unwrap()));
                 else
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName,
                                        NamingCzar.mangleIdentifier(name), symbols.getTypeSignatureForIdOrOp(newName, component));
@@ -837,10 +823,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
               " varRef = ", id.getText());
 
         addLineNumberInfo(x);
-        mv.visitFieldInsn(Opcodes.GETSTATIC, Naming.getJavaClassForSymbol(id) , "default_" + id.getText(),
-                          "L" + Naming.getJavaClassForSymbol(id) + "$" + id.getText() + ";");
-
-
+        mv.visitFieldInsn(Opcodes.GETSTATIC, NamingCzar.jvmClassForSymbol(id) ,
+                          "default_" + id.getText(),
+                          "L" + NamingCzar.makeInnerClassName(id) + ";");
 
         for (Expr e : subs) {
             debug("calling accept on ", e);
@@ -848,7 +833,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         addLineNumberInfo(x);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                           Naming.getJavaClassForSymbol(id) + "$" + id.getText(),
+                           NamingCzar.makeInnerClassName(id),
                            NamingCzar.mangleIdentifier(op.getText()),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
@@ -874,7 +859,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC);
 
         // First let's do the interface class
-        String classFile = Naming.makeClassName(packageAndClassName, x);
+        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+                                                         NodeUtil.getName(x).getText());
         if (classFile.equals("fortress/AnyType$Any")) {
             superInterfaces = new String[0];
         }
@@ -992,7 +978,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 }
             }
         }
-            
+
         for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
                 .entrySet()) {
             int i = entry.getKey();
@@ -1006,10 +992,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             }
         }
-        
+
     }
 
-   
+
     /**
      * Creates overloaded functions for any overloads present at the top level
      * of this component.  Top level overloads are those that might be exported;
@@ -1017,11 +1003,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
      * and generated in the normal visits.
      */
     private void generateTopLevelOverloads() {
-                
+
         for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 : topLevelOverloads.entrySet()) {
             IdOrOpOrAnonymousName  name = entry1.getKey();
             MultiMap<Integer, Function> partitionedByArgCount = entry1.getValue();
-            
+
             for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
                     .entrySet()) {
                int i = entry.getKey();
@@ -1032,11 +1018,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
                                          ta, fs, i);
 
                os.split(true);
-               
+
                String s = name.stringName();
-               
+
                os.generateAnOverloadDefinition(s, cw);
-               
+
                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                    String ss = o_entry.getKey();
                    ss = s + ss;
@@ -1048,10 +1034,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
        sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, Function> fns) {
-        
-        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> result = 
+
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> result =
             new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
-        
+
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
             Set<Function> defs = fns.matchFirst(name);
             if (defs.size() <= 1) continue;
@@ -1062,7 +1048,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             for (Function d : defs) {
                 partitionedByArgCount.putItem(d.parameters().size(), d);
             }
-            
+
             for (Function d : defs) {
                 Set<Function> sf = partitionedByArgCount.get(d.parameters().size());
                 if (sf != null && sf.size() <= 1)
@@ -1071,7 +1057,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             if (partitionedByArgCount.size() > 0)
                 result.put(name, partitionedByArgCount);
         }
-        
+
         return result;
     }
 
@@ -1090,7 +1076,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             FnHeader h = f.getHeader();
             IdOrOpOrAnonymousName xname = h.getName();
             IdOrOp name = (IdOrOp) xname;
-            String desc = Naming.generateTypeDescriptor(f);
+            String desc = NamingCzar.jvmSignatureFor(f);
             debug("about to call visitMethod with", name.getText(),
                   " and desc ", desc);
             mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
@@ -1100,4 +1086,3 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 }
-
