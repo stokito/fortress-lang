@@ -21,7 +21,7 @@ import AnyType.{Any}
 trait Object extends Any
 end Object
 
-trait String
+trait String excludes { Number }
 opr || (self, b:String):String
 end
 
@@ -33,7 +33,7 @@ printlnZZ32(x:ZZ32):()
 
 strToInt(s:String):ZZ32 
                           
-trait Number
+trait Number excludes { String }
 end
 
 trait ZZ64 extends Number

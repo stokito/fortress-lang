@@ -121,16 +121,16 @@ public class NodeComparator {
     public final static AnyListComparer<BaseType> traitTypeListComparer =
         new AnyListComparer<BaseType>(traitTypeComparer);
 
-    static class TypeComparer implements Comparator<Type> {
+    public static class TypeComparer implements Comparator<Type> {
         public int compare(Type left, Type right) {
             return NodeComparator.compare(left, right);
         }
     }
-    final static TypeComparer typeComparer = new TypeComparer();
+    public final static TypeComparer typeComparer = new TypeComparer();
     public final static AnyListComparer<Type> typeListComparer =
         new AnyListComparer<Type>(typeComparer);
 
-    static class IdOrOpComparer implements Comparator<IdOrOp> {
+    public static class IdOrOpComparer implements Comparator<IdOrOp> {
         public int compare(IdOrOp left, IdOrOp right) {
             return NodeComparator.compare(left, right);
         }
@@ -287,6 +287,11 @@ public class NodeComparator {
         return compare(left.getEffect(), right.getEffect());
     }
 
+    static int compare(IntersectionType left, IntersectionType right) {
+        int x = typeListComparer.compare(left.getElements(), right.getElements());
+        return x;
+    }
+
     static int compare(TupleType left, TupleType right) {
         int x = typeListComparer.compare(left.getElements(), right.getElements());
         if (x != 0) return x;
@@ -397,12 +402,16 @@ public class NodeComparator {
         // Commented out cases haven't had their methods implememnted yet,
         // and will stack overflow instead.
 
-        if (left instanceof ArrowType) {
-            return compare((ArrowType) left, (ArrowType) right);
+        if (left instanceof TraitType) {
+            return compare((TraitType) left, (TraitType) right);
         } else if (left instanceof TupleType) {
             if ( NodeUtil.isVoidType((TupleType)left) )
                 return 0;
             else return compare((TupleType) left, (TupleType) right);
+        } else if (left instanceof ArrowType) {
+            return compare((ArrowType) left, (ArrowType) right);
+        } else if (left instanceof IntersectionType) {
+            return compare((IntersectionType) left, (IntersectionType) right);
         } else if (left instanceof TaggedDimType) {
             return compare((TaggedDimType) left, (TaggedDimType) right);
         } else if (left instanceof TaggedUnitType) {
@@ -411,8 +420,6 @@ public class NodeComparator {
             return compare((ArrayType) left, (ArrayType) right);
         } else if (left instanceof VarType) {
             return compare((VarType) left, (VarType) right);
-        } else if (left instanceof TraitType) {
-            return compare((TraitType) left, (TraitType) right);
         } else if (left instanceof MatrixType) {
             return compare((MatrixType) left, (MatrixType) right);
         } else if (left instanceof AnyType) {

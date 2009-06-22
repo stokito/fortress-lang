@@ -589,7 +589,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             }
         } else {
-//             sayWhat(x, "Expected to see only one name here");
+            System.err.println("Bad overload of " + x);
+            //sayWhat(x, "Expected to see only one name here");
 //         }
 //     }
         }
