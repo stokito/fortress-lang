@@ -38,7 +38,7 @@ public class OtherCompilerJUTest {
 
         boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
 
-        return FileTests.compilerSuite(testDir, false, failsOnly, false, false);
+        return FileTests.compilerSuite(testDir, false, failsOnly, false);
     }
 
 }

@@ -32,7 +32,7 @@ public class ScalaTypeCheckerJUTest {
         boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
         TestSuite suite = new TestSuite("Test all .test files in 'ProjectFortress/compiler_tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.compilerSuite(testDir1, true, failsOnly, false, true));
+        suite.addTest(FileTests.compilerSuite(testDir1, true, failsOnly, false));
         return suite;
     }
 
