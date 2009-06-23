@@ -948,7 +948,7 @@ public final class Shell {
             return junit(rest);
         } 
         
-        junit.textui.TestRunner.run(FileTests.suiteFromListOfFiles(rest, "","","",false, false));
+        junit.textui.TestRunner.run(FileTests.suiteFromListOfFiles(args, "","","",false, false));
         
         return 0;
         
