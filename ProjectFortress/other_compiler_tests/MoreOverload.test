@@ -16,4 +16,4 @@
 tests=MoreOverload
 link
 run
-run_out_WImatches=IIII.*IILI.*IIIL.*LLLL local.*
+run_out_WImatches=IIII.*IILI.*IIIL.*LLLL local1.*LLLL local2.*

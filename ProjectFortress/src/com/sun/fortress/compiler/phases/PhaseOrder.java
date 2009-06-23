@@ -67,7 +67,11 @@ public enum PhaseOrder {
     /* Generates a Java bytecode compiled environment.
      * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
      */
-    CODEGEN("Code generation");
+    CODEGEN("Code generation"),
+    /*
+     * Runs a Junit test file.
+     */
+    JUNIT("Run junit .test file");
 
     private String phaseName;
 

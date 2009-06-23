@@ -55,6 +55,12 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 public class FileTests {
 
+    private static  String join(String dir, String file) {
+        if (dir.length() == 0)
+            return file;
+        else return dir + "/" + file;
+    }
+    
     public static class BaseTest extends TestCase {
         /**
          * Directory-qualified file name
@@ -87,7 +93,7 @@ public class FileTests {
                         boolean knownFailure,
                         boolean shouldFail) {
             super("testFile");
-            this.f = d + "/" + s;
+            this.f = join(d,s);
             this.dir = d;
             this.path = path;
             this.name = s;
@@ -621,7 +627,7 @@ public class FileTests {
         @Override
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = new String [] {"compile", dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"compile", join(dir, makeTestFileName(name))};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -653,7 +659,7 @@ public class FileTests {
         protected int justTheTest()
             throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = new String [] {"desugar", dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"desugar", join(dir, makeTestFileName(name))};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
         }
@@ -684,7 +690,7 @@ public class FileTests {
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
             // might need to strip the .fss off f "f".
-            String[] tokens = new String [] {"link", dir+"/"+makeTestFileName(name)};
+            String[] tokens = new String [] {"link", join(dir, makeTestFileName(name))};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
         }
@@ -833,35 +839,54 @@ public class FileTests {
      * or it means, "the test fails, it is a bad thing, but we are working on it
      * and do not want to be bothered by something we already know is a problem".
      *
-     * @param dir_name
+     * @param dir_name_from_user
      * @param failsOnly
      * @param expect_failure
      * @return
      * @throws IOException
      */
-    public static TestSuite compilerSuite(String dir_name,
+    public static TestSuite compilerSuite(String dir_name_from_user,
                                           boolean shuffle,
                                           boolean failsOnly,
-                                          boolean expect_failure,
-                                          boolean typechecker_test) throws IOException {
+                                          boolean expect_failure) throws IOException {
 
-        TestSuite suite = new TestSuite("Runs all tests in " + dir_name) {
-            public void run(TestResult result) {
-                super.run(result);
-                Init.allowForLeakChecks();
-            }
-        };
-
-        String dirname = ProjectProperties.backslashToSlash(dir_name);
-        File dir = directoryAsFile(dirname);
+        String dir_name_slashes_normalized = ProjectProperties.backslashToSlash(dir_name_from_user);
+        File dir = directoryAsFile(dir_name_slashes_normalized);
         System.err.println(dir);
+        String dir_name_canonical = dir.getCanonicalPath();
 
         /* Many lines of random number generator seed nonsense. */
 
         Iterable<String> shuffled = shuffledFileList(dir, shuffle);
 
+        return suiteFromListOfFiles(shuffled, dir_name_from_user,
+                dir_name_slashes_normalized, dir_name_canonical, failsOnly,
+                expect_failure);
+    }
+
+    /**
+     * @param shuffled
+     * @param dir_name_from_user
+     * @param dir_name_slashes_normalized
+     * @param dir_name_canonical
+     * @param failsOnly
+     * @param expect_failure
+     * @return
+     * @throws IOException
+     */
+    public static TestSuite suiteFromListOfFiles(Iterable<String> shuffled,
+            String dir_name_from_user, String dir_name_slashes_normalized,
+            String dir_name_canonical, boolean failsOnly, boolean expect_failure)
+            throws IOException {
         int testCount = testCount();
         int i = testCount;
+
+        TestSuite suite = new TestSuite("Runs all tests in " + dir_name_from_user) {
+            public void run(TestResult result) {
+                super.run(result);
+                Init.allowForLeakChecks();
+            }
+        };
 
         List<Test> compileTests = new ArrayList<Test>();
         List<Test> desugarTests = new ArrayList<Test>();
@@ -883,10 +908,10 @@ public class FileTests {
                   if (s.endsWith(".sh")) {
                       int l = s.lastIndexOf(".sh");
                       String testname = s.substring(0, l);
-                      suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                      suite.addTest(new ShellTest(dir_name_canonical, dir_name_slashes_normalized, testname, failsOnly, expect_failure));
                   } else if (s.endsWith(".test")) { // need to define the test of tests.
 
-                      StringMap props = new StringMap.FromFileProps(dirname+"/"+s);
+                      StringMap props = new StringMap.FromFileProps(join(dir_name_canonical, s));
                       props = ProjectProperties.composedWith(props);
 
                       int l = s.lastIndexOf(".test");
@@ -902,16 +927,14 @@ public class FileTests {
                           StringTokenizer st = new StringTokenizer(testNames);
                           while  (st.hasMoreTokens()) {
                               String token = st.nextToken();
-                              if (addTest(typechecker_test, token))
-                                  standardCompilerTests(props, dir, dirname, token,
+                                  standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, token,
                                                         expect_failure, shouldFail, failsOnly,
                                                         compileTests, desugarTests,
                                                         linkTests, runTests);
                           }
                       }
                       else {
-                          if (addTest(typechecker_test, testname))
-                              standardCompilerTests(props, dir, dirname, testname,
+                              standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, testname,
                                                     expect_failure, shouldFail, failsOnly,
                                                     compileTests, desugarTests,
                                                     linkTests, runTests);
@@ -944,21 +967,6 @@ public class FileTests {
         return suite;
     }
 
-    private static boolean addTest(boolean typechecker_test,
-                                   String test_name) {
-        return ( ! typechecker_test
-                 || test_name.startsWith("Compiled0")
-                 || test_name.startsWith("Compiled1")
-                 || test_name.startsWith("Compiled2")
-                 || test_name.startsWith("Compiled3")
-                 || test_name.startsWith("Compiled4")
-                 || test_name.startsWith("Compiled5")
-                 || test_name.startsWith("Compiled6")
-                 || test_name.startsWith("Compiled7")
-                 || test_name.startsWith("Compiled8")
-                 );
-    }
-
     /**
      * @param props
      * @param dir
@@ -973,7 +981,7 @@ public class FileTests {
      * @param runTests
      * @throws IOException
      */
-    private static void standardCompilerTests(StringMap props, File dir,
+    private static void standardCompilerTests(StringMap props, String canonicalDirName,
                                               String dirname, String testname,
                                               boolean expect_not_passing,
                                               boolean shouldFail,
@@ -983,19 +991,19 @@ public class FileTests {
                                               List<Test> linkTests,
                                               List<Test> runTests) throws IOException {
         if (props.get("compile") != null)
-            compileTests.add(new CompileTest(props, dir.getCanonicalPath(),
+            compileTests.add(new CompileTest(props, canonicalDirName,
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
         if (props.get("desugar") != null)
-            desugarTests.add(new DesugarTest(props, dir.getCanonicalPath(),
+            desugarTests.add(new DesugarTest(props, canonicalDirName,
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
         if (props.get("link") != null)
-            linkTests.add(new LinkTest(props, dir.getCanonicalPath(),
+            linkTests.add(new LinkTest(props, canonicalDirName,
                                        dirname, testname, failsOnly,
                                        expect_not_passing, shouldFail));
         if (props.get("run") != null)
-            runTests.add(new TestTest(props, dir.getCanonicalPath(),
+            runTests.add(new TestTest(props, canonicalDirName,
                                       dirname, testname, failsOnly,
                                       expect_not_passing, shouldFail));
     }

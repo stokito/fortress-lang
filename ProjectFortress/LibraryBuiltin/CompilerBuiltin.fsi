@@ -21,7 +21,7 @@ import AnyType.{Any}
 trait Object extends Any
 end Object
 
-trait String excludes { Number }
+trait String excludes { Number } (* not necessary, symmetric *)
 opr || (self, b:String):String
 end
 

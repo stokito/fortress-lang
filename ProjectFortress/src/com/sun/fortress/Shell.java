@@ -56,6 +56,7 @@ import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.tests.unit_tests.FileTests;
 import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.nodes_util.ApiMaker;
 
@@ -311,6 +312,8 @@ public final class Shell {
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = compilerPhases(args, Option.<String>none(), what);
+            } else if (what.equals("junit")) {
+                return_code = junit(args);
             } else if (what.equals("link")) {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
@@ -912,7 +915,7 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-            	rest = Debug.parseOptions(rest);
+                rest = Debug.parseOptions(rest);
             }
             else
                 invalidFlag(s, "link");
@@ -924,6 +927,31 @@ public final class Shell {
 
             return compileWithErrorHandling( s, Option.<String>none(), true );
         }
+    }
+
+    /**
+     * Link compiled components implementing APIs imported by the given component.
+     */
+    private static int junit(List<String> args) throws UserError, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to run junit tests.");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+                rest = Debug.parseOptions(rest);
+            }
+            else
+                invalidFlag(s, "junit");
+            return junit(rest);
+        } 
+        
+        junit.textui.TestRunner.run(FileTests.suiteFromListOfFiles(rest, "","","",false, false));
+        
+        return 0;
+        
     }
 
     /**
