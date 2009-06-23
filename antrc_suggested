@@ -23,6 +23,10 @@
 # These scripts can contain more shell scripting.
 #
 
+# By default, disable timing.
+# timings are found in .timings files in the test directories.
+export MACHINE_TYPE=untimed
+
 ANTRC=./.antrc_`uname`
 if [ -f "$ANTRC" ] ; then
   . "$ANTRC"
