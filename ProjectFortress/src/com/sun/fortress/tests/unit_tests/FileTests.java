@@ -894,6 +894,17 @@ public class FileTests {
         List<Test> runTests = new ArrayList<Test>();
 
         for(String s : shuffled){
+              int slashi = s.lastIndexOf('/');
+              if (slashi != -1) {
+                  String candidatedir = s.substring(0,slashi);
+                  s = s.substring(slashi+1);
+                  dir_name_from_user = candidatedir;
+                  dir_name_slashes_normalized = candidatedir;
+                  dir_name_canonical =
+                      directoryAsFile(dir_name_slashes_normalized).getCanonicalPath();
+              }
+            
+            
               if (i <= 0) {
                   System.out.println("Early testing exit after " + testCount + " tests");
                   break;
