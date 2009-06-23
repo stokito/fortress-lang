@@ -28,6 +28,10 @@ public interface StringMap {
    boolean isEmpty();
    String getCompletely(String s, int limit);
    String getCompletely(String s);
+   public  int getInt(String s, int ifMissing);
+   public  long getLong(String s, long ifMissing);
+   public boolean getBoolean(String s, boolean ifMissing);
+   public String get(String s, String ifMissing);
 
    static abstract class FromBase implements StringMap {
        public String getCompletely(String s, int limit) {
@@ -36,6 +40,68 @@ public interface StringMap {
            return Useful.substituteVarsCompletely(s, this, limit);
        }
 
+       public  int getInt(String s, int ifMissing) {
+           String result = get(s);
+           if (result != null)
+               result = Useful.substituteVarsCompletely(result, this, 1000);
+           if (result == null) return ifMissing;
+           if (result.length() == 0)
+               return ifMissing;
+           int base = 10;
+           int underat = result.indexOf('_');
+           if (underat != -1) {
+               base = Integer.parseInt(result.substring(underat+1));
+               result = result.substring(0,underat);
+           }
+           return Integer.parseInt(result, base);
+       }
+
+
+       public  long getLong(String s, long ifMissing) {
+           String result =  get(s);
+           if (result != null)
+               result = Useful.substituteVarsCompletely(result, this, 1000);
+           if (result == null) return ifMissing;
+           if (result.length() == 0)
+               return ifMissing;
+           int base = 10;
+           int underat = result.indexOf('_');
+           if (underat != -1) {
+               base = Integer.parseInt(result.substring(underat+1));
+               result = result.substring(0,underat);
+           }
+           return Long.parseLong(result, base);
+       }
+
+        final public boolean getBoolean(String s, boolean ifMissing) {
+           String result =  get(s);
+           if (result != null)
+               result = Useful.substituteVarsCompletely(result, this, 1000);
+           if (result == null) return ifMissing;
+           if (result.length() == 0)
+               return true;
+           s = result.toLowerCase();
+           char c = result.charAt(0);
+           if (c == 'y' || c == 't' || c == '1') return true;
+           if (c == 'n' || c == 'f' || c == '0') return false;
+
+           throw new Error("Unexpected definition of prop/env " + s + ", got " + result + ", need t/f/y/n/1/0[...]");
+       }
+
+        final public String get(String s, String ifMissing) {
+            String result =  get(s);
+            if (result == null)
+                result = ifMissing;
+            if (result != null)
+                result = Useful.substituteVarsCompletely(result, this, 1000);
+            if (result == null) {
+                throw new Error("Must supply a definition (as property, environment variable, or repository configuration property) for " + s);
+            }
+            return result;
+        }
+
+    
+       
        public String getCompletely(String s) {
            return getCompletely(s, 1000);
        }

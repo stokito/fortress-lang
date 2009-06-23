@@ -132,6 +132,7 @@ public final class Shell {
         System.err.println(" run somecomponent");
         System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
+        System.err.println(" junit [-debug [type]* [#]] sometest.test...");
         System.err.println("");
         System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
@@ -180,6 +181,9 @@ public final class Shell {
          "fortress test [-verbose] [-debug [type]* [#]] somefile.fss ...\n"+
          "  Runs the functions with the test modifier in the specified components \n"+
          "  If -verbose is set, the name of each test function is printed before and after running the function\n"+
+         "\n"+
+         "fortress junit [-debug [type]* [#]] somefile1.test ...\n"+
+         "  Runs the system test file(s) somefile1.test (etc) in a junit textui harness.\n"+
          "\n"+
          "\n"+
          "fortress api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss\n"+

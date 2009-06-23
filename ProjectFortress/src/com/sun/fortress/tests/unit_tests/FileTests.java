@@ -455,9 +455,11 @@ public class FileTests {
             this.props = props;
         }
 
+        static boolean whinedAboutTimingIssues = false;
+        
         public void testFile() throws Throwable {
             String scriptName = ProjectProperties.FORTRESS_AUTOHOME
-                    + "/bin/run";
+                    + "/bin/fortress";
             Runtime runtime = Runtime.getRuntime();
             System.out.print(" run  ");
             System.out.print(f);
@@ -466,7 +468,8 @@ public class FileTests {
 
             ArrayList<String> commandAndArgs = new ArrayList<String>();
 	    commandAndArgs.add(scriptName);
-	    commandAndArgs.add(name);
+            commandAndArgs.add("run");
+            commandAndArgs.add(name);
             for (int i=1; i < Integer.MAX_VALUE; i++) {
 		String s = props.get("arg"+String.valueOf(i));
 		if (s == null) {
@@ -481,6 +484,9 @@ public class FileTests {
             if (!env.containsKey("FORTRESS_HOME")) {
                 env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);
             }
+            
+            long start_time = System.currentTimeMillis();
+            
             Process p = pb.start();
             InputStream err = p.getErrorStream();
             InputStream out = p.getInputStream();
@@ -496,6 +502,9 @@ public class FileTests {
             f_out.join();
             f_err.join();
             int exitValue = p.waitFor();
+            
+            long stop_time = System.currentTimeMillis();
+            
             String s_out = cached_out.toString();
             String s_err = cached_err.toString();
 
@@ -516,6 +525,48 @@ public class FileTests {
                 failed = true;
             }
 
+            if (!failed) {
+                // check for timing constraint.
+                String timingfile_name = join(dir,name) + ".timing";
+                File timingfile = new File(timingfile_name);
+                if (timingfile.exists()) {
+                    // Only check timing constraint if file exists.
+                    StringMap tprops = new StringMap.FromFileProps(
+                            timingfile_name);
+                    tprops = ProjectProperties.composedWith(tprops);
+                    String whoami = tprops.get("machine.type", "");
+
+                    if (whoami.length() == 0) {
+                        // Complain if no machine type supplied
+                        System.err.println("No machine.type (MACHINE_TYPE) provided for timing constraint");
+                    } else if (whoami.equals("untimed")) {
+                       // do nothing
+                    } else {
+                     
+
+                        int timeLimit = tprops.getInt(whoami, -1);
+
+                        if (timeLimit == -1) {
+                            // Complain if machine type not listed
+                            System.err.println("machine.type (MACHINE_TYPE) " + whoami + " not listed in timing file " + timingfile_name);
+
+                        } else {
+                            long elapsed = (stop_time - start_time);
+                            if (timeLimit < elapsed) {
+                                // Late answers are wrong.
+                                fail_cause = "Failed timing deadline " + timeLimit +
+                                " for machine.type " + whoami + " from timing file " + timingfile_name + "; elapsed was " + elapsed;
+                                failed = true;
+
+                            } else {
+                                // Time ok.
+                            }
+                        }
+                    }
+
+                }
+            }
+            
             // OY, pass/fail dsylexia here.
 
             if (failed && printFailure || !failed && printSuccess) {
