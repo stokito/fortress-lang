@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public class FRR64  extends FValue {
-    double val;
+    final double val;
 
     FRR64(double x) { val = x; }
     public String toString() { return "" + val;}

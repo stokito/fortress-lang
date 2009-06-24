@@ -17,11 +17,14 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FBoolean extends FValue {
-    boolean val;
+public final class FBoolean extends FValue {
+    public static final FBoolean TRUE = new FBoolean(true);
+    public static final FBoolean FALSE = new FBoolean(false);
+
+    final boolean val;
 
     FBoolean(boolean x) { val = x; }
     public String toString() { return "" + val;}
     public boolean getValue() {return val;}
-    public static FBoolean make(boolean x) {return new FBoolean(x);}
+    public static FBoolean make(boolean x) {return x ? TRUE : FALSE;}
 }

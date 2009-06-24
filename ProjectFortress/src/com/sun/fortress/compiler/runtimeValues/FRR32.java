@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public class FRR32  extends FValue {
-    float val;
+    final float val;
 
     FRR32(float x) { val = x; }
     public String toString() { return "" + val;}

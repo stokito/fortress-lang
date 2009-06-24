@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public class FZZ32  extends FValue {
-    int val;
+    final int val;
 
     FZZ32(int x) { val = x; }
     public String toString() { return "" + val;}

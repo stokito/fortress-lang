@@ -120,9 +120,20 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     private void generateMainMethod() {
 
-        // We generate two methods.  First a springboard method that creates an
-        // instance of the class we are generating, and then the real main method
-        // which takes the instance and uses it to pass to the primordial task.
+        // We generate two methods.  First a springboard static main()
+        // method that creates an instance of the class we are
+        // generating, and then invokes the runExecutable(...) method
+        // on that instance---this is RTS code that sets up
+        // command-line argument access and initializes the work
+        // stealing infrastructure.
+        //
+        // The second method is the compute() method, which is invoked
+        // by the work stealing infrastructure after it starts up, and
+        // simply calls through to the static run() method that must
+        // occur in this component.  Without this little trampoline,
+        // we need to special case the run() method during code
+        // generation and the result is not reentrant (ie if we call
+        // run() recursively we lose).
 
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             NamingCzar.stringArrayToVoid, null, null);
@@ -130,7 +141,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // new packageAndClassName()
         mv.visitTypeInsn(Opcodes.NEW, packageAndClassName);
         mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, packageAndClassName, "<init>", "()V");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, packageAndClassName, "<init>",
+                           NamingCzar.voidToVoid);
 
         // .runExecutable(args)
         mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -143,6 +155,18 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
         mv.visitEnd();
         // return
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "compute",
+                            NamingCzar.voidToVoid, null, null);
+        mv.visitCode();
+        // Call through to static run method in this component.
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, "run",
+                           NamingCzar.voidToFortressVoid);
+        // Discard the FVoid that results
+        mv.visitInsn(Opcodes.POP);
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
     }
 
     private void generateInitMethod() {
@@ -193,13 +217,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private void popAll(int onStack) {
-        if (onStack > 0) {
-            for (; onStack > 1; onStack -= 2) {
-                mv.visitInsn(Opcodes.POP2);
-            }
-            if (onStack==1) {
-                mv.visitInsn(Opcodes.POP);
-            }
+        if (onStack == 0) return;
+        for (; onStack > 1; onStack -= 2) {
+            mv.visitInsn(Opcodes.POP2);
+        }
+        if (onStack==1) {
+            mv.visitInsn(Opcodes.POP);
         }
     }
 
@@ -238,25 +261,23 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private void callStaticSingleOrOverloaded(FnRef x,
             com.sun.fortress.nodes.Type arrow, String pkgAndClassName,
             String methodName) {
-        {
-            debug("class = " + pkgAndClassName + " method = " + methodName );
 
-            if ( arrow instanceof ArrowType ) {
-                addLineNumberInfo(x);
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                                   methodName, NamingCzar.jvmTypeDesc(arrow));
-            } else if (arrow instanceof IntersectionType) {
-                addLineNumberInfo(x);
-                IntersectionType it = (IntersectionType) arrow;
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                                   OverloadSet.actuallyOverloaded(it, paramCount) ?
-                                   OverloadSet.oMangle(methodName) :methodName,
-                                   OverloadSet.getSignature(it, paramCount, ta));
-            } else {
-                    sayWhat( x, "Neither arrow nor intersection type: " + arrow );
-            }
+        debug("class = " + pkgAndClassName + " method = " + methodName );
+
+        if ( arrow instanceof ArrowType ) {
+            addLineNumberInfo(x);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
+                               methodName, NamingCzar.jvmTypeDesc(arrow));
+        } else if (arrow instanceof IntersectionType) {
+            addLineNumberInfo(x);
+            IntersectionType it = (IntersectionType) arrow;
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
+                               OverloadSet.actuallyOverloaded(it, paramCount) ?
+                               OverloadSet.oMangle(methodName) :methodName,
+                               OverloadSet.getSignature(it, paramCount, ta));
+        } else {
+                sayWhat( x, "Neither arrow nor intersection type: " + arrow );
         }
-
     }
 
     // paramCount communicates this information from call to function reference,
@@ -360,12 +381,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 exportsDefaultLibrary = true;
         }
 
-        String extendedJavaClass;
-        if ( exportsExecutable ) {
-            extendedJavaClass = NamingCzar.fortressExecutable;
-        } else {
-            extendedJavaClass = NamingCzar.fortressComponent;
-        }
+        String extendedJavaClass =
+            exportsExecutable ? NamingCzar.fortressExecutable :
+                                NamingCzar.fortressComponent ;
 
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                  packageAndClassName, null, extendedJavaClass,
@@ -391,8 +409,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
         }
-
-
 
         dumpClass( packageAndClassName );
     }
@@ -433,14 +449,19 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         for (Param p : params) {
             debug("iterating params looking for self : param = ", p);
-            if (p.getName().getText() == "self")
+            if (p.getName().getText() == "self") {
                 functionalMethod = true;
+                break;
+            }
         }
 
         Option<com.sun.fortress.nodes.Type> returnType = header.getReturnType();
 
         // For now every Fortress entity is made public, with
         // namespace management happening in Fortress-land.  Right?
+        // [JWM:] we'll want to clamp down on this long-term, but
+        // we have to get nesting right---we generate a pile of class files for
+        // one Fortress component
         int modifiers = Opcodes.ACC_PUBLIC;
 
         if ( body.isNone() )
@@ -476,11 +497,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // with just stashing a null as we're not using it to
             // determine stack sizing or anything similarly crucial.
             cg.addLocalVar(new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null));
-        } else if (!nameString.equals("run")) {
+        } else {
             // Top-level function or functional method
-
-            // I'm a little puzzled about how else "run" might be called,
-            // if it is not static.  (DRC)
+            // DO NOT special case run() here and make it non-static (that used to happen),
+            // as that's wrong.  It's addressed in the executable wrapper code instead.
             modifiers += Opcodes.ACC_STATIC;
         }
 
@@ -532,53 +552,47 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String name = x.getOriginalName().getText();
         Option<com.sun.fortress.nodes.Type> type = x.getInfo().getExprType();
         if ( type.isNone() ) {
-            sayWhat( x, "The type of this expression is not inferred." );
+            sayWhat( x, "The type of this FnRef is not inferred." );
+            return;
         }
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = type.unwrap();
 
         List<IdOrOp> names = x.getNames();
 
-        /* Note that after pre-processing in the overload rewriter, there is
-         * only one name here; this is not an overload check.
+        /* Note that after pre-processing in the overload rewriter,
+         * there is only one name here; this is not an overload check.
          */
-        if ( names.size() == 1) {
-            IdOrOp fnName = names.get(0);
-            Option<APIName> apiName = fnName.getApiName();
-            if (apiName.isSome() && ForeignJava.only.definesApi(apiName.unwrap())) {
-
-                if ( aliasTable.containsKey(name) ) {
-                    String n = aliasTable.get(name);
-                    // Cheating by assuming class is everything before the dot.
-                    int lastDot = n.lastIndexOf(".");
-                    String calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
-                    String _method = n.substring(lastDot+1);
-
-
-                   callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, _method);
-                } else {
-                 sayWhat(x, "Should be a foreign function in Alias table");
-                }
-
-            } else {
-                // NOT Foreign
-
-                // deal with in component, or in imported api.
-                String calleePackageAndClass = apiName.isSome() ?
-                        NamingCzar.fortressPackage + "/" + apiName.unwrap().getText()
-                        : packageAndClassName;
-                String _method = fnName.getText();
-
-                callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, _method);
-
-
-            }
-        } else {
-            System.err.println("Bad overload of " + x);
-            //sayWhat(x, "Expected to see only one name here");
-//         }
-//     }
+        if ( names.size() != 1) {
+            sayWhat(x,"Non-unique overloading after rewrite " + x);
+            return;
         }
+        IdOrOp fnName = names.get(0);
+        Option<APIName> apiName = fnName.getApiName();
+        String calleePackageAndClass;
+        String method;
+        if (!apiName.isSome()) {
+            // NOT Foreign, calls same component.
+            // Nothing special to do.
+            calleePackageAndClass = packageAndClassName;
+            method = fnName.getText();
+        } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
+            // NOT Foreign, calls other component.
+            calleePackageAndClass =
+                NamingCzar.fortressPackage + "/" + apiName.unwrap().getText();
+            method = fnName.getText();
+        } else if ( aliasTable.containsKey(name) ) {
+            // Foreign function call
+            String n = aliasTable.get(name);
+            // Cheating by assuming class is everything before the dot.
+            int lastDot = n.lastIndexOf(".");
+            calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
+            method = n.substring(lastDot+1);
+        } else {
+            sayWhat(x, "Foreign function " + x + " missing from alias table");
+            return;             // Doesn't init callee... and method.
+        }
+        callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, method);
     }
 
     public void forIf(If x) {
@@ -679,6 +693,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC);
 
         if (!header.getDecls().isEmpty()) {
+            // TODO: Make this work for real!  Only works for default_args today.
             debug("header.getDecls:", header.getDecls());
 
             cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
@@ -759,40 +774,36 @@ public class CodeGen extends NodeAbstractVisitor_void {
             x.getOverloadings().isNone() &&
             names.size() == 1;
 
-        if (canCompile) {
-            String name = NamingCzar.mangleIdentifier(originalName.getText());
-            IdOrOp newName = names.get(0);
-            Option<APIName> api = newName.getApiName();
-
-            addLineNumberInfo(x);
-
-            if (api.isSome()) {
-                APIName apiName = api.unwrap();
-                debug("forOpRef name = ", name,
-                             " api = ", apiName);
-                if (exprType.isSome())
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.jvmClassForSymbol(newName),
-                                       NamingCzar.mangleIdentifier(newName.getText()),
-                                       NamingCzar.jvmTypeDesc(exprType.unwrap()));
-                else
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                       NamingCzar.fortressPackage + "/" + api.unwrap().getText(),
-                                       NamingCzar.mangleIdentifier(newName.getText()),
-                                       symbols.getTypeSignatureForIdOrOp(newName, component));
-
-            } else {
-                if (exprType.isSome())
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, NamingCzar.mangleIdentifier(name),
-                                       NamingCzar.jvmTypeDesc(exprType.unwrap()));
-                else
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName,
-                                       NamingCzar.mangleIdentifier(name), symbols.getTypeSignatureForIdOrOp(newName, component));
-            }
-        } else
-            debug("forOpRef can't compile staticArgs ",
+        if (!canCompile) {
+            debug("forOpRef can't compile; staticArgs ",
                         x.getStaticArgs().isEmpty(), " overloadings ",
                         x.getOverloadings().isNone());
+        }
+        if (!exprType.isSome()) {
+            sayWhat(x, "Missing type information for OpRef " + x);
+        }
 
+        String name = NamingCzar.mangleIdentifier(originalName.getText());
+        IdOrOp newName = names.get(0);
+        Option<APIName> api = newName.getApiName();
+
+        addLineNumberInfo(x);
+
+        String jvmClassName;
+        String jvmFunctionName;
+
+        if (api.isSome()) {
+            APIName apiName = api.unwrap();
+            debug("forOpRef name = ", name,
+                  " api = ", apiName);
+            jvmClassName =  NamingCzar.jvmClassForSymbol(newName);
+            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
+        } else {
+            jvmClassName = packageAndClassName;
+            jvmFunctionName = NamingCzar.mangleIdentifier(name);
+        }
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, jvmClassName, jvmFunctionName,
+                           NamingCzar.jvmTypeDesc(exprType.unwrap()));
     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {

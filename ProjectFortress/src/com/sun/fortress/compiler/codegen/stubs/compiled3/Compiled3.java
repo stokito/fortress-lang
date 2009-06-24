@@ -28,11 +28,15 @@ public final class Compiled3 extends FortressExecutable {
         else return FZZ32.plus(fib(FZZ32.make(n.getValue()-1)), fib(FZZ32.make(n.getValue()-2)));
     }
 
-    public FVoid run() {
+    public static FVoid run() {
         return CompilerBuiltin.println(fib(FZZ32.make(20)));
     }
 
     public static void main(String args[]) {
         (new Compiled3()).runExecutable(args);
+    }
+
+    public void compute() {
+        run();
     }
 }

@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public class FChar  extends FValue {
-    char val;
+    final char val;
 
     FChar(char x) { val = x; }
     public String toString() { return "" + val;}
