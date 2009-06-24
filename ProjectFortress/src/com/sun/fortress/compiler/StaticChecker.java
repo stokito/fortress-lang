@@ -234,7 +234,7 @@ public class StaticChecker {
                 TypeEnv typeEnv = typeCheckEnv(component, env);
                 ConstraintUtil.useScalaFormulas();
                 STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable, typeEnv, typeAnalyzer);
-                component_ast = typeChecker.typecheck(component_ast);
+                component_ast = typeChecker.typeCheck(component_ast);
                 component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                      System.currentTimeMillis());
                 errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
