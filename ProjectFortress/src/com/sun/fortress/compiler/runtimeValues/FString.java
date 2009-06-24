@@ -18,7 +18,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public class FString  extends FValue {
-    String val;
+    final String val;
 
     FString(String x) { val = x; }
     public String getValue() { return val;}

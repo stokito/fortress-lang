@@ -45,15 +45,15 @@ public abstract class FortressExecutable extends RecursiveAction {
         }
     }
 
-    public abstract FVoid run();
-
     public final void runExecutable(String args[]) {
         systemHelper.registerArgs(args);
         group.invoke(this);
     }
 
-    public final void compute() {
-        this.run();
-    }
+    public abstract void compute();
+    // Should simply call through to static run() method in the
+    // implementing class.  run() used to be an abstract method here,
+    // but that requires us to make it non-static and thus totally
+    // unlike every single other top-level function that we codegen.
 
 }
