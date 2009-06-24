@@ -738,10 +738,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, contract, extendsC, decls),
                       excludes, comprises, hasEllipses, selfType) => {
-      // Verify that this trait only extends other traits
-      extendsC.foreach( (t:TraitTypeWhere) =>
-                        assertTrait(t.getBaseType,
-                                    "Traits can only extend traits.", t) )
       val checkerWSparams = this.extend(sparams, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
@@ -787,10 +783,6 @@ class STypeChecker(current: CompilationUnitIndex, traits: TraitTable,
                        STraitTypeHeader(sparams, mods, name, where,
                                         throwsC, contract, extendsC, decls),
                        params, selfType) => {
-      // Verify that no extends clauses try to extend an object.
-      extendsC.foreach( (t:TraitTypeWhere) =>
-                        assertTrait(t.getBaseType,
-                                    "Objects can only extend traits.", t.getBaseType) )
       val checkerWSparams = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams

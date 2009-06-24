@@ -47,6 +47,7 @@ import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.linker.ApiLinker;
 import com.sun.fortress.scala_src.linker.CompoundApiChecker;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
+import com.sun.fortress.scala_src.typechecker.ExclusionOracle;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
@@ -54,6 +55,7 @@ import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
+import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -188,7 +190,8 @@ public class StaticChecker {
                                                    FortressRepository repository) {
         if (Shell.getTypeChecking() == true) {
             // Check type hierarchy to ensure acyclicity.
-            List<StaticError> errors = new TypeHierarchyChecker(component, env, repository).checkHierarchy();
+            List<StaticError> errors = new TypeHierarchyChecker(component, env, repository,
+                                                                null).checkHierarchy();
             if (! errors.isEmpty()) {
                 return new TypeCheckerResult(component.ast(), errors);
             }
@@ -207,11 +210,13 @@ public class StaticChecker {
                                                                  System.currentTimeMillis());
             TraitTable traitTable = new TraitTable(component, env);
             TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
+            ExclusionOracle exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog());
 
             if (Shell.testCoercion())
-                errors.addAll(new CoercionTest(typeAnalyzer).run());
+                errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
 
-            errors.addAll(new TypeHierarchyChecker(component, env, repository).checkAcyclicHierarchy());
+            errors.addAll(new TypeHierarchyChecker(component, env, repository,
+                                                   exclusionOracle).checkAcyclicHierarchy());
             errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
 
             TypeCheckerResult result;
@@ -231,7 +236,7 @@ public class StaticChecker {
                 STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable, typeEnv, typeAnalyzer);
                 component_ast = typeChecker.typecheck(component_ast);
                 component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
-                    System.currentTimeMillis());
+                                                                     System.currentTimeMillis());
                 errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
                 result = new TypeCheckerResult(component_ast, errors);
             }
@@ -294,13 +299,14 @@ public class StaticChecker {
 
         // Check if this is a compound API, and, if so, link it into a single API.
         List<StaticError> errors = new CompoundApiChecker(env, repository).check(api);
-        if (! errors.isEmpty()) { 
+        if (! errors.isEmpty()) {
             return new TypeCheckerResult(api.ast(), errors);
         }
         api = new ApiLinker(env, repository).link(api);
 
         // Check type hierarchy to ensure acyclicity.
-        errors = new TypeHierarchyChecker(api, env, repository).checkHierarchy();
+        errors = new TypeHierarchyChecker(api, env, repository,
+                                          null).checkHierarchy();
         if (! errors.isEmpty()) {
             return new TypeCheckerResult(api.ast(), errors);
         }
@@ -310,11 +316,13 @@ public class StaticChecker {
                                                  System.currentTimeMillis());
         TraitTable traitTable = new TraitTable(api, env);
         TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
+        ExclusionOracle exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog());
 
         if (Shell.testCoercion())
-            errors.addAll(new CoercionTest(typeAnalyzer).run());
+            errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
 
-        errors.addAll(new TypeHierarchyChecker(api, env, repository).checkAcyclicHierarchy());
+        errors.addAll(new TypeHierarchyChecker(api, env, repository,
+                                               exclusionOracle).checkAcyclicHierarchy());
         errors.addAll(new TypeWellFormedChecker(api, env, typeAnalyzer).check());
 
         TypeCheckerResult result = new TypeCheckerResult(api_ast, errors);

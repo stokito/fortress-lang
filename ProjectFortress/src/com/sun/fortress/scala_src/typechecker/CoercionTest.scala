@@ -45,9 +45,10 @@ import com.sun.fortress.useful.WireTappedPrintStream
  * Error messages are read via stderr.
  * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
  */
-class CoercionTest(analyzer:TypeAnalyzer) {
+class CoercionTest(analyzer:TypeAnalyzer, exclusionOracle:ExclusionOracle) {
   def run() = {
-    val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer, new ErrorLog())
+    val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer,
+                                            exclusionOracle, exclusionOracle.errors)
     val oracle = factory.makeOracle(analyzer.typeEnv)
     factory.getErrors
   }

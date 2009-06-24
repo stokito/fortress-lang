@@ -51,6 +51,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -59,6 +60,8 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
@@ -184,6 +187,52 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
+
+        NodeAbstractVisitor_void handleComprisesExcludes = new NodeAbstractVisitor_void() {
+            @Override public void forTraitDecl(TraitDecl d) {
+                Id dName = NodeUtil.getName(d);
+                ProperTraitIndex dIndex = (ProperTraitIndex)typeConses.get(dName);
+                if ( d.getComprisesClause().isSome() ) {
+                    for ( BaseType t : d.getComprisesClause().unwrap() )
+                        if ( t instanceof NamedType ) {
+                            TraitType typ;
+                            if ( t instanceof TraitType ) typ = (TraitType)t;
+                            else typ = NodeFactory.makeTraitType(((NamedType)t).getName());
+                            dIndex.addComprisesType(typ);
+                        } else bug("TraitType is expected in the comprises clause of " + d +
+                                   " but found " + t + " " + t.getClass() + ".");
+                }
+                for ( BaseType t : d.getExcludesClause() ) {
+                    if ( t instanceof NamedType ) {
+                        // add t to d's excludes clause
+                        TraitType typ;
+                        Id tName = ((NamedType)t).getName();
+                        if ( t instanceof TraitType ) typ = (TraitType)t;
+                        else typ = NodeFactory.makeTraitType(tName);
+                        dIndex.addExcludesType(typ);
+                        // add d to t's excludes clause
+                        Option<Type> ty = d.getSelfType();
+                        if ( ty.isSome() )
+                            typ = (TraitType)ty.unwrap();
+                        else
+                            typ = NodeFactory.makeTraitType(dName, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(d)));
+                        // If t is a parameterized type instantiated with ground types,
+                        // then do not add d to t's excludes clause.
+                        if ( ( t instanceof VarType ||
+                               ((TraitType)t).getArgs().isEmpty() ) &&
+                             typeConses.get(tName) instanceof ProperTraitIndex &&
+                             (ProperTraitIndex)typeConses.get(tName) != null ) {
+                            ((ProperTraitIndex)typeConses.get(tName)).addExcludesType(typ);
+                        }
+                    } else bug("TraitType is expected in the excludes clause of " + d +
+                               " but found " + t + ".");
+                }
+            }
+        };
+        for (Decl decl : ast.getDecls()) {
+            decl.accept(handleComprisesExcludes);
+        }
+
         ApiIndex api = new ApiIndex(ast, variables, functions, parametricOperators,
                                     typeConses, dimensions, units, grammars, modifiedDate);
         return api;
@@ -196,7 +245,7 @@ public class IndexBuilder {
      */
     public static ObjectTraitIndex buildObjectExprIndex(ObjectExpr obj) {
         Span fake_span = NodeFactory.makeSpan("FAKE_SPAN");
-    	
+
         Id fake_object_name = NodeFactory.makeId(fake_span, "FAKE_NAME");
     	IndexBuilder builder = new IndexBuilder();
 
@@ -218,8 +267,8 @@ public class IndexBuilder {
 
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
-            Map<APIName, ComponentIndex> components,
-            long modifiedDate) {
+                                Map<APIName, ComponentIndex> components,
+                                long modifiedDate) {
         ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
         components.put(ast.getName(), comp);
     }
@@ -269,6 +318,50 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
+
+        NodeAbstractVisitor_void handleComprisesExcludes = new NodeAbstractVisitor_void() {
+            @Override public void forTraitDecl(TraitDecl d) {
+                Id dName = NodeUtil.getName(d);
+                ProperTraitIndex dIndex = (ProperTraitIndex)typeConses.get(dName);
+                if ( d.getComprisesClause().isSome() ) {
+                    for ( BaseType t : d.getComprisesClause().unwrap() )
+                        if ( t instanceof NamedType ) {
+                            TraitType typ;
+                            if ( t instanceof TraitType ) typ = (TraitType)t;
+                            else typ = NodeFactory.makeTraitType(((NamedType)t).getName());
+                            dIndex.addComprisesType(typ);
+                        } else bug("TraitType is expected in the comprises clause of " + d +
+                                   " but found " + t + " " + t.getClass() + ".");
+                }
+                for ( BaseType t : d.getExcludesClause() ) {
+                    if ( t instanceof NamedType ) {
+                        // add t to d's excludes clause
+                        TraitType typ;
+                        Id tName = ((NamedType)t).getName();
+                        if ( t instanceof TraitType ) typ = (TraitType)t;
+                        else typ = NodeFactory.makeTraitType(tName);
+                        dIndex.addExcludesType(typ);
+                        // add d to t's excludes clause
+                        Option<Type> ty = d.getSelfType();
+                        if ( ty.isSome() )
+                            typ = (TraitType)ty.unwrap();
+                        else
+                            typ = NodeFactory.makeTraitType(dName, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(d)));
+                        if ( ( t instanceof VarType ||
+                               ((TraitType)t).getArgs().isEmpty() ) &&
+                             typeConses.get(tName) instanceof ProperTraitIndex &&
+                             (ProperTraitIndex)typeConses.get(tName) != null ) {
+                            ((ProperTraitIndex)typeConses.get(tName)).addExcludesType(typ);
+                        }
+                    } else bug("TraitType is expected in the excludes clause of " + d +
+                               " but found " + t + ".");
+                }
+            }
+        };
+        for (Decl decl : ast.getDecls()) {
+            decl.accept(handleComprisesExcludes);
+        }
+
         ComponentIndex comp = new ComponentIndex(ast, variables, initializers, functions,
                                                  parametricOperators, typeConses, dimensions,
                                                  units, modifiedDate);
@@ -316,7 +409,7 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ProperTraitIndex(ast, getters, setters, coercions,
-                dottedMethods, functionalMethods);
+                                                dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
 

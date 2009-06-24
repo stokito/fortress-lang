@@ -21,7 +21,7 @@ import AnyType.{Any}
 trait Object extends Any
 end Object
 
-trait String excludes { Number } (* not necessary, symmetric *)
+trait String
 opr || (self, b:String):String
 end
 
@@ -31,8 +31,8 @@ end FlatString
 println(s:String):()
 printlnZZ32(x:ZZ32):()
 
-strToInt(s:String):ZZ32 
-                          
+strToInt(s:String):ZZ32
+
 trait Number excludes { String }
 end
 
