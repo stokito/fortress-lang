@@ -43,6 +43,9 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 /** Wraps a (non-object) trait declaration. */
 public class ProperTraitIndex extends TraitIndex {
 
+    Set<TraitType> _excludes = new HashSet<TraitType>();
+    Set<TraitType> _comprises = new HashSet<TraitType>();
+
     public ProperTraitIndex(TraitDecl ast,
                             Map<Id, Method> getters,
                             Map<Id, Method> setters,
@@ -52,27 +55,13 @@ public class ProperTraitIndex extends TraitIndex {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
     }
 
-    public Set<TraitType> excludesTypes() {
-        Set<TraitType> types = new HashSet<TraitType>();
-        for ( BaseType t : ((TraitDecl)ast()).getExcludesClause() )
-            if ( t instanceof TraitType ) types.add((TraitType)t);
-            else bug("TraitType is expected in the excludes clause of " + ast() +
-                     " but found " + t);
-        return types;
-    }
+    public Set<TraitType> excludesTypes() { return _excludes; }
 
-    public Set<TraitType> comprisesTypes() {
-        Set<TraitType> types = new HashSet<TraitType>();
-        Option<List<BaseType>> comprises = ((TraitDecl)ast()).getComprisesClause();
-        if ( comprises.isNone() ) return types;
-        else {
-            for ( BaseType t : comprises.unwrap() )
-                if ( t instanceof TraitType ) types.add((TraitType)t);
-                else bug("TraitType is expected in the comprises clause of " + ast() +
-                         " but found " + t);
-        }
-        return types;
-    }
+    public Set<TraitType> comprisesTypes() { return _comprises; }
+
+    public void addExcludesType(TraitType t) { _excludes.add(t); }
+
+    public void addComprisesType(TraitType t) { _comprises.add(t); }
 
     @Override
     public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor v) {
@@ -104,6 +93,7 @@ public class ProperTraitIndex extends TraitIndex {
             new_fm.add(Pair.make(p.first(), (FunctionalMethod)p.second().acceptNodeUpdateVisitor(v)));
         }
         Relation<IdOrOpOrAnonymousName, FunctionalMethod> new_functional = CollectUtil.makeRelation(new_fm);
+
         return new ProperTraitIndex((TraitDecl)this.ast().accept(v),
                                     new_getters,
                                     new_setters,

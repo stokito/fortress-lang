@@ -177,6 +177,16 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case _ => false
     }
 
+  private def transitivelyExcludes(tIndex: ProperTraitIndex): Set[TraitType] = {
+    var result = toSet(tIndex.excludesTypes)
+    for ( t <- toList(tIndex.extendsTypes) ) {
+      if ( t.getBaseType.isInstanceOf[NamedType] ) {
+        result ++= transitivelyExcludes(typeAnalyzer.traitTable.typeCons(t.getBaseType.asInstanceOf[NamedType].getName).unwrap.asInstanceOf[ProperTraitIndex])
+      }
+    }
+    result
+  }
+
   /* Exists "tau" in "[X |-> ty...]S" such that "s" is a subtype of "tau"
    * where "t" is "T[\ty...\]" and "trait T[\X...\] ... excludes S ... end"
    */
@@ -195,7 +205,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
                                             subst.put(pair._1.getName,
                                                       pair._2.asInstanceOf[TypeArg].getTypeArg) )
     // excludes    : S
-    var excludes: Set[TraitType] = toSet(tIndex.excludesTypes)
+    var excludes: Set[TraitType] = transitivelyExcludes(tIndex)
     // [X |-> ty ...]S
     def saSubst(sa: StaticArg): StaticArg = sa match {
       case STypeArg(i,t) => STypeArg(i, tySubst(t) )
@@ -248,4 +258,6 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
         result
       }
     } else false
+
+  def errors(): ErrorLog = errors
 }

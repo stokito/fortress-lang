@@ -34,9 +34,9 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.Map
 import scala.collection.mutable.Set
 
-class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer, errors: ErrorLog) {
+class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer,
+                            exclusionOracle: ExclusionOracle, errors: ErrorLog) {
   val coercionTable = makeCoercionTable(analyzer)
-  val exclusionOracle = new ExclusionOracle(analyzer, errors)
 
   private def makeCoercionTable(analyzer: TypeAnalyzer) = {
     /*

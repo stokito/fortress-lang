@@ -54,14 +54,14 @@ import com.sun.fortress.scala_src.useful.Sets._
  */
 class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                            globalEnv: GlobalEnvironment,
-                           repository: FortressRepository) {
+                           repository: FortressRepository,
+                           exclusionOracle: ExclusionOracle) {
   val isApi = compilation_unit.isInstanceOf[ApiIndex]
 
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       errors.addAll(checkDeclAcyclicity(typ, List()))
-      errors.addAll(checkDeclComprises(typ))
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
@@ -70,6 +70,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       errors.addAll(checkAcyclicity(typ, List()))
+      errors.addAll(checkDeclComprises(typ))
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
@@ -150,10 +151,12 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
   /* Check the given declaration to check its comprises clause
    *   - for each trait/object T
    *       for each trait S in T's extends clause
-   *         either S does not have any comprises clause
-   *         or T should be in S's comprises clause;
-   *         if S has comprises ... and T is not in S's comprises clause,
-   *         T should not be exposed at all!
+   *         = There should be no exclusive types in T's extends clause.
+   *         = S should not exclude T
+   *         = either S does not have any comprises clause
+   *           or T should be in S's comprises clause;
+   *           if S has comprises ... and T is not in S's comprises clause,
+   *           T should not be exposed at all!
    *   - for each trait T
    *       for each trait/object S in T's comprises clause
    *         T should be in S's extends clause
@@ -162,13 +165,29 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     val errors = new ArrayList[StaticError]()
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
-        for (extension <- toList(ti.extendsTypes)) {
+        val tt = ti.typeOfSelf.unwrap
+        val extended = toList(ti.extendsTypes)
+        for (extension <- extended) {
           extension match {
             // TODO: Extend to handle non-empty where clauses.
             case STraitTypeWhere(_,SAnyType(_),_) => {}
-            case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
+            case STraitTypeWhere(_,st@STraitType(_,name,_,_),_) =>
+              for (second <- extended) {
+                second match {
+                  case STraitTypeWhere(_,other@STraitType(_,_,_,_),_) =>
+                    if ( exclusionOracle.excludes(st, other) )
+                      error(errors, "Types " + st + " and " + other +
+                            " exclude each other.  " + decl +
+                            " must not extend them.", st)
+                  case _ =>
+                }
+              }
               getTypes(name, errors) match {
                 case si:ProperTraitIndex =>
+                  if ( exclusionOracle.excludes(tt, st) ) {
+                      error(errors, "Type " + decl + " excludes " + name +
+                            " but it extends " + name + ".", extension)
+                  }
                   val comprises = si.comprisesTypes
                   if ( ! comprises.isEmpty && // extension has a comprises clause
                        // decl is not in the comprises clause
