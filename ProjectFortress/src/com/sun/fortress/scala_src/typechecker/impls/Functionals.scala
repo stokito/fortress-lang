@@ -72,7 +72,7 @@ import com.sun.fortress.useful.NI
  * mixed into STypeCheckerBase. This is what allows it to implement abstract
  * members of STypeCheckerBase and access its protected members.)
  */
-trait Functionals { self: STypeCheckerBase =>
+trait Functionals { self: STypeCheckerBase with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
