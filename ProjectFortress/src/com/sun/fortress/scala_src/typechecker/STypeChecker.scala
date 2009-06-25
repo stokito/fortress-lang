@@ -93,7 +93,9 @@ class STypeChecker(current: CompilationUnitIndex,
                    analyzer: TypeAnalyzer,
                    errors: ErrorLog)
     extends STypeCheckerBase(current, traits, env, analyzer, errors)
-    with Dispatch with Common with Functionals with Misc
+    with Dispatch with Common
+    with Decls with Functionals with Operators
+    with Misc
 
 /**
  * The abstract base class for a type checker. This class contains all the

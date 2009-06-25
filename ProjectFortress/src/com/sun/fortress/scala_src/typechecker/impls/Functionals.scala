@@ -17,60 +17,32 @@
 
 package com.sun.fortress.scala_src.typechecker.impls
 
-import _root_.java.util.{List => JavaList}
-import edu.rice.cs.plt.collect.EmptyRelation
-import edu.rice.cs.plt.collect.IndexedRelation
-import edu.rice.cs.plt.collect.Relation
-import edu.rice.cs.plt.collect.UnionRelation
-import com.sun.fortress.compiler.IndexBuilder
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
-import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.Method
-import com.sun.fortress.compiler.index.ObjectTraitIndex
-import com.sun.fortress.compiler.index.ProperTraitIndex
-import com.sun.fortress.compiler.index.TraitIndex
-import com.sun.fortress.compiler.index.TypeConsIndex
-import com.sun.fortress.compiler.typechecker.TypeNormalizer
-//import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TypeEnv
-import com.sun.fortress.compiler.Types
-import com.sun.fortress.exceptions.InterpreterBug.bug
-import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
-import com.sun.fortress.exceptions.TypeError
-import com.sun.fortress.exceptions.ProgramError
-import com.sun.fortress.exceptions.ProgramError.error
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.ExprFactory
-import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeUtil
-import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.ASTGenHelper._
-import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
-import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
  * 
- * This trait must be mixed in with an STypeCheckerBase instance to provide the
- * full type checker implementation.
+ * This trait must be mixed in with an `STypeCheckerBase with Common` instance
+ * in order to provide the full type checker implementation.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase. This is what allows it to implement abstract
- * members of STypeCheckerBase and access its protected members.)
+ * mixed into STypeCheckerBase along with the Common helpers. This is what
+ * allows this trait to implement abstract members of STypeCheckerBase and to
+ * access its protected members.)
  */
 trait Functionals { self: STypeCheckerBase with Common =>
 
@@ -319,7 +291,7 @@ trait Functionals { self: STypeCheckerBase with Common =>
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
   
-  def checkFunctionals(node:Node):Node = node match {
+  def checkFunctionals(node: Node): Node = node match {
 
     case SOverloading(info, name, _) => {
       val checkedName = check(name).asInstanceOf[IdOrOp]

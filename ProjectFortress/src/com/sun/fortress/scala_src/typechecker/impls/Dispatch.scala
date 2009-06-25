@@ -18,6 +18,7 @@
 package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.nodes._
+import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.STypeCheckerBase
 
 /**
@@ -30,17 +31,25 @@ import com.sun.fortress.scala_src.typechecker.STypeCheckerBase
  * well to provide full type checking.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase. This is what allows it to implement abstract
- * members of STypeCheckerBase and access its protected members.)
+ * mixed into STypeCheckerBase. This is what allows this trait to implement
+ * abstract members of STypeCheckerBase and to access its protected members.)
  */
 trait Dispatch { self: STypeCheckerBase =>
 
   // ---------------------------------------------------------------------------
   // ABSTRACT IMPL DECLARATIONS ------------------------------------------------
   
+  // Decls group
+  def checkDecls(node: Node): Node
+  def checkExprDecls(expr: Expr, expected: Option[Type]): Expr
+  
   // Functionals group
   def checkFunctionals(node: Node): Node
   def checkExprFunctionals(expr: Expr, expected: Option[Type]): Expr
+  
+  // Operators group
+  def checkOperators(node: Node): Node
+  def checkExprOperators(expr: Expr, expected: Option[Type]): Expr
   
   // Misc group
   def checkMisc(node: Node): Node
@@ -54,8 +63,19 @@ trait Dispatch { self: STypeCheckerBase =>
    * method defined elsewhere.
    */
   def check(node: Node): Node = node match {
-    case expr:Expr => checkExpr(expr)
-    case ov:Overloading => checkFunctionals(ov)
+    case n:Expr => checkExpr(n)
+    
+    case n:Component => checkDecls(n)
+    case n:TraitDecl => checkDecls(n)
+    case n:ObjectDecl => checkDecls(n)
+    case n:FnDecl => checkDecls(n)
+    case n:VarDecl => checkDecls(n)
+    
+    case n:Op => checkOperators(n)
+    case n:Link => checkOperators(n)
+    
+    case n:Overloading => checkFunctionals(n)
+    
     case _ => checkMisc(node)
   }
   
@@ -64,10 +84,18 @@ trait Dispatch { self: STypeCheckerBase =>
    * method defined elsewhere.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
+    case e:LocalVarDecl => checkExprDecls(e, expected)
+    
     case e:SubscriptExpr => checkExprFunctionals(e, expected)
     case e:FunctionalRef => checkExprFunctionals(e, expected)
     case e:_RewriteFnApp => checkExprFunctionals(e, expected)
     case e:OpExpr => checkExprFunctionals(e, expected)
+    
+    case e:Juxt => checkExprOperators(e, expected)
+    case e:MathPrimary => checkExprOperators(e, expected)
+    case e:AmbiguousMultifixOpExpr => checkExprOperators(e, expected)
+    case e:ChainExpr => checkExprOperators(e, expected)
+    
     case _ => checkExprMisc(expr, expected)
   }
 }
