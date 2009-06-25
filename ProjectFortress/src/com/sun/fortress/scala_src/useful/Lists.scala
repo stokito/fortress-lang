@@ -16,13 +16,13 @@
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.useful
+import _root_.java.util.Arrays
 import _root_.java.util.{LinkedList => JLinkedList}
 import _root_.java.util.{List => JList}
 import _root_.junit.framework.TestCase
 import scala.collection.jcl.Conversions
 
 object Lists {
-
   def toJavaList[T](xs:List[T]):JLinkedList[T] = {
     xs match {
       case List() => new JLinkedList[T]
@@ -34,10 +34,8 @@ object Lists {
     }
   }
 
-  
   def toList[T](xs:JList[T]) = List()++Conversions.convertList(xs)
-
-  
+ 
   def map[S,T](list: JList[S], fun: S=>T ): JList[T] = toJavaList(toList(list).map(fun))
   
 }

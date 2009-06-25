@@ -28,6 +28,8 @@ class ErrorLog() {
   def signal(msg:String, hasAt:HasAt) = {
     errors = errors ::: List(TypeError.make(msg,hasAt))
   }
+
+  def asList() = { Errors.removeDuplicates(errors) }
 }
 
 object Errors {

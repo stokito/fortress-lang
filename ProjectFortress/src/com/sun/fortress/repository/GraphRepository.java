@@ -269,7 +269,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 /* oh well */
             } catch ( IOException e ){
             }
-            /* make this API depend on the APIs it imports */
+            /* make this API depend on the APIs it imports and comprises */
             for ( APIName api : dependencies(node) ){
                 Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
                 graph.addEdge(node, addApiGraph(api));
@@ -405,7 +405,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    /* what if the file has been edited to include import statements that the cached
+    /* What if the file has been edited to include import statements that the cached
      * version doesn't have? that's ok because the cached version won't be loaded unless it
      * is newer than the file on disk.
      */
@@ -414,8 +414,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 node.getApi().unwrap().ast() :
                     readCUFor(node, ProjectProperties.API_SOURCE_SUFFIX);
 
-        return collectApiImports((Api)cu);
+        Api a = (Api)cu;
 
+        List<APIName> result = collectApiImports(a);
+        result.addAll(collectApiComprises(a));
+        return result;
     }
 
     private List<APIName> dependencies(ComponentGraphNode node)
@@ -480,7 +483,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * that parseComponent is going to return.
                  */
                 result = parseComponent(syntaxExpand(node));
-                for ( Map.Entry<APIName, ComponentIndex> entry : result.components().entrySet() ){
+                for (Map.Entry<APIName, ComponentIndex> entry : result.components().entrySet()) {
                     if ( inComponentList( entry.getKey(), reparseComponents ) ){
                         addComponent( entry.getKey(), entry.getValue() );
                     }
@@ -490,9 +493,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return result;
     }
 
-    private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException>{
-        // This may be over-conservative -- rebuilds get triggered transitively
-        // across chains of API dependence.  "Youngest" is computed transitively.
+    private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException >{
+        // Rebuilds get triggered transitively across chains of API dependence.  
+        // "Youngest" is computed transitively.
         private Map<GraphNode, Long> youngestSourceDependedOn;
 
         // Dates are not available for foreign imports.  Therefore, keep track
@@ -505,7 +508,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         private Map<GraphNode, Boolean> staleOrDependsOnStale;
 
 
-        public OutOfDateVisitor(){
+        public OutOfDateVisitor() {
             youngestSourceDependedOn = new HashMap<GraphNode,Long>();
             staleOrDependsOnStale = new HashMap<GraphNode,Boolean>();
             foreignChange = new HashSet<GraphNode>();
@@ -573,8 +576,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             return youngest;
         }
 
-        private Boolean isStale( GraphNode node ) throws FileNotFoundException {
-            if ( staleOrDependsOnStale.containsKey(node) ){
+        private Boolean isStale(GraphNode node) throws FileNotFoundException {
+            if (staleOrDependsOnStale.containsKey(node)) {
                 return staleOrDependsOnStale.get(node);
             }
 
@@ -583,7 +586,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
             // If anything depended on has source that is younger than our compiled code,
             // then this is stale.
-            if ( stale ){
+            if (stale) {
                 Debug.debug( Debug.Type.REPOSITORY, 1, node, "or dependent is newer ",
                              youngestSourceDependedOn.get(node),
                              " than the cache ", getCacheDate(node) );
@@ -593,10 +596,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
             List<GraphNode> depends = graph.depends(node);
             Debug.debug( Debug.Type.REPOSITORY, 2, node, " depends on ", depends );
-            for ( GraphNode next : depends ){
+            for (GraphNode next : depends) {
                 boolean dependent_stale = isStale(next);
 
-                if ( dependent_stale  ){
+                if (dependent_stale) {
                     stale = true;
                     Debug.debug( Debug.Type.REPOSITORY, 1,
                                  node, " is stale ", next, " is stale" );
@@ -873,6 +876,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     @Override
     public void clear() {
         cache.clear();
+    }
+
+    private List<APIName> collectApiComprises(Api api) { 
+        List<APIName> result = new ArrayList<APIName>();
+
+        for (APIName cname : api.getComprises()) { 
+            result.add(cname);
+        }
+        return result;
     }
 
     private List<APIName> collectExplicitImports(CompilationUnit comp) {

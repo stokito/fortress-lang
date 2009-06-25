@@ -21,11 +21,11 @@ import _root_.junit.framework.TestCase
 
 object Options {
   /* Transforms a Java option to a Scala option */
-  def toOption[T](opt: JavaOption[T]): Option[T] =
+  implicit def toOption[T](opt: JavaOption[T]): Option[T] =
     if (opt.isNone) None
     else Some(opt.unwrap)
 
-  def toJavaOption[T](op: Option[T]): JavaOption[T] = op match {
+  implicit def toJavaOption[T](op: Option[T]): JavaOption[T] = op match {
     case Some(wrap) => some(wrap)
     case None => none()
   }

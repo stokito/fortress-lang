@@ -18,7 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled0.t.fss:20:8-18:\n\
-\ Component Compiled0.t imports and exports API Executable.\n\
+\ Component Compiled0.t imports and exports (perhaps implicitly) API Executable.\n\
 \ An API must not be imported and exported by the same component.\n\
 File Compiled0.t.fss has 1 error.\n
 compile_out_equals=

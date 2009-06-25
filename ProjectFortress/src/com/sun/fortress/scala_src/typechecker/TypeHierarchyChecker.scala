@@ -108,6 +108,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                               extension.getBaseType, extension)
             }
           }
+        case _ =>
       }
     }
     errors
@@ -144,6 +145,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
             }
           }
         }
+      case _ =>  
     }
     errors
   }
@@ -224,6 +226,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
             }
           case _ =>
         }
+       case _ => 
     }
     errors
   }

@@ -127,7 +127,8 @@ public class StaticChecker {
                  failedApis,
                  errors,
                  type_checker_output);
-        } else
+        } 
+        else
             return new ApiResult(apis, failedApis, errors,
                                  TypeCheckerOutput.emptyOutput());
     }
@@ -297,20 +298,26 @@ public class StaticChecker {
                                              GlobalEnvironment env,
                                              FortressRepository repository) {
 
+        Node api_ast = api.ast();        
+
         // Check if this is a compound API, and, if so, link it into a single API.
-        List<StaticError> errors = new CompoundApiChecker(env, repository).check(api);
+        // The AST associated with an ApiIndex is always an Api. 
+        List<StaticError> errors = new CompoundApiChecker(env.apis()).check((Api)api_ast);
         if (! errors.isEmpty()) {
-            return new TypeCheckerResult(api.ast(), errors);
+            return new TypeCheckerResult(api_ast, errors);
         }
-        api = new ApiLinker(env, repository).link(api);
+        api_ast = new ApiLinker(env.apis()).link((Api)api_ast);
+        api = IndexBuilder.builder.buildApiIndex((Api)api_ast,
+                                                 System.currentTimeMillis());
 
         // Check type hierarchy to ensure acyclicity.
         errors = new TypeHierarchyChecker(api, env, repository,
                                           null).checkHierarchy();
+
         if (! errors.isEmpty()) {
             return new TypeCheckerResult(api.ast(), errors);
         }
-        Node api_ast = api.ast();
+
         api_ast = api_ast.accept(new TypeNormalizer());
         api = IndexBuilder.builder.buildApiIndex((Api)api_ast,
                                                  System.currentTimeMillis());
