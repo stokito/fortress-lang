@@ -28,14 +28,26 @@ import com.sun.fortress.scala_src.typechecker.STypeCheckerBase
  * mixed into STypeCheckerBase, the resulting type has abstract methods for
  * checking each group, so each group's implementation needs to be mixed in as
  * well to provide full type checking.
+ * 
+ * (The self-type annotation at the beginning declares that this trait must be
+ * mixed into STypeCheckerBase. This is what allows it to implement abstract
+ * members of STypeCheckerBase and access its protected members.)
  */
 trait Dispatch { self: STypeCheckerBase =>
+
+  // ---------------------------------------------------------------------------
+  // ABSTRACT IMPL DECLARATIONS ------------------------------------------------
   
-  /** Type check a node that is not a member of any implemented group. */
+  // Functionals group
+  def checkFunctionals(node: Node): Node
+  def checkExprFunctionals(expr: Expr, expected: Option[Type]): Expr
+  
+  // Misc group
   def checkMisc(node: Node): Node
-  
-  /** Type check an expr node that is not a member of any implemented group. */
   def checkExprMisc(expr: Expr, expected: Option[Type]): Expr
+
+  // ---------------------------------------------------------------------------
+  // DISPATCH IMPLEMENTATION ---------------------------------------------------
   
   /**
    * Implements STypeCheckerBase.check by dispatching to some other abstract
@@ -43,6 +55,7 @@ trait Dispatch { self: STypeCheckerBase =>
    */
   def check(node: Node): Node = node match {
     case expr:Expr => checkExpr(expr)
+    case ov:Overloading => checkFunctionals(ov)
     case _ => checkMisc(node)
   }
   
@@ -51,6 +64,10 @@ trait Dispatch { self: STypeCheckerBase =>
    * method defined elsewhere.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
+    case e:SubscriptExpr => checkExprFunctionals(e, expected)
+    case e:FunctionalRef => checkExprFunctionals(e, expected)
+    case e:_RewriteFnApp => checkExprFunctionals(e, expected)
+    case e:OpExpr => checkExprFunctionals(e, expected)
     case _ => checkExprMisc(expr, expected)
   }
 }
