@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.scala_src.linker.ExportExpander;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.HasAt;
 
@@ -254,10 +255,25 @@ public class Disambiguator {
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
 
-        // First, disambiguate the types
-        List<Component> new_comps = new ArrayList<Component>();
-        for (Component comp : components) {
+        // Expand all exports of compound APIs, and
+        // add to exports all compound APIs whose constituents are exported.
+        List<Component> expandedComps = new ArrayList<Component>();
+        for (Component comp: components) { 
             ComponentIndex index = indices.get(comp.getName());
+            if (index == null) {
+                throw new IllegalArgumentException("Missing component index");
+            }
+            expandedComps.add(expandExports(comp, globalEnv));
+        }
+        // Then, rebuild the component indices based on expand exports
+        // Then, rebuild the component indices based on disambiguated types
+        IndexBuilder.ComponentResult newComponentsExpanded =
+        	IndexBuilder.buildComponents(expandedComps, System.currentTimeMillis());
+
+        // Next, disambiguate the types
+        List<Component> new_comps = new ArrayList<Component>();
+        for (Component comp : expandedComps) {
+            ComponentIndex index = newComponentsExpanded.components().get(comp.getName());
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
@@ -326,10 +342,18 @@ public class Disambiguator {
             if ( imports.contains(exp) )
                 error(errors, exp,
                       "Component " + component.ast().getName() +
-                      " imports and exports API " + exp + ".\n" +
+                      " imports and exports (perhaps implicitly) API " + exp + ".\n" +
                       "    An API must not be imported and exported" +
                       " by the same component.");
         }
+    }
+
+    /* Expand all exports of compound APIs, and
+     * add to exports list all compound APIs whose constituents are exported.
+     */
+    private static Component expandExports(Component component, GlobalEnvironment env) { 
+        // The ExportExpander is a walker that returns a node of the same type you give it.
+        return (Component)new ExportExpander(env).expand(component);
     }
 
     private static void error(List<StaticError> errors, HasAt loc, String msg) {

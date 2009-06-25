@@ -44,6 +44,8 @@ public abstract class GlobalEnvironment {
 
     abstract public void print();
 
+    public ApiIndex lookup(APIName name) { return api(name); }
+
     public String toString() {
         return this.getClass().getSimpleName() + " " + apis();
     }

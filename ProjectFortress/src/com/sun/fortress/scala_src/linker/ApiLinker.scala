@@ -29,30 +29,41 @@ import _root_.java.util.{List => JList}
 import _root_.java.util.Map
 import _root_.java.util.ArrayList
 
-class ApiLinker(env: GlobalEnvironment, repository: FortressRepository) {
-  def link(api: ApiIndex): ApiIndex = {
-    api.ast match {
+class ApiLinker(env: Map[APIName, ApiIndex]) {
+  def link(api: Api): Api = {
+    api match {
       case SApi(info, name, imports, decls, comprises) => {
-        if (comprises.isEmpty) { 
-          api 
-        } 
+        if (comprises.isEmpty) { api } 
         else {
           val allDecls = new ArrayList[Decl]()
-          for (constituent <- comprises) {
-            constituent match {
-              case SApi(cinfo, cname, cimports, cdecls, _) => {
+          for (cname <- comprises) {
+            // Because api has already been checked by the CompoundApiChecker,
+            // each name must be in env.
+            env.get(cname).ast match {
+              case SApi(_, _, _, cdecls, _) => {
                 // The comprises clause should be empty because repositories
                 // only store simple APIs
-                  allDecls.addAll(toJavaList(cdecls))
-                }
+                allDecls.addAll(toJavaList(fixRefs(cdecls, name, comprises)))
               }
             }
-            IndexBuilder.builder.buildApiIndex(new Api(info, name, toJavaList(imports), 
-                                                       allDecls, new ArrayList[APIName]()), 
-                                               api.modifiedDate)
+          }
+          // Keep comprises clause in linked API so we can distinguish it
+          // as a compound API in later phases.
+          new Api(info, name, toJavaList(imports), allDecls, toJavaList(comprises))
         }
       }
     }
   }
-}
 
+  def fixRefs(ds: List[Decl], compoundName: APIName, comprises: List[APIName]): List[Decl] = {
+    new ReferenceFixer(compoundName, comprises)(ds).asInstanceOf[List[Decl]]
+  }
+
+  class ReferenceFixer(compoundName: APIName, comprises: List[APIName]) extends Walker {
+    override def walk(node: Any): Any = node match {
+      case old@SAPIName(getInfo, getIds, getText) if (comprises contains old) => compoundName
+      case _ => super.walk(node)
+    }
+  }
+}
+  

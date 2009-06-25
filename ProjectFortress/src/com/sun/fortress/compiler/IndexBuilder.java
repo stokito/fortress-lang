@@ -58,6 +58,8 @@ import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.linker.ApiLinker;
+import com.sun.fortress.scala_src.linker.CompoundApiChecker;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -88,12 +90,21 @@ public class IndexBuilder {
     public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
         IndexBuilder builder = new IndexBuilder();
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        for (Api ast : asts) { builder.buildApi(ast, apis, modifiedDate); }
-        return new ApiResult(apis, builder.errors());
+        return builder.buildApis(asts, apis, modifiedDate);
+    }
+
+    private ApiResult buildApis(Iterable<Api> asts, Map<APIName, ApiIndex> apis, 
+                                long modifiedDate) 
+    { 
+        boolean apisAdded = false;
+        for (Api ast : asts) { apisAdded = apisAdded || this.buildApi(ast, apis, modifiedDate); }
+        if (apisAdded) { return  new IndexBuilder().buildApis(asts, apis, modifiedDate); }
+        else { return new ApiResult(apis, this.errors()); }
     }
 
     /** Convenience function that takes apis as varargs and builds an ApiResult. */
     public static ApiResult buildApis(long modifiedDate, Api... asts) {
+
         ArrayList<Api> apiList = new ArrayList<Api>();
         for (Api ast: asts) { apiList.add(ast); }
         return buildApis(apiList, modifiedDate);
@@ -133,10 +144,29 @@ public class IndexBuilder {
         _errors.add(StaticError.make(message, loc));
     }
 
+    private void addErrors(List<StaticError> errors) { 
+        _errors.addAll(errors);
+    }
+
     /** Create an ApiIndex and add it to the given map. */
-    private void buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate) {
-        ApiIndex api = buildApiIndex(ast, modifiedDate);
-        apis.put(ast.getName(), api);
+    private boolean buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate) {
+        if (apis.containsKey(ast.getName())) { 
+            return false; 
+        }
+        else { 
+            List<StaticError> errors = new CompoundApiChecker(apis).check(ast);
+            if (! errors.isEmpty()) { 
+                addErrors(errors); 
+                return false;
+            }
+            else { 
+                // If <code>ast</code> is a compound API, link it into a single API.
+                ast = new ApiLinker(apis).link(ast); 
+                ApiIndex api = buildApiIndex(ast, modifiedDate);
+                apis.put(ast.getName(), api);
+                return true;
+            }
+        }
     }
 
     public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
