@@ -34,6 +34,19 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
+/**
+ * Provides some helper methods that are common to cases among multiple groups.
+ * Note that helpers that are generally used in _every_ case/group should go in
+ * the STypeCheckerBase class; the helpers herein each generally apply to cases
+ * among only a few groups.
+ * 
+ * This trait must be mixed in with an STypeCheckerBase instance to provide the
+ * full type checker implementation.
+ * 
+ * (The self-type annotation at the beginning declares that this trait must be
+ * mixed into STypeCheckerBase. This is what allows this trait to access its
+ * protected members.)
+ */
 trait Common { self: STypeCheckerBase =>
   
   // TODO: Rewrite this method!
