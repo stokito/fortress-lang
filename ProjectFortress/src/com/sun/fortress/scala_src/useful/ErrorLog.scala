@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.useful
 import com.sun.fortress.nodes._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 
@@ -30,6 +31,7 @@ class ErrorLog() {
   }
 
   def asList() = { Errors.removeDuplicates(errors) }
+  def asJavaList() = { toJavaList(asList()) }
 }
 
 object Errors {

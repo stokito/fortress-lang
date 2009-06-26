@@ -50,6 +50,19 @@ public abstract class GlobalEnvironment {
         return this.getClass().getSimpleName() + " " + apis();
     }
 
+    public boolean contains(APIName api1, APIName api2) { 
+        // Degeneratively, every API contains itself.
+        if (api1.equals(api2)) { 
+            return true; 
+        }
+        else { 
+            for (APIName constituent : api(api1).comprises()) { 
+                if (contains(constituent, api2)) { return true; }
+            }
+            return false;
+        }
+    }
+
     public static class FromMap extends GlobalEnvironment {
         private Map<APIName, ApiIndex> _apis;
 

@@ -47,6 +47,11 @@ public class DisambiguatePhase extends Phase {
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             previous.apis()));
 
+        // System.out.println("rawApiEnv:");
+        //  rawApiEnv.print();
+        //  System.out.println("env rawApiEnv");
+
+
         // Rewrite all API ASTs so they include only fully qualified names,
         // relying on the rawApiEnv constructed in the previous step. Note that,
         // after this step, the rawApiEnv is stale and needs to be rebuilt with
@@ -71,9 +76,9 @@ public class DisambiguatePhase extends Phase {
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             apiIR.apis()));
 
-//         System.out.println("apiEnv:");
-//         apiEnv.print();
-//         System.out.println("env apiEnv");
+        // System.out.println("apiEnv:");
+        //  apiEnv.print();
+        //  System.out.println("env apiEnv");
 
         Disambiguator.ComponentResult componentDR =
             Disambiguator.disambiguateComponents(previous.componentIterator(),

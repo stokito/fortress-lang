@@ -23,7 +23,9 @@ import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.nodes._
 import com.sun.fortress.repository.FortressRepository
+import com.sun.fortress.useful.HasAt
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
@@ -33,14 +35,24 @@ import _root_.java.util.Map
 import _root_.java.util.ArrayList
 
 class ExportExpander(env: GlobalEnvironment) {
+  val errors = new ErrorLog()
+
+  def signal(msg: String, hasAt: HasAt) = {
+    errors.signal(msg, hasAt)
+  }
+
   def expand(comp: Component) = {
     var newExports: List[APIName] = List()
 
     // Add constituents of exported compound APIs
     for (export <- toList(comp.getExports)) {
-      for (constituent <- toSet(env.lookup(export).comprises)) {
-        System.err.println("Adding implicit export " + constituent + " to " + comp.getName)
-        newExports = constituent :: newExports 
+      if (env.definesApi(export)) {
+        for (constituent <- toSet(env.lookup(export).comprises)) {
+          newExports = constituent :: newExports 
+        }
+      }
+      else {
+        signal("Undefined API in export clause: " + export, export)
       }
     }
     // Add compound APIs whose constituents are all exported.
@@ -54,12 +66,11 @@ class ExportExpander(env: GlobalEnvironment) {
         // Simple APIs have empty comprises clauses and are never added in this loop
         var canAdd = !(api.comprises.isEmpty) && !(newExports contains name)
         for (constituent <- toSet(api.comprises)) {
-          // A compound API is added iff all its constituents are exported
+          // A compound API is added iff all of its constituents are exported
           canAdd = canAdd && (comp.getExports contains constituent)
         }
         if (canAdd) { 
           moreAdded = true
-          System.err.println("Adding compound implicit export " + api.ast.getName + " to " + comp.getName)
           newExports = name :: newExports 
         }
       }

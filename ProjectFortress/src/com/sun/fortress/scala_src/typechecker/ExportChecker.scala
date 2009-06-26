@@ -122,8 +122,9 @@ object ExportChecker {
         var exports = List[APIName]()
         for ( e <- toSet(component.exports) ) exports = e :: exports
         for ( e <- exports.sort((a1,a2) => (a1.getText compareTo a2.getText) < 0) ) {
-            val api = try { globalEnv.api(e) }
-                      catch { case _ => repository.getApi(e) }
+            // We are assured at this point that all exported API names refer to an 
+            // API in the globalEnv
+            val api = globalEnv.api(e) 
             val apiName = api.ast.getName
 
             /* Multiple APIs exported by a single component cannot include
@@ -132,6 +133,10 @@ object ExportChecker {
             val apiVariables = toSet(api.variables.keySet)
             for ( v <- apiVariables ) {
                 if ( declaredVariables.keySet.contains(v) )
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredVariables.get(v).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredVariables.get(v).get))))
                     multipleDecls = (declaredVariables.get(v).get + "." + v,
                                      apiName + "." + v) :: multipleDecls
                 else {
@@ -141,8 +146,12 @@ object ExportChecker {
             }
             for ( f <- toSet(api.functions.firstSet) ) {
                 if ( declaredFunctions.keySet.contains(f) )
-                    multipleDecls = (declaredFunctions.get(f).get + "." + f,
-                                     apiName + "." + f) :: multipleDecls
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredFunctions.get(f).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredFunctions.get(f).get))))
+                      multipleDecls = (declaredFunctions.get(f).get + "." + f,
+                                       apiName + "." + f) :: multipleDecls
                 else {
                     val kv = (f, apiName)
                     declaredFunctions = declaredFunctions + kv
@@ -151,6 +160,10 @@ object ExportChecker {
             for ( o <- toSet(api.parametricOperators) ) {
                 val name = o.name
                 if ( declaredParametricOperators.keySet.contains(name) )
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredParametricOperators.get(name).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredParametricOperators.get(name).get))))
                     multipleDecls = (declaredParametricOperators.get(name).get + "." +
                                      name, apiName + "." + name) :: multipleDecls
                 else {
@@ -159,9 +172,14 @@ object ExportChecker {
                 }
             }
             for ( t <- toSet(api.typeConses.keySet) ) {
-                if ( declaredTypeConses.keySet.contains(t) )
+                if ( declaredTypeConses.keySet.contains(t) ) {
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredTypeConses.get(t).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredTypeConses.get(t).get))))
                     multipleDecls = (declaredTypeConses.get(t).get + "." + t,
                                      apiName + "." + t) :: multipleDecls
+                }
                 else {
                     val kv = (t, apiName)
                     declaredTypeConses = declaredTypeConses + kv
@@ -169,6 +187,10 @@ object ExportChecker {
             }
             for ( d <- toSet(api.dimensions.keySet) ) {
                 if ( declaredDimensions.keySet.contains(d) )
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredDimensions.get(d).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredDimensions.get(d).get))))
                     multipleDecls = (declaredDimensions.get(d).get + "." + d,
                                      apiName + "." + d) :: multipleDecls
                 else {
@@ -178,6 +200,10 @@ object ExportChecker {
             }
             for ( u <- toSet(api.units.keySet) ) {
                 if ( declaredUnits.keySet.contains(u) )
+                  // If the two matched APIs are related via containment,
+                  // there is no error.
+                  if (!((globalEnv.contains(declaredUnits.get(u).get, apiName)) ||
+                        (globalEnv.contains(apiName, declaredUnits.get(u).get))))
                     multipleDecls = (declaredUnits.get(u).get + "." + u,
                                      apiName + "." + u) :: multipleDecls
                 else {

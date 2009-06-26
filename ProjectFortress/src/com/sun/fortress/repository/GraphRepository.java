@@ -172,7 +172,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             ApiGraphNode api = new ApiGraphNode(name, api_file);
             try{
                 long cache_date = cache.getModifiedDateForApi(api);
-                api.setApi( cache.getApi( api.getName(), api.getSourcePath()), cache_date);
+                api.setApi(cache.getApi( api.getName(), api.getSourcePath()), cache_date);
             } catch ( FileNotFoundException e ){
             } catch ( IOException e ){
             }
@@ -183,7 +183,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             ApiGraphNode node =
                 (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(NodeFactory.shellSpan,root)));
             try{
-                for ( APIName api : dependencies(node) ){
+                for (APIName api : dependencies(node)) {
                     Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
                     graph.addEdge(node, addApiGraph(api));
                 }
@@ -232,9 +232,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    /* add an API node to the graph and return the node. if the API exists in the
+    /* Add an API node to the graph and return the node. If the API exists in the
      * cache it is loaded, otherwise it will remain empty until it gets
-     * recompiled( probably via refreshGraph )
+     * recompiled (probably via refreshGraph).
      */
     private ApiGraphNode addApiGraph( APIName name ) throws FileNotFoundException, IOException {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add API graph ", name );
@@ -287,13 +287,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private ComponentGraphNode addComponentGraph( APIName name ) throws FileNotFoundException, IOException, StaticError {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add component graph ", name );
         ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
-        if ( node == null ){
+        if (node == null) {
             /* a new node was added, a recompile is needed */
             needUpdate = true;
             File component_file = getComponentFile(name);
             node = new ComponentGraphNode(name, component_file);
             graph.addNode( node );
-            try{
+            try {
                 /* try to load the component from the cache.
                  * if it fails then it will be reloaded later on
                  * in refreshGraph
@@ -308,25 +308,36 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             } catch ( IOException e ){
             }
 
-            /* make this component depend on the APIs it imports and
-             * exports except the executable APIs */
-            for ( APIName api : dependencies(node) ){
-                if ( WellKnownNames.exportsMain(api.getText()) )
-                    addApiGraph(api);
-                else nodeDependsOnApi(node, api);
+            /* Make this component depend on the APIs it imports. 
+             * For now, calling nodeDependsOnApi when linking will
+             * also make this component depend on a component with the same name as
+             * the API it imports.
+             */
+            for (APIName api : collectComponentImports(nodeToComponent(node))) {
+                Debug.debug(Debug.Type.REPOSITORY, 2, "Recording that component " + node + " depends on API/component", api);
+                nodeDependsOnApi(node, api);
             }
-            /* and depend on all the root APIs */
-            for ( String root : roots() ){
+
+            /* Make this component depend on the APIs it exports.
+             * Do not attempt to add components with the same names as
+             * these exports.
+             */
+            for (APIName api : collectComponentExports(nodeToComponent(node))) {
+                Debug.debug(Debug.Type.REPOSITORY, 2, "Recording that component " + node + " depends on API ", api);
+                addApiGraph(api);
+            }
+
+            /* Make this component depend on all the root APIs */
+            for (String root : roots()) {
                 nodeDependsOnApi(node, NodeFactory.makeAPIName(NodeFactory.shellSpan,root));
             }
         }
-
         return node;
     }
 
     private void nodeDependsOnApi(ComponentGraphNode node, APIName api)
             throws FileNotFoundException, IOException {
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge from component " +  node.getName() + " to API ", api );
         graph.addEdge(node, addApiGraph(api));
         boolean b = foreignJava.definesApi(api);
         // System.err.println("b="+b);
@@ -421,13 +432,19 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return result;
     }
 
-    private List<APIName> dependencies(ComponentGraphNode node)
+    private Component nodeToComponent(ComponentGraphNode node) 
         throws FileNotFoundException, StaticError {
         CompilationUnit cu = node.getComponent().isSome() ?
                 node.getComponent().unwrap().ast() :
                     readCUFor(node, ProjectProperties.COMP_SOURCE_SUFFIX);
 
-        return collectComponentImportsExports((Component)cu);
+        return (Component)cu;
+
+    }
+
+    private List<APIName> dependencies(ComponentGraphNode node)
+        throws FileNotFoundException, StaticError {
+        return collectComponentImportsExports(nodeToComponent(node));
     }
 
     private boolean inApiList( APIName name, List<ApiGraphNode> nodes ){
@@ -932,13 +949,28 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return all;
     }
 
-    private  List<APIName> collectComponentImportsExports(Component comp) {
+    private  List<APIName> collectComponentImports(Component comp) {
          List<APIName> all =  collectExplicitImports(comp);
+         return all;
+     }
 
+    private  List<APIName> collectComponentExports(Component comp) {
+        List<APIName> all = new ArrayList<APIName>();
+
+         // System.err.println("collectComponentImportsExports for " + comp);
+         // System.err.println("with exports " + comp.getExports());
          for (APIName api : comp.getExports()) {
+             // System.err.println("Collecting dependency " + api); 
              all.add(api);
          }
          return all;
+     }
+
+    private  List<APIName> collectComponentImportsExports(Component comp) {
+        List<APIName> all =  collectComponentImports(comp);
+        all.addAll(collectComponentExports(comp));
+
+        return all;
      }
 
     private  List<APIName> collectApiImports(Api api) {
