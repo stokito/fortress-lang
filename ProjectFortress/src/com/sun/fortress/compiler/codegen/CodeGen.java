@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.BA2Tree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
@@ -59,6 +60,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
     ClassWriter cw;
     MethodVisitor mv;
     final String packageAndClassName;
+    private final Map<String, ClassWriter> traitsAndObjects =
+        new BATree<String, ClassWriter>(DefaultComparator.normal());
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
     private final ParallelismAnalyzer pa;
