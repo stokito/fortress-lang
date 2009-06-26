@@ -19,6 +19,24 @@
 
 FORTRESS_HOME="`${0%fortick}fortress_home`"
 
+if [ $# -ne 1 ] ; then
+  echo "fortick somefile.suffix"
+  echo "Replaces backtick-delimited fortress with nicely formatted fortress."
+  echo "Writes to somefile.tex (will overwrite original if suffix = tex)"
+  exit 1
+fi
+
+if grep -q "usepackage{fortify}" $1 ; then
+  true
+else
+  echo "WARNING: input file lacks \\usepackage{fortify}"
+fi
+
+BASENAME=${1%.*}
+
 USE_EMACS=${USE_EMACS:-emacs}
 [ -n "$EMACS" ] && unset EMACSLOADPATH
 "${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f fortick
+
+echo "Process with"
+echo "  TEXINPUTS=.:${FORTRESS_HOME}/Fortify: latex ${BASENAME}.tex"
