@@ -41,9 +41,11 @@ CompilationUnit Program =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
-       if ( ! a1.getB().isEmpty() )
-           yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2,
-                                               Collections.<APIName>emptyList());
+       if ( ! a1.getB().isEmpty() ) {
+             List<Import>  imports = a1.getA();
+             List<APIName> exports = a1.getB();
+             yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2, exports);
+       }            
        else
            yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
      }

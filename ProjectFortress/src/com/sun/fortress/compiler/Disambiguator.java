@@ -263,8 +263,11 @@ public class Disambiguator {
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-            expandedComps.add(expandExports(comp, globalEnv));
+            ExportExpander expander = new ExportExpander(globalEnv);
+            expandedComps.add((Component)expander.expand(comp));
+            errors.addAll(expander.errors().asJavaList());
         }
+
         // Then, rebuild the component indices based on expand exports
         // Then, rebuild the component indices based on disambiguated types
         IndexBuilder.ComponentResult newComponentsExpanded =
