@@ -19,17 +19,25 @@
 
 FORTRESS_HOME="`${0%fortick}fortress_home`"
 
+if [ "x"$1 = "x-q" ] ; then
+  SILENCE="golden"
+  shift
+fi
+
 if [ $# -ne 1 ] ; then
-  echo "fortick somefile.suffix"
-  echo "Replaces backtick-delimited fortress with nicely formatted fortress."
-  echo "Writes to somefile.tex (will overwrite original if suffix = tex)"
+  echo "Usage: fortick [-q] somefile.suffix (one file, no more, no less)"
+  echo "  Replaces backtick-delimited fortress with nicely formatted fortress."
+  echo "  Writes to somefile.tex (will overwrite original if suffix = \"tex\")"
+  echo "  Option -q suppresses some of the command output."
   exit 1
 fi
 
-if grep -q "usepackage{fortify}" $1 ; then
+if grep -q "usepackage{.*fortify.*}" $1 ; then
   true
 else
-  echo "WARNING: input file lacks \\usepackage{fortify}"
+  if [ -z "$SILENCE" ]  ; then
+     echo "WARNING: input file lacks \\usepackage{fortify}"
+  fi
 fi
 
 BASENAME=${1%.*}
@@ -38,5 +46,9 @@ USE_EMACS=${USE_EMACS:-emacs}
 [ -n "$EMACS" ] && unset EMACSLOADPATH
 "${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f fortick
 
-echo "Process with"
-echo "  TEXINPUTS=.:${FORTRESS_HOME}/Fortify: latex ${BASENAME}.tex"
+if [ -z "$SILENCE" ]  ; then
+  echo "Process with"
+  echo "  TEXINPUTS=\".:${FORTRESS_HOME}/Fortify:\" latex \"${BASENAME}.tex\""
+  echo "or (for pdf output) "
+  echo "  TEXINPUTS=\".:${FORTRESS_HOME}/Fortify:\" pdflatex \"${BASENAME}.tex\""
+fi
