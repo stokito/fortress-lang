@@ -60,7 +60,7 @@ public class FileTests {
             return file;
         else return dir + "/" + file;
     }
-    
+
     public static class BaseTest extends TestCase {
         /**
          * Directory-qualified file name
@@ -456,7 +456,7 @@ public class FileTests {
         }
 
         static boolean whinedAboutTimingIssues = false;
-        
+
         public void testFile() throws Throwable {
             String scriptName = ProjectProperties.FORTRESS_AUTOHOME
                     + "/bin/fortress";
@@ -484,9 +484,9 @@ public class FileTests {
             if (!env.containsKey("FORTRESS_HOME")) {
                 env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);
             }
-            
+
             long start_time = System.currentTimeMillis();
-            
+
             Process p = pb.start();
             InputStream err = p.getErrorStream();
             InputStream out = p.getInputStream();
@@ -502,9 +502,9 @@ public class FileTests {
             f_out.join();
             f_err.join();
             int exitValue = p.waitFor();
-            
+
             long stop_time = System.currentTimeMillis();
-            
+
             String s_out = cached_out.toString();
             String s_err = cached_err.toString();
 
@@ -542,7 +542,7 @@ public class FileTests {
                     } else if (whoami.equals("untimed")) {
                        // do nothing
                     } else {
-                     
+
 
                         int timeLimit = tprops.getInt(whoami, -1);
 
@@ -566,7 +566,7 @@ public class FileTests {
 
                 }
             }
-            
+
             // OY, pass/fail dsylexia here.
 
             if (failed && printFailure || !failed && printSuccess) {
@@ -661,24 +661,20 @@ public class FileTests {
         } else return name+".fss";
     }
 
-    public static class CompileTest extends SourceFileTest {
-
+    public static class CommandTest extends SourceFileTest {
+        private final String command;
         private final StringMap props;
-//        public CompileTest(StringMap props, String path, String d, String s,
-//                boolean unexpected_only, boolean knownFailure) {
-//            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX") );
-//            this.props = props;
-//        }
-        public CompileTest(StringMap props, String path, String d, String s,
+        public CommandTest(String command, StringMap props, String path, String d, String s,
                            boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
             super(path, d, s, unexpected_only, knownFailure, shouldFail );
+            this.command = command;
             this.props = props;
         }
 
         @Override
         protected int justTheTest()
                 throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = new String [] {"compile", join(dir, makeTestFileName(name))};
+            String[] tokens = new String [] {command, join(dir, makeTestFileName(name))};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -687,74 +683,11 @@ public class FileTests {
         @Override
         public String tag() {
             // TODO Auto-generated method stub
-            return "compile";
+            return command;
         }
 
         public  String testFailed(String out, String err, String exc) {
-            return generalTestFailed("compile_", props, out, err, exc);
-        }
-
-    }
-
-    public static class DesugarTest extends SourceFileTest {
-
-        private final StringMap props;
-        public DesugarTest(StringMap props, String path, String d, String s,
-                           boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
-            super(path, d, s, unexpected_only, knownFailure, shouldFail );
-            this.props = props;
-
-        }
-
-        @Override
-        protected int justTheTest()
-            throws FileNotFoundException, IOException, Throwable {
-            // might need to strip the .fss off f "f".
-            String[] tokens = new String [] {"desugar", join(dir, makeTestFileName(name))};
-            int rc = com.sun.fortress.Shell.subMain(tokens);
-            return rc;
-        }
-
-        @Override
-        public String tag() {
-            // TODO Auto-generated method stub
-            return "desugar";
-        }
-
-        public  String testFailed(String out, String err, String exc) {
-            return generalTestFailed("desugar_", props, out, err, exc);
-        }
-
-    }
-
-    public static class LinkTest extends SourceFileTest {
-
-        private final StringMap props;
-       public LinkTest(StringMap props, String path, String d, String s,
-                boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
-            super(path, d, s, unexpected_only, knownFailure, shouldFail );
-            this.props = props;
-
-        }
-
-        @Override
-        protected int justTheTest()
-                throws FileNotFoundException, IOException, Throwable {
-            // might need to strip the .fss off f "f".
-            String[] tokens = new String [] {"link", join(dir, makeTestFileName(name))};
-            int rc = com.sun.fortress.Shell.subMain(tokens);
-            return rc;
-        }
-
-        @Override
-        public String tag() {
-            // TODO Auto-generated method stub
-            return "link";
-        }
-
-        public  String testFailed(String out, String err, String exc) {
-            return generalTestFailed("link_", props, out, err, exc);
-
+            return generalTestFailed(command + "_", props, out, err, exc);
         }
 
     }
@@ -939,9 +872,7 @@ public class FileTests {
             }
         };
 
-        List<Test> compileTests = new ArrayList<Test>();
-        List<Test> desugarTests = new ArrayList<Test>();
-        List<Test> linkTests = new ArrayList<Test>();
+        List<Test> commandTests = new ArrayList<Test>();
         List<Test> runTests = new ArrayList<Test>();
 
         for(String s : shuffled){
@@ -954,8 +885,8 @@ public class FileTests {
                   dir_name_canonical =
                       directoryAsFile(dir_name_slashes_normalized).getCanonicalPath();
               }
-            
-            
+
+
               if (i <= 0) {
                   System.out.println("Early testing exit after " + testCount + " tests");
                   break;
@@ -991,15 +922,13 @@ public class FileTests {
                               String token = st.nextToken();
                                   standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, token,
                                                         expect_failure, shouldFail, failsOnly,
-                                                        compileTests, desugarTests,
-                                                        linkTests, runTests);
+                                                        commandTests, runTests);
                           }
                       }
                       else {
                               standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, testname,
                                                     expect_failure, shouldFail, failsOnly,
-                                                    compileTests, desugarTests,
-                                                    linkTests, runTests);
+                                                    commandTests, runTests);
                       }
                   } else {
                       System.out.println("Not compiling file " + s);
@@ -1014,13 +943,7 @@ public class FileTests {
         }
         // Do all the larger tests
         if (i > 0) {
-            for (Test test: compileTests)
-                suite.addTest(test);
-
-            for (Test test: desugarTests)
-                suite.addTest(test);
-
-            for (Test test: linkTests)
+            for (Test test: commandTests)
                 suite.addTest(test);
 
             for (Test test: runTests)
@@ -1037,9 +960,7 @@ public class FileTests {
      * @param expect_not_passing Test does not pass yet
      * @param shouldFail Test passes, if it fails (e.g., is an error printed?)
      * @param failsOnly
-     * @param compileTests
-     * @param desugarTests
-     * @param linkTests
+     * @param commandTests
      * @param runTests
      * @throws IOException
      */
@@ -1048,26 +969,43 @@ public class FileTests {
                                               boolean expect_not_passing,
                                               boolean shouldFail,
                                               boolean failsOnly,
-                                              List<Test> compileTests,
-                                              List<Test> desugarTests,
-                                              List<Test> linkTests,
+                                              List<Test> commandTests,
                                               List<Test> runTests) throws IOException {
+        String[] commands = new String [] {"compile", "desugar", "link", "run", "api",
+                                           "parse", "disambiguate", "grammar", "typecheck",
+                                           "unparse", "compare", "build",
+                                           "fss", "fsi"};
+
         if (props.get("compile") != null)
-            compileTests.add(new CompileTest(props, canonicalDirName,
+            commandTests.add(new CommandTest("compile", props, canonicalDirName,
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
         if (props.get("desugar") != null)
-            desugarTests.add(new DesugarTest(props, canonicalDirName,
+            commandTests.add(new CommandTest("desugar", props, canonicalDirName,
                                              dirname, testname, failsOnly,
                                              expect_not_passing, shouldFail));
         if (props.get("link") != null)
-            linkTests.add(new LinkTest(props, canonicalDirName,
-                                       dirname, testname, failsOnly,
-                                       expect_not_passing, shouldFail));
+            commandTests.add(new CommandTest("link", props, canonicalDirName,
+                                          dirname, testname, failsOnly,
+                                          expect_not_passing, shouldFail));
+
+        if (props.get("api") != null)
+            runTests.add(new CommandTest("api", props, canonicalDirName,
+                                      dirname, testname, failsOnly,
+                                      expect_not_passing, shouldFail));
+
         if (props.get("run") != null)
             runTests.add(new TestTest(props, canonicalDirName,
                                       dirname, testname, failsOnly,
                                       expect_not_passing, shouldFail));
+
+        boolean found = false;
+        for ( String c : new ArrayList<String>(java.util.Arrays.asList(commands)) ) {
+            if (props.get(c) != null) found = true;
+        }
+
+        if (! found)
+            System.out.println("Not supported " + dirname + "/" + testname);
     }
 
     /**
