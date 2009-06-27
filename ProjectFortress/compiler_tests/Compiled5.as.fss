@@ -15,11 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXGeneralizedIf
-  export Executable
+export Executable
 
-  foo( g : Generator[\ZZ32\], i:ZZ32 ) : ZZ32 = do
-    if z <- g then z else i end
-  end
-
+trait Widget
+  opr [k:ZZ32]:ZZ32 = (k+1)
 end
+
+run():() = ()
