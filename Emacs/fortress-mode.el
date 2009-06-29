@@ -177,6 +177,11 @@
          (fortress-unicode DOT-OPERATOR)
          nil))
 
+    `("\\<\\(OPLUS\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode OPLUS-OPERATOR)
+         nil))
+
     `("\\<\\(TIMES\\)\\>"
       1 (fortress-with-unicode-char
          (fortress-unicode MULTIPLICATION-SIGN)
@@ -458,6 +463,7 @@
     (LOGICAL-AND . #x2227)
     (LOGICAL-OR . #x2228)
     (N-ARY-SUMMATION . #x2211)
+    (OPLUS-OPERATOR . #x2295)
     (DOT-OPERATOR . #x22c5)
     (DIVISION-SIGN . #x00f7)
     (MULTIPLICATION-SIGN . #x00d7)
