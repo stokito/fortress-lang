@@ -19,22 +19,22 @@ package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.STypeCheckerBase
+import com.sun.fortress.scala_src.typechecker.STypeChecker
 
 /**
  * This trait declares abstract methods for checking various groups of nodes
- * and implements the STypeCheckerBase.check method by dispatching to the
+ * and implements the STypeChecker.check method by dispatching to the
  * appropriate abstract method. The main purpose of this trait is to dispatch
  * to a specific implementation of type checking each group of nodes. When
- * mixed into STypeCheckerBase, the resulting type has abstract methods for
+ * mixed into STypeChecker, the resulting type has abstract methods for
  * checking each group, so each group's implementation needs to be mixed in as
  * well to provide full type checking.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase. This is what allows this trait to implement
- * abstract members of STypeCheckerBase and to access its protected members.)
+ * mixed into STypeChecker. This is what allows this trait to implement
+ * abstract members of STypeChecker and to access its protected members.)
  */
-trait Dispatch { self: STypeCheckerBase =>
+trait Dispatch { self: STypeChecker =>
 
   // ---------------------------------------------------------------------------
   // ABSTRACT IMPL DECLARATIONS ------------------------------------------------
@@ -59,7 +59,7 @@ trait Dispatch { self: STypeCheckerBase =>
   // DISPATCH IMPLEMENTATION ---------------------------------------------------
   
   /**
-   * Implements STypeCheckerBase.check by dispatching to some other abstract
+   * Implements STypeChecker.check by dispatching to some other abstract
    * method defined elsewhere.
    */
   def check(node: Node): Node = node match {
@@ -71,16 +71,16 @@ trait Dispatch { self: STypeCheckerBase =>
     case n:FnDecl => checkDecls(n)
     case n:VarDecl => checkDecls(n)
     
+    case n:Overloading => checkFunctionals(n)
+    
     case n:Op => checkOperators(n)
     case n:Link => checkOperators(n)
-    
-    case n:Overloading => checkFunctionals(n)
     
     case _ => checkMisc(node)
   }
   
   /**
-   * Implements STypeCheckerBase.checkExpr by dispatching to some other abstract
+   * Implements STypeChecker.checkExpr by dispatching to some other abstract
    * method defined elsewhere.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
