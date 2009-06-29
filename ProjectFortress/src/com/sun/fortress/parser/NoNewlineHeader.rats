@@ -85,7 +85,13 @@ Comprises Comprises =
      { yyValue = new Comprises(createSpan(yyStart,yyCount), Useful.list(a1));
        NodeUtil.validTraitTypes(writer, Useful.list(a1));
      }
-   / comprises w void:opencurly w ComprisingTypeList w void:closecurly ;
+   / comprises w opencurly a1:(w ComprisingTypeList)? w closecurly
+     { if (a1 == null) {
+           Span span = createSpan(yyStart,yyCount);
+           log(span, "Comprises clauses should not be empty.");
+           yyValue = new Comprises(span, Collections.<BaseType>emptyList(), false);
+       } else yyValue = a1;
+     };
 
 /* ComprisingTypeList ::=
      ...

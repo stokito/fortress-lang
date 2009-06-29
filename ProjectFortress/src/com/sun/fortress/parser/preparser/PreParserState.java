@@ -51,6 +51,10 @@ public class PreParserState implements State {
     /** Nested component/API definitions are not allowed. */
     private boolean sawCompilation = false;
 
+    /** Operator declarations are not allowed in block expressions. */
+    private boolean inBlock = false;
+    private boolean sawFn = false;
+
     /** Region annotation by "at" should be followed by "do". */
     private Option<Span> sawAt = Option.<Span>none();
 
@@ -124,6 +128,8 @@ public class PreParserState implements State {
                                      NodeUtil.getSpan(close)),
                     "Unmatched delimiters \"" + open + "\" and \"" + close + "\".");
             }
+            if ( open.getText().equals("(if") && close.getText().equals(")") )
+                inBlock = false;
         }
     }
 
@@ -146,7 +152,7 @@ public class PreParserState implements State {
                         "Opening label must match closing label.");
             } else {
                 lefts.add(0, open);
-                right(close);
+                handleEnd(span);
             }
         }
     }
@@ -162,6 +168,39 @@ public class PreParserState implements State {
     public void handleAt(Span span) {
         Debug.debug( Debug.Type.PARSER, 1, "HandleAt");
         sawAt = Option.<Span>some(span);
+    }
+
+    public void handleOpr(Span span) {
+        Debug.debug( Debug.Type.PARSER, 1, "HandleOpr");
+        for ( IdOrOp left : lefts ) {
+            if ( left.getText().equals("object") ) return;
+            if ( left.getText().equals("do") ||
+                 left.getText().startsWith("label$") ||
+                 inBlock )
+                log(span, "Operator declarations are not allowed in block expressions.");
+        }
+    }
+
+    public void beginBlock() {
+        inBlock = true;
+    }
+
+    public void handleFn() {
+        sawFn = true;
+    }
+
+    // "=>" does not introduce a block for import aliases and fn expressions.
+    public void handleDoubleArrow() {
+        if ( sawFn ) sawFn = false;
+        else if ( ! lefts.isEmpty() && ! lefts.get(0).getText().equals("{") )
+            inBlock = true;
+    }
+
+    public void handleEnd(Span span) {
+        if ( ! lefts.isEmpty() &&
+             ! lefts.get(0).getText().equals("object") )
+            inBlock = false;
+        right(span, "end");
     }
 
     public void quote(Span span, String token) {
