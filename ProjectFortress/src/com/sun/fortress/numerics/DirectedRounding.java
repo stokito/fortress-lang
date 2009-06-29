@@ -385,7 +385,7 @@ public final class DirectedRounding {
   }
 
   public static float subtractDownNoNaN(float x, float y) {
-      return addUpNoNaN(x, -y);
+      return addDownNoNaN(x, -y);
   }
 
   public static float multiplyUpNoNaN(float x, float y) {
@@ -442,7 +442,7 @@ public final class DirectedRounding {
   }
 
   public static double subtractDownNoNaN(double x, double y) {
-      return addUpNoNaN(x, -y);
+      return addDownNoNaN(x, -y);
   }
 
   public static double multiplyUpNoNaN(double x, double y) {

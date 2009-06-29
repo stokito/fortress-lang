@@ -817,7 +817,7 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\]
 
 ** This trait makes excludes work without where clauses, and allows opr =
    to remain non-parametric. *)
-value trait AnyMaybe extends Equality[\AnyMaybe\] excludes Number
+value trait AnyMaybe extends { Equality[\AnyMaybe\], AnyUniqueItem } excludes Number
         (** not yet: ``%comprises Maybe[\T\] where [\T\]%'' *)
     abstract getter holds() : Boolean
     opr =(self, other:AnyMaybe): Boolean
@@ -834,8 +834,9 @@ just(t:Any):AnyMaybe
     Thus, %Just[\T\]% can be used as a single-element generator, and
     %Nothing% can be used as an empty generator. *)
 value trait Maybe[\T\]
-        extends { AnyMaybe, Condition[\T\], ZeroIndexed[\T\] }
+        extends { AnyMaybe, Condition[\T\], ZeroIndexed[\T\], UniqueItem[\T\] }
         comprises { Nothing[\T\], Just[\T\] }
+    opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\]
 end
 
 value object Just[\T\](x:T) extends Maybe[\T\]
@@ -855,6 +856,9 @@ value object Just[\T\](x:T) extends Maybe[\T\]
     reduce(_: Reduction[\T\]):T
     loop(f:T->()): ()
     opr =(self,o:Just[\T\]): Boolean
+    opr SQCAP(self, o:UniqueItem[\T\]): Maybe[\T\]
+    opr SQCUP(self, o:UniqueItem[\T\]): UniqueItem[\T\]
+    unique(self): Maybe[\T\]
 end
 
 (** %Nothing% will become a non-parametric singleton when we get where
@@ -877,7 +881,78 @@ value object Nothing[\T\] extends Maybe[\T\]
     reduce(r: Reduction[\T\]):T
     loop(f:T->()): ()
     opr =(self,_:Nothing[\T\]): Boolean
+    opr SQCAP(self, o: Maybe[\T\]): Nothing[\T\]
+    opr SQCAP(self, o: UniqueItem[\T\]): Nothing[\T\]
+    opr SQCUP(self, o: UniqueItem[\T\]): UniqueItem[\T\]
 end
+
+value trait AnyUniqueItem extends Equality[\AnyUniqueItem\] excludes Number
+    getter holds() : Boolean
+    opr =(self, other:AnyUniqueItem): Boolean
+end
+
+(** The type UniqueItem[\T\] extends Maybe[\T\] from a semilattice
+    to a lattice by adjoining a top element NotUnique[\T\].  An
+    object of type %UniqueItem[\T\]% can be used as a generator; it is either
+    empty (%Nothing% or %NotUnique%) or generates the single element yielded by
+    %get%, so there is no issue of canonical order or parallelism. *)
+value trait UniqueItem[\T\]
+        extends { AnyUniqueItem, Condition[\T\] }
+        comprises { NotUnique[\T\], Maybe[\T\] }
+    opr SQCAP(self, o: UniqueItem[\T\]): UniqueItem[\T\]
+    opr SQCUP(self, o: UniqueItem[\T\]): UniqueItem[\T\]
+    unique(self): Maybe[\T\]
+end
+
+value object NotUnique[\T\] extends UniqueItem[\T\]
+    getter size():ZZ32
+    getter holds():Boolean
+    getter get():T
+    getter asString():String
+    opr |self| : ZZ32
+    getDefault(t:T):T
+    cond[\R\](_:T->R, e:()->R): R
+    generate[\R\](r:Reduction[\R\],_:T->R): R
+    opr[_:ZZ32]: T
+
+    map[\G\](f: T->G): NotUnique[\G\]
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\]
+
+    mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R
+    reduce(_:(T,T)->T, z:T):T
+    reduce(r: Reduction[\T\]):T
+    loop(f:T->()): ()
+    opr IN(x:T, self): Boolean
+    opr =(self,_:NotUnique[\T\]): Boolean
+    opr SQCAP(self, o:UniqueItem[\T\]): UniqueItem[\T\]
+    opr SQCUP(self, o:UniqueItem[\T\]): NotUnique[\T\]
+end
+
+object UniqueItemMeetReduction[\T\]
+        extends { CommutativeMonoidReduction[\UniqueItem[\T\]\],
+                  ReductionWithZeroes[\UniqueItem[\T\],UniqueItem[\T\]\] }
+    getter asString(): String
+    empty(): UniqueItem[\T\]
+    join(a: UniqueItem[\T\], b: UniqueItem[\T\]): UniqueItem[\T\]
+    isZero(a: UniqueItem[\T\]): Boolean
+end
+
+opr BIG SQCAP[\T\](): BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\]
+
+opr BIG SQCAP[\T\](g: Generator[\UniqueItem[\T\]\]): UniqueItem[\T\]
+
+object UniqueItemJoinReduction[\T\]
+        extends { CommutativeMonoidReduction[\UniqueItem[\T\]\],
+                  ReductionWithZeroes[\UniqueItem[\T\],UniqueItem[\T\]\] }
+    getter asString(): String
+    empty(): UniqueItem[\T\]
+    join(a: UniqueItem[\T\], b: UniqueItem[\T\]): UniqueItem[\T\]
+    isZero(a: UniqueItem[\T\]): Boolean
+end
+
+opr BIG SQCUP[\T\](): BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\]
+
+opr BIG SQCUP[\T\](g: Generator[\UniqueItem[\T\]\]): UniqueItem[\T\]
 
 (************************************************************
 * \subsection*{Exception hierarchy}
@@ -2206,7 +2281,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     split(): Generator[\String\]
 
     (**  A balanced version of the receiver  **)
-    balanced(): String ensures {outcome.isAlmostBalanced AND outcome = self}
+    balanced(): String (*  ensures {outcome.isAlmostBalanced AND outcome = self} *)
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)
