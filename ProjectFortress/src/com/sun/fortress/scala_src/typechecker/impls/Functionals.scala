@@ -36,15 +36,15 @@ import com.sun.fortress.useful.NI
  * Provides the implementation of cases relating to functionals and functional
  * application.
  * 
- * This trait must be mixed in with an `STypeCheckerBase with Common` instance
+ * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase along with the Common helpers. This is what
- * allows this trait to implement abstract members of STypeCheckerBase and to
+ * mixed into STypeChecker along with the Common helpers. This is what
+ * allows this trait to implement abstract members of STypeChecker and to
  * access its protected members.)
  */
-trait Functionals { self: STypeCheckerBase with Common =>
+trait Functionals { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------

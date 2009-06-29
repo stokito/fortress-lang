@@ -37,15 +37,15 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  * Provides the implementation of cases representing some sort of operator
  * expression.
  * 
- * This trait must be mixed in with an `STypeCheckerBase with Common` instance
+ * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase along with the Common helpers. This is what
- * allows this trait to implement abstract members of STypeCheckerBase and to
+ * mixed into STypeChecker along with the Common helpers. This is what
+ * allows this trait to implement abstract members of STypeChecker and to
  * access its protected members.)
  */
-trait Operators { self: STypeCheckerBase with Common =>
+trait Operators { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------

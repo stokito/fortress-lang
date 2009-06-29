@@ -37,15 +37,15 @@ import com.sun.fortress.scala_src.useful.SExprUtil._
 /**
  * Provides the implementation of cases relating to declarations.
  * 
- * This trait must be mixed in with an `STypeCheckerBase with Common` instance
+ * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase along with the Common helpers. This is what
- * allows this trait to implement abstract members of STypeCheckerBase and to
+ * mixed into STypeChecker along with the Common helpers. This is what
+ * allows this trait to implement abstract members of STypeChecker and to
  * access its protected members.)
  */
-trait Decls { self: STypeCheckerBase with Common =>
+trait Decls { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
@@ -61,7 +61,7 @@ trait Decls { self: STypeCheckerBase with Common =>
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, contract, extendsC, decls),
                       excludes, comprises, hasEllipses, selfType) => {
-      val checkerWSparams = this.extend(sparams, where)
+      val checkerWSparams:STypeChecker = this.extend(sparams, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
       // Add field declarations (getters/setters?) to method_checker
@@ -106,7 +106,7 @@ trait Decls { self: STypeCheckerBase with Common =>
                        STraitTypeHeader(sparams, mods, name, where,
                                         throwsC, contract, extendsC, decls),
                        params, selfType) => {
-      val checkerWSparams = this.extend(sparams, params, where)
+      val checkerWSparams: STypeChecker = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
       val newContract = contract match {

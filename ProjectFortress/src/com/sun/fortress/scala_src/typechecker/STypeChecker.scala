@@ -72,27 +72,27 @@ object STypeCheckerFactory {
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: TypeEnv,
-           analyzer: TypeAnalyzer): STypeChecker =
-    new STypeChecker(current, traits, env, analyzer, new ErrorLog)
+           analyzer: TypeAnalyzer): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog)
   
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: TypeEnv,
            analyzer: TypeAnalyzer,
-           errors: ErrorLog): STypeChecker =
-    new STypeChecker(current, traits, env, analyzer, errors)
+           errors: ErrorLog): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, analyzer, errors)
 }
 
 /**
  * A convenient type for an actual type checker instance for use in Java
  * code. This class mixes all the implementation into the abstract base class.
  */
-class STypeChecker(current: CompilationUnitIndex,
-                   traits: TraitTable,
-                   env: TypeEnv,
-                   analyzer: TypeAnalyzer,
-                   errors: ErrorLog)
-    extends STypeCheckerBase(current, traits, env, analyzer, errors)
+class STypeCheckerImpl(current: CompilationUnitIndex,
+                       traits: TraitTable,
+                       env: TypeEnv,
+                       analyzer: TypeAnalyzer,
+                       errors: ErrorLog)
+    extends STypeChecker(current, traits, env, analyzer, errors)
     with Dispatch with Common
     with Decls with Functionals with Operators
     with Misc
@@ -110,11 +110,11 @@ class STypeChecker(current: CompilationUnitIndex,
  * Constructor parameters are marked `protected val` so that the implementing,
  * mixed-in traits can access the fields.
  */
-abstract class STypeCheckerBase(protected val current: CompilationUnitIndex,
-                                protected val traits: TraitTable,
-                                protected val env: TypeEnv,
-                                protected val analyzer: TypeAnalyzer,
-                                protected val errors: ErrorLog) {
+abstract class STypeChecker(protected val current: CompilationUnitIndex,
+                            protected val traits: TraitTable,
+                            protected val env: TypeEnv,
+                            protected val analyzer: TypeAnalyzer,
+                            protected val errors: ErrorLog) {
 
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -367,6 +367,11 @@ abstract class STypeCheckerBase(protected val current: CompilationUnitIndex,
         node
     }
 
+//  def typeCheck(node: Node, tenv: STypeEnv, kenv: KindEnv): Node = {
+//    val checker = new STypeChecker(current, traits, tenv, kenv, errors)
+//    checker.typeCheck(node)
+//  }
+  
   /**
    * Type check an expression and guarantee that its type is substitutable for
    * the expected type. That is, the resulting type should be a subtype of or
@@ -430,7 +435,7 @@ class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
                  env: TypeEnv,
                  analyzer: TypeAnalyzer)
-    extends STypeChecker(current, traits, env, analyzer, new ErrorLog) {
+    extends STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog) {
 
   /** Throws the TypeError exception with the given info. */
   override protected def signal(msg:String, hasAt:HasAt): Unit =

@@ -46,15 +46,15 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  * Provides the implementation of miscellaneous cases that aren't found in any
  * of the other implementation groups.
  * 
- * This trait must be mixed in with an `STypeCheckerBase with Common` instance
+ * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
  * 
  * (The self-type annotation at the beginning declares that this trait must be
- * mixed into STypeCheckerBase along with the Common helpers. This is what
- * allows this trait to implement abstract members of STypeCheckerBase and to
+ * mixed into STypeChecker along with the Common helpers. This is what
+ * allows this trait to implement abstract members of STypeChecker and to
  * access its protected members.)
  */
-trait Misc { self: STypeCheckerBase with Common =>
+trait Misc { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
@@ -195,15 +195,15 @@ trait Misc { self: STypeCheckerBase with Common =>
       extendsC.foreach( (t:TraitTypeWhere) =>
                         assertTrait(t.getBaseType,
                                     "Objects can only extend traits.", t.getBaseType) )
-      var method_checker: STypeCheckerBase = self
-      var field_checker: STypeCheckerBase = self
+      var method_checker: STypeChecker = self
+      var field_checker: STypeChecker = self
       val newContract = contract match {
         case Some(e) => Some(method_checker.check(e).asInstanceOf[Contract])
         case _ => contract
       }
       // Extend the type checker with all of the field decls
       method_checker = decls.foldRight(method_checker)
-                                      { (d:Decl, c:STypeCheckerBase) => d match {
+                                      { (d:Decl, c:STypeChecker) => d match {
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c } }
       // Extend type checker with methods and functions
@@ -525,7 +525,7 @@ trait Misc { self: STypeCheckerBase with Common =>
                       analyzer: TypeAnalyzer,
                       errors: ErrorLog,
                       enclosingExpr: String)
-      extends STypeChecker(current,traits,env,analyzer,errors) {
+      extends STypeCheckerImpl(current,traits,env,analyzer,errors) {
     
     val message = errorMsg("A 'spawn' expression must not occur inside ",
                            enclosingExpr, ".")
