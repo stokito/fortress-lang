@@ -75,7 +75,8 @@ stateful void Token =
                          "Missing label from a label expression."); }
    / object      { yyState.left(createSpan(yyStart,yyCount), "object"); }
    / trait       { yyState.left(createSpan(yyStart,yyCount), "trait"); }
-   / try         { yyState.left(createSpan(yyStart,yyCount), "try"); }
+   / try         { yyState.beginBlock();
+                   yyState.left(createSpan(yyStart,yyCount), "try"); }
    / typecase    { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
    / also        { yyState.left(createSpan(yyStart,yyCount), "also"); }
    / end w a1:Id { yyState.handleLabelEnd(createSpan(yyStart,yyCount), a1); }
@@ -87,9 +88,14 @@ stateful void Token =
                  { yyState.right(createSpan(yyStart,yyCount), "end"); }
    / end s object // ignore the object keyword
                  { yyState.right(createSpan(yyStart,yyCount), "end"); }
-   / end         { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end         { yyState.handleEnd(createSpan(yyStart,yyCount)); }
    / do          { yyState.handleDo(createSpan(yyStart,yyCount)); }
    / at          { yyState.handleAt(createSpan(yyStart,yyCount)); }
+   / opr         { yyState.handleOpr(createSpan(yyStart,yyCount)); }
+   / then        { yyState.beginBlock(); }
+   / fn          { yyState.handleFn(); }
+   / "=>"        { yyState.handleDoubleArrow(); }
+   / QualifiedName w "=>" w Id
    / Encloser    // ignore vertical bars
    / a1:LeftEncloser  { yyState.left(a1); }
    / a1:RightEncloser { yyState.right(a1); }
