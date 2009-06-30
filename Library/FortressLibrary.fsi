@@ -2127,8 +2127,8 @@ opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
 
 (** Factories for incomplete ranges. **)
 opr (x:I)#[\I extends AnyIntegral\] : LeftRange[\I\]
-opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\]
-opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
+opr (p:(I,J))#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\]
+opr (t:(I,J,K))#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
          LeftRange[\(I,J,K)\]
 
 opr (x:I):[\I\] : LeftRange[\I\]

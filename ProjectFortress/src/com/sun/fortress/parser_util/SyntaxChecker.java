@@ -26,8 +26,9 @@ import java.util.Set;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
-import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.StaticError.errorMsg;
 
 /**
  * A visitor that checks syntactic restrictions:
@@ -233,60 +234,99 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
+    private String fixityToString(Fixity fixity) {
+        if ( fixity instanceof InFixity ) return "infix";
+        else if ( fixity instanceof PreFixity ) return "prefix";
+        else if ( fixity instanceof PostFixity ) return "postfix";
+        else if ( fixity instanceof NoFixity ) return "nofix";
+        else if ( fixity instanceof MultiFixity ) return "multifix";
+        else return "other fixity";
+    }
+
     public void forFnDeclOnly(FnDecl that) {
         boolean hasBody = that.getBody().isSome();
         Modifiers mods = NodeUtil.getMods(that);
+        IdOrOpOrAnonymousName name = NodeUtil.getName(that);
+        List<Param> params = NodeUtil.getParams(that);
+
+        if ( name instanceof IdOrOp ) {
+            // TODO: check there is no top-level operator definition for SEQV
+            //       when we have a better magic
+            if ( ( inTrait || inObject ) &&
+                 ((IdOrOp)name).getText().equals("===") )
+                log(that, "The object equivalence operator, SEQV, should not be overridden.");
+            if ( name instanceof Op ) { // operator declaration
+                Op op = (Op)name;
+                Fixity fix = op.getFixity();
+                if ( (fix instanceof InFixity || fix instanceof MultiFixity) &&
+                     NodeUtil.hasKeywordParam(params) )
+                    log(that,
+                        "An infix/multifix operator declaration must not have any keyword parameters.");
+                if ( op.getText().equals("^") && ! (fix instanceof InFixity) )
+                    log(that, "The operator, ^, is always an infix operator but it is declared to be "
+                        + fixityToString(fix) + ".");
+                if ( fix instanceof PostFixity ) {
+                    if ( params.size() != 1 )
+                        log(that, "A postfix operator declaration must have one value parameter.");
+                    else {
+                        Param p = params.get(0);
+                        if ( NodeUtil.isKeywordParam(p) || NodeUtil.isVarargsParam(p) )
+                            log(that, "A postfix operator declaration should not "+
+                                "have a keyword parameter or a varargs parameter.");
+                    }
+                }
+            }
+        }
 
         if ( mods.isGetter() ) {
-            if ( ! NodeUtil.getParams(that).isEmpty() )
+            if ( ! params.isEmpty() )
                 log(that, "Getter declaration should not have a parameter.");
         } else if ( mods.isSetter() ) {
             // Is this really true?  What if we have a tuple-typed setter?
-            if ( ! (NodeUtil.getParams(that).size() == 1) )
+            if ( ! (params.size() == 1) )
                 log(that, "Setter declaration should have a single parameter.");
         }
 
         if ( inBlock ) { // local function declaration
             if (!Modifiers.LocalFnMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.LocalFnMod) + " cannot modify a local function, " +
-                    NodeUtil.getName(that));
+                    name);
             }
             if ( inObject && !hasBody ) {
-                log(that, "Object method " + NodeUtil.getName(that) + " lacks a body.");
+                log(that, "Object method " + name + " lacks a body.");
             }
         } else if ( inTrait || inObject ) {
             if (!Modifiers.MethodMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.MethodMod) + " cannot modify a method, " +
-                    NodeUtil.getName(that));
+                    name);
             }
             if ( inComponent ) {
                 if ( inObject && !hasBody ) {
-                    log(that, "Object method " + NodeUtil.getName(that) + " lacks a body.");
+                    log(that, "Object method " + name + " lacks a body.");
                 }
                 if ( mods.isAbstract() && hasBody) {
-                    log(that, "Method " + NodeUtil.getName(that) + " is concrete, but declared abstract.");
+                    log(that, "Method " + name + " is concrete, but declared abstract.");
                 }
             } else {
                 if ( mods.isPrivate()) {
                     log(that, "private cannot modify a method " +
-                        NodeUtil.getName(that) + " in an API.");
+                        name + " in an API.");
                 }
             }
         } else { // top-level function declaration
             if (!Modifiers.FnMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.FnMod) +
-                    " cannot modify a function, " + NodeUtil.getName(that));
+                    " cannot modify a function, " + name);
             }
             if ( !inComponent ) {
                 if (mods.isPrivate()) {
                     log(that, "private cannot modify a function " +
-                        NodeUtil.getName(that) + " in an API.");
+                        name + " in an API.");
                 }
             }
         }
 
         boolean isOprMethod = false;
-        IdOrOpOrAnonymousName name = NodeUtil.getName(that);
         if ( (inTrait || inObject) &&
              (name instanceof Op) ) {
             isOprMethod = (! (((Op)name).isEnclosing()) ) ||
@@ -302,7 +342,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         if ( (! hasBody) && NodeUtil.getReturnType(that).isNone() && ! isCoercion )
             log(that, "The return type of " + name + " is required.");
 
-        for ( Param p : NodeUtil.getParams(that) ) {
+        for ( Param p : params ) {
             if ( p.getName().getText().equals("self") )
                 hasSelf = true;
             if ( (! hasBody) &&

@@ -127,11 +127,14 @@ FnHeaderFront OpHeaderFront =
                                             opa1, opa4.getText(), Option.<String>wrap(big),
                                             opa2, opa3);
      }
-   / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
-     { if (a3 == null)
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
+   / opr w a1:ValParam w a2:(Op / ExponentOp /
+                             caret {yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^");}
+                            ) a3:(w StaticParams)?
+     { Op op = (Op)a2;
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a1);
        else
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a3, a1);
      }
    / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:ValParam
      { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
@@ -154,11 +157,14 @@ FnHeaderFront AbsOpHeaderFront =
                                             opa1, opa4.getText(),
                                             Option.<String>wrap(big), opa2, opa3);
      }
-   / opr w a1:AbsValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
-     { if (a3 == null)
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
+   / opr w a1:AbsValParam w a2:(Op / ExponentOp
+                                caret {yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^");}
+                               ) a3:(w StaticParams)?
+     { Op op = (Op)a2;
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a1);
        else
-           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a3, a1);
      }
    / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:AbsValParam
      { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
