@@ -351,8 +351,8 @@ public class NamingCzar {
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
-    public static String boxedImplDesc(com.sun.fortress.nodes.Type t) {
-        return jvmTypeDesc(t);
+    public static String boxedImplDesc(com.sun.fortress.nodes.Type t, APIName ifNone) {
+        return jvmTypeDesc(t, ifNone);
     }
 
     public static String boxedImplType( com.sun.fortress.nodes.Type t ) {
@@ -469,7 +469,7 @@ public class NamingCzar {
      * @return The names of the Java interfaces providing the mentioned types;
      *         if the extends clause is empty, fills in Object as required.
      */
-    public static String [] extendsClauseToInterfaces(List<TraitTypeWhere> extendsC) {
+    public static String [] extendsClauseToInterfaces(List<TraitTypeWhere> extendsC, APIName ifMissing) {
         String [] result = new String[extendsC.size()];
         int i = -1;
         for (TraitTypeWhere ttw : extendsC) {
@@ -486,12 +486,12 @@ public class NamingCzar {
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
 
-            if (apiName.isNone()) {
-                // DRC -- This looks wrong to me: it should be the component/api containing the trait, not empty.
-                result[i] = name.toString();
-                continue;
-            }
-            String api = apiName.unwrap().getText();
+//            if (apiName.isNone()) {
+//                // DRC -- This looks wrong to me: it should be the component/api containing the trait, not empty.
+//                result[i] = name.toString();
+//                continue;
+//            }
+            String api = apiName.unwrap(ifMissing).getText();
 
             StringBuilder parent = javaPackageClassForApi(api, "/");  parent.append("$");  parent.append(name.getText());
             result[i] = parent.toString();
@@ -569,31 +569,33 @@ public class NamingCzar {
     }
 
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
-                                         com.sun.fortress.nodes.Type range) {
+                                         com.sun.fortress.nodes.Type range,
+                                         APIName ifNone) {
         return makeMethodDesc(
-                   NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain),
-                   jvmTypeDesc(range));
+                   NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain, ifNone),
+                   jvmTypeDesc(range, ifNone));
     }
 
     public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
-                                         com.sun.fortress.nodes.Type range) {
+                                         com.sun.fortress.nodes.Type range,
+                                         APIName ifNone) {
         String args = "";
         // This special case handles single void argument type properly.
         if (domain.size() == 1)
-            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), range);
+            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), range, ifNone);
         for (Param p : domain) {
-            args += jvmTypeDesc(p.getIdType());
+            args += jvmTypeDesc(p.getIdType(), ifNone);
         }
-        return makeMethodDesc(args, jvmTypeDesc(range));
+        return makeMethodDesc(args, jvmTypeDesc(range, ifNone));
     }
 
-    public static String jvmSignatureFor(Function f) {
-        return jvmSignatureFor(f.parameters(), f.getReturnType());
+    public static String jvmSignatureFor(Function f, APIName ifNone) {
+        return jvmSignatureFor(f.parameters(), f.getReturnType(), ifNone);
     }
 
-    public static String jvmSignatureFor(FnDecl f) {
+    public static String jvmSignatureFor(FnDecl f, APIName ifNone) {
         FnHeader h = f.getHeader();
-        return jvmSignatureFor(h.getParams(), h.getReturnType().unwrap());
+        return jvmSignatureFor(h.getParams(), h.getReturnType().unwrap(), ifNone);
     }
 
     public static String jvmClassForSymbol(IdOrOp fnName) {
@@ -612,7 +614,8 @@ public class NamingCzar {
         return result;
     }
 
-    public static String jvmTypeDesc(com.sun.fortress.nodes.Type type) {
+    public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
+            final APIName ifNone) {
         return type.accept(new NodeAbstractVisitor<String>() {
             public void defaultCase(ASTNode x) {
                 throw new CompilerError(NodeUtil.getSpan(x),
@@ -620,9 +623,9 @@ public class NamingCzar {
             }
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
-                    return makeMethodDesc("", jvmTypeDesc(t.getRange()));
-                else return makeMethodDesc(jvmTypeDesc(t.getDomain()),
-                                           jvmTypeDesc(t.getRange()));
+                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
+                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
+                                           jvmTypeDesc(t.getRange(), ifNone));
             }
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
@@ -635,7 +638,7 @@ public class NamingCzar {
                                             "Can't compile Keyword args yet");
                 String res = "";
                 for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-                    res += jvmTypeDesc(ty);
+                    res += jvmTypeDesc(ty, ifNone);
                 }
                 return res;
             }
@@ -652,11 +655,11 @@ public class NamingCzar {
                     return result;
                 }
                 Option<APIName> maybeApi = id.getApiName();
-                if (!maybeApi.isSome()) {
+                if (ifNone == null && !maybeApi.isSome()) {
                     throw new CompilerError(NodeUtil.getSpan(id),
                                             "no api name given for id");
                 }
-                APIName api = maybeApi.unwrap();
+                APIName api = maybeApi.unwrap(ifNone);
                 result = "L" + makeInnerClassName(api.getText(), name) + ";";
 
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
@@ -666,11 +669,11 @@ public class NamingCzar {
             });
     }
 
-    public static String jvmTypeDesc(Option<com.sun.fortress.nodes.Type> otype) {
+    public static String jvmTypeDesc(Option<com.sun.fortress.nodes.Type> otype, APIName ifNone) {
         if (!otype.isSome()) {
             throw new CompilerError("Expected type information was absent.");
         }
-        return jvmTypeDesc(otype.unwrap());
+        return jvmTypeDesc(otype.unwrap(), ifNone);
     }
 
 }
