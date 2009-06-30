@@ -1374,6 +1374,13 @@ public class NodeUtil {
         }
     }
 
+    public static boolean hasKeywordParam(List<Param> params) {
+        for ( Param p : params ) {
+            if ( isKeywordParam(p) ) return true;
+        }
+        return false;
+    }
+
     public static Param checkAbsParam(BufferedWriter writer, Param p) {
         if ( p.getIdType().isNone() && p.getVarargsType().isNone() )
             return NodeFactory.makeAbsParam(NodeFactory.makeVarType(getSpan(p), p.getName()));

@@ -3707,10 +3707,15 @@ opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
 
 (** Factories for incomplete ranges **)
 opr (x:I)#[\I extends AnyIntegral\] : LeftRange[\I\] = left1Range(0 asif ZZ32, x)
-opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\] =
+opr (p:(I,J))#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\] = do
+    (x, y) = p
     left2Range(0 asif ZZ32,0 asif ZZ32, x,y)
-opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
-         LeftRange[\(I,J,K)\] = left3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+  end
+opr (t:(I,J,K))#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
+         LeftRange[\(I,J,K)\] = do
+    (x, y, z) = t
+    left3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+  end
 
 opr (x:I):[\I\] : LeftRange[\I\] = x#
 
