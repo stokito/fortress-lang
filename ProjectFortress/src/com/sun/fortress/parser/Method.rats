@@ -40,15 +40,17 @@ import Spacing;
 FnDecl MdDecl =
      MdDef
    / a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
-     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
-                                      Modifiers.nonNull(a1), a2, a3);
+     { Span span = createSpan(yyStart,yyCount);
+       NodeUtil.checkSubscriptedAssignment(writer, span, a2, a3);
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.nonNull(a1), a2, a3);
      };
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
      a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
-                                      Modifiers.nonNull(a1), a2, a3, a4);
+     { Span span = createSpan(yyStart,yyCount);
+       NodeUtil.checkSubscriptedAssignment(writer, span, a2, a3);
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.nonNull(a1), a2, a3, a4);
      };
 
 /* MdHeaderFront ::=

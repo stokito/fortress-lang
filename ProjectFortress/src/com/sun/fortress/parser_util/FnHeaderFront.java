@@ -37,6 +37,8 @@ public class FnHeaderFront {
     private List<StaticParam> staticParams;
     private List<Param> params;
 
+    public boolean isSubscriptedAssignment = false;
+
     public FnHeaderFront(Option<Id> receiver, IdOrOpOrAnonymousName name,
                          List<StaticParam> staticParams,
                          List<Param> params, Option<Param> param) {
@@ -44,8 +46,10 @@ public class FnHeaderFront {
         this.name = name;
         this.staticParams = staticParams;
         this.params = params;
-        if (param.isSome())
+        if (param.isSome()) {
+            isSubscriptedAssignment = true;
             this.params.add(0, param.unwrap());
+        }
     }
 
     public FnHeaderFront(Option<Id> receiver, IdOrOpOrAnonymousName name,
