@@ -811,9 +811,21 @@
 				       (= (elt str (- (length str) 1)) ?\u2019)))))
     (let ((contents (substring str 1 (max 1 (- (length str) (if ends-in-single-quote 1 0))))))
       (concat "\\hbox{\\rm`"
-	      (if (= (length contents) 0) "\\verythin"
-		(concat "\\STR{" (fortress-render-string-contents contents) "}"))
+	      (or (fortress-render-character-contents contents)
+		  (if (= (length contents) 0) "\\verythin"
+		    (concat "\\STR{" (fortress-render-string-contents contents) "}")))
 	      (if ends-in-single-quote "'}" "}")))))
+
+(defun fortress-render-character-contents (str)
+  (let ((rendering (or (gethash str *fortress-identifier-word-hashtable*)
+		       (gethash str *fortress-operator-hashtable*)
+		       (gethash str *fortress-operator-word-hashtable*)
+		       (gethash str *fortress-honorary-letter-word-hashtable*)
+		       (gethash str *fortress-left-encloser-hashtable*)
+		       (gethash str *fortress-right-encloser-hashtable*)
+		       (and (string= str "[\\") (fortress-render-left-white-bracket str))
+		       (and (string= str "\\]") (fortress-render-right-white-bracket str)))))
+    (and rendering (concat "$" rendering "$"))))
 
 (defun fortress-render-digit-group-separator (str) "\\,")
 
@@ -2868,16 +2880,18 @@
 	((and tokens
 	      (null (cdr tokens))
 	      (null (cdddr (car tokens))))
-	 (let* ((str (third (car tokens)))
-		(str5 (substring str 0 (min 5 (length str)))))
-	   (cond ((and (or (string= str5 "\\VAR{")
-			   (string= str5 "\\TYP{")
-			   (string= str5 "\\KWD{")
-			   (string= str5 "\\OPR{")
-			   (string= str5 "\\STR{"))
-		       (fortify-single-tex-macro-invocation-p str 5))
-		  str)
-		 (t (concat "\\EXP{" str "}")))))
+	 (let ((str (third (car tokens))))
+	   (cond ((and (= (length str) 1) (unicode-is-letter (elt str 0)))
+		  (concat "\\VAR{" str "}"))
+		 (t (let ((str5 (substring str 0 (min 5 (length str)))))
+		      (cond ((and (or (string= str5 "\\VAR{")
+				      (string= str5 "\\TYP{")
+				      (string= str5 "\\KWD{")
+				      (string= str5 "\\OPR{")
+				      (string= str5 "\\STR{"))
+				  (fortify-single-tex-macro-invocation-p str 5))
+			     str)
+			    (t (concat "\\EXP{" str "}"))))))))
 	(t (concat "\\EXP{"
 		   (fortify-careful-TeX-concat
 		    (fortify-eliminate-redundant-math-mode-pairs
@@ -3152,6 +3166,10 @@
    ("|" "\\mid" RELATION)
    ("||" "\\mathrel{\\Vert}" RELATION)
    ("|||" "\\mathrel{\\Vvert}" RELATION)
+   ("||||" "\\mathrel{\\VVert}" RELATION)
+   ("//" "\\mathrel{/\!\!/}" RELATION)
+   ("///" "\\mathrel{/\!\!/\!\!/}" RELATION)
+   ("////" "\\mathrel{/\!\!/\!\!/\!\!/}" RELATION)
    ("<-" "\\leftarrow" RELATION)
    ("->" "\\rightarrow" RELATION)
    ("<->" "\\leftrightarrow" RELATION)
@@ -4173,6 +4191,7 @@
    (("|" "\\mathopen{\\vert}") ("|" "\\mathclose{\\vert}"))
    (("||" "\\mathopen{\\Vert}") ("||" "\\mathclose{\\Vert}"))
    (("|||" "\\mathopen{\\Vvert}") ("|||" "\\mathclose{\\Vvert}"))
+   (("||||" "\\mathopen{\\VVert}") ("||||" "\\mathclose{\\VVert}"))
    ))
 
 (defun ascii-is-uppercase (c)
