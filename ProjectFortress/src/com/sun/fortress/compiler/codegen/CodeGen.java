@@ -77,7 +77,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inAnObject = false;
     boolean inABlock = false;
     int localsDepth = 0;
-    Component component;
+    final Component component;
     private final ComponentIndex ci;
 
     public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci) {
@@ -100,6 +100,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // I'm not assuming we have a unique handle for any variable,
     // so we get a fresh CodeGen for each scope to avoid collisions.
     private CodeGen(CodeGen c) {
+        this.component = c.component;
         this.cw = c.cw;
         this.mv = c.mv;
          this.packageAndClassName = c.packageAndClassName;
@@ -270,7 +271,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if ( arrow instanceof ArrowType ) {
             addLineNumberInfo(x);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                               methodName, NamingCzar.jvmTypeDesc(arrow));
+                               methodName, NamingCzar.jvmTypeDesc(arrow, component.getName()));
         } else if (arrow instanceof IntersectionType) {
             addLineNumberInfo(x);
             IntersectionType it = (IntersectionType) arrow;
@@ -509,7 +510,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         String mname = NamingCzar.mangleIdentifier(nameString);
         String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
-                                                returnType.unwrap());
+                                                returnType.unwrap(),
+                                                component.getName());
 
         if (overloadedNamesAndSigs.contains(mname+sig)) {
             mname = NamingCzar.only.mangleAwayFromOverload(mname);
@@ -682,26 +684,38 @@ public class CodeGen extends NodeAbstractVisitor_void {
         debug("forObjectDecl", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
+        
         boolean canCompile =
-            x.getParams().isNone() &&             // no parameters
+            // x.getParams().isNone() &&             // no parameters
             header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
             //            header.getDecls().isEmpty() &&        // no members
-            header.getMods().isEmpty()         && // no modifiers
-            ( extendsC.size() <= 1 ); // 0 or 1 super trait
+            header.getMods().isEmpty()         // no modifiers
+            // ( extendsC.size() <= 1 ); // 0 or 1 super trait
+            ;
+        
         if ( !canCompile ) sayWhat(x);
+        
+        boolean savedInAnObject = inAnObject;
         inAnObject = true;
-        String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC);
+        String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
-        if (!header.getDecls().isEmpty()) {
+        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+                NodeUtil.getName(x).getText());
+        
+        String classDesc = NamingCzar.only.internalToDesc(classFile);
+        String objectFieldName = x.getHeader().getName().stringName();
+
+        if (classFile.equals("CompilerSystem$args")) {
             // TODO: Make this work for real!  Only works for default_args today.
             debug("header.getDecls:", header.getDecls());
 
+            // Singleton field.
             cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                          "default_args",
-                          "LCompilerSystem$args;",
+                    objectFieldName,
+                          classDesc,
                           null,
                           null);
 
@@ -711,26 +725,39 @@ public class CodeGen extends NodeAbstractVisitor_void {
                                 null,
                                 null);
 
-            mv.visitTypeInsn(Opcodes.NEW, "CompilerSystem$args");
+            mv.visitTypeInsn(Opcodes.NEW, classFile);
             mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "CompilerSystem$args", "<init>", NamingCzar.voidToVoid);
-            mv.visitFieldInsn(Opcodes.PUTSTATIC, "CompilerSystem", "default_args", "LCompilerSystem$args;");
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
+            mv.visitFieldInsn(Opcodes.PUTSTATIC, "CompilerSystem", objectFieldName, classDesc);
             mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+            mv.visitEnd();
+        } else if (x.getParams().isSome()) {
+            mv = cw.visitMethod(Opcodes.ACC_STATIC,
+                    objectFieldName,
+                    "()"+classDesc,
+                    null,
+                    null);
+
+            mv.visitTypeInsn(Opcodes.NEW, classFile);
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
+            mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
         }
 
-        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                                                         NodeUtil.getName(x).getText());
         ClassWriter prev = cw;
         cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
+
         // Until we resolve the directory hierarchy problem.
         //            cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
         cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
 
+        // This depends on the number of parameters.
         generateInitMethod();
 
         for (Decl d : header.getDecls()) {
@@ -741,7 +768,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         dumpClass( classFile );
         cw = prev;
-        inAnObject = false;
+        inAnObject = savedInAnObject;
     }
 
     public void forOpExpr(OpExpr x) {
@@ -806,7 +833,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             jvmFunctionName = NamingCzar.mangleIdentifier(name);
         }
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, jvmClassName, jvmFunctionName,
-                           NamingCzar.jvmTypeDesc(exprType.unwrap()));
+                           NamingCzar.jvmTypeDesc(exprType.unwrap(), component.getName()));
     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
@@ -838,7 +865,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         addLineNumberInfo(x);
         mv.visitFieldInsn(Opcodes.GETSTATIC, NamingCzar.jvmClassForSymbol(id) ,
-                          "default_" + id.getText(),
+                          // "default_" + // NO, not necessary.
+                          id.getText(),
                           "L" + NamingCzar.makeInnerClassName(id) + ";");
 
         for (Expr e : subs) {
@@ -864,13 +892,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getMods().isEmpty() && // no modifiers
-            extendsC.size() <= 1;
+            header.getMods().isEmpty() ; // && // no modifiers
+            // extendsC.size() <= 1;
         debug("forTraitDecl", x,
                     " decls = ", header.getDecls(), " extends = ", extendsC);
         if ( !canCompile ) sayWhat(x);
         inATrait = true;
-        String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC);
+        String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
         // First let's do the interface class
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
@@ -1090,7 +1118,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             FnHeader h = f.getHeader();
             IdOrOpOrAnonymousName xname = h.getName();
             IdOrOp name = (IdOrOp) xname;
-            String desc = NamingCzar.jvmSignatureFor(f);
+            String desc = NamingCzar.jvmSignatureFor(f,component.getName());
             debug("about to call visitMethod with", name.getText(),
                   " and desc ", desc);
             mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,

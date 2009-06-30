@@ -57,7 +57,7 @@ public class Symbols {
     public String getTypeSignatureForIdOrOp(IdOrOp op, Component c) {
         Function f = getFunction(op, c);
         if (f instanceof FunctionalMethod || f instanceof DeclaredFunction) {
-            return NamingCzar.jvmSignatureFor(f);
+            return NamingCzar.jvmSignatureFor(f, c.getName());
         } else if (f instanceof Constructor) {
             throw new CompilerError("We can't generate code for constructors yet");
         } else return sayWhat(op);
