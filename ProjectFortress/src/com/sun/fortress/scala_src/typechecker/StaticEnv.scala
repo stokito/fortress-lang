@@ -19,18 +19,19 @@ package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.nodes.Name
 import com.sun.fortress.nodes.Type
-
-// Get access to the EnvBinding type alias to use in the header.
-import StaticEnv.EnvBinding
+import com.sun.fortress.nodes_util.Modifiers
 
 /**
  * Represents an environment that exists during static checking, mapping
  * variable names to some value. Each static environment contains 
  */
-trait StaticEnv[T] extends Collection[EnvBinding[T]] {
+trait StaticEnv[T] extends Collection[StaticBinding[T]] {
   
   /** Define Env as the type of the implementing class. */
   type Env <: StaticEnv[T]
+  
+  /** Define EnvBinding as the type of the bindings. */
+  type EnvBinding <: StaticBinding[T]
   
   /**
    * Extend this environment with the bindings immediately contained in the
@@ -48,10 +49,10 @@ trait StaticEnv[T] extends Collection[EnvBinding[T]] {
    * @param name The name to lookup.
    * @return Some(T) if name:T is a binding. None otherwise.
    */
-  def lookup(x: Name): Option[T]
+  def lookup(x: Name): Option[EnvBinding]
   
   /** Same as lookup when treating implementing object as a function. */
-  def apply(x: Name): Option[T] = lookup(x)
+  def apply(x: Name): Option[EnvBinding] = lookup(x)
   
   /**
    * Gets the type stored for the given variable name, if that binding exists.
@@ -59,7 +60,10 @@ trait StaticEnv[T] extends Collection[EnvBinding[T]] {
    * @param name The name to lookup.
    * @return Some(T) if name:T is a binding. None otherwise.
    */
-  def getType(x: Name): Option[Type]  
+  def getType(x: Name): Option[Type]
+  
+  /** Make the type on `Collection.elements` more specific. */
+  def elements: Iterator[EnvBinding]
 }
 
 /**
@@ -69,13 +73,13 @@ trait StaticEnv[T] extends Collection[EnvBinding[T]] {
 trait EmptyStaticEnv[T] extends StaticEnv[T] {
       
   /** Every call to `lookup` fails. */
-  override def lookup(x: Name): Option[T] = None
+  override def lookup(x: Name): Option[EnvBinding] = None
       
   /** Every call to `getType` fails. */
   override def getType(x: Name): Option[Type] = None
   
   // Collection implementation
-  override def elements: Iterator[EnvBinding[T]] = Iterator.empty
+  override def elements: Iterator[EnvBinding] = Iterator.empty
   override def size: Int = 0
 }
 
@@ -86,27 +90,23 @@ trait EmptyStaticEnv[T] extends StaticEnv[T] {
 trait NestedStaticEnv[T] extends StaticEnv[T] {
     
   /** A static environment that this one extends. */
-  protected val parent: Env
+  protected val parent: Env {
+    // Require that the parent has the same binding type.
+    type EnvBinding = NestedStaticEnv.this.EnvBinding
+  }
     
   /** The bindings explicitly declared in this environment. */
-  protected val bindings: Map[Name, T]
+  protected val bindings: Map[Name, EnvBinding]
   
   /** Find it among `bindings` or else in `parent`. */
-  def lookup(x: Name): Option[T] = bindings.get(x) match {
+  def lookup(x: Name): Option[EnvBinding] = bindings.get(x) match {
     case Some(v) => Some(v)
     case None => parent.lookup(x)
   }
   
   // Collection implementation
-  def elements: Iterator[EnvBinding[T]] = parent.elements ++ bindings.elements
+  def elements: Iterator[EnvBinding] = parent.elements ++ bindings.values
   def size: Int = parent.size + bindings.size
-}
-
-/** Companion module for StaticEnv; contains "static" members. */
-object StaticEnv {
-  
-  /** A pair of a variable name and a value. */
-  type EnvBinding[T] = (Name, T)
 }
 
 /**
@@ -118,6 +118,9 @@ trait StaticEnvCompanion[T] {
   /** Define Env as the type of the implementing object's companion class. */
   type Env <: StaticEnv[T]
   
+  /** Define EnvBinding as the type of the bindings. */
+  type EnvBinding <: StaticBinding[T]
+  
   /**
    * Extracts all the _immediate_ bindings for this kind of environment from the
    * given node. If `node` is a collection of nodes, then this method returns
@@ -127,7 +130,7 @@ trait StaticEnvCompanion[T] {
    * @param node A node or collection of nodes in which to extract bindings.
    * @return A collection of all the bindings extracted in the given node.
    */
-  protected def extractEnvBindings(node: Any): Collection[EnvBinding[T]]
+  protected def extractEnvBindings(node: Any): Collection[EnvBinding]
   
   /**
    * Creates a new instance of the environment containing all the bindings
@@ -137,5 +140,18 @@ trait StaticEnvCompanion[T] {
    * @return A new instance of Env containing these bindings.
    */
   def make(node: Any): Env
+}
+
+
+/**
+ * A static environment binding of a variable name to some kind of value.
+ * 
+ * @param name The variable name for the binding.
+ * @param value The bound value for this binding.
+ */
+abstract class StaticBinding[T](val name: Name, val value: T)
+
+object StaticBinding {
+  def unapply[T](b: StaticBinding[T]): Option[(Name, T)] = Some(b.name, b.value)
 }
 

@@ -19,10 +19,9 @@ package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.scala_src.useful.SExprUtil
 import scala.collection.immutable.EmptyMap
-
-import StaticEnv.EnvBinding
 
 /**
  * Represents a list of variable name to type bindings for some context. All
@@ -34,12 +33,15 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
   /** My type. */
   type Env = STypeEnv
   
+  /** My binding type. */
+  type EnvBinding = TypeBinding
+  
   /** Extend me with the immediate bindings of the given node. */
   def extendWith(node: Any): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractEnvBindings(node))
   
   /** Same as `lookup`. */
-  def getType(x: Name): Option[Type] = lookup(x)
+  def getType(x: Name): Option[Type] = lookup(x).map(_.value)
 }
 
 /** The single empty type environment. */
@@ -52,11 +54,12 @@ object EmptySTypeEnv extends STypeEnv with EmptyStaticEnv[Type]
  * @param _bindings A collection of all the bindings in this environment.
  */
 class NestedSTypeEnv protected (protected val parent: STypeEnv,
-                                _bindings: Collection[EnvBinding[Type]])
+                                _bindings: Collection[TypeBinding])
     extends STypeEnv with NestedStaticEnv[Type] {
     
   /** Internal representation of `bindings` is a map. */
-  protected val bindings: Map[Name, Type] = new EmptyMap ++ _bindings
+  protected val bindings: Map[Name, TypeBinding] =
+    new EmptyMap ++ _bindings.map(b => b.name -> b)
 }
 
 /** Companion module for STypeEnv. */
@@ -65,13 +68,18 @@ object STypeEnv extends StaticEnvCompanion[Type] {
   /** My type. */
   type Env = STypeEnv
   
+  /** My binding type. */
+  type EnvBinding = TypeBinding
+  
   /** New type environment with empty parent and the node's bindings. */
   def make(node: Any): STypeEnv =
     new NestedSTypeEnv(EmptySTypeEnv, extractEnvBindings(node))
   
   /** Extract out the bindings in node. */
-  protected def extractEnvBindings(node: Any): Collection[EnvBinding[Type]] =
-    null
+  protected def extractEnvBindings(node: Any): Collection[TypeBinding] = null
+//    node match {
+//      case SParam => 
+//    }
   
 //  protected def extractFnDecls(node: Any): List[FnDecl] = null
 //  
@@ -146,3 +154,18 @@ object STypeEnv extends StaticEnvCompanion[Type] {
 //    }
 //  }
 }
+
+
+/**
+ * A binding for a type environment contains name to type pairs, along with some
+ * modifiers for the binding and whether or not the binding is mutable.
+ * 
+ * @param name The variable name for the binding.
+ * @param value The bound type for this variable name.
+ * @param mods Any modifiers for the binding.
+ * @param mutable Whether or not the binding is mutable.
+ */
+case class TypeBinding(override val name: Name,
+                       typ: Type,
+                       mods: Modifiers,
+                       mutable: Boolean) extends StaticBinding[Type](name, typ)

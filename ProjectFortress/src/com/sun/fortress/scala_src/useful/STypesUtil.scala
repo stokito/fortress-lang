@@ -18,6 +18,7 @@
 package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.DeclaredMethod
 import com.sun.fortress.compiler.index.FieldGetterMethod
@@ -46,31 +47,54 @@ object STypesUtil {
   type Subtype = (Type, Type) => Boolean
 
   /**
+   * Return the arrow type of the given FnDecl.
+   */
+  def makeArrowFromFunction(f: FnDecl): ArrowType = {
+    val returnType = f.getHeader.getReturnType.get
+    val params = toList(f.getHeader.getParams).map(NodeUtil.getParamType)
+    val argType = makeArgumentType(params)
+    val sparams = f.getHeader.getStaticParams
+    val where = f.getHeader.getWhereClause
+    val throws = f.getHeader.getThrowsClause
+    NodeFactory.makeArrowType(NodeUtil.getSpan(f),
+                              false,
+                              argType,
+                              returnType,
+                              NodeFactory.makeEffect(throws),
+                              sparams,
+                              where)
+  }
+
+  /**
    * Return the arrow type of the given Method.
    */
-  def getArrowFromMethod(m: Method): ArrowType = {
+  def makeArrowFromFunction(m: Method): ArrowType = {
     val returnType = m.getReturnType
-    val argType = toList(m.parameters).map(NodeUtil.getParamType) match {
-      case t :: Nil => t
-      case t => NodeFactory.makeTupleType(m.getSpan, toJavaList(t))
-    }
+    val params = toList(m.parameters).map(NodeUtil.getParamType)
+    val argType = makeArgumentType(params)
     m match {
-      case m:DeclaredMethod =>
-        val sparams = m.ast.getHeader.getStaticParams
-        val where = m.ast.getHeader.getWhereClause
-        val throws = m.ast.getHeader.getThrowsClause
-        NodeFactory.makeArrowType(NodeUtil.getSpan(m.ast),
-                                  false,
-                                  argType,
-                                  returnType,
-                                  NodeFactory.makeEffect(throws),
-                                  sparams,
-                                  where)
+      case m:DeclaredMethod => makeArrowFromFunction(m.ast)
       case g:FieldGetterMethod =>
-        NodeFactory.makeArrowType(NodeUtil.getSpan(g.ast), argType, returnType)
+        NodeFactory.makeArrowType(NodeUtil.getSpan(g.ast),
+                                  argType,
+                                  returnType)
       case s:FieldSetterMethod =>
-        NodeFactory.makeArrowType(NodeUtil.getSpan(s.ast), argType, returnType)
+        NodeFactory.makeArrowType(NodeUtil.getSpan(s.ast),
+                                  argType,
+                                  returnType)
     }
+  }
+  
+  /**
+   * Make a single argument type from a list of types.
+   */
+  def makeArgumentType(ts: List[Type]): Type = ts match {
+    case Nil => Types.VOID
+    case t :: Nil => t
+    case _ =>
+      val span1 = NodeUtil.getSpan(ts.head)
+      val span2 = NodeUtil.getSpan(ts.last)
+      NodeFactory.makeTupleType(NodeUtil.spanTwo(span1, span2), toJavaList(ts))
   }
 
   /**
