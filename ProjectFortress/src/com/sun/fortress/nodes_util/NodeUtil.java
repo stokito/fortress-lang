@@ -1238,6 +1238,14 @@ public class NodeUtil {
         return true;
     }
 
+    public static void checkSubscriptedAssignment(BufferedWriter writer, Span span,
+                                                  FnHeaderFront fhf, FnHeaderClause fhc) {
+        if ( fhf.isSubscriptedAssignment && fhc.getReturnType().isSome() &&
+             ! isVoidType(fhc.getReturnType().unwrap()) )
+            log(writer, span,
+                "If a return type is given in a subscripted assignment operator declaration,\n    it must be ().");
+    }
+
     /* Each modifier cannot appear more than once.
      * The modifier abstract should be the last one.
      * The modifiers getter/setter should be the last one.
