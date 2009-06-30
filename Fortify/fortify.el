@@ -1396,7 +1396,9 @@
 	      (if ends-in-double-quote "''}" "}")))))
 
 (defun fortress-render-unknown (str)
-  (concat "\\underline{" (fortress-render-string-contents str) "}"))
+  (if (and (= (length str) 1) (= (elt str 0) ?\r))
+      ""
+    (concat "\\underline{" (fortress-render-string-contents str) "}")))
 
 (defun fortress-render-string-contents (str)
   (let ((result ""))
@@ -3167,9 +3169,9 @@
    ("||" "\\mathrel{\\Vert}" RELATION)
    ("|||" "\\mathrel{\\Vvert}" RELATION)
    ("||||" "\\mathrel{\\VVert}" RELATION)
-   ("//" "\\mathrel{/\!\!/}" RELATION)
-   ("///" "\\mathrel{/\!\!/\!\!/}" RELATION)
-   ("////" "\\mathrel{/\!\!/\!\!/\!\!/}" RELATION)
+   ("//" "\\mathrel{/\\!\\!/}" RELATION)
+   ("///" "\\mathrel{/\\!\\!/\\!\\!/}" RELATION)
+   ("////" "\\mathrel{/\\!\\!/\\!\\!/\\!\\!/}" RELATION)
    ("<-" "\\leftarrow" RELATION)
    ("->" "\\rightarrow" RELATION)
    ("<->" "\\leftrightarrow" RELATION)
