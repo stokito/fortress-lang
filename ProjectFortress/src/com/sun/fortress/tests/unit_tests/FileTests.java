@@ -971,44 +971,26 @@ public class FileTests {
                                               boolean failsOnly,
                                               List<Test> commandTests,
                                               List<Test> runTests) throws IOException {
-        String[] commands = new String [] {"compile", "desugar", "link", "run", "api",
+        String[] commands = new String [] {"compile", "desugar", "link", "api",
                                            "parse", "disambiguate", "grammar", "typecheck",
-                                           "unparse", "compare", "build",
-                                           "fss", "fsi"};
-
-        if (props.get("compile") != null)
-            commandTests.add(new CommandTest("compile", props, canonicalDirName,
-                                             dirname, testname, failsOnly,
-                                             expect_not_passing, shouldFail));
-        if (props.get("desugar") != null)
-            commandTests.add(new CommandTest("desugar", props, canonicalDirName,
-                                             dirname, testname, failsOnly,
-                                             expect_not_passing, shouldFail));
-        if (props.get("link") != null)
-            commandTests.add(new CommandTest("link", props, canonicalDirName,
-                                             dirname, testname, failsOnly,
-                                             expect_not_passing, shouldFail));
-
-        if (props.get("api") != null)
-            runTests.add(new CommandTest("api", props, canonicalDirName,
-                                         dirname, testname, failsOnly,
-                                         expect_not_passing, shouldFail));
-
-        if (props.get("parse") != null)
-            runTests.add(new CommandTest("parse", props, canonicalDirName,
-                                         dirname, testname, failsOnly,
-                                         expect_not_passing, shouldFail));
-
+                                           "unparse", "compare", "build"};
+        String[] supported = new String [] {"run", "fss", "fsi"};
+        boolean found = false;
+        for ( String c : new ArrayList<String>(java.util.Arrays.asList(commands)) ) {
+            if (props.get(c) != null) {
+                commandTests.add(new CommandTest(c, props, canonicalDirName,
+                                                 dirname, testname, failsOnly,
+                                                 expect_not_passing, shouldFail));
+                found = true;
+            }
+        }
         if (props.get("run") != null)
             runTests.add(new TestTest(props, canonicalDirName,
                                       dirname, testname, failsOnly,
                                       expect_not_passing, shouldFail));
-
-        boolean found = false;
-        for ( String c : new ArrayList<String>(java.util.Arrays.asList(commands)) ) {
+        for ( String c : new ArrayList<String>(java.util.Arrays.asList(supported)) ) {
             if (props.get(c) != null) found = true;
         }
-
         if (! found)
             System.out.println("Not supported " + dirname + "/" + testname);
     }
