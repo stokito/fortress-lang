@@ -1,0 +1,8 @@
+export Executable
+
+run():() = do
+  x = 'UNION'
+  y = 'theta'
+  println x
+  println y
+end
