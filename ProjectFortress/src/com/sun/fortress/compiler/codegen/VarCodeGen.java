@@ -49,14 +49,14 @@ public abstract class VarCodeGen {
 
     /** Generate code to push the value of this variable onto the Java stack.
      */
-    public abstract void pushValue(MethodVisitor mv);
+    public abstract void pushValue(CodeGenMethodVisitor mv);
 
     /** Generate code to assign the value of this variable from the
      *  top of the Java stack. */
-    public abstract void assignValue(MethodVisitor mv);
+    public abstract void assignValue(CodeGenMethodVisitor mv);
 
     /** Generate metadata after last reference to this variable. */
-    public abstract void outOfScope(MethodVisitor mv);
+    public abstract void outOfScope(CodeGenMethodVisitor mv);
 
     /************************************************************
      * Specific kinds of Variables.
@@ -71,11 +71,11 @@ public abstract class VarCodeGen {
             this.offset = offset;
         }
 
-        public void pushValue(MethodVisitor mv) {
+        public void pushValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ALOAD, offset);
         }
 
-        public void assignValue(MethodVisitor mv) {
+        public void assignValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
     }
@@ -92,14 +92,14 @@ public abstract class VarCodeGen {
             super(name, fortressType, offset);
         }
 
-        public void assignValue(MethodVisitor mv) {
+        public void assignValue(CodeGenMethodVisitor mv) {
             throw new CompilerError(errorMsg("Invalid assignment to ",name,
                                              ": ", fortressType,
                                              " param ",offset,
                                              " size ", sizeOnStack));
         }
 
-        public void outOfScope(MethodVisitor mv) {
+        public void outOfScope(CodeGenMethodVisitor mv) {
             // Nothing to do?
         }
     }
@@ -123,13 +123,13 @@ public abstract class VarCodeGen {
         final Label start;
 
         public LocalVar(IdOrOp name, Type fortressType,
-                        int offset, MethodVisitor mv) {
+                        int offset, CodeGenMethodVisitor mv) {
             super(name, fortressType, offset);
             this.start = new Label();
             mv.visitLabel(start);
         }
 
-        public void outOfScope(MethodVisitor mv) {
+        public void outOfScope(CodeGenMethodVisitor mv) {
             Label finish = new Label();
             // call mv.visitLocalVariable here.
         }

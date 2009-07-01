@@ -97,6 +97,9 @@ public class NamingCzar {
     public static final String fortressExecutableRun = "runExecutable";
     public static final String fortressExecutableRunType = "([Ljava/lang/String;)V";
 
+    // Base class for tasks
+    public static final String fortressBaseTask = "com/sun/fortress/runtimeSystem/BaseTask";
+
     // Base class for non-executable Fortress Components
     public static final String fortressComponent = javaObject;
 
@@ -558,6 +561,11 @@ public class NamingCzar {
     public String mangleAwayFromOverload(String mname) {
             mname += "$SINGLE";
         return mname;
+    }
+
+    private static int taskCount = 0;
+    public static String gensymTaskName(String packageAndClassName) {
+        return packageAndClassName + "$" + "task" + taskCount++;
     }
 
     public static String makeInnerClassName(Id id) {
