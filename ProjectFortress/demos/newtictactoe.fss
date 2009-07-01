@@ -190,9 +190,14 @@ run() = do
     println "What's your name, friend?"
     name = readLine()
     println "What size board?"
-    N = strToInt(readLine())
-    while playGame(name, N) do
-        println ""
+    try
+        N = strToInt(readLine())
+        while playGame(name, N) do
+            println ""
+        end
+    catch e
+        IndexOutOfBounds[\ZZ32\] =>
+            println "Invalid response."
     end
     println "Bye!"
 end
