@@ -986,13 +986,18 @@ public class FileTests {
                                              expect_not_passing, shouldFail));
         if (props.get("link") != null)
             commandTests.add(new CommandTest("link", props, canonicalDirName,
-                                          dirname, testname, failsOnly,
-                                          expect_not_passing, shouldFail));
+                                             dirname, testname, failsOnly,
+                                             expect_not_passing, shouldFail));
 
         if (props.get("api") != null)
             runTests.add(new CommandTest("api", props, canonicalDirName,
-                                      dirname, testname, failsOnly,
-                                      expect_not_passing, shouldFail));
+                                         dirname, testname, failsOnly,
+                                         expect_not_passing, shouldFail));
+
+        if (props.get("parse") != null)
+            runTests.add(new CommandTest("parse", props, canonicalDirName,
+                                         dirname, testname, failsOnly,
+                                         expect_not_passing, shouldFail));
 
         if (props.get("run") != null)
             runTests.add(new TestTest(props, canonicalDirName,
