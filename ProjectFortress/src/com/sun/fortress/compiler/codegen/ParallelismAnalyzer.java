@@ -32,8 +32,13 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
     private final static Boolean f = Boolean.FALSE;
     private final static Boolean t = Boolean.TRUE;
 
-    public Boolean worthParallelizing(ASTNode n) {
-        return worthy.get(n);
+    public Boolean worthParallelizing(ASTNode n) 
+    {
+
+        // FIXME:  why are some nodes not getting seen?
+        if (worthy.get(n) != null && worthy.get(n))
+            return t;
+        else return f;
     }
 
     public ParallelismAnalyzer() {

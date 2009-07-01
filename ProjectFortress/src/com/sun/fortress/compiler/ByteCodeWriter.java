@@ -35,6 +35,8 @@ public class ByteCodeWriter {
             ProjectProperties.ensureDirectoryExists(directoryName);
             FileOutputStream out = new FileOutputStream(fileName);
             out.write(bytes);
+            out.flush();  // Is this implicit in close?
+            out.close();
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
