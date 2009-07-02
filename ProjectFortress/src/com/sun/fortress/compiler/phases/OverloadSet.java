@@ -86,7 +86,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return tagF.parameters();
         }
         public Type getReturnType() {
-            return tagF.getReturnType();
+            return tagF.getReturnType().unwrap();
         }
         public int hashCode() {
             return tagF.hashCode() + MagicNumbers.a * tagA.hashCode();

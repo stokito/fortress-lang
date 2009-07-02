@@ -37,6 +37,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
+import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -49,6 +50,7 @@ public class ParametricOperator extends FunctionalMethod {
     public ParametricOperator(FnDecl ast, Id declaringTrait) {
         super(ast, declaringTrait);
         _name = (Op)NodeUtil.getName(ast);
+        putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     public FnDecl ast() { return _ast; }
@@ -95,11 +97,6 @@ public class ParametricOperator extends FunctionalMethod {
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
 		// TODO Auto-generated method stub
 		return NI.nyi();
-	}
-
-	@Override
-	public Type getReturnType() {
-		return NodeUtil.getReturnType(_ast).unwrap();
 	}
 
 	@Override

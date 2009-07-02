@@ -598,7 +598,7 @@ public class NamingCzar {
     }
 
     public static String jvmSignatureFor(Function f, APIName ifNone) {
-        return jvmSignatureFor(f.parameters(), f.getReturnType(), ifNone);
+        return jvmSignatureFor(f.parameters(), f.getReturnType().unwrap(), ifNone);
     }
 
     public static String jvmSignatureFor(FnDecl f, APIName ifNone) {

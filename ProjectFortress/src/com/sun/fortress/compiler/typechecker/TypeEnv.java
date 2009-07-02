@@ -355,46 +355,48 @@ public abstract class TypeEnv {
      * Unfortunately, we must give some variants of 'extend' long names to allow the
      * compiler to distinguish them from other variants with the same _erased_ signature.
      */
+    // DONE
     public final TypeEnv extend(LValue... entries) {
         if (entries.length == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
-
+    // DONE
     public final TypeEnv extendWithLValues(List<LValue> entries) {
         if (entries.size() == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
-
+    // DONE
     public final TypeEnv extend(LocalVarDecl decl) {
         if (decl.getLhs().size() == 0) { return this; }
         else { return new LocalVarTypeEnv(decl, this); }
     }
-
+    // CALLED WITH CompilationUnitIndex.variables()
+    // DONE
     public final TypeEnv extend(Map<Id, Variable> vars) {
         if (vars.size() == 0) { return this; }
         else { return new VarTypeEnv(vars, this); }
     }
-
+    // DONE
     public final TypeEnv extendWithFunctions(Relation<IdOrOpOrAnonymousName, ? extends Function> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnTypeEnv(fns, this); }
     }
-
+    // UNNECESSARY
     public final TypeEnv extendWithFnDecls(Relation<IdOrOpOrAnonymousName, FnDecl> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnDeclTypeEnv(fns, this); }
     }
-
+    // DERIVED
     public final TypeEnv extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
         if (methods.size() == 0) { return this; }
         else { return new MethodTypeEnv(methods, this); }
     }
-
+    // DERIVED
     public final TypeEnv extendWithParams(List<Param> params) {
         if (params.size() == 0) { return this; }
         else { return new ParamTypeEnv(params, this); }
     }
-
+    // DERIVED
     public final TypeEnv extendWithParams(scala.List<Param> params) {
     	return extendWithParams(toJavaList(params));
     }
@@ -407,7 +409,7 @@ public abstract class TypeEnv {
     public final TypeEnv extendWithStaticParams(scala.List<StaticParam> params) {
     	return extendWithStaticParams(toJavaList(params));
     }
-
+    // DONE
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
         if (typeConses.isEmpty()) {
             return this;

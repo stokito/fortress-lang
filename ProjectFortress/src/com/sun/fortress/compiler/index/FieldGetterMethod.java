@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
@@ -34,6 +35,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
+import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.tuple.Option;
 
 public class FieldGetterMethod extends Method {
@@ -44,6 +46,7 @@ public class FieldGetterMethod extends Method {
     public FieldGetterMethod(Binding ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
+        putThunk(SimpleBox.make(_ast.getIdType()));
     }
 
     public Binding ast() { return _ast; }
@@ -74,11 +77,6 @@ public class FieldGetterMethod extends Method {
 	@Override
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
 		return this;
-	}
-
-	@Override
-	public Type getReturnType() {
-		return _ast.getIdType().unwrap();
 	}
 
 	@Override

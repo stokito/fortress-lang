@@ -116,7 +116,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     val span = getter.getSpan.toString
                     if ( param.getIdType.isSome &&
                          ! typeAnalyzer.equivalent(param.getIdType.unwrap,
-                                                   getter.getReturnType).isTrue )
+                                                   getter.getReturnType.unwrap).isTrue )
                         error(span,
                               "The parameter type of a setter must be " +
                               "the same as\n    the return type of a getter " +
@@ -143,7 +143,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                  set: Set[JavaFunctional]) = {
         var signatures = List[((JavaList[StaticParam],Type,Type),Span)]()
         for ( f <- set ; if isDeclaredFunctional(f) ) {
-            val result = f.getReturnType
+            val result = f.getReturnType.unwrap
             val param = paramsToType(f.parameters, f.getSpan)
             val sparams = f.staticParameters
             signatures.find(p => p._1 == (sparams,param,result)) match {
@@ -185,7 +185,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     private def subtype(f: JavaFunction, g: JavaFunction): Boolean =
         subtype(paramsToType(g.parameters, g.getSpan),
                 paramsToType(f.parameters, f.getSpan)) &&
-        subtype(f.getReturnType, g.getReturnType)
+        subtype(f.getReturnType.unwrap, g.getReturnType.unwrap)
 
     private def subtype(sub_type: Type, super_type: Type): Boolean =
         typeAnalyzer.subtype(sub_type, super_type).isTrue

@@ -605,7 +605,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Map<Id,Method> getters=index.getters();
             if(getters.containsKey(thatFieldRef.getField())) {
                 Method field=(Method)getters.get(thatFieldRef.getField()).instantiate(trait_static_params, trait_static_args);
-                return Option.some(field.getReturnType());
+                return Option.some(field.getReturnType().unwrap());
             }
             else {
                 //check if trait is an object
@@ -3471,7 +3471,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
                 public Type value(Method arg0) {
-                    return arg0.getReturnType();
+                    return arg0.getReturnType().unwrap();
                 }}));
 
             Type range = subtypeChecker.meet(ranges);
@@ -4877,7 +4877,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
         List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-            public Type value(Method arg0) { return arg0.getReturnType(); }}));
+            public Type value(Method arg0) { return arg0.getReturnType().unwrap(); }}));
 
         Type range = this.subtypeChecker.meet(ranges);
         return TypeCheckerResult.compose(that, range, subtypeChecker, result);

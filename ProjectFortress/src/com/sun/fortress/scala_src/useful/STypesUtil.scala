@@ -17,22 +17,19 @@
 
 package com.sun.fortress.scala_src.useful
 
+import _root_.java.util.ArrayList
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
-import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.index.DeclaredMethod
-import com.sun.fortress.compiler.index.FieldGetterMethod
-import com.sun.fortress.compiler.index.FieldSetterMethod
-import com.sun.fortress.compiler.index.Method
-import com.sun.fortress.compiler.index.TypeConsIndex
+import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.ExprFactory
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -47,41 +44,62 @@ object STypesUtil {
   type Subtype = (Type, Type) => Boolean
 
   /**
-   * Return the arrow type of the given FnDecl.
+   * Return the arrow type of the given FnDecl node.
    */
-  def makeArrowFromFunction(f: FnDecl): ArrowType = {
-    val returnType = f.getHeader.getReturnType.get
-    val params = toList(f.getHeader.getParams).map(NodeUtil.getParamType)
+  def makeArrowFromFnDecl(f: FnDecl): ArrowType = {
+    val returnType = f.getHeader.getReturnType.unwrap
+    val params = toList(f.getHeader.getParams).map(NU.getParamType)
     val argType = makeArgumentType(params)
     val sparams = f.getHeader.getStaticParams
     val where = f.getHeader.getWhereClause
     val throws = f.getHeader.getThrowsClause
-    NodeFactory.makeArrowType(NodeUtil.getSpan(f),
-                              false,
-                              argType,
-                              returnType,
-                              NodeFactory.makeEffect(throws),
-                              sparams,
-                              where)
+    NF.makeArrowType(NU.getSpan(f),
+                     false,
+                     argType,
+                     returnType,
+                     NF.makeEffect(throws),
+                     sparams,
+                     where)
   }
-
+  
   /**
    * Return the arrow type of the given Method.
+   * @TODO Make sure that the getReturnType method in these indices works
+   * as it should.
    */
-  def makeArrowFromFunction(m: Method): ArrowType = {
-    val returnType = m.getReturnType
-    val params = toList(m.parameters).map(NodeUtil.getParamType)
-    val argType = makeArgumentType(params)
-    m match {
-      case m:DeclaredMethod => makeArrowFromFunction(m.ast)
-      case g:FieldGetterMethod =>
-        NodeFactory.makeArrowType(NodeUtil.getSpan(g.ast),
-                                  argType,
-                                  returnType)
-      case s:FieldSetterMethod =>
-        NodeFactory.makeArrowType(NodeUtil.getSpan(s.ast),
-                                  argType,
-                                  returnType)
+  def makeArrowFromFunctional(f: Functional): ArrowType = f match {
+    case m:Method =>
+      val returnType = m.getReturnType.unwrap
+      val params = toList(m.parameters).map(NU.getParamType)
+      val argType = makeArgumentType(params)
+      m match {
+        case m:DeclaredMethod => makeArrowFromFnDecl(m.ast)
+        case g:FieldGetterMethod =>
+          NF.makeArrowType(NU.getSpan(g.ast),
+                           argType,
+                           returnType)
+        case s:FieldSetterMethod =>
+          NF.makeArrowType(NU.getSpan(s.ast),
+                           argType,
+                           returnType)
+      }
+    case f:Function => f match {
+      case f:DeclaredFunction => makeArrowFromFnDecl(f.ast)
+      case f:FunctionalMethod => makeArrowFromFnDecl(f.ast)
+      case f:Constructor =>
+        val argType =
+          makeArgumentType(toList(f.parameters).map(NU.getParamType))
+        val returnType = f.getReturnType.unwrap
+        val sparams = f.staticParameters
+        val where = f.where
+        val throws = f.thrownTypes
+        NF.makeArrowType(NF.typeSpan,
+                         false,
+                         argType,
+                         returnType,
+                         NF.makeEffect(throws),
+                         sparams,
+                         where)
     }
   }
   
@@ -92,9 +110,54 @@ object STypesUtil {
     case Nil => Types.VOID
     case t :: Nil => t
     case _ =>
-      val span1 = NodeUtil.getSpan(ts.head)
-      val span2 = NodeUtil.getSpan(ts.last)
-      NodeFactory.makeTupleType(NodeUtil.spanTwo(span1, span2), toJavaList(ts))
+      val span1 = NU.getSpan(ts.head)
+      val span2 = NU.getSpan(ts.last)
+      NF.makeTupleType(NU.spanTwo(span1, span2), toJavaList(ts))
+  }
+  
+  /**
+   * Make a domain type from a list of parameters, including varargs and
+   * keyword types. Ported from `TypeEnv.domainFromParams`.
+   */
+  def makeDomainType(ps: List[Param]): Type = {
+    val paramTypes = new ArrayList[Type](ps.length)
+    val keywordTypes = new ArrayList[KeywordType](ps.length)
+    var varargsType: Option[Type] = None
+    val span = ps match {
+      case Nil => NF.typeSpan
+      case _ => NU.spanTwo(NU.getSpan(ps.first), NU.getSpan(ps.last))
+    }
+    
+    // Extract out the appropriate parameter types.
+    ps.foreach(p => p match {
+      case SParam(_, _, _, _, _, Some(vaType)) => // Vararg
+        varargsType = Some(vaType)
+      case SParam(_, name, _, Some(idType), Some(expr), _) => // Keyword
+        keywordTypes.add(NF.makeKeywordType(name, idType))
+      case SParam(_, _, _, Some(idType), _, _) => // Normal
+        paramTypes.add(idType)
+      case _ => bug("Parameter missing type") 
+    })
+    NF.makeDomain(span, paramTypes, toJavaOption(varargsType), keywordTypes)
+  }
+  
+  /**
+   * Convert a static parameter to the corresponding static arg. Ported from
+   * `TypeEnv.staticParamsToArgs`.
+   */
+  def staticParamToArg(p: StaticParam): StaticArg = {
+    val span = NU.getSpan(p)
+    (p.getName, p.getKind) match {
+      case (id:Id, _:KindBool) => NF.makeBoolArg(span, NF.makeBoolRef(span, id))
+      case (id:Id, _:KindDim) => NF.makeDimArg(span, NF.makeDimRef(span, id))
+      case (id:Id, _:KindInt) => NF.makeIntArg(span, NF.makeIntRef(span, id))
+      case (id:Id, _:KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id))
+      case (id:Id, _:KindType) => NF.makeTypeArg(span, NF.makeVarType(span, id))
+      case (id:Id, _:KindUnit) =>
+        NF.makeUnitArg(span, NF.makeUnitRef(span, false, id))
+      case (op:Op, _:KindOp) => NF.makeOpArg(span, ExprFactory.makeOpRef(op))
+      case _ => bug("Unexpected static parameter kind")
+    }
   }
 
   /**
@@ -172,7 +235,7 @@ object STypesUtil {
    */
   def staticParamBoundType(sparam: StaticParam): Option[Type] =
     sparam.getKind match {
-      case SKindType(_) => Some(NodeFactory.makeIntersectionType(sparam.getExtendsClause))
+      case SKindType(_) => Some(NF.makeIntersectionType(sparam.getExtendsClause))
       case _ => None
     }
 
@@ -183,8 +246,8 @@ object STypesUtil {
   def makeInferenceArg(sparam: StaticParam): StaticArg = sparam.getKind match {
     case SKindType(_) => {
       // Create a new inference var type.
-      val t = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(sparam))
-      NodeFactory.makeTypeArg(NodeFactory.makeSpan(t), t)
+      val t = NF.make_InferenceVarType(NU.getSpan(sparam))
+      NF.makeTypeArg(NF.makeSpan(t), t)
     }
     case SKindInt(_) => NI.nyi()
     case SKindBool(_) => NI.nyi()

@@ -15,11 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala_src.typechecker
+package com.sun.fortress.scala_src.typechecker.staticenv
 
 import com.sun.fortress.nodes.Name
 import com.sun.fortress.nodes.Type
-import com.sun.fortress.nodes_util.Modifiers
 
 /**
  * Represents an environment that exists during static checking, mapping

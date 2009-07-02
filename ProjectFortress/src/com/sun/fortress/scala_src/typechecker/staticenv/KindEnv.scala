@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala_src.typechecker
+package com.sun.fortress.scala_src.typechecker.staticenv
 
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.nodes._
