@@ -839,13 +839,35 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // Caveats: We assume that everything has a ZZ32 result
     //          We create separate taskClasses for every task      
     public String delegate(ASTNode x) {
+
+        if (! (x instanceof _RewriteFnApp)) {
+            sayWhat(x);
+        }
+
+        _RewriteFnApp _rewriteFnApp = (_RewriteFnApp) x;
+
+        Expr function = _rewriteFnApp.getFunction();
+        
+        System.out.println("BBBBBBB: function = " + function);
+        ExprInfo info = function.getInfo();
+        Option<Type> exprType = info.getExprType();
+
+
+        if (!exprType.isSome()) {
+            sayWhat(x, "Missing type information for delegate " + x);
+        }
+        
+        String desc = NamingCzar.jvmTypeDesc(exprType.unwrap(), component.getName());
+        
+        List<String> args = CodeGenMethodVisitor.parseArgs(desc);
+        String result = CodeGenMethodVisitor.parseResult(desc);
+
         String className = NamingCzar.gensymTaskName(packageAndClassName);
         debug("delegate creating class " + className + " node = " + x);
         // Create a new environment
         CodeGen cg = new CodeGen(this);
         cg.localsDepth = 0;
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        
         cg.cw.visitSource(className,null);
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, lexEnv);
@@ -853,16 +875,26 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className,null, NamingCzar.fortressBaseTask, null);
 
-        // FIXME, this assumes we only take a ZZ32 argument.
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", 
-                                  "(" + NamingCzar.descFortressZZ32 + ")V", null, null);
+        String initDesc = "(";
+
+        for (String arg : args) {
+            initDesc = initDesc + arg;
+        }
+        initDesc = initDesc + ")V";
+
+        System.out.println("initDesc = " + initDesc + "should be (ZZ32)V");
+            
+        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
         cg.mv.visitCode();
+
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
         cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask, 
                               "<init>", NamingCzar.voidToVoid);
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
+
+        // Fib specific
         cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
-        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", NamingCzar.descFortressZZ32);
+        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", args.get(0));            
 
         cg.mv.visitInsn(Opcodes.RETURN);
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -880,7 +912,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("taskResult"));
 
         // Fixme, not all results are ZZ32
-        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", NamingCzar.descFortressZZ32);
+        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
 
         cg.mv.visitInsn(Opcodes.RETURN);        
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
