@@ -144,7 +144,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private void initializeTaskLexEnv(String task, BATree<String, VarCodeGen> old) {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
 
-        System.out.println("Creating local variable " + task);
         mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable(task));
         
         for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
@@ -827,12 +826,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
         inAnObject = savedInAnObject;
     }
 
+    private void generatePrintArgs(CodeGen cg) {
+        cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
+        cg.mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
+                              "getValue", "()I");
+        cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintArgs", 
+                              "nativePrintZZ32",  "(I)V");
+    }
+
+
     // This sets up the parallel task construct.
     // Caveats: We assume that everything has a ZZ32 result
     //          We create separate taskClasses for every task      
     public String delegate(ASTNode x) {
         String className = NamingCzar.gensymTaskName(packageAndClassName);
-        debug("delegate creating class " + className);
+        debug("delegate creating class " + className + " node = " + x);
         // Create a new environment
         CodeGen cg = new CodeGen(this);
         cg.localsDepth = 0;
@@ -849,18 +857,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", 
                                   "(" + NamingCzar.descFortressZZ32 + ")V", null, null);
         cg.mv.visitCode();
-        cg.mv.visitVarInsn(Opcodes.ALOAD, 0);
+        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
         cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask, 
                               "<init>", NamingCzar.voidToVoid);
-
-        cg.mv.visitVarInsn(Opcodes.ALOAD, 0);
+        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
         cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
         cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", NamingCzar.descFortressZZ32);
-        //        cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
-        //        cg.mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
-        //                              "getValue", "()I");
-        //        cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintArgs", 
-        //                              "nativePrintZZ32",  "(I)V");
 
         cg.mv.visitInsn(Opcodes.RETURN);
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -889,6 +891,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
         return className;
     }
 
+    private void generatePrintResult(CodeGen cg) {
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
+                           "getValue", "()I");
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintResult", 
+                           "nativePrintZZ32",  "(I)V");
+    }
+
     public void forOpExpr(OpExpr x) {
         debug("forOpExpr ", x, " op = ", x.getOp(),
                      " of class ", x.getOp().getClass(),  " args = ", x.getArgs());
@@ -901,7 +911,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
         mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable("TaskArray", "java/util/ArrayList"));
     
-        System.out.println("RRRRRRR:" + pa + " SSSSSS " + x);
         if (pa.worthParallelizing(x)) {
             for (int i = 0; i < args.size(); i++) {
                 String task = delegate(args.get(i));
@@ -925,12 +934,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
             for (int i = 0; i < args.size(); i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(tasks.get(i)));
                 mv.visitFieldInsn(Opcodes.GETFIELD, tasks.get(i), "result", NamingCzar.descFortressZZ32);
-                //                mv.visitInsn(Opcodes.DUP);
-                //                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
-                //                                      "getValue", "()I");
-                //                mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintResult", 
-                //                              "nativePrintZZ32",  "(I)V");
-                
             }
         } else {
             
@@ -1125,7 +1128,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 TupleExpr targ = (TupleExpr) arg;
                 List<Expr> exprs = targ.getExprs();
                 for (Expr expr : exprs) {
-                    System.out.println("args = " + expr);
                     expr.accept(this);
                 }
                 paramCount = exprs.size();
