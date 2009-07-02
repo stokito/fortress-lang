@@ -34,14 +34,6 @@ public class CodeGenClassWriter extends ClassWriter {
                                         super.visitMethod(access, name, desc, signature, exceptions));
     }
 
-    // When we can reliably parse type descriptors, this will go away.
-
-    public CodeGenMethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions, String[] argTypes, String resultType) {
-        return new CodeGenMethodVisitor(access, name, desc, signature, exceptions, 
-                                        super.visitMethod(access, name, desc, signature, exceptions),
-                                        argTypes, resultType);
-    }
-
 }
             
             

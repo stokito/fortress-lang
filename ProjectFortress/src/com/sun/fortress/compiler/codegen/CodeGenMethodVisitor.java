@@ -38,9 +38,82 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     private String desc;
     private String signature;
     private String[] exceptions;
-    private String[] arguments;
+    private List<String> argumentTypes;
     private String resultType;
+    int localVariableCount;
 
+    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}    
+
+    private void parseDescriptor(String desc) {
+        argumentTypes = new ArrayList<String>();
+
+        System.out.println("parseDescriptor: " + desc);
+        
+        if (desc.charAt(0) != '(') error(desc);
+        int i = 1;
+        int start = 0;
+        int ch = desc.charAt(i);
+
+
+        while (ch != ')') {
+            System.out.println("parseDescriptor: desc = " + desc + 
+                               " i = " + i + " argumentTypes = " + argumentTypes);
+
+            switch(ch) {
+            case 'B': 
+            case 'S': 
+            case 'F': 
+            case 'D': 
+            case 'C': 
+            case 'I': 
+            case 'J': 
+            case 'Z': 
+                argumentTypes.add(Character.toString(desc.charAt(i))); ch = desc.charAt(++i); break;
+            case '[': 
+            case 'L': 
+                start = i;
+                while (ch != ';') {
+                    ch = desc.charAt(++i);
+                }
+                argumentTypes.add(desc.substring(start, ++i));
+                ch = desc.charAt(i);
+                break;
+            default: error(desc);
+            }
+        }
+        ch = desc.charAt(++i);
+
+        switch(ch) {
+        case 'B': 
+        case 'S': 
+        case 'F': 
+        case 'D': 
+        case 'C': 
+        case 'I': 
+        case 'J': 
+        case 'Z': 
+        case 'V':
+            resultType = Character.toString(desc.charAt(i)); break;
+        case '[': 
+            start = i;
+            while (ch != ']') {
+                ch = desc.charAt(++i);
+            }
+            resultType = new String(desc.substring(start, ++i));
+            break;
+        case 'L': 
+            start = i;
+            while (ch != ';') {
+                ch = desc.charAt(++i);
+            }
+            resultType = new String(desc.substring(start, ++i));
+            break;
+        default: error(desc);
+        }
+        System.out.println("parseDescriptor: desc = " + desc + 
+                           " i = " + i + " argumentTypes = " + argumentTypes + 
+                           " resultType = " + resultType);
+    }
 
     public CodeGenMethodVisitor(int access, String name, String desc, 
                                 String signature, String[] exceptions,
@@ -55,36 +128,24 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.localVariableTable = new HashMap<String, Integer>();
         this.localVariableTypeTable = new HashMap<String, String>();
         this.localVariableCount = 0;
-        createLocalVariable("instance");
-        createLocalVariable("result");
 
-    }
+        if ((access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC) {
+            createLocalVariable("instance", name);            
+        }
 
-    public CodeGenMethodVisitor(int access, String name, String desc, 
-                                String signature, String[] exceptions,
-                                MethodVisitor mvisitor, String argTypes[],
-                                String resultType) {
-        super(mvisitor);
-        this.access = access;
-        this.name = name;
-        this.desc = desc;
-        this.signature = signature;
-        this.exceptions = exceptions;
-        this.arguments = argTypes;
-        this.resultType = resultType;
+        parseDescriptor(desc);
+
+        System.out.println("MethodVisitor: name = " + name + " desc = " + desc + 
+                           " argumentTypes = " + argumentTypes + " resultType " + resultType);
         
-        this.localVariableTable = new HashMap<String, Integer>();
-        this.localVariableTypeTable = new HashMap<String, String>();
-        this.localVariableCount = 0;
+        int i = 0;
 
-        createLocalVariable("instance");
-
-        int ind = 0;
-        for (String arg : arguments) {
-            createLocalVariable("arg" + ind, arguments[ind++]);
+        for (String argumentType : argumentTypes) {
+            createLocalVariable("arg" + i++, argumentType);
         }
         
         createLocalVariable("result", resultType);
+
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
@@ -95,9 +156,6 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     public void dumpBytecodes() {
         Debug.debug(Debug.Type.CODEGEN, 1, getText());
     }
-
-    // We need to be smarter about this.
-    public int localVariableCount;
 
     public int createLocalVariable(String name) {
         int result = localVariableCount++;
