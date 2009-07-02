@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,20 +14,20 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
-
-component Overview.Function.contract.b
 
 export Executable
 
-(** EXAMPLE **)
-factorial(n)
-  requires { n >= 0 }
-  ensures { outcome >= 1 }
-  = if n = 0 then 1
-    else n factorial(n-1) end
-(** END EXAMPLE **)
+sumOfSquares(n:List[\ZZ32\]): ZZ64 =    (*) do missing here
+ sum:ZZ64 := 0
+ for i<-0#|n| do
+   sum += (n[i])^2
+ end
+ sum
+end
 
-run() = println (factorial 5)
+run():()=do
+ theList = <|[\ZZ32\] x | x<-1#100|>
+ println "sumOfSquares = " sumOfSquares(theList)
+end
 
 end
