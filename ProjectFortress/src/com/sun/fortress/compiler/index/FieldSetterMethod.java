@@ -37,6 +37,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
+import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.tuple.Option;
 
 public class FieldSetterMethod extends Method {
@@ -47,6 +48,7 @@ public class FieldSetterMethod extends Method {
     public FieldSetterMethod(Binding ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
+        putThunk(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
 
     public Binding ast() { return _ast; }
@@ -82,11 +84,6 @@ public class FieldSetterMethod extends Method {
 	@Override
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
 		return this;
-	}
-
-	@Override
-	public Type getReturnType() {
-		return Types.VOID;
 	}
 
 	@Override

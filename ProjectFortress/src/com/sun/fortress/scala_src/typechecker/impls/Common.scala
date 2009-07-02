@@ -176,16 +176,16 @@ trait Common { self: STypeChecker =>
     def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
       val (arg, param) = argAndParam
       (arg, param.getKind) match {
-        case (STypeArg(_, argType), SKindType(_)) =>
+        case (STypeArg(_, argType), _:KindType) =>
             toList(param.getExtendsClause).forall((bound:Type) =>
               isSubtype(argType, bound, arg,
                         errorMsg(normalize(argType), " not a subtype of ", normalize(bound))))
-        case (SIntArg(_, _), SKindInt(_)) => true
-        case (SBoolArg(_, _), SKindBool(_)) => true
-        case (SDimArg(_, _), SKindDim(_)) => true
-        case (SOpArg(_, _), SKindOp(_)) => true
-        case (SUnitArg(_, _), SKindUnit(_)) => true
-        case (SIntArg(_, _), SKindNat(_)) => true
+        case (_:IntArg, _:KindInt) => true
+        case (_:BoolArg, _:KindBool) => true
+        case (_:DimArg, _:KindDim) => true
+        case (_:OpArg, _:KindOp) => true
+        case (_:UnitArg, _:KindUnit) => true
+        case (_:IntArg, _:KindNat) => true
         case (_, _) => false
       }
     }

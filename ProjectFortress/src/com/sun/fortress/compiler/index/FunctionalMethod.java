@@ -37,6 +37,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
+import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -50,6 +51,7 @@ public class FunctionalMethod extends Function {
     public FunctionalMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
+        putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     public FnDecl ast() { return _ast; }
@@ -105,11 +107,6 @@ public class FunctionalMethod extends Function {
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
 		// TODO Auto-generated method stub
 		return NI.nyi();
-	}
-
-	@Override
-	public Type getReturnType() {
-		return NodeUtil.getReturnType(_ast).unwrap();
 	}
 
 	@Override

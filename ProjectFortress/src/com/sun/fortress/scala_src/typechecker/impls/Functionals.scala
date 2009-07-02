@@ -327,9 +327,9 @@ trait Functionals { self: STypeChecker with Common =>
       // Get the methods and arrows from the op.
       val methods = findMethodsInTraitHierarchy(op.get, objType)
       val arrows =
-        if (sargs.isEmpty) methods.map(makeArrowFromFunction)
-        else methods.
-               flatMap(m => staticInstantiation(sargs, makeArrowFromFunction(m))).
+        if (sargs.isEmpty) methods.map(makeArrowFromFunctional)
+        else methods.flatMap(m =>
+               staticInstantiation(sargs, makeArrowFromFunctional(m))).
                map(_.asInstanceOf[ArrowType])
 
       staticallyMostApplicableArrow(arrows.toList, subsType, None) match {

@@ -38,6 +38,7 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 
 public class Constructor extends Function {
@@ -59,6 +60,11 @@ public class Constructor extends Function {
         _params = params;
         _throwsClause = throwsClause;
         _where = where;
+        putThunk(new Thunk<Option<Type>>() {
+          @Override public Option<Type> value() {
+            return NI.nyi();
+          }
+        });
     }
 
     @Override
@@ -111,12 +117,6 @@ public class Constructor extends Function {
 
 	@Override
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return NI.nyi();
-	}
-
-	@Override
-	public Type getReturnType() {
 		// TODO Auto-generated method stub
 		return NI.nyi();
 	}

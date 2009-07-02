@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
@@ -35,6 +36,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
+import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredMethod extends Method {
@@ -45,6 +47,7 @@ public class DeclaredMethod extends Method {
     public DeclaredMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
+        putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     public FnDecl ast() { return _ast; }
@@ -89,11 +92,6 @@ public class DeclaredMethod extends Method {
 		FnDecl replaced_decl =
 			(FnDecl)_ast.accept(new StaticTypeReplacer(params,args));
 		return new DeclaredMethod(replaced_decl,_declaringTrait);
-	}
-
-	@Override
-	public Type getReturnType() {
-		return NodeUtil.getReturnType(_ast).unwrap();
 	}
 
 	@Override
