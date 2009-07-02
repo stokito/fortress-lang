@@ -42,13 +42,12 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     private String resultType;
     int localVariableCount;
 
-    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}    
+    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}   
 
-    private void parseDescriptor(String desc) {
-        argumentTypes = new ArrayList<String>();
+    // Move these to their own class
 
-        System.out.println("parseDescriptor: " + desc);
-        
+    public static List<String> parseArgs(String desc) {
+        List<String> args = new ArrayList<String>();
         if (desc.charAt(0) != '(') error(desc);
         int i = 1;
         int start = 0;
@@ -56,9 +55,6 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
 
         while (ch != ')') {
-            System.out.println("parseDescriptor: desc = " + desc + 
-                               " i = " + i + " argumentTypes = " + argumentTypes);
-
             switch(ch) {
             case 'B': 
             case 'S': 
@@ -68,21 +64,26 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
             case 'I': 
             case 'J': 
             case 'Z': 
-                argumentTypes.add(Character.toString(desc.charAt(i))); ch = desc.charAt(++i); break;
+                args.add(Character.toString(desc.charAt(i))); ch = desc.charAt(++i); break;
             case '[': 
             case 'L': 
                 start = i;
                 while (ch != ';') {
                     ch = desc.charAt(++i);
                 }
-                argumentTypes.add(desc.substring(start, ++i));
+                args.add(desc.substring(start, ++i));
                 ch = desc.charAt(i);
                 break;
             default: error(desc);
             }
         }
-        ch = desc.charAt(++i);
+        return args;
+    }
 
+    public static String parseResult(String desc) {
+        int i = desc.indexOf(')') + 1;
+        int ch = desc.charAt(i);
+        int start;
         switch(ch) {
         case 'B': 
         case 'S': 
@@ -93,27 +94,24 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         case 'J': 
         case 'Z': 
         case 'V':
-            resultType = Character.toString(desc.charAt(i)); break;
+            return Character.toString(desc.charAt(i)); 
         case '[': 
             start = i;
             while (ch != ']') {
                 ch = desc.charAt(++i);
             }
-            resultType = new String(desc.substring(start, ++i));
-            break;
+            return new String(desc.substring(start, ++i));
         case 'L': 
             start = i;
             while (ch != ';') {
                 ch = desc.charAt(++i);
             }
-            resultType = new String(desc.substring(start, ++i));
-            break;
+            return new String(desc.substring(start, ++i));
         default: error(desc);
         }
-        System.out.println("parseDescriptor: desc = " + desc + 
-                           " i = " + i + " argumentTypes = " + argumentTypes + 
-                           " resultType = " + resultType);
+        return ("Shouln't happen");
     }
+
 
     public CodeGenMethodVisitor(int access, String name, String desc, 
                                 String signature, String[] exceptions,
@@ -124,6 +122,8 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.desc = desc;
         this.signature = signature;
         this.exceptions = exceptions;
+        this.argumentTypes = parseArgs(desc);
+        this.resultType = parseResult(desc);
         
         this.localVariableTable = new HashMap<String, Integer>();
         this.localVariableTypeTable = new HashMap<String, String>();
@@ -132,8 +132,6 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         if ((access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC) {
             createLocalVariable("instance", name);            
         }
-
-        parseDescriptor(desc);
 
         System.out.println("MethodVisitor: name = " + name + " desc = " + desc + 
                            " argumentTypes = " + argumentTypes + " resultType " + resultType);
