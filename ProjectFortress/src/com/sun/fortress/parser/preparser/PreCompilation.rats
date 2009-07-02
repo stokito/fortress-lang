@@ -110,9 +110,10 @@ stateful void Token =
    / OtherSymbols
    / QualifiedName
    / NumericSeparator
+   / AssignOp
    / Op
-   / (_ (!w))+
-   ;
+   / a1:(_ (!w))+
+     { Debug.debug( Debug.Type.PARSER, 1, "Got the token: ", a1 ); };
 
 stateful private transient String Opening =
      opendoublesquare / opensquare / opencurly / "\u201c" / "\u2018" / "`";
