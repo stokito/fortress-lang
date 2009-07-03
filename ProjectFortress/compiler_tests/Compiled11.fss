@@ -18,8 +18,27 @@
 component Compiled11
 export Executable
 
-run() = do
- println("Hello, World!")
+
+trait A
+  x:A
+end
+
+object N extends A end
+
+object O(x:A) extends A end
+
+object P extends A
+  x:A = O(N).x
+end
+
+anO():A = O
+anA():A = P
+
+run():() = do
+  typecase y = P.x of
+    N => println "N"
+    else => println "FAIL"
+  end
 end
 
 end
