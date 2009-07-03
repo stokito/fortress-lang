@@ -67,6 +67,24 @@ object Rows[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
         rowsImpl[\ E \](g).generate[\ R \](r, body)
   end
+
+theorems[\R, L1, L2\]() =
+<|[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->R)\]
+(fn (r, q, f) => conditionAbiding[\ R, L1, L2 \](r, q, f), fn (r, q, f) => efficientImplAbiding[\ R, L1, L2 \](r, q, f))
+|>
+  
+  (*--- conditions ---*)
+  conditionAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : Boolean = abiding(q, r)
+
+  (*--- implementation using the abide-tree reduction  *)
+  efficientImplAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) = do
+
+    (* println("Abide!") *)
+
+    (* we assume that two operators have the same lifting, i.e., L1 = L2 *)
+    r.unlift(GeneratorATWrapper(seed()).generateAT[\L1\](q, r, fn a => r.lift(f(a))))
+  end
+
 end
 
 rows[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : Rows[\E, b0, s0, b1, s1\] = Rows[\E, b0, s0, b1, s1\](g)
@@ -92,6 +110,24 @@ object Cols[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
         colsImpl[\ E \](g).generate[\ R \](r, body)
   end
+
+theorems[\R, L1, L2\]() =
+<|[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->R)\]
+(fn (r, q, f) => conditionAbiding[\ R, L1, L2 \](r, q, f), fn (r, q, f) => efficientImplAbiding[\ R, L1, L2 \](r, q, f))
+|>
+  
+  (*--- conditions ---*)
+  conditionAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : Boolean = abiding(q, r)
+
+  (*--- implementation using the abide-tree reduction  *)
+  efficientImplAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) = do
+
+    (* println("Abide!") *)
+
+    (* we assume that two operators have the same lifting, i.e., L1 = L2 *)
+    r.unlift(GeneratorATWrapper(seed()).generateAT[\L1\](r, q, fn a => r.lift(f(a))))
+  end
+
 end
 
 cols[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : Cols[\E, b0, s0, b1, s1\] = Cols[\E, b0, s0, b1, s1\](g)
@@ -329,7 +365,16 @@ c : Array2[\T, 0, s1, 0, s1\],
 r : Array2[\T, 0, s0, 0, s0\]
 ) : SomeMSS2DTuple[\T\] = MSS2DTuple[\T, s0, s1\](b, n, s, e, w, ne, nw, se, nw, c, r)
 
-object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\] }
+(* annotation for operators with the `abide' property*)
+trait AbideWith[\T\] end
+
+abiding[\R, Q\]( r : R, q : Q ) = 
+typecase(r, q) of
+  (R, AbideWith[\R\]) => true
+  else => false
+end
+
+object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionBeside[\T\]\] }
   getter asString(): String = "MSS2DReductionAbove"
   simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] = 
   do
@@ -356,7 +401,7 @@ object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2
   end
 end
 
-object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\] }
+object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionAbove[\T\]\] }
     getter asString(): String = "MSS2DReductionBeside"
     simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] = 
     do

@@ -78,4 +78,20 @@ end
 
 rects[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : Rects[\E, b0, s0, b1, s1\]
 
+trait AbideWith[\T\] end
+
+trait SomeMSS2DTuple[\T\] end
+
+mssBody[\T\](v:T) : SomeMSS2DTuple[\T\] 
+
+object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionBeside[\T\]\] }
+  getter asString(): String
+  simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\]
+end
+
+object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionAbove[\T\]\] }
+    getter asString(): String 
+    simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] 
+end
+
 end
