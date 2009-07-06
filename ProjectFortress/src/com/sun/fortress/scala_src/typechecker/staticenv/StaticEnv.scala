@@ -17,14 +17,17 @@
 
 package com.sun.fortress.scala_src.typechecker.staticenv
 
+import _root_.java.util.{Map => JMap}
 import com.sun.fortress.nodes.Name
+import com.sun.fortress.nodes.Node
 import com.sun.fortress.nodes.Type
+import edu.rice.cs.plt.collect.Relation
 
 /**
  * Represents an environment that exists during static checking, mapping
  * variable names to some value. Each static environment contains 
  */
-trait StaticEnv[T] extends Collection[StaticBinding[T]] {
+trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
   
   /** Define Env as the type of the implementing class. */
   type Env <: StaticEnv[T]
@@ -40,7 +43,7 @@ trait StaticEnv[T] extends Collection[StaticBinding[T]] {
    * @return A new environment with the bindings of this one and those found in
    *         `node` combined.
    */
-  def extendWith(node: Any): Env
+
   
   /**
    * Gets the value stored for the given variable name, if that binding exists.
@@ -60,6 +63,9 @@ trait StaticEnv[T] extends Collection[StaticBinding[T]] {
    * @return Some(T) if name:T is a binding. None otherwise.
    */
   def getType(x: Name): Option[Type]
+  
+  /** Not in Iterable, but specify size. */
+  def size: Int
   
   /** Make the type on `Collection.elements` more specific. */
   def elements: Iterator[EnvBinding]
@@ -122,14 +128,26 @@ trait StaticEnvCompanion[T] {
   
   /**
    * Extracts all the _immediate_ bindings for this kind of environment from the
-   * given node. If `node` is a collection of nodes, then this method returns
-   * the concatenation of all bindings found therein. Any bindings located
-   * further inside the node will not be extracted.
+   * given node. Any bindings located further inside the node will not be
+   * extracted.
    * 
-   * @param node A node or collection of nodes in which to extract bindings.
+   * @param node A node in which to extract bindings.
    * @return A collection of all the bindings extracted in the given node.
    */
-  protected def extractEnvBindings(node: Any): Collection[EnvBinding]
+  protected def extractEnvBindings(node: Node): Iterable[EnvBinding]
+  
+  /**
+   * Extracts all the _immediate_ bindings for this kind of environment from the
+   * given nodes. Any bindings located further inside the nodes will not be
+   * extracted. This overloading simply flatMaps the other overloading for
+   * convenience.
+   * 
+   * @param nodes A collection of nodes in which to extract bindings.
+   * @return A collection of all the bindings extracted in the given node.
+   */
+  protected def extractEnvBindings(nodes: Iterable[Node])
+                                   : Iterable[EnvBinding] =
+    nodes.flatMap(extractEnvBindings)
   
   /**
    * Creates a new instance of the environment containing all the bindings
@@ -138,7 +156,8 @@ trait StaticEnvCompanion[T] {
    * @param node A node or collection of nodes in which to find bindings.
    * @return A new instance of Env containing these bindings.
    */
-  def make(node: Any): Env
+  def empty(): Env
+  
 }
 
 

@@ -35,8 +35,6 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
   type EnvBinding = TypeBinding
   
   /** Extend me with the immediate bindings of the given node. */
-  def extendWith(node: Any): STypeEnv =
-    new NestedSTypeEnv(this, STypeEnv.extractEnvBindings(node))
   
   /** Same as `lookup`. */
   def getType(x: Name): Option[Type] = lookup(x).map(_.value)
@@ -52,7 +50,7 @@ object EmptySTypeEnv extends STypeEnv with EmptyStaticEnv[Type]
  * @param _bindings A collection of all the bindings in this environment.
  */
 class NestedSTypeEnv protected (protected val parent: STypeEnv,
-                                _bindings: Collection[TypeBinding])
+                                _bindings: Iterable[TypeBinding])
     extends STypeEnv with NestedStaticEnv[Type] {
     
   /** Internal representation of `bindings` is a map. */
@@ -61,7 +59,8 @@ class NestedSTypeEnv protected (protected val parent: STypeEnv,
 }
 
 /** Companion module for STypeEnv. */
-object STypeEnv extends StaticEnvCompanion[Type] with STypeEnvExtraction {
+object STypeEnv extends StaticEnvCompanion[Type]
+    with STypeEnvExtraction {
   
   /** My type. */
   type Env = STypeEnv
@@ -69,9 +68,8 @@ object STypeEnv extends StaticEnvCompanion[Type] with STypeEnvExtraction {
   /** My binding type. */
   type EnvBinding = TypeBinding
   
-  /** New type environment with empty parent and the node's bindings. */
-  def make(node: Any): STypeEnv =
-    new NestedSTypeEnv(EmptySTypeEnv, extractEnvBindings(node))
+  def empty(): STypeEnv = EmptySTypeEnv 
+  
 }
 
 

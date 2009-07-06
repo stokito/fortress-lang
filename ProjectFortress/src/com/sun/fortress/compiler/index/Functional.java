@@ -72,7 +72,8 @@ public abstract class Functional {
     
     /**
      * Evaluate the thunk to get a return type. Then replace the thunk with one
-     * that simply gets back the previously evaluated return type.
+     * that simply gets back the previously evaluated return type. After type
+     * checking, the result of this method will always be Some(type).
      */
     public Option<Type> getReturnType() {
         if (_thunk.isNone()) return Option.none();

@@ -233,7 +233,6 @@ public class StaticChecker {
                 result = typeCheck(component, env, traitTable, component_ast, true);
             } else {
                 TypeEnv typeEnv = typeCheckEnv(component, env);
-                ConstraintUtil.useScalaFormulas();
                 STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable, typeEnv, typeAnalyzer);
                 component_ast = typeChecker.typeCheck(component_ast);
                 component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
@@ -275,7 +274,6 @@ public class StaticChecker {
                                                Node component_ast,
                                                boolean postInference) {
         TypeEnv typeEnv = typeCheckEnv(component, env);
-        ConstraintUtil.useJavaFormulas();
         TypeChecker typeChecker = new TypeChecker(traitTable, typeEnv,
                                                   component, postInference);
         return component_ast.accept(typeChecker);

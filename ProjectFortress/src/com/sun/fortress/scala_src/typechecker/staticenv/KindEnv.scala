@@ -34,10 +34,6 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
   /** My binding type. */
   type EnvBinding = KindBinding
 
-  /** Extend me with the immediate bindings of the given node. */
-  def extendWith(node: Any): KindEnv =
-    new NestedKindEnv(this, KindEnv.extractEnvBindings(node))
-
   /**
    * Get the type of the given variable name, if it is bound. The resulting
    * type will only be defined if this name maps to a bool, int, or nat static
@@ -62,7 +58,7 @@ object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam]
  * @param _bindings A collection of all the bindings in this environment.
  */
 class NestedKindEnv protected (protected val parent: KindEnv,
-                               _bindings: Collection[KindBinding])
+                               _bindings: Iterable[KindBinding])
     extends KindEnv with NestedStaticEnv[StaticParam] {
     
   /** Internal representation of `bindings` is a map. */
@@ -79,12 +75,11 @@ object KindEnv extends StaticEnvCompanion[StaticParam] {
   /** My binding type. */
   type EnvBinding = KindBinding
   
-  /** New kind environment with empty parent and the node's bindings. */
-  def make(node: Any): KindEnv =
-    new NestedKindEnv(EmptyKindEnv, extractEnvBindings(node))
+  def empty():KindEnv = EmptyKindEnv
   
   /** Extract out the bindings in node. */
-  protected def extractEnvBindings(node: Any) : Collection[KindBinding] = null
+  protected def extractEnvBindings(node: Node) : Iterable[KindBinding] = Nil
+  protected def extractEnvBindings(node: Any) : Iterable[KindBinding] = Nil
 }
 
 /**
