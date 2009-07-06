@@ -36,7 +36,7 @@ chdir $path;
 my $checkRev=3300;	 # Only examine files from versions greater than this.
 my $checkDate = 2009;    # Only examine files in this year.
 my $rootDir = $path;
-my $copyright = "Copyright "; # The message to look for.
+my $copyright = "Copyright $checkDate"; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
 my $ignoreThese = 'ant|fortress-keywords|UserDictionary|README.txt|README$|\.fsg$|\.NW$|fortress.vim|\.ods|\.jar$|\.tic$|\.timing$|\.war$|\.zip$|\.tgz$|\/\.|^\.|^Sandbox';
 my $tempFile = '/tmp/svnInfo.xml';
@@ -73,7 +73,7 @@ foreach my $entry ((@{$doc->{entry}})){
      warn ("Can't open $entry->{path}") if (!$fh);
      while (($line = <$fh> )|| ($cnt++<$maxlines)) {
        print $line if ($debug);
-       if (($line =~ m/$copyright/) && ($line =~ m/$checkDate/)) {
+       if ($line =~ m/$copyright/) {
           $missingCopyRight=0;
           last;
 	}
