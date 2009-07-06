@@ -358,29 +358,31 @@ public class NamingCzar {
         return jvmTypeDesc(t, ifNone);
     }
 
-    public static String boxedImplType( com.sun.fortress.nodes.Type t ) {
+    
+    public static String boxedImplType( com.sun.fortress.nodes.Type t, APIName ifNone ) {
         // TODO: refactor to be like boxedImplDesc.  Somehow.
-        String desc = specialFortressTypes.get(t);
-
-        if (desc != null)
-            return desc;
-
-        if (t instanceof ArrowType) {
-
-        } else if (t instanceof BaseType) {
-            if (t instanceof AnyType) {
-                return FValueType;
-            } else if (t instanceof BottomType) {
-                return bug("Not sure how bottom type translates into Java");
-            } else if (t instanceof NamedType) {
-                if (t instanceof TraitType) {
-                    return FValueType;
-                } else if (t instanceof VarType) {
-                    return bug("Need a binding to translate a VarType into Java");
-                }
-            }
-        }
-        return bug ("unhandled type translation, Fortress type " + t);
+        return jvmTypeDesc(t, ifNone, false);
+//        String desc = specialFortressTypes.get(t);
+//
+//        if (desc != null)
+//            return desc;
+//
+//        if (t instanceof ArrowType) {
+//
+//        } else if (t instanceof BaseType) {
+//            if (t instanceof AnyType) {
+//                return FValueType;
+//            } else if (t instanceof BottomType) {
+//                return bug("Not sure how bottom type translates into Java");
+//            } else if (t instanceof NamedType) {
+//                if (t instanceof TraitType) {
+//                    return FValueType;
+//                } else if (t instanceof VarType) {
+//                    return bug("Need a binding to translate a VarType into Java");
+//                }
+//            }
+//        }
+//        return bug ("unhandled type translation, Fortress type " + t);
 
     }
 
@@ -624,6 +626,11 @@ public class NamingCzar {
 
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone) {
+        return jvmTypeDesc(type, ifNone, true);
+    }
+
+        public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
+            final APIName ifNone, final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
             public void defaultCase(ASTNode x) {
                 throw new CompilerError(NodeUtil.getSpan(x),
@@ -656,7 +663,7 @@ public class NamingCzar {
             public String forTraitType(TraitType t) {
                 Id id = t.getName();
                 String name = id.getText();
-                String result = specialFortressDescriptors.get(t);
+                String result = (withLSemi ? specialFortressDescriptors : specialFortressTypes).get(t);
                 if (result != null) {
                     Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
                                 " builtin ", result);
@@ -668,8 +675,9 @@ public class NamingCzar {
                                             "no api name given for id");
                 }
                 APIName api = maybeApi.unwrap(ifNone);
-                result = "L" + makeInnerClassName(api.getText(), name) + ";";
-
+                result = makeInnerClassName(api.getText(), name) ;
+                if (withLSemi)
+                    result = "L" + result + ";";
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;

@@ -22,6 +22,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -38,16 +39,19 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 */
 
 public class TaskVarCodeGen extends VarCodeGen {
-    String taskClass;
+    final String taskClass;
+    private final APIName ifNone;
 
-    public TaskVarCodeGen(VarCodeGen v, String taskClass) {
+    public TaskVarCodeGen(VarCodeGen v, String taskClass, APIName ifNone) {
         super(v.name, v.fortressType);
         this.taskClass = taskClass;
+        this.ifNone = ifNone;
         System.out.println("Creating a new TaskVarCodeGen from VarCodeGen " + v);
     }
 
-    public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass) {
+    public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass, APIName ifNone) {
         super(name, fortressType);
+        this.ifNone = ifNone;
         this.taskClass = taskClass;
     }
 
@@ -55,7 +59,7 @@ public class TaskVarCodeGen extends VarCodeGen {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
         mv.visitFieldInsn(Opcodes.GETFIELD, taskClass, 
                           name.getText(), 
-                          "L" + NamingCzar.only.boxedImplType(fortressType) + ";") ;
+                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone)) ;
 
     }
 
@@ -65,7 +69,8 @@ public class TaskVarCodeGen extends VarCodeGen {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(name.getText()));
         mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass, 
                           name.getText(), 
-                          "L" + NamingCzar.only.boxedImplType(fortressType) + ";" );
+                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone) 
+                          );
     }
 
     public void outOfScope(CodeGenMethodVisitor mv) {
