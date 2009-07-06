@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.typechecker.constraints;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.typechecker.constraints.JavaConstraintUtil;
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil;
 import com.sun.fortress.nodes.*;
@@ -28,42 +29,28 @@ import com.sun.fortress.compiler.typechecker.*;
  */
 public class ConstraintUtil {
 
-	private static boolean java = true;
-
-	public static void useJavaFormulas(){
-		java = true;
-	}
-
-	public static void useScalaFormulas(){
-		java = false;
-	}
-
-	public static void setJava(Boolean _java){
-		java = _java;
-	}
-
 	public static ConstraintFormula trueFormula() {
-		if(java)
+		if(!Shell.getScala())
 			return JavaConstraintUtil.trueFormula();
 		else
 			return ScalaConstraintUtil.TRUE_FORMULA();
 	}
 	public static ConstraintFormula falseFormula() {
-		if(java)
+		if(!Shell.getScala())
 			return JavaConstraintUtil.falseFormula();
 		else
 			return ScalaConstraintUtil.FALSE_FORMULA();
 	}
 
 	public static ConstraintFormula upperBound(_InferenceVarType ivar, Type type, SubtypeHistory h) {
-		if(java)
+		if(!Shell.getScala())
 			return JavaConstraintUtil.upperBound(ivar,type,h);
 		else
 			return ScalaConstraintUtil.upperBound(ivar,type,h);
 	}
 
 	public static ConstraintFormula lowerBound(_InferenceVarType ivar, Type type, SubtypeHistory h) {
-		if(java)
+		if(!Shell.getScala())
 			return JavaConstraintUtil.lowerBound(ivar,type,h);
 		else
 			return ScalaConstraintUtil.lowerBound(ivar,type,h);
@@ -79,7 +66,7 @@ public class ConstraintUtil {
 	}
 
 	public static ConstraintFormula fromBoolean(Boolean bool){
-		if(java)
+		if(!Shell.getScala())
 			return JavaConstraintUtil.fromBoolean(bool);
 		else
 			return ScalaConstraintUtil.fromBoolean(bool);

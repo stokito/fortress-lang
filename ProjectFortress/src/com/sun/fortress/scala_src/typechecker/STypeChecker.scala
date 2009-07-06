@@ -225,8 +225,13 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
   /**
    * Return the conditions for subtype <: supertype to hold.
    */
-  protected def checkSubtype(subtype: Type, supertype: Type): ScalaConstraint =
-    analyzer.subtype(subtype, supertype).asInstanceOf[ScalaConstraint]
+  protected def checkSubtype(subtype: Type, supertype: Type): ScalaConstraint = {
+    val constraint = analyzer.subtype(subtype, supertype) 
+    if (!constraint.isInstanceOf[ScalaConstraint]) {
+      bug("Not a ScalaConstraint.")
+    }
+    constraint.asInstanceOf[ScalaConstraint]
+  }
 
   protected def equivalentTypes(t1: Type, t2: Type): Boolean =
     analyzer.equivalent(t1, t2).isTrue
