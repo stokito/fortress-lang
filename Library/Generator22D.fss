@@ -1,43 +1,43 @@
 (*******************************************************************************
-  Generator-of-Generators Library is copyrighted free software by Kento Emoto 
-  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative 
-  research on Fortress Programming Language between Sun Microsystems, 
-  Inc. and the University of Tokyo.  
-  
-  You can redistribute it and/or modify it under the following 
+  Generator-of-Generators Library is copyrighted free software by Kento Emoto
+  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative
+  research on Fortress Programming Language between Sun Microsystems,
+  Inc. and the University of Tokyo.
+
+  You can redistribute it and/or modify it under the following
   BSD-style license or the Sun Contributor Agreement that Kento Emoto signed.
-  
-  
-  Copyright (c) 2009 by Kento Emoto
+
+
+  Copyright 2009 by Kento Emoto
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
-  modification, are permitted provided that the following conditions 
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
   are met:
-  
-      * Redistributions of source code must retain the above copyright 
+
+      * Redistributions of source code must retain the above copyright
         notice, this list of conditions and the following disclaimer.
-      * Redistributions in binary form must reproduce the above copyright 
-        notice, this list of conditions and the following disclaimer 
-        in the documentation and/or other materials provided with the 
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer
+        in the documentation and/or other materials provided with the
         distribution.
-      * Neither the name of Kento Emoto nor the names of its 
-        contributors may be used to endorse or promote products derived 
+      * Neither the name of Kento Emoto nor the names of its
+        contributors may be used to endorse or promote products derived
         from this software without specific prior written permission.
-  
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
-  
+
+
  ******************************************************************************)
 
 component Generator22D
@@ -50,8 +50,8 @@ export Generator22D
 (* GoG rows generates all rows of the given 2D array. *)
 
 
-rowsImpl[\E\](g) = 
-do 
+rowsImpl[\E\](g) =
+do
   bs = g.bounds()
   (il, jl) = bs.lower()
   (iu, ju) = bs.upper()
@@ -72,7 +72,7 @@ theorems[\R, L1, L2\]() =
 <|[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->R)\]
 (fn (r, q, f) => conditionAbiding[\ R, L1, L2 \](r, q, f), fn (r, q, f) => efficientImplAbiding[\ R, L1, L2 \](r, q, f))
 |>
-  
+
   (*--- conditions ---*)
   conditionAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : Boolean = abiding(q, r)
 
@@ -93,8 +93,8 @@ rows[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : R
 (*---------------------------------- Cols ----------------------------------*)
 (* GoG cols generates all columns of the given 2D array. *)
 
-colsImpl[\E\](g) = 
-do 
+colsImpl[\E\](g) =
+do
   bs = g.bounds()
   (il, jl) = bs.lower()
   (iu, ju) = bs.upper()
@@ -115,7 +115,7 @@ theorems[\R, L1, L2\]() =
 <|[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->R)\]
 (fn (r, q, f) => conditionAbiding[\ R, L1, L2 \](r, q, f), fn (r, q, f) => efficientImplAbiding[\ R, L1, L2 \](r, q, f))
 |>
-  
+
   (*--- conditions ---*)
   conditionAbiding[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : Boolean = abiding(q, r)
 
@@ -134,8 +134,8 @@ cols[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : C
 
 (*---------------------------------- Rects ----------------------------------*)
 
-rectsImpl[\E\](g) = 
-do 
+rectsImpl[\E\](g) =
+do
   bs = g.bounds()
   (il, jl) = bs.lower()
   (iu, ju) = bs.upper()
@@ -159,13 +159,13 @@ str_n(u) = do en = est_n u; cs = <|(chk(u,n),n) | n <- <|en-1, en, en+1|> |>; n 
 
 g[(iu-i0,ju-j0)#(i1+1,j1+1)]
 end
-)  
+)
 
 (* println(BIG //[r <- rows ret] (BIG |||[a <- r] a)) *)
  ret
 end
 
-(* Generator2 Rects *) 
+(* Generator2 Rects *)
 (* wanted to be Array2? (GGs on 2D is preferred to be Array2?) *)
 object Rects[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) extends {Generator2[\ E \]}
   getter seed() : Generator[\ E \] = g
@@ -180,7 +180,7 @@ theorems[\R, L1, L2\]() =
 <|[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->R)\]
 (fn (r, q, f) => conditionDistributive[\ R, L1, L2 \](r, q, f), fn (r, q, f) => efficientImplDistributive[\ R, L1, L2 \](r, q, f))
 |>
-  
+
   (*--- conditions ---*)
   conditionDistributive[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : Boolean = distributes(q, r)
 
@@ -207,7 +207,7 @@ theorems[\R, L1, L2\]() =
     tup = op.unlift(GeneratorATWrapper(seed()).generateAT[\AnyMaybe\](op, ot, fn a => op.lift(mssBody[\R\](f(a)))))
     tup.b
   end
-  
+
 end
 
 rects[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : Rects[\E, b0, s0, b1, s1\] = Rects[\E, b0, s0, b1, s1\](g)
@@ -224,18 +224,18 @@ object GeneratorATWrapper[\E, nat b1, nat s1, nat b2, nat s2\](x : Array2[\E, b1
     loop'(lo1:E,hi1:E,lo2:E,hi2:E) =
       if lo1=hi1 AND lo2=hi2 then body(x[(lo1,lo2)])
       elif lo1=hi1 then
-           split2 = partitionL((lo2 BITXOR hi2)+1)                      
-           mid2   = hi2 BITAND (BITNOT (split2-1))                      
+           split2 = partitionL((lo2 BITXOR hi2)+1)
+           mid2   = hi2 BITAND (BITNOT (split2-1))
            ot.join(loop'(lo1,hi1,lo2,mid2-1),loop'(lo1,hi1,mid2,hi2))
       elif lo2=hi2 then
-           split1 = partitionL((lo1 BITXOR hi1)+1)                      
-           mid1   = hi1 BITAND (BITNOT (split1-1))                      
+           split1 = partitionL((lo1 BITXOR hi1)+1)
+           mid1   = hi1 BITAND (BITNOT (split1-1))
            op.join(loop'(lo1,mid1-1,lo2,hi2),loop'(mid1,hi1,lo2,hi2))
-      else 
-           split2 = partitionL((lo2 BITXOR hi2)+1)                      
-           mid2   = hi2 BITAND (BITNOT (split2-1))                      
-           split1 = partitionL((lo1 BITXOR hi1)+1)                      
-           mid1   = hi1 BITAND (BITNOT (split1-1))                      
+      else
+           split2 = partitionL((lo2 BITXOR hi2)+1)
+           mid2   = hi2 BITAND (BITNOT (split2-1))
+           split1 = partitionL((lo1 BITXOR hi1)+1)
+           mid1   = hi1 BITAND (BITNOT (split1-1))
            op.join(ot.join(loop'(lo1,mid1-1,lo2,mid2-1),loop'(lo1,mid1-1,mid2,hi2)),
                    ot.join(loop'(mid1,hi1,lo2,mid2-1),loop'(mid1,hi1,mid2,hi2)))
       end
@@ -246,9 +246,9 @@ object GeneratorATWrapper[\E, nat b1, nat s1, nat b2, nat s2\](x : Array2[\E, b1
 (* for nested abide-tree reductions *)
 trait Generator2AT[\E\] extends { Generator2[\ E \], GeneratorAT[\GeneratorAT[\E\]\] }
   generate2AT[\R\](op:Reduction[\R\], ot:Reduction[\R\], om:Reduction[\R\], od:Reduction[\R\], body: E->R) : R
-  theoremsAT[\R\]() : List[\((Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], E -> R)->Boolean, 
+  theoremsAT[\R\]() : List[\((Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], E -> R)->Boolean,
                         (Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], Reduction[\ R \], E -> R)->R)\] = <| |>
-  naiveImplAT[\ R \](op:Reduction[\R\], ot:Reduction[\R\], om:Reduction[\R\], od:Reduction[\R\], f : E -> R) : R = 
+  naiveImplAT[\ R \](op:Reduction[\R\], ot:Reduction[\R\], om:Reduction[\R\], od:Reduction[\R\], f : E -> R) : R =
                             generateAT[\R\](op, ot, (fn (x) => x.generateAT[\R\](om,od,f)))
 end
 
@@ -317,7 +317,7 @@ opr BSD[\T, nat s0, nat s1, nat s2\](x : Array2[\T, 0, s0, 0, s1\], y : Array2[\
                                               B] *)
 opr ABV[\T, nat s0, nat s1, nat s2\](x : Array2[\T, 0, s0, 0, s1\], y : Array2[\T, 0, s2, 0, s1\]) : Array2[\T, 0, s0 + s2, 0, s1\] = array2[\T, s0 + s2, s1\]().fill(fn (i, j) => if i < s0 then x[(i,j)] else y[(i-s0, j)] end)
 
-(* construction of block-upper-triangular array: 
+(* construction of block-upper-triangular array:
      tri(A, B, C, z) = [A B
                         Z C] , where Z is an array filled with z (zero).
 *)
@@ -326,7 +326,7 @@ tri[\T, nat s0, nat s1, nat s2, nat s3\](x : Array2[\T, 0, s0, 0, s1\], u: Array
 (* generates with function an array of the same size as the given array. *)
 createArray2[\T, nat s0, nat s1\](_:Array2[\T, 0, s0, 0, s1\], f:(ZZ32,ZZ32)->T) : Array2[\T, 0, s0, 0, s1\] = array2[\T, s0, s1\]().fill(f)
 
-(* the lifted data structure for 
+(* the lifted data structure for
    oprimized computation of nested reduction with rects. *)
 trait SomeMSS2DTuple[\T\] end
 object MSS2DTuple[\T, nat s0, nat s1\](
@@ -368,7 +368,7 @@ r : Array2[\T, 0, s0, 0, s0\]
 (* annotation for operators with the `abide' property*)
 trait AbideWith[\T\] end
 
-abiding[\R, Q\]( r : R, q : Q ) = 
+abiding[\R, Q\]( r : R, q : Q ) =
 typecase(r, q) of
   (R, AbideWith[\R\]) => true
   else => false
@@ -376,7 +376,7 @@ end
 
 object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionBeside[\T\]\] }
   getter asString(): String = "MSS2DReductionAbove"
-  simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] = 
+  simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] =
   do
     (s0x, s1x) = x.size()
     (s0y, s1y) = y.size()
@@ -389,12 +389,12 @@ object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2
     s = createArray2(x.s, fn ij => op.join(y.s[ij], ot.join(y.c[ij], x.s[ij])))
     e = tri(x.e, gemm(op, ot, x.se, y.ne.t()), y.e, op.empty())
     w = tri(x.w, gemm(op, ot, x.sw, y.nw.t()), y.w, op.empty())
-    
+
     ne = (x.ne ABV (createArray2(y.ne, fn ij => do (i, j) = ij; ot.join(y.ne[ij], x.ne[(s0x-1, j)]) end)))
     nw = (x.nw ABV (createArray2(y.nw, fn ij => do (i, j) = ij; ot.join(y.nw[ij], x.nw[(s0x-1, j)]) end)))
     se = ((createArray2(x.se, fn ij => do (i, j) = ij; ot.join(x.se[ij], y.se[(0, j)]) end) ABV y.se))
     sw = ((createArray2(x.sw, fn ij => do (i, j) = ij; ot.join(x.sw[ij], y.sw[(0, j)]) end) ABV y.sw))
-    
+
     c = createArray2(x.c, fn ij => ot.join(x.c[ij], y.c[ij]))
     r = tri(x.r, gemm(op, ot, x.r[(0,s0x-1)#(s0x, 1)], y.r[(0,0)#(1,s0y)]), y.r, op.empty())
     __MSS2DTuple(b, n, s, e, w, ne, nw, se, nw, c, r)
@@ -403,7 +403,7 @@ end
 
 object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2DTuple[\T\]\], AbideWith[\MSS2DReductionAbove[\T\]\] }
     getter asString(): String = "MSS2DReductionBeside"
-    simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] = 
+    simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] =
     do
       (s0x, s1x) = x.size()
       (s0y, s1y) = y.size()
@@ -428,7 +428,7 @@ object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS
       c = tri(x.c, gemm(op, ot, (x.c[(0,s1x-1)#(s1x,1)]), (y.c[(0,0)#(1,s1y)])), y.c, op.empty())
       r = createArray2(x.r,fn  ij => ot.join(x.r[ij], y.r[ij]))
 
-      __MSS2DTuple(b, n, s, e, w, ne, nw, se, nw, c, r)      
+      __MSS2DTuple(b, n, s, e, w, ne, nw, se, nw, c, r)
     end
 end
 
