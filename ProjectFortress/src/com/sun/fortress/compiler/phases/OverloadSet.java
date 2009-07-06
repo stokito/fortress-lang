@@ -192,7 +192,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     final Type selectedParameterType;
 
     final int paramCount;
-
+    
+    final APIName ifNone;
+    
     /**
      * Which parameter is used to split this set into subsets?
      */
@@ -200,9 +202,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     OverloadSet[] children;
     boolean splitDone;
 
-    protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+    protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<TaggedFunctionName> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+        this.ifNone = ifNone;
         this.name = name;
         this.ta = ta;
         this.lessSpecificThanSoFar = lessSpecificThanSoFar;
@@ -214,8 +217,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
             Set<TaggedFunctionName> lessSpecificThanSoFar,
-            int paramCount) {
-        this(name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
+            int paramCount, APIName ifNone) {
+        this(ifNone, name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
             null, null, paramCount);
     }
     
@@ -226,7 +229,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             @Override
             public TaggedFunctionName apply(Function f) {
                 return new TaggedFunctionName(apiname, f);
-            }} ), n);
+            }} ), n, apiname);
 
         // Ensure that they are all the same size.
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
@@ -809,7 +812,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String s = "(";
 
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.boxedImplDesc(overloadedParamType(i), null);
+            s += NamingCzar.boxedImplDesc(overloadedParamType(i), ifNone);
         }
         s += ")";
         return s;
@@ -834,7 +837,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String[] string_exceptions = new String[exceptions.size()];
         int i = 0;
         for (Type e : exceptions) {
-            string_exceptions[i++] = NamingCzar.boxedImplDesc(e, null);
+            string_exceptions[i++] = NamingCzar.boxedImplDesc(e, ifNone);
         }
         return string_exceptions;
     }
@@ -858,7 +861,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 mv.visitVarInsn(Opcodes.ALOAD, i);
                 
                 Type ty = p.getIdType().unwrap();
-                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.boxedImplType(ty));
+                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc(ty, ifNone, false));
                 i++;
             }
             if (CodeGenerationPhase.debugOverloading)
@@ -874,7 +877,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (int i = 0; i < children.length; i++) {
                 OverloadSet os = children[i];
                 mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
-                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.boxedImplType(os.selectedParameterType));
+                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.jvmTypeDesc(os.selectedParameterType, ifNone, false));
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
@@ -986,7 +989,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     static public class Local extends AmongApis {
         public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
+            super(apiname, name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
 
                 @Override
                 public TaggedFunctionName apply(Function f) {
@@ -1019,23 +1022,23 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         /* Boilerplate follows, because this is a subtype. */
 
-        protected AmongApis(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+        protected AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
                 Set<TaggedFunctionName> lessSpecificThanSoFar,
                 BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
-            super(name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+            super(ifNone, name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
         }
 
-        public AmongApis(IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
-            super(name, ta, defs, n);
+        public AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
+            super(name, ta, defs, n, ifNone);
         }
         
         protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-            return new AmongApis(name, ta, childLSTSF,
+            return new AmongApis(ifNone, name, ta, childLSTSF,
                     childTestedIndices, this, t, paramCount);
         }
 
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName principalMember) {
-            OverloadSet subset =  new AmongApis(name, ta, childLSTSF, paramCount);
+            OverloadSet subset =  new AmongApis(ifNone, name, ta, childLSTSF, paramCount);
             subset.principalMember = principalMember;
             return subset;
         }

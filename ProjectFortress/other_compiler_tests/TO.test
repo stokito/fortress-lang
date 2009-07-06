@@ -16,4 +16,4 @@
 tests=ATrait
 link
 run
-run_out_contains=Hi!
+run_out_WImatches=Ha! Hi!

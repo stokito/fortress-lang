@@ -16,19 +16,26 @@
  ******************************************************************************)
 
 component ATrait
+
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
 export Executable
 
-trait T end
-trait U end
+trait Z end
+trait T extends Z end
+trait U extends Z end
 trait S extends {T,U} end
 
 object O() extends S end;
+object Q() extends U end;
 
-f(o:O):() = jPrintln("Hi!")
+f(o:O):() = jPrintln("Ha!")
+f(o:Z):() = jPrintln("Hi!")
+
+g(x:Z):() = f(x)
 
 run():() = do
-  f(O())
+  g(O())
+  g(Q())
   (* jPrintln("Hi!") *)
 end
 

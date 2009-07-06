@@ -122,16 +122,20 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 
+    private APIName thisApi() {
+        return ci.ast().getName();
+    }
+    
     private BATree<String, VarCodeGen> createTaskLexEnvVariables(String taskClass,
                                                                  BATree<String, VarCodeGen> old) {
         BATree<String, VarCodeGen> result = new BATree<String, VarCodeGen>(StringHashComparer.V);
         for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
 
             cw.visitField(Opcodes.ACC_PUBLIC, entry.getKey(), 
-                          NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, null), 
+                          NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()), 
                           null, null);
             
-            TaskVarCodeGen tvcg = new TaskVarCodeGen(entry.getValue(), taskClass);
+            TaskVarCodeGen tvcg = new TaskVarCodeGen(entry.getValue(), taskClass, thisApi());
             result.put(entry.getKey(), tvcg);
         }
 
@@ -152,7 +156,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             mv.visitFieldInsn(Opcodes.PUTFIELD,
                               task, entry.getKey(), 
-                              NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, null));
+                              NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()));
 
         }
     }
@@ -257,7 +261,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         NodeUtil.getSpan(x);
         TaskVarCodeGen t = new TaskVarCodeGen(NodeFactory.makeId(NodeUtil.getSpan(x), name),
                                               NamingCzar.fortressTypeForForeignJavaType(javaType),
-                                              taskClass);
+                                              taskClass, thisApi());
         cw.visitField(Opcodes.ACC_PUBLIC, name, javaType, null, 6847);        
         addLocalVar(t);
         return t;
@@ -1193,7 +1197,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             APIName apiname;
 
             if (fnapi.isNone()) {
-                apiname = ci.ast().getName();
+                apiname = thisApi();
                 set_of_f = fnrl.matchFirst(fn);
             } else {
                 apiname = fnapi.unwrap();
@@ -1220,7 +1224,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             int i = entry.getKey();
             Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
             if (fs.size() > 1) {
-                OverloadSet os = new OverloadSet.AmongApis(name,
+                OverloadSet os = new OverloadSet.AmongApis(thisApi(), name,
                         ta, fs, i);
 
                 os.split(false);
@@ -1250,7 +1254,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                Set<Function> fs = entry.getValue();
 
                OverloadSet os =
-                   new OverloadSet.Local(ci.ast().getName(), name,
+                   new OverloadSet.Local(thisApi(), name,
                                          ta, fs, i);
 
                os.split(true);
