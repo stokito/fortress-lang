@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<project name="Fortify" default="tex">
+<project name="Fortify" default="test">
     <description>
       The Fortress specification, written in LaTeX.
     </description>

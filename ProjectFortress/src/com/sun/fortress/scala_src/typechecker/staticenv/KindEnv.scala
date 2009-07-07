@@ -18,7 +18,12 @@
 package com.sun.fortress.scala_src.typechecker.staticenv
 
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.compiler.typechecker.ChildSubtypeCache
+import com.sun.fortress.compiler.typechecker.RootSubtypeCache
+import com.sun.fortress.compiler.typechecker.SubtypeCache
 import com.sun.fortress.nodes._
+import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Lists._
 import scala.collection.immutable.EmptyMap
 
 /**
@@ -33,6 +38,25 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
   
   /** My binding type. */
   type EnvBinding = KindBinding
+  
+  val subtypeCache: SubtypeCache
+  def getSubtypeCache(): SubtypeCache = subtypeCache
+  
+  /** Extend me with the immediate bindings of the given node. */
+  def extend(node: Node): KindEnv =
+    new NestedKindEnv(this, KindEnv.extractNodeBindings(node))
+  
+  /** Extend me with the immediate bindings of the given nodes. */
+  def extend[T <: Node](nodes: Iterable[T]): KindEnv =
+    new NestedKindEnv(this, nodes.flatMap(KindEnv.extractNodeBindings))
+  
+  /** Extend me with the immediate bindings of the given node. */
+  def extend(node: Node, where: Option[WhereClause]): KindEnv =
+    new NestedKindEnv(this, KindEnv.extractNodeBindings(node))
+  
+  /** Extend me with the immediate bindings of the given nodes. */
+  def extend[T<:Node](nodes: Iterable[T], where: Option[WhereClause]): KindEnv =
+    new NestedKindEnv(this, nodes.flatMap(KindEnv.extractNodeBindings))
 
   /**
    * Get the type of the given variable name, if it is bound. The resulting
@@ -46,10 +70,15 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
       case _:KindNat => Some(Types.INT_LITERAL)
       case _ => None
     })
+  
+  def staticParam(x: Name): Option[StaticParam] = lookup(x).map(_.value)
 }
 
 /** The single empty kind environment. */
-object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam]
+protected object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam] {
+  
+  val subtypeCache: SubtypeCache = RootSubtypeCache.INSTANCE
+}
 
 /**
  * A kind environment with a parent and some explicit bindings.
@@ -60,7 +89,10 @@ object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam]
 class NestedKindEnv protected (protected val parent: KindEnv,
                                _bindings: Iterable[KindBinding])
     extends KindEnv with NestedStaticEnv[StaticParam] {
-    
+  
+  /** Subtype cache used by the type analyzer for this kind env. */
+  val subtypeCache: SubtypeCache = new ChildSubtypeCache(parent.subtypeCache)
+  
   /** Internal representation of `bindings` is a map. */
   protected val bindings: Map[Name, KindBinding] =
     new EmptyMap ++ _bindings.map(b => b.name -> b)
@@ -75,11 +107,17 @@ object KindEnv extends StaticEnvCompanion[StaticParam] {
   /** My binding type. */
   type EnvBinding = KindBinding
   
-  def empty():KindEnv = EmptyKindEnv
+  /** Creates a fresh kind environment. */
+  def makeFresh: KindEnv = EmptyKindEnv.extend(Nil)
   
   /** Extract out the bindings in node. */
-  protected def extractEnvBindings(node: Node) : Iterable[KindBinding] = Nil
-  protected def extractEnvBindings(node: Any) : Iterable[KindBinding] = Nil
+  protected def extractNodeBindings(node: Node) : Iterable[KindBinding] =
+    node match {
+      case p:StaticParam => List(KindBinding(p.getName, p))
+      case g:Generic =>
+        toList(g.getHeader.getStaticParams).map(p => KindBinding(p.getName, p))
+      case _ => Nil
+    }
 }
 
 /**

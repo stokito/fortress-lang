@@ -99,6 +99,7 @@ import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
+import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -119,36 +120,27 @@ public class TypeAnalyzer {
     private static final int MAX_SUBTYPE_EXPANSIONS = 4;
 
     private final TraitTable _table;
-    private final TypeEnv _typeEnv;
-    private final SubtypeCache _cache;
+    private final KindEnv _kindEnv;
     private final SubtypeHistory _emptyHistory;
 
     public TypeAnalyzer(TraitTable table) {
-        this(table, TypeEnv.make(), RootSubtypeCache.INSTANCE);
+        this(table, TypesUtil.makeFreshKindEnv());
         validateEnvironment();
     }
 
-    public TypeAnalyzer(TraitTable table, TypeEnv typeEnv) {
-        this(table, typeEnv, RootSubtypeCache.INSTANCE);
+    public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
+        this(enclosing._table, enclosing._kindEnv.extend(toList(params), toOption(whereClause)));
     }
 
-    public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table,
-             enclosing._typeEnv.extendWithStaticParams(params),
-             enclosing._cache);
+    public TypeAnalyzer(TraitTable table, KindEnv kindEnv) {
+        _table = table;
+        _kindEnv = kindEnv;
+        _emptyHistory = new SubtypeHistory(this);
     }
 
     public TraitTable traitTable() { return _table; }
 
-    public TypeEnv typeEnv() { return _typeEnv; }
-
-    private TypeAnalyzer(TraitTable table, TypeEnv typeEnv,
-                         SubtypeCache parentCache) {
-        _table = table;
-        _typeEnv = typeEnv;
-        _cache = new ChildSubtypeCache(parentCache);
-        _emptyHistory = new SubtypeHistory(this);
-    }
+    public KindEnv kindEnv() { return _kindEnv; }
 
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
@@ -509,7 +501,7 @@ public class TypeAnalyzer {
     ConstraintFormula sub(final Type sub_type, final Type super_type, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, sub_type, super_type);
         ConstraintFormula result;
-        Option<ConstraintFormula> cached = _cache.get(sub_type, super_type, history);
+        Option<ConstraintFormula> cached = _kindEnv.getSubtypeCache().get(sub_type, super_type, history);
         if (cached.isSome()) {
             result = cached.unwrap();
            debug.log("found in cache");
@@ -662,7 +654,7 @@ public class TypeAnalyzer {
                     }
                 });
             }
-            _cache.put(sub_type, super_type, history, result);
+            _kindEnv.getSubtypeCache().put(sub_type, super_type, history, result);
         }
         debug.logEnd("result", result);
         return result;
@@ -774,7 +766,7 @@ public class TypeAnalyzer {
     }
 
     private ConstraintFormula varSub(VarType s, final Type t, final SubtypeHistory h) {
-        Option<StaticParam> param = _typeEnv.staticParam(s.getName());
+        Option<StaticParam> param = toJavaOption(_kindEnv.staticParam(s.getName()));
 
         if( param.isNone() )
             return bug("The following type is not in scope: " +
@@ -801,8 +793,8 @@ public class TypeAnalyzer {
             return trueFormula();
         }
         else {
-            Option<StaticParam> t_param_ = _typeEnv.staticParam(t.getName());
-            Option<StaticParam> s_param_ = _typeEnv.staticParam(s.getName());
+            Option<StaticParam> t_param_ = toJavaOption(_kindEnv.staticParam(t.getName()));
+            Option<StaticParam> s_param_ = toJavaOption(_kindEnv.staticParam(s.getName()));
 
             if( t_param_.isNone() || s_param_.isNone() )
                 return bug("We are being asked about types that are not in scope:\n(" +
@@ -1195,65 +1187,6 @@ public class TypeAnalyzer {
             return sub(sThrows, tThrows, h);
         }
         else { return falseFormula(); }
-    }
-
-
-
-
-
-    /**
-     * A mutable collection of subtyping results from previously-completed invocations
-     * of subtyping in a specific type context.
-     */
-    protected static abstract class SubtypeCache {
-        public abstract void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c);
-        public abstract Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h);
-        public abstract int size();
-    }
-
-    protected static class RootSubtypeCache extends SubtypeCache {
-        public static final RootSubtypeCache INSTANCE = new RootSubtypeCache();
-        private RootSubtypeCache() {}
-        public void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c) {
-            throw new IllegalArgumentException("Can't add values to the root cache");
-        }
-        public Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h) {
-            return Option.none();
-        }
-        public int size() { return 0; }
-        public String toString() { return "<root cache>"; }
-    };
-
-    protected static class ChildSubtypeCache extends SubtypeCache {
-
-        private final SubtypeCache _parent;
-        private final HashMap<Pair<Type,Type>, ConstraintFormula> _results;
-
-        public ChildSubtypeCache(SubtypeCache parent) {
-            _parent = parent;
-            _results = new HashMap<Pair<Type,Type>, ConstraintFormula>();
-        }
-
-        public void put(Type s, Type t, SubtypeHistory h, ConstraintFormula c) {
-            InferenceVarTranslator trans = new InferenceVarTranslator();
-            _results.put(Pair.make(trans.canonicalizeVars(s), trans.canonicalizeVars(t)),
-                         c.applySubstitution(trans.canonicalSubstitution()));
-        }
-
-        public Option<ConstraintFormula> get(Type s, Type t, SubtypeHistory h) {
-            // we currently ignore the history, leading to incorrect results in some cases
-            InferenceVarTranslator trans = new InferenceVarTranslator();
-            ConstraintFormula result = _results.get(Pair.make(trans.canonicalizeVars(s),
-                                                              trans.canonicalizeVars(t)));
-            if (result == null) { return _parent.get(s, t, h); }
-            else { return Option.some(result.applySubstitution(trans.revertingSubstitution())); }
-        }
-
-        public int size() { return _results.size() + _parent.size(); }
-
-        public String toString() {
-            return IterUtil.multilineToString(_results.entrySet()) + "\n=====\n" + _parent.toString();
-        }
     }
 
 }

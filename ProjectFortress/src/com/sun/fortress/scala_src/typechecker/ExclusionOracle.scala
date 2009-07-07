@@ -73,8 +73,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case (SAnyType(_), _) => false
       case (_, SAnyType(_)) => false
       case (f@SVarType(_,_,_), s@SVarType(_,_,_)) =>
-        ( toOption(typeAnalyzer.typeEnv.staticParam(f.getName)),
-          toOption(typeAnalyzer.typeEnv.staticParam(s.getName)) ) match {
+        ( toOption(typeAnalyzer.kindEnv.staticParam(f.getName)),
+          toOption(typeAnalyzer.kindEnv.staticParam(s.getName)) ) match {
           case (Some(fp), Some(sp)) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
@@ -104,7 +104,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
             false
         }
       case (f@SVarType(_,_,_), _) =>
-        toOption(typeAnalyzer.typeEnv.staticParam(f.getName)) match {
+        toOption(typeAnalyzer.kindEnv.staticParam(f.getName)) match {
           case Some(fp) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
@@ -119,7 +119,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
             false
         }
       case (_, s@SVarType(_,_,_)) =>
-        toOption(typeAnalyzer.typeEnv.staticParam(s.getName)) match {
+        toOption(typeAnalyzer.kindEnv.staticParam(s.getName)) match {
           case Some(sp) =>
             var result = false
             if ( NodeUtil.isTypeParam( sp ) ) {

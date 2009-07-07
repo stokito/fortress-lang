@@ -24,7 +24,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TypeEnv
+import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.ErrorLog
@@ -77,14 +77,14 @@ class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer,
     result
   }
 
-  def makeOracle(env: TypeEnv):CoercionOracle = {
+  def makeOracle(env: KindEnv):CoercionOracle = {
     new CoercionOracle(env, traits, coercionTable, exclusionOracle)
   }
 
   def getErrors() = toJavaList(errors.errors)
 }
 
-class CoercionOracle(env: TypeEnv, traits: TraitTable, coercions:Map[Type,Set[Type]], exclusions: ExclusionOracle) {
+class CoercionOracle(env: KindEnv, traits: TraitTable, coercions:Map[Type,Set[Type]], exclusions: ExclusionOracle) {
   def mostSpecific(cs: Set[Type]): Option[Type] = {
     if (cs.isEmpty) {
       throw new InterpreterBug("Attempt to find the most specific type in an empty set")

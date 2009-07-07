@@ -39,11 +39,21 @@ trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
    * Extend this environment with the bindings immediately contained in the
    * given node.
    * 
-   * @param node A node or collection of nodes in which to find bindings.
+   * @param node A node in which to find bindings.
    * @return A new environment with the bindings of this one and those found in
    *         `node` combined.
    */
-
+  def extend(node: Node): Env
+  
+  /**
+   * Extend this environment with the bindings immediately contained in the
+   * given collection of nodes.
+   * 
+   * @param node A collection of nodes in which to find bindings.
+   * @return A new environment with the bindings of this one and those found in
+   *         `nodes` combined.
+   */
+  def extend[T <: Node](nodes: Iterable[T]): Env
   
   /**
    * Gets the value stored for the given variable name, if that binding exists.
@@ -55,6 +65,9 @@ trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
   
   /** Same as lookup when treating implementing object as a function. */
   def apply(x: Name): Option[EnvBinding] = lookup(x)
+  
+  /** Does the environment contain a binding for the given name? */
+  def isDefinedAt(x: Name): Boolean = lookup(x).isDefined
   
   /**
    * Gets the type stored for the given variable name, if that binding exists.
@@ -134,30 +147,7 @@ trait StaticEnvCompanion[T] {
    * @param node A node in which to extract bindings.
    * @return A collection of all the bindings extracted in the given node.
    */
-  protected def extractEnvBindings(node: Node): Iterable[EnvBinding]
-  
-  /**
-   * Extracts all the _immediate_ bindings for this kind of environment from the
-   * given nodes. Any bindings located further inside the nodes will not be
-   * extracted. This overloading simply flatMaps the other overloading for
-   * convenience.
-   * 
-   * @param nodes A collection of nodes in which to extract bindings.
-   * @return A collection of all the bindings extracted in the given node.
-   */
-  protected def extractEnvBindings(nodes: Iterable[Node])
-                                   : Iterable[EnvBinding] =
-    nodes.flatMap(extractEnvBindings)
-  
-  /**
-   * Creates a new instance of the environment containing all the bindings
-   * found in the given node.
-   * 
-   * @param node A node or collection of nodes in which to find bindings.
-   * @return A new instance of Env containing these bindings.
-   */
-  def empty(): Env
-  
+  protected def extractNodeBindings(node: Node): Iterable[EnvBinding]
 }
 
 
