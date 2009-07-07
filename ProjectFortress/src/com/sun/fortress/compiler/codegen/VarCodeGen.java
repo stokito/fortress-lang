@@ -21,6 +21,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.MethodVisitor;
 
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -80,6 +81,35 @@ public abstract class VarCodeGen {
         }
     }
 
+    public static class SingletonObject extends VarCodeGen {
+        
+        private final String packageAndClassName;
+        private final String objectFieldName;
+        private final String classDesc;
+        
+        public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+            super(id, fortressType);
+            this.packageAndClassName = owner;
+            this.objectFieldName = name;
+            this.classDesc = desc;
+        }
+        
+        public void pushValue(CodeGenMethodVisitor mv) {
+            mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            throw new CompilerError(errorMsg("Invalid assignment to singleton object ",name,
+                    ": ", fortressType));
+        }
+
+        @Override
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            // never happens
+        }
+        
+    }
+    
     /** Function parameter.  Since function parameters are immutable
      * in Fortress, we assume that we won't need other special
      * provisions for them (we'll simply copy references where
