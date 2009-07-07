@@ -49,7 +49,7 @@ class CoercionTest(analyzer:TypeAnalyzer, exclusionOracle:ExclusionOracle) {
   def run() = {
     val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer,
                                             exclusionOracle, exclusionOracle.errors)
-    val oracle = factory.makeOracle(analyzer.typeEnv)
+    val oracle = factory.makeOracle(analyzer.kindEnv)
     factory.getErrors
   }
 }

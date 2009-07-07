@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
+import static com.sun.fortress.scala_src.useful.Lists.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.scala_src.typechecker.staticenv.*;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -66,7 +68,15 @@ import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*
  * Contains static utility methods for type checking.
  */
 public class TypesUtil {
-
+  
+    /** The empty type environment as defined in the Scala code. */
+    public static STypeEnv EMPTY_TYPE_ENV = STypeEnv$.MODULE$.EMPTY();
+    
+    /** The empty kind environment as defined in the Scala code. */
+    public static KindEnv makeFreshKindEnv() {
+      return KindEnv$.MODULE$.makeFresh();
+    }
+    
     public static class ArgList {
 
         private final List<Type> _args;
