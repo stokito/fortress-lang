@@ -97,9 +97,8 @@ object ExportChecker {
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
     def checkExports(component: ComponentIndex,
-                     globalEnv: GlobalEnvironment,
-                     repository: FortressRepository): JavaList[StaticError] = {
-        val overloadingChecker = new OverloadingChecker(component, globalEnv, repository)
+                     globalEnv: GlobalEnvironment): JavaList[StaticError] = {
+        val overloadingChecker = new OverloadingChecker(component, globalEnv)
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
         var missingDecls  = List[ASTNode]()
@@ -122,9 +121,9 @@ object ExportChecker {
         var exports = List[APIName]()
         for ( e <- toSet(component.exports) ) exports = e :: exports
         for ( e <- exports.sort((a1,a2) => (a1.getText compareTo a2.getText) < 0) ) {
-            // We are assured at this point that all exported API names refer to an 
+            // We are assured at this point that all exported API names refer to an
             // API in the globalEnv
-            val api = globalEnv.api(e) 
+            val api = globalEnv.api(e)
             val apiName = api.ast.getName
 
             /* Multiple APIs exported by a single component cannot include

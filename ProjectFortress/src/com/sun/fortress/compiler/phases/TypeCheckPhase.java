@@ -54,15 +54,14 @@ public class TypeCheckPhase extends Phase {
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
                 .union(repository.apis(), apiIndex.apis()));
 
-        StaticChecker.ApiResult apiSR = StaticChecker.checkApis(
-                apiIndex.apis(), apiEnv, repository);
+        StaticChecker.ApiResult apiSR = StaticChecker.checkApis(apiIndex.apis(), apiEnv);
 
         if (!apiSR.isSuccessful()) {
             throw new MultipleStaticError(apiSR.errors());
         }
 
-        StaticChecker.ComponentResult componentSR = StaticChecker
-            .checkComponents(componentIndex.components(), env, repository);
+        StaticChecker.ComponentResult componentSR =
+            StaticChecker.checkComponents(componentIndex.components(), env);
 
         if (!componentSR.isSuccessful()) {
             throw new MultipleStaticError(componentSR.errors());
