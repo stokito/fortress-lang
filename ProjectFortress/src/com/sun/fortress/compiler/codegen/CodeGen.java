@@ -58,7 +58,7 @@ import com.sun.fortress.useful.StringHashComparer;
 // shout out.
 public class CodeGen extends NodeAbstractVisitor_void {
     CodeGenClassWriter cw;
-    CodeGenMethodVisitor mv;
+    CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
     private final Map<String, ClassWriter> traitsAndObjects =
         new BATree<String, ClassWriter>(DefaultComparator.normal());
@@ -67,11 +67,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private final ParallelismAnalyzer pa;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
     private HashSet<String> overloadedNamesAndSigs;
+    private final List<ObjectDecl> singletonObjects;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
-    // to dotted notation at this point, right?  Right?
-    BATree<String, VarCodeGen> lexEnv = null;
+    // to dotted notation at this point, right?  Right?  (No, not.)
+    private BATree<String, VarCodeGen> lexEnv;
     Symbols symbols;
     boolean inATrait = false;
     boolean inAnObject = false;
@@ -91,6 +92,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
         this.overloadedNamesAndSigs = new HashSet<String>();
+        this.singletonObjects = new ArrayList<ObjectDecl>();
+        this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
@@ -115,11 +118,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.ci = c.ci;
         this.topLevelOverloads = c.topLevelOverloads;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
-        if (c.lexEnv == null) {
-            this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
-        } else {
-            this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
-        }
+        this.singletonObjects = c.singletonObjects;
+        this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
+        
     }
 
     private APIName thisApi() {
@@ -239,6 +240,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         debug("addLocalVar " + v);
         lexEnv.put(v.name.getText(), v);
         localsDepth += v.sizeOnStack;
+    }
+
+    private void addStaticVar( VarCodeGen v ) {
+        debug("addLocalVar " + v);
+        lexEnv.put(v.name.getText(), v);
     }
 
     private VarCodeGen addParam(Param p) {
@@ -467,6 +473,30 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         // Must do this first, to get local decls right.
         generateTopLevelOverloads();
+        
+        // Must process these to put them into scope.
+        for (Decl d : x.getDecls()) {
+            if (d instanceof ObjectDecl) {
+                this.forObjectDeclPrePass((ObjectDecl) d);
+            }
+        }
+
+        // Static initializer for this class.
+        mv = cw.visitMethod(Opcodes.ACC_STATIC,
+                "<clinit>",
+                "()V",
+                null,
+                null);
+
+       // Singletons; 
+        
+        for (ObjectDecl y : singletonObjects) {
+            singletonObjectFieldAndInit(y);
+        }
+        
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
 
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
@@ -739,6 +769,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forObjectDecl(ObjectDecl x) {
+    }
+    
+    public void forObjectDeclPrePass(ObjectDecl x) {
         debug("forObjectDecl", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
@@ -763,34 +796,26 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
                 NodeUtil.getName(x).getText());
 
-        String classDesc = NamingCzar.only.internalToDesc(classFile);
         String objectFieldName = x.getHeader().getName().stringName();
 
-        if (classFile.equals("CompilerSystem$args")) {
-            // TODO: Make this work for real!  Only works for default_args today.
-            debug("header.getDecls:", header.getDecls());
-
-            // Singleton field.
-            cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                    objectFieldName,
-                          classDesc,
-                          null,
-                          null);
-
-            mv = cw.visitMethod(Opcodes.ACC_STATIC,
-                                "<clinit>",
-                                "()V",
-                                null,
-                                null);
-
-            mv.visitTypeInsn(Opcodes.NEW, classFile);
-            mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
-            mv.visitFieldInsn(Opcodes.PUTSTATIC, "CompilerSystem", objectFieldName, classDesc);
-            mv.visitInsn(Opcodes.RETURN);
-            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-            mv.visitEnd();
-        } else if (x.getParams().isSome()) {
+//        if (classFile.equals("CompilerSystem$args")) {
+//            // TODO: Make this work for real!  Only works for default_args today.
+//            debug("header.getDecls:", header.getDecls());
+//
+//            mv = cw.visitMethod(Opcodes.ACC_STATIC,
+//                    "<clinit>",
+//                    "()V",
+//                    null,
+//                    null);
+//
+//            singletonObjectFieldAndInit(x);
+//            
+//            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+//            mv.visitEnd();
+//        } else
+        if (x.getParams().isSome()) {
+            // Generate the factory method
+            String classDesc = NamingCzar.only.internalToDesc(classFile);
             mv = cw.visitMethod(Opcodes.ACC_STATIC,
                     objectFieldName,
                     "()"+classDesc,
@@ -803,6 +828,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
+        } else { // singleton
+            // Add to list to be initialized in clinit
+            singletonObjects.add(x);
         }
 
         CodeGenClassWriter prev = cw;
@@ -818,15 +846,46 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // This depends on the number of parameters.
         generateInitMethod();
 
-        for (Decl d : header.getDecls()) {
+         for (Decl d : header.getDecls()) {
             d.accept(this);
-            // If we have a singleton object we can create a default_xxx accessor for it.
-            if (d instanceof ObjectDecl) {
-            }
         }
         dumpClass( classFile );
         cw = prev;
         inAnObject = savedInAnObject;
+    }
+
+    /**
+     * @param classFile
+     * @param objectFieldName
+     */
+    private void singletonObjectFieldAndInit(ObjectDecl x) {
+        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+                NodeUtil.getName(x).getText());
+        
+        String objectFieldName = x.getHeader().getName().stringName();
+
+
+        String classDesc = NamingCzar.only.internalToDesc(classFile);
+
+         // Singleton field.
+        cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+                objectFieldName,
+                      classDesc,
+                      null,
+                      null);
+
+        mv.visitTypeInsn(Opcodes.NEW, classFile);
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
+        mv.visitFieldInsn(Opcodes.PUTSTATIC, packageAndClassName, objectFieldName, classDesc);
+        
+        Id id = (Id)  x.getHeader().getName();
+        
+        addStaticVar(new VarCodeGen.SingletonObject(
+                    id,
+                    NodeFactory.makeTraitType(id),
+                    packageAndClassName, objectFieldName, classDesc
+                ));
     }
 
     private void generatePrintArgs(CodeGen cg) {
