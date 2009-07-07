@@ -25,7 +25,6 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
@@ -33,6 +32,7 @@ import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.typechecker._
+import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.ErrorLog
@@ -153,28 +153,13 @@ trait Misc { self: STypeChecker with Common =>
   def checkMisc(node: Node): Node = node match {
 
     case id@SId(info,api,name) => {
-      api match {
-        case Some(_) => {
-          val newName = handleAlias(id, toList(current.ast.getImports))
-          getTypeFromName( newName ) match {
-            case None =>
-              // Operators are never qualified in source code,
-              // so if 'name' is qualified and not found,
-              // it must be an Id, not an Op.
-              signal(id, errorMsg("Attempt to reference unbound variable: ", id))
-            case _ => id
-          }
+      getTypeFromName(id) match {
+        case Some(ty) => ty match {
+          case SLabelType(_) => // then, newName must be an Id
+            signal(id, errorMsg("Cannot use label name ", id, " as an identifier."))
+          case _ =>
         }
-        case _ => {
-          getTypeFromName( id ) match {
-            case Some(ty) => ty match {
-              case SLabelType(_) => // then, newName must be an Id
-                signal(id, errorMsg("Cannot use label name ", id, " as an identifier."))
-              case _ =>
-            }
-            case _ => signal(id, errorMsg("Variable '", id, "' not found."))
-          }
-        }
+        case None => signal(id, errorMsg("Variable '", id, "' not found."))
       }
       id
     }
@@ -211,7 +196,7 @@ trait Misc { self: STypeChecker with Common =>
       val oi = IndexBuilder.buildObjectExprIndex(o)
       val methods = new UnionRelation(inheritedMethods(extendsC),
                                       oi.asInstanceOf[ObjectTraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
-      method_checker = method_checker.extendWithMethods(methods)
+      method_checker = method_checker.extendWithFunctions(methods)
       method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[ObjectTraitIndex].functionalMethods)
       // Extend method checker with self
       selfType match {
@@ -266,7 +251,7 @@ trait Misc { self: STypeChecker with Common =>
     }
 
     case s@SSpawn(SExprInfo(span,paren,optType), body) => {
-      val newExpr = this.extendWithout(s, labelExitTypes.keySet).checkExpr(body)
+      val newExpr = this.extendWithout(s, toSet(labelExitTypes.keySet)).checkExpr(body)
       getType(newExpr) match {
         case Some(typ) =>
           SSpawn(SExprInfo(span,paren,Some(Types.makeThreadType(typ))), newExpr)
@@ -521,7 +506,7 @@ trait Misc { self: STypeChecker with Common =>
   /** A type checker that signals an error if a spawn expr occurs inside it. */
   class AtomicChecker(current: CompilationUnitIndex,
                       traits: TraitTable,
-                      env: TypeEnv,
+                      env: STypeEnv,
                       analyzer: TypeAnalyzer,
                       errors: ErrorLog,
                       enclosingExpr: String)

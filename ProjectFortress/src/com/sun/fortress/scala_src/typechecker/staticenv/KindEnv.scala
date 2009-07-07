@@ -95,7 +95,7 @@ class NestedKindEnv protected (protected val parent: KindEnv,
   
   /** Internal representation of `bindings` is a map. */
   protected val bindings: Map[Name, KindBinding] =
-    new EmptyMap ++ _bindings.map(b => b.name -> b)
+    Map(_bindings.map(b => (b.name, b)).toSeq:_*)
 }
 
 /** Companion module for KindEnv; contains "static" members. */

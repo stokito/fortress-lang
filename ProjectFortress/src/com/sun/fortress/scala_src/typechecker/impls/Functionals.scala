@@ -61,7 +61,7 @@ trait Functionals { self: STypeChecker with Common =>
       conjuncts(typ).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
 
     // Get the trait types callable from the upper bounds of this parameter.
-    case SVarType(_, name, _) => toOption(env.staticParam(name)) match {
+    case SVarType(_, name, _) => toOption(analyzer.kindEnv.staticParam(name)) match {
       case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
         Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
       case _ => Set.empty[TraitType]

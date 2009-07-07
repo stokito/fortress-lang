@@ -18,9 +18,11 @@
 package com.sun.fortress.scala_src.typechecker.staticenv
 
 import _root_.java.util.{Map => JMap}
-import com.sun.fortress.nodes.Name
-import com.sun.fortress.nodes.Node
-import com.sun.fortress.nodes.Type
+import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Options._
 import edu.rice.cs.plt.collect.Relation
 
 /**
@@ -77,11 +79,19 @@ trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
    */
   def getType(x: Name): Option[Type]
   
-  /** Not in Iterable, but specify size. */
-  def size: Int
-  
   /** Make the type on `Collection.elements` more specific. */
   def elements: Iterator[EnvBinding]
+  
+  /** Strip the API out of the given name. */
+  protected def stripApi(x: Name): Name = x match {
+    case SId(info, Some(api), text) => SId(info, None, text)
+    case SOp(info, Some(api), text, fix, enc) =>
+      SOp(info, None, text, fix, enc)
+    case x:AnonymousFnName => NF.makeAnonymousFnName(NU.getSpan(x), none[APIName])
+    case x:ConstructorFnName =>
+      NF.makeConstructorFnName(NU.getSpan(x), none[APIName], x.getConstructor)
+    case _ => x
+  }
 }
 
 /**
@@ -98,7 +108,6 @@ trait EmptyStaticEnv[T] extends StaticEnv[T] {
   
   // Collection implementation
   override def elements: Iterator[EnvBinding] = Iterator.empty
-  override def size: Int = 0
 }
 
 /**
@@ -117,14 +126,13 @@ trait NestedStaticEnv[T] extends StaticEnv[T] {
   protected val bindings: Map[Name, EnvBinding]
   
   /** Find it among `bindings` or else in `parent`. */
-  def lookup(x: Name): Option[EnvBinding] = bindings.get(x) match {
+  def lookup(x: Name): Option[EnvBinding] = bindings.get(stripApi(x)) match {
     case Some(v) => Some(v)
     case None => parent.lookup(x)
   }
   
   // Collection implementation
   def elements: Iterator[EnvBinding] = parent.elements ++ bindings.values
-  def size: Int = parent.size + bindings.size
 }
 
 /**

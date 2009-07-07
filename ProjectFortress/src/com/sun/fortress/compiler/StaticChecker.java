@@ -55,6 +55,8 @@ import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
+import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
+import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -243,7 +245,7 @@ public class StaticChecker {
                     result = typeCheck(componentIndex, env, traitTable,
                                        component_ast, true);
                 } else {
-                    TypeEnv typeEnv = typeCheckEnv(componentIndex, env);
+                    STypeEnv typeEnv = STypeEnv$.MODULE$.make(componentIndex);
                     STypeChecker typeChecker =
                         STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
                     ast = (Component)typeChecker.typeCheck(component_ast);

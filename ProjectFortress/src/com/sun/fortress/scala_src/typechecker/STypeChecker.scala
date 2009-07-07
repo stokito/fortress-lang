@@ -17,25 +17,17 @@
 
 package com.sun.fortress.scala_src.typechecker
 
-//import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Map => JavaMap}
 import _root_.java.util.{HashMap => JavaHashMap}
 import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
-//import edu.rice.cs.plt.collect.EmptyRelation
-//import edu.rice.cs.plt.collect.UnionRelation
-//import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
+import com.sun.fortress.compiler.index.Functional
 import com.sun.fortress.compiler.index.Method
-//import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
-//import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.typechecker.TypeNormalizer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.TypeEnv
-//import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
@@ -44,22 +36,16 @@ import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.ProgramError.error
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
-//import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.Modifiers
-//import com.sun.fortress.nodes_util.NodeUtil
-//import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.impls._
-//import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
-//import com.sun.fortress.scala_src.useful.ASTGenHelper._
+import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
-//import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
-//import com.sun.fortress.useful.NI
 
 /* Quesitons
  */
@@ -71,13 +57,13 @@ object STypeCheckerFactory {
 
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
-           env: TypeEnv,
+           env: STypeEnv,
            analyzer: TypeAnalyzer): STypeCheckerImpl =
     new STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog)
   
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
-           env: TypeEnv,
+           env: STypeEnv,
            analyzer: TypeAnalyzer,
            errors: ErrorLog): STypeCheckerImpl =
     new STypeCheckerImpl(current, traits, env, analyzer, errors)
@@ -89,7 +75,7 @@ object STypeCheckerFactory {
  */
 class STypeCheckerImpl(current: CompilationUnitIndex,
                        traits: TraitTable,
-                       env: TypeEnv,
+                       env: STypeEnv,
                        analyzer: TypeAnalyzer,
                        errors: ErrorLog)
     extends STypeChecker(current, traits, env, analyzer, errors)
@@ -112,27 +98,27 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
  */
 abstract class STypeChecker(protected val current: CompilationUnitIndex,
                             protected val traits: TraitTable,
-                            protected val env: TypeEnv,
+                            protected val env: STypeEnv,
                             protected val analyzer: TypeAnalyzer,
                             protected val errors: ErrorLog) {
 
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
-  def extend(newEnv: TypeEnv, newAnalyzer: TypeAnalyzer) =
+  def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
     STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors)
 
   def extend(bindings: List[LValue]) =
     STypeCheckerFactory.make(current,
                              traits,
-                             env.extendWithLValues(toJavaList(bindings)),
+                             env.extend(bindings),
                              analyzer,
                              errors)
 
   def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
     STypeCheckerFactory.make(current,
                              traits,
-                             env.extendWithStaticParams(sparams),
+                             env,
                              analyzer.extend(sparams, where),
                              errors)
 
@@ -142,14 +128,13 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
     case Some(ps) =>
       STypeCheckerFactory.make(current,
                                traits,
-                               env.extendWithParams(ps)
-                                   .extendWithStaticParams(sparams),
+                               env.extend(ps),
                                analyzer.extend(sparams, where),
                                errors)
     case None =>
       STypeCheckerFactory.make(current,
                                traits,
-                               env.extendWithStaticParams(sparams),
+                               env,
                                analyzer.extend(sparams, where),
                                errors)
   }
@@ -168,26 +153,17 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
                              analyzer,
                              errors)
 
-  def extendWithFunctions(methods: Relation[IdOrOpOrAnonymousName,
-                                            JavaFunctionalMethod]) =
+  def extendWithFunctions[T <: Functional](methods: Relation[IdOrOpOrAnonymousName, T]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env.extendWithFunctions(methods),
                              analyzer,
                              errors)
 
-  def extendWithMethods(methods: Relation[IdOrOpOrAnonymousName,
-                                          Method]) =
+  def extendWithout(declSite: Node, names: Set[Id]) =
     STypeCheckerFactory.make(current,
                              traits,
-                             env.extendWithMethods(methods),
-                             analyzer,
-                             errors)
-
-  def extendWithout(declSite: Node, names: JavaSet[Id]) =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env.extendWithout(declSite, names),
+                             env.extendWithout(names),
                              analyzer,
                              errors)
 
@@ -240,59 +216,66 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
     TypeNormalizer.normalize(ty)
 
   /**
+   * Get the TypeEnv that corresponds to this API.
+   */
+  protected def getEnvFromApi(api: APIName): STypeEnv =
+    STypeEnv.make(traits.compilationUnit(api))
+  
+  /**
    * Replaces the given name with the name it aliases
    * (or leaves it alone if it doesn't alias any thing)
    */
-  protected def handleAlias(name: Id, imports: List[Import]): Id = name match {
-    case SId(_, Some(api), _) =>
-
-      // Get the alias for `name` from this import, if it exists.
-      def getAlias(imp: Import): Option[Id] = imp match {
-        case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
-
-          // Get the name from an aliased name.
-          def getName(aliasedName: AliasedSimpleName): Option[Id] =
-            aliasedName match {
-              case SAliasedSimpleName(_, newName, Some(alias))
-                if alias.equals(name) => Some(newName.asInstanceOf)
-              case _ => None
-            }
-
-          // Get the first name that matched.
-          aliases.flatMap(getName).firstOption
-        case _ => None
-      }
-
-      // Get the first name that matched within any import, or return name.
-      imports.flatMap(getAlias).firstOption.getOrElse(name)
-    case _ => name
-  }
-
-  /**
-   * Get the TypeEnv that corresponds to this API.
-   */
-  protected def getEnvFromApi(api: APIName): TypeEnv =
-    TypeEnv.make(traits.compilationUnit(api))
+  protected def handleAlias(name: Name, imports: List[Import]): Name =
+    name match {
+      case name@SIdOrOp(_, Some(api), _) =>
+  
+        // Get the alias for `name` from this import, if it exists.
+        def getAlias(imp: Import): Option[IdOrOp] = imp match {
+          case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
+    
+            // Get the name from an aliased name.
+            def getName(aliasedName: AliasedSimpleName): Option[IdOrOp] =
+              aliasedName match {
+                case SAliasedSimpleName(_, newName, Some(alias))
+                  if alias.equals(name) => Some(newName.asInstanceOf)
+                case _ => None
+              }
+    
+            // Get the first name that matched.
+            aliases.flatMap(getName).firstOption
+          case _ => None
+        }
+    
+        // Get the first name that matched within any import, or return name.
+        imports.flatMap(getAlias).firstOption.getOrElse(name)
+        
+      case _ => name
+    }
 
   /**
    * Lookup the type of the given name in the proper type environment.
    */
-  protected def getTypeFromName(name: Name): Option[Type] = name match {
-    case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-      toOption(getEnvFromApi(api).getType(id))
-    case id@SIdOrOpOrAnonymousName(_, None) => toOption(env.getType(id))
-    case _ => None
-  }
+  protected def getTypeFromName(name: Name): Option[Type] =
+    handleAlias(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
+        getEnvFromApi(api).getType(id)
+      case id@SIdOrOpOrAnonymousName(_, None) => env.getType(id) match {
+        case Some(ty) => Some(ty)
+        case None => analyzer.kindEnv.getType(id)
+      }
+      case _ => None
+    }
 
   /**
    * Lookup the modifiers of the given name in the proper type environment.
    */
-  protected def getModsFromName(name: Name): Option[Modifiers] = name match {
-    case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-      toOption(getEnvFromApi(api).mods(id))
-    case id@SIdOrOpOrAnonymousName(_, None) => toOption(env.mods(id))
-    case _ => None
-  }
+  protected def getModsFromName(name: Name): Option[Modifiers] =
+    handleAlias(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
+        getEnvFromApi(api).getMods(id)
+      case id@SIdOrOpOrAnonymousName(_, None) => env.getMods(id)
+      case _ => None
+    }
 
   def getErrors(): List[StaticError] = errors.errors
 
@@ -438,7 +421,7 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
  */
 class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
-                 env: TypeEnv,
+                 env: STypeEnv,
                  analyzer: TypeAnalyzer)
     extends STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog) {
 
