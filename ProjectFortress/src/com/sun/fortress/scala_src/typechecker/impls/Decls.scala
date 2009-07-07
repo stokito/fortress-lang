@@ -76,7 +76,7 @@ trait Decls { self: STypeChecker with Common =>
           // that will now be in scope
           val methods = new UnionRelation(inheritedMethods(extendsC),
                                           ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
-          method_checker = method_checker.extendWithMethods(methods)
+          method_checker = method_checker.extendWithFunctions(methods)
           method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
@@ -126,7 +126,7 @@ trait Decls { self: STypeChecker with Common =>
           // that will now be in scope as regular functions
           val methods = new UnionRelation(inheritedMethods(extendsC),
                                           oi.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]])
-          method_checker = method_checker.extendWithMethods(methods)
+          method_checker = method_checker.extendWithFunctions(methods)
           method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
@@ -170,8 +170,7 @@ trait Decls { self: STypeChecker with Common =>
     case f@SFnDecl(info,
                    SFnHeader(statics,mods,name,wheres,throws,contract,params,rType),
                    unambiguousName, Some(body), implementsUnambiguousName) => {
-      val newChecker = this.extend(env.extendWithStaticParams(statics).extendWithParams(params),
-                                   analyzer.extend(statics, wheres))
+      val newChecker = this.extend(statics, Some(params), wheres)
       val newContract = contract.map(c => newChecker.check(c))
 
       // If setter decl and no return type given, make it void.

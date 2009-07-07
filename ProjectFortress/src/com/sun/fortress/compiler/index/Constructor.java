@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
@@ -31,6 +32,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
@@ -62,7 +64,9 @@ public class Constructor extends Function {
         _where = where;
         putThunk(new Thunk<Option<Type>>() {
           @Override public Option<Type> value() {
-            return NI.nyi();
+            return Option.<Type>some(
+                NodeFactory.makeTraitType(_declaringTrait,
+                                          TypesUtil.staticParamsToArgs(_staticParams)));
           }
         });
     }

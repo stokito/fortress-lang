@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
+import static com.sun.fortress.nodes_util.NodeFactory.typeSpan;
 import static com.sun.fortress.scala_src.useful.Lists.*;
 
 import java.util.ArrayList;
@@ -35,13 +36,22 @@ import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.KindBool;
+import com.sun.fortress.nodes.KindDim;
+import com.sun.fortress.nodes.KindInt;
+import com.sun.fortress.nodes.KindNat;
+import com.sun.fortress.nodes.KindOp;
+import com.sun.fortress.nodes.KindType;
+import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OutAfterTypeChecking;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
@@ -52,6 +62,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeAbstractVisitor;
 import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.scala_src.typechecker.staticenv.*;
@@ -75,6 +86,45 @@ public class TypesUtil {
     /** The empty kind environment as defined in the Scala code. */
     public static KindEnv makeFreshKindEnv() {
       return KindEnv$.MODULE$.makeFresh();
+    }
+
+    /** Currently exists in TypeEnv class too. */
+    public static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
+        List<StaticArg> result = new ArrayList<StaticArg>();
+
+        for (StaticParam param: params) {
+            final IdOrOp name = param.getName();
+            result.add(param.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
+                        public StaticArg forKindBool(KindBool k) {
+                            return NodeFactory.makeBoolArg(typeSpan,
+                                                           NodeFactory.makeBoolRef(typeSpan, (Id)name));
+                        }
+                        public StaticArg forKindDim(KindDim k) {
+                            return NodeFactory.makeDimArg(typeSpan,
+                                                          NodeFactory.makeDimRef(typeSpan, (Id)name));
+                        }
+                        public StaticArg forKindInt(KindInt k) {
+                            return NodeFactory.makeIntArg(typeSpan,
+                                                          NodeFactory.makeIntRef(typeSpan, (Id)name));
+                        }
+                        public StaticArg forKindNat(KindNat k) {
+                            return NodeFactory.makeIntArg(typeSpan,
+                                                          NodeFactory.makeIntRef(typeSpan, (Id)name));
+                        }
+                        public StaticArg forKindType(KindType k) {
+                            return NodeFactory.makeTypeArg(typeSpan,
+                                                           NodeFactory.makeVarType(typeSpan, (Id)name));
+                        }
+                        public StaticArg forKindUnit(KindUnit k) {
+                            return NodeFactory.makeUnitArg(typeSpan, NodeFactory.makeUnitRef(typeSpan, false, (Id)name));
+                        }
+                        public StaticArg forKindOp(KindOp that) {
+                            return NodeFactory.makeOpArg(typeSpan,
+                                                         ExprFactory.makeOpRef((Op)name));
+                        }
+                    }));
+        }
+        return result;
     }
     
     public static class ArgList {
