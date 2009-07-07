@@ -35,7 +35,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 /**
  * When we call a task, we first set up all the local varibles we are interested in as
    fields in the task.  Then when we want to access them we do so via fieldrefs.  Eventually
-   we will need to write the values back out.  
+   we will need to write the values back out.
 */
 
 public class TaskVarCodeGen extends VarCodeGen {
@@ -46,7 +46,8 @@ public class TaskVarCodeGen extends VarCodeGen {
         super(v.name, v.fortressType);
         this.taskClass = taskClass;
         this.ifNone = ifNone;
-        System.out.println("Creating a new TaskVarCodeGen from VarCodeGen " + v);
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "Creating a new TaskVarCodeGen from VarCodeGen " + v);
     }
 
     public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass, APIName ifNone) {
@@ -57,8 +58,8 @@ public class TaskVarCodeGen extends VarCodeGen {
 
     public void pushValue(CodeGenMethodVisitor mv) {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
-        mv.visitFieldInsn(Opcodes.GETFIELD, taskClass, 
-                          name.getText(), 
+        mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
+                          name.getText(),
                           NamingCzar.only.jvmTypeDesc(fortressType, ifNone)) ;
 
     }
@@ -67,9 +68,9 @@ public class TaskVarCodeGen extends VarCodeGen {
         mv.visitVarInsn(Opcodes.ASTORE, mv.getLocalVariable(name.getText()));
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(name.getText()));
-        mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass, 
-                          name.getText(), 
-                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone) 
+        mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass,
+                          name.getText(),
+                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone)
                           );
     }
 

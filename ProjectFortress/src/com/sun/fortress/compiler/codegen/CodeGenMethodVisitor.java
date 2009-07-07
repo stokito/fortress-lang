@@ -42,7 +42,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     private String resultType;
     int localVariableCount;
 
-    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}   
+    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}
 
     // Move these to their own class
 
@@ -56,17 +56,17 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
         while (ch != ')') {
             switch(ch) {
-            case 'B': 
-            case 'S': 
-            case 'F': 
-            case 'D': 
-            case 'C': 
-            case 'I': 
-            case 'J': 
-            case 'Z': 
+            case 'B':
+            case 'S':
+            case 'F':
+            case 'D':
+            case 'C':
+            case 'I':
+            case 'J':
+            case 'Z':
                 args.add(Character.toString(desc.charAt(i))); ch = desc.charAt(++i); break;
-            case '[': 
-            case 'L': 
+            case '[':
+            case 'L':
                 start = i;
                 while (ch != ';') {
                     ch = desc.charAt(++i);
@@ -85,23 +85,23 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         int ch = desc.charAt(i);
         int start;
         switch(ch) {
-        case 'B': 
-        case 'S': 
-        case 'F': 
-        case 'D': 
-        case 'C': 
-        case 'I': 
-        case 'J': 
-        case 'Z': 
+        case 'B':
+        case 'S':
+        case 'F':
+        case 'D':
+        case 'C':
+        case 'I':
+        case 'J':
+        case 'Z':
         case 'V':
-            return Character.toString(desc.charAt(i)); 
-        case '[': 
+            return Character.toString(desc.charAt(i));
+        case '[':
             start = i;
             while (ch != ']') {
                 ch = desc.charAt(++i);
             }
             return new String(desc.substring(start, ++i));
-        case 'L': 
+        case 'L':
             start = i;
             while (ch != ';') {
                 ch = desc.charAt(++i);
@@ -113,7 +113,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     }
 
 
-    public CodeGenMethodVisitor(int access, String name, String desc, 
+    public CodeGenMethodVisitor(int access, String name, String desc,
                                 String signature, String[] exceptions,
                                 MethodVisitor mvisitor) {
         super(mvisitor);
@@ -124,24 +124,25 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.exceptions = exceptions;
         this.argumentTypes = parseArgs(desc);
         this.resultType = parseResult(desc);
-        
+
         this.localVariableTable = new HashMap<String, Integer>();
         this.localVariableTypeTable = new HashMap<String, String>();
         this.localVariableCount = 0;
 
         if ((access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC) {
-            createLocalVariable("instance", name);            
+            createLocalVariable("instance", name);
         }
 
-        System.out.println("MethodVisitor: name = " + name + " desc = " + desc + 
-                           " argumentTypes = " + argumentTypes + " resultType " + resultType);
-        
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "MethodVisitor: name = " + name + " desc = " + desc +
+                    " argumentTypes = " + argumentTypes + " resultType " + resultType);
+
         int i = 0;
 
         for (String argumentType : argumentTypes) {
             createLocalVariable("arg" + i++, argumentType);
         }
-        
+
         createLocalVariable("result", resultType);
 
     }
@@ -170,13 +171,12 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
     public int getLocalVariable(String name) {
         if (localVariableTable.containsKey(name)) {
-            System.out.println("GetLocalVariable: " + name + "=" + localVariableTable.get(name).intValue());
+            Debug.debug(Debug.Type.CODEGEN, 1,
+                        "GetLocalVariable: " + name + "=" + localVariableTable.get(name).intValue());
             return localVariableTable.get(name).intValue();
         }
-        else 
+        else
             throw new RuntimeException("Trying to retrieve a non-existent local variable " + name);
     }
 
 }
-            
-            

@@ -125,16 +125,16 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private APIName thisApi() {
         return ci.ast().getName();
     }
-    
+
     private BATree<String, VarCodeGen> createTaskLexEnvVariables(String taskClass,
                                                                  BATree<String, VarCodeGen> old) {
         BATree<String, VarCodeGen> result = new BATree<String, VarCodeGen>(StringHashComparer.V);
         for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
 
-            cw.visitField(Opcodes.ACC_PUBLIC, entry.getKey(), 
-                          NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()), 
+            cw.visitField(Opcodes.ACC_PUBLIC, entry.getKey(),
+                          NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()),
                           null, null);
-            
+
             TaskVarCodeGen tvcg = new TaskVarCodeGen(entry.getValue(), taskClass, thisApi());
             result.put(entry.getKey(), tvcg);
         }
@@ -144,18 +144,18 @@ public class CodeGen extends NodeAbstractVisitor_void {
                       null, null);
         return result;
     }
-        
+
     private void initializeTaskLexEnv(String task, BATree<String, VarCodeGen> old) {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
 
         mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable(task));
-        
+
         for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
             mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
             entry.getValue().pushValue(mv);
 
             mv.visitFieldInsn(Opcodes.PUTFIELD,
-                              task, entry.getKey(), 
+                              task, entry.getKey(),
                               NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()));
 
         }
@@ -262,7 +262,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         TaskVarCodeGen t = new TaskVarCodeGen(NodeFactory.makeId(NodeUtil.getSpan(x), name),
                                               NamingCzar.fortressTypeForForeignJavaType(javaType),
                                               taskClass, thisApi());
-        cw.visitField(Opcodes.ACC_PUBLIC, name, javaType, null, 6847);        
+        cw.visitField(Opcodes.ACC_PUBLIC, name, javaType, null, 6847);
         addLocalVar(t);
         return t;
     }
@@ -271,9 +271,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         PrintWriter pw = new PrintWriter(System.out);
         cw.visitEnd();
 
-        //        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
-        
-        CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
+        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
+            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
 
         ByteCodeWriter.writeClass(NamingCzar.cache, file, cw.toByteArray());
         debug( "Writing class ", file);
@@ -743,7 +742,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         debug("forObjectDecl", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
-        
+
         boolean canCompile =
             // x.getParams().isNone() &&             // no parameters
             header.getStaticParams().isEmpty() && // no static parameter
@@ -754,16 +753,16 @@ public class CodeGen extends NodeAbstractVisitor_void {
             header.getMods().isEmpty()         // no modifiers
             // ( extendsC.size() <= 1 ); // 0 or 1 super trait
             ;
-        
+
         if ( !canCompile ) sayWhat(x);
-        
+
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
                 NodeUtil.getName(x).getText());
-        
+
         String classDesc = NamingCzar.only.internalToDesc(classFile);
         String objectFieldName = x.getHeader().getName().stringName();
 
@@ -834,14 +833,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
         cg.mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
                               "getValue", "()I");
-        cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintArgs", 
+        cg.mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintArgs",
                               "nativePrintZZ32",  "(I)V");
     }
 
 
     // This sets up the parallel task construct.
     // Caveats: We assume that everything has a ZZ32 result
-    //          We create separate taskClasses for every task      
+    //          We create separate taskClasses for every task
     public String delegate(ASTNode x) {
 
         if (! (x instanceof _RewriteFnApp)) {
@@ -851,8 +850,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         _RewriteFnApp _rewriteFnApp = (_RewriteFnApp) x;
 
         Expr function = _rewriteFnApp.getFunction();
-        
-        System.out.println("BBBBBBB: function = " + function);
+
+        debug("BBBBBBB: function = " + function);
         ExprInfo info = function.getInfo();
         Option<Type> exprType = info.getExprType();
 
@@ -860,9 +859,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if (!exprType.isSome()) {
             sayWhat(x, "Missing type information for delegate " + x);
         }
-        
+
         String desc = NamingCzar.jvmTypeDesc(exprType.unwrap(), component.getName());
-        
+
         List<String> args = CodeGenMethodVisitor.parseArgs(desc);
         String result = CodeGenMethodVisitor.parseResult(desc);
 
@@ -886,25 +885,25 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         initDesc = initDesc + ")V";
 
-        System.out.println("initDesc = " + initDesc + "should be (ZZ32)V");
-            
+        debug("initDesc = " + initDesc + "should be (ZZ32)V");
+
         cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
         cg.mv.visitCode();
 
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
-        cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask, 
+        cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask,
                               "<init>", NamingCzar.voidToVoid);
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
 
         // Fib specific
         cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
-        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", args.get(0));            
+        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", args.get(0));
 
         cg.mv.visitInsn(Opcodes.RETURN);
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         cg.mv.visitEnd();
 
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, 
+        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
                                   "compute", "()V", null, null);
 
         cg.mv.visitCode();
@@ -918,11 +917,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // Fixme, not all results are ZZ32
         cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
 
-        cg.mv.visitInsn(Opcodes.RETURN);        
+        cg.mv.visitInsn(Opcodes.RETURN);
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         cg.mv.visitEnd();
         cg.dumpClass(className);
-        
+
         this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
         return className;
     }
@@ -931,7 +930,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
                            "getValue", "()I");
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintResult", 
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintResult",
                            "nativePrintZZ32",  "(I)V");
     }
 
@@ -946,7 +945,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
         mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable("TaskArray", "java/util/ArrayList"));
-    
+
         if (pa.worthParallelizing(x)) {
             for (int i = 0; i < args.size(); i++) {
                 String task = delegate(args.get(i));
@@ -972,12 +971,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 mv.visitFieldInsn(Opcodes.GETFIELD, tasks.get(i), "result", NamingCzar.descFortressZZ32);
             }
         } else {
-            
+
             for (Expr arg : args) {
                 arg.accept(this);
             }
         }
-        
+
         op.accept(this);
 
     }
