@@ -26,6 +26,7 @@ import java.util.Map;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
@@ -35,15 +36,14 @@ import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
-import com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.linker.ApiLinker;
 import com.sun.fortress.scala_src.linker.CompoundApiChecker;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
@@ -83,9 +83,9 @@ public class StaticChecker {
         private final TypeCheckerOutput _typeCheckerOutput;
 
         public ApiResult(Map<APIName, ApiIndex> apis,
-                               List<APIName> failedApis,
-                               Iterable<? extends StaticError> errors,
-                               TypeCheckerOutput typeCheckerOutput) {
+                         List<APIName> failedApis,
+                         Iterable<? extends StaticError> errors,
+                         TypeCheckerOutput typeCheckerOutput) {
             super(errors);
             _apis = apis;
             _failedApis = failedApis;
@@ -97,40 +97,6 @@ public class StaticChecker {
         public TypeCheckerOutput typeCheckerOutput() {
             return this._typeCheckerOutput;
         }
-    }
-
-    /**
-     * Check the given apis. To support circular references, the apis should appear
-     * in the given environment.
-     */
-    public static ApiResult checkApis(Map<APIName, ApiIndex> apis,
-                                      GlobalEnvironment env,
-                                      FortressRepository repository) {
-        List<APIName> failedApis = new ArrayList<APIName>();
-        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
-        if ( Shell.getTypeChecking() == true &&
-             WellKnownNames.areCompilerLibraries() ) {
-            HashSet<Api> checkedApis = new HashSet<Api>();
-            TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
-
-            for (APIName apiName : apis.keySet()) {
-                TypeCheckerResult checked = checkApi(apis.get(apiName), env, repository);
-                checkedApis.add((Api)checked.ast());
-                if (!checked.isSuccessful()) failedApis.add(apiName);
-                errors = IterUtil.compose(checked.errors(), errors);
-                type_checker_output = new TypeCheckerOutput( type_checker_output,
-                                                             checked.getTypeCheckerOutput() );
-            }
-            return new ApiResult
-                (IndexBuilder.buildApis(checkedApis,
-                                        System.currentTimeMillis()).apis(),
-                 failedApis,
-                 errors,
-                 type_checker_output);
-        } 
-        else
-            return new ApiResult(apis, failedApis, errors,
-                                 TypeCheckerOutput.emptyOutput());
     }
 
     public static class ComponentResult extends StaticPhaseResult {
@@ -155,90 +121,136 @@ public class StaticChecker {
         }
     }
 
+    /**
+     * Check the given apis. To support circular references, the apis should appear
+     * in the given environment.
+     */
+    public static ApiResult checkApis(Map<APIName, ApiIndex> apis,
+                                      GlobalEnvironment env) {
+        HashSet<Api> checkedApis = new HashSet<Api>();
+        List<APIName> failedApis = new ArrayList<APIName>();
+        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
+        TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
+
+        for (APIName apiName : apis.keySet()) {
+            TypeCheckerResult checked = checkCompilationUnit(apis.get(apiName), env);
+            checkedApis.add((Api)checked.ast());
+            if (!checked.isSuccessful()) failedApis.add(apiName);
+            errors = IterUtil.compose(checked.errors(), errors);
+            type_checker_output = new TypeCheckerOutput( type_checker_output,
+                                                         checked.getTypeCheckerOutput() );
+        }
+        return new ApiResult
+            (IndexBuilder.buildApis(checkedApis,
+                                    System.currentTimeMillis()).apis(),
+             failedApis,
+             errors,
+             type_checker_output);
+    }
+
     /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<APIName, ComponentIndex> components,
-                        GlobalEnvironment env,
-                        FortressRepository repository)
-    {
+                        GlobalEnvironment env) {
         HashSet<Component> checkedComponents = new HashSet<Component>();
-        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         List<APIName> failedComponents = new ArrayList<APIName>();
-
+        Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
         for (APIName componentName : components.keySet()) {
-            TypeCheckerResult checked = checkComponent(components.get(componentName), env,
-                                                       repository);
+            TypeCheckerResult checked = checkCompilationUnit(components.get(componentName),
+                                                             env);
             checkedComponents.add((Component)checked.ast());
-            if (!checked.isSuccessful())
-                failedComponents.add(componentName);
-
+            if (!checked.isSuccessful()) failedComponents.add(componentName);
             errors = IterUtil.compose(checked.errors(), errors);
-            type_checker_output = new TypeCheckerOutput( type_checker_output, checked.getTypeCheckerOutput() );
+            type_checker_output = new TypeCheckerOutput( type_checker_output,
+                                                         checked.getTypeCheckerOutput() );
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(checkedComponents,
-                                          System.currentTimeMillis()).
-             components(),
+                                          System.currentTimeMillis()).components(),
              failedComponents,
              errors,
              type_checker_output);
     }
 
-    public static TypeCheckerResult checkComponent(ComponentIndex component,
-                                                   GlobalEnvironment env,
-                                                   FortressRepository repository) {
+    public static TypeCheckerResult checkCompilationUnit(CompilationUnitIndex index,
+                                                         GlobalEnvironment env) {
+        boolean isApi = index instanceof ApiIndex;
         if (Shell.getTypeChecking() == true) {
-            // Check type hierarchy to ensure acyclicity.
-            List<StaticError> errors = new TypeHierarchyChecker(component, env, repository,
-                                                                null).checkHierarchy();
-            if (! errors.isEmpty()) {
-                return new TypeCheckerResult(component.ast(), errors);
+            CompilationUnit ast = index.ast();
+            List<StaticError> errors;
+
+            if (isApi) {
+                Api api_ast = (Api)ast;
+                // Check if this is a compound API, and, if so, link it into a single API.
+                // The AST associated with an ApiIndex is always an Api.
+                errors = new CompoundApiChecker(env.apis()).check(api_ast);
+                if (! errors.isEmpty()) {
+                    return new TypeCheckerResult(ast, errors);
+                }
+                ast = new ApiLinker(env.apis()).link(api_ast);
+                index = IndexBuilder.builder.buildApiIndex(api_ast,
+                                                           System.currentTimeMillis());
             }
 
-            Node component_ast = component.ast();
-            // Replace implicit types with explicit ones.
-            if (!Shell.getScala()) {
-                component_ast = component_ast.accept(new InferenceVarInserter());
-            } else {
-                errors.addAll(new ReturnTypeChecker().getErrors(component_ast));
-                if(!errors.isEmpty())
-                    return new TypeCheckerResult(component_ast,errors);
+            // Check type hierarchy to ensure acyclicity.
+            TypeHierarchyChecker typeHierarchyChecker =
+                new TypeHierarchyChecker(index, env);
+            errors = typeHierarchyChecker.checkHierarchy();
+            if (! errors.isEmpty()) {
+                return new TypeCheckerResult(ast, errors);
             }
-            component_ast = component_ast.accept(new TypeNormalizer());
-            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
-                                                                 System.currentTimeMillis());
-            TraitTable traitTable = new TraitTable(component, env);
+
+            if (!isApi) { // if component
+                // Replace implicit types with explicit ones.
+                if (!Shell.getScala()) {
+                    ast = (Component)ast.accept(new InferenceVarInserter());
+                } else {
+                    errors.addAll(new ReturnTypeChecker().getErrors(ast));
+                    if(!errors.isEmpty())
+                        return new TypeCheckerResult(ast,errors);
+                }
+            }
+
+            ast = (CompilationUnit)ast.accept(new TypeNormalizer());
+            index = buildIndex(ast, isApi);
+
+            TraitTable traitTable = new TraitTable(index, env);
             TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
             ExclusionOracle exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog());
 
             if (Shell.testCoercion())
                 errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
 
-            errors.addAll(new TypeHierarchyChecker(component, env, repository,
-                                                   exclusionOracle).checkAcyclicHierarchy());
-            errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
+            errors.addAll(typeHierarchyChecker.checkAcyclicHierarchy(exclusionOracle));
+            errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());
 
             TypeCheckerResult result;
-            if ( ! Shell.getScala() ) {
-                // typecheck...
-                result = typeCheck(component, env, traitTable, component_ast, false);
-                // then replace inference variables...
-                InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
-                component_ast = (Component)result.ast().accept(rep);
-                // then typecheck again!!!
-                component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
-                                                                     System.currentTimeMillis());
-                result = typeCheck(component, env, traitTable, component_ast, true);
+            if (isApi) {
+                result = new TypeCheckerResult(ast, errors);
             } else {
-                TypeEnv typeEnv = typeCheckEnv(component, env);
-                STypeChecker typeChecker = STypeCheckerFactory.make(component, traitTable, typeEnv, typeAnalyzer);
-                component_ast = typeChecker.typeCheck(component_ast);
-                component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
-                                                                     System.currentTimeMillis());
-                errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
-                result = new TypeCheckerResult(component_ast, errors);
+                ComponentIndex componentIndex = (ComponentIndex)index;
+                Component component_ast = (Component)ast;
+                if ( ! Shell.getScala() ) {
+                    // typecheck...
+                    result = typeCheck(componentIndex, env, traitTable, component_ast, false);
+                    // then replace inference variables...
+                    InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
+                    ast = (Component)result.ast().accept(rep);
+                    index = buildIndex(ast, isApi);
+                    // then typecheck again!!!
+                    result = typeCheck(componentIndex, env, traitTable,
+                                       component_ast, true);
+                } else {
+                    TypeEnv typeEnv = typeCheckEnv(componentIndex, env);
+                    STypeChecker typeChecker =
+                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
+                    ast = (Component)typeChecker.typeCheck(component_ast);
+                    index = buildIndex(ast, isApi);
+                    errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
+                    result = new TypeCheckerResult(ast, errors);
+                }
             }
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
@@ -246,26 +258,29 @@ public class StaticChecker {
                 bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
                     result.ast());
 
-            errors.addAll(new TypeWellFormedChecker(component, env, typeAnalyzer).check());
+            errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());
             if ( ! errors.isEmpty() ) {
                 result = addErrors(errors, result);
                 return result;
             }
 
-            // Check overloadings in this component.
-            errors.addAll(new OverloadingChecker(component, env, repository).checkOverloading());
+            // Check overloadings in this compilation unit.
+            errors.addAll(new OverloadingChecker(index, env).checkOverloading());
             if ( ! errors.isEmpty() ) {
                 result = addErrors(errors, result);
                 return result;
             }
 
-            // Check the set of exported APIs in this component.
-            errors.addAll(ExportChecker.checkExports(component, env, repository));
-            result = addErrors(errors, result);
+            if (!isApi) {
+                // Check the set of exported APIs in this component.
+                errors.addAll(ExportChecker.checkExports((ComponentIndex)index, env));
+                result = addErrors(errors, result);
+            }
+
             return result;
-         } else {
-             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
-         }
+        } else {
+            return new TypeCheckerResult(index.ast(), IterUtil.<StaticError>empty());
+        }
     }
 
     private static TypeCheckerResult typeCheck(ComponentIndex component,
@@ -292,63 +307,13 @@ public class StaticChecker {
         return typeEnv;
     }
 
-    public static TypeCheckerResult checkApi(ApiIndex api,
-                                             GlobalEnvironment env,
-                                             FortressRepository repository) {
-
-        Node api_ast = api.ast();        
-
-        // Check if this is a compound API, and, if so, link it into a single API.
-        // The AST associated with an ApiIndex is always an Api. 
-        List<StaticError> errors = new CompoundApiChecker(env.apis()).check((Api)api_ast);
-        if (! errors.isEmpty()) {
-            return new TypeCheckerResult(api_ast, errors);
-        }
-        api_ast = new ApiLinker(env.apis()).link((Api)api_ast);
-        api = IndexBuilder.builder.buildApiIndex((Api)api_ast,
-                                                 System.currentTimeMillis());
-
-        // Check type hierarchy to ensure acyclicity.
-        errors = new TypeHierarchyChecker(api, env, repository,
-                                          null).checkHierarchy();
-
-        if (! errors.isEmpty()) {
-            return new TypeCheckerResult(api.ast(), errors);
-        }
-
-        api_ast = api_ast.accept(new TypeNormalizer());
-        api = IndexBuilder.builder.buildApiIndex((Api)api_ast,
-                                                 System.currentTimeMillis());
-        TraitTable traitTable = new TraitTable(api, env);
-        TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
-        ExclusionOracle exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog());
-
-        if (Shell.testCoercion())
-            errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
-
-        errors.addAll(new TypeHierarchyChecker(api, env, repository,
-                                               exclusionOracle).checkAcyclicHierarchy());
-        errors.addAll(new TypeWellFormedChecker(api, env, typeAnalyzer).check());
-
-        TypeCheckerResult result = new TypeCheckerResult(api_ast, errors);
-        result.setAst(result.ast().accept(new TypeNormalizer()));
-        // There should be no Inference vars left at this point
-        if( TypesUtil.assertAfterTypeChecking(result.ast()) )
-            bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
-                result.ast());
-
-        errors.addAll(new TypeWellFormedChecker(api, env, typeAnalyzer).check());
-        if ( ! errors.isEmpty() ) {
-            result = addErrors(errors, result);
-            return result;
-        }
-
-        // Check overloadings in this API.
-        errors = new OverloadingChecker(api, env, repository).checkOverloading();
-        if ( ! errors.isEmpty() ) {
-            result = addErrors(errors, result);
-        }
-        return result;
+    private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {
+        if (isApi)
+            return IndexBuilder.builder.buildApiIndex((Api)ast,
+                                                      System.currentTimeMillis());
+        else
+            return IndexBuilder.builder.buildComponentIndex((Component)ast,
+                                                            System.currentTimeMillis());
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,

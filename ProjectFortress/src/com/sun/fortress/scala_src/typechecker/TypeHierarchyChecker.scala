@@ -28,7 +28,6 @@ import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.Types
-import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes.APIName
@@ -53,24 +52,22 @@ import com.sun.fortress.scala_src.useful.Sets._
  *   = no other S' \not\in { S... } should include T in its extends clause.
  */
 class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
-                           globalEnv: GlobalEnvironment,
-                           repository: FortressRepository,
-                           exclusionOracle: ExclusionOracle) {
+                           globalEnv: GlobalEnvironment) {
   val isApi = compilation_unit.isInstanceOf[ApiIndex]
 
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
-      errors.addAll(checkDeclAcyclicity(typ, List()))
+      checkDeclAcyclicity(typ, List(), errors)
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
 
-  def checkAcyclicHierarchy(): JavaList[StaticError] = {
+  def checkAcyclicHierarchy(exclusionOracle: ExclusionOracle): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
-      errors.addAll(checkAcyclicity(typ, List()))
-      errors.addAll(checkDeclComprises(typ))
+      checkAcyclicity(typ, List(), errors)
+      checkDeclComprises(typ, exclusionOracle, errors)
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
@@ -87,8 +84,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     errors.add(TypeError.make(s,n))
 
   /* Check the given declaration to ensure acyclicity */
-  def checkDeclAcyclicity(decl:Id, children:List[Id]): JavaList[StaticError] = {
-    val errors = new ArrayList[StaticError]()
+  def checkDeclAcyclicity(decl:Id, children:List[Id],
+                          errors:JavaList[StaticError]): Unit = {
     val types = getTypes(decl, errors)
 
     if (children contains decl) {
@@ -103,7 +100,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               // TODO: Extend to handle non-empty where clauses.
               case STraitTypeWhere(_,SAnyType(_),_) => {}
               case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
-                  errors.addAll(checkDeclAcyclicity(name,decl::children))
+                checkDeclAcyclicity(name, decl::children, errors)
               case _ => error(errors, "Invalid type in extends clause: " +
                               extension.getBaseType, extension)
             }
@@ -111,12 +108,11 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
         case _ =>
       }
     }
-    errors
   }
 
   /* Check the given declaration to ensure acyclicity including coercions */
-  def checkAcyclicity(decl:Id, children:List[Id]): JavaList[StaticError] = {
-    val errors = new ArrayList[StaticError]()
+  def checkAcyclicity(decl:Id, children:List[Id],
+                      errors:JavaList[StaticError]): Unit = {
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
         var kids = children
@@ -139,15 +135,14 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               // TODO: Extend to handle non-empty where clauses.
               case STraitTypeWhere(_,SAnyType(_),_) => {}
               case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
-                  errors.addAll(checkAcyclicity(name,decl::kids))
+                checkAcyclicity(name, decl::kids, errors)
               case _ => error(errors, "Invalid type in extends clause: " +
                               extension.getBaseType, extension)
             }
           }
         }
-      case _ =>  
+      case _ =>
     }
-    errors
   }
 
   /* Check the given declaration to check its comprises clause
@@ -163,8 +158,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
    *       for each trait/object S in T's comprises clause
    *         T should be in S's extends clause
    */
-  def checkDeclComprises(decl:Id): JavaList[StaticError] = {
-    val errors = new ArrayList[StaticError]()
+  def checkDeclComprises(decl:Id, exclusionOracle: ExclusionOracle,
+                         errors:JavaList[StaticError]): Unit = {
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
         val tt = ti.typeOfSelf.unwrap
@@ -226,32 +221,29 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
             }
           case _ =>
         }
-       case _ => 
+       case _ =>
     }
-    errors
   }
 
   private def comprisesContains(comprises: JavaSet[TraitType], decl:Id): Boolean = {
-    var result = false
     for (ty <- toSet(comprises)) {
       ty match {
         case STraitType(_,name,_,_) =>
-          if ( name.getText.equals(decl.getText) ) result = true
+          if ( name.getText.equals(decl.getText) ) return true
       }
     }
-    result
+    false
   }
 
   private def extendsContains(extendsC: JavaList[TraitTypeWhere], decl:Id): Boolean = {
-    var result = false
     for (ty <- toList(extendsC)) {
       ty match {
         case STraitTypeWhere(_,SAnyType(_),_) =>
-          if ( decl.getText.equals("Any") ) result = true
+          if ( decl.getText.equals("Any") ) return true
         case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
-          if ( name.getText.equals(decl.getText) ) result = true
+          if ( name.getText.equals(decl.getText) ) return true
       }
     }
-    result
+    false
   }
 }

@@ -43,7 +43,6 @@ import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
-import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -65,8 +64,7 @@ import com.sun.fortress.scala_src.nodes._
  *     keyword parameters
  */
 class OverloadingChecker(compilation_unit: CompilationUnitIndex,
-                         globalEnv: GlobalEnvironment,
-                         repository: FortressRepository) {
+                         globalEnv: GlobalEnvironment) {
     var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
