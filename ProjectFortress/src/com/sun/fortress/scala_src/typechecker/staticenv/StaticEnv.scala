@@ -29,13 +29,13 @@ import edu.rice.cs.plt.collect.Relation
  * Represents an environment that exists during static checking, mapping
  * variable names to some value. Each static environment contains 
  */
-trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
+trait StaticEnv[T] {
   
   /** Define Env as the type of the implementing class. */
   type Env <: StaticEnv[T]
   
   /** Define EnvBinding as the type of the bindings. */
-  type EnvBinding <: StaticBinding[T]
+  type EnvBinding
   
   /**
    * Extend this environment with the bindings immediately contained in the
@@ -79,9 +79,6 @@ trait StaticEnv[T] extends Iterable[StaticBinding[T]] {
    */
   def getType(x: Name): Option[Type]
   
-  /** Make the type on `Collection.elements` more specific. */
-  def elements: Iterator[EnvBinding]
-  
   /** Strip the API out of the given name. */
   protected def stripApi(x: Name): Name = x match {
     case SId(info, Some(api), text) => SId(info, None, text)
@@ -105,9 +102,6 @@ trait EmptyStaticEnv[T] extends StaticEnv[T] {
       
   /** Every call to `getType` fails. */
   override def getType(x: Name): Option[Type] = None
-  
-  // Collection implementation
-  override def elements: Iterator[EnvBinding] = Iterator.empty
 }
 
 /**
@@ -130,9 +124,6 @@ trait NestedStaticEnv[T] extends StaticEnv[T] {
     case Some(v) => Some(v)
     case None => parent.lookup(x)
   }
-  
-  // Collection implementation
-  def elements: Iterator[EnvBinding] = parent.elements ++ bindings.values
 }
 
 /**
@@ -145,7 +136,7 @@ trait StaticEnvCompanion[T] {
   type Env <: StaticEnv[T]
   
   /** Define EnvBinding as the type of the bindings. */
-  type EnvBinding <: StaticBinding[T]
+  type EnvBinding
   
   /**
    * Extracts all the _immediate_ bindings for this kind of environment from the
@@ -156,18 +147,5 @@ trait StaticEnvCompanion[T] {
    * @return A collection of all the bindings extracted in the given node.
    */
   protected def extractNodeBindings(node: Node): Iterable[EnvBinding]
-}
-
-
-/**
- * A static environment binding of a variable name to some kind of value.
- * 
- * @param name The variable name for the binding.
- * @param value The bound value for this binding.
- */
-abstract class StaticBinding[T](val name: Name, val value: T)
-
-object StaticBinding {
-  def unapply[T](b: StaticBinding[T]): Option[(Name, T)] = Some(b.name, b.value)
 }
 

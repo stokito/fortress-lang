@@ -30,6 +30,7 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil
+import com.sun.fortress.scala_src.useful.STypesUtil.TypeThunk
 import edu.rice.cs.plt.collect.Relation
 import scala.collection.immutable.EmptyMap
 
@@ -88,7 +89,8 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
     new ConcealingSTypeEnv(this, names)
   
   /** Same as `lookup`. */
-  def getType(x: Name): Option[Type] = lookup(x).map(_.typ)
+  def getType(x: Name): Option[Type] =
+    lookup(x).flatMap(_.typeThunk.apply)
   
   /** Get the modifiers for the given name, if it exists. */
   def getMods(x: Name): Option[Modifiers] = lookup(x).map(_.mods)
@@ -138,82 +140,120 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                  .extendWithTypeConses(comp.typeConses, api)
   }
   
+  /** Create a binding with the given information. */
+  protected def makeBinding(name: Name,
+                            typeThunk: TypeThunk,
+                            mods: Modifiers,
+                            mutable: Boolean): TypeBinding =
+    TypeBinding(name, typeThunk, mods, mutable)
+  
+  /**
+   * Create a binding with the given information, where the type thunk simply
+   * evaluates to the given type.
+   */
+  protected def makeBinding(name: Name,
+                            typ: Type,
+                            mods: Modifiers,
+                            mutable: Boolean): TypeBinding = {
+    val typeThunk = new TypeThunk { def apply: Option[Type] = Some(typ) }
+    TypeBinding(name, typeThunk, mods, mutable)
+  }
+  
   /** Extract out the bindings in node. */
   protected def extractNodeBindings(node: Node): Iterable[TypeBinding] =
     node match{
       case SBinding(_, name, mods, Some(typ)) =>
-        List(TypeBinding(name, typ, mods, false))
+        List(makeBinding(name, typ, mods, false))
       
       case SParam(_, name, mods, _, _, Some(vaTyp)) =>
-        List(TypeBinding(name, vaTyp, mods, false))
+        List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
-        List(TypeBinding(name, typ, mods, false))
+        List(makeBinding(name, typ, mods, false))
       
       case SLValue(_, name, mods, Some(typ), mutable) =>
-        List(TypeBinding(name, typ, mods, mutable))
+        List(makeBinding(name, typ, mods, mutable))
         
-      case SLocalVarDecl(_, _, lValues, _) => lValues.flatMap(extractNodeBindings)
+      case SLocalVarDecl(_, _, lValues, _) =>
+        lValues.flatMap(extractNodeBindings)
 
       case _ => Nil
     }
   
-  protected def extractVariableBindings[T <: Variable](m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] = toMap(m).flatMap(xv =>{ 
-    xv match{
-      case (x:Id, v:DeclaredVariable) => extractNodeBindings(v.ast)
-      case (x:Id, v:SingletonVariable) =>
-        extractNodeBindings(NF.makeLValue(x, v.declaringTrait))
-      case (x:Id, v:ParamVariable) =>  extractNodeBindings(v.ast)
-    }
-  })
+  protected def extractVariableBindings[T <: Variable]
+      (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] =
+    
+    toMap(m).flatMap(xv =>{ 
+      xv match{
+        case (x:Id, v:DeclaredVariable) => extractNodeBindings(v.ast)
+        case (x:Id, v:SingletonVariable) =>
+          extractNodeBindings(NF.makeLValue(x, v.declaringTrait))
+        case (x:Id, v:ParamVariable) =>  extractNodeBindings(v.ast)
+      }
+    })
   
-  protected def extractTypeConsBindings[T <: TypeConsIndex](m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] = toMap(m).flatMap(xv => {
-    xv match {
-      // Bind object names to their types.
-      case (x:Id, v:ObjectTraitIndex) =>
-        val qualifiedName = api match {
-          case Some(api) => NF.makeId(api, x)
-          case None => x
-        }
-        val decl = v.ast
-        val params = toOption(NU.getParams(decl))
-        val sparams = NU.getStaticParams(decl)
-        val objType = params match {
-          case None if sparams.isEmpty =>
-            // Just a single trait type.
-            NF.makeTraitType(qualifiedName)
-          case None =>
-            // A generic trait type.
-            NF.makeGenericSingletonType(qualifiedName, sparams)
-          case Some(params) if sparams.isEmpty =>
-            // Arrow type for basic constructor.
-            NF.makeArrowType(NU.getSpan(qualifiedName),
-                             STypesUtil.makeDomainType(toList(params)),
-                             NF.makeTraitType(qualifiedName))
-          case Some(params) =>
-            // Generic arrow type for constructor.
-            val sargs = toList(sparams).map(STypesUtil.staticParamToArg)
-            NF.makeArrowType(NU.getSpan(decl),
-                             false,
-                             STypesUtil.makeDomainType(toList(params)),
-                             NF.makeTraitType(qualifiedName, toJavaList(sargs)),
-                             NF.emptyEffect, // TODO: Change this?
-                             sparams,
-                             NU.getWhereClause(decl))
-        }
-        List(TypeBinding(x, objType, Modifiers.None, false))
-      case _ => Nil
-    }
-  })
+  protected def extractTypeConsBindings[T <: TypeConsIndex]
+      (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] =
+    
+    toMap(m).flatMap(xv => {
+      xv match {
+        // Bind object names to their types.
+        case (x:Id, v:ObjectTraitIndex) =>
+          val qualifiedName = api match {
+            case Some(api) => NF.makeId(api, x)
+            case None => x
+          }
+          val decl = v.ast
+          val params = toOption(NU.getParams(decl))
+          val sparams = NU.getStaticParams(decl)
+          val objType = params match {
+            case None if sparams.isEmpty =>
+              // Just a single trait type.
+              NF.makeTraitType(qualifiedName)
+            case None =>
+              // A generic trait type.
+              NF.makeGenericSingletonType(qualifiedName, sparams)
+            case Some(params) if sparams.isEmpty =>
+              // Arrow type for basic constructor.
+              NF.makeArrowType(NU.getSpan(qualifiedName),
+                               STypesUtil.makeDomainType(toList(params)),
+                               NF.makeTraitType(qualifiedName))
+            case Some(params) =>
+              // Generic arrow type for constructor.
+              val sargs = toList(sparams).map(STypesUtil.staticParamToArg)
+              NF.makeArrowType(NU.getSpan(decl),
+                               false,
+                               STypesUtil.makeDomainType(toList(params)),
+                               NF.makeTraitType(qualifiedName,
+                                                toJavaList(sargs)),
+                               NF.emptyEffect, // TODO: Change this?
+                               sparams,
+                               NU.getWhereClause(decl))
+          }
+          List(makeBinding(x, objType, Modifiers.None, false))
+        case _ => Nil
+      }
+    })
   
-  protected def extractFunctionBindings[T <: Functional](r: Relation[IdOrOpOrAnonymousName, T], api: Option[APIName]): Iterable[TypeBinding] = {
+  protected def extractFunctionBindings[T <: Functional]
+      (r: Relation[IdOrOpOrAnonymousName, T],
+       api: Option[APIName]): Iterable[TypeBinding] = {
+        
     val fnNames = toSet(r.firstSet)     
     // For each name, intersect together all of its overloading types.
-    fnNames.flatMap(x => {
-        val fns: Set[Functional] = toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])
-        val oTypes =
-          fns.map(STypesUtil.makeArrowFromFunctional(_).asInstanceOf[Type])
-        val fnType = NF.makeIntersectionType(oTypes)
-        Some(TypeBinding(x, fnType, Modifiers.None, false))
+    fnNames.map(x => {
+        val fns: Set[Functional] =
+          toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])
+      
+        // Lazily compute the type for this function binding at the time of
+        // lookup.
+        val lazyTypeEvaluation: TypeThunk = new TypeThunk {
+          def apply: Option[Type] = {
+            // TODO: Currently ignoring any errors from makeArrowFromFunctional
+            val oTypes = fns.flatMap[Type](STypesUtil.makeArrowFromFunctional)
+            Some(NF.makeIntersectionType(oTypes))
+          }
+        }
+        makeBinding(x, lazyTypeEvaluation, Modifiers.None, false)
     })
   }
 }
@@ -224,14 +264,15 @@ object STypeEnv extends StaticEnvCompanion[Type] {
  * modifiers for the binding and whether or not the binding is mutable.
  * 
  * @param name The variable name for the binding.
- * @param value The bound type for this variable name.
+ * @param typeThunk A function that when evaluated yields a type for this
+ *                  binding.
  * @param mods Any modifiers for the binding.
  * @param mutable Whether or not the binding is mutable.
  */
-case class TypeBinding(override val name: Name,
-                       typ: Type,
+case class TypeBinding(name: Name,
+                       typeThunk: TypeThunk,
                        mods: Modifiers,
-                       mutable: Boolean) extends StaticBinding[Type](name, typ)
+                       mutable: Boolean)
 
 /**
  * A special type environment that conceals the given names from its children.
@@ -251,8 +292,4 @@ class ConcealingSTypeEnv(protected val parent: STypeEnv,
     else
       parent.lookup(x)
   }
-  
-  /** Ignore those bindings that are hidden. */
-  override def elements: Iterator[TypeBinding] =
-    parent.elements.filter(b => !concealedNames.exists(_ == b.name))
 }
