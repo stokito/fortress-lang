@@ -135,7 +135,7 @@ public class StaticChecker {
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
         for (APIName apiName : apis.keySet()) {
-            TypeCheckerResult checked = checkCompilationUnit(apis.get(apiName), env);
+            TypeCheckerResult checked = checkCompilationUnit(apis.get(apiName), env, true);
             checkedApis.add((Api)checked.ast());
             if (!checked.isSuccessful()) failedApis.add(apiName);
             errors = IterUtil.compose(checked.errors(), errors);
@@ -161,7 +161,7 @@ public class StaticChecker {
 
         for (APIName componentName : components.keySet()) {
             TypeCheckerResult checked = checkCompilationUnit(components.get(componentName),
-                                                             env);
+                                                             env, false);
             checkedComponents.add((Component)checked.ast());
             if (!checked.isSuccessful()) failedComponents.add(componentName);
             errors = IterUtil.compose(checked.errors(), errors);
@@ -177,8 +177,8 @@ public class StaticChecker {
     }
 
     public static TypeCheckerResult checkCompilationUnit(CompilationUnitIndex index,
-                                                         GlobalEnvironment env) {
-        boolean isApi = index instanceof ApiIndex;
+                                                         GlobalEnvironment env,
+                                                         boolean isApi) {
         if (Shell.getTypeChecking() == true) {
             CompilationUnit ast = index.ast();
             List<StaticError> errors;
