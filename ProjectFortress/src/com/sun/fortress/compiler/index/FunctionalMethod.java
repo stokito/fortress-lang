@@ -97,7 +97,7 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public List<BaseType> thrownTypes() {
-		if(  NodeUtil.getThrowsClause(_ast).isSome() )
+		if(  NodeUtil.getThrowsClause(_ast).isNone() )
 			return Collections.emptyList();
 		else
 			return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());

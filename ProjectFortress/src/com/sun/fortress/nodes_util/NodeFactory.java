@@ -1108,11 +1108,13 @@ public class NodeFactory {
 
     public static Effect makeEffect(List<BaseType> throwsClause) {
         Span span;
-        if ( throwsClause.isEmpty() )
+        if ( throwsClause.isEmpty() ) {
             span = typeSpan;
-        else
+            return makeEffect(span);
+        } else {
             span = NodeUtil.spanAll(throwsClause);
-        return makeEffect(span, Option.some(throwsClause), false);
+            return makeEffect(span, Option.some(throwsClause), false);
+        }
     }
 
     public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {

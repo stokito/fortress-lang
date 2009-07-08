@@ -64,14 +64,14 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
    * parameter.
    */
   def getType(x: Name): Option[Type] = lookup(x).flatMap(b =>
-    b.value.getKind match {
+    b.sparam.getKind match {
       case _:KindBool => Some(Types.BOOLEAN)
       case _:KindInt => Some(Types.INT_LITERAL)
       case _:KindNat => Some(Types.INT_LITERAL)
       case _ => None
     })
   
-  def staticParam(x: Name): Option[StaticParam] = lookup(x).map(_.value)
+  def staticParam(x: Name): Option[StaticParam] = lookup(x).map(_.sparam)
 }
 
 /** The single empty kind environment. */
@@ -126,6 +126,5 @@ object KindEnv extends StaticEnvCompanion[StaticParam] {
  * @param name The variable name for the binding.
  * @param sparam The static parameter that this name is binding.
  */
-case class KindBinding(override val name: Name,
+case class KindBinding(name: Name,
                        sparam: StaticParam)
-    extends StaticBinding[StaticParam](name, sparam)

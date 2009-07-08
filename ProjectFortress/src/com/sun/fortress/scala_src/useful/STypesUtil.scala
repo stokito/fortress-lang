@@ -37,70 +37,33 @@ import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
 object STypesUtil {
+  
+  /** A function that when applied yields an option type. */
+  type TypeThunk = Function0[Option[Type]]
 
-  /**
-   * A function type that takes two types and returns a boolean.
-   */
+  /** A function type that takes two types and returns a boolean. */
   type Subtype = (Type, Type) => Boolean
-
-  /**
-   * Return the arrow type of the given FnDecl node.
-   */
-  def makeArrowFromFnDecl(f: FnDecl): ArrowType = {
-    val returnType = f.getHeader.getReturnType.unwrap
-    val params = toList(f.getHeader.getParams).map(NU.getParamType)
-    val argType = makeArgumentType(params)
-    val sparams = f.getHeader.getStaticParams
-    val where = f.getHeader.getWhereClause
-    val throws = f.getHeader.getThrowsClause
-    NF.makeArrowType(NU.getSpan(f),
-                     false,
-                     argType,
-                     returnType,
-                     NF.makeEffect(throws),
-                     sparams,
-                     where)
-  }
   
   /**
-   * Return the arrow type of the given Method.
-   * @TODO Make sure that the getReturnType method in these indices works
-   * as it should.
-   */
-  def makeArrowFromFunctional(f: Functional): ArrowType = f match {
-    case m:Method =>
-      val returnType = m.getReturnType.unwrap
-      val params = toList(m.parameters).map(NU.getParamType)
-      val argType = makeArgumentType(params)
-      m match {
-        case m:DeclaredMethod => makeArrowFromFnDecl(m.ast)
-        case g:FieldGetterMethod =>
-          NF.makeArrowType(NU.getSpan(g.ast),
-                           argType,
-                           returnType)
-        case s:FieldSetterMethod =>
-          NF.makeArrowType(NU.getSpan(s.ast),
-                           argType,
-                           returnType)
-      }
-    case f:Function => f match {
-      case f:DeclaredFunction => makeArrowFromFnDecl(f.ast)
-      case f:FunctionalMethod => makeArrowFromFnDecl(f.ast)
-      case f:Constructor =>
-        val argType =
-          makeArgumentType(toList(f.parameters).map(NU.getParamType))
-        val returnType = f.getReturnType.unwrap
-        val sparams = f.staticParameters
-        val where = f.where
-        val throws = f.thrownTypes
-        NF.makeArrowType(NF.typeSpan,
-                         false,
-                         argType,
-                         returnType,
-                         NF.makeEffect(throws),
-                         sparams,
-                         where)
+   * Return the arrow type of the given Functional index.
+   */  
+  def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
+    val returnType = toOption(f.getReturnType).getOrElse(return None)
+    val params = toList(f.parameters).map(NU.getParamType)
+    val argType = makeArgumentType(params)
+    val sparams = f.staticParameters
+    val effect = NF.makeEffect(f.thrownTypes)
+    val where = f match {
+      case f:Constructor => f.where
+      case _ => none[WhereClause]
     }
+    Some(NF.makeArrowType(NF.typeSpan,
+                          false,
+                          argType,
+                          returnType,
+                          effect,
+                          sparams,
+                          where))
   }
   
   /**
