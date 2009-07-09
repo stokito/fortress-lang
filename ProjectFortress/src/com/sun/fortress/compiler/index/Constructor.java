@@ -62,6 +62,7 @@ public class Constructor extends Function {
         _params = params;
         _throwsClause = throwsClause;
         _where = where;
+        
         putThunk(new Thunk<Option<Type>>() {
           @Override public Option<Type> value() {
             return Option.<Type>some(

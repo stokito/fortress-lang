@@ -50,6 +50,7 @@ import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExclusionOracle;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
+import com.sun.fortress.scala_src.typechecker.Thunker;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;

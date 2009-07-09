@@ -46,7 +46,8 @@ public class FieldGetterMethod extends Method {
     public FieldGetterMethod(Binding ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
-        putThunk(SimpleBox.make(_ast.getIdType()));
+        if (_ast.getIdType().isSome())
+            putThunk(SimpleBox.make(_ast.getIdType()));
     }
 
     public Binding ast() { return _ast; }

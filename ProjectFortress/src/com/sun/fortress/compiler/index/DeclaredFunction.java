@@ -44,7 +44,8 @@ public class DeclaredFunction extends Function {
 
     public DeclaredFunction(FnDecl ast) {
       _ast = ast;
-      putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+      if (NodeUtil.getReturnType(_ast).isSome())
+          putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     public FnDecl ast() { return _ast; }
