@@ -55,6 +55,7 @@ import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import com.sun.fortress.scala_src.typechecker.STypeChecker;
+import com.sun.fortress.scala_src.typechecker.TryChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$;
@@ -209,11 +210,11 @@ public class StaticChecker {
                 // Replace implicit types with explicit ones.
                 if (!Shell.getScala()) {
                     ast = (Component)ast.accept(new InferenceVarInserter());
-                } else {
+                } /*else {
                     errors.addAll(new ReturnTypeChecker().getErrors(ast));
                     if(!errors.isEmpty())
                         return new TypeCheckerResult(ast,errors);
-                }
+                }*/
             }
 
             ast = (CompilationUnit)ast.accept(new TypeNormalizer());
@@ -247,8 +248,20 @@ public class StaticChecker {
                                        component_ast, true);
                 } else {
                     STypeEnv typeEnv = STypeEnv$.MODULE$.make(componentIndex);
+                    ErrorLog log = new ErrorLog();
+                   
+                    //Create thunks for when the user elides function return types
+                    STypeChecker thunkChecker =
+                      STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
+                    Thunker thunker = new Thunker(thunkChecker,log);
+                    thunker.walk(component_ast);
+                    //make sure to do toplevel functions after walking so functional methods and operators will already have thunks
+                    TryChecker tryChecker = new TryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer);
+                    thunker.primeFunctionals(componentIndex.parametricOperators(), tryChecker);
+                    thunker.primeFunctionals(componentIndex.functions().secondSet(), tryChecker);
+                    //Typecheck
                     STypeChecker typeChecker =
-                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
+                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer, log);
                     ast = (Component)typeChecker.typeCheck(component_ast);
                     index = buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
