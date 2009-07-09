@@ -17,6 +17,7 @@
 
 package com.sun.fortress.scala_src.typechecker
 
+import _root_.java.util.{Set => JavaSet}
 import com.sun.fortress.compiler.index.{Unit=>JUnit,_}
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
@@ -67,6 +68,10 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
     }
   }
   
+  def primeFunctionals[T<:Functional](fns: JavaSet[T], tryChecker: TryChecker):Unit = {
+    toSet(fns).foreach(f => primeFunctional(f,tryChecker))
+  }
+  
   def walk(node: Node):Unit = node match{
     
     case SComponent(info, name, imports, decls, comprises, isNative, exports) =>
@@ -102,11 +107,9 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
           }
           //Create a tryChecker
           val tryChecker = makeTryChecker()
-          //Prime all the dotted and functional method indices
-          val dotted = toSet(dottedMethods.secondSet)
-          val functional = toSet(dottedMethods.secondSet)
-          dotted.foreach(m => primeFunctional(m,tryChecker))
-          functional.foreach(m=> primeFunctional(m,tryChecker))
+          //Prime all the dotted and functional method indices)
+          primeFunctionals(dottedMethods.secondSet,tryChecker)
+          primeFunctionals(functionalMethods.secondSet,tryChecker)
       }
     }
     
@@ -141,10 +144,8 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
           //Create a TryChecker
           val tryChecker = makeTryChecker()
           //Prime all the dotted and functional method indices
-          val dotted = toSet(dottedMethods.secondSet)
-          val functional = toSet(dottedMethods.secondSet)
-          dotted.foreach(m => primeFunctional(m,tryChecker))
-          functional.foreach(m=> primeFunctional(m,tryChecker))
+          primeFunctionals(dottedMethods.secondSet,tryChecker)
+          primeFunctionals(functionalMethods.secondSet,tryChecker)
     }
   }
     
