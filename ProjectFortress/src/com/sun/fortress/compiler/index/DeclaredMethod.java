@@ -47,7 +47,8 @@ public class DeclaredMethod extends Method {
     public DeclaredMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
-        putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+        if (NodeUtil.getReturnType(_ast).isSome())
+            putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     public FnDecl ast() { return _ast; }

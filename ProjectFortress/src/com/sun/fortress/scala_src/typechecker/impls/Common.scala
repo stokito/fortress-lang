@@ -50,7 +50,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 trait Common { self: STypeChecker =>
   
   // TODO: Rewrite this method!
-  protected def inheritedMethods(extendedTraits: List[TraitTypeWhere]) = {
+  def inheritedMethods(extendedTraits: List[TraitTypeWhere]) = {
     
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,

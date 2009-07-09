@@ -96,11 +96,11 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
  * Constructor parameters are marked `protected val` so that the implementing,
  * mixed-in traits can access the fields.
  */
-abstract class STypeChecker(protected val current: CompilationUnitIndex,
-                            protected val traits: TraitTable,
-                            protected val env: STypeEnv,
-                            protected val analyzer: TypeAnalyzer,
-                            protected val errors: ErrorLog) {
+abstract class STypeChecker(val current: CompilationUnitIndex,
+                            val traits: TraitTable,
+                            val env: STypeEnv,
+                            val analyzer: TypeAnalyzer,
+                            val errors: ErrorLog) {
 
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -333,6 +333,8 @@ abstract class STypeChecker(protected val current: CompilationUnitIndex,
    * @return The rewritten expression node.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr
+  
+  def inheritedMethods(extendedTraits: List[TraitTypeWhere]): Relation[IdOrOpOrAnonymousName, Method]
   
   // ---------------------------------------------------------------------------
   // CONCRETE DEFINITIONS ------------------------------------------------------

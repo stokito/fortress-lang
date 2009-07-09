@@ -326,17 +326,17 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Get the methods and arrows from the op.
       val methods = findMethodsInTraitHierarchy(op.get, objType)
-      val arrows =
-        // TODO: Currently ignoring any errors from makeArrowFromFunctional
-        if (sargs.isEmpty) {
-          methods.flatMap(makeArrowFromFunctional)
-        } else {
-          methods.flatMap(m =>
-            makeArrowFromFunctional(m).
-              flatMap(a => staticInstantiation(sargs, a).
-                map(_.asInstanceOf[ArrowType]))
-          )
-        }
+      var arrows = methods.flatMap(makeArrowFromFunctional)
+      //Make sure all of the functions had return types declared or inferred
+      //TODO: This could be handled more gracefully
+      if(arrows.size != methods.size){
+        signal(expr, "The return type for %s could not be inferred".format(op))
+        return expr
+      }
+      //Instantiate the arrows if you were given static args
+      if (!sargs.isEmpty) {
+        arrows = arrows.flatMap(a =>staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
+      }
       staticallyMostApplicableArrow(arrows.toList, subsType, None) match {
         case Some((arrow, sargs)) =>
           SSubscriptExpr(SExprInfo(span, paren, Some(arrow.getRange)),
@@ -344,7 +344,7 @@ trait Functionals { self: STypeChecker with Common =>
                          checkedSubs,
                          op,
                          sargs)
-        case one =>
+        case None =>
           signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
                          format(objType, op.get, subsType))
           expr

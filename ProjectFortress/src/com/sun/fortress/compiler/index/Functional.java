@@ -66,6 +66,10 @@ public abstract class Functional {
      */
     protected Option<Thunk<Option<Type>>> _thunk = Option.none();
     
+    public boolean hasThunk() {
+        return _thunk.isSome();
+    }
+    
     public void putThunk(Thunk<Option<Type>> thunk) {
         _thunk = Option.<Thunk<Option<Type>>>some(LazyThunk.make(thunk));
     }

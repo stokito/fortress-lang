@@ -69,13 +69,16 @@ trait Decls { self: STypeChecker with Common =>
                                       { (d:Decl, c:STypeChecker) => d match {
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c } }
-      toOption(traits.typeCons(name.asInstanceOf[Id])).asInstanceOf[Option[TypeConsIndex]] match {
+      toOption(traits.typeCons(name.asInstanceOf[Id])) match {
         case None => signal(name, errorMsg(name, " is not found.")); t
         case Some(ti) =>
           // Extend method checker with methods and functions
           // that will now be in scope
-          val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          ti.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
+          val inheritedMethods = this.inheritedMethods(extendsC)
+          val dottedMethods = ti.asInstanceOf[TraitIndex]
+                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
+          val methods = new UnionRelation(inheritedMethods,
+                                          dottedMethods)
           method_checker = method_checker.extendWithFunctions(methods)
           method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
@@ -119,13 +122,16 @@ trait Decls { self: STypeChecker with Common =>
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c } }
       // Check method declarations.
-      toOption(traits.typeCons(name.asInstanceOf[Id])).asInstanceOf[Option[TypeConsIndex]] match {
+      toOption(traits.typeCons(name.asInstanceOf[Id])) match {
         case None => signal(name, errorMsg(name, " is not found.")); o
         case Some(oi) =>
           // Extend type checker with methods and functions
           // that will now be in scope as regular functions
-          val methods = new UnionRelation(inheritedMethods(extendsC),
-                                          oi.asInstanceOf[TraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]])
+          val dottedMethods = oi.asInstanceOf[TraitIndex]
+                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]]
+          val inheritedMethods = this.inheritedMethods(extendsC)
+          val methods = new UnionRelation(inheritedMethods,
+                                          dottedMethods)
           method_checker = method_checker.extendWithFunctions(methods)
           method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
