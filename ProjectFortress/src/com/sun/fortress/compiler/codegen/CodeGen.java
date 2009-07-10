@@ -219,11 +219,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    private void generateInitMethod() {
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", NamingCzar.voidToVoid, null, null);
+    private void generateInitMethod(List<Param> params) {
+        String init_sig = NamingCzar.only.jvmSignatureFor(params, "V", thisApi());
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.internalObject, "<init>", NamingCzar.voidToVoid);
+        // TODO initialize fields here.
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         mv.visitEnd();
@@ -458,7 +460,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                  null);
 
         // Always generate the init method
-        generateInitMethod();
+        generateInitMethod(Collections.<Param>emptyList());
 
         // If this component exports an executable API,
         // generate a main method.
@@ -474,7 +476,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // Must do this first, to get local decls right.
         generateTopLevelOverloads();
         
-        // Must process these to put them into scope.
+        /*
+         * Must process these first to put them into scope.
+         * This probably will generalize to include VarDecl, in which case
+         * we probably want some sort of a visitor.
+         */
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
                 this.forObjectDeclPrePass((ObjectDecl) d);
@@ -563,7 +569,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if ( !( name instanceof IdOrOp ))
             sayWhat(x, "Unhandled function name.");
 
-        String nameString = ((IdOrOp)name).getText();
         if ( name instanceof Id ) {
             Id id = (Id) name;
             debug("forId ", id,
@@ -596,14 +601,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
             modifiers += Opcodes.ACC_STATIC;
         }
 
-        String mname = NamingCzar.mangleIdentifier(nameString);
         String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                                                 returnType.unwrap(),
                                                 component.getName());
 
-        if (overloadedNamesAndSigs.contains(mname+sig)) {
-            mname = NamingCzar.only.mangleAwayFromOverload(mname);
-        }
+        String mname = nonCollidingSingleName(name, sig);
 
         cg.mv = cw.visitMethod(modifiers, mname, sig,
                                null, null);
@@ -636,6 +638,23 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if (iun.isSome()) {
 
         }
+    }
+
+    /**
+     * Creates a name that will not collide with any overloaded functions 
+     * (the overloaded name "wins" because it if it is exported, this one is not).
+     * 
+     * @param name
+     * @param sig The jvm signature for a method, e.g., (ILjava/lang/Object;)D
+     * @return
+     */
+    private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig) {
+        String nameString = ((IdOrOp)name).getText();
+        String mname = NamingCzar.mangleIdentifier(nameString);
+        if (overloadedNamesAndSigs.contains(mname+sig)) {
+            mname = NamingCzar.only.mangleAwayFromOverload(mname);
+        }
+        return mname;
     }
 
 
@@ -796,39 +815,42 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
                 NodeUtil.getName(x).getText());
 
-        String objectFieldName = x.getHeader().getName().stringName();
-
-//        if (classFile.equals("CompilerSystem$args")) {
-//            // TODO: Make this work for real!  Only works for default_args today.
-//            debug("header.getDecls:", header.getDecls());
-//
-//            mv = cw.visitMethod(Opcodes.ACC_STATIC,
-//                    "<clinit>",
-//                    "()V",
-//                    null,
-//                    null);
-//
-//            singletonObjectFieldAndInit(x);
-//            
-//            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-//            mv.visitEnd();
-//        } else
+        List<Param> params;
         if (x.getParams().isSome()) {
-            // Generate the factory method
+            params = x.getParams().unwrap();
+            
+             // Generate the factory method
             String classDesc = NamingCzar.only.internalToDesc(classFile);
+            String sig = NamingCzar.only.jvmSignatureFor(params, classDesc, thisApi());
+            String init_sig = NamingCzar.only.jvmSignatureFor(params, "V", thisApi());
+            
+            String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
+            
             mv = cw.visitMethod(Opcodes.ACC_STATIC,
-                    objectFieldName,
-                    "()"+classDesc,
+                    mname,
+                    sig,
                     null,
                     null);
 
             mv.visitTypeInsn(Opcodes.NEW, classFile);
             mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
+            
+            // iterate, pushing parameters, beginning at zero.
+           // TODO actually handle N>0 parameters.
+            
+            int stack_offset = 0;
+            for (Param p : params) {
+                // when we unbox, this will be type-dependent
+                mv.visitVarInsn(Opcodes.ALOAD, stack_offset);
+                stack_offset++; 
+            }
+            
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", init_sig);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
         } else { // singleton
+            params = Collections.<Param>emptyList();
             // Add to list to be initialized in clinit
             singletonObjects.add(x);
         }
@@ -842,13 +864,33 @@ public class CodeGen extends NodeAbstractVisitor_void {
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
         cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
+        
+        // Emit fields here, one per parameter.
 
-        // This depends on the number of parameters.
-        generateInitMethod();
+        generateInitMethod(params);
+        
+        BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
-         for (Decl d : header.getDecls()) {
+        // need to add locals to the environment, yes.
+        // each one has name, mangled with a preceding "$"
+        for (Param p : params) {
+            Type param_type = p.getIdType().unwrap();
+            String objectFieldName = p.getName().getText();
+            Id id = 
+               NodeFactory.makeId(NodeUtil.getSpan(p.getName()), objectFieldName);
+            addStaticVar(new VarCodeGen.FieldVar(id,
+                    param_type,
+                    classFile,
+                    objectFieldName,
+                    NamingCzar.jvmTypeDesc(param_type, component.getName(), false)));
+        }
+                
+        for (Decl d : header.getDecls()) {
+            // This does not work yet.
             d.accept(this);
         }
+        
+        lexEnv = savedLexEnv;
         dumpClass( classFile );
         cw = prev;
         inAnObject = savedInAnObject;
@@ -1178,7 +1220,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                  null, NamingCzar.internalObject, new String[0] );
         debug("Start writing springboard class ",
               springBoardClass);
-        generateInitMethod();
+        generateInitMethod(Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
         dumpDecls(header.getDecls());
         debug("Finished dumpDecls ", springBoardClass);

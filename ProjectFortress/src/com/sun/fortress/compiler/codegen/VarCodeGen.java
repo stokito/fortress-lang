@@ -80,18 +80,52 @@ public abstract class VarCodeGen {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
     }
-
-    public static class SingletonObject extends VarCodeGen {
+    
+   protected abstract static class NeedsType extends VarCodeGen {
         
-        private final String packageAndClassName;
-        private final String objectFieldName;
-        private final String classDesc;
+        protected final String packageAndClassName;
+        protected final String objectFieldName;
+        protected final String classDesc;
         
-        public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+        public NeedsType(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType);
             this.packageAndClassName = owner;
             this.objectFieldName = name;
             this.classDesc = desc;
+        }
+   }
+    
+    
+    public static class FieldVar extends NeedsType {
+        public FieldVar(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+            super(id, fortressType, owner, name, desc);
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, packageAndClassName, objectFieldName, classDesc);
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            // TODO this will not work for 2-word immediates
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
+        }
+
+        @Override
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            // TODO Auto-generated method stub
+            
+        }
+       
+    }
+
+    public static class SingletonObject extends NeedsType {
+        
+        
+        public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+            super(id, fortressType, owner, name, desc);
         }
         
         public void pushValue(CodeGenMethodVisitor mv) {
