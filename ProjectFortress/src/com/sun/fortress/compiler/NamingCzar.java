@@ -360,30 +360,7 @@ public class NamingCzar {
 
     
     public static String boxedImplType( com.sun.fortress.nodes.Type t, APIName ifNone ) {
-        // TODO: refactor to be like boxedImplDesc.  Somehow.
         return jvmTypeDesc(t, ifNone, false);
-//        String desc = specialFortressTypes.get(t);
-//
-//        if (desc != null)
-//            return desc;
-//
-//        if (t instanceof ArrowType) {
-//
-//        } else if (t instanceof BaseType) {
-//            if (t instanceof AnyType) {
-//                return FValueType;
-//            } else if (t instanceof BottomType) {
-//                return bug("Not sure how bottom type translates into Java");
-//            } else if (t instanceof NamedType) {
-//                if (t instanceof TraitType) {
-//                    return FValueType;
-//                } else if (t instanceof VarType) {
-//                    return bug("Need a binding to translate a VarType into Java");
-//                }
-//            }
-//        }
-//        return bug ("unhandled type translation, Fortress type " + t);
-
     }
 
     public String apiNameToPackageName(APIName name) {
@@ -490,12 +467,6 @@ public class NamingCzar {
             }
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
-
-//            if (apiName.isNone()) {
-//                // DRC -- This looks wrong to me: it should be the component/api containing the trait, not empty.
-//                result[i] = name.toString();
-//                continue;
-//            }
             String api = apiName.unwrap(ifMissing).getText();
 
             StringBuilder parent = javaPackageClassForApi(api, "/");  parent.append("$");  parent.append(name.getText());
@@ -581,22 +552,33 @@ public class NamingCzar {
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
                                          com.sun.fortress.nodes.Type range,
                                          APIName ifNone) {
+        return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
+    }
+
+    public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
+            String rangeDesc,
+            APIName ifNone) {
         return makeMethodDesc(
-                   NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain, ifNone),
-                   jvmTypeDesc(range, ifNone));
+                NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain, ifNone),
+                        rangeDesc);
     }
 
     public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
-                                         com.sun.fortress.nodes.Type range,
-                                         APIName ifNone) {
+            String rangeDesc, APIName ifNone) {
         String args = "";
         // This special case handles single void argument type properly.
         if (domain.size() == 1)
-            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), range, ifNone);
+            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), rangeDesc, ifNone);
         for (Param p : domain) {
             args += jvmTypeDesc(p.getIdType(), ifNone);
         }
-        return makeMethodDesc(args, jvmTypeDesc(range, ifNone));
+        return makeMethodDesc(args, rangeDesc);
+    }
+
+    public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
+            com.sun.fortress.nodes.Type range,
+            APIName ifNone) {
+        return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
     }
 
     public static String jvmSignatureFor(Function f, APIName ifNone) {
