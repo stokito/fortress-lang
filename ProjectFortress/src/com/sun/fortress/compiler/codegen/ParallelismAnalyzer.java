@@ -17,32 +17,20 @@
 
 package com.sun.fortress.compiler.codegen;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.Debug;
 
+public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
+    private static final int ARG_THRESHOLD = 2;
+    private final HashSet<ASTNode> worthy = new HashSet<ASTNode>();
 
-import edu.rice.cs.plt.tuple.Option;
-
-public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
-    private final HashMap<ASTNode, Boolean> worthy;
-
-    private final static Boolean f = Boolean.FALSE;
-    private final static Boolean t = Boolean.TRUE;
-
-    public Boolean worthParallelizing(ASTNode n) 
-    {
-
-        // FIXME:  why are some nodes not getting seen?
-        if (worthy.get(n) != null && worthy.get(n))
-            return t;
-        else return f;
-    }
-
-    public ParallelismAnalyzer() {
-        worthy = new HashMap<ASTNode, Boolean>();
+    private boolean isComputeIntensiveArg(Expr e) {
+        // A FnRef should not be parallelized itself. But, as an argument,
+        // it supports the case for parallelizing the enclosing application.
+        return (worthParallelizing(e) || (e instanceof FnRef));
     }
 
     private void debug(ASTNode x) {
@@ -57,133 +45,34 @@ public class ParallelismAnalyzer extends NodeAbstractVisitor<Boolean> {
         Debug.debug(Debug.Type.CODEGEN,1, "ParallelismAnalyzer: " + "::" + message);
     }
 
-    public Boolean forBlock(Block x) {
-        debug(x,"forBlock");
-        for (Expr e : x.getExprs()) {
-            e.accept(this);
-        }
-        return f;
-    }
-
-    public Boolean forComponent(Component x) {
-        debug(x, "forComponent");
-
-        for (Decl d : x.getDecls()) {
-            d.accept(this);
-        }
-        worthy.put(x,f);
-        return f;
-    }
-
-    public Boolean forFnDecl(FnDecl x) {
-        debug(x,"forFnDecl");
-        boolean result = false;
-        List<Param> params = x.getHeader().getParams();
-        boolean paramsWorthy[] = new boolean[params.size()];
-        int i = 0;
-
-        for (Param p : params)
-            paramsWorthy[i++] = p.accept(this);
-
-
-        debug(x,"ZZZZZZ" + x.getBody().unwrap());
-        x.getBody().unwrap().accept(this);
-        return f;
-    }
-
-    // The FnRef is not parallel, but as an argument it is worth parallelizing.
-    public Boolean forFnRef(FnRef x) {
-        debug(x,"forFnRef");
-        worthy.put(x, f);
-        return t;
-    }
-
-    public Boolean forIf(If x) {
-        debug(x,"forIf");
-        for (IfClause clause : x.getClauses()) clause.accept(this);
-        Option<Block> maybe_else = x.getElseClause();
-        if (maybe_else.isSome()) {
-            maybe_else.unwrap().accept(this);
-        }
-        worthy.put(x,f);
-        return f;
-    }
-
-    public Boolean forOpExpr(OpExpr x) {
-        debug(x,"forOpExpr");
-        List<Expr> args = x.getArgs();
+    private boolean tallyArgs(List<Expr> args) {
         int count = 0;
 
-        for (Expr e : args)
-            if (e.accept(this)) count++;
-
-        if (count >= 2)
-            worthy.put(x,t);
-        else
-            worthy.put(x, f);
-        return t;
+        for (Expr e : args) {
+            if (isComputeIntensiveArg(e)) count++;
+        }
+        return count >= ARG_THRESHOLD;
     }
 
-    public Boolean forTraitDecl(TraitDecl x) {
-        debug(x,"forTraitDecl");
-        for (Decl d : x.getHeader().getDecls()) d.accept(this);
-        worthy.put(x,f);
-        return f;
+    public boolean worthParallelizing(ASTNode n) { return worthy.contains(n); }
+
+    public void printTable() {
+        for (ASTNode node : worthy)
+            debug("Parallelizable table has entry " + node);
     }
 
+    public void forOpExprOnly(OpExpr x) {
+        debug(x,"forOpExpr");
+        if (tallyArgs(x.getArgs())) worthy.add(x);
+    }
 
-    public Boolean for_RewriteFnApp(_RewriteFnApp x) {
+    public void for_RewriteFnAppOnly(_RewriteFnApp x) {
         debug(x,"for_RewriteFnApp");
-
         Expr arg = x.getArgument();
 
         if (arg instanceof TupleExpr) {
             TupleExpr targ = (TupleExpr) arg;
-            List<Expr> exprs = targ.getExprs();
-            int count = 0;
-
-            for (Expr expr : exprs)
-                if (expr.accept(this)) count++;
-
-            if (count >= 2)
-                worthy.put(x,t);
-            else
-                worthy.put(x,f);
-
-        } else {
-            arg.accept(this);
-            worthy.put(x,f);
-        }
-        x.getFunction().accept(this);
-        return t;
-    }
-
-    public Boolean defaultCase(Node that) {
-        return f;
-    }
-
-    // Why doesn't the defaultCase handle these?
-
-
-    // public Boolean forChainExpr(ChainExpr x) {debug(x,"forChainExpr"); return f;}
-    // public Boolean forDecl(Decl x) {debug(x,"forDecl"); return f;}
-    // public Boolean forDo(Do x) {debug(x,"forDo"); return f;}
-    // public Boolean forIfClause(IfClause x) {debug(x,"forIfClause"); return f;}
-    // public Boolean forImportNames(ImportNames x) {debug(x,"forImportNames"); return f;}
-    // public Boolean forIntLiteralExpr(IntLiteralExpr x) {debug(x,"forIntLiteralExpr"); return f;}
-    // public Boolean forObjectDecl(ObjectDecl x) {debug(x,"forObjectDecl"); return f;}
-    // public Boolean forOpRef(OpRef x) {debug(x,"forOpRef"); return f;}
-    // public Boolean forParam(Param x) {debug(x,"forParam"); return f;}
-    // public Boolean forStringLiteralExpr(StringLiteralExpr x) {debug(x,"forStringLiteralExpr"); return f;}
-    // public Boolean forSubscriptExpr(SubscriptExpr x) {debug(x,"forSubscriptExpr"); return f;}
-    // public Boolean forVarRef(VarRef x) {debug(x,"forVarRef"); return f;}
-    // public Boolean forVoidLiteralExpr(VoidLiteralExpr x) {debug(x,"forVoidLiteralExpr"); return f;}
-    // public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {debug(x,"for"); return f;}
-
-
-    public void printTable() {
-        Set<ASTNode> keys = worthy.keySet();
-        for (ASTNode key : keys)
-            debug("Parallelizable table entry " + key  + " has value " + worthy.get(key));
+            if (tallyArgs(targ.getExprs())) worthy.add(x);
+        } 
     }
 }
