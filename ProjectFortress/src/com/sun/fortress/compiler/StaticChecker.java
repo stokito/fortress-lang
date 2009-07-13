@@ -44,6 +44,8 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.Nodes;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.linker.ApiLinker;
 import com.sun.fortress.scala_src.linker.CompoundApiChecker;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
@@ -61,6 +63,7 @@ import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
+import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -187,6 +190,8 @@ public class StaticChecker {
 
             if (isApi) {
                 Api api_ast = (Api)ast;
+//                 Nodes.printNode((Api)api_ast, "api_ast.");
+
                 // Check if this is a compound API, and, if so, link it into a single API.
                 // The AST associated with an ApiIndex is always an Api.
                 errors = new CompoundApiChecker(env.apis()).check(api_ast);
@@ -194,6 +199,7 @@ public class StaticChecker {
                     return new TypeCheckerResult(ast, errors);
                 }
                 ast = new ApiLinker(env.apis()).link(api_ast);
+//                 Nodes.printNode((Api)ast, "api_linked_ast.");
                 index = IndexBuilder.builder.buildApiIndex(api_ast,
                                                            System.currentTimeMillis());
             }
