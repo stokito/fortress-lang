@@ -195,7 +195,8 @@ public class StaticChecker {
                 }
                 ast = new ApiLinker(env.apis()).link(api_ast);
                 index = IndexBuilder.builder.buildApiIndex(api_ast,
-                                                           System.currentTimeMillis());
+                                                           System.currentTimeMillis(),
+                                                           errors);
             }
 
             // Check type hierarchy to ensure acyclicity.
@@ -218,7 +219,7 @@ public class StaticChecker {
             }
 
             ast = (CompilationUnit)ast.accept(new TypeNormalizer());
-            index = buildIndex(ast, isApi);
+            index = buildIndex(ast, errors, isApi);
 
             TraitTable traitTable = new TraitTable(index, env);
             TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
@@ -242,7 +243,7 @@ public class StaticChecker {
                     // then replace inference variables...
                     InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
                     ast = (Component)result.ast().accept(rep);
-                    index = buildIndex(ast, isApi);
+                    index = buildIndex(ast, errors, isApi);
                     // then typecheck again!!!
                     result = typeCheck(componentIndex, env, traitTable,
                                        component_ast, true);
@@ -263,7 +264,7 @@ public class StaticChecker {
                     STypeChecker typeChecker =
                         STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer, log);
                     ast = (Component)typeChecker.typeCheck(component_ast);
-                    index = buildIndex(ast, isApi);
+                    index = buildIndex(ast, errors, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
                     result = new TypeCheckerResult(ast, errors);
                 }
@@ -323,13 +324,17 @@ public class StaticChecker {
         return typeEnv;
     }
 
-    private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {
+    private static CompilationUnitIndex buildIndex(CompilationUnit ast,
+                                                   List<StaticError> errors,
+                                                   boolean isApi) {
         if (isApi)
             return IndexBuilder.builder.buildApiIndex((Api)ast,
-                                                      System.currentTimeMillis());
+                                                      System.currentTimeMillis(),
+                                                      errors);
         else
             return IndexBuilder.builder.buildComponentIndex((Component)ast,
-                                                            System.currentTimeMillis());
+                                                            System.currentTimeMillis(),
+                                                            errors);
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,
