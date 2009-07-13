@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component FieldAccess
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Executable
+
+trait Z end
+trait T extends Z end
+trait U extends Z end
+trait S extends {T,U} end
+
+object O(a:String) extends S end;
+object Q(b:String, c:String) extends U end;
+
+(* Field ref not yet implemented, sigh. *)
+f(o:O):() = jPrintln(o.a)
+f(o:Z):() = jPrintln("Hi!")
+
+g(x:Z):() = f(x)
+
+run():() = do
+  g(O("Ha!"))
+  g(Q("Hi!", "c"))
+  (* jPrintln("Hi!") *)
+end
+
+end
