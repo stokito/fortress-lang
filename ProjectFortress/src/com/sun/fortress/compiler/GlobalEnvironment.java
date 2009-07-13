@@ -21,10 +21,13 @@ import com.sun.fortress.repository.FortressRepository;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
@@ -48,6 +51,15 @@ public abstract class GlobalEnvironment {
 
     public String toString() {
         return this.getClass().getSimpleName() + " " + apis();
+    }
+
+    public Iterable<Api> apiAsts() { 
+        Set<Api> result = new HashSet<Api>();
+
+        for (ApiIndex apiIndex : apis().values()) { 
+            result.add((Api)apiIndex.ast());
+        }
+        return result;
     }
 
     public boolean contains(APIName api1, APIName api2) { 
