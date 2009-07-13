@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -69,20 +70,15 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
 public class IndexBuilder {
-    public static IndexBuilder builder = new IndexBuilder();
-    public static final String COERCION_NAME = "coerce";
-    public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
-    private static void error(List<StaticError> errors, String message, HasAt loc) {
-        errors.add(StaticError.make(message, loc));
-    }
+    static public IndexBuilder builder = new IndexBuilder();
 
     /** Result of {@link #buildApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Map<APIName, ApiIndex> _apis;
 
         public ApiResult(Map<APIName, ApiIndex> apis,
-                         Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -90,12 +86,37 @@ public class IndexBuilder {
         public Map<APIName, ApiIndex> apis() { return _apis; }
     }
 
+    /** Convert the given ASTs to ApiIndices. */
+    public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
+        IndexBuilder builder = new IndexBuilder();
+        Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
+        return builder.buildApis(asts, apis, modifiedDate);
+    }
+
+    private ApiResult buildApis(Iterable<Api> asts, Map<APIName, ApiIndex> apis, 
+                                long modifiedDate) 
+    { 
+        boolean apisAdded = false;
+        for (Api ast : asts) { apisAdded = apisAdded || this.buildApi(ast, apis, modifiedDate); }
+        if (apisAdded) { return  new IndexBuilder().buildApis(asts, apis, modifiedDate); }
+        else { return new ApiResult(apis, this.errors()); }
+    }
+
+    /** Convenience function that takes apis as varargs and builds an ApiResult. */
+    public static ApiResult buildApis(long modifiedDate, Api... asts) {
+
+        ArrayList<Api> apiList = new ArrayList<Api>();
+        for (Api ast: asts) { apiList.add(ast); }
+        return buildApis(apiList, modifiedDate);
+    }
+
+
     /** Result of {@link #buildComponents}. */
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
 
         public ComponentResult(Map<APIName, ComponentIndex> components,
-                               Iterable<? extends StaticError> errors) {
+                Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
         }
@@ -103,91 +124,70 @@ public class IndexBuilder {
         public Map<APIName, ComponentIndex> components() { return _components; }
     }
 
-    /** Convert the given ASTs to ApiIndices. */
-    public static ApiResult buildApis(Iterable<Api> asts, long modifiedDate) {
-        List<StaticError> errors = new LinkedList<StaticError>();
-        Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        return buildApis(asts, apis, modifiedDate, errors);
-    }
-
-    private static ApiResult buildApis(Iterable<Api> asts, Map<APIName, ApiIndex> apis,
-                                       long modifiedDate, List<StaticError> errors) {
-        boolean apisAdded = false;
-        for (Api ast : asts) {
-            apisAdded = apisAdded || buildApi(ast, apis, modifiedDate, errors);
-        }
-        if (apisAdded) return buildApis(asts, apis, modifiedDate, errors);
-        else return new ApiResult(apis, errors);
-    }
-
-    /** Convenience function that takes apis as varargs and builds an ApiResult. */
-    public static ApiResult buildApis(long modifiedDate, Api... asts) {
-        ArrayList<Api> apiList = new ArrayList<Api>();
-        for (Api ast: asts) { apiList.add(ast); }
-        return buildApis(apiList, modifiedDate);
-    }
-
     /** Convert the given ASTs to ComponentIndices. */
     public static ComponentResult buildComponents(Iterable<Component> asts, long modifiedDate) {
-        List<StaticError> errors = new LinkedList<StaticError>();
+        IndexBuilder builder = new IndexBuilder();
         Map<APIName, ComponentIndex> components =
             new HashMap<APIName, ComponentIndex>();
-        for (Component ast : asts) { buildComponent(ast, components, modifiedDate, errors); }
-        return new ComponentResult(components, errors);
+        for (Component ast : asts) { builder.buildComponent(ast, components, modifiedDate); }
+        return new ComponentResult(components, builder.errors());
+    }
+
+
+    private List<StaticError> _errors;
+
+    public IndexBuilder() { _errors = new LinkedList<StaticError>(); }
+
+    private List<StaticError> errors() { return _errors; }
+
+    private void error(String message, HasAt loc) {
+        _errors.add(StaticError.make(message, loc));
+    }
+
+    private void addErrors(List<StaticError> errors) { 
+        _errors.addAll(errors);
     }
 
     /** Create an ApiIndex and add it to the given map. */
-    private static boolean buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate,
-                                    List<StaticError> errors) {
-        if (apis.containsKey(ast.getName())) {
-            return false;
-        } else {
-            List<StaticError> _errors = new CompoundApiChecker(apis).check(ast);
-            if (! _errors.isEmpty()) {
-                errors.addAll(_errors);
+    private boolean buildApi(Api ast, Map<APIName, ApiIndex> apis, long modifiedDate) {
+        if (apis.containsKey(ast.getName())) { 
+            return false; 
+        }
+        else { 
+            List<StaticError> errors = new CompoundApiChecker(apis).check(ast);
+            if (! errors.isEmpty()) { 
+                addErrors(errors); 
                 return false;
-            } else {
+            }
+            else { 
                 // If <code>ast</code> is a compound API, link it into a single API.
-                ast = new ApiLinker(apis).link(ast);
-                ApiIndex api = buildApiIndex(ast, modifiedDate, errors);
+                ast = new ApiLinker(apis).link(ast); 
+                ApiIndex api = buildApiIndex(ast, modifiedDate);
                 apis.put(ast.getName(), api);
                 return true;
             }
         }
     }
 
-    /** Create a ComponentIndex and add it to the given map. */
-    private static void buildComponent(Component ast,
-                                       Map<APIName, ComponentIndex> components,
-                                       long modifiedDate,
-                                       List<StaticError> errors) {
-        ComponentIndex comp = buildComponentIndex(ast, modifiedDate, errors);
-        components.put(ast.getName(), comp);
-    }
-
-    public static ApiIndex buildApiIndex(Api ast, long modifiedDate) {
-        return buildApiIndex(ast, modifiedDate, new LinkedList<StaticError>());
-    }
-
-    public static ApiIndex buildApiIndex(Api ast, long modifiedDate,
-                                         final List<StaticError> errors) {
+    public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
         final Set<ParametricOperator> parametricOperators =
             new HashSet<ParametricOperator>();
-        final Map<Id, TypeConsIndex> typeConses = new HashMap<Id, TypeConsIndex>();
-        final Map<Id, Dimension> dimensions = new HashMap<Id, Dimension>();
+        final Map<Id, TypeConsIndex> typeConses =
+            new HashMap<Id, TypeConsIndex>();
+        final Map<Id, Dimension> dimensions =
+            new HashMap<Id, Dimension>();
         final Map<Id, Unit> units = new HashMap<Id, Unit>();
         final Map<String, GrammarIndex> grammars =
             new HashMap<String, GrammarIndex>();
-
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
-                buildTrait(d, typeConses, functions, parametricOperators, errors);
+                buildTrait(d, typeConses, functions, parametricOperators);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, parametricOperators, variables, errors);
+                buildObject(d, typeConses, functions, parametricOperators, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
@@ -210,8 +210,8 @@ public class IndexBuilder {
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
             }
-            @Override public void forGrammarDecl(GrammarDecl d) { // only for buildApiIndex
-                buildGrammar(d, grammars, errors);
+            @Override public void forGrammarDecl(GrammarDecl d) {
+                buildGrammar(d, grammars);
             }
         };
         for (Decl decl : ast.getDecls()) {
@@ -291,37 +291,40 @@ public class IndexBuilder {
         // threaded through to here.
     	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
                             new HashSet<ParametricOperator>(),
-                            new HashMap<Id,Variable>(),
-                            new LinkedList<StaticError>());
+                            new HashMap<Id,Variable>());
     	return (ObjectTraitIndex)index_holder.get(fake_object_name);
     }
 
-    public static ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
-        return buildComponentIndex(ast, modifiedDate, new LinkedList<StaticError>());
+    /** Create a ComponentIndex and add it to the given map. */
+    private void buildComponent(Component ast,
+                                Map<APIName, ComponentIndex> components,
+                                long modifiedDate) {
+        ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
+        components.put(ast.getName(), comp);
     }
 
-    public static ComponentIndex buildComponentIndex(Component ast, long modifiedDate,
-                                                     final List<StaticError> errors) {
+    public ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
         final Set<ParametricOperator> parametricOperators =
             new HashSet<ParametricOperator>();
-        final Map<Id, TypeConsIndex> typeConses = new HashMap<Id, TypeConsIndex>();
-        final Map<Id, Dimension> dimensions = new HashMap<Id, Dimension>();
-        final Map<Id, Unit> units = new HashMap<Id, Unit>();
-
+        final Map<Id, TypeConsIndex> typeConses =
+            new HashMap<Id, TypeConsIndex>();
+        final Map<Id, Dimension> dimensions =
+            new HashMap<Id, Dimension>();
+        final Map<Id, Unit> units =
+            new HashMap<Id, Unit>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
-                buildTrait(d, typeConses, functions, parametricOperators, errors);
+                buildTrait(d, typeConses, functions, parametricOperators);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, parametricOperators, variables, errors);
+                buildObject(d, typeConses, functions, parametricOperators, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
-                buildVariables(d, variables);
-                initializers.add(d); // only for buildComponentIndex
+                buildVariables(d, variables); initializers.add(d);
             }
             @Override public void forFnDecl(FnDecl d) {
                 buildFunction(d, functions);
@@ -400,11 +403,10 @@ public class IndexBuilder {
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
      */
-    private static void buildTrait(final TraitDecl ast,
-                                   final Map<Id, TypeConsIndex> typeConses,
-                                   final Relation<IdOrOpOrAnonymousName, Function> functions,
-                                   final Set<ParametricOperator> parametricOperators,
-                                   final List<StaticError> errors)
+    private void buildTrait(final TraitDecl ast,
+                            final Map<Id, TypeConsIndex> typeConses,
+                            final Relation<IdOrOpOrAnonymousName, Function> functions,
+                            final Set<ParametricOperator> parametricOperators)
     {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Method> getters = new HashMap<Id, Method>();
@@ -419,8 +421,7 @@ public class IndexBuilder {
             @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, NodeUtil.getStaticParams(ast),
                             getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions, parametricOperators,
-                            errors);
+                            functionalMethods, functions, parametricOperators);
             }
         };
         for (Decl decl : NodeUtil.getDecls(ast)) {
@@ -447,12 +448,11 @@ public class IndexBuilder {
      * to the given relation; create a constructor function or singleton variable and
      * put it in the appropriate map.
      */
-    private static void buildObject(final ObjectDecl ast,
-                                    final Map<Id, TypeConsIndex> typeConses,
-                                    final Relation<IdOrOpOrAnonymousName, Function> functions,
-                                    final Set<ParametricOperator> parametricOperators,
-                                    final Map<Id, Variable> variables,
-                                    final List<StaticError> errors)
+    private void buildObject(final ObjectDecl ast,
+                             final Map<Id, TypeConsIndex> typeConses,
+                             final Relation<IdOrOpOrAnonymousName, Function> functions,
+                             final Set<ParametricOperator> parametricOperators,
+                             final Map<Id, Variable> variables)
     {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
@@ -469,8 +469,7 @@ public class IndexBuilder {
             @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, NodeUtil.getStaticParams(ast),
                             getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions, parametricOperators,
-                            errors);
+                            functionalMethods, functions, parametricOperators);
             }
         };
         for (Decl decl : NodeUtil.getDecls(ast)) {
@@ -478,11 +477,11 @@ public class IndexBuilder {
         }
         for (Id id : getters.keySet()) {
             if ( dottedMethods.firstSet().contains(id) )
-                error(errors, "Getter declarations should not be overloaded with method declarations.", id);
+                error("Getter declarations should not be overloaded with method declarations.", id);
         }
         for (Id id : setters.keySet()) {
             if ( dottedMethods.firstSet().contains(id) )
-                error(errors, "Setter declarations should not be overloaded with method declarations.", id);
+                error("Setter declarations should not be overloaded with method declarations.", id);
         }
 
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
@@ -509,13 +508,13 @@ public class IndexBuilder {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         getters.put(paramName, new FieldGetterMethod(p, name));
                     else
-                        error(errors, "Varargs object parameters should not define getters.", p);
+                        error("Varargs object parameters should not define getters.", p);
                 }
                 if (mods.isSettable() || mods.isVar()) {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         setters.put(paramName, new FieldSetterMethod(p, name));
                     else
-                        error(errors, "Varargs object parameters should not define setters.", p);
+                        error("Varargs object parameters should not define setters.", p);
                 }
             }
             Constructor c = new Constructor(name,
@@ -542,8 +541,8 @@ public class IndexBuilder {
      * Create a variable wrapper for each declared variable and add it to the given
      * map.
      */
-    private static void buildVariables(VarDecl ast,
-                                       Map<Id, Variable> variables) {
+    private void buildVariables(VarDecl ast,
+            Map<Id, Variable> variables) {
         for (LValue b : ast.getLhs()) {
             variables.put(b.getName(), new DeclaredVariable(b));
         }
@@ -553,10 +552,10 @@ public class IndexBuilder {
      * Create and add to the given maps implicit getters and setters for a trait's
      * abstract fields.
      */
-    private static void buildTraitFields(VarDecl ast,
-                                         Id declaringTrait,
-                                         Map<Id, Method> getters,
-                                         Map<Id, Method> setters) {
+    private void buildTraitFields(VarDecl ast,
+                                  Id declaringTrait,
+                                  Map<Id, Method> getters,
+                                  Map<Id, Method> setters) {
         for (LValue b : ast.getLhs()) {
             Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
@@ -574,11 +573,11 @@ public class IndexBuilder {
      * Create field variables and add them to the given map; also create implicit
      * getters and setters.
      */
-    private static void buildFields(VarDecl ast,
-                                    Id declaringTrait,
-                                    Map<Id, Variable> fields,
-                                    Map<Id, Method> getters,
-                                    Map<Id, Method> setters) {
+    private void buildFields(VarDecl ast,
+            Id declaringTrait,
+            Map<Id, Variable> fields,
+            Map<Id, Method> getters,
+            Map<Id, Method> setters) {
         for (LValue b : ast.getLhs()) {
             Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
@@ -596,16 +595,16 @@ public class IndexBuilder {
     /**
      * Create a dimension wrapper for the declaration and put it in the given map.
      */
-    private static void buildDimension(DimDecl ast,
-                                       Map<Id, Dimension> dimensions) {
+    private void buildDimension(DimDecl ast,
+            Map<Id, Dimension> dimensions) {
         dimensions.put(ast.getDimId(), new Dimension(ast));
     }
 
     /**
      * Create a unit wrapper for the declaration and put it in the given map.
      */
-    private static void buildUnit(UnitDecl ast,
-                                  Map<Id, Unit> units) {
+    private void buildUnit(UnitDecl ast,
+            Map<Id, Unit> units) {
         for (Id unit: ast.getUnits()) {
             units.put(unit, new Unit(ast));
         }
@@ -615,8 +614,8 @@ public class IndexBuilder {
      * Create a function wrapper for the declaration and put it in the given
      * relation.
      */
-    private static void buildFunction(FnDecl ast,
-                                      Relation<IdOrOpOrAnonymousName, Function> functions) {
+    private void buildFunction(FnDecl ast,
+            Relation<IdOrOpOrAnonymousName, Function> functions) {
         DeclaredFunction df = new DeclaredFunction(ast);
         functions.add(NodeUtil.getName(ast), df);
         functions.add(ast.getUnambiguousName(), df);
@@ -629,40 +628,39 @@ public class IndexBuilder {
      * are also propagated to top-level, with their parametric names. These names
      * must be substituted with particular instantiations during lookup.
      */
-    private static void buildMethod(FnDecl ast,
-                                    Id declaringTrait,
-                                    List<StaticParam> enclosingParams,
-                                    Map<Id, Method> getters,
-                                    Map<Id, Method> setters,
-                                    Set<Function> coercions,
-                                    Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
-                                    Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
-                                    Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions,
-                                    Set<ParametricOperator> parametricOperators,
-                                    List<StaticError> errors) {
+    private void buildMethod(FnDecl ast,
+                             Id declaringTrait,
+                             List<StaticParam> enclosingParams,
+                             Map<Id, Method> getters,
+                             Map<Id, Method> setters,
+                             Set<Function> coercions,
+                             Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
+                             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
+                             Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions,
+                             Set<ParametricOperator> parametricOperators) {
         Modifiers mods = NodeUtil.getMods(ast);
         // TODO: check for correct modifiers?
         IdOrOpOrAnonymousName name = NodeUtil.getName(ast);
         if (mods.isGetter()) {
             if (name instanceof Id) {
                 if ( getters.keySet().contains((Id)name) )
-                    error(errors, "Getter declarations should not be overloaded.", ast);
+                    error("Getter declarations should not be overloaded.", ast);
                 else getters.put((Id)name, new DeclaredMethod(ast, declaringTrait));
             }
             else {
                 String s = NodeUtil.nameString(name);
-                error(errors, "Getter declared with an operator name, '" + s + "'", ast);
+                error("Getter declared with an operator name, '" + s + "'", ast);
             }
         }
         else if (mods.isSetter()) {
             if (name instanceof Id) {
                 if ( setters.keySet().contains((Id)name) )
-                    error(errors, "Setter declarations should not be overloaded.", ast);
+                    error("Setter declarations should not be overloaded.", ast);
                 else setters.put((Id)name, new DeclaredMethod(ast, declaringTrait));
             }
             else {
                 String s = NodeUtil.nameString(name);
-                error(errors, "Getter declared with an operator name, '" + s + "'", ast);
+                error("Getter declared with an operator name, '" + s + "'", ast);
             }
         }
         else if (name instanceof Id && ((Id)name).getText().equals(COERCION_NAME)) {
@@ -674,7 +672,7 @@ public class IndexBuilder {
                 // TODO: make sure param is valid (for ex., self doesn't have a type)
                 if (p.getName().equals(SELF_NAME)) {
                     if (functional) {
-                        error(errors, "Parameter 'self' appears twice in a method declaration.", ast);
+                        error("Parameter 'self' appears twice in a method declaration.", ast);
                         return;
                     }
                     functional = true;
@@ -723,24 +721,22 @@ public class IndexBuilder {
     /**
      * Create a Grammar and put it in the given map.
      */
-    private static void buildGrammar(GrammarDecl ast, Map<String, GrammarIndex> grammars,
-                                     List<StaticError> errors) {
+    private void buildGrammar(GrammarDecl ast, Map<String, GrammarIndex> grammars) {
         String name = ast.getName().getText();
-        GrammarIndex grammar = new GrammarIndex(ast, buildMembers(ast.getMembers(), errors));
+        GrammarIndex grammar = new GrammarIndex(ast, buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
-            error(errors, "Multiple grammars declared with the same name: "+name, ast);
+            error("Multiple grammars declared with the same name: "+name, ast);
         }
         grammars.put(name, grammar);
     }
 
 
-    private static List<NonterminalIndex> buildMembers(List<GrammarMemberDecl> members,
-                                                       List<StaticError> errors) {
+    private List<NonterminalIndex> buildMembers(List<GrammarMemberDecl> members) {
         List<NonterminalIndex> result = new ArrayList<NonterminalIndex>();
         Set<Id> names = new HashSet<Id>();
         for (GrammarMemberDecl m: members) {
             if (names.contains(m.getName())) {
-                error(errors, "Nonterminal declared twice: "+m.getName(), m);
+                error("Nonterminal declared twice: "+m.getName(), m);
             }
             names.add(m.getName());
             result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex>(){
@@ -758,4 +754,9 @@ public class IndexBuilder {
         }
         return result;
     }
+
+
+    public static final String COERCION_NAME = "coerce";
+    public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
+
 }
