@@ -24,20 +24,20 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 
-public abstract class GraphNode{
+public abstract class GraphNode {
 
     long sourceDate;
     long cacheDate = Long.MIN_VALUE; /* Missing = very old */
     private final APIName name;
     private String canonicalSourceName;
 
-    public GraphNode(APIName name, String canonicalSourceName, long sourceDate){
+    public GraphNode(APIName name, String canonicalSourceName, long sourceDate) {
         this.name = name;
         this.sourceDate = sourceDate;
         this.canonicalSourceName = canonicalSourceName;
     }
 
-    public GraphNode(APIName name, File source_file) throws IOException{
+    public GraphNode(APIName name, File source_file) throws IOException {
         this(name, source_file.getCanonicalPath(), source_file.lastModified());
     }
     

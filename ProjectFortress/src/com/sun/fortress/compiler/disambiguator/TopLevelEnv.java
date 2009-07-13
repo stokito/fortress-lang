@@ -110,6 +110,10 @@ public class TopLevelEnv extends NameEnv {
     private final Map<String, Set<Id>> _onDemandGrammarNames;
 
     public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
+//           System.err.println("TopLevelEnv globalEnv:");
+//           globalEnv.print();
+//           System.err.println("End TopLevelEnv globalEnv");
+
         _originalGlobalEnv = globalEnv;
         _current = current;
         _errors = errors;
@@ -130,6 +134,10 @@ public class TopLevelEnv extends NameEnv {
             throw new IllegalArgumentException("Unanticipated subtype of CompilationUnitIndex.");
         }
         _filteredGlobalEnv = filtered_global_env;
+
+//           System.err.println("TopLevelEnv _filteredGlobalEnv:");
+//           _filteredGlobalEnv.print();
+//           System.err.println("End TopLevelEnv _filteredGlobalEnv");
 
         _onDemandImportedApis = Collections.unmodifiableMap(initializeOnDemandImportedApis(filtered_global_env, current));
         _onDemandTypeConsNames = Collections.unmodifiableMap(initializeOnDemandTypeConsNames(_onDemandImportedApis));
@@ -172,12 +180,14 @@ public class TopLevelEnv extends NameEnv {
      */
     private void addIfAvailableApi(GlobalEnvironment globalEnv, Map<APIName, ApiIndex> map, APIName name, boolean errorIfUnavailable) {
         Map<APIName, ApiIndex> availableApis = globalEnv.apis();
+        // System.err.println("addIfAvailableApi");
+        // globalEnv.print();
 
         if (availableApis.containsKey(name)) {
             map.put(name, availableApis.get(name));
         }
         else if (errorIfUnavailable) {
-            _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name.getIds(),
+            _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name,
                                         NodeUtil.getSpan(name).toString()));
         }
 
@@ -201,13 +211,14 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    private static Map<Id, Set<Id>> initializeOnDemandTypeConsNames(Map<APIName, ApiIndex> imported_apis) {
+    private Map<Id, Set<Id>> initializeOnDemandTypeConsNames(Map<APIName, ApiIndex> imported_apis) {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports. I don't think this is still a 'to-do'
         Map<Id, Set<Id>> result = new HashMap<Id, Set<Id>>();
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
+                // System.err.println("TopLevelEnv for " + _current.ast().getName() + ": initializing entry " + apiEntry);
                 initializeEntry(apiEntry, typeEntry, result);
             }
             // Inject the names of physical units into the set of type cons names.
@@ -324,7 +335,8 @@ public class TopLevelEnv extends NameEnv {
 
     public Option<APIName> apiName(APIName name) {
         // TODO: Handle aliases.
-        if (_onDemandImportedApis.containsKey(name)) {
+        if (_onDemandImportedApis.containsKey(name) || 
+            _current.name().equals(name)) { 
             return Option.some(name);
         } else {
             return Option.none();
@@ -702,14 +714,12 @@ public class TopLevelEnv extends NameEnv {
     private Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
         // Insert 'this' api as an implicit import. This kind of strange, but the grammars
         // need them at a minimum.
-        Import this_api_import = NodeFactory.makeImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"),
+        Import this_api_import = NodeFactory.makeImportStar(NodeFactory.makeSpan(api),
                                                 Option.<String>none(),
                                                 api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
         return filterApis(Collections.unmodifiableMap(apis),
-                Useful.concat(Collections.singletonList(this_api_import),
-                        api.getImports()
-                        )
-                        , Collections.<APIName>emptySet());
+                          Useful.concat(Collections.singletonList(this_api_import), api.getImports()),
+                          Collections.<APIName>emptySet());
     }
 
     private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set,
@@ -811,9 +821,9 @@ public class TopLevelEnv extends NameEnv {
                           final Set<AliasedSimpleName> aliased_) {
 
 //         System.err.println("keep called with allowed_=");
-        for (IdOrOpOrAnonymousName a : allowed_) {
-//             System.err.println(a.getClass() + " " + a);
-        }
+//         for (IdOrOpOrAnonymousName a : allowed_) {
+//              System.err.println(a.getClass() + " " + a);
+//         }
 //         System.err.println("end allowed_");
         Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
@@ -882,11 +892,16 @@ public class TopLevelEnv extends NameEnv {
                                  }
                                  // Check whether the imported name is declared in the API.
                                  IdOrOpOrAnonymousName imported_name = arg0.getName();
-                                 if ( ! apis.get(name).declared(imported_name) )
+//                                 System.err.println("Looking up API name " + name);
+                                 if (! apis.containsKey(name)) {
+                                     _errors.add(StaticError.make(errorMsg("Reference to API ", name,
+                                                                           " cannot be resolved."), that));
+                                 } else if (! apis.get(name).declared(imported_name)) {
                                      _errors.add(StaticError.make(errorMsg("Attempt to import ", imported_name,
                                                                            " from the API ", name,
                                                                            "\n    which does not declare ",
                                                                            imported_name + "."), that));
+                                 }
                                  return imported_name;
                              }}));
 //                 System.out.println("names: " + names);
