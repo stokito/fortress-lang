@@ -77,12 +77,12 @@ public final class Shell {
     /* set this statically if you only want to run up to a certain phase */
     private static PhaseOrder finalPhase = PhaseOrder.ENVGEN;
 
-    private final FortressRepository _repository;
-
     private static final String defaultRepositoryDir = ProjectProperties.ANALYZED_CACHE_DIR;
     private static final CacheBasedRepository defaultCache = new CacheBasedRepository(defaultRepositoryDir);
     private static final String interpreterRepositoryDir = ProjectProperties.INTERPRETER_PARSED_CACHE_DIR;
     private static final CacheBasedRepository interpreterCache = new CacheBasedRepository(interpreterRepositoryDir);
+
+    private final FortressRepository _repository;
 
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
@@ -104,7 +104,7 @@ public final class Shell {
         CURRENT_INTERPRETER_REPOSITORY = g;
     }
 
-    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ) throws IOException{
+    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ) throws IOException {
         GraphRepository fr = new GraphRepository( p, cache );
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
@@ -116,6 +116,26 @@ public final class Shell {
 
     public static GraphRepository specificInterpreterRepository(Path p) throws IOException {
         return specificRepository( p, interpreterCache);
+    }
+
+    public static void resetRepository() throws IOException { 
+        if (CURRENT_INTERPRETER_REPOSITORY != null) {  
+            CURRENT_INTERPRETER_REPOSITORY.clear();
+        }
+        File cache = new File(ProjectProperties.REPOSITORY + File.separator + "caches");
+        System.err.println("Deleting cache " + cache.getName());
+        removeFiles(cache);
+    }
+
+    private static void removeFiles(File file) { 
+        if (file.exists() && file.isDirectory()) { 
+            for (File f : file.listFiles()) { 
+                removeFiles(f);
+            }
+        }
+        else if (file.exists() && ! file.isDirectory()) { 
+            file.delete();
+        }
     }
 
     /* Helper method to print usage message.*/
@@ -296,6 +316,17 @@ public final class Shell {
         }
     }
 
+    public static void useCompilerLibraries() {
+        WellKnownNames.useCompilerLibraries();
+        Types.useCompilerLibraries();
+    }
+
+    public static void useFortressLibraries() {
+        WellKnownNames.useFortressLibraries();
+        Types.useFortressLibraries();
+    }
+
+
     /**
      * @param tokens
      * @return
@@ -311,75 +342,86 @@ public final class Shell {
             String what = tokens[0];
             List<String> args = Arrays.asList(tokens).subList(1, tokens.length);
             if (what.equals("compile")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("junit")) {
                 return_code = junit(args);
             } else if (what.equals("link")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = link(args);
             } else if (what.equals("build")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 return_code = link(args);
             } else if (what.equals("walk")) {
+                useFortressLibraries();
                 setScala(false);
                 setPhase( PhaseOrder.ENVGEN );
                 walk(args);
             } else if ( what.equals("api" ) ){
+                useCompilerLibraries();
                 api(args, Option.<String>none(), Option.<String>none());
             } else if ( what.equals("compare" ) ){
+                useCompilerLibraries();
                 compare(args);
             } else if ( what.equals("parse" ) ){
+                useCompilerLibraries();
                 return_code = parse(args, Option.<String>none());
             } else if ( what.equals("unparse" ) ){
+                useCompilerLibraries();
                 unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
+                useCompilerLibraries();
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
                 setPhase( PhaseOrder.DESUGAR );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "grammar" ) ){
+                useCompilerLibraries();
                 setPhase( PhaseOrder.GRAMMAR );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
-                WellKnownNames.useCompilerLibraries();
-                Types.useCompilerLibraries();
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test-coercion")) {
+                useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase(PhaseOrder.TYPECHECK);
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
+                useFortressLibraries();
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
+                useCompilerLibraries();
                 setPhase( PhaseOrder.ENVGEN );
                 walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
+                useCompilerLibraries();
                 // no "walk" command.
                 setPhase( PhaseOrder.ENVGEN );
                 walk(Arrays.asList(tokens));
             } else if (what.equals("help")) {
+                useCompilerLibraries();
                 printHelpMessage();
-
-            } else { printUsageMessage(); }
+            } else { 
+                useCompilerLibraries();
+                printUsageMessage(); 
+            }
         } catch (StaticError e) {
             System.err.println(e);
             if (Debug.isOn()) {
@@ -485,7 +527,7 @@ public final class Shell {
     }
 
     /**
-     * Evaluate a given component and returns its value.
+     * Evaluate a given component and return its value.
      */
     public static FValue eval( String file, boolean unCacheWhenDone )
         throws Throwable {

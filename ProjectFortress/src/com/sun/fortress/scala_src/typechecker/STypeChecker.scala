@@ -20,6 +20,7 @@ package com.sun.fortress.scala_src.typechecker
 import _root_.java.util.{Map => JavaMap}
 import _root_.java.util.{HashMap => JavaHashMap}
 import _root_.java.util.{Set => JavaSet}
+
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import com.sun.fortress.compiler.index.CompilationUnitIndex
@@ -47,7 +48,7 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
 
-/* Quesitons
+/* Questions
  */
 /* Invariants
  * 1. If a subexpression does not have any inferred type,

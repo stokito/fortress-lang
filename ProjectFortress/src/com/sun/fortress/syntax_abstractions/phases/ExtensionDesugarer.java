@@ -150,8 +150,12 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
             new GrammarDecl(grammar.getInfo(), grammar.getName(),
                             grammar.getExtendsClause(), newMembers,
                             grammar.getTransformers(), grammar.isNativeDef());
-        Debug.debug(Debug.Type.SYNTAX, 3,
-                    "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
+
+        // Comment this debug statement out until FortressAstToConcrete supports syntax abstraction nodes.
+        // (Necessary because this desugarer is run on imported APIs with grammar definitions.)
+        // EricAllen 7/6/2009
+//         Debug.debug(Debug.Type.SYNTAX, 3,
+//                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
 
         return result;
     }

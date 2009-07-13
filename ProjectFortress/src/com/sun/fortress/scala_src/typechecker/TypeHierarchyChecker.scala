@@ -162,6 +162,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                          errors:JavaList[StaticError]): Unit = {
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
+        // println("checkDeclComprises" + ti.ast)
         val tt = ti.typeOfSelf.unwrap
         val extended = toList(ti.extendsTypes)
         for (extension <- extended) {

@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.exceptions.StaticError;
@@ -65,7 +66,10 @@ public class GrammarRewriter {
         initializeGrammarIndexExtensions(map.values(), env.apis().values());
 
         List<Api> apis = new ArrayList<Api>();
-        for (ApiIndex apii : map.values()) { apis.add((Api)apii.ast()); }
+        for (ApiIndex apii : map.values()) { 
+//            Nodes.printNode(apii.ast(), "before-grammar-rewrite.");
+            apis.add((Api)apii.ast()); 
+        }
 
         // Steps 1-6
         List<Api> results1 = rewritePatterns(apis, env);
@@ -81,37 +85,42 @@ public class GrammarRewriter {
         List<StaticError> allErrors = new ArrayList<StaticError>();
 
         for (Api api: apis) {
+//             Nodes.printNode(api, "before-rewritePatterns.");
             List<StaticError> errors = new ArrayList<StaticError>();
 
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
             api = (Api) api.accept(new ItemDisambiguator(env, errors));
-
+//             Nodes.printNode(api, "after-ItemDisambiguator.");
             // 2) Disambiguate nonterminal parameters
             // No longer done.
 
             // 3) Remove whitespace where instructed by non-whitespace symbols
             if (errors.isEmpty())
                 api = (Api) api.accept(new WhitespaceElimination());
-
+//             Nodes.printNode(api, "after-WhitespaceElimination.");
             // 4) Rewrite escaped characters
             if (errors.isEmpty())
                 api = (Api) api.accept(new EscapeRewriter());
-
+//             Nodes.printNode(api, "after-EscapeRewriter.");
             // 5) Desugar extensions
             if (errors.isEmpty())
                 api = (Api) api.accept(new ExtensionDesugarer(env, errors));
-
+//             Nodes.printNode(api, "after-ExtensionDesugarer.");
             // 6) Rewrite transformer names
             if (errors.isEmpty())
                 api = (Api) api.accept(new RewriteTransformerNames());
+//             Nodes.printNode(api, "after-RewriteTransformerNames.");
 
             if (errors.isEmpty()) {
                 results.add(api);
             } else {
                 allErrors.addAll(errors);
             }
+//             Nodes.printNode(api, "after-rewritePatterns.");
         }
+        
+
 
         if (allErrors.isEmpty()) {
             return results;
@@ -125,8 +134,10 @@ public class GrammarRewriter {
         NTEnv ntEnv = buildNTEnv(apiIndexes, env);
 
         List<Api> results = new ArrayList<Api>();
-        for (final ApiIndex api : apiIndexes){
+        for (final ApiIndex api : apiIndexes) {
+//            Nodes.printNode(api.ast(), "before-parseTemplates.");
             results.add(TemplateParser.parseTemplates(api, ntEnv));
+//            Nodes.printNode(api.ast(), "after-parseTemplates.");
         }
         return results;
     }

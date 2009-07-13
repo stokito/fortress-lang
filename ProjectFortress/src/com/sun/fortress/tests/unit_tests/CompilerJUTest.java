@@ -20,14 +20,22 @@ package com.sun.fortress.tests.unit_tests;
 import java.io.IOException;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import com.sun.fortress.Shell;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class CompilerJUTest {
     public static void main(String[] args) throws IOException {
+        // Make sure there are no compiled files from earlier tests
+        // lurking in the repository.
+        Shell.resetRepository();
         junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
+        // Make sure there are no compiled files from earlier tests
+        // lurking in the repository.
+        Shell.resetRepository();
+
         String testDir1 = ProjectProperties.BASEDIR + "compiler_tests";
         String testDir2 = ProjectProperties.BASEDIR + "parser_tests";
         boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);

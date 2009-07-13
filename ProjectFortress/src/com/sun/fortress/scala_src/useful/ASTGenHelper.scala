@@ -30,14 +30,14 @@ import scala.collection.jcl.Conversions
 
 object ASTGenHelper {
   def scalaify(typ: Any): Any = typ match {
-    case o:JOption[Object] => {
+    case o:JOption[_] => {
       if(o.isSome)
         Some(scalaify(o.unwrap))
       else
         None
     }
 
-    case l:JList[Object] => {
+    case l:JList[_] => {
       var accum = List[Any]()
       for (e <- (List()++Conversions.convertList(l))) {
         accum = accum:::List(scalaify(e))
@@ -45,7 +45,7 @@ object ASTGenHelper {
       accum
     }
 
-    case m:JMap[Object,Object] => {
+    case m:JMap[_, _] => {
       var accum = Map[Any,Any]()
       for (k <- (Map.empty++Conversions.convertMap(m)).keySet) {
           accum += ((scalaify(k), scalaify(m.get(k))))
@@ -53,7 +53,7 @@ object ASTGenHelper {
       accum
     }
 
-    case s:JSet[Object] => {
+    case s:JSet[_] => {
       var accum = Set[Any]()
       for (e <- Set.empty++Conversions.convertSet(s)) {
         accum = accum + scalaify(e)
@@ -68,7 +68,7 @@ object ASTGenHelper {
     case Some(t) => JOption.some(javaify(t))
     case None => JOption.none
 
-    case l:List[Object] => {
+    case l:List[_] => {
       val accum = new JLinkedList[Object]()
       for (e <- l) {
         accum.addLast(javaify(e))
@@ -76,7 +76,7 @@ object ASTGenHelper {
       accum
     }
 
-    case m:Map[Object,Object] => {
+    case m:Map[_, _] => {
       val accum = new JHashMap[Object,Object]()
       val keyset = m.keys
       for (k <- keyset) {
@@ -85,7 +85,7 @@ object ASTGenHelper {
       accum
     }
 
-    case s:Set[Object] => {
+    case s:Set[_] => {
       val accum = new JHashSet[Object]()
       for (e <- s) {
         accum.add(javaify(e))

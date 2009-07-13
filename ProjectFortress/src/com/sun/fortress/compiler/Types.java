@@ -77,6 +77,9 @@ public final class Types {
     public static void useCompilerLibraries() {
    	STRING = makeTraitType(span, fortressBuiltin(), "String");
     }
+    public static void useFortressLibraries() {
+   	STRING = makeTraitType(span, fortressLibrary(), "String");
+    }
 
     public static void useTypeCheckerLibraries() {
     	useCompilerLibraries();
