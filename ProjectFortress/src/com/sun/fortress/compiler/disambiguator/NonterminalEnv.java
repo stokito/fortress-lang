@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -93,6 +94,11 @@ public class NonterminalEnv {
                         matches.add(qname);
                         nonterminals.put(key, matches);
                     }
+                }
+                @Override public void defaultTemplateGap(TemplateGap t) { 
+                    // This override is necessary because we are disambiguating all APIs
+                    // in the repository, on every pass, to ensure that all APis referred to
+                    // have unambiguous names during type checking. 
                 }
             });
         }
