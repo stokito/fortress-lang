@@ -17,9 +17,9 @@
 
 api FortressLibrary
 
-import Stream.WriteStream
-import FlatString.FlatString
-import String.StringStats
+import Stream.{WriteStream}
+import FlatString.{FlatString}
+import String.{StringStats}
 
 (************************************************************
 * \subsection*{Simple Combinators}

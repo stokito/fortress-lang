@@ -67,6 +67,8 @@ public abstract class CompilationUnitIndex {
 
     public CompilationUnit ast() { return _ast; }
 
+    public APIName name() { return ast().getName(); }
+
     public abstract Set<APIName> exports();
 
     public Set<APIName> imports() {
