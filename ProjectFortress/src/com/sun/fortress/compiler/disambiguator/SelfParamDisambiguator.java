@@ -69,6 +69,7 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forTraitDecl(TraitDecl that) {
         // Add a type to self parameters of methods
+        //        System.err.println("SelfParamDisambiguator " + that);
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
         TraitDecl temp = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);

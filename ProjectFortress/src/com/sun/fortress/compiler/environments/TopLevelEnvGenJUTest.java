@@ -227,6 +227,8 @@ public class TopLevelEnvGenJUTest extends TestCase {
         String s = ProjectProperties.BASEDIR + "tests" +
                    File.separator + testFileName;
 
+        //        System.err.println("compileTestProgram(" + s + ")");
+
         File file = new File(s);
         s = file.getPath();
 
@@ -236,6 +238,9 @@ public class TopLevelEnvGenJUTest extends TestCase {
             path = path.prepend(head);
         }
 
+        // HACK: We need to compile these test programs using the old Fortress
+        // libraries instead of the new compiler libraries. 
+        //        Shell.useFortressLibraries();
         Iterable<? extends StaticError> errors = Shell.compilerPhases(path, s);
 
         for (StaticError error: errors) {

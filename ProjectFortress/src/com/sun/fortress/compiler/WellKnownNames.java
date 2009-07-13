@@ -103,8 +103,25 @@ public class WellKnownNames {
     public static void useCompilerLibraries() {
         _fortressLibrary = "CompilerLibrary";
         _fortressBuiltin = "CompilerBuiltin";
+        
+        // Note that fortressLibrary and fortressBuiltin depend on anyTypeLibrary,
+        // and fortressLibrary depends on fortressBuiltin.
+        // These libraries are processed in order by the GraphRepository, so keep
+        // them listed in the order they are.
         _defaultLibrary =
-            new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
+            new String[] { fortressLibrary(), fortressBuiltin(), anyTypeLibrary() };
+    }
+
+    public static void useFortressLibraries() {
+        _fortressLibrary = "FortressLibrary";
+        _fortressBuiltin = "FortressBuiltin";
+
+        // Note that fortressLibrary and fortressBuiltin depend on anyTypeLibrary,
+        // and fortressLibrary depends on fortressBuiltin.
+        // These libraries are processed in order by the GraphRepository, so keep
+        // them listed in the order they are.
+        _defaultLibrary =
+            new String[] { fortressLibrary(), fortressBuiltin(), anyTypeLibrary() };
     }
 
     public static boolean areCompilerLibraries() {

@@ -40,7 +40,7 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
   
   def makeThunk(ast: FnDecl, tryChecker: TryChecker): TypeThunk = {
     val name = ast.getHeader.getName
-    return new TypeThunk(){
+    return new TypeThunk() {
       def value() = {
         if (cycleChecker.push(name)) {
           tryChecker.tryCheck(ast) match {
@@ -58,7 +58,7 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
     }
    }
     
-  def primeFunctional[T<: Functional](fn: T, tryChecker: TryChecker): Unit = { 
+  def primeFunctional[T <: Functional](fn: T, tryChecker: TryChecker): Unit = {
     if(fn.hasThunk) return
     fn match{
       case m:Method => m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], tryChecker))
@@ -72,7 +72,7 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
     toSet(fns).foreach(f => primeFunctional(f,tryChecker))
   }
   
-  def walk(node: Node):Unit = node match{
+  def walk(node: Node):Unit = node match {
     
     case SComponent(info, name, imports, decls, comprises, isNative, exports) =>
       decls.map(walk(_))

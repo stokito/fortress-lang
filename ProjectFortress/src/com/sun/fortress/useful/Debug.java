@@ -20,6 +20,7 @@ package com.sun.fortress.useful;
 import java.io.PrintStream;
 import java.util.List;
 
+
 public final class Debug {
 
     private static final int MAX_LEVEL = 11;
