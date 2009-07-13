@@ -42,7 +42,14 @@ public class PreDisambiguationDesugarPhase extends Phase {
             AnalyzeResult previous = parentPhase.getResult();
 
             GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                                                                     .union(repository.apis(), previous.apis()));
+                                                                     .union(repository.apis(),
+                                                                            CollectUtil.union(env.apis(),
+                                                                                              previous.apis())));
+
+//              System.err.println("PreDisambiguateDesugarPhase apiEnv:");
+//              apiEnv.print();
+//              System.err.println("PreDisambiguateDesugarPhase end apiEnv");       
+            
 
             PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(),
                                                                                                  apiEnv);
