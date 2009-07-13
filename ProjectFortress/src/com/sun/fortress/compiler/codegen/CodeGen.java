@@ -943,7 +943,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // Caveats: We assume that everything has a ZZ32 result
     //          We create separate taskClasses for every task
     public String delegate(ASTNode x) {
-
+        
+        // For now we only delegate function applications.
         if (! (x instanceof _RewriteFnApp)) {
             sayWhat(x);
         }
@@ -951,8 +952,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         _RewriteFnApp _rewriteFnApp = (_RewriteFnApp) x;
 
         Expr function = _rewriteFnApp.getFunction();
-
-        debug("BBBBBBB: function = " + function);
         ExprInfo info = function.getInfo();
         Option<Type> exprType = info.getExprType();
 
@@ -962,7 +961,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         String desc = NamingCzar.jvmTypeDesc(exprType.unwrap(), component.getName());
-
         List<String> args = CodeGenMethodVisitor.parseArgs(desc);
         String result = CodeGenMethodVisitor.parseResult(desc);
 
@@ -975,7 +973,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.cw.visitSource(className,null);
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, lexEnv);
-
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className,null, NamingCzar.fortressBaseTask, null);
 
@@ -996,9 +993,26 @@ public class CodeGen extends NodeAbstractVisitor_void {
                               "<init>", NamingCzar.voidToVoid);
         cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
 
-        // Fib specific
-        cg.mv.visitVarInsn(Opcodes.ALOAD, 1);
-        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "n", args.get(0));
+
+        // Arguments
+
+        if (! (function instanceof FnRef) )
+            sayWhat(x, "Looking for a FnRef");
+
+        FnRef fnRef = (FnRef) function;
+        IdOrOp originalName = fnRef.getOriginalName();        
+            
+        Function f = symbols.lookupFunctionInComponent(originalName,ci);
+        List<Param> params = f.parameters();
+        
+        System.out.println("LOOKYHERE: f = " + f + " params = " + params);
+
+        int argsIndex = 0;
+        int varIndex = 1;
+        for (Param p : params) {
+            cg.mv.visitVarInsn(Opcodes.ALOAD, varIndex++);
+            cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, p.getName().getText(), args.get(argsIndex++));
+        }
 
         cg.mv.visitInsn(Opcodes.RETURN);
         cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
