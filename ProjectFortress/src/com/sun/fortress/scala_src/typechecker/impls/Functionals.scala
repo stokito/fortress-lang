@@ -48,46 +48,6 @@ trait Functionals { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
-
-  /**
-   * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
-   * that this type could be used as for the purposes of calling methods and fields.
-   */
-  protected def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
-    case t:TraitType => Set(t)
-
-    // Combine all the trait types callable from constituents.
-    case typ:IntersectionType =>
-      conjuncts(typ).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
-
-    // Get the trait types callable from the upper bounds of this parameter.
-    case SVarType(_, name, _) => toOption(analyzer.kindEnv.staticParam(name)) match {
-      case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
-        Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
-      case _ => Set.empty[TraitType]
-    }
-
-    case SUnionType(_, ts) =>
-      signal(typ, errorMsg("You should be able to call methods on this type,",
-                           "but this is not yet implemented."))
-      Set.empty[TraitType]
-
-    case _ => Set.empty[TraitType]
-  }
-
-  /**
-   * Not yet implemented.
-   * Waiting for _RewriteFnApp to be implemented.
-   */
-  protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
-                                            receiverType: Type)
-                                            : Set[Method] = {
-
-    val traitTypes = traitTypesCallable(receiverType)
-    val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
-    val allMethods = inheritedMethods(ttAsWheres.toList)
-    toSet(allMethods.matchFirst(methodName))
-  }
   
   /**
    * Determines if the given overloading is dynamically applicable.
@@ -308,6 +268,8 @@ trait Functionals { self: STypeChecker with Common =>
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
+    
+  //TODO: Should be rewritten to a method invocation since there is so much duplication  
   def checkExprFunctionals(expr: Expr,
                            expected: Option[Type]): Expr = expr match {
 
@@ -347,6 +309,34 @@ trait Functionals { self: STypeChecker with Common =>
         case None =>
           signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
                          format(objType, op.get, subsType))
+          expr
+      }
+    }
+    
+    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg) =>{
+      val checkedObj = checkExpr(obj)
+      val checkedArg = checkExpr(arg)
+      val recvrType = getType(checkedObj).getOrElse(return expr)
+      val argType = getType(checkedArg).getOrElse(return expr)
+      val methods = findMethodsInTraitHierarchy(method, recvrType)
+      var arrows = methods.flatMap(makeArrowFromFunctional)
+      if(arrows.size!=methods.size){
+        signal(expr, "The return type for %s could not be inferred".format(method))
+        return expr
+      }
+      if(!sargs.isEmpty){
+        arrows = arrows.flatMap(a =>staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
+      }
+      staticallyMostApplicableArrow(arrows.toList, argType, None) match {
+        case Some((arrow, sargs)) =>
+          SMethodInvocation(SExprInfo(span, paren, Some(arrow.getRange)),
+                            checkedObj,
+                            method,
+                            sargs,
+                            checkedArg)
+        case None =>
+          signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
+                         format(recvrType, method, argType))
           expr
       }
     }

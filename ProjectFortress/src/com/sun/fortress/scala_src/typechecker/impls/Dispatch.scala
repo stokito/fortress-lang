@@ -85,11 +85,12 @@ trait Dispatch { self: STypeChecker =>
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
     case e:LocalVarDecl => checkExprDecls(e, expected)
-    
-    case e:SubscriptExpr => checkExprFunctionals(e, expected)
-    case e:FunctionalRef => checkExprFunctionals(e, expected)
+
     case e:_RewriteFnApp => checkExprFunctionals(e, expected)
+    case e:FunctionalRef => checkExprFunctionals(e, expected)
+    case e:MethodInvocation => checkExprFunctionals(e,expected)
     case e:OpExpr => checkExprFunctionals(e, expected)
+    case e:SubscriptExpr => checkExprFunctionals(e, expected)
     
     case e:Juxt => checkExprOperators(e, expected)
     case e:MathPrimary => checkExprOperators(e, expected)

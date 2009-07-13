@@ -20,13 +20,14 @@ package com.sun.fortress.scala_src.typechecker.impls
 import edu.rice.cs.plt.collect.IndexedRelation
 import edu.rice.cs.plt.collect.Relation
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
-import com.sun.fortress.compiler.index.Method
-import com.sun.fortress.compiler.index.ProperTraitIndex
-import com.sun.fortress.compiler.index.TraitIndex
+import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.NodeFactory
+import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -102,7 +103,52 @@ trait Common { self: STypeChecker =>
     }
     inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
   }
+  
+  protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
+                                            receiverType: Type)
+                                            : Set[Method] = {
 
+    val traitTypes = traitTypesCallable(receiverType)
+    //TODO: What does the next line do?
+    val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
+    val allMethods = inheritedMethods(ttAsWheres.toList)
+    toSet(allMethods.matchFirst(methodName))
+  }
+
+  def findFieldsInTraitHierarchy(fieldName: IdOrOpOrAnonymousName, recieverType: Type): Option[Type] = {
+    //We can just assume there is a getter for every field
+    val methods = findMethodsInTraitHierarchy(fieldName, recieverType)
+    def isGetter(m: Method): Option[FieldGetterMethod] = None
+    val getters = methods.flatMap(isGetter)
+    getters.toList.firstOption.flatMap(g => toOption(g.getReturnType))
+  }
+  
+    /**
+   * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
+   * that this type could be used as for the purposes of calling methods and fields.
+   */
+  protected def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
+    case t:TraitType => Set(t)
+
+    // Combine all the trait types callable from constituents.
+    case typ:IntersectionType =>
+      conjuncts(typ).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
+
+    // Get the trait types callable from the upper bounds of this parameter.
+    case SVarType(_, name, _) => toOption(analyzer.kindEnv.staticParam(name)) match {
+      case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
+        Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
+      case _ => Set.empty[TraitType]
+    }
+
+    case SUnionType(_, ts) =>
+      NI.nyi("You should be able to call methods on this type," + typ +
+                           "but this is not yet implemented.")
+      Set.empty[TraitType]
+
+    case _ => Set.empty[TraitType]
+  }
+  
   /**
    * Identical to the overloading but with an explicitly given list of static
    * parameters.

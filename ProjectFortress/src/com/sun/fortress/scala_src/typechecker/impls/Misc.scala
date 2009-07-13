@@ -172,6 +172,14 @@ trait Misc { self: STypeChecker with Common =>
 
   def checkExprMisc(expr: Expr, expected: Option[Type]): Expr = expr match {
 
+    case fr@SFieldRef(SExprInfo(span, parens, _),obj,field) => {
+      val checkedObj = checkExpr(obj)
+      val recvrType = getType(checkedObj).getOrElse(return expr)
+      val fieldType = findFieldsInTraitHierarchy(field, recvrType).getOrElse(return expr)
+      SFieldRef(SExprInfo(span, parens, Some(fieldType)), checkedObj, field)
+    }
+      
+    //ToDo: Why isn't this a Decl?  
     case o@SObjectExpr(SExprInfo(span,parenthesized,_),
                      STraitTypeHeader(sparams, mods, name, where,
                                       throwsC, contract, extendsC, decls),
