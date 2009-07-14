@@ -1,18 +1,17 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+U.S. Government Rights - Commercial software.
+Government users are subject to the Sun Microsystems, Inc. standard
+license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.typechecker.impls
@@ -139,7 +138,7 @@ trait Common { self: STypeChecker =>
 
     // Get the trait types callable from the upper bounds of this parameter.
     case SVarType(_, name, _) => toOption(analyzer.kindEnv.staticParam(name)) match {
-      case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_))) =>
+      case Some(s@SStaticParam(_, _, ts, _, _, SKindType(_), _)) =>
         Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
       case _ => Set.empty[TraitType]
     }
@@ -153,18 +152,31 @@ trait Common { self: STypeChecker =>
   }
   
   /**
-   * Identical to the overloading but with an explicitly given list of static
-   * parameters.
+   * Replaces occurrences of static parameters with corresponding static
+   * arguments in the given body type. In the end, any static parameters
+   * in the replaced type will be cleared. If `ignoreLifted` is true, then
+   * don't consider lifted static parameters at all.
+   *
+   * @param args A list of static arguments to apply to the generic type body.
+   * @param sparams A list of static parameters
+   * @param body The generic type whose static parameters are to be replaced.
+   * @return An option of a type identical to body but with every occurrence of
+   *         one of its declared static parameters replaced by corresponding
+   *         static args. If None, then the instantiation failed.
    */
   protected def staticInstantiation(sargs: List[StaticArg],
                                     sparams: List[StaticParam],
-                                    body: Type): Option[Type] = {
+                                    body: Type,
+                                    ignoreLifted: Boolean): Option[Type] = {
 
     // Check that the args match.
-    if (!staticArgsMatchStaticParams(sargs, sparams)) return None
+    if (!staticArgsMatchStaticParams(sargs, sparams, ignoreLifted)) return None
+
+    // Ignore lifted static parameters if these args were user supplied.
+    val sparams_ = if (ignoreLifted) sparams.filter(!_.isLifted) else sparams
 
     // Create mapping from parameter names to static args.
-    val paramMap = Map(sparams.map(_.getName).zip(sargs): _*)
+    val paramMap = Map(sparams_.map(_.getName).zip(sargs): _*)
 
     // Gets the actual value out of a static arg.
     def sargToVal(sarg: StaticArg): Node = sarg match {
@@ -192,39 +204,35 @@ trait Common { self: STypeChecker =>
     }
 
     // Get the replaced type and clear out its static params, if any.
-    Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type]))
+    Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type],
+                           ignoreLifted))
   }
 
   /**
-   * Instantiates a generic type with some static arguments. The static
-   * parameters are retrieved from the body type and replaced inside body with
-   * their corresponding static arguments. In the end, any static parameters
-   * in the replaced type will be cleared.
-   *
-   * @param args A list of static arguments to apply to the generic type body.
-   * @param body The generic type whose static parameters are to be replaced.
-   * @return An option of a type identical to body but with every occurrence of
-   *         one of its declared static parameters replaced by corresponding
-   *         static args. If None, then the instantiation failed.
+   * Same as the other overloading but static parameters are gotten from the
+   * body type and lifted ones are ignored.
    */
   protected def staticInstantiation(sargs: List[StaticArg],
                                     body: Type): Option[Type] =
-    staticInstantiation(sargs, getStaticParams(body), body)
+    staticInstantiation(sargs, getStaticParams(body), body, false)
 
   /**
    * Determines if the kinds of the given static args match those of the static
    * parameters. In the case of type arguments, the type is checked to be a
-   * subtype of the corresponding type parameter's bounds.
+   * subtype of the corresponding type parameter's bounds. If `ignoreLifted` is
+   * true, then ignore lifted static parameters.
    */
   protected def staticArgsMatchStaticParams(args: List[StaticArg],
-                                            params: List[StaticParam]): Boolean = {
-    
-    if (args.length != params.length) return false
+                                            params: List[StaticParam],
+                                            ignoreLifted: Boolean): Boolean = {
+
+    // If these args were supplied by the user, then only consider the unlifted
+    // static parameters.
+    val params_ = if (ignoreLifted) params.filter(!_.isLifted) else params
+    if (args.length != params_.length) return false
 
     // Match a single pair.
     def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
-
-
       val (arg, param) = argAndParam
       (arg, param.getKind) match {
         case (STypeArg(_, argType), _:KindType) =>
@@ -249,7 +257,14 @@ trait Common { self: STypeChecker =>
     }
 
     // Match every pair.
-    args.zip(params).forall(argMatchesParam)
+    args.zip(params_).forall(argMatchesParam)
   }
+
+  /**
+   * Same as the other overloading but does not ignore lifted params.
+   */
+  protected def staticArgsMatchStaticParams(args: List[StaticArg],
+                                            params: List[StaticParam]): Boolean
+    = staticArgsMatchStaticParams(args, params, false)
 
 }

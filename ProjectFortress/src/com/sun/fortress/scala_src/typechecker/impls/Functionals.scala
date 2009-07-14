@@ -150,7 +150,7 @@ trait Functionals { self: STypeChecker with Common =>
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
     val sargs = sparams.map(makeInferenceArg)
-    val infArrow = staticInstantiation(sargs, sparams, fnType).
+    val infArrow = staticInstantiation(sargs, sparams, fnType, false).
       getOrElse(return None).asInstanceOf[ArrowType]
 
     // 3. argType <:? dom(infArrow) yields a constraint, C1
@@ -350,7 +350,7 @@ trait Functionals { self: STypeChecker with Common =>
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
         case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
         case SOverloading(info, name, Some(ty)) =>
-          staticInstantiation(sargs, ty).
+          staticInstantiation(sargs, getStaticParams(ty), ty, true).
             map(t => SOverloading(info, name, Some(t)))
         case _ => None
       }

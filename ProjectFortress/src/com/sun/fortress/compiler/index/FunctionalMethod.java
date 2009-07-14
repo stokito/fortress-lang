@@ -38,7 +38,10 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
 
 /**
  * Note that this is a {@link Function}, not a {@link Method}, despite the name
@@ -47,10 +50,25 @@ import edu.rice.cs.plt.tuple.Option;
 public class FunctionalMethod extends Function {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
+    protected final List<StaticParam> _traitParams;
 
-    public FunctionalMethod(FnDecl ast, Id declaringTrait) {
+    // Copy a static parameter but make it lifted.
+    protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {
+        public StaticParam value(StaticParam that) {
+            return new StaticParam(that.getInfo(),
+                                   that.getName(),
+                                   that.getExtendsClause(),
+                                   that.getDimParam(),
+                                   that.isAbsorbsParam(),
+                                   that.getKind(),
+                                   true);
+        }
+    };
+
+    public FunctionalMethod(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
         _ast = ast;
         _declaringTrait = declaringTrait;
+        _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
         if (NodeUtil.getReturnType(_ast).isSome())
             putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
@@ -93,7 +111,7 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public List<StaticParam> staticParameters() {
-		return NodeUtil.getStaticParams(_ast);
+		return CollectUtil.makeList(IterUtil.compose(_traitParams, NodeUtil.getStaticParams(_ast)));
 	}
 
 	@Override
@@ -112,6 +130,6 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FunctionalMethod((FnDecl)this.ast().accept(visitor), this._declaringTrait);
+		return new FunctionalMethod((FnDecl)this.ast().accept(visitor), this._declaringTrait, this._traitParams);
 	}
 }

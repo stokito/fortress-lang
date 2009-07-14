@@ -130,21 +130,30 @@ object STypesUtil {
     toList(typ.getInfo.getStaticParams)
 
   /**
-   * Return an identical type that has no static params.
+   * Return an identical type that has no static params. If `ignoreLifted` is
+   * true, then the lifted static parameters will remain in the type.
    * TODO: How to handle where clauses in TypeInfos?
    */
-  def clearStaticParams(typ: Type): Type = {
+  def clearStaticParams(typ: Type, ignoreLifted: Boolean): Type = {
 
     // A walker that clears static params out of TypeInfos.
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
         case STypeInfo(_, _, Nil, _) => node
-        case STypeInfo(a, b, _, _) => STypeInfo(a, b, Nil, None)
+        case STypeInfo(a, b, sparams, _) =>
+          // Leave in the lifted params if nec.
+          val sparams_ = if (ignoreLifted) sparams.filter(_.isLifted) else Nil
+          STypeInfo(a, b, sparams_, None)
         case _ => super.walk(node)
       }
     }
     paramWalker(typ).asInstanceOf[Type]
   }
+
+  /**
+   * Identical to other overloading but `ignoreLifted` is false.
+   */
+  def clearStaticParams(typ: Type): Type = clearStaticParams(typ, false)
 
   /**
    * Insert static parameters into a type. If the type already has static

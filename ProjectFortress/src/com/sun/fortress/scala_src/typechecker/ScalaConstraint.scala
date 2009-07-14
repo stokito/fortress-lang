@@ -207,11 +207,11 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   override def applySubstitution(substitution: Lambda[Type,Type]): CnAnd = {
     var newUppers = Map.empty[_InferenceVarType,Type]
     for(key <- uppers.keys){
-      newUppers=newUppers.update(substitution.value(key).asInstanceOf, substitution.value(uppers.apply(key)))
+      newUppers=newUppers.update(substitution.value(key).asInstanceOf[_InferenceVarType], substitution.value(uppers.apply(key)))
     }
     var newLowers = Map.empty[_InferenceVarType,Type]
     for(key <- lowers.keys){
-      newLowers=newLowers.update(substitution.value(key).asInstanceOf, substitution.value(lowers.apply(key)))
+      newLowers=newLowers.update(substitution.value(key).asInstanceOf[_InferenceVarType], substitution.value(lowers.apply(key)))
     }
     CnAnd(newUppers,newLowers,subtype)
   }  

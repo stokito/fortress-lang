@@ -1425,7 +1425,8 @@ interface Node() extends HasAt;
                         List<BaseType> extendsClause,
                         Option<Type> dimParam,
                         boolean absorbsParam,
-                        StaticParamKind kind);
+                        StaticParamKind kind,
+                        ignoreForEquals boolean lifted = false);
             /**
              * name used in declarations and references
              */
