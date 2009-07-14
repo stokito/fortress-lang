@@ -698,13 +698,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void forFnRef(FnRef x) {
         debug("forFnRef ", x);
         String name = x.getOriginalName().getText();
-        Option<com.sun.fortress.nodes.Type> type = x.getInfo().getExprType();
-        if ( type.isNone() ) {
-            sayWhat( x, "The type of this FnRef is not inferred." );
-            return;
-        }
+        
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
-        com.sun.fortress.nodes.Type arrow = type.unwrap();
+        com.sun.fortress.nodes.Type arrow = exprType(x);
 
         List<IdOrOp> names = x.getNames();
 
@@ -990,7 +986,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         Expr function = _rewriteFnApp.getFunction();
         ExprInfo info = function.getInfo();
-        Option<Type> exprType = info.getExprType();
+        Option<Type> exprType = exprOptType(function);
 
         String desc = NamingCzar.jvmTypeDesc(exprType, component.getName());
         List<String> args = NamingCzar.parseArgs(desc);
@@ -1288,6 +1284,69 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     }
 
+    public void forMethodInvocation(MethodInvocation x) {
+        Id method = x.getMethod();
+        Expr obj = x.getObj();
+        List<StaticArg> sargs = x.getStaticArgs();
+        Expr arg = x.getArg();
+        int savedParamCount = paramCount;
+        try {
+            // put object on stack
+            obj.accept(this);
+            // put args on stack
+            evalArg(arg);
+            String methodClass = NamingCzar.only.jvmTypeDesc(exprType(obj), thisApi(), false);
+            String sig = NamingCzar.only.jvmSignatureFor(
+                    exprType(arg),
+                    exprType(x),
+                    thisApi()
+                    );
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodClass, method.getText(), sig);
+
+        } finally {
+            paramCount = savedParamCount;
+        }
+
+    }
+
+    /**
+     * @param expr
+     * @return
+     */
+    private Type exprType(Expr expr) {
+        Option<Type> exprType = expr.getInfo().getExprType();
+            
+            if (!exprType.isSome()) {
+                sayWhat(expr, "Missing type information for " + expr);
+            }
+
+        return exprType.unwrap();
+    }
+    private Option<Type> exprOptType(Expr expr) {
+        Option<Type> exprType = expr.getInfo().getExprType();
+  
+        return exprType;
+    }
+
+    /**
+     * @param arg
+     */
+    private void evalArg(Expr arg) {
+        if (arg instanceof VoidLiteralExpr) {
+            paramCount = 0;
+        } else if (arg instanceof TupleExpr) {
+            TupleExpr targ = (TupleExpr) arg;
+            List<Expr> exprs = targ.getExprs();
+            for (Expr expr : exprs) {
+                expr.accept(this);
+            }
+            paramCount = exprs.size();
+        } else {
+            paramCount = 1; // for now; need to dissect tuple and do more.
+            arg.accept(this);
+        }
+    }
+    
     public void for_RewriteFnApp(_RewriteFnApp x) {
         debug("for_RewriteFnApp ", x,
                      " args = ", x.getArgument(), " function = ", x.getFunction());
@@ -1296,19 +1355,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         int savedParamCount = paramCount;
         try {
             Expr arg = x.getArgument();
-            if (arg instanceof VoidLiteralExpr) {
-                paramCount = 0;
-            } else if (arg instanceof TupleExpr) {
-                TupleExpr targ = (TupleExpr) arg;
-                List<Expr> exprs = targ.getExprs();
-                for (Expr expr : exprs) {
-                    expr.accept(this);
-                }
-                paramCount = exprs.size();
-            } else {
-                paramCount = 1; // for now; need to dissect tuple and do more.
-                arg.accept(this);
-            }
+            evalArg(arg);
             x.getFunction().accept(this);
         } finally {
             paramCount = savedParamCount;
