@@ -387,7 +387,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
       case Some(typ) =>
         isSubtype(typ, expected, expr, message.format(normalize(typ),
                                                       normalize(expected)))
-        addType(checkedExpr, typ)
+        checkedExpr
       case _ => expr
     }
   }

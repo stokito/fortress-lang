@@ -118,7 +118,10 @@ trait Common { self: STypeChecker =>
   def findFieldsInTraitHierarchy(fieldName: IdOrOpOrAnonymousName, recieverType: Type): Option[Type] = {
     //We can just assume there is a getter for every field
     val methods = findMethodsInTraitHierarchy(fieldName, recieverType)
-    def isGetter(m: Method): Option[FieldGetterMethod] = None
+    def isGetter(m: Method): Option[FieldGetterMethod] = m match {
+      case g:FieldGetterMethod => Some(g)
+      case _ => None
+    }
     val getters = methods.flatMap(isGetter)
     getters.toList.firstOption.flatMap(g => toOption(g.getReturnType))
   }
