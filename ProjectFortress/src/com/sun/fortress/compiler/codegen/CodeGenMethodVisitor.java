@@ -27,6 +27,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.compiler.NamingCzar;
 
 public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
@@ -42,77 +43,6 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     private String resultType;
     int localVariableCount;
 
-    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}
-
-    // Move these to their own class
-
-    public static List<String> parseArgs(String desc) {
-        List<String> args = new ArrayList<String>();
-        if (desc.charAt(0) != '(') error(desc);
-        int i = 1;
-        int start = 0;
-        int ch = desc.charAt(i);
-
-
-        while (ch != ')') {
-            switch(ch) {
-            case 'B':
-            case 'S':
-            case 'F':
-            case 'D':
-            case 'C':
-            case 'I':
-            case 'J':
-            case 'Z':
-                args.add(Character.toString(desc.charAt(i))); ch = desc.charAt(++i); break;
-            case '[':
-            case 'L':
-                start = i;
-                while (ch != ';') {
-                    ch = desc.charAt(++i);
-                }
-                args.add(desc.substring(start, ++i));
-                ch = desc.charAt(i);
-                break;
-            default: error(desc);
-            }
-        }
-        return args;
-    }
-
-    public static String parseResult(String desc) {
-        int i = desc.indexOf(')') + 1;
-        int ch = desc.charAt(i);
-        int start;
-        switch(ch) {
-        case 'B':
-        case 'S':
-        case 'F':
-        case 'D':
-        case 'C':
-        case 'I':
-        case 'J':
-        case 'Z':
-        case 'V':
-            return Character.toString(desc.charAt(i));
-        case '[':
-            start = i;
-            while (ch != ']') {
-                ch = desc.charAt(++i);
-            }
-            return new String(desc.substring(start, ++i));
-        case 'L':
-            start = i;
-            while (ch != ';') {
-                ch = desc.charAt(++i);
-            }
-            return new String(desc.substring(start, ++i));
-        default: error(desc);
-        }
-        return ("Shouln't happen");
-    }
-
-
     public CodeGenMethodVisitor(int access, String name, String desc,
                                 String signature, String[] exceptions,
                                 MethodVisitor mvisitor) {
@@ -122,8 +52,8 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.desc = desc;
         this.signature = signature;
         this.exceptions = exceptions;
-        this.argumentTypes = parseArgs(desc);
-        this.resultType = parseResult(desc);
+        this.argumentTypes = NamingCzar.parseArgs(desc);
+        this.resultType = NamingCzar.parseResult(desc);
 
         this.localVariableTable = new HashMap<String, Integer>();
         this.localVariableTypeTable = new HashMap<String, String>();
