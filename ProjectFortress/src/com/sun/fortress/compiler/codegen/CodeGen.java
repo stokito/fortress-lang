@@ -122,7 +122,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
         
     }
-
+    
     private APIName thisApi() {
         return ci.ast().getName();
     }
@@ -219,13 +219,34 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    private void generateInitMethod(List<Param> params) {
+    private void generateFieldsAndInitMethod(String classFile, List<Param> params) {
+        // TODO Allocate fields
+        for (Param p : params) {
+            // TODO need to spot for "final" fields.
+            String pn = p.getName().getText();
+            Type pt = p.getIdType().unwrap();
+            cw.visitField(Opcodes.ACC_PRIVATE, pn,
+                    NamingCzar.only.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
+        }
+
         String init_sig = NamingCzar.only.jvmSignatureFor(params, "V", thisApi());
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.internalObject, "<init>", NamingCzar.voidToVoid);
-        // TODO initialize fields here.
+        
+        // TODO Initialize fields.
+        int pno = 1;
+        for (Param p : params) {
+            String pn = p.getName().getText();
+            Type pt = p.getIdType().unwrap();
+
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitVarInsn(Opcodes.ALOAD, pno);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, classFile, pn,
+                    NamingCzar.only.jvmTypeDesc(pt, thisApi(), true));
+            pno++;
+        }
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         mv.visitEnd();
@@ -383,11 +404,25 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
     }
+    
+    private void allSayWhats() {
+        return; // This is a great place for a breakpoint!
+    }
+    
     private <T> T sayWhat(ASTNode x) {
+        allSayWhats();
         throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
     }
 
+    private <T> T sayWhat(Node x) {
+        if (x instanceof ASTNode)
+            sayWhat((ASTNode) x);
+        allSayWhats();
+        throw new CompilerError("Can't compile " + x);
+    }
+
     private <T> T sayWhat(ASTNode x, String message) {
+        allSayWhats();
         throw new CompilerError(NodeUtil.getSpan(x), message + " node = " + x);
     }
 
@@ -395,11 +430,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Debug.debug(Debug.Type.CODEGEN,1,message);
     }
 
-    public void defaultCase(ASTNode x) {
+    public void defaultCase(Node x) {
         System.out.println("defaultCase: " + x + " of class " + x.getClass());
         sayWhat(x);
     }
 
+    public void forImportStar(ImportStar x) {
+        // do nothing, don't think there is any code go generate
+    }
+    
     public void forBlock(Block x) {
         boolean oldInABlock = inABlock;
         inABlock = true;
@@ -460,7 +499,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                  null);
 
         // Always generate the init method
-        generateInitMethod(Collections.<Param>emptyList());
+        generateFieldsAndInitMethod(packageAndClassName, Collections.<Param>emptyList());
 
         // If this component exports an executable API,
         // generate a main method.
@@ -856,6 +895,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         CodeGenClassWriter prev = cw;
+        
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
 
@@ -867,7 +907,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         
         // Emit fields here, one per parameter.
 
-        generateInitMethod(params);
+        generateFieldsAndInitMethod(classFile, params);
         
         BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
@@ -882,7 +922,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     param_type,
                     classFile,
                     objectFieldName,
-                    NamingCzar.jvmTypeDesc(param_type, component.getName(), false)));
+                    NamingCzar.jvmTypeDesc(param_type, component.getName(), true)));
         }
                 
         for (Decl d : header.getDecls()) {
@@ -1234,7 +1274,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                  null, NamingCzar.internalObject, new String[0] );
         debug("Start writing springboard class ",
               springBoardClass);
-        generateInitMethod(Collections.<Param>emptyList());
+        generateFieldsAndInitMethod(springBoardClass, Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
         dumpDecls(header.getDecls());
         debug("Finished dumpDecls ", springBoardClass);
