@@ -161,7 +161,7 @@ object STypesUtil {
         case _ => super.walk(node)
       }
     }
-    paramWalker(typ).asInstanceOf
+    paramWalker(typ).asInstanceOf[Type]
   }
 
   /**
