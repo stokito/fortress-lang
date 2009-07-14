@@ -52,7 +52,9 @@ public class TypeCheckPhase extends Phase {
         IndexBuilder.ComponentResult componentIndex = IndexBuilder
                 .buildComponents(previous.componentIterator(), lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(repository.apis(), apiIndex.apis()));
+                                                                 .union(repository.apis(),
+                                                                        CollectUtil.union(env.apis(),
+                                                                                          apiIndex.apis())));
 
         StaticChecker.ApiResult apiSR = StaticChecker.checkApis(apiIndex.apis(), apiEnv);
 
