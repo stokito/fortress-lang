@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
+import com.sun.fortress.scala_src.useful.STypesUtil.Subtype
 import edu.rice.cs.plt.lambda.Lambda
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 
@@ -50,9 +51,9 @@ object ScalaConstraintUtil{
     case true => CnTrue
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
-      val ubounds = empty.update(ivar,ubound)
-      //CnAnd(ubounds,empty,newhistory)
-      CnTrue
+      val ubounds = empty.update(ivar, ubound)
+      val subtype: Subtype = (t1,t2) => newhistory.subtypeNormal(t1,t2).isTrue
+      CnAnd(ubounds, empty, subtype)
   }
 
   /*
@@ -62,9 +63,9 @@ object ScalaConstraintUtil{
     case true => CnTrue
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
-      val lbounds = empty.update(ivar,lbound)
-      //CnAnd(empty,lbounds,newhistory)
-      CnTrue
+      val lbounds = empty.update(ivar, lbound)
+      val subtype: Subtype = (t1,t2) => newhistory.subtypeNormal(t1,t2).isTrue
+      CnAnd(empty, lbounds, subtype)
   }
   
   def TRUE_FORMULA() = CnTrue

@@ -134,9 +134,9 @@ trait Functionals { self: STypeChecker with Common =>
   }
 
   /**
-   * Checks whether an arrow type if applicable to the given args. If so, then
-   * the [possible instantiated] arrow type along with any inferred statics args
-   * are returned.
+   * Checks whether an arrow type is applicable to the given args. If so, then
+   * the [possiblly instantiated] arrow type along with any inferred static
+   * args are returned.
    */
   protected def checkApplicable(fnType: ArrowType,
                                 argType: Type,
@@ -163,7 +163,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Get an inference variable type out of a static arg.
     def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
-      case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf)
+      case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
       case _ => None
     }
 
@@ -348,8 +348,10 @@ trait Functionals { self: STypeChecker with Common =>
       // Check all the overloadings and filter out any that have the wrong
       // number or kind of static parameters.
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
-        case  SOverloading(info, name, Some(ty)) =>
-          staticInstantiation(sargs, ty).map(t => SOverloading(info,name,Some(t)))
+        case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
+        case SOverloading(info, name, Some(ty)) =>
+          staticInstantiation(sargs, ty).
+            map(t => SOverloading(info, name, Some(t)))
         case _ => None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)

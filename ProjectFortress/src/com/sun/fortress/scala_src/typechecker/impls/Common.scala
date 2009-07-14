@@ -223,12 +223,21 @@ trait Common { self: STypeChecker =>
 
     // Match a single pair.
     def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
+
+
       val (arg, param) = argAndParam
       (arg, param.getKind) match {
         case (STypeArg(_, argType), _:KindType) =>
-            toList(param.getExtendsClause).forall((bound:Type) =>
-              isSubtype(argType, bound, arg,
-                        errorMsg(normalize(argType), " not a subtype of ", normalize(bound))))
+          def mightBeSubtype(bound: Type): Boolean = {
+            if (checkSubtype(argType, bound).isFalse) {
+              signal(arg, errorMsg(normalize(argType),
+                                   " not a subtype of ",
+                                   normalize(bound)))
+              return false
+            }
+            true
+          }
+          toList(param.getExtendsClause).forall(mightBeSubtype)
         case (_:IntArg, _:KindInt) => true
         case (_:BoolArg, _:KindBool) => true
         case (_:DimArg, _:KindDim) => true
