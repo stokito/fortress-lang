@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="javadb">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_it.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyrun.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_zh_TW.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_pt_BR.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_ru.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_pl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/register.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbynet.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derby.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_fr.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_hu.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbytools.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_ko_KR.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_ja_JP.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_zh_CN.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_es.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_cs.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyclient.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/javadb/derbyLocale_de_DE.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
