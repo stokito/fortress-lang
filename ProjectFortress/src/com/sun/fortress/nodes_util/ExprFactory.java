@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.BATree;
@@ -633,7 +634,7 @@ public class ExprFactory {
     }
 
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
-        return makeVoidLiteralExpr(span, false, Option.<Type>none(), "");
+        return makeVoidLiteralExpr(span, false, Option.<Type>some(Types.VOID), "");
     }
 
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span,
