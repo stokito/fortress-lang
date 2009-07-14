@@ -47,60 +47,16 @@ import edu.rice.cs.plt.tuple.Option;
 public class ParametricOperator extends FunctionalMethod {
     Op _name;
 
-    public ParametricOperator(FnDecl ast, Id declaringTrait) {
-        super(ast, declaringTrait);
+    public ParametricOperator(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
+        super(ast, declaringTrait, traitParams);
         _name = (Op)NodeUtil.getName(ast);
         putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
-    public FnDecl ast() { return _ast; }
-
     public Op name() { return _name; }
-
-    @Override
-    public Span getSpan() { return NodeUtil.getSpan(_ast); }
-
-	@Override
-	public Option<Expr> body() {
-		return _ast.accept(new NodeDepthFirstVisitor<Option<Expr>>(){
-			@Override
-			public Option<Expr> defaultCase(Node that) {
-				return Option.none();
-			}
-			@Override
-			public Option<Expr> forFnDecl(FnDecl that) {
-                            return that.getBody();
-			}
-		});
-	}
-
-
-	@Override
-	public List<Param> parameters() {
-		return NodeUtil.getParams(_ast);
-	}
-
-	@Override
-	public List<StaticParam> staticParameters() {
-		return NodeUtil.getStaticParams(_ast);
-	}
-
-	@Override
-	public List<BaseType> thrownTypes() {
-		if(  NodeUtil.getThrowsClause(_ast).isNone() )
-			return Collections.emptyList();
-		else
-			return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
-	}
-
-	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return NI.nyi();
-	}
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FunctionalMethod((FnDecl)this.ast().accept(visitor), this._declaringTrait);
+		return new ParametricOperator((FnDecl)this.ast().accept(visitor), this._declaringTrait, this._traitParams);
 	}
 }

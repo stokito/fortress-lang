@@ -686,7 +686,7 @@ public class IndexBuilder {
             //   (2) this declaration is for an operator
             // Place the declaration in the appropriate bins according to the answer.
             if (functional && ! operator) {
-                FunctionalMethod m = new FunctionalMethod(ast, declaringTrait);
+                FunctionalMethod m = new FunctionalMethod(ast, declaringTrait, enclosingParams);
 
                 functionalMethods.add(name, m);
                 topLevelFunctions.add(name, m);
@@ -699,10 +699,10 @@ public class IndexBuilder {
                     }
                 }
                 if (parametric) {
-                    ParametricOperator po = new ParametricOperator(ast, declaringTrait);
+                    ParametricOperator po = new ParametricOperator(ast, declaringTrait, enclosingParams);
                     parametricOperators.add(po);
                 } else {
-                    FunctionalMethod m = new FunctionalMethod(ast, declaringTrait);
+                    FunctionalMethod m = new FunctionalMethod(ast, declaringTrait, enclosingParams);
 
                     functionalMethods.add(name, m);
                     topLevelFunctions.add(name, m);

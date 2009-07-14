@@ -532,8 +532,8 @@ object ExportChecker {
     /* Returns true if two static parameters are same. */
     private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
         (left, right) match {
-            case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL),
-                  SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR)) =>
+            case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL, _),
+                  SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR, _)) =>
                 equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
                 equalOptTypes(dimL, dimR) &&
                 absorbsL == absorbsR && kindL == kindR
@@ -750,8 +750,8 @@ object DeclaredFunction {
 object FunctionalMethod {
     def unapply(function:JavaFunctionalMethod) =
         Some((function.ast, function.declaringTrait))
-    def apply(fndecl:FnDecl, id:Id) =
-        new JavaFunctionalMethod(fndecl, id)
+    def apply(fndecl:FnDecl, id:Id, traitParams:JavaList[StaticParam]) =
+        new JavaFunctionalMethod(fndecl, id, traitParams)
 }
 
 object DeclaredMethod {

@@ -212,8 +212,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case _ => sa
     }
     def spSubst(sp: StaticParam): StaticParam = sp match {
-      case SStaticParam(i,n,e,d,a,k) =>
-        SStaticParam(i, n, e.map(tySubst).asInstanceOf[List[BaseType]], d, a, k)
+      case SStaticParam(i,n,e,d,a,k,l) =>
+        SStaticParam(i, n, e.map(tySubst).asInstanceOf[List[BaseType]], d, a, k, l)
     }
     def tySubst(tau: Type): Type = tau match {
       case SVarType(_,name,_) =>
