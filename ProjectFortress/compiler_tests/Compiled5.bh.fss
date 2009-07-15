@@ -15,20 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
- component DXXStaticParamMethodCall
- export Executable
+  export Executable
 
-   trait B
-   end
+  trait CanHasMethod
+    callIt():()
+  end
 
-   object A
-   end
+  foo[\T extends CanHasMethod\](x:T):() = x.callIt();
 
-   object C
-     foo[\T extends B\](x:T):T = x
-   end
-
-   run():() = ignore(C.foo(A))
-
-
- end
+  run():() = ()

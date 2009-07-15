@@ -15,14 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MethodOnTypeVar
   export Executable
-
-  trait CanHasMethod
-    callIt():()
+  trait foo
+    doIt():String = "blah"
+  end
+  trait quux extends foo
+    niceness():String = doIt()
   end
 
-  foo[\T extends CanHasMethod\](x:T):() = x.callIt();
+  someFunction():foo = object extends foo
+                         helper():String = doIt()
+                         helper2():String = helper()
+                       end
 
-  run():() = ()
-end
+  object bar extends foo
+    otherThing():String = doIt()
+  end
+  run():() = ignore(bar.doIt())

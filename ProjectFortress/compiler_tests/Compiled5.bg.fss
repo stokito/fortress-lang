@@ -15,12 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXMethodInvocationOnTuple
   export Executable
-
-  foo() : () = do
-    (1,2,3,4).something()
+  trait foo
+    doIt():String = "blah"
   end
-
-  run():()=()
-end
+  object bar extends foo
+  end
+  run():() = ignore(bar.doIt())

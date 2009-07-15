@@ -15,22 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component InheritedMethodStatic
-  export Executable
-  trait foo
-    doIt():String = "blah"
-  end
-  trait quux extends foo
-    niceness():String = doIt()
-  end
+ export Executable
+   trait B
+   end
 
-  someFunction():foo = object extends foo
-                         helper():String = doIt()
-                         helper2():String = helper()
-                       end
+   object A
+   end
 
-  object bar extends foo
-    otherThing():String = doIt()
-  end
-  run():() = ignore(bar.doIt())
-end
+   object C
+     foo[\T extends B\](x:T):T = x
+   end
+
+   run():() = ignore(C.foo(A))

@@ -454,258 +454,258 @@ object ExportChecker {
       case _ => false
   }
 
-    /* Returns true if two optional types are same. */
-    private def equalOptTypes(left: Option[Type], right: Option[Type]): Boolean =
-        (left, right) match {
-            case (None, None) => true
-            case (Some(tyL), Some(tyR)) => equalTypes(tyL, tyR)
-            case _ => false
-        }
-
-    /* Returns true if two lists of types are same. */
-    private def equalListTypes(left: List[Type], right: List[Type]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalTypes(l,r))
-
-    /* Returns true if two optional lists of types are same. */
-    private def equalOptListTypes(left: Option[List[Type]],
-                                  right: Option[List[Type]]): Boolean =
-        (left, right) match {
-            case (None, None) => true
-            case (Some(tyL), Some(tyR)) => equalListTypes(tyL, tyR)
-            case _ => false
-        }
-
-    /* Returns true if two lists of keyword types are same. */
-    private def equalListKeywordTypes(left: List[KeywordType],
-                                      right: List[KeywordType]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalKeywordTypes(l,r))
-
-    /* Returns true if two keyword types are same. */
-    private def equalKeywordTypes(left: KeywordType, right: KeywordType): Boolean =
-        (left, right) match {
-            case (SKeywordType(_, nameL, typeL), SKeywordType(_, nameR, typeR)) =>
-                equalIds(nameL, nameR) && equalTypes(typeL, typeR)
-        }
-
-    /* Returns true if two effects are same. */
-    private def equalEffects(left: Effect, right: Effect): Boolean =
-        (left, right) match {
-            case (SEffect(_, throwsL, ioL), SEffect(_, throwsR, ioR)) =>
-                equalOptListTypes(throwsL, throwsR) &&
-                ioL == ioR
-        }
-
-    /* Returns true if two IdOrOps denote the same type. */
-    private def equalIdOrOps(left: IdOrOp, right: IdOrOp): Boolean =
-        (left, right) match {
-            case (idl@SId(_,_,_), idr@SId(_,_,_)) => equalIds(idl, idr)
-            case (SOp(_, apiL, textL, fixityL, enclosingL),
-                  SOp(_, apiR, textR, fixityR, enclosingR)) =>
-                equalOptAPINames(apiL, apiR) && textL == textR &&
-                fixityL == fixityR && enclosingL == enclosingR
-            case _ => false
-        }
-
-    /* Returns true if two Ids denote the same type. */
-    private def equalIds(left: Id, right: Id): Boolean =
-        (left, right) match {
-            case (SId(_, apiL, textL), SId(_, apiR, textR)) =>
-                equalOptAPINames(apiL, apiR) && textL == textR
-        }
-
-    /* Returns true if two optional APINames are same. */
-    private def equalOptAPINames(left: Option[APIName],
-                                 right: Option[APIName]): Boolean =
-        (left, right) match {
-            case (None, None) => true
-            case (Some(SAPIName(_, idsL, _)), Some(SAPIName(_, idsR, _))) =>
-                List.forall2(idsL, idsR)((l,r) => equalIds(l,r))
-            case _ => false
-        }
-
-    /* Returns true if two FnHeaders are same. */
-    private def equalFnHeaders(left: FnHeader, right: FnHeader,
-                               ignoreAbstract: Boolean): Boolean =
-        (left, right) match {
-            case (SFnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
-                            paramsL, retTyL),
-                  SFnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
-                            paramsR, retTyR)) =>
-                equalListStaticParams(sparamsL, sparamsR) &&
-                ( if (ignoreAbstract)
-                      modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
-                  else modsL.equals(modsR) ) &&
-                equalOptListTypes(throwsL, throwsR) &&
-                equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR)
+  /* Returns true if two optional types are same. */
+  private def equalOptTypes(left: Option[Type], right: Option[Type]): Boolean =
+    (left, right) match {
+      case (None, None) => true
+      case (Some(tyL), Some(tyR)) => equalTypes(tyL, tyR)
+      case _ => false
     }
 
-    /* Returns true if two lists of static parameters are same. */
-    private def equalListStaticParams(left: List[StaticParam],
-                                      right: List[StaticParam]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalStaticParams(l,r))
+  /* Returns true if two lists of types are same. */
+  private def equalListTypes(left: List[Type], right: List[Type]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalTypes(l,r))
 
-    /* Returns true if two static parameters are same. */
-    private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
-        (left, right) match {
-            case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL, _),
-                  SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR, _)) =>
-                equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
-                equalOptTypes(dimL, dimR) &&
-                absorbsL == absorbsR && kindL == kindR
-        }
-
-    /* Returns true if two lists of static arguments are same. */
-    private def equalListStaticArgs(left: List[StaticArg],
-                                    right: List[StaticArg]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalStaticArgs(l,r))
-
-    /* Returns true if two static arguments are same. */
-    private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
-        (left, right) match {
-            case (STypeArg(_, typeL), STypeArg(_, typeR)) => equalTypes(typeL, typeR)
-            case (SIntArg(_, intL), SIntArg(_, intR)) => equalIntExprs(intL,intR)
-            case _ => false
-        }
-
-    /* Returns true if two IntExprs are same.
-     * Not implemented!
-     */
-    private def equalIntExprs(left: IntExpr, right: IntExpr): Boolean = false
-
-    /* Returns true if two parameters are same. */
-    private def equalParams(left: Param, right: Param): Boolean =
-        (left, right) match {
-            case (SParam(_, nameL, modsL, typeL, initL, varargsL),
-                  SParam(_, nameR, modsR, typeR, initR, varargsR)) =>
-                modsL.equals(modsR) &&
-                equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
-        }
-
-    /* Returns true if two lists of parameters are same. */
-    private def equalListParams(left: List[Param], right: List[Param]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalParams(l,r))
-
-    /* Returns true if two optional lists of parameters are same. */
-    private def equalOptListParams(left: Option[List[Param]],
-                                   right: Option[List[Param]]): Boolean =
-        (left, right) match {
-            case (None, None) => true
-            case (Some(paramL), Some(paramR)) => equalListParams(paramL, paramR)
-            case _ => false
-        }
-
-    /* Returns true if two TraitTypeHeaders are same. */
-    private def equalTraitTypeHeaders(inAPI:  TraitTypeHeader,
-                                      inComp: TraitTypeHeader): (Boolean, String) =
-        (inAPI, inComp) match {
-            case (STraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
-                                   extendsL, declsL),
-                  STraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
-                                   extendsR, declsR)) =>
-                var cause = ""
-                if ( ! equalListStaticParams(sparamsL, sparamsR) )
-                    cause = addMessage(cause, "different static parameters")
-                if ( ! modsL.equals(modsR) )
-                    cause = addMessage(cause, "different modifiers")
-                if ( ! equalOptListTypes(throwsL, throwsR) )
-                    cause = addMessage(cause, "different throws clauses")
-                if ( ! equalListTraitTypeWheres(extendsL, extendsR) )
-                    cause = addMessage(cause, "different extends clauses")
-                val equalDecls = equalListMembers(declsL, declsR, cause)
-                if ( ! equalDecls._1 )
-                    cause = addMessage(cause, equalDecls._2)
-                (cause.equals(""), cause)
-        }
-
-    /* Returns true if two lists of TraitTypeWheres are same. */
-    private def equalListTraitTypeWheres(inAPI:  List[TraitTypeWhere],
-                                         inComp: List[TraitTypeWhere]): Boolean =
-        inAPI.length == inComp.length &&
-        List.forall2(inAPI, inComp)((l,r) => equalTraitTypeWheres(l,r))
-
-    /* Returns true if two TraitTypeWheres are same. */
-    private def equalTraitTypeWheres(inAPI:  TraitTypeWhere,
-                                     inComp: TraitTypeWhere): Boolean =
-        (inAPI, inComp) match {
-            case (STraitTypeWhere(_, typeL, whereL),
-                  STraitTypeWhere(_, typeR, whereR)) =>
-                equalTypes(typeL, typeR)
+  /* Returns true if two optional lists of types are same. */
+  private def equalOptListTypes(left: Option[List[Type]],
+                                right: Option[List[Type]]): Boolean =
+    (left, right) match {
+      case (None, None) => true
+      case (Some(tyL), Some(tyR)) => equalListTypes(tyL, tyR)
+      case _ => false
     }
 
-    /* Returns true if two comprises clauses are "same" in the presence of "..." */
-    private def equalComprises(declInAPI:  TraitObjectDecl,
-                               declInComp: TraitObjectDecl): Boolean = {
-        val comprisesInAPI  = toOptList(NodeUtil.getComprisesClause(declInAPI))
-        val comprisesInComp = toOptList(NodeUtil.getComprisesClause(declInComp))
-        if ( NodeUtil.isComprisesEllipses(declInAPI) )
-            (comprisesInAPI, comprisesInComp) match {
-                case (Some(tysInAPI), Some(tysInComp)) =>
-                    var result = true
-                    for ( t <- tysInAPI )
-                        if ( ! tysInComp.contains(t) ) result = false
-                    result
-                case (Some(tysInAPI), None) => false
-                case _ => true
-        } else equalOptListTypes(comprisesInAPI, comprisesInComp)
+  /* Returns true if two lists of keyword types are same. */
+  private def equalListKeywordTypes(left: List[KeywordType],
+                                    right: List[KeywordType]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalKeywordTypes(l,r))
+
+  /* Returns true if two keyword types are same. */
+  private def equalKeywordTypes(left: KeywordType, right: KeywordType): Boolean =
+    (left, right) match {
+      case (SKeywordType(_, nameL, typeL), SKeywordType(_, nameR, typeR)) =>
+        equalIds(nameL, nameR) && equalTypes(typeL, typeR)
     }
 
-    /* Returns true if members in traits and objects in an API have
-     * corresponding members in the component.
-     */
-    private def equalListMembers(inAPI: List[Decl], inComp: List[Decl],
-                                 original: String): (Boolean, String) =
-        if ( inAPI.length > inComp.length )
-            (false, "missing members of the trait/object in the component")
-        else {
-            var cause = original
-            def handleOne(l: Decl) = {
-                val eq = inComp.exists(r => equalMember(l, r))
-                if ( ! eq )
-                    l match {
-                        case SVarDecl(_,_,_) =>
-                            cause = addMessage(cause,
-                                               "different field @ " + NodeUtil.getSpan(l))
-                        case SFnDecl(_,h,_,_,_) =>
-                            cause = addMessage(cause,
-                                               "different method " + h.getName +
-                                               " @ " + NodeUtil.getSpan(l))
-                    }
-                eq
-            }
-            (inAPI.forall(handleOne), cause)
-        }
-
-    /* Returns true if two members in traits and objects are same. */
-    private def equalMember(inAPI: Decl, inComp: Decl): Boolean =
-        (inAPI, inComp) match {
-            case (SVarDecl(_, lhsL, _), SVarDecl(_, lhsR, _)) =>
-                equalListLValues(lhsL, lhsR)
-            case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
-                equalFnHeaders(headerL, headerR, true)
-        }
-
-    /* Returns true if two lists of LValues are same. */
-    private def equalListLValues(left: List[LValue], right: List[LValue]): Boolean =
-        left.length == right.length &&
-        List.forall2(left, right)((l,r) => equalLValue(l,r))
-
-    /* Returns true if two LValues are same. */
-    private def equalLValue(left: LValue, right: LValue): Boolean =
-        (left, right) match {
-            case (SLValue(_, nameL, modsL, typeL, _),
-                  SLValue(_, nameR, modsR, typeR, _)) =>
-                equalIds(nameL, nameR) && modsL.equals(modsR)
-                equalOptTypes(typeL, typeR)
+  /* Returns true if two effects are same. */
+  private def equalEffects(left: Effect, right: Effect): Boolean =
+    (left, right) match {
+      case (SEffect(_, throwsL, ioL), SEffect(_, throwsR, ioR)) =>
+        equalOptListTypes(throwsL, throwsR) &&
+        ioL == ioR
     }
 
-    private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
-        if (ol.isNone) None
-        else Some(toList(ol.unwrap))
+  /* Returns true if two IdOrOps denote the same type. */
+  private def equalIdOrOps(left: IdOrOp, right: IdOrOp): Boolean =
+    (left, right) match {
+      case (idl@SId(_,_,_), idr@SId(_,_,_)) => equalIds(idl, idr)
+      case (SOp(_, apiL, textL, fixityL, enclosingL),
+            SOp(_, apiR, textR, fixityR, enclosingR)) =>
+        equalOptAPINames(apiL, apiR) && textL == textR &&
+        fixityL == fixityR && enclosingL == enclosingR
+      case _ => false
+    }
+
+  /* Returns true if two Ids denote the same type. */
+  private def equalIds(left: Id, right: Id): Boolean =
+    (left, right) match {
+      case (SId(_, apiL, textL), SId(_, apiR, textR)) =>
+        equalOptAPINames(apiL, apiR) && textL == textR
+    }
+
+  /* Returns true if two optional APINames are same. */
+  private def equalOptAPINames(left: Option[APIName],
+                               right: Option[APIName]): Boolean =
+    (left, right) match {
+      case (None, None) => true
+      case (Some(SAPIName(_, idsL, _)), Some(SAPIName(_, idsR, _))) =>
+        List.forall2(idsL, idsR)((l,r) => equalIds(l,r))
+      case _ => false
+    }
+
+  /* Returns true if two FnHeaders are same. */
+  private def equalFnHeaders(left: FnHeader, right: FnHeader,
+                             ignoreAbstract: Boolean): Boolean =
+    (left, right) match {
+      case (SFnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                      paramsL, retTyL),
+            SFnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                      paramsR, retTyR)) =>
+        equalListStaticParams(sparamsL, sparamsR) &&
+        ( if (ignoreAbstract)
+            modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
+          else modsL.equals(modsR) ) &&
+        equalOptListTypes(throwsL, throwsR) &&
+        equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR)
+  }
+
+  /* Returns true if two lists of static parameters are same. */
+  private def equalListStaticParams(left: List[StaticParam],
+                                    right: List[StaticParam]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalStaticParams(l,r))
+
+  /* Returns true if two static parameters are same. */
+  private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
+    (left, right) match {
+      case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL, _),
+            SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR, _)) =>
+        equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
+        equalOptTypes(dimL, dimR) &&
+        absorbsL == absorbsR && kindL == kindR
+    }
+
+  /* Returns true if two lists of static arguments are same. */
+  private def equalListStaticArgs(left: List[StaticArg],
+                                  right: List[StaticArg]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalStaticArgs(l,r))
+
+  /* Returns true if two static arguments are same. */
+  private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
+    (left, right) match {
+      case (STypeArg(_, typeL), STypeArg(_, typeR)) => equalTypes(typeL, typeR)
+      case (SIntArg(_, intL), SIntArg(_, intR)) => equalIntExprs(intL,intR)
+      case _ => false
+    }
+
+  /* Returns true if two IntExprs are same.
+   * Not implemented!
+   */
+  private def equalIntExprs(left: IntExpr, right: IntExpr): Boolean = false
+
+  /* Returns true if two parameters are same. */
+  private def equalParams(left: Param, right: Param): Boolean =
+    (left, right) match {
+      case (SParam(_, nameL, modsL, typeL, initL, varargsL),
+            SParam(_, nameR, modsR, typeR, initR, varargsR)) =>
+        modsL.equals(modsR) &&
+        equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
+    }
+
+  /* Returns true if two lists of parameters are same. */
+  private def equalListParams(left: List[Param], right: List[Param]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalParams(l,r))
+
+  /* Returns true if two optional lists of parameters are same. */
+  private def equalOptListParams(left: Option[List[Param]],
+                                 right: Option[List[Param]]): Boolean =
+    (left, right) match {
+      case (None, None) => true
+      case (Some(paramL), Some(paramR)) => equalListParams(paramL, paramR)
+      case _ => false
+    }
+
+  /* Returns true if two TraitTypeHeaders are same. */
+  private def equalTraitTypeHeaders(inAPI:  TraitTypeHeader,
+                                    inComp: TraitTypeHeader): (Boolean, String) =
+    (inAPI, inComp) match {
+      case (STraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                             extendsL, declsL),
+            STraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                             extendsR, declsR)) =>
+        var cause = ""
+        if ( ! equalListStaticParams(sparamsL, sparamsR) )
+          cause = addMessage(cause, "different static parameters")
+        if ( ! modsL.equals(modsR) )
+          cause = addMessage(cause, "different modifiers")
+        if ( ! equalOptListTypes(throwsL, throwsR) )
+          cause = addMessage(cause, "different throws clauses")
+        if ( ! equalListTraitTypeWheres(extendsL, extendsR) )
+          cause = addMessage(cause, "different extends clauses")
+        val equalDecls = equalListMembers(declsL, declsR, cause)
+        if ( ! equalDecls._1 )
+          cause = addMessage(cause, equalDecls._2)
+        (cause.equals(""), cause)
+    }
+
+   /* Returns true if two lists of TraitTypeWheres are same. */
+  private def equalListTraitTypeWheres(inAPI:  List[TraitTypeWhere],
+                                       inComp: List[TraitTypeWhere]): Boolean =
+    inAPI.length == inComp.length &&
+    List.forall2(inAPI, inComp)((l,r) => equalTraitTypeWheres(l,r))
+
+  /* Returns true if two TraitTypeWheres are same. */
+  private def equalTraitTypeWheres(inAPI:  TraitTypeWhere,
+                                   inComp: TraitTypeWhere): Boolean =
+    (inAPI, inComp) match {
+      case (STraitTypeWhere(_, typeL, whereL),
+            STraitTypeWhere(_, typeR, whereR)) =>
+        equalTypes(typeL, typeR)
+    }
+
+  /* Returns true if two comprises clauses are "same" in the presence of "..." */
+  private def equalComprises(declInAPI:  TraitObjectDecl,
+                             declInComp: TraitObjectDecl): Boolean = {
+    val comprisesInAPI  = toOptList(NodeUtil.getComprisesClause(declInAPI))
+    val comprisesInComp = toOptList(NodeUtil.getComprisesClause(declInComp))
+    if ( NodeUtil.isComprisesEllipses(declInAPI) )
+      (comprisesInAPI, comprisesInComp) match {
+        case (Some(tysInAPI), Some(tysInComp)) =>
+          var result = true
+          for ( t <- tysInAPI )
+            if ( ! tysInComp.contains(t) ) result = false
+          result
+        case (Some(tysInAPI), None) => false
+        case _ => true
+      }
+    else equalOptListTypes(comprisesInAPI, comprisesInComp)
+  }
+
+  /* Returns true if members in traits and objects in an API have
+   * corresponding members in the component.
+   */
+  private def equalListMembers(inAPI: List[Decl], inComp: List[Decl],
+                               original: String): (Boolean, String) =
+    if ( inAPI.length > inComp.length )
+      (false, "missing members of the trait/object in the component")
+    else {
+      var cause = original
+      def handleOne(l: Decl) = {
+        val eq = inComp.exists(r => equalMember(l, r))
+        if ( ! eq )
+          l match {
+            case SVarDecl(_,_,_) =>
+              cause = addMessage(cause,
+                                 "different field @ " + NodeUtil.getSpan(l))
+            case SFnDecl(_,h,_,_,_) =>
+              cause = addMessage(cause,
+                                 "different method " + h.getName +
+                                 " @ " + NodeUtil.getSpan(l))
+          }
+        eq
+      }
+      (inAPI.forall(handleOne), cause)
+    }
+
+  /* Returns true if two members in traits and objects are same. */
+  private def equalMember(inAPI: Decl, inComp: Decl): Boolean =
+    (inAPI, inComp) match {
+      case (SVarDecl(_, lhsL, _), SVarDecl(_, lhsR, _)) =>
+        equalListLValues(lhsL, lhsR)
+      case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
+        equalFnHeaders(headerL, headerR, true)
+    }
+
+  /* Returns true if two lists of LValues are same. */
+  private def equalListLValues(left: List[LValue], right: List[LValue]): Boolean =
+    left.length == right.length &&
+    List.forall2(left, right)((l,r) => equalLValue(l,r))
+
+  /* Returns true if two LValues are same. */
+  private def equalLValue(left: LValue, right: LValue): Boolean =
+    (left, right) match {
+      case (SLValue(_, nameL, modsL, typeL, _),
+            SLValue(_, nameR, modsR, typeR, _)) =>
+        equalIds(nameL, nameR) && modsL.equals(modsR)
+        equalOptTypes(typeL, typeR)
+  }
+
+  private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
+    if (ol.isNone) None else Some(toList(ol.unwrap))
 }
 
 /* Extractor Objects
@@ -716,24 +716,18 @@ object ExportChecker {
  *     comprises { DeclaredVariable, ParamVariable, SingletonVariable }
  */
 object DeclaredVariable {
-    def unapply(variable:JavaDeclaredVariable) =
-        Some(variable.ast)
-    def apply(lvalue:LValue) =
-        new JavaDeclaredVariable(lvalue)
+  def unapply(variable:JavaDeclaredVariable) = Some(variable.ast)
+  def apply(lvalue:LValue) = new JavaDeclaredVariable(lvalue)
 }
 
 object ParamVariable {
-    def unapply(variable:JavaParamVariable) =
-        Some(variable.ast)
-    def apply(param:Param) =
-        new JavaParamVariable(param)
+  def unapply(variable:JavaParamVariable) = Some(variable.ast)
+  def apply(param:Param) = new JavaParamVariable(param)
 }
 
 object SingletonVariable {
-    def unapply(variable:JavaSingletonVariable) =
-        Some(variable.declaringTrait)
-    def apply(id:Id) =
-        new JavaSingletonVariable(id)
+  def unapply(variable:JavaSingletonVariable) = Some(variable.declaringTrait)
+  def apply(id:Id) = new JavaSingletonVariable(id)
 }
 
 /* com.sun.fortress.compiler.index.Functional
@@ -746,49 +740,47 @@ object SingletonVariable {
  *     comprises { ParametricOperator }
  */
 object Constructor {
-    def unapply(function:JavaConstructor) =
-        Some((function.declaringTrait, function.staticParameters,
-              JavaOption.wrap(function.parameters),
-              JavaOption.wrap(function.thrownTypes),
-              function.where))
-    def apply(id:Id, staticParams: JavaList[StaticParam],
-              params: JavaOption[JavaList[Param]],
-              throwsClause: JavaOption[JavaList[BaseType]],
-              where: JavaOption[WhereClause]) =
-        new JavaConstructor(id, staticParams, params, throwsClause, where)
+  def unapply(function:JavaConstructor) =
+    Some((function.declaringTrait, function.staticParameters,
+          JavaOption.wrap(function.parameters),
+          JavaOption.wrap(function.thrownTypes),
+          function.where))
+  def apply(id:Id, staticParams: JavaList[StaticParam],
+            params: JavaOption[JavaList[Param]],
+            throwsClause: JavaOption[JavaList[BaseType]],
+            where: JavaOption[WhereClause]) =
+    new JavaConstructor(id, staticParams, params, throwsClause, where)
 }
 
 object DeclaredFunction {
-    def unapply(function:JavaDeclaredFunction) =
-        Some(function.ast)
-    def apply(fndecl:FnDecl) =
-        new JavaDeclaredFunction(fndecl)
+  def unapply(function:JavaDeclaredFunction) = Some(function.ast)
+  def apply(fndecl:FnDecl) = new JavaDeclaredFunction(fndecl)
 }
 
 object FunctionalMethod {
-    def unapply(function:JavaFunctionalMethod) =
-        Some((function.ast, function.declaringTrait))
-    def apply(fndecl:FnDecl, id:Id, traitParams:JavaList[StaticParam]) =
-        new JavaFunctionalMethod(fndecl, id, traitParams)
+  def unapply(function:JavaFunctionalMethod) =
+    Some((function.ast, function.declaringTrait))
+  def apply(fndecl:FnDecl, id:Id, traitParams:JavaList[StaticParam]) =
+    new JavaFunctionalMethod(fndecl, id, traitParams)
 }
 
 object DeclaredMethod {
-    def unapply(method:JavaDeclaredMethod) =
-        Some((method.ast, method.getDeclaringTrait))
-    def apply(fndecl:FnDecl, id:Id) =
-        new JavaDeclaredMethod(fndecl, id)
+  def unapply(method:JavaDeclaredMethod) =
+    Some((method.ast, method.getDeclaringTrait))
+  def apply(fndecl:FnDecl, id:Id) =
+    new JavaDeclaredMethod(fndecl, id)
 }
 
 object FieldGetterMethod {
-    def unapply(method:JavaFieldGetterMethod) =
-        Some((method.ast, method.getDeclaringTrait))
-    def apply(binding:Binding, id:Id) =
-        new JavaFieldGetterMethod(binding, id)
+  def unapply(method:JavaFieldGetterMethod) =
+    Some((method.ast, method.getDeclaringTrait))
+  def apply(binding:Binding, id:Id) =
+    new JavaFieldGetterMethod(binding, id)
 }
 
 object FieldSetterMethod {
-    def unapply(method:JavaFieldSetterMethod) =
-        Some((method.ast, method.getDeclaringTrait))
-    def apply(binding:Binding, id:Id) =
-        new JavaFieldSetterMethod(binding, id)
+  def unapply(method:JavaFieldSetterMethod) =
+    Some((method.ast, method.getDeclaringTrait))
+  def apply(binding:Binding, id:Id) =
+    new JavaFieldSetterMethod(binding, id)
 }
