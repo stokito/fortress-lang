@@ -35,45 +35,54 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 
 /**
- * Note that this is a {@link Function}, not a {@link Method}, despite the name
+ * Note that this is a {@link com.sun.fortress.compiler.index.Function}, not a {@link com.sun.fortress.compiler.index.Method}, despite the name
  * (methods have distinct receivers).
  */
-public class FunctionalMethod extends Function {
+public class Coercion extends Function {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
 
-    public FunctionalMethod(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
+    public Coercion(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
         _ast = ast;
         _declaringTrait = declaringTrait;
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
-        if (NodeUtil.getReturnType(_ast).isSome())
-            putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+
+        putThunk(new Thunk<Option<Type>>() {
+          @Override public Option<Type> value() {
+            return Option.<Type>some(
+                NodeFactory.makeTraitType(_declaringTrait,
+                                          TypesUtil.staticParamsToArgs(_traitParams)));
+          }
+        });
     }
 
     public FnDecl ast() { return _ast; }
 
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_ast); }
-    
+
     protected String mandatoryToString() {
-        return "functionalMethod " + declaringTrait().toString() + "." + ast();
+        return "coercion " + declaringTrait().toString() + "." + ast();
     }
 
     @Override
     protected IdOrOpOrAnonymousName mandatoryToUndecoratedName() {
         return ast().getHeader().getName();
     }
-    
+
     public Id declaringTrait() { return _declaringTrait; }
 
 	@Override
@@ -96,19 +105,11 @@ public class FunctionalMethod extends Function {
 		return NodeUtil.getParams(_ast);
 	}
 
-    /**
-     * Get the static parameters of this method prepended with the declaring
-     * trait's static parameters.
-     */
 	@Override
 	public List<StaticParam> staticParameters() {
-		return CollectUtil.makeList(IterUtil.compose(_traitParams, NodeUtil.getStaticParams(_ast)));
+        // No static parameters allowed on individual coercions.
+		return _traitParams;
 	}
-
-    /** Get only the explicitly declared static parameters for this method. */
-    public List<StaticParam> declaredStaticParameters() {
-        return NodeUtil.getStaticParams(_ast);
-    }
 
 	@Override
 	public List<BaseType> thrownTypes() {
@@ -126,6 +127,6 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FunctionalMethod((FnDecl)this.ast().accept(visitor), this._declaringTrait, this._traitParams);
+		return new Coercion((FnDecl)this.ast().accept(visitor), this._declaringTrait, this._traitParams);
 	}
 }

@@ -58,16 +58,16 @@ object STypeCheckerFactory {
 
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
-           env: STypeEnv,
-           analyzer: TypeAnalyzer): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog)
+           env: STypeEnv)
+           (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer)
   
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: STypeEnv,
-           analyzer: TypeAnalyzer,
-           errors: ErrorLog): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, analyzer, errors)
+           errors: ErrorLog)
+          (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, errors)(analyzer)
 }
 
 /**
@@ -77,9 +77,9 @@ object STypeCheckerFactory {
 class STypeCheckerImpl(current: CompilationUnitIndex,
                        traits: TraitTable,
                        env: STypeEnv,
-                       analyzer: TypeAnalyzer,
                        errors: ErrorLog)
-    extends STypeChecker(current, traits, env, analyzer, errors)
+                      (implicit analyzer: TypeAnalyzer)
+    extends STypeChecker(current, traits, env, errors)(analyzer)
     with Dispatch with Common
     with Decls with Functionals with Operators
     with Misc
@@ -100,28 +100,26 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
 abstract class STypeChecker(val current: CompilationUnitIndex,
                             val traits: TraitTable,
                             val env: STypeEnv,
-                            val analyzer: TypeAnalyzer,
-                            val errors: ErrorLog) {
+                            val errors: ErrorLog)
+                           (implicit val analyzer: TypeAnalyzer) {
 
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
-    STypeCheckerFactory.make(current, traits, newEnv, newAnalyzer, errors)
+    STypeCheckerFactory.make(current, traits, newEnv, errors)(newAnalyzer)
 
   def extend(bindings: List[LValue]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env.extend(bindings),
-                             analyzer,
                              errors)
 
   def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env,
-                             analyzer.extend(sparams, where),
-                             errors)
+                             errors)(analyzer.extend(sparams, where))
 
   def extend(sparams: List[StaticParam],
              params: Option[List[Param]],
@@ -130,14 +128,12 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
       STypeCheckerFactory.make(current,
                                traits,
                                env.extend(ps),
-                               analyzer.extend(sparams, where),
-                               errors)
+                               errors)(analyzer.extend(sparams, where))
     case None =>
       STypeCheckerFactory.make(current,
                                traits,
                                env,
-                               analyzer.extend(sparams, where),
-                               errors)
+                               errors)(analyzer.extend(sparams, where))
   }
 
   def extend(id: Id, typ: Type): STypeChecker =
@@ -151,21 +147,18 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     STypeCheckerFactory.make(current,
                              traits,
                              env.extend(decl),
-                             analyzer,
                              errors)
 
   def extendWithFunctions[T <: Functional](methods: Relation[IdOrOpOrAnonymousName, T]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env.extendWithFunctions(methods),
-                             analyzer,
                              errors)
 
   def extendWithout(declSite: Node, names: Set[Id]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env.extendWithout(names),
-                             analyzer,
                              errors)
 
   def addSelf(self_type: Type) =
@@ -424,9 +417,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
  */
 class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
-                 env: STypeEnv,
-                 analyzer: TypeAnalyzer)
-    extends STypeCheckerImpl(current, traits, env, analyzer, new ErrorLog) {
+                 env: STypeEnv)
+                (implicit analyzer: TypeAnalyzer)
+    extends STypeCheckerImpl(current, traits, env, new ErrorLog) {
 
   /** Throws the TypeError exception with the given info. */
   override protected def signal(msg:String, hasAt:HasAt): Unit =

@@ -26,31 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.index.Constructor;
-import com.sun.fortress.compiler.index.DeclaredFunction;
-import com.sun.fortress.compiler.index.DeclaredMethod;
-import com.sun.fortress.compiler.index.DeclaredVariable;
-import com.sun.fortress.compiler.index.Dimension;
-import com.sun.fortress.compiler.index.FieldGetterMethod;
-import com.sun.fortress.compiler.index.FieldSetterMethod;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.Method;
-import com.sun.fortress.compiler.index.NonterminalDefIndex;
-import com.sun.fortress.compiler.index.NonterminalExtendIndex;
-import com.sun.fortress.compiler.index.NonterminalIndex;
-import com.sun.fortress.compiler.index.ObjectTraitIndex;
-import com.sun.fortress.compiler.index.ParamVariable;
-import com.sun.fortress.compiler.index.ParametricOperator;
-import com.sun.fortress.compiler.index.ProperTraitIndex;
-import com.sun.fortress.compiler.index.SingletonVariable;
-import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.index.Unit;
-import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
@@ -411,7 +387,7 @@ public class IndexBuilder {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
-        final Set<Function> coercions = new HashSet<Function>();
+        final Set<Coercion> coercions = new HashSet<Coercion>();
         final Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, DeclaredMethod>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
@@ -459,7 +435,7 @@ public class IndexBuilder {
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
-        final Set<Function> coercions = new HashSet<Function>();
+        final Set<Coercion> coercions = new HashSet<Coercion>();
         final Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, DeclaredMethod>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
@@ -633,7 +609,7 @@ public class IndexBuilder {
                              List<StaticParam> enclosingParams,
                              Map<Id, Method> getters,
                              Map<Id, Method> setters,
-                             Set<Function> coercions,
+                             Set<Coercion> coercions,
                              Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
                              Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
                              Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions,
@@ -664,7 +640,7 @@ public class IndexBuilder {
             }
         }
         else if (name instanceof Id && ((Id)name).getText().equals(COERCION_NAME)) {
-            coercions.add(new DeclaredFunction(ast));
+            coercions.add(new Coercion(ast, declaringTrait, enclosingParams));
         }
         else {
             boolean functional = false;

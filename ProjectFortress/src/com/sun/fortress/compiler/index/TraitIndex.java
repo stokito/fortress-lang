@@ -38,14 +38,14 @@ public abstract class TraitIndex extends TypeConsIndex {
     private final TraitObjectDecl _ast;
     private final Map<Id, Method> _getters;
     private final Map<Id, Method> _setters;
-    private final Set<Function> _coercions;
+    private final Set<Coercion> _coercions;
     private final Relation<IdOrOpOrAnonymousName, DeclaredMethod> _dottedMethods;
     private final Relation<IdOrOpOrAnonymousName, FunctionalMethod> _functionalMethods;
 
     public TraitIndex(TraitObjectDecl ast,
                       Map<Id, Method> getters,
                       Map<Id, Method> setters,
-                      Set<Function> coercions,
+                      Set<Coercion> coercions,
                       Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
                       Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         _ast = ast;
@@ -87,7 +87,7 @@ public abstract class TraitIndex extends TypeConsIndex {
         return _setters;
     }
 
-    public Set<Function> coercions() {
+    public Set<Coercion> coercions() {
         return _coercions;
     }
 

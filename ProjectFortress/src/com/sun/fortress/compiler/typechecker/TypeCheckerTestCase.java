@@ -26,11 +26,7 @@ import java.util.regex.*;
 
 import junit.framework.TestCase;
 
-import com.sun.fortress.compiler.index.DeclaredMethod;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.index.Method;
-import com.sun.fortress.compiler.index.ProperTraitIndex;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Id;
@@ -97,7 +93,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
-                                    Collections.<Function>emptySet(),
+                                    Collections.<Coercion>emptySet(),
                                     CollectUtil.<IdOrOpOrAnonymousName, DeclaredMethod>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }

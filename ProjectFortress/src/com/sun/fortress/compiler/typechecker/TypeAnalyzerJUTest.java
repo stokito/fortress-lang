@@ -35,20 +35,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.index.DeclaredMethod;
-import com.sun.fortress.compiler.index.Dimension;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.Method;
-import com.sun.fortress.compiler.index.ParametricOperator;
-import com.sun.fortress.compiler.index.ProperTraitIndex;
-import com.sun.fortress.compiler.index.TraitIndex;
-import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.index.Unit;
-import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
@@ -518,7 +505,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),
-                                    Collections.<Function>emptySet(),
+                                    Collections.<Coercion>emptySet(),
                                     CollectUtil.<IdOrOpOrAnonymousName, DeclaredMethod>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());
     }

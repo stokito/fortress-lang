@@ -174,7 +174,7 @@ trait Operators { self: STypeChecker with Common =>
       //     of the juxtaposition operator.
       //     The rules for multifix operators then apply.
       val multiOpExpr =
-        new TryChecker(current, traits, env, analyzer).
+        new TryChecker(current, traits, env).
           tryCheckExpr(ExprFactory.makeOpExpr(span,
                                               paren,
                                               toJavaOption(optType),
@@ -377,7 +377,7 @@ trait Operators { self: STypeChecker with Common =>
     // operator, left associatively.
     case SAmbiguousMultifixOpExpr(info, infixOp, multifixOp, args) => {
       def infixAssociate(e1: Expr, e2: Expr) = SOpExpr(info, infixOp, List(e1, e2))
-      new TryChecker(current, traits, env, analyzer).
+      new TryChecker(current, traits, env).
         tryCheckExpr(SOpExpr(info, multifixOp, args)).
         getOrElse(checkExpr(args.reduceLeft(infixAssociate)))
     }

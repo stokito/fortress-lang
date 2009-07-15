@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.StaticParam;
+import edu.rice.cs.plt.lambda.Lambda;
 
 /** Comprises Constructor, DeclaredFunction, and FunctionalMethod. */
 public abstract class Function extends Functional {
@@ -30,4 +32,16 @@ public abstract class Function extends Functional {
         return mandatoryToUndecoratedName();
     }
 
+    // Copy a static parameter but make it lifted.
+    protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {
+        public StaticParam value(StaticParam that) {
+            return new StaticParam(that.getInfo(),
+                                   that.getName(),
+                                   that.getExtendsClause(),
+                                   that.getDimParam(),
+                                   that.isAbsorbsParam(),
+                                   that.getKind(),
+                                   true);
+        }
+    };
 }

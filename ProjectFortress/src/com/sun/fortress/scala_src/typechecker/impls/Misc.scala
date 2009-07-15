@@ -145,7 +145,7 @@ trait Misc { self: STypeChecker with Common =>
   }
 
   protected def forAtomic(expr: Expr, enclosingExpr: String) =
-    new AtomicChecker(current,traits,env,analyzer,errors,enclosingExpr).checkExpr(expr)
+    new AtomicChecker(current,traits,env,errors,enclosingExpr).checkExpr(expr)
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
@@ -520,10 +520,10 @@ trait Misc { self: STypeChecker with Common =>
   class AtomicChecker(current: CompilationUnitIndex,
                       traits: TraitTable,
                       env: STypeEnv,
-                      analyzer: TypeAnalyzer,
                       errors: ErrorLog,
                       enclosingExpr: String)
-      extends STypeCheckerImpl(current,traits,env,analyzer,errors) {
+                     (implicit analyzer: TypeAnalyzer)
+      extends STypeCheckerImpl(current,traits,env,errors) {
     
     val message = errorMsg("A 'spawn' expression must not occur inside ",
                            enclosingExpr, ".")
