@@ -137,6 +137,6 @@ end
 
 
 run() = do
-    processFile(getEnvironment("fortress.autohome", ".") "/tutorial/src/exercise4/testData") 
+    processFile(getEnvironment("fortress.autohome", "ProjectFortress/demos/") "testData") 
 end
 end
