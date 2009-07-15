@@ -313,7 +313,7 @@ trait Functionals { self: STypeChecker with Common =>
       }
     }
     
-    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg) =>{
+    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _) =>{
       val checkedObj = checkExpr(obj)
       val checkedArg = checkExpr(arg)
       val recvrType = getType(checkedObj).getOrElse(return expr)
@@ -333,7 +333,8 @@ trait Functionals { self: STypeChecker with Common =>
                             checkedObj,
                             method,
                             sargs,
-                            checkedArg)
+                            checkedArg,
+                            Some(arrow))
         case None =>
           signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
                          format(recvrType, method, argType))

@@ -933,7 +933,9 @@ interface Node() extends HasAt;
                          * e.g.) myString.toUppercase()
                          */
                         MethodInvocation(Expr obj, Id method,
-                                         List<StaticArg> staticArgs, Expr arg);
+                                         List<StaticArg> staticArgs,
+                                         Expr arg,
+                                         Option<Type> overloadingType = Option.<Type>none());
                         /**
                          * primary expression without any dots
                          * MathPrimary ::= PrimaryFront MathItem*
