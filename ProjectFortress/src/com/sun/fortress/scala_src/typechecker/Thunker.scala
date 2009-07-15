@@ -153,7 +153,7 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
   }
   
   def makeTryChecker(): TryChecker = new 
-    TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env,typeChecker.analyzer)
+    TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer)
   
 }
 

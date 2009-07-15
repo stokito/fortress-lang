@@ -18,101 +18,156 @@
 package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.exceptions.CompilerError
-import com.sun.fortress.exceptions.InterpreterBug
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Map
-import scala.collection.mutable.Set
+import compiler.index.{Coercion, CompilationUnitIndex, TraitIndex}
+import scala.collection.immutable.HashMap
 
-class CoercionOracleFactory(traits: TraitTable, analyzer: TypeAnalyzer,
-                            exclusionOracle: ExclusionOracle, errors: ErrorLog) {
+class CoercionOracleFactory(traits: TraitTable,
+                            analyzer: TypeAnalyzer,
+                            exclusionOracle: ExclusionOracle) {
   val coercionTable = makeCoercionTable(analyzer)
 
   private def makeCoercionTable(analyzer: TypeAnalyzer) = {
     /*
      * Build a hashtable mapping types coerced *from* to the types they coerce *to*.
      */
-    val result = HashMap[Type, Set[Type]]()
-
+    var result: Map[Id, Set[Coercion]] = new HashMap
     for (to <- traits) {
       to match {
-        case ti: TraitIndex =>
-          for (c <- ti.coercions) {
-            // The parser checks that:
-            // 1) a coercion declaration should have exactly one parameter,
-            // 2) it should not have an explicitly declared return type, and
-            // 3) it should explicitly declare its parameter type.
-            val param = c.parameters.get(0)
-            scalaify(param.getIdType) match {
-              case None => // Already checked by the parser.
-                errors.signal("A coercion declaration must explicitly declare its parameter type.", param)
-              case Some(from:Type) => {
-                val knownCoercions = result.getOrElseUpdate(from, Set[Type]())
-                scalaify(ti.typeOfSelf) match {
-                  case None =>
-                    errors.signal("The CoercionOracle cannot yet handle TraitObjectDecls without self types.", ti.ast)
-                  case Some(tu:Type) => {
-                    knownCoercions += tu
-                    if ( analyzer.subtype(from, tu).isTrue )
-                      errors.signal("Coercion from a subtype to a supertype is not allowed.", ti.ast)
-                  }
-                }
-              }
-            }
-          }
+        case ti: TraitIndex => {
+          val toName = ti.ast.getHeader.getName.asInstanceOf[Id]
+          result = result + (toName -> toSet(ti.coercions))
+        }
         // TODO Handle coercions in other indices (what else might we get?)
-        case _ => ()
+        case _ =>
       }
     }
     result
   }
 
-  def makeOracle(env: KindEnv):CoercionOracle = {
+  def makeOracle(env: KindEnv): CoercionOracle = {
     new CoercionOracle(env, traits, coercionTable, exclusionOracle)
   }
-
-  def getErrors() = toJavaList(errors.errors)
 }
 
-class CoercionOracle(env: KindEnv, traits: TraitTable, coercions:Map[Type,Set[Type]], exclusions: ExclusionOracle) {
+class CoercionOracle(env: KindEnv,
+                     traits: TraitTable,
+                     coercions: Map[Id, Set[Coercion]],
+                     exclusions: ExclusionOracle) {
+
+  private implicit val analyzer = new TypeAnalyzer(traits, env)
+
+  /**
+   * Get the most specific type out of a set of types under the `moreSpecific`
+   * relation.
+   */
   def mostSpecific(cs: Set[Type]): Option[Type] = {
     if (cs.isEmpty) {
-      throw new InterpreterBug("Attempt to find the most specific type in an empty set")
+      bug("Attempt to find the most specific type in an empty set")
     }
     else {
       var result: Option[Type] = None
       for (c <- cs) {
-        if (result == None || moreSpecific(c, result.get)) result = Some(c)
+        if (result.isEmpty || moreSpecific(c, result.get)) result = Some(c)
       }
       result
     }
   }
 
-  private def moreSpecific(t1: Type, t2: Type) = {
-    val analyzer = new TypeAnalyzer(traits, env)
-    analyzer.subtype(t1,t2).isTrue ||
-      (exclusions.excludes(t1,t2) && coercesTo(t1,t2) && rejects(t1,t2))
-  }
+  /** The `moreSpecific` relation; no less specific and unequal. */
+  private def moreSpecific(t: Type, u: Type): Boolean =
+    noLessSpecific(t, u) && !analyzer.equivalent(t, u).isTrue
 
-  private def rejects(t1: Type, t2: Type) = {
-    var result = false
-    for (u <- coercionsTo(t1)) {
-      result = result || exclusions.excludes(u,t2)
+  /** The `noLessSpecific` relation. */
+  private def noLessSpecific(t: Type, u: Type): Boolean =
+    analyzer.subtype(t, u).isTrue ||
+      (exclusions.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
+
+  /** Determines if T rejects U. */
+  private def rejects(t: Type, u: Type): Boolean =
+    getCoercionsTo(t).forall(a => exclusions.excludes(a, u))
+
+  /** The set of all types T such that T --> U. Nil if u not a trait type. */
+  def getCoercionsTo(u: Type): Set[Type] = {
+    if (!u.isInstanceOf[TraitType]) return Set()
+
+    // Get name and possible static args out of the type.
+    val STraitType(_, name, sargs, _) = u
+
+    // Get the domain from an instantiated coercion arrow.
+    def getDomain(c: Coercion): Option[Type] = {
+      makeArrowFromFunctional(c).flatMap(arrow =>
+        staticInstantiation(sargs, arrow).map(instArrow =>
+          instArrow.asInstanceOf[ArrowType].getDomain))
     }
-    result
+
+    // Get all the domains that were found.
+    coercions(name).flatMap(getDomain)
   }
 
+  /** Determines if T is substitutable for U. */
+  def substitutableFor(t: Type, u: Type): Boolean =
+    analyzer.subtype(t, u).isTrue || coercesTo(t, u)
 
-  def coercionsTo(t: Type): Set[Type] = coercions.getOrElseUpdate(t, Set[Type]())
-  def coercesTo(t: Type, u: Type): Boolean = coercionsTo(t).contains(u)
+  /** Determines if T ~~> U. */
+  def coercesTo(t: Type, u: Type): Boolean = (t, u) match {
+
+    case (_, u:TraitType) =>
+      getCoercionsTo(u).exists(tt => analyzer.subtype(t, tt).isTrue)
+
+    case (x@STupleType(_, xelts, xvar, _), y@STupleType(_, yelts, yvar, _)) => {
+      val rules = List[Boolean](
+        // 1. X is not a subtype of Y.
+        !analyzer.subtype(x, y).isTrue,
+
+        // 2. for every T in Y, corresponding type in X is substitutable for T
+        xelts.length >= yelts.length && List.forall2(xelts, yelts)(substitutableFor),
+
+        // 3. same number of plain types if neither have varargs
+        (xelts.length == yelts.length || yvar.isDefined),
+
+        // 4. check varargs types
+        (!(xvar.isDefined && yvar.isDefined) || substitutableFor(xvar.get, yvar.get)),
+
+        // 5. check remainder of x is substitutable for y's varargs
+        (!yvar.isDefined || xelts.drop(yelts.length).forall(substitutableFor(_, yvar.get)))
+      )
+      rules.forall(x => x)
+    }
+
+    case (SArrowType(_, a, b, teff, _), SArrowType(_, d, e, ueff, _)) => {
+      // Get throws types.
+      val c = toOption(teff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())
+      val f = toOption(ueff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())
+            
+      val rules = List[Boolean](
+        // 1. A -> B throws C is not a subtype of D -> E throws F
+        !analyzer.subtype(t, u).isTrue,
+
+        // 2. D substitutable for A
+        substitutableFor(d, a),
+
+        // 3. B substitutable for E
+        substitutableFor(b, e),
+
+        // 4. for all X in C, there is a Y in F such that X is substitutable for Y
+        c.forall(x => f.exists(y => substitutableFor(x, y)))
+      )
+      rules.forall(identity)
+    }
+
+    case _ => false
+  }
 }

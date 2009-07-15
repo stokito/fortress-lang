@@ -16,27 +16,9 @@
  ******************************************************************************/
 package com.sun.fortress.scala_src.typechecker
 
-import _root_.java.util.Arrays
-import _root_.java.util.LinkedList
-import junit.framework.TestCase
-import junit.framework.TestSuite
-import edu.rice.cs.plt.tuple.Option
-
-import com.sun.fortress.Shell
-import com.sun.fortress.compiler.{NamingCzar => JavaNamingCzar}
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.StaticError
-import com.sun.fortress.exceptions.WrappedException
-import com.sun.fortress.exceptions.shell.UserError
-import com.sun.fortress.nodes_util.ASTIO
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.NodeUtil
-import com.sun.fortress.repository.ProjectProperties
-import com.sun.fortress.scala_src.useful.ErrorLog
-import com.sun.fortress.useful.Path
-import com.sun.fortress.useful.TestCaseWrapper
-import com.sun.fortress.useful.WireTappedPrintStream
+import com.sun.fortress.scala_src.useful.Lists._
 
 
 /**
@@ -47,9 +29,10 @@ import com.sun.fortress.useful.WireTappedPrintStream
  */
 class CoercionTest(analyzer:TypeAnalyzer, exclusionOracle:ExclusionOracle) {
   def run() = {
-    val factory = new CoercionOracleFactory(analyzer.traitTable, analyzer,
-                                            exclusionOracle, exclusionOracle.errors)
+    val factory = new CoercionOracleFactory(analyzer.traitTable,
+                                            analyzer,
+                                            exclusionOracle)
     val oracle = factory.makeOracle(analyzer.kindEnv)
-    factory.getErrors
+    toJavaList(List[StaticError]())
   }
 }

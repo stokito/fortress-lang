@@ -48,7 +48,7 @@ public class ObjectTraitIndex extends TraitIndex {
                             Set<VarDecl> fieldInitializers,
                             Map<Id, Method> getters,
                             Map<Id, Method> setters,
-                            Set<Function>coercions,
+                            Set<Coercion>coercions,
                             Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
                             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
@@ -98,9 +98,9 @@ public class ObjectTraitIndex extends TraitIndex {
 			new_setters.put(entry.getKey(), (Method)var.acceptNodeUpdateVisitor(v));
 		}
 
-		Set<Function> new_coercions = new HashSet<Function>();
-		for( Function vd : this.coercions() ) {
-			new_coercions.add((Function)vd.acceptNodeUpdateVisitor(v));
+		Set<Coercion> new_coercions = new HashSet<Coercion>();
+		for( Coercion vd : this.coercions() ) {
+			new_coercions.add((Coercion)vd.acceptNodeUpdateVisitor(v));
 		}
 
 		Iterator<Pair<IdOrOpOrAnonymousName, DeclaredMethod>> iter_1 = this.dottedMethods().iterator();

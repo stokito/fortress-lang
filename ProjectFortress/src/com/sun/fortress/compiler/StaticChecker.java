@@ -267,7 +267,7 @@ public class StaticChecker {
                     thunker.primeFunctionals(componentIndex.functions().secondSet(), tryChecker);
                     //Typecheck
                     STypeChecker typeChecker =
-                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer, log);
+                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer);
                     ast = (Component)typeChecker.typeCheck(component_ast);
                     index = buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
