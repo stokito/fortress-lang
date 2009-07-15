@@ -1,0 +1,142 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component wordcount2
+import CaseInsensitiveString.{...}
+import File.{...}
+import FileSupport.{...}
+import PureList.{...}
+import Map.{...}
+import System.{getEnvironment}
+export Executable
+
+trait WordState comprises { Chunk, Segment }
+  opr OPLUS(self, other: WordState): WordState
+end
+
+object Chunk(s: String) extends WordState
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Chunk(s || other.s)
+  opr OPLUS(self, other: Segment): WordState =
+    Segment(s || other.l, other.A, other.r)
+end
+
+object Segment(l: String, A: Map[\CaseInsensitiveString,ZZ32\], r: String)
+    extends WordState
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Segment(l, A, r || other.s)
+  opr OPLUS(self, other: Segment): WordState = do
+    Segment(l, maybeWord(r || other.l, A) UNIONSUM other.A, other.r)
+    end
+end
+
+(* object GlomReduction extends { MonoidReduction[\WordState\],
+                               ReductionWithZeroes[\WordState,WordState\] }
+    getter asString() = "GlomReduction"
+    empty(): WordState = Chunk("")
+    join(a: WordState, b: WordState): WordState = a OPLUS b
+end
+
+opr BIG OPLUS[\T\](): BigReduction[\WordState,WordState\] =
+    BigReduction[\WordState,WordState\](GlomReduction)
+
+opr BIG OPLUS[\T\](g: Generator[\WordState\]) =
+    __bigOperatorSugar[\WordState,WordState,WordState,WordState\](BIG OPLUS[\T\](), g)
+*)
+
+maybeWord(s: String, d:Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] = 
+  if s = "" then d else  
+      d.updateWith(fn(mx)=>Just[\ZZ32\](mx.getDefault(0)+1), CaseInsensitiveString(s))
+end 
+
+opr BIG OPLUS[\T\](): Reduction[\WordState\] = embiggen( fn(a,b) => a OPLUS b, Chunk("") )
+ 
+maybeWord(s: String): List[\String\] =
+  if s = "" then <|[\String\] |> else <|[\String\] s |> end
+
+processChar(c: String): WordState =
+  if (c = " ") then
+    Segment("", {[\CaseInsensitiveString,ZZ32\]}, "")
+  else
+    Chunk(c)
+  end
+
+words(s: String):Map[\CaseInsensitiveString,ZZ32\] = do
+  var database:Map[\CaseInsensitiveString,ZZ32\] := {[\CaseInsensitiveString,ZZ32\]}
+  g = BIG OPLUS[k<-0#s.size] processChar(s[k#1])
+  typecase g of
+    Chunk => maybeWord(g.s, database)
+    Segment => maybeWord(g.l, database) UNIONSUM g.A UNIONSUM maybeWord(g.r, database)
+  end
+end
+
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
+    var database:Map[\ZZ32,List[\String\]\] := {[\ZZ32,List[\String\]\]}
+    database := database.add(y, <|[\String\] x |>)
+    database
+end
+
+opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
+             b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
+        a.union(fn(_,x,y)=>x+y, b)
+
+opr BIG UNIONSUM(): BigReduction[\Map[\CaseInsensitiveString,ZZ32\],
+                                 Map[\CaseInsensitiveString,ZZ32\]\] =
+    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](
+        fn (a,b) => a UNIONSUM b, {[\CaseInsensitiveString,ZZ32\]})
+
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) => x || y, b)
+
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
+
+processFile(name:String):() = do
+    time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
+    println("Processing file " name)
+    var rs:FileReadStream = FileReadStream(name)
+    start = nanoTime()
+    database:Map[\CaseInsensitiveString, ZZ32\] =
+        BIG UNIONSUM [l<-rs.lines()] words(l)
+    rs.close()
+    acq = nanoTime()
+    time("Acquired words",start,acq)
+    var invDatabase:Map[\ZZ32,List[\String\]\] =
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString(),y)
+    inv = nanoTime()
+    time("Inverted database",acq,inv)
+    try
+        for i <- seq(1#100) do
+            (c,m,newinv) = invDatabase.extractMaximum().get
+            invDatabase := newinv
+            println(m ": " c " times")
+        end
+    catch e
+            NotFound => println("end")
+    end
+    finish = nanoTime()
+    time("Outputted",inv,finish)
+    time("Total run",start,finish)
+end
+
+
+run() = do
+    processFile(getEnvironment("fortress.autohome", ".") "/tutorial/src/exercise4/testData") 
+end
+end
