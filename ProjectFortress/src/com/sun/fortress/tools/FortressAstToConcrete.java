@@ -1979,7 +1979,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                     String obj_result,
                                                     String method_result,
                                                     List<String> staticArgs_result,
-                                                    String arg_result) {
+                                                    String arg_result,
+                                                    Option<String> overloading_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( obj_result ).append( "." ).append( method_result );
