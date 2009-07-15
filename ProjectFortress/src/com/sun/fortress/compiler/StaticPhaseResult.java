@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -24,23 +24,23 @@ import com.sun.fortress.exceptions.StaticError;
 import java.util.ArrayList;
 
 public class StaticPhaseResult {
-    
+
     private final Iterable<? extends StaticError> _errors;
-    
+
     public StaticPhaseResult() {
         this(IterUtil.<StaticError>empty());
     }
-    
+
     public StaticPhaseResult(Iterable<? extends StaticError> errors) {
         _errors = errors;
     }
-    
+
     public StaticPhaseResult(StaticPhaseResult r1, StaticPhaseResult r2) {
         _errors = IterUtil.compose(r1._errors, r2._errors);
     }
-    
+
     public boolean isSuccessful() { return IterUtil.isEmpty(_errors); }
-    
+
     public Iterable<? extends StaticError> errors() { return _errors; }
 
     protected static Iterable<? extends StaticError> collectErrors(Iterable<? extends TypeCheckerResult> results) {
