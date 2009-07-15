@@ -37,8 +37,8 @@ f(o:Z):() = jPrintln("Hi!")
 g(x:Z):() = f(x)
 
 run():() = do
-  g(O("Ha!", 3))
-  g(O("Ha!", 4))
+  g(O("Ha!", 3)) (* 6+3 = 9      < 10 ==> "Ha!" *)
+  g(O("Ha!", 4)) (* 6+4 = 10 NOT < 10 ==> "Hi!" *)
   (* jPrintln("Hi!") *)
 end
 
