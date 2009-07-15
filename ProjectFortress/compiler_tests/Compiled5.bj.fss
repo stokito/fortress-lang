@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Equals
   export Executable
 
   (* Originally, this check for equality failed
@@ -26,4 +25,3 @@ component Equals
   end
 
   run():() = ()
-end

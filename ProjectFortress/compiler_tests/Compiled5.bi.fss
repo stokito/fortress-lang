@@ -14,13 +14,20 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-
-component MethodInheritance
   export Executable
-  trait foo
-    doIt():String = "blah"
+  trait A
+    foo():()
   end
-  object bar extends foo
+  trait B
+    bar():()
   end
-  run():() = ignore(bar.doIt())
-end
+
+  run():() = ()
+
+  quux(obj: A):() = typecase obj of
+    B => do
+      obj.foo()
+      obj.bar()
+    end
+    else => ()
+  end

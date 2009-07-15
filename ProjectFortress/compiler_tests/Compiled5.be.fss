@@ -14,22 +14,11 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
- component MethodOnIntersection
+
   export Executable
-  trait A
-    foo():()
-  end
-  trait B
-    bar():()
+
+  foo() : () = do
+    (1,2,3,4).something()
   end
 
-  run():() = ()
-
-  quux(obj: A):() = typecase obj of
-    B => do
-      obj.foo()
-      obj.bar()
-    end
-    else => ()
-  end
-end
+  run():()=()
