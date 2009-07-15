@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
+  Copyright 2009 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
 
@@ -48,8 +48,8 @@ public class PreDisambiguationDesugarPhase extends Phase {
 
 //              System.err.println("PreDisambiguateDesugarPhase apiEnv:");
 //              apiEnv.print();
-//              System.err.println("PreDisambiguateDesugarPhase end apiEnv");       
-            
+//              System.err.println("PreDisambiguateDesugarPhase end apiEnv");
+
 
             PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(),
                                                                                                  apiEnv);

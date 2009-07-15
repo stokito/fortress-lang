@@ -42,19 +42,24 @@ CompilationUnit Program =
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
        if ( ! a1.getB().isEmpty() ) {
-             List<Import>  imports = a1.getA();
-             List<APIName> exports = a1.getB();
-             yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2, exports);
-       }            
-       else
+           List<Import>  imports = a1.getA();
+           List<APIName> exports = a1.getB();
+           yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2, exports);
+       } else
            yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
      }
-   / _
+   / _*
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
-       yyValue = NodeFactory.makeApi(span, name, Collections.<Import>emptyList(), a2);
+       // already checked that file.length() > 4 by NodeFactory.makeAPINameFromPath
+       if ( file.substring( file.length()-3).equals("fsi") ) {
+           yyValue = NodeFactory.makeApi(span, name, Collections.<Import>emptyList(), a2);
+       } else
+           yyValue = NodeFactory.makeComponent(span, name,
+                                               Collections.<Import>emptyList(), a2,
+                                               Collections.<APIName>emptyList());
      };
 
 /* CompilationUnit ::=
