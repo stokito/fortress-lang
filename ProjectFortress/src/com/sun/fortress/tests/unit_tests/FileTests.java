@@ -505,6 +505,8 @@ public class FileTests {
 
             long stop_time = System.currentTimeMillis();
 
+            System.out.print("(" + (stop_time - start_time) + "ms) ");
+
             String s_out = cached_out.toString();
             String s_err = cached_err.toString();
 
@@ -526,6 +528,7 @@ public class FileTests {
             }
 
             if (!failed) {
+
                 // check for timing constraint.
                 String timingfile_name = join(dir,name) + ".timing";
                 File timingfile = new File(timingfile_name);
