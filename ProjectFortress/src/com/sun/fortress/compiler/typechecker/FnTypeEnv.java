@@ -81,45 +81,45 @@ class FnTypeEnv extends TypeEnv {
     // and returns the type we want it to have,
     // (x:$i, Generator[\$i\]) -> Boolean
     private Type replaceGenericSelfParamsWithInferenceVars(FnDecl fn) {
-    	// First we need to get the lists of args -> params
-    	// To do this we must find self's type
+        // First we need to get the lists of args -> params
+        // To do this we must find self's type
 
-    	Option<Type> self_type_ = Option.none();
-    	for( Param param : NodeUtil.getParams(fn) ) {
-    		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
+        Option<Type> self_type_ = Option.none();
+        for( Param param : NodeUtil.getParams(fn) ) {
+            if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
                     if( ! NodeUtil.isVarargsParam(param) )
                         self_type_ = param.getIdType();
                     else
                         InterpreterBug.bug("self cannot be a varargs.");
-    		}
-    	}
-    	if( self_type_.isNone() )
-    		InterpreterBug.bug("We said this was a functional method (" + fn + ") but maybe it wasn't.");
-    	TraitType self_type = (TraitType)self_type_.unwrap();
+            }
+        }
+        if( self_type_.isNone() )
+            InterpreterBug.bug("We said this was a functional method (" + fn + ") but maybe it wasn't.");
+        TraitType self_type = (TraitType)self_type_.unwrap();
 
-    	// This may be a seriously misguided attempt to get StaticParams from StaticArgs... NEB
-    	Iterable<StaticArg> only_typeargs = IterUtil.filter(self_type.getArgs(), new Predicate<StaticArg>(){
-			public boolean contains(StaticArg arg0) { return arg0 instanceof TypeArg; }});
-    	Iterable<Pair<StaticParam,StaticArg>> replacement_pairs =
-    		IterUtil.map(only_typeargs, new Lambda<StaticArg,Pair<StaticParam,StaticArg>>(){
-				public Pair<StaticParam, StaticArg> value(StaticArg arg0) {
-					// Ugh..
-					TypeArg type_arg = (TypeArg)arg0;
-					VarType v = (VarType)type_arg.getTypeArg();
-					StaticParam p = NodeFactory.makeTypeParam(NodeFactory.makeSpan(v),
+        // This may be a seriously misguided attempt to get StaticParams from StaticArgs... NEB
+        Iterable<StaticArg> only_typeargs = IterUtil.filter(self_type.getArgs(), new Predicate<StaticArg>(){
+            public boolean contains(StaticArg arg0) { return arg0 instanceof TypeArg; }});
+        Iterable<Pair<StaticParam,StaticArg>> replacement_pairs =
+            IterUtil.map(only_typeargs, new Lambda<StaticArg,Pair<StaticParam,StaticArg>>(){
+                public Pair<StaticParam, StaticArg> value(StaticArg arg0) {
+                    // Ugh..
+                    TypeArg type_arg = (TypeArg)arg0;
+                    VarType v = (VarType)type_arg.getTypeArg();
+                    StaticParam p = NodeFactory.makeTypeParam(NodeFactory.makeSpan(v),
                                                                                     v.getName(),
                                                                                     Collections.<BaseType>emptyList(),
                                                                                     Option.<Type>none(), false);
-					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(p)));
-					return Pair.make(p, a);
-				}});
+                    StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(p)));
+                    return Pair.make(p, a);
+                }});
 
-    	// Now replace
-    	StaticTypeReplacer st_replacer =
-    		new StaticTypeReplacer(CollectUtil.makeList(IterUtil.pairFirsts(replacement_pairs)),
-    				               CollectUtil.makeList(IterUtil.pairSeconds(replacement_pairs)));
+        // Now replace
+        StaticTypeReplacer st_replacer =
+            new StaticTypeReplacer(CollectUtil.makeList(IterUtil.pairFirsts(replacement_pairs)),
+                                   CollectUtil.makeList(IterUtil.pairSeconds(replacement_pairs)));
 
-    	return (Type)genericArrowFromDecl(fn).accept(st_replacer);
+        return (Type)genericArrowFromDecl(fn).accept(st_replacer);
     }
 
     /**
@@ -127,9 +127,9 @@ class FnTypeEnv extends TypeEnv {
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	Set<? extends Function> fns = entries.matchFirst(no_api_var);
+        Set<? extends Function> fns = entries.matchFirst(no_api_var);
         if (fns.isEmpty()) {
             return parent.binding(var);
         }
@@ -177,39 +177,39 @@ class FnTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	Set<? extends Function> fns = entries.matchFirst(no_api_var);
+        Set<? extends Function> fns = entries.matchFirst(no_api_var);
         if (fns.isEmpty()) {
             return parent.declarationSite(var);
         }
 
         throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
-	}
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends Function>> iter = entries.iterator();
-		Set<Pair<IdOrOpOrAnonymousName, Function>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, Function>>();
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends Function>> iter = entries.iterator();
+        Set<Pair<IdOrOpOrAnonymousName, Function>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, Function>>();
 
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		while( iter.hasNext() ) {
-			Pair<IdOrOpOrAnonymousName, ? extends Function> p = iter.next();
-			Function f = p.second();
+        while( iter.hasNext() ) {
+            Pair<IdOrOpOrAnonymousName, ? extends Function> p = iter.next();
+            Function f = p.second();
 
-			f = (Function)f.acceptNodeUpdateVisitor(rep);
-			new_entries_.add(Pair.make(p.first(), f));
-		}
+            f = (Function)f.acceptNodeUpdateVisitor(rep);
+            new_entries_.add(Pair.make(p.first(), f));
+        }
 
-		return new FnTypeEnv(CollectUtil.makeRelation(new_entries_),
-				             parent.replaceAllIVars(ivars));
-	}
+        return new FnTypeEnv(CollectUtil.makeRelation(new_entries_),
+                             parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

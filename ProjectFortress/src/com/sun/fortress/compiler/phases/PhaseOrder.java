@@ -62,10 +62,12 @@ public enum PhaseOrder {
      */
     OVERLOADREWRITE("Overloading Rewriting"),
     /* Generate top level environments
+     * Generates a Java bytecode compiled environment.
+     * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
      */
     ENVGEN("Environment Generation"),
-    /* Generates a Java bytecode compiled environment.
-     * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
+    /* Code generation
+     * Parallelizability analysis happens in here somewhere, too
      */
     CODEGEN("Code generation"),
     /*
@@ -98,13 +100,13 @@ public enum PhaseOrder {
         case EMPTY:
             return phase;
         case PREDISAMBIGUATEDESUGAR:
-        	return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
+return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
         case DISAMBIGUATE:
             return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
         case GRAMMAR:
             return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
         case PRETYPECHECKDESUGAR:
-        	return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
+            return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
         case TYPECHECK:
             return new TypeCheckPhase(PRETYPECHECKDESUGAR.makePhaseHelper(phase));
         case DESUGAR:

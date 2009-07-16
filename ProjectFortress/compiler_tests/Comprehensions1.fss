@@ -1,0 +1,77 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Comprehensions1
+export Executable
+
+(* Mock up of the kind of code we expect after desugaring of
+comprehensions, in order to see whether we can typecheck it.
+
+Note that this code might contain bugs; there's no way of getting it
+through the type checker and thus no way of knowing for sure.
+*)
+
+trait GeneratorZZ32
+    generate(r: ReductionString, body: ZZ32->String): String
+    filter(f: ZZ32 -> Boolean): GeneratorZZ32
+end
+
+object ReductionString
+    empty(): String = ""
+    join(a: String, b: String): String = a || b
+end
+
+__bigOperator(o:ReductionString,
+              desugaredClauses:(ReductionString, ZZ32->String)->String): String =
+    desugaredClauses(o,strToInt)
+
+__generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
+    g.generate(r,f)
+
+
+object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GeneratorZZ32
+    generate(r: ReductionString, body: ZZ32->String): String = gen(lo,hi,p,r,body)
+    filter(q: ZZ32 -> Boolean): GeneratorZZ32 =
+        FilteredRange(lo, hi, fn n => p(n) AND: q(n))
+end
+
+
+gen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionString, body: ZZ32->String): String =
+    if lo < hi then
+        mid = (lo+hi) DIV 2
+        r.join(gen(lo, mid, p, r, body), gen(mid+1,hi,p,r,body))
+    elif lo=hi AND: p(lo) then
+        body(lo)
+    else
+        r.empty()
+    end
+
+opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => 0=0)
+
+opr BIG ||(): ReductionString = ReductionString
+
+opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
+
+run(): () = do
+    println(__bigOperator(ReductionString,
+                          fn (r, b) => (0:100).generate(r, fn(n) => b(2 n + 1))))
+    (** Comment this next line out if you aren't ready for it yet. *)
+    println(BIG ||[n <- 0:100] (2 n + 1))
+    (** TODO: more, involving filters and nesting and the like. *)
+  end
+
+end
