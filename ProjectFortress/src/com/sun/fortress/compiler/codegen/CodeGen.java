@@ -1289,6 +1289,20 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Expr obj = x.getObj();
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
+        
+        Option<Type> mt = x.getOverloadingType();
+        Type domain_type;
+        Type range_type;
+        if ((mt.isSome())) {
+            ArrowType sigtype = (ArrowType) mt.unwrap();
+            domain_type = sigtype.getDomain();
+            range_type = sigtype.getRange();
+        } else {
+            // TODO call this an error
+            domain_type = exprType(arg);
+            range_type = exprType(x);
+        }
+        
         int savedParamCount = paramCount;
         try {
             // put object on stack
@@ -1297,8 +1311,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
             evalArg(arg);
             String methodClass = NamingCzar.only.jvmTypeDesc(exprType(obj), thisApi(), false);
             String sig = NamingCzar.only.jvmSignatureFor(
-                    exprType(arg),
-                    exprType(x),
+                    domain_type,
+                    range_type,
                     thisApi()
                     );
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodClass, method.getText(), sig);
