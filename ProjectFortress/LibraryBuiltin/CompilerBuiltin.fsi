@@ -51,6 +51,7 @@ trait ZZ32 extends ZZ64 comprises { IntLiteral }
     opr =(self, other:ZZ32): Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
+    opr DIV(self, other:ZZ32): ZZ32
 end
 
 object IntLiteral extends ZZ32
