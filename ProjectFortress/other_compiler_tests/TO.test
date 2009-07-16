@@ -13,7 +13,7 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=ATrait ASingleton WithFields MethodAccess MethodAccess3 FieldAccess
+tests=ATrait ASingleton WithFields MethodAccess MethodAccess2 MethodAccess3 FieldAccess
 link
 run
 run_out_WImatches=Ha! Hi!
