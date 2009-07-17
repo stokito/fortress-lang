@@ -115,7 +115,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
     STypeCheckerFactory.make(current, traits, newEnv, errors)(newAnalyzer)
 
-  def extend(bindings: List[LValue]) =
+  def extend(bindings: List[Binding]) =
     STypeCheckerFactory.make(current,
                              traits,
                              env.extend(bindings),

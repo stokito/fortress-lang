@@ -32,45 +32,9 @@ import edu.rice.cs.plt.tuple.{Option => JOption}
 import scala.collection.mutable.Stack
 
 
-class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
-  
-  protected val cycleChecker = new CyclicReferenceChecker(errors)
+class Thunker(var typeChecker: STypeChecker)(implicit val cycleChecker: CyclicReferenceChecker) {
   
   type TypeThunk = Thunk[JOption[Type]]
-  
-  def makeThunk(ast: FnDecl, tryChecker: TryChecker): TypeThunk = {
-    val name = ast.getHeader.getName
-    return new TypeThunk() {
-      def value() = {
-        if (cycleChecker.push(name)) {
-          tryChecker.tryCheck(ast) match {
-            case Some(ast) => cycleChecker.pop()
-                              //Any function without a body must have a return type
-                              val body = toOption(ast.asInstanceOf[FnDecl].getBody).get
-                              body.getInfo.getExprType
-            case None =>  cycleChecker.pop
-                          none[Type]
-          }
-        }
-        else
-          none[Type]
-      }
-    }
-   }
-    
-  def primeFunctional[T <: Functional](fn: T, tryChecker: TryChecker): Unit = {
-    if(fn.hasThunk) return
-    fn match{
-      case m:Method => m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], tryChecker))
-      case d:DeclaredFunction => d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], tryChecker))
-      case f:FunctionalMethod => f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], tryChecker))
-      case _ => 
-    }
-  }
-  
-  def primeFunctionals[T<:Functional](fns: JavaSet[T], tryChecker: TryChecker):Unit = {
-    toSet(fns).foreach(f => primeFunctional(f,tryChecker))
-  }
   
   def walk(node: Node):Unit = node match {
     
@@ -106,10 +70,10 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
             case _ =>
           }
           //Create a tryChecker
-          val tryChecker = makeTryChecker()
+          val tryChecker = Thunker.makeTryChecker(typeChecker)
           //Prime all the dotted and functional method indices)
-          primeFunctionals(dottedMethods.secondSet,tryChecker)
-          primeFunctionals(functionalMethods.secondSet,tryChecker)
+          Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
+          Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
       }
     }
     
@@ -142,20 +106,61 @@ class Thunker(var typeChecker: STypeChecker, val errors: ErrorLog) {
             case _ =>
           }
           //Create a TryChecker
-          val tryChecker = makeTryChecker()
+          val tryChecker = Thunker.makeTryChecker(typeChecker)
           //Prime all the dotted and functional method indices
-          primeFunctionals(dottedMethods.secondSet,tryChecker)
-          primeFunctionals(functionalMethods.secondSet,tryChecker)
+          Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
+          Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
     }
   }
     
     case _ =>  
   }
   
-  def makeTryChecker(): TryChecker = new 
-    TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer)
-  
 }
+
+object Thunker{
+
+  type TypeThunk = Thunk[JOption[Type]]
+  
+  def makeTryChecker(typeChecker: STypeChecker): TryChecker = new
+    TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer)
+
+  def makeThunk(ast: FnDecl, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): TypeThunk = {
+    val name = ast.getHeader.getName
+    return new TypeThunk() {
+      def value() = {
+        if (cycleChecker.push(name)) {
+          tryChecker.tryCheck(ast) match {
+            case Some(ast) => cycleChecker.pop()
+                              //Any function without a body must have a return type
+                              val body = toOption(ast.asInstanceOf[FnDecl].getBody).get
+                              body.getInfo.getExprType
+            case None =>  cycleChecker.pop
+                          none[Type]
+          }
+        }
+        else
+          none[Type]
+      }
+    }
+   }
+
+  def primeFunctional[T <: Functional](fn: T, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): Unit = {
+    if(fn.hasThunk) return
+    fn match{
+      case m:Method => m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], tryChecker))
+      case d:DeclaredFunction => d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], tryChecker))
+      case f:FunctionalMethod => f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], tryChecker))
+      case _ =>
+    }
+  }
+
+  def primeFunctionals[T<:Functional](fns: JavaSet[T], tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker):Unit = {
+    toSet(fns).foreach(f => primeFunctional(f,tryChecker))
+  }
+
+}
+
 
 class CyclicReferenceChecker(val errors: ErrorLog) {
   

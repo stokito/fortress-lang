@@ -87,6 +87,7 @@ trait Dispatch { self: STypeChecker =>
     case e:LocalVarDecl => checkExprDecls(e, expected)
 
     case e:_RewriteFnApp => checkExprFunctionals(e, expected)
+    case e:FnExpr => checkExprFunctionals(e, expected)
     case e:FunctionalRef => checkExprFunctionals(e, expected)
     case e:MethodInvocation => checkExprFunctionals(e,expected)
     case e:OpExpr => checkExprFunctionals(e, expected)
