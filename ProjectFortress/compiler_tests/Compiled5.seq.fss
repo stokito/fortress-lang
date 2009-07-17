@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Compiled5.seq
+export Executable
+
+(* Sequential version of fib by dint of (and in aid of testing) local
+   variable binding. *)
+
+fib(n: ZZ32): ZZ32 =
+    if n <= 2 then
+        1
+    else
+        t1 = fib(n-1)
+        t2 = fib(n-2)
+        t1+t2
+    end
+
+run(): () = printlnZZ32(fib 20)
+
+end
