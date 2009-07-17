@@ -98,10 +98,16 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
  * mixed-in traits can access the fields.
  */
 abstract class STypeChecker(val current: CompilationUnitIndex,
-                            val traits: TraitTable,
+                            val traits: TraitTable, 
                             val env: STypeEnv,
                             val errors: ErrorLog)
                            (implicit val analyzer: TypeAnalyzer) {
+
+  /** Oracle for determining exclusion between types. */
+  protected val exclusions = new ExclusionOracle(analyzer, errors)
+
+  /** Oracle for determining coercions between types. */
+  protected val coercions = new CoercionOracle(traits, exclusions)
 
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
@@ -189,18 +195,35 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   /**
    * Determine if subtype <: supertype.
    */
-  protected def isSubtype(subtype: Type, supertype: Type): Boolean
-    = analyzer.subtype(subtype, supertype).isTrue
+  protected def isSubtype(subtype: Type, supertype: Type): Boolean =
+    analyzer.subtype(subtype, supertype).isTrue
 
   /**
    * Return the conditions for subtype <: supertype to hold.
    */
   protected def checkSubtype(subtype: Type, supertype: Type): ScalaConstraint = {
-    val constraint = analyzer.subtype(subtype, supertype) 
+    val constraint = analyzer.subtype(subtype, supertype)
     if (!constraint.isInstanceOf[ScalaConstraint]) {
       bug("Not a ScalaConstraint.")
     }
     constraint.asInstanceOf[ScalaConstraint]
+  }
+
+  /** Determine if t ~> u. */
+  protected def coercesTo(t: Type, u: Type): Boolean =
+    coercions.coercesTo(t, u)
+
+  /**
+   * Determine if t ~> u. If so, then return a CoercionInvocation node that
+   * represents a coercion from the expression to type u.
+   */
+  protected def coercesTo(t: Type,
+                          u: Type,
+                          arg: Expr): Option[CoercionInvocation] = {
+    if (coercions.coercesTo(t, u))
+      Some(makeCoercion(t, u, arg))
+    else
+      None
   }
 
   protected def equivalentTypes(t1: Type, t2: Type): Boolean =
@@ -377,11 +400,13 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                 message: String): Expr = {
     val checkedExpr = checkExpr(expr, Some(expected))
     getType(checkedExpr) match {
+      case Some(typ) if isSubtype(typ, expected) => checkedExpr
+      case Some(typ) if coercesTo(typ, expected) =>
+        makeCoercion(typ, expected, checkedExpr)
       case Some(typ) =>
-        isSubtype(typ, expected, expr, message.format(normalize(typ),
-                                                      normalize(expected)))
+        signal(expr, message.format(normalize(typ), normalize(expected)))
         checkedExpr
-      case _ => expr
+      case None => expr
     }
   }
 

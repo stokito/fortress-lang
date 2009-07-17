@@ -31,6 +31,8 @@ import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.ScalaConstraint
+import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil.TRUE_FORMULA
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.HasAt
@@ -250,6 +252,21 @@ object STypesUtil {
       globalEnv.api(name).typeConses.get(SId(info,None,text))
     case _ => compilation_unit.typeConses.get(typ)
   }
+
+  /** Return the [Scala-based] conditions for subtype <: supertype to hold. */
+  def checkSubtype(subtype: Type, supertype: Type)
+                  (implicit analyzer: TypeAnalyzer): ScalaConstraint = {
+    val constraint = analyzer.subtype(subtype, supertype)
+    if (!constraint.isInstanceOf[ScalaConstraint]) {
+      bug("Not a ScalaConstraint.")
+    }
+    constraint.asInstanceOf[ScalaConstraint]
+  }
+
+  /** Determine if subtype <: supertype. */
+  def isSubtype(subtype: Type, supertype: Type)
+               (implicit analyzer: TypeAnalyzer): Boolean =
+    checkSubtype(subtype, supertype).isTrue
   
   /**
    * Replaces occurrences of static parameters with corresponding static
@@ -362,4 +379,106 @@ object STypesUtil {
                                   params: List[StaticParam])
                                  (implicit analyzer: TypeAnalyzer): Boolean
     = staticArgsMatchStaticParams(args, params, false)
+
+
+  /**
+   * Calls the other overloading with the conjuncts of the given function type.
+   */
+  def staticallyMostApplicableArrow(fnType: Type,
+                                    argType: Type,
+                                    expectedType: Option[Type])
+                                   (implicit analyzer: TypeAnalyzer)
+                                    : Option[(ArrowType, List[StaticArg])] = {
+
+    val arrows = conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType])
+    staticallyMostApplicableArrow(arrows, argType, expectedType)
+  }
+
+  /**
+   * Return the statically most applicable arrow type along with the static args
+   * that instantiated that arrow type. This method assumes that all the arrow
+   * types in fnType have already been instantiated if any static args were
+   * supplied.
+   */
+  def staticallyMostApplicableArrow(allArrows: List[ArrowType],
+                                    argType: Type,
+                                    expectedType: Option[Type])
+                                   (implicit analyzer: TypeAnalyzer)
+                                    : Option[(ArrowType, List[StaticArg])] = {
+
+    // Filter applicable arrows and their instantiated args.
+    val arrowsAndInstantiations =
+      allArrows.flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType],
+                                              argType,
+                                              expectedType))
+
+    // Define an ordering relation on arrows with their instantiations.
+    def lessThan(overloading1: (ArrowType, List[StaticArg]),
+                 overloading2: (ArrowType, List[StaticArg])): Boolean = {
+
+      val SArrowType(_, domain1, range1, _, _) = overloading1._1
+      val SArrowType(_, domain2, range2, _, _) = overloading2._1
+
+      if (analyzer.equivalent(domain1, domain2).isTrue) false
+      else isSubtype(domain1, domain2)
+    }
+
+    // Sort the arrows and instantiations to find the statically most
+    // applicable. Return None if none were applicable.
+    arrowsAndInstantiations.sort(lessThan).firstOption
+  }
+
+  /**
+   * Checks whether an arrow type is applicable to the given args. If so, then
+   * the [possiblly instantiated] arrow type along with any inferred static
+   * args are returned.
+   */
+   def checkApplicable(fnType: ArrowType,
+                       argType: Type,
+                       expectedType: Option[Type])
+                      (implicit analyzer: TypeAnalyzer)
+                       : Option[(ArrowType, List[StaticArg])] = {
+
+    val sparams = getStaticParams(fnType)
+
+    // Substitute inference variables for static parameters in fnType.
+
+    // 1. build substitution S = [T_i -> $T_i]
+    // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
+    val sargs = sparams.map(makeInferenceArg)
+    val infArrow = staticInstantiation(sargs, sparams, fnType, false).
+      getOrElse(return None).asInstanceOf[ArrowType]
+
+    // 3. argType <:? dom(infArrow) yields a constraint, C1
+    val domainConstraint = checkSubtype(argType, infArrow.getDomain)
+
+    // 4. if expectedType given, C := C1 AND range(infArrow) <:? expectedType
+    val rangeConstraint = expectedType.map(t =>
+      checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
+    val constraint = domainConstraint.scalaAnd(rangeConstraint, isSubtype)
+
+    // Get an inference variable type out of a static arg.
+    def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
+      case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
+      case _ => None
+    }
+
+    // 5. build bounds map B = [$T_i -> S(UB(T_i))]
+    val infVars = sargs.flatMap(staticArgType)
+    val sparamBounds = sparams.flatMap(staticParamBoundType).
+      map(t => insertStaticParams(t, sparams))
+    val boundsMap = Map(infVars.zip(sparamBounds): _*)
+
+    // 6. solve C to yield a substitution S' = [$T_i -> U_i]
+    val subst = constraint.scalaSolve(boundsMap).getOrElse(return None)
+
+    // 7. instantiate infArrow with [U_i] to get resultArrow
+    val resultArrow = substituteTypesForInferenceVars(subst, infArrow).
+      asInstanceOf[ArrowType]
+
+    // 8. return (resultArrow,StaticArgs([U_i]))
+    val resultArgs = infVars.map(t =>
+      NF.makeTypeArg(resultArrow.getInfo.getSpan, subst.apply(t)))
+    Some((resultArrow,resultArgs))
+  }
 }

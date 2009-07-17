@@ -922,8 +922,9 @@ interface Node() extends HasAt;
                          * internal node created by static analysis
                          * after inferring the implicit coercion invocations
                          */
-                        CoercionInvocation(BaseType toType,
-                                           List<StaticArg> staticArgs, Expr arg);
+                        CoercionInvocation(Type toType,
+                                           List<StaticArg> staticArgs,
+                                           Expr arg);
                         /**
                          * a method invocation
                          * some are created by parsing, while others require later
