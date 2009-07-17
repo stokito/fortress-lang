@@ -295,7 +295,7 @@ trait Decls { self: STypeChecker with Common =>
       }
 
       // Extend typechecker with new bindings from the RHS types
-      val newChecker = this.extend(d)
+      val newChecker = this.extend(newLhs)
       // A LocalVarDecl is like a let. It has a body, and its type is the type of the body
       val newBody = body.map(newChecker.checkExpr)
       if (!haveTypes(newBody)) { return expr }

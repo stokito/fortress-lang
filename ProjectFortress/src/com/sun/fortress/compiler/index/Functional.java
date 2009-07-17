@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.exceptions.InterpreterBug;
 
 import edu.rice.cs.plt.lambda.LazyThunk;
 import edu.rice.cs.plt.lambda.Thunk;
@@ -80,7 +81,7 @@ public abstract class Functional {
      * checking, the result of this method will always be Some(type).
      */
     public Option<Type> getReturnType() {
-        if (_thunk.isNone()) return Option.none();
+        if (_thunk.isNone()) throw new InterpreterBug("ahhh");
         return _thunk.unwrap().value();
     }
 }

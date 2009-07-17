@@ -19,8 +19,8 @@ package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -77,7 +77,7 @@ trait Functionals { self: STypeChecker with Common =>
     val overloadingType = applicableArrows.toList match {
       case Nil => return None
       case t::Nil => t
-      case _ => NodeFactory.makeIntersectionType(applicableArrows)
+      case _ => NF.makeIntersectionType(applicableArrows)
     }
     Some(SOverloading(overloading.getInfo,
                       overloading.getUnambiguousName,
@@ -180,8 +180,7 @@ trait Functionals { self: STypeChecker with Common =>
       if (!haveTypes(checkedSubs)) return expr
       val subsType = checkedSubs.map(s => getType(s).get) match {
         case t :: Nil => t
-        case t =>
-          NodeFactory.makeTupleType(NodeUtil.getSpan(expr), toJavaList(t))
+        case t => NF.makeTupleType(NU.getSpan(expr), toJavaList(t))
       }
 
       // Get the methods and arrows from the op.
@@ -262,12 +261,12 @@ trait Functionals { self: STypeChecker with Common =>
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
       val intersectionType =
-        NodeFactory.makeIntersectionType(NodeUtil.getSpan(fn),
-                                         toJavaList(overloadingTypes))
+        NF.makeIntersectionType(NU.getSpan(fn),
+                                toJavaList(overloadingTypes))
       addType(addOverloadings(fn, checkedOverloadings), intersectionType)
     }
 
-    case S_RewriteFnApp(SExprInfo(span, paren, optType), fn, arg) => {
+    case S_RewriteFnApp(SExprInfo(span, paren, _), fn, arg) => {
       val checkedFn = checkExpr(fn)
       val checkedArg = checkExpr(arg)
 
@@ -302,8 +301,8 @@ trait Functionals { self: STypeChecker with Common =>
       val opType = getType(checkedOp).getOrElse(return expr)
       if (!haveTypes(checkedArgs)) return expr
       val argType =
-        NodeFactory.makeTupleType(info.getSpan,
-                                  toJavaList(checkedArgs.map(t => getType(t).get)))
+        NF.makeTupleType(info.getSpan,
+                         toJavaList(checkedArgs.map(t => getType(t).get)))
       staticallyMostApplicableArrow(opType, argType, None) match {
         case Some((smostApp, sargs)) =>
           val newOp = rewriteApplicand(checkedOp,smostApp,sargs).asInstanceOf[OpRef]
@@ -314,6 +313,18 @@ trait Functionals { self: STypeChecker with Common =>
           expr
       }
 
+    }
+
+    case SFnExpr(SExprInfo(span, paren, _), header, body) => {
+      val params = toList(header.getParams)
+      if (params.exists(p => p.getIdType.isEmpty)) {
+        NI.nyi("Cannot check FnExpr without explicit parameter types.")
+      }
+      val checkedBody = this.extend(params).checkExpr(body)
+      val domain = makeArgumentType(params.map(_.getIdType.unwrap))
+      val range = getType(checkedBody).getOrElse(return expr)
+      val arrow = NF.makeArrowType(span, domain, range)
+      SFnExpr(SExprInfo(span, paren, Some(arrow)), header, checkedBody)
     }
     
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))

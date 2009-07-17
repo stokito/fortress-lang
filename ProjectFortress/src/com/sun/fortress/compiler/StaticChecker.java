@@ -53,6 +53,8 @@ import com.sun.fortress.scala_src.typechecker.ExclusionOracle;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.Thunker;
+import com.sun.fortress.scala_src.typechecker.Thunker$;
+import com.sun.fortress.scala_src.typechecker.CyclicReferenceChecker;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
@@ -257,14 +259,15 @@ public class StaticChecker {
                     ErrorLog log = new ErrorLog();
                    
                     //Create thunks for when the user elides function return types
+                    CyclicReferenceChecker cycleChecker = cycleChecker = new CyclicReferenceChecker(log);
                     STypeChecker thunkChecker =
                       STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
-                    Thunker thunker = new Thunker(thunkChecker,log);
+                    Thunker thunker = new Thunker(thunkChecker,cycleChecker);
                     thunker.walk(component_ast);
                     //make sure to do toplevel functions after walking so functional methods and operators will already have thunks
                     TryChecker tryChecker = new TryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer);
-                    thunker.primeFunctionals(componentIndex.parametricOperators(), tryChecker);
-                    thunker.primeFunctionals(componentIndex.functions().secondSet(), tryChecker);
+                    Thunker$.MODULE$.primeFunctionals(componentIndex.parametricOperators(), tryChecker, cycleChecker);
+                    Thunker$.MODULE$.primeFunctionals(componentIndex.functions().secondSet(), tryChecker, cycleChecker);
                     //Typecheck
                     STypeChecker typeChecker =
                         STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer);
