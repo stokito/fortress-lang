@@ -29,10 +29,6 @@ import com.sun.fortress.scala_src.useful.Lists._
  */
 class CoercionTest(analyzer:TypeAnalyzer, exclusionOracle:ExclusionOracle) {
   def run() = {
-    val factory = new CoercionOracleFactory(analyzer.traitTable,
-                                            analyzer,
-                                            exclusionOracle)
-    val oracle = factory.makeOracle(analyzer.kindEnv)
     toJavaList(List[StaticError]())
   }
 }

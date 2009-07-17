@@ -21,7 +21,9 @@ import com.sun.fortress.exceptions.CompilerError
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.compiler.index.{Coercion, CompilationUnitIndex, TraitIndex}
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
+import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Iterators._
@@ -31,43 +33,9 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
-import compiler.index.{Coercion, CompilationUnitIndex, TraitIndex}
-import scala.collection.immutable.HashMap
-
-class CoercionOracleFactory(traits: TraitTable,
-                            analyzer: TypeAnalyzer,
-                            exclusionOracle: ExclusionOracle) {
-  val coercionTable = makeCoercionTable(analyzer)
-
-  private def makeCoercionTable(analyzer: TypeAnalyzer) = {
-    /*
-     * Build a hashtable mapping types coerced *from* to the types they coerce *to*.
-     */
-    var result: Map[Id, Set[Coercion]] = new HashMap
-    for (to <- traits) {
-      to match {
-        case ti: TraitIndex => {
-          val toName = ti.ast.getHeader.getName.asInstanceOf[Id]
-          result = result + (toName -> toSet(ti.coercions))
-        }
-        // TODO Handle coercions in other indices (what else might we get?)
-        case _ =>
-      }
-    }
-    result
-  }
-
-  def makeOracle(env: KindEnv): CoercionOracle = {
-    new CoercionOracle(env, traits, coercionTable, exclusionOracle)
-  }
-}
-
-class CoercionOracle(env: KindEnv,
-                     traits: TraitTable,
-                     coercions: Map[Id, Set[Coercion]],
-                     exclusions: ExclusionOracle) {
-
-  private implicit val analyzer = new TypeAnalyzer(traits, env)
+class CoercionOracle(traits: TraitTable,
+                     exclusions: ExclusionOracle)
+                    (implicit analyzer: TypeAnalyzer) {
 
   /**
    * Get the most specific type out of a set of types under the `moreSpecific`
@@ -106,6 +74,12 @@ class CoercionOracle(env: KindEnv,
     // Get name and possible static args out of the type.
     val STraitType(_, name, sargs, _) = u
 
+    // Get all the coercions from the type U.
+    val coercions = toOption(traits.typeCons(name)) match {
+      case Some(ti:TraitIndex) => toSet(ti.coercions)
+      case None => Set()
+    }
+
     // Get the domain from an instantiated coercion arrow.
     def getDomain(c: Coercion): Option[Type] = {
       makeArrowFromFunctional(c).flatMap(arrow =>
@@ -114,7 +88,7 @@ class CoercionOracle(env: KindEnv,
     }
 
     // Get all the domains that were found.
-    coercions(name).flatMap(getDomain)
+    coercions.flatMap(getDomain)
   }
 
   /** Determines if T is substitutable for U. */
@@ -144,7 +118,7 @@ class CoercionOracle(env: KindEnv,
         // 5. check remainder of x is substitutable for y's varargs
         (!yvar.isDefined || xelts.drop(yelts.length).forall(substitutableFor(_, yvar.get)))
       )
-      rules.forall(x => x)
+      rules.forall(identity)
     }
 
     case (SArrowType(_, a, b, teff, _), SArrowType(_, d, e, ueff, _)) => {

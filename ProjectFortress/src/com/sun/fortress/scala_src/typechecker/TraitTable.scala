@@ -19,7 +19,7 @@ package com.sun.fortress.scala_src.typechecker
 
 import _root_.java.util.Map
 //import _root_.java.util._
-import edu.rice.cs.plt.tuple.Option
+import edu.rice.cs.plt.tuple.{Option => JOption}
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
@@ -34,16 +34,16 @@ import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 
 class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) extends Iterable[TypeConsIndex] {
-  def typeCons(name: Id): Option[TypeConsIndex] = {
+  def typeCons(name: Id): JOption[TypeConsIndex] = {
     val simpleName: Id = NodeFactory.makeId(NodeFactory.makeSpan(name), name.getText)
 
     if (name.getApiName.isNone || current.ast.getName.equals(name.getApiName.unwrap)) {
-      Option.some(current.typeConses.get(simpleName))
+      JOption.some(current.typeConses.get(simpleName))
     }
     else {
       val api = globalEnv.api(name.getApiName.unwrap)
-      if (api == null) Option.none[TypeConsIndex]
-      else Option.some(api.typeConses().get(simpleName))
+      if (api == null) JOption.none[TypeConsIndex]
+      else JOption.some(api.typeConses().get(simpleName))
     }
   }
 
@@ -59,7 +59,7 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
     }
     for (api <- globalEnv.apis.values) {
       for (t <- api.typeConses.values) {
-        result +=t
+        result += t
       }
     }
     result.elements

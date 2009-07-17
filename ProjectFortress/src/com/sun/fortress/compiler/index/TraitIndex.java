@@ -33,7 +33,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
  * Wraps a trait or object declaration.  Comprises {@link ProperTraitIndex} and
  * {@link ObjectTraitIndex}.
  */
-public abstract class TraitIndex extends TypeConsIndex {
+public abstract class    TraitIndex extends TypeConsIndex {
 
     private final TraitObjectDecl _ast;
     private final Map<Id, Method> _getters;
