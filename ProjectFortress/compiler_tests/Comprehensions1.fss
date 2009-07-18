@@ -35,9 +35,11 @@ object ReductionString
     join(a: String, b: String): String = a || b
 end
 
+intToStr(i:ZZ32): String = i.asString()
+
 __bigOperator(o:ReductionString,
               desugaredClauses:(ReductionString, ZZ32->String)->String): String =
-    desugaredClauses(o,strToInt)
+    desugaredClauses(o,intToStr)
 
 __generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
     g.generate(r,f)
