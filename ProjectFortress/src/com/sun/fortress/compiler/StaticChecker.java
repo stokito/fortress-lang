@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +49,7 @@ import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.linker.ApiLinker;
 import com.sun.fortress.scala_src.linker.CompoundApiChecker;
+import com.sun.fortress.scala_src.typechecker.ApiTypeExtractor;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExclusionOracle;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
@@ -218,11 +220,14 @@ public class StaticChecker {
                 // Replace implicit types with explicit ones.
                 if (!Shell.getScala()) {
                     ast = (Component)ast.accept(new InferenceVarInserter());
-                } /*else {
-                    errors.addAll(new ReturnTypeChecker().getErrors(ast));
+                } else {
+                    ApiTypeExtractor typeExtractor =
+                        new ApiTypeExtractor((ComponentIndex)index, env);
+                    ast = (Component)typeExtractor.check();
+                    errors.addAll(typeExtractor.getErrors());
                     if(!errors.isEmpty())
                         return new TypeCheckerResult(ast,errors);
-                }*/
+                }
             }
 
             ast = (CompilationUnit)ast.accept(new TypeNormalizer());
@@ -257,7 +262,7 @@ public class StaticChecker {
                 } else {
                     STypeEnv typeEnv = STypeEnv$.MODULE$.make(componentIndex);
                     ErrorLog log = new ErrorLog();
-                   
+
                     //Create thunks for when the user elides function return types
                     CyclicReferenceChecker cycleChecker = cycleChecker = new CyclicReferenceChecker(log);
                     STypeChecker thunkChecker =
