@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXLooseJuxt
   export Executable
 
   object Foo end
@@ -29,4 +28,3 @@ component DXXLooseJuxt
   end
 
   run():()= ()
-end
