@@ -305,17 +305,26 @@ public class NodeUtil {
             return bug(getSpan(p) + "\n    Type is not inferred.");
     }
 
-    public static Type getParamType(FnDecl f) {
-        List<Param> params = getParams(f);
-        if ( params.isEmpty() ) return NodeFactory.makeVoidType(getSpan(f));
+    public static Type getParamType(List<Param> params, Span span) {
+        if ( params.isEmpty() ) return NodeFactory.makeVoidType(span);
         else if ( params.size() == 1 ) return getParamType(params.get(0));
         else { // if ( params.size() > 1 )
             List<Type> types = new ArrayList<Type>( params.size() );
             for ( Param p : params ) {
                 types.add( getParamType(p) );
             }
-            return NodeFactory.makeTupleType(getSpan(f), types);
+            return NodeFactory.makeTupleType(span, types);
         }
+    }
+
+    public static Option<Type> getParamType(ObjectDecl o) {
+        if ( o.getParams().isSome() ) {
+            return Option.<Type>some(getParamType(o.getParams().unwrap(), getSpan(o)));
+        } else return Option.<Type>none();
+    }
+
+    public static Type getParamType(FnDecl f) {
+        return getParamType(getParams(f), getSpan(f));
     }
 
     public static Option<Type> getReturnType(FnDecl f) {

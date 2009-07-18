@@ -413,7 +413,7 @@ object ExportChecker {
     errors.add(TypeError.make(msg, loc))
 
   private def error(errors: JavaList[StaticError], loc: String, msg: String) =
-    errors.add(TypeError.make(msg, loc.toString()))
+    errors.add(TypeError.make(msg, loc.toString))
 
   /* Returns true if two types are same.
    * If any of the following types are compared, returns false:
@@ -688,6 +688,7 @@ object ExportChecker {
         equalListLValues(lhsL, lhsR)
       case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
         equalFnHeaders(headerL, headerR, true)
+      case _ => false
     }
 
   /* Returns true if two lists of LValues are same. */

@@ -663,8 +663,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithGetterSetter(inheritedGettersAndSetters).
             extendWithGetterSetter(gettersAndSetters);
 
+        /*
         if ( ! inComponent )
             v.checkForShadowingVars(vars);
+        */
 
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
 				v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),

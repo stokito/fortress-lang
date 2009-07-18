@@ -148,6 +148,7 @@ public class Parser {
             return new Result(se);
         } finally {
             try {
+                Files.rm( f.getCanonicalPath() + ".preparserError.log" );
                 Files.rm( f.getCanonicalPath() + ".macroError.log" );
             } catch (IOException ioe) {}
         }
