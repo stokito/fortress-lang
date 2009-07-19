@@ -241,12 +241,13 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     public Node forAccumulator(Accumulator that) {
         return visitAccumulator(NodeUtil.getSpan(that), that.getGens(),
                                 that.getAccOp(), that.getBody(),
-                                that.getStaticArgs());
+                                that.getStaticArgs(),
+                                that.getInfo().isParenthesized());
     }
 
     private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                                   Op op, Expr body,
-                                  List<StaticArg> staticArgs) {
+                                  List<StaticArg> staticArgs, boolean isParen) {
         body = visitGenerators(span, gens, body);
         /***
          * If the accumulation is a nested reduction like BIG OP [ys <- gg] BIG OT <| f y | y <- ys |> ,
@@ -281,9 +282,8 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                             BIGOP2_NAME,
                                             ExprFactory.makeTupleExpr(span,opexpO,opexpI,gg, innerBody));
         }
+        if ( isParen ) res = ExprFactory.makeInParentheses(res);
         return (Expr)recur(res);
     }
-
-
 
 }
