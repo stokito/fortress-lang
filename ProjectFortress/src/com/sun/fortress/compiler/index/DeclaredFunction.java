@@ -48,6 +48,17 @@ public class DeclaredFunction extends Function {
           putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
+    /**
+     * Copy another DeclaredFunction, performing a substitution with the visitor.
+     */
+    public DeclaredFunction(DeclaredFunction that, NodeUpdateVisitor visitor) {
+        _ast = (FnDecl)that._ast.accept(visitor);
+
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
+    }
+
     public FnDecl ast() { return _ast; }
 
     @Override
@@ -96,14 +107,8 @@ public class DeclaredFunction extends Function {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return NI.nyi();
-	}
-
-	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new DeclaredFunction((FnDecl)this._ast.accept(visitor));
+		return new DeclaredFunction(this, visitor);
 	}
 
  }

@@ -72,6 +72,21 @@ public class Constructor extends Function {
         });
     }
 
+    /**
+     * Copy another Constructor, performing a substitution with the visitor.
+     */
+    public Constructor(Constructor that, NodeUpdateVisitor visitor) {
+        _declaringTrait = that._declaringTrait;
+        _staticParams = visitor.recurOnListOfStaticParam(that._staticParams);
+        _params = visitor.recurOnOptionOfListOfParam(that._params);
+        _throwsClause = visitor.recurOnOptionOfListOfBaseType(that._throwsClause);
+        _where = visitor.recurOnOptionOfWhereClause(that._where);
+
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
+    }
+
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_declaringTrait); }
 
@@ -121,57 +136,8 @@ public class Constructor extends Function {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return NI.nyi();
-	}
-
-	@Override
 	public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
-
-		Option<List<Param>> new_params;
-		if( _params.isSome() ) {
-			List<Param> new_params_ = new ArrayList<Param>(_params.unwrap().size());
-			for( Param p : _params.unwrap() ) {
-				new_params_.add((Param)p.accept(v));
-			}
-			new_params = Option.some(new_params_);
-		}
-		else {
-			new_params = Option.none();
-		}
-
-		Option<List<BaseType>> new_throws;
-		if( _throwsClause.isSome() ) {
-			List<BaseType> new_throws_ = new ArrayList<BaseType>(_throwsClause.unwrap().size());
-			for( BaseType p : _throwsClause.unwrap() ) {
-				new_throws_.add((BaseType)p.accept(v));
-			}
-			new_throws = Option.some(new_throws_);
-		}
-		else {
-			new_throws = Option.none();
-		}
-
-		List<StaticParam> new_static_params =
-			CollectUtil.makeList(IterUtil.map(_staticParams, new Lambda<StaticParam,StaticParam>(){
-				public StaticParam value(StaticParam arg0) {
-					return (StaticParam)arg0.accept(v);
-				}}));
-
-                Option<WhereClause> new_where;
-                if ( _where.isSome() ) {
-                    new_where = Option.some((WhereClause)_where.unwrap().accept(v));
-                } else {
-                    new_where = Option.<WhereClause>none();
-                }
-
-		return
-		  new Constructor(_declaringTrait,
-                                  new_static_params,
-                                  new_params,
-                                  new_throws,
-                                  new_where);
+        return new Constructor(this, v);
 	}
 
 

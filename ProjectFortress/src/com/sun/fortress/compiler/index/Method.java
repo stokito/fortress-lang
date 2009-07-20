@@ -17,11 +17,23 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+
+import java.util.List;
+
+import edu.rice.cs.plt.tuple.Option;
 
 /** Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod. */
 public abstract class Method extends Functional {
     public abstract Node ast();
     public abstract Id getDeclaringTrait();
+    
+    /**
+     * Returns a version of this Functional, with params replaced with args.
+     * The contract of this method requires
+     * that all implementing subtypes must return their own type, rather than a supertype.
+     */
+    public abstract Method instantiate(List<StaticParam> params, List<StaticArg> args);
 }

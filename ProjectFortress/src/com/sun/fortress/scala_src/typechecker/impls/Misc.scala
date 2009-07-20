@@ -153,13 +153,21 @@ trait Misc { self: STypeChecker with Common =>
   def checkMisc(node: Node): Node = node match {
 
     case id@SId(info,api,name) => {
+      // Don't try to get the type if there isn't one.
+      if (!nameHasBinding(id)) {
+        signal(id, errorMsg("Variable '", id, "' not found."))
+        return id
+      }
       getTypeFromName(id) match {
         case Some(ty) => ty match {
           case SLabelType(_) => // then, newName must be an Id
             signal(id, errorMsg("Cannot use label name ", id, " as an identifier."))
           case _ =>
         }
-        case None => signal(id, errorMsg("Variable '", id, "' not found."))
+        case None =>
+          // This means that `id` is a function whose return type could not be
+          // inferred. An error should have been signaled by the
+          // CyclicReferenceChecker.
       }
       id
     }

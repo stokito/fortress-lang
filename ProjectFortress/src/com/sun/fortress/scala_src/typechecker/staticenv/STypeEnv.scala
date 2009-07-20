@@ -250,7 +250,10 @@ object STypeEnv extends StaticEnvCompanion[Type] {
           def apply: Option[Type] = {
             // TODO: Currently ignoring any errors from makeArrowFromFunctional
             val oTypes = fns.flatMap[Type](STypesUtil.makeArrowFromFunctional)
-            Some(NF.makeIntersectionType(oTypes))
+            if (oTypes.isEmpty)
+              None
+            else
+              Some(NF.makeIntersectionType(oTypes))
           }
         }
         makeBinding(x, lazyTypeEvaluation, Modifiers.None, false)
