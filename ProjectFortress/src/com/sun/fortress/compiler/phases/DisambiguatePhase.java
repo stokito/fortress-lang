@@ -23,6 +23,9 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -41,25 +44,43 @@ public class DisambiguatePhase extends Phase {
 
         // Build a new GlobalEnvironment consisting of all APIs in a global
         // repository combined with all APIs that have been processed in the
-        // previous step. For now, we are implementing pure static linking, so
-        // there is no global repository.
-        GlobalEnvironment rawApiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                            previous.apis()));
+        // previous step. 
+        //        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil
+        //                                                            .union(repository.apis(),
+        //                                                                    CollectUtil.union(env.apis(),
+        //                                                                                      previous.apis())));
 
-        // System.out.println("rawApiEnv:");
-        //  rawApiEnv.print();
-        //  System.out.println("env rawApiEnv");
+        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(),
+                                                                                      previous.apis()));
+
+        //        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(previous.apis());
+
+//          System.out.println("rawApiEnv:");
+//          rawApiEnv.print();
+//          System.out.println("end rawApiEnv");
 
 
         // Rewrite all API ASTs so they include only fully qualified names,
         // relying on the rawApiEnv constructed in the previous step. Note that,
         // after this step, the rawApiEnv is stale and needs to be rebuilt with
         // the new API ASTs.
+        // 
+        // HACK: Disambiguate *all* APIs. It should be possible to disambiguate
+        // only those APIs relevant to the current compilation, and pass along the 
+        // disambiguated ApiIndices to subsequent phases. However, it appears
+        // that a single compilation is making multiple calls to all phases, passing
+        // only some CompilationUnits on each call, and not passing along results
+        // of disambiguation from call to call. This needs to be fixed. 
+        // EricAllen 7/8/2009
         Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(previous.apiIterator(),
-                                           rawApiEnv,
-                                           repository.apis());
+            Disambiguator.disambiguateApis(rawApiEnv.apiAsts(),
+                                           rawApiEnv);      
+ 
+//         for (Api api : apiDR.apis()) { 
+//             Nodes.printNode(api, "apiDR.");
+//         }
+
+
         if (!apiDR.isSuccessful()) {
             throw new MultipleStaticError(apiDR.errors());
         }
@@ -67,18 +88,22 @@ public class DisambiguatePhase extends Phase {
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR =
             IndexBuilder.buildApis(apiDR.apis(), lastModified);
+
+//         for (ApiIndex api : apiIR.apis().values()) { 
+//             Nodes.printNode(api.ast(), "apiIR.");
+//         }
+
         if (!apiIR.isSuccessful()) {
             throw new MultipleStaticError(apiIR.errors());
         }
 
         // Rebuild GlobalEnvironment.
         GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
-                                                            apiIR.apis()));
-
-        // System.out.println("apiEnv:");
-        //  apiEnv.print();
-        //  System.out.println("env apiEnv");
+            new GlobalEnvironment.FromMap(CollectUtil.union(rawApiEnv.apis(), apiIR.apis()));
+        
+//         System.err.println("DisambiguatePhase apiEnv");
+//         apiEnv.print();
+//         System.err.println("end DisambiguatePhase apiEnv");
 
         Disambiguator.ComponentResult componentDR =
             Disambiguator.disambiguateComponents(previous.componentIterator(),
@@ -95,7 +120,7 @@ public class DisambiguatePhase extends Phase {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
-        return new AnalyzeResult(apiIR.apis(),
+        return new AnalyzeResult(apiEnv.apis(),
                                  componentsDone.components(),
                                  IterUtil.<StaticError> empty(),
                                  previous.typeCheckerOutput());

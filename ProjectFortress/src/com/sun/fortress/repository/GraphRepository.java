@@ -776,7 +776,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* parse a single component. */
     private AnalyzeResult parseComponent( Component component, AnalyzeResult apiResult) throws StaticError {
         // GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis(Collections.<Api>emptyList()));
-        // GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(apiResult.apis());
+        //GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(apiResult.apis());
         GlobalEnvironment knownApis = new GlobalEnvironment.FromMap(parsedApis(new ArrayList<Api>()));
         List<Component> components = new ArrayList<Component>();
         components.add(component);
