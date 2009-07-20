@@ -41,10 +41,12 @@ public class PreDisambiguationDesugarPhase extends Phase {
             Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Pre-Disambiguation Desugar");
             AnalyzeResult previous = parentPhase.getResult();
 
-            GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                                                                     .union(repository.apis(),
-                                                                            CollectUtil.union(env.apis(),
-                                                                                              previous.apis())));
+//            GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
+//                                                                     .union(repository.apis(),
+//                                                                            CollectUtil.union(env.apis(),
+//                                                                                              previous.apis())));
+
+            GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
 
 //              System.err.println("PreDisambiguateDesugarPhase apiEnv:");
 //              apiEnv.print();

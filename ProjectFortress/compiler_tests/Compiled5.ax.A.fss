@@ -17,7 +17,10 @@
 
 component Compiled5.ax.A
 export Compiled5.ax.A
+export Executable
 
 trait T end
+
+run() = printlnZZ32 1
 
 end

@@ -46,7 +46,9 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.scala_src.linker.ExportExpander;
+import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.HasAt;
 
@@ -119,20 +121,22 @@ public class Disambiguator {
      * the apis should appear in the given environment.
      * @param apis_to_disambiguate Apis currently being disambiguated.
      * @param globalEnv The current global environment.
-     * @param repository_apis Apis that already exist in the repository.
      */
     public static ApiResult disambiguateApis(Iterable<Api> apisToDisambiguate,
-                                             GlobalEnvironment globalEnv,
-                                             Map<APIName, ApiIndex> repositoryApis)
+                                             GlobalEnvironment globalEnv)
     {
-
-    	repositoryApis = Collections.unmodifiableMap(repositoryApis);
-
         List<StaticError> errors = new ArrayList<StaticError>();
+
+
 
         // First, loop through apis, disambiguating types.
         List<Api> newApis = new ArrayList<Api>();
         for (Api api : apisToDisambiguate) {
+
+//              System.out.println("disambiguateApi " + api);
+//              globalEnv.print();
+//              System.out.println("end disambiguateApi " + api);
+
             ApiIndex index = globalEnv.api(api.getName());
 
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
@@ -150,19 +154,26 @@ public class Disambiguator {
             if (newErrs.isEmpty()) {
                 newApis.add(tdResult);
             } else {
+//                 System.err.println("Errors when disambiguating API " + tdResult);
+//                 for (StaticError err: newErrs) { System.err.println(err.getMessage()); }
              	errors.addAll(newErrs);
             }
         }
 
         // Go no further if we couldn't disambiguate the types.
         if( errors.size() > 0 ) {
-        	return new ApiResult(newApis, errors);
+            return new ApiResult(newApis, errors);
         }
 
-        // then, rebuild the indices
+        // Rebuild the indices
         IndexBuilder.ApiResult rebuiltIndx = IndexBuilder.buildApis(newApis, System.currentTimeMillis());
-        GlobalEnvironment newGlobalEnv = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
+
+        GlobalEnvironment newGlobalEnv = new GlobalEnvironment.FromMap(CollectUtil.union(globalEnv.apis(),
                                                                                          rebuiltIndx.apis()));
+
+//         System.err.println("newGlobalEnv ");
+//         newGlobalEnv.print();
+//         System.err.println("end newGlobalEnv ");
 
         // Finally, disambiguate the expressions using the rebuilt indices.
         List<Api> results = new ArrayList<Api>();
@@ -174,6 +185,7 @@ public class Disambiguator {
             List<StaticError> newErrs = new ArrayList<StaticError>();
             ExprDisambiguator ed = new ExprDisambiguator(env, newErrs);
             Api edResult = (Api) api.accept(ed);
+
             if (newErrs.isEmpty()) {
             	results.add(edResult);
             } else {
@@ -182,8 +194,7 @@ public class Disambiguator {
         }
 
         IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
-        GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
-                                                                                          rebuiltIndx2.apis()));
+        GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(rebuiltIndx2.apis());
 
         initializeGrammarIndexExtensions(rebuiltIndx2.apis().values(), globalEnv.apis().values() );
         results = disambiguateGrammarMembers(rebuiltIndx2.apis().values(), errors, newGlobalEnv2);
@@ -250,12 +261,15 @@ public class Disambiguator {
     public static ComponentResult disambiguateComponents(Iterable<Component> components,
                                                          GlobalEnvironment globalEnv,
                                                          Map<APIName, ComponentIndex> indices) {
-
+        
+//         System.err.println("disambiguateComponents globalEnv");
+//         globalEnv.print();
+//         System.err.println("end disambiguateComponents globalEnv");
 
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
 
-        // Expand all exports of compound APIs, and
+        // Expand exports of compound APIs, and
         // add to exports all compound APIs whose constituents are exported.
         List<Component> expandedComps = new ArrayList<Component>();
         for (Component comp: components) { 
