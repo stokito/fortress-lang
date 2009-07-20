@@ -21,16 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Binding;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
@@ -48,6 +40,18 @@ public class FieldGetterMethod extends Method {
         _declaringTrait = declaringTrait;
         if (_ast.getIdType().isSome())
             putThunk(SimpleBox.make(_ast.getIdType()));
+    }
+
+    /**
+     * Copy another FieldGetterMethod, performing a substitution with the visitor.
+     */
+    public FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
+        _ast = (Binding)that._ast.accept(visitor);
+        _declaringTrait = that._declaringTrait;
+        
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
     }
 
     public Binding ast() { return _ast; }
@@ -76,8 +80,9 @@ public class FieldGetterMethod extends Method {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		return this;
+	public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer replacer = new StaticTypeReplacer(params,args);
+		return new FieldGetterMethod(this, replacer);
 	}
 
 	@Override
@@ -87,7 +92,7 @@ public class FieldGetterMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FieldGetterMethod((Binding)this._ast.accept(visitor), this._declaringTrait);
+		return new FieldGetterMethod(this, visitor);
 	}
 
 

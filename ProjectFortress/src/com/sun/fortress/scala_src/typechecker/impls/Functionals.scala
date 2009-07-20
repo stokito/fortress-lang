@@ -245,18 +245,25 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Check all the overloadings and filter out any that have the wrong
       // number or kind of static parameters.
+      var hadNoType = false
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
         case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
         case SOverloading(info, name, Some(ty)) =>
           staticInstantiation(sargs, getStaticParams(ty), ty, true).
             map(t => SOverloading(info, name, Some(t)))
-        case _ => None
+        case _ => hadNoType = true; None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
 
-      if (checkedOverloadings.isEmpty)
-        signal(expr, errorMsg("Wrong number or kind of static arguments for function: ",
-                              name))
+      // If there are no overloadings, we cannot continue type checking. If any
+      // of the overloadings failed to get a type
+      if (checkedOverloadings.isEmpty) {
+        if (!hadNoType) {
+          signal(expr, errorMsg("Wrong number or kind of static arguments for function: ",
+                                name))
+        }
+        return expr
+      }
 
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)

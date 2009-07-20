@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
@@ -49,6 +50,18 @@ public class FieldSetterMethod extends Method {
         _ast = ast;
         _declaringTrait = declaringTrait;
         putThunk(SimpleBox.make(Option.<Type>some(Types.VOID)));
+    }
+
+    /**
+     * Copy another FieldSetterMethod, performing a substitution with the visitor.
+     */
+    public FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
+        _ast = (Binding)that._ast.accept(visitor);
+        _declaringTrait = that._declaringTrait;
+        
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
     }
 
     public Binding ast() { return _ast; }
@@ -82,8 +95,9 @@ public class FieldSetterMethod extends Method {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		return this;
+	public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer replacer = new StaticTypeReplacer(params,args);
+		return new FieldSetterMethod(this, replacer);
 	}
 
 	@Override
@@ -93,7 +107,7 @@ public class FieldSetterMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FieldSetterMethod((Binding)this._ast.accept(visitor), this._declaringTrait);
+		return new FieldSetterMethod(this, visitor);
 	}
 
 }

@@ -69,6 +69,19 @@ public class Coercion extends Function {
         });
     }
 
+    /**
+     * Copy another Coercion, performing a substitution with the visitor.
+     */
+    public Coercion(Coercion that, NodeUpdateVisitor visitor) {
+        _ast = (FnDecl)that._ast.accept(visitor);
+        _declaringTrait = that._declaringTrait;
+        _traitParams = visitor.recurOnListOfStaticParam(that._traitParams);
+
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
+    }
+
     public FnDecl ast() { return _ast; }
 
     @Override
@@ -120,13 +133,7 @@ public class Coercion extends Function {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		// TODO Auto-generated method stub
-		return NI.nyi();
-	}
-
-	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new Coercion((FnDecl)this.ast().accept(visitor), this._declaringTrait, this._traitParams);
+		return new Coercion(this, visitor);
 	}
 }

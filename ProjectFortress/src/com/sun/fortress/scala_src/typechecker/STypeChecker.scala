@@ -284,6 +284,18 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     }
 
   /**
+   * Is there a binding for the given name?
+   */
+  protected def nameHasBinding(name: Name): Boolean =
+    handleAlias(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
+        getEnvFromApi(api).isDefinedAt(id)
+      case id@SIdOrOpOrAnonymousName(_, None) =>
+        env.isDefinedAt(id) || analyzer.kindEnv.isDefinedAt(id)
+      case _ => false
+    }
+
+  /**
    * Lookup the modifiers of the given name in the proper type environment.
    */
   protected def getModsFromName(name: Name): Option[Modifiers] =

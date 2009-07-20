@@ -169,9 +169,9 @@ class CyclicReferenceChecker(val errors: ErrorLog) {
   def push(name: Name): Boolean = {
     // check if in the stack; if so, error. else push
     if (stack.contains(name)) {
-      val cycle = stack.takeWhile(_ != name) ++ List(name)
+      val cycle = stack.dropWhile(_ != name) ++ List(name)
       val cycleStr = cycle.mkString(", ")
-      errors.signal("Cannot infer return type for functional %s because it has reference cycle %s".format(name, cycleStr), name)
+      errors.signal("Cannot infer return type for functional %s because it has reference cycle: %s".format(name, cycleStr), name)
       false
     } else {
       stack.push(name)

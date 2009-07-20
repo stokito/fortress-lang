@@ -37,6 +37,8 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredMethod extends Method {
@@ -49,6 +51,18 @@ public class DeclaredMethod extends Method {
         _declaringTrait = declaringTrait;
         if (NodeUtil.getReturnType(_ast).isSome())
             putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+    }
+
+    /**
+     * Copy another DeclaredMethod, performing a substitution with the visitor.
+     */
+    public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
+        _ast = (FnDecl)that._ast.accept(visitor);
+        _declaringTrait = that._declaringTrait;
+        
+        _thunk = that._thunk;
+        _thunkVisitors = that._thunkVisitors;
+        pushVisitor(visitor);
     }
 
     public FnDecl ast() { return _ast; }
@@ -89,10 +103,9 @@ public class DeclaredMethod extends Method {
 	}
 
 	@Override
-	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		FnDecl replaced_decl =
-			(FnDecl)_ast.accept(new StaticTypeReplacer(params,args));
-		return new DeclaredMethod(replaced_decl,_declaringTrait);
+	public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer replacer = new StaticTypeReplacer(params,args);
+		return new DeclaredMethod(this, replacer);
 	}
 
 	@Override
@@ -102,6 +115,6 @@ public class DeclaredMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new DeclaredMethod((FnDecl)_ast.accept(visitor), this._declaringTrait);
+		return new DeclaredMethod(this, visitor);
 	}
 }
