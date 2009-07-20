@@ -21,7 +21,6 @@
 if [ -z "$JAVACMD" ] ; then
   export JAVACMD="`which java`"
   echo Using JAVACMD="\"$JAVACMD\""
-  export MACHINE_TYPE=macbookpro
 fi
 
 . .antrc_Unix
