@@ -48,6 +48,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.useful.StreamForwarder;
 import com.sun.fortress.useful.StringMap;
+import com.sun.fortress.useful.SysDescription;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
@@ -505,6 +506,7 @@ public class FileTests {
 
             long stop_time = System.currentTimeMillis();
 
+
             System.out.print("(" + (stop_time - start_time) + "ms) ");
 
             String s_out = cached_out.toString();
@@ -537,22 +539,15 @@ public class FileTests {
                     StringMap tprops = new StringMap.FromFileProps(
                             timingfile_name);
                     tprops = ProjectProperties.composedWith(tprops);
-                    String whoami = tprops.get("machine.type", "");
+                    String runTimings = tprops.get("timed", "false");
 
-                    if (whoami.length() == 0) {
-                        // Complain if no machine type supplied
-                        System.err.println("No machine.type (MACHINE_TYPE) provided for timing constraint");
-                    } else if (whoami.equals("untimed")) {
-                       // do nothing
-                    } else {
-
-
+                    if (runTimings.equals("true")) {
+                        String whoami = SysDescription.getSysDescription();
+                        System.err.println("Running on " + whoami);
                         int timeLimit = tprops.getInt(whoami, -1);
-
                         if (timeLimit == -1) {
                             // Complain if machine type not listed
-                            System.err.println("machine.type (MACHINE_TYPE) " + whoami + " not listed in timing file " + timingfile_name);
-
+                            System.err.println("machine type " + whoami + " not listed in timing file " + timingfile_name);
                         } else {
                             long elapsed = (stop_time - start_time);
                             if (timeLimit < elapsed) {
