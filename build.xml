@@ -772,6 +772,13 @@ maintain proper indentation.
         <fileset dir="${build}">
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
+
+          <!-- Do not run the interpreter tests here. Only run the interpreter 
+               tests during nightly and CruiseControl testing. --> 
+          <exclude name="**/SystemJUTest.class"/>
+          <exclude name="**/SpecDataJUTest.class"/>
+          <exclude name="**/NightlyCompilerJUTest.class"/>
+
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
@@ -805,6 +812,13 @@ maintain proper indentation.
         <fileset dir="${build}">
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
+
+          <!-- Do not run the interpreter tests here. Only run the interpreter 
+               tests during nightly and CruiseControl testing. --> 
+          <exclude name="**/SystemJUTest.class"/>
+          <exclude name="**/SpecDataJUTest.class"/>
+          <exclude name="**/NightlyCompilerJUTest.class"/>
+
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
@@ -839,6 +853,13 @@ maintain proper indentation.
         <fileset dir="${build}">
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
+
+          <!-- Because we are running both compiler tests and interpreter tests in CruiseControl,
+               we run NightlyCompilerJUTest instead of CompilerJUTest, to keep the cache consistent
+               between runs of the interpreter and compiler. --> 
+          <exclude name="**/CompilerJUTest.class"/>
+          <include name="**/NightlyCompilerJUTest.class"/>
+
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
@@ -1031,7 +1052,7 @@ maintain proper indentation.
           description="Run all tests, including those known not to pass yet.">
   </target>
 
-  <target name="testNightly" depends="test, testDemos, testsyntax"
+  <target name="testNightly" depends="testCruiseControl, testDemos, testsyntax"
           description="Run tests, demos, and syntax abstraction tests.">
   </target>
 

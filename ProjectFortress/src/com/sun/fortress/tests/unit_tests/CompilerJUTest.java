@@ -27,7 +27,6 @@ public class CompilerJUTest {
     public static void main(String[] args) throws IOException {
         // Make sure there are no compiled files from earlier tests
         // lurking in the repository.
-        Shell.resetRepository();
         junit.textui.TestRunner.run(suite());
     }
 
