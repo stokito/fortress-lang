@@ -543,7 +543,6 @@ public class FileTests {
 
                     if (runTimings.equals("true")) {
                         String whoami = SysDescription.getSysDescription();
-                        System.err.println("Running on " + whoami);
                         int timeLimit = tprops.getInt(whoami, -1);
                         if (timeLimit == -1) {
                             // Complain if machine type not listed
