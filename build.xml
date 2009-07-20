@@ -853,12 +853,12 @@ maintain proper indentation.
         <fileset dir="${build}">
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
+          <include name="**/NightlyCompilerJUTest.class"/>
 
           <!-- Because we are running both compiler tests and interpreter tests in CruiseControl,
                we run NightlyCompilerJUTest instead of CompilerJUTest, to keep the cache consistent
                between runs of the interpreter and compiler. --> 
           <exclude name="**/CompilerJUTest.class"/>
-          <include name="**/NightlyCompilerJUTest.class"/>
 
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
