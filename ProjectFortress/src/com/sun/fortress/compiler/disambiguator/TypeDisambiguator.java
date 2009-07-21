@@ -228,6 +228,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
+                    if (typeCons == null) {
+                        error("Undefined type: " + NodeUtil.nameString(n), that);
+                        return that;
+                    }
                     if (!typeCons.staticParameters().isEmpty()) {
                         error("Type requires static arguments: " + NodeUtil.nameString(n),
                               that);

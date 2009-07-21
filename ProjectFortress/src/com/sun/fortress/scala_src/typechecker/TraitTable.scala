@@ -36,8 +36,12 @@ import scala.collection.mutable.Set
 class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) extends Iterable[TypeConsIndex] {
   def typeCons(name: Id): JOption[TypeConsIndex] = {
     val simpleName: Id = NodeFactory.makeId(NodeFactory.makeSpan(name), name.getText)
+    val ast = current.ast
 
-    if (name.getApiName.isNone || current.ast.getName.equals(name.getApiName.unwrap)) {
+    if ( name.getApiName.isNone ||
+         ( ast.isInstanceOf[Api] && ast.getName.equals(name.getApiName.unwrap) ) ||
+         ( ast.isInstanceOf[Component] &&
+           ast.asInstanceOf[Component].getExports.contains(name.getApiName.unwrap) ) ) {
       JOption.some(current.typeConses.get(simpleName))
     }
     else {
