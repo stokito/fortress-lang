@@ -219,7 +219,7 @@ public class TopLevelEnvGen {
      * Write all the fields that will be used in this compiled environment
      */
     private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
-    								EnvSymbolNames symbolNames) {
+                                    EnvSymbolNames symbolNames) {
 
         // Create all variables as fields in the environment
         Set<String> idStringSet = new HashSet<String>();

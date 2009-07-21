@@ -435,26 +435,21 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    public FValue evalExprList(List<Expr> exprs, AbstractNode tag) {
-        return evalExprList(exprs, tag, this);
-    }
-
     /**
      * Returns the evaluation of a list of (general) exprs, returning the
      * result of evaluating the last expr in the list.
      * Does the "right thing" with LetExprs.
      */
-    public FValue evalExprList(List<Expr> exprs, AbstractNode tag,
-                               Evaluator eval) {
+    public FValue evalExprList(List<Expr> exprs, AbstractNode tag) {
         FValue res = FVoid.V;
         for (Expr exp : exprs) {
             // TODO This will get turned into forLet methods
             if (exp instanceof LetExpr) {
-                Environment inner = eval.e.extendAt(exp);
+                Environment inner = this.e.extendAt(exp);
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
                     res = be.doLets((LetExpr) exp);
             } else {
-                    res = exp.accept(eval);
+                    res = exp.accept(this);
             }
         }
         return res;
@@ -1614,7 +1609,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
             if (resTuple.subtypeOf(matchTuple)) {
                 Block body = c.getBody();
-                result = evalExprList(body.getExprs(), body, ev);
+                result = ev.evalExprList(body.getExprs(), body);
                 return result;
             }
         }
@@ -1622,7 +1617,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Option<Block> el = x.getElseClause();
         if (el.isSome()) {
             Block elseClauses = el.unwrap();
-            result = evalExprList(elseClauses.getExprs(), elseClauses, ev);
+            result = ev.evalExprList(elseClauses.getExprs(), elseClauses);
             return result;
         } else {
             // throw new MatchFailure();

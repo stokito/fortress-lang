@@ -917,7 +917,10 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testSystem" depends="compileAll"
+  <!-- testSystem used to have compileAll as a target, but now does not
+       as this cleans the cache. -->
+
+  <target name="testSystem"
           description="Run SystemJUTests.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${PF}/test-tmp" />
