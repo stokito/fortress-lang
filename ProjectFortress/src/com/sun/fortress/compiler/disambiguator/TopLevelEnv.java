@@ -47,6 +47,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
@@ -335,8 +336,8 @@ public class TopLevelEnv extends NameEnv {
 
     public Option<APIName> apiName(APIName name) {
         // TODO: Handle aliases.
-        if (_onDemandImportedApis.containsKey(name) || 
-            _current.name().equals(name)) { 
+        if (_onDemandImportedApis.containsKey(name) ||
+            _current.name().equals(name)) {
             return Option.some(name);
         } else {
             return Option.none();
@@ -645,12 +646,16 @@ public class TopLevelEnv extends NameEnv {
         Id actualName = ignoreApi(name);
         // If no API in name or it's the current API, use its own typeCons.
         // Otherwise, try to find the API in the global env and use its typeCons.
+        CompilationUnit ast = _current.ast();
         if (api.isNone()) {
-            actualApi = _current.ast().getName();
+            actualApi = ast.getName();
         } else {
             actualApi = api.unwrap();
         }
-        if (api.isNone() || _current.ast().getName().equals(actualApi)) {
+        if ( api.isNone() ||
+             ( ast instanceof Api && ast.getName().equals(actualApi) ) ||
+             ( ast instanceof Component &&
+               ((Component)ast).getExports().contains(actualApi) ) ) {
             Map<Id, TypeConsIndex> typeConses = _current.typeConses();
             if ( typeConses.keySet().contains(actualName) )
                 return typeConses.get(actualName);
@@ -662,7 +667,9 @@ public class TopLevelEnv extends NameEnv {
         // method should only be called after the name is disambiguated.
         Map<Id, TypeConsIndex> typeConses = _originalGlobalEnv.api(actualApi).typeConses();
         if ( typeConses.keySet().contains(actualName) )
+            {
             return typeConses.get(actualName);
+            }
 //         System.err.println("Still couldn't find "+name);
         else return null;
     }
