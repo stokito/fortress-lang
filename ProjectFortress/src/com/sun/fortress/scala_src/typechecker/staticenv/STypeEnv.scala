@@ -215,14 +215,16 @@ object STypeEnv extends StaticEnvCompanion[Type] {
             case Some(params) if sparams.isEmpty =>
               // Arrow type for basic constructor.
               NF.makeArrowType(NU.getSpan(qualifiedName),
-                               STypesUtil.makeDomainType(toList(params)),
+                               // Constructors must have all param types.
+                               STypesUtil.makeDomainType(toList(params)).get,
                                NF.makeTraitType(qualifiedName))
             case Some(params) =>
               // Generic arrow type for constructor.
               val sargs = toList(sparams).map(STypesUtil.staticParamToArg)
               NF.makeArrowType(NU.getSpan(decl),
                                false,
-                               STypesUtil.makeDomainType(toList(params)),
+                               // Constructors must have all param types.
+                               STypesUtil.makeDomainType(toList(params)).get,
                                NF.makeTraitType(qualifiedName,
                                                 toJavaList(sargs)),
                                NF.emptyEffect, // TODO: Change this?

@@ -15,21 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-trait T
-  y: String
-  m(s: String): ()
-  n(u: String): ()
+component Compiled5.bo
+export Executable
+
+f1 = fn (x) => x
+f2 = fn (x: String, y) => y
+f3 = fn (x: ZZ32): String => x
+f4: ZZ32 -> String = fn (x: String) => x
+f5: ZZ32 -> String = fn (x: ZZ32): ZZ32 => x
+
+run() = ()
+
 end
-
-object O(s:String, t:ZZ32)
-  x: String
-  m(u: String): ()
-end
-
-foo: String -> ()
-bar: String -> String
-
-baz: String -> ()
-
-
-x: ZZ32

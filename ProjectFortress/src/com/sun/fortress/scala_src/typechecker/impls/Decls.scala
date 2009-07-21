@@ -33,6 +33,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 
 /**
  * Provides the implementation of cases relating to declarations.
@@ -209,43 +210,78 @@ trait Decls { self: STypeChecker with Common =>
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
-    case v@SVarDecl(info, lhs, body) => body match {
-      case Some(init) =>
-        val newInit = checkExpr(init)
-        val ty = lhs match {
-          case l::Nil => // We have a single variable binding, not a tuple binding
-            toOption(l.getIdType).asInstanceOf[Option[Type]] match {
-              case Some(typ) => typ
-              case _ => // Eventually, this case will involve type inference
-                signal(v, errorMsg("All inferrred types should at least be inference ",
-                                   "variables by typechecking: ", v))
-                NodeFactory.makeVoidType(NodeUtil.getSpan(l))
-            }
-          case _ =>
-            def handleBinding(binding: LValue) =
-              toOption(binding.getIdType).asInstanceOf[Option[Type]] match {
-                case Some(typ) => typ
-                case _ =>
-                  signal(binding, errorMsg("Missing type for ", binding, "."))
-                  NodeFactory.makeVoidType(NodeUtil.getSpan(binding))
-              }
-            NodeFactory.makeTupleType(NodeUtil.getSpan(v),
-                                      toJavaList(lhs.map(handleBinding)))
-        }
-        getType(newInit) match {
-          case Some(typ) =>
-            val left = lhs match {
-              case hd::Nil => hd
-              case _ => lhs
-            }
-            isSubtype(typ, ty, v,
-                         errorMsg("Attempt to define variable ", left,
-                                  " with an expression of type ", normalize(typ)))
-          case _ =>
-            signal(v, errorMsg("The right-hand side of ", v, " could not be typed."))
-        }
-        SVarDecl(info, lhs, Some(newInit))
-      case _ => v
+//    case v@SVarDecl(info, lhs, body) => body match {
+//      case Some(init) =>
+//        val ty = lhs match {
+//          case l::Nil => // We have a single variable binding, not a tuple binding
+//            toOption(l.getIdType).asInstanceOf[Option[Type]] match {
+//              case Some(typ) => typ
+//              case _ => // Eventually, this case will involve type inference
+//                signal(v, errorMsg("All inferrred types should at least be inference ",
+//                                   "variables by typechecking: ", v))
+//                NodeFactory.makeVoidType(NodeUtil.getSpan(l))
+//            }
+//          case _ =>
+//            def handleBinding(binding: LValue) =
+//              toOption(binding.getIdType).asInstanceOf[Option[Type]] match {
+//                case Some(typ) => typ
+//                case _ =>
+//                  signal(binding, errorMsg("Missing type for ", binding, "."))
+//                  NodeFactory.makeVoidType(NodeUtil.getSpan(binding))
+//              }
+//            NodeFactory.makeTupleType(NodeUtil.getSpan(v),
+//                                      toJavaList(lhs.map(handleBinding)))
+//        }
+//        val newInit = checkExpr(init, ty)
+//        getType(newInit) match {
+//          case Some(typ) =>
+//            val left = lhs match {
+//              case hd::Nil => hd
+//              case _ => lhs
+//            }
+//            isSubtype(typ, ty, v,
+//                         errorMsg("Attempt to define variable ", left,
+//                                  " with an expression of type ", normalize(typ)))
+//          case _ =>
+//            signal(v, errorMsg("The right-hand side of ", v, " could not be typed."))
+//        }
+//        SVarDecl(info, lhs, Some(newInit))
+//      case _ => v
+//    }
+
+
+    case v@SVarDecl(info, lhs, rhsOpt) => {
+      val rhs = rhsOpt.getOrElse(return node)
+      makeLhsType(lhs) match {
+        // If all of LHS has types, check RHS with that context.
+        case Some(typ) =>
+
+          // Check here that the declared type matches the actual type in
+          // order to have a nice error message.
+          val left = lhs match {
+            case hd::Nil => hd
+            case _ => lhs
+          }
+
+          val checkedRhs = checkExpr(rhs, typ, "Attempt to define variable "+left+" with an expression of type %s", v)
+          SVarDecl(info, lhs, Some(checkedRhs))
+
+        // If none of the LHS have types, check RHS without context.
+        case None if lhs.forall(_.getIdType.isNone) =>
+          val checkedRhs = checkExpr(rhs)
+          getType(checkedRhs) match {
+            case Some(typ) =>
+              SVarDecl(info,
+                       addLhsTypes(lhs, typ).getOrElse(return node),
+                       Some(checkedRhs))
+            
+            case None => node
+          }
+
+        case None =>
+          signal(v, "Variable declaration requires types on either all or none of the variables.")
+          node
+      }
     }
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))

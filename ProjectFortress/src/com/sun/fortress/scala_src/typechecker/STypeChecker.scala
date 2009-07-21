@@ -409,18 +409,26 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   def checkExpr(expr: Expr,
                 expected: Type,
-                message: String): Expr = {
+                message: String,
+                location: HasAt): Expr = {
     val checkedExpr = checkExpr(expr, Some(expected))
     getType(checkedExpr) match {
       case Some(typ) if isSubtype(typ, expected) => checkedExpr
       case Some(typ) if coercesTo(typ, expected) =>
         makeCoercion(typ, expected, checkedExpr)
       case Some(typ) =>
-        signal(expr, message.format(normalize(typ), normalize(expected)))
+        signal(location, message.format(normalize(typ), normalize(expected)))
         checkedExpr
       case None => expr
     }
   }
+
+  /**
+   * This overloading uses the expression as the location in the error message.
+   */
+  def checkExpr(expr: Expr, expected: Type, message: String): Expr =
+    checkExpr(expr, expected, message, expr)
+
 
   /**
    * This overloading is identical to the one above, except that the expected
