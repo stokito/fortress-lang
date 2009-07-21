@@ -773,8 +773,8 @@ maintain proper indentation.
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
 
-          <!-- Do not run the interpreter tests here. Only run the interpreter 
-               tests during nightly and CruiseControl testing. --> 
+          <!-- Do not run the interpreter tests here. Only run the interpreter
+               tests during nightly and CruiseControl testing. -->
           <exclude name="**/SystemJUTest.class"/>
           <exclude name="**/SpecDataJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
@@ -782,8 +782,6 @@ maintain proper indentation.
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
-          <exclude name="**/StaticJUTest.class"/>
-          <exclude name="**/TypeInferenceJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
@@ -813,8 +811,8 @@ maintain proper indentation.
           <include name="**/*JUTest.class"/>
           <include name="**/*JUTests.class"/>
 
-          <!-- Do not run the interpreter tests here. Only run the interpreter 
-               tests during nightly and CruiseControl testing. --> 
+          <!-- Do not run the interpreter tests here. Only run the interpreter
+               tests during nightly and CruiseControl testing. -->
           <exclude name="**/SystemJUTest.class"/>
           <exclude name="**/SpecDataJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
@@ -822,8 +820,6 @@ maintain proper indentation.
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
-          <exclude name="**/StaticJUTest.class"/>
-          <exclude name="**/TypeInferenceJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
@@ -857,14 +853,12 @@ maintain proper indentation.
 
           <!-- Because we are running both compiler tests and interpreter tests in CruiseControl,
                we run NightlyCompilerJUTest instead of CompilerJUTest, to keep the cache consistent
-               between runs of the interpreter and compiler. --> 
+               between runs of the interpreter and compiler. -->
           <exclude name="**/CompilerJUTest.class"/>
 
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
-          <exclude name="**/StaticJUTest.class"/>
-          <exclude name="**/TypeInferenceJUTest.class"/>
           <exclude name="**/tools/AstJUTest.class"/>
         </fileset>
       </batchtest>
