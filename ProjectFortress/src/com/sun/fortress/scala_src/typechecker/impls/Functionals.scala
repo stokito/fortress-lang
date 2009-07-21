@@ -323,13 +323,34 @@ trait Functionals { self: STypeChecker with Common =>
     }
 
     case SFnExpr(SExprInfo(span, paren, _), header, body) => {
-      val params = toList(header.getParams)
-      if (params.exists(p => p.getIdType.isEmpty)) {
-        NI.nyi("Cannot check FnExpr without explicit parameter types.")
+      // If expecting an arrow type, use its domain to infer param types.
+      val tempParams = toList(header.getParams)
+      val params = expected match {
+        case Some(SArrowType(_, dom, _, _, _)) =>
+          addParamTypes(dom, tempParams).getOrElse(tempParams)
+        case _ => tempParams
       }
-      val checkedBody = this.extend(params).checkExpr(body)
-      val domain = makeArgumentType(params.map(_.getIdType.unwrap))
-      val range = getType(checkedBody).getOrElse(return expr)
+
+      // Make sure all params have a type.
+      val domain = makeDomainType(params).getOrElse({
+        signal(expr, "Could not determine all parameter types of function expression.")
+        return expr
+      })
+
+      val (checkedBody, range) = toOption(header.getReturnType) match {
+        // If there is a declared return type, use it.
+        case Some(typ) =>
+          (this.extend(params).checkExpr(body,
+                                         typ,
+                                         errorString("Function body",
+                                                     "declared return")),
+           typ)
+
+        case None =>
+          val temp = this.extend(params).checkExpr(body)
+          (temp, getType(temp).getOrElse(return expr))
+      }
+      
       val arrow = NF.makeArrowType(span, domain, range)
       SFnExpr(SExprInfo(span, paren, Some(arrow)), header, checkedBody)
     }

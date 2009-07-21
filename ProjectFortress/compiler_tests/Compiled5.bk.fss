@@ -30,8 +30,11 @@ end
 
 foo(s) = ()
 bar(s) = s
-(*
+
 baz = fn s => ()
-*)
+baz2: (ZZ32, String) -> String = fn (y, s) => s
+baz3: (ZZ32, String) -> String = fn (y: Number, s) => s
+baz4: (ZZ32, String) -> Object = fn (y: Number, s: String) => y
+baz5 = fn (y: ZZ32) => y
 
 x = 0

@@ -1,0 +1,32 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled5.bo
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:21:6-16:\n\
+\ Could not determine all parameter types of function expression.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:22:6-27:\n\
+\ Could not determine all parameter types of function expression.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:23:30:\n\
+\ Function body has type ZZ32, but declared return type is String.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:24:1-29:2:\n\
+\ Attempt to define variable f4:ZZ32->String with an expression of type String->String\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:25:1-29:2:\n\
+\ Attempt to define variable f5:ZZ32->String with an expression of type ZZ32->ZZ32\n\
+File Compiled5.bo.fss has 5 errors.\n
+
+compile_out_equals=

@@ -82,9 +82,10 @@ object STypesUtil {
   
   /**
    * Make a domain type from a list of parameters, including varargs and
-   * keyword types. Ported from `TypeEnv.domainFromParams`.
+   * keyword types. Ported from `TypeEnv.domainFromParams`. Returns None if
+   * not all parameters had types.
    */
-  def makeDomainType(ps: List[Param]): Type = {
+  def makeDomainType(ps: List[Param]): Option[Type] = {
     val paramTypes = new ArrayList[Type](ps.length)
     val keywordTypes = new ArrayList[KeywordType](ps.length)
     var varargsType: Option[Type] = None
@@ -101,10 +102,91 @@ object STypesUtil {
         keywordTypes.add(NF.makeKeywordType(name, idType))
       case SParam(_, _, _, Some(idType), _, _) => // Normal
         paramTypes.add(idType)
-      case _ => bug("Parameter missing type") 
+      case _ => return None
     })
-    NF.makeDomain(span, paramTypes, toJavaOption(varargsType), keywordTypes)
+    Some(NF.makeDomain(span,
+                       paramTypes,
+                       toJavaOption(varargsType),
+                       keywordTypes))
   }
+
+  /**
+   * Given a list of params missing some declared types, use the expected
+   * domain to insert the appropriate types into those params.
+   */
+  def addParamTypes(expectedDomain: Type,
+                    oldParams: List[Param])
+                   (implicit analyzer: TypeAnalyzer): Option[List[Param]] = {
+
+    // Get all the params with inference vars filled in.
+    val params = oldParams.map(p => p match {
+      case SParam(info, name, mods, None, defaultExpr, None) =>
+        SParam(info,
+               name,
+               mods,
+               Some(NF.make_InferenceVarType(info.getSpan)),
+               defaultExpr,
+               None)
+      case _ => p
+    })
+
+    // Get the substitution resulting from params :> expectedDomain
+    val paramsDomain = makeDomainType(params).get
+    val subst = analyzer.subtype(expectedDomain, paramsDomain).
+                asInstanceOf[ScalaConstraint].scalaSolve(Map())
+    subst.map(s =>
+      params.map(p => p match {
+        case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
+          SParam(info,
+                 name,
+                 mods,
+                 Some(substituteTypesForInferenceVars(s, idType)),
+                 defaultExpr,
+                 None)
+        case _ => p              
+      }))
+  }
+
+  /**
+   * Make a type for the given list of bindings. Returns None if not all
+   * bindings had types.
+   */
+  def makeLhsType(ls: List[LValue]): Option[Type] = {
+    val span = ls match {
+      case Nil => NF.typeSpan
+      case _ => NU.spanTwo(NU.getSpan(ls.first), NU.getSpan(ls.last))
+    }
+    val types = ls.map(lv => lv match {
+      case SLValue(_, _, _, Some(typ), _) => typ
+      case _ => return None
+    })
+    Some(NF.makeMaybeTupleType(span, toJavaList(types)))
+  }
+
+  /**
+   * Given a list of LValues and some RHS type, add in the appropriate types
+   * for each LValue. Returns None if the RHS type does not correspond to the
+   * LValues.
+   */
+  def addLhsTypes(ls: List[LValue], typ: Type): Option[List[LValue]] =
+    typ match {
+      case STupleType(_, elts, _, _) if elts.length == ls.length =>
+        // Put each tuple element into corresponding LValue.
+        Some(List.map2(ls, elts)((lv, typ) => {
+          val SLValue(info, name, mods, _, mutable) = lv
+          SLValue(info, name, mods, Some(typ), mutable)
+        }))
+
+      case _:TupleType => None
+
+      case _:Type if ls.length == 1 =>
+        Some(ls.map(lv => {
+          val SLValue(info, name, mods, _, mutable) = lv
+          SLValue(info, name, mods, Some(typ), mutable)
+        }))
+
+      case _ => None
+    }
   
   /**
    * Convert a static parameter to the corresponding static arg. Ported from
