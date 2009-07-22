@@ -125,11 +125,11 @@ object Thunker{
   def makeTryChecker(typeChecker: STypeChecker): TryChecker =
     new TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer, typeChecker.envCache)
 
-  def makeThunk(ast: FnDecl, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): TypeThunk = {
+  def makeThunk(ast: FnDecl, index: Functional, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): TypeThunk = {
     val name = ast.getHeader.getName
     return new TypeThunk() {
       def value() = {
-        if (cycleChecker.push(name)) {
+        if (cycleChecker.push(index)) {
           tryChecker.tryCheck(ast) match {
             case Some(ast) => cycleChecker.pop()
                               //Any function without a body must have a return type
@@ -148,9 +148,9 @@ object Thunker{
   def primeFunctional[T <: Functional](fn: T, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): Unit = {
     if(fn.hasThunk) return
     fn match{
-      case m:Method => m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], tryChecker))
-      case d:DeclaredFunction => d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], tryChecker))
-      case f:FunctionalMethod => f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], tryChecker))
+      case m:Method => m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], m, tryChecker))
+      case d:DeclaredFunction => d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
+      case f:FunctionalMethod => f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
       case _ =>
     }
   }
@@ -164,21 +164,21 @@ object Thunker{
 
 class CyclicReferenceChecker(val errors: ErrorLog) {
   
-  protected val stack = new Stack[Name]
+  protected val stack = new Stack[Functional]
   
-  def push(name: Name): Boolean = {
+  def push(fn: Functional): Boolean = {
     // check if in the stack; if so, error. else push
-    if (stack.contains(name)) {
-      val cycle = stack.dropWhile(_ != name) ++ List(name)
+    if (stack.contains(fn)) {
+      val cycle = stack.dropWhile(_ != fn) ++ List(fn)
       val cycleStr = cycle.mkString(", ")
-      errors.signal("Cannot infer return type for functional %s because it has reference cycle: %s".format(name, cycleStr), name)
+      errors.signal("Cannot infer return type for functional %s because it has reference cycle: %s".format(fn, cycleStr), fn.getSpan)
       false
     } else {
-      stack.push(name)
+      stack.push(fn)
       true
     }
   }
   
-  def pop(): Name = stack.pop
+  def pop(): Functional = stack.pop
   
 }

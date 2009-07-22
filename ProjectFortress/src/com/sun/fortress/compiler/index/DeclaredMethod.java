@@ -22,17 +22,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
@@ -117,4 +107,15 @@ public class DeclaredMethod extends Method {
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
 		return new DeclaredMethod(this, visitor);
 	}
+
+    @Override
+    public IdOrOp name() {
+        // Declared methods cannot have anonymous names.
+        return (IdOrOp) NodeUtil.getName(_ast);
+    }
+
+    @Override
+    public boolean hasDeclaredReturnType() {
+        return NodeUtil.getReturnType(_ast).isSome();
+    }
 }

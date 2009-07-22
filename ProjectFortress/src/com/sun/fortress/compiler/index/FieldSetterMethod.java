@@ -110,4 +110,9 @@ public class FieldSetterMethod extends Method {
 		return new FieldSetterMethod(this, visitor);
 	}
 
+    @Override
+    public Id name() {
+        return _ast.getName();
+    }
+
 }
