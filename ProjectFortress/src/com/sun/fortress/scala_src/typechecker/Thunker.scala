@@ -122,8 +122,8 @@ object Thunker{
 
   type TypeThunk = Thunk[JOption[Type]]
   
-  def makeTryChecker(typeChecker: STypeChecker): TryChecker = new
-    TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer)
+  def makeTryChecker(typeChecker: STypeChecker): TryChecker =
+    new TryChecker(typeChecker.current,typeChecker.traits,typeChecker.env)(typeChecker.analyzer, typeChecker.envCache)
 
   def makeThunk(ast: FnDecl, tryChecker: TryChecker)(implicit cycleChecker: CyclicReferenceChecker): TypeThunk = {
     val name = ast.getHeader.getName

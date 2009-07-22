@@ -270,7 +270,7 @@ public class StaticChecker {
                     Thunker thunker = new Thunker(thunkChecker,cycleChecker);
                     thunker.walk(component_ast);
                     //make sure to do toplevel functions after walking so functional methods and operators will already have thunks
-                    TryChecker tryChecker = new TryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer);
+                    TryChecker tryChecker = STypeCheckerFactory.makeTryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer);
                     Thunker$.MODULE$.primeFunctionals(componentIndex.parametricOperators(), tryChecker, cycleChecker);
                     Thunker$.MODULE$.primeFunctionals(componentIndex.functions().secondSet(), tryChecker, cycleChecker);
                     //Typecheck

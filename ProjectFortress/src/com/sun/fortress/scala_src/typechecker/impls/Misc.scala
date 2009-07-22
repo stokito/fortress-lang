@@ -42,6 +42,8 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
+import scala.collection.mutable.{Map => MMap}
+
 /**
  * Provides the implementation of miscellaneous cases that aren't found in any
  * of the other implementation groups.
@@ -530,7 +532,8 @@ trait Misc { self: STypeChecker with Common =>
                       env: STypeEnv,
                       errors: ErrorLog,
                       enclosingExpr: String)
-                     (implicit analyzer: TypeAnalyzer)
+                     (implicit analyzer: TypeAnalyzer,
+                               envCache: MMap[APIName, STypeEnv])
       extends STypeCheckerImpl(current,traits,env,errors) {
     
     val message = errorMsg("A 'spawn' expression must not occur inside ",
