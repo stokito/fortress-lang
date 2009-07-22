@@ -48,7 +48,6 @@ import com.sun.fortress.useful.Useful;
 
 public class CodeGenerationPhase extends Phase {
 
-    public static Symbols symbolTable = new Symbols();
     public static final boolean debugOverloading = false;
 
     public CodeGenerationPhase(Phase parentPhase) {
@@ -62,26 +61,9 @@ public class CodeGenerationPhase extends Phase {
         AnalyzeResult previous = parentPhase.getResult();
         FortressRepository repository = getRepository();
 
-
-
         Debug.debug(Debug.Type.CODEGEN, 1,
                     "CodeGenerationPhase: components " + previous.components() +
                     " apis = " + previous.apis().keySet());
-
-//        for ( APIName api : previous.apis().keySet() )
-//            symbolTable.addApi(api, previous.apis().get(api));
-
-        for (Map.Entry<APIName, ApiIndex> entry : repository.apis().entrySet()) {
-            symbolTable.addApi(entry.getKey(), entry.getValue());
-        }
-
-        for (Component component : previous.componentIterator()) {
-            APIName api = component.getName();
-            symbolTable.addComponent(api, previous.components().get(api));
-        }
-
-        Debug.debug(Debug.Type.CODEGEN, 1,
-                    "SymbolTable=" + symbolTable.toString());
 
         for ( APIName api : previous.apis().keySet() ) {
                 if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
@@ -116,7 +98,7 @@ public class CodeGenerationPhase extends Phase {
             component.accept(pa);
             pa.printTable();
 
-            CodeGen c = new CodeGen(component, symbolTable, ta, pa, ci);
+            CodeGen c = new CodeGen(component, ta, pa, ci, env);
             component.accept(c);
         }
 

@@ -30,6 +30,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.ByteCodeWriter;
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -73,19 +74,19 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // args and local vars.  Object fields should have been translated
     // to dotted notation at this point, right?  Right?  (No, not.)
     private BATree<String, VarCodeGen> lexEnv;
-    Symbols symbols;
     boolean inATrait = false;
     boolean inAnObject = false;
     boolean inABlock = false;
     int localsDepth = 0;
     final Component component;
     private final ComponentIndex ci;
+    private GlobalEnvironment env;
 
-    public CodeGen(Component c, Symbols s, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci) {
+    public CodeGen(Component c, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci,
+                   GlobalEnvironment env) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName().getText(), "/").toString();
         aliasTable = new HashMap<String, String>();
-        symbols = s;
         this.ta = ta;
         this.pa = pa;
         this.ci = ci;
@@ -94,6 +95,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.overloadedNamesAndSigs = new HashSet<String>();
         this.singletonObjects = new ArrayList<ObjectDecl>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
+        this.env = env;
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
@@ -108,7 +110,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.mv = c.mv;
         this.packageAndClassName = c.packageAndClassName;
         this.aliasTable = c.aliasTable;
-        this.symbols = c.symbols;
         this.inATrait = c.inATrait;
         this.inAnObject = c.inAnObject;
         this.inABlock = c.inABlock;
@@ -116,6 +117,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.ta = c.ta;
         this.pa = c.pa;
         this.ci = c.ci;
+        this.env = c.env;
         this.topLevelOverloads = c.topLevelOverloads;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
         this.singletonObjects = c.singletonObjects;
@@ -1024,8 +1026,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         FnRef fnRef = (FnRef) function;
         IdOrOp originalName = fnRef.getOriginalName();        
-            
-        Function f = symbols.lookupFunctionInComponent(originalName,ci);
+
+        Function f = ci.functions().matchFirst(originalName).iterator().next();
         List<Param> params = f.parameters();
         
         int argsIndex = 0;
@@ -1399,9 +1401,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 apiname = thisApi();
                 set_of_f = fnrl.matchFirst(fn);
             } else {
-                apiname = fnapi.unwrap();
-                ApiIndex ai = symbols.apis.get(apiname);
+                
                 IdOrOp fnnoapi = NodeFactory.makeLocalIdOrOp(fn);
+                apiname = fnapi.unwrap();
+                ApiIndex ai = env.api(apiname);
                 set_of_f = ai.functions().matchFirst(fnnoapi);
             }
 
