@@ -240,7 +240,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
         // HACK: We need to compile these test programs using the old Fortress
         // libraries instead of the new compiler libraries. 
-        //        Shell.useFortressLibraries();
+        Shell.useFortressLibraries();
         Iterable<? extends StaticError> errors = Shell.compilerPhases(path, s);
 
         for (StaticError error: errors) {

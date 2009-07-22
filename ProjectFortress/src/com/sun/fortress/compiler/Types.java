@@ -75,10 +75,10 @@ public final class Types {
      * in the compiler libraries differs from its location in the full libraries.
      */
     public static void useCompilerLibraries() {
-   	STRING = makeTraitType(span, fortressBuiltin(), "String");
+        STRING = makeTraitType(span, fortressBuiltin(), "String");
     }
     public static void useFortressLibraries() {
-   	STRING = makeTraitType(span, fortressLibrary(), "String");
+        STRING = makeTraitType(span, fortressLibrary(), "String");
     }
 
     public static void useTypeCheckerLibraries() {

@@ -118,8 +118,8 @@ public final class Shell {
         return specificRepository( p, interpreterCache);
     }
 
-    public static void resetRepository() throws IOException { 
-        if (CURRENT_INTERPRETER_REPOSITORY != null) {  
+    public static void resetRepository() throws IOException {
+        if (CURRENT_INTERPRETER_REPOSITORY != null) {
             CURRENT_INTERPRETER_REPOSITORY.clear();
         }
         File cache = new File(ProjectProperties.REPOSITORY + File.separator + "caches");
@@ -127,13 +127,13 @@ public final class Shell {
         removeFiles(cache);
     }
 
-    private static void removeFiles(File file) { 
-        if (file.exists() && file.isDirectory()) { 
-            for (File f : file.listFiles()) { 
+    private static void removeFiles(File file) {
+        if (file.exists() && file.isDirectory()) {
+            for (File f : file.listFiles()) {
                 removeFiles(f);
             }
         }
-        else if (file.exists() && ! file.isDirectory()) { 
+        else if (file.exists() && ! file.isDirectory()) {
             file.delete();
         }
     }
@@ -246,7 +246,7 @@ public final class Shell {
     }
 
     public static boolean getScala() {
-    	return compileProperties.use_scala;
+        return compileProperties.use_scala;
     }
 
     public static boolean testCoercion() {
@@ -411,16 +411,16 @@ public final class Shell {
                 walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
-                useCompilerLibraries();
-                // no "walk" command.
+                useFortressLibraries();
+                setScala(false);
                 setPhase( PhaseOrder.ENVGEN );
                 walk(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 useCompilerLibraries();
                 printHelpMessage();
-            } else { 
+            } else {
                 useCompilerLibraries();
-                printUsageMessage(); 
+                printUsageMessage();
             }
         } catch (StaticError e) {
             System.err.println(e);
@@ -761,7 +761,7 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-            	rest = Debug.parseOptions(rest);
+                rest = Debug.parseOptions(rest);
             }
             else if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
@@ -772,10 +772,10 @@ public final class Shell {
                 Types.useCompilerLibraries();
             }
             else if (s.equals("-typecheck-java")) {
-            	setScala(false);
+                setScala(false);
             }
             else if (s.equals("-coercion")) {
-            	setTestCoercion(true);
+                setTestCoercion(true);
             }
             else
                 invalidFlag(s, phase);
@@ -992,12 +992,12 @@ public final class Shell {
             else
                 invalidFlag(s, "junit");
             return junit(rest);
-        } 
-        
+        }
+
         junit.textui.TestRunner.run(FileTests.suiteFromListOfFiles(args, "","","",false, false));
-        
+
         return 0;
-        
+
     }
 
     /**
@@ -1013,7 +1013,7 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-            	rest = Debug.parseOptions(rest);
+                rest = Debug.parseOptions(rest);
             }
             else if (s.equals("-compiler-lib")) {
                 WellKnownNames.useCompilerLibraries();
@@ -1116,7 +1116,7 @@ public final class Shell {
 
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
-            	rest = Debug.parseOptions(rest);
+                rest = Debug.parseOptions(rest);
             }
             else if (s.equals("-verbose")){
                 _verbose = true;
@@ -1183,8 +1183,8 @@ public final class Shell {
                                         Iterable<Api> apis,
                                         Iterable<Component> components,
                                         final long lastModified) throws StaticError {
-    	AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
-    	return result;
+        AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
+        return result;
     }
 
     /**
