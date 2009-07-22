@@ -688,7 +688,10 @@ maintain proper indentation.
         includes="**/*"/>
   </target>
 
-  <target name="testOnly" depends="compileAll"
+  <!-- Note that testOnly no longer depends upon compileAll, as this
+       entails a cache flush!  That rules out the only isolated method
+       we have of pinning down cache corruption bugs. -->
+  <target name="testOnly"
           description="Run specific tests (use -DtestPattern=...).">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${PF}/test-tmp" />
@@ -777,6 +780,7 @@ maintain proper indentation.
                tests during nightly and CruiseControl testing. -->
           <exclude name="**/SystemJUTest.class"/>
           <exclude name="**/SpecDataJUTest.class"/>
+          <exclude name="**/TopLevelEnvGenJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
 
           <exclude name="**/*$*.class"/>
@@ -815,6 +819,7 @@ maintain proper indentation.
                tests during nightly and CruiseControl testing. -->
           <exclude name="**/SystemJUTest.class"/>
           <exclude name="**/SpecDataJUTest.class"/>
+          <exclude name="**/TopLevelEnvGenJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
 
           <exclude name="**/*$*.class"/>
