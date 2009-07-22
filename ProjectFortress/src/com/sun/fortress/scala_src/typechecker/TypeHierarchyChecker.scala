@@ -50,11 +50,12 @@ import com.sun.fortress.scala_src.useful.Sets._
  *   = for each trait T with a comprises clause "comprises { S... }"
  *     every S_i \in { S... } should include T in its extends clause.
  *   = no other S' \not\in { S... } should include T in its extends clause.
+ *   = every type listed in a comprises clause must be declared
+ *     in the same component or API.
  */
 class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
-                           globalEnv: GlobalEnvironment) {
-  val isApi = compilation_unit.isInstanceOf[ApiIndex]
-
+                           globalEnv: GlobalEnvironment,
+                           isApi: Boolean) {
   def checkHierarchy(): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
@@ -157,6 +158,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
    *   - for each trait T
    *       for each trait/object S in T's comprises clause
    *         T should be in S's extends clause
+   *         S should be declared in the same component or API
    */
   def checkDeclComprises(decl:Id, exclusionOracle: ExclusionOracle,
                          errors:JavaList[StaticError]): Unit = {
@@ -214,9 +216,18 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                   getTypes(name, errors) match {
                     case tt:TraitIndex =>
                     if ( ! extendsContains(tt.extendsTypes, decl) )
-                        error(errors, "Invalid comprises clause: " + name +
-                              " is included in the comprises clause of " + decl +
-                              "\n    but " + name + " does not extend " + decl + ".", tt.ast)
+                      error(errors, "Invalid comprises clause: " + name +
+                            " is included in the comprises clause of " + decl +
+                            "\n    but " + name + " does not extend " + decl + ".", tt.ast)
+                    name match {
+                      case SId(_,Some(nameApi),_) => // in a different compilation unit
+                        if ( ! nameApi.getText.equals(compilation_unit.ast.getName.getText) )
+                          error(errors, "Invalid comprises clause: " + name +
+                                " is included in the comprises clause of " + decl +
+                                "\n    but " + name +
+                                " is not declared in the same compilation unit.", tt.ast)
+                      case _ =>
+                    }
                   }
               }
             }

@@ -47,7 +47,7 @@ TraitDecl TraitDecl =
                                            a2.getStaticParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
-                                           a3.getComprises(),
+                                           a3.getComprises(), a3.getEllipses(),
                                            Option.<Type>none());
      };
 
@@ -73,9 +73,12 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
      { yyValue = new TraitClauses();
        for (TraitClause t : (List<TraitClause>)a1s.list()) {
            yyValue.set(t);
-           if ( t instanceof Comprises &&
-                ((Comprises)t).hasEllipses() )
-               log(t.span(), "Comprises clauses can include \"...\" only in APIs.");
+           if ( t instanceof Comprises && ((Comprises)t).hasEllipses() ) {
+               String file = createSpan(yyStart,yyCount).begin.getFileName();
+               if ( file.length() > 4 &&
+                    file.substring( file.length()-3).equals("fss") )
+                   log(t.span(), "Comprises clauses can include \"...\" only in APIs.");
+           }
        }
      };
 

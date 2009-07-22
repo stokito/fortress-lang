@@ -63,8 +63,10 @@ CompilationUnit Program =
        List<APIName> exports = a1.getB();
        if ( ! exports.isEmpty() )
            yyValue = NodeFactory.makeComponent(span, name, imports, a2, exports);
-       else if ( a2.isEmpty() ) yyValue = NodeFactory.makeApi(span, name, imports, a2);
-       else {
+       // already checked that file.length() > 4 by NodeFactory.makeAPINameFromPath
+       else if ( file.substring( file.length()-3).equals("fsi") ) {
+           yyValue = NodeFactory.makeApi(span, name, imports, a2);
+       } else {
            log(span, "Components should have at least one export statement.");
            yyValue = NodeFactory.makeComponent(span, name, imports, a2,
                                                Collections.<APIName>emptyList());
