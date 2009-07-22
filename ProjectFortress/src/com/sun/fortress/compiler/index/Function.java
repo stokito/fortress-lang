@@ -23,14 +23,8 @@ import edu.rice.cs.plt.lambda.Lambda;
 
 /** Comprises Constructor, DeclaredFunction, and FunctionalMethod. */
 public abstract class Function extends Functional {
-    protected abstract String mandatoryToString();
-    public String toString() {
-        return mandatoryToString();
-    }
-    protected abstract IdOrOpOrAnonymousName mandatoryToUndecoratedName();
-    public IdOrOpOrAnonymousName toUndecoratedName() {
-        return mandatoryToUndecoratedName();
-    }
+
+    public abstract IdOrOpOrAnonymousName toUndecoratedName();
 
     // Copy a static parameter but make it lifted.
     protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {

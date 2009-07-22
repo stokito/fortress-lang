@@ -36,4 +36,11 @@ public abstract class Method extends Functional {
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
     public abstract Method instantiate(List<StaticParam> params, List<StaticArg> args);
+
+    @Override
+    public String toString() {
+        return String.format("%s.%s",
+                             getDeclaringTrait().getText(),
+                             super.toString());
+    }
 }

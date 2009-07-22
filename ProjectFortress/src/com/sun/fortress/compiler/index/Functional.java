@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.useful.HasAt;
 
 import edu.rice.cs.plt.lambda.LazyThunk;
 import edu.rice.cs.plt.lambda.Thunk;
@@ -45,6 +46,31 @@ public abstract class Functional {
     public abstract Option<Expr> body();
 
     public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
+
+    public abstract IdOrOp name();
+
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+
+        // Append the name.
+        sb.append(name().getText());
+
+        // Append static params, if any.
+        List<StaticParam> staticParams = staticParameters();
+        if (!staticParams.isEmpty()) {
+            sb.append(IterUtil.toString(staticParams, "[\\", ", ", "\\]"));
+        }
+
+        // Append parameters.
+        List<Param> params = parameters();
+        sb.append(IterUtil.toString(params, "(", ", ", ")"));
+
+        // Append return type.
+        if (hasDeclaredReturnType())
+            sb.append(":" + getReturnType().unwrap());
+        
+        return sb.toString();
+    }
     
     // Lazy return type inference -----
 
@@ -66,11 +92,17 @@ public abstract class Functional {
     }
     
     public void putThunk(Thunk<Option<Type>> thunk) {
-        _thunk = Option.<Thunk<Option<Type>>>some(thunk);
+        if (_thunk.isSome()) return;
+        _thunk = Option.some(thunk);
     }
 
     protected void pushVisitor(NodeUpdateVisitor visitor) {
         _thunkVisitors = IterUtil.compose(_thunkVisitors, visitor);
+    }
+
+    /** Override in indices where return types can be elided. */
+    public boolean hasDeclaredReturnType() {
+        return false;
     }
 
     /**
@@ -93,7 +125,7 @@ public abstract class Functional {
         }
 
         // Store the computed return type.
-        putThunk(SimpleBox.make(result));
+        _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(result));
         return result;
     }
 }

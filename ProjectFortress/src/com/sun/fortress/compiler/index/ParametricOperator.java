@@ -53,6 +53,7 @@ public class ParametricOperator extends FunctionalMethod {
         putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
+    @Override
     public Op name() { return _name; }
 
 	@Override

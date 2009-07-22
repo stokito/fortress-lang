@@ -95,5 +95,10 @@ public class FieldGetterMethod extends Method {
 		return new FieldGetterMethod(this, visitor);
 	}
 
+    @Override
+    public Id name() {
+        return _ast.getName();
+    }
+
 
 }

@@ -20,19 +20,7 @@ package com.sun.fortress.compiler.index;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
@@ -77,14 +65,15 @@ public class FunctionalMethod extends Function {
 
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_ast); }
-    
-    protected String mandatoryToString() {
-        return "functionalMethod " + declaringTrait().toString() + "." + ast();
-    }
 
-    @Override
-    protected IdOrOpOrAnonymousName mandatoryToUndecoratedName() {
+    public IdOrOpOrAnonymousName toUndecoratedName() {
         return ast().getHeader().getName();
+    }
+    
+    @Override
+    public IdOrOp name() {
+        // Functional methods cannot have anonymous names.
+        return (IdOrOp) NodeUtil.getName(_ast);
     }
     
     public Id declaringTrait() { return _declaringTrait; }
@@ -135,4 +124,16 @@ public class FunctionalMethod extends Function {
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
 		return new FunctionalMethod(this, visitor);
 	}
+
+    @Override
+    public boolean hasDeclaredReturnType() {
+        return NodeUtil.getReturnType(_ast).isSome();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s.%s",
+                             _declaringTrait.getText(),
+                             super.toString());
+    }
 }
