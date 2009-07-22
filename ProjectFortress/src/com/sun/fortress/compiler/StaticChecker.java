@@ -210,7 +210,7 @@ public class StaticChecker {
 
             // Check type hierarchy to ensure acyclicity.
             TypeHierarchyChecker typeHierarchyChecker =
-                new TypeHierarchyChecker(index, env);
+                new TypeHierarchyChecker(index, env, isApi);
             errors = typeHierarchyChecker.checkHierarchy();
             if (! errors.isEmpty()) {
                 return new TypeCheckerResult(ast, errors);

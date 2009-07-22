@@ -645,10 +645,9 @@ object ExportChecker {
     if ( NodeUtil.isComprisesEllipses(declInAPI) )
       (comprisesInAPI, comprisesInComp) match {
         case (Some(tysInAPI), Some(tysInComp)) =>
-          var result = true
           for ( t <- tysInAPI )
-            if ( ! tysInComp.contains(t) ) result = false
-          result
+            if ( ! tysInComp.contains(t) ) return false
+          true
         case (Some(tysInAPI), None) => false
         case _ => true
       }
