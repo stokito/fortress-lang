@@ -24,11 +24,22 @@ import Map.{...}
 import System.{getEnvironment}
 export Executable
 
+delimiters : String= " ,.?*\t-/[]"
+delimMap : Map[\Char,Boolean\] = { c |-> true | c <- delimiters }
+isDelimiter(c:Char):Boolean = delimMap.member(c,false)
+(*
+This is much slower, even for the relatively short string above.
+isDelimiter(c:Char):Boolean = c IN delimiters
+*)
+
 trait WordState comprises { Chunk, Segment }
+  getter words(): Map[\CaseInsensitiveString, ZZ32\]
   opr OPLUS(self, other: WordState): WordState
 end
 
 object Chunk(s: String) extends WordState
+  getter words(): Map[\CaseInsensitiveString, ZZ32\] =
+    maybeWord(s, {[\CaseInsensitiveString,ZZ32\]})
   opr OPLUS(self, other: WordState): WordState = Chunk("")
   opr OPLUS(self, other: Chunk): WordState =
     Chunk(s || other.s)
@@ -38,11 +49,13 @@ end
 
 object Segment(l: String, A: Map[\CaseInsensitiveString,ZZ32\], r: String)
     extends WordState
+  getter words(): Map[\CaseInsensitiveString, ZZ32\] =
+    maybeWord(l, maybeWord(r, A))
   opr OPLUS(self, other: WordState): WordState = Chunk("")
   opr OPLUS(self, other: Chunk): WordState =
     Segment(l, A, r || other.s)
   opr OPLUS(self, other: Segment): WordState = do
-    Segment(l, maybeWord(r || other.l, A) UNIONSUM other.A, other.r)
+    Segment(l, A UNIONSUM maybeWord(r || other.l, other.A), other.r)
     end
 end
 
@@ -60,37 +73,25 @@ opr BIG OPLUS[\T\](g: Generator[\WordState\]) =
     __bigOperatorSugar[\WordState,WordState,WordState,WordState\](BIG OPLUS[\T\](), g)
 *)
 
-maybeWord(s: String, d:Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] = 
-  if s = "" then d else  
+maybeWord(s: String, d:Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] =
+  if s.isEmpty then d else
       d.updateWith(fn(mx)=>Just[\ZZ32\](mx.getDefault(0)+1), CaseInsensitiveString(s))
-end 
+end
 
 opr BIG OPLUS[\T\](): Reduction[\WordState\] = embiggen( fn(a,b) => a OPLUS b, Chunk("") )
- 
-maybeWord(s: String): List[\String\] =
-  if s = "" then <|[\String\] |> else <|[\String\] s |> end
 
-processChar(c: String): WordState =
-  if (c = " ") then
+processChar(c: Char): WordState =
+  if (isDelimiter(c)) then
     Segment("", {[\CaseInsensitiveString,ZZ32\]}, "")
   else
-    Chunk(c)
+    Chunk("" c)
   end
 
-words(s: String):Map[\CaseInsensitiveString,ZZ32\] = do
-  var database:Map[\CaseInsensitiveString,ZZ32\] := {[\CaseInsensitiveString,ZZ32\]}
-  g = BIG OPLUS[k<-0#s.size] processChar(s[k#1])
-  typecase g of
-    Chunk => maybeWord(g.s, database)
-    Segment => maybeWord(g.l, database) UNIONSUM g.A UNIONSUM maybeWord(g.r, database)
-  end
-end
+words(s: String):Map[\CaseInsensitiveString,ZZ32\] =
+  (BIG OPLUS[c<-s] processChar(c)).words
 
-makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
-    var database:Map[\ZZ32,List[\String\]\] := {[\ZZ32,List[\String\]\]}
-    database := database.add(y, <|[\String\] x |>)
-    database
-end
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] =
+    {[\ZZ32,List[\String\]\] y |-> <|[\String\] x |> }
 
 opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
              b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
@@ -110,25 +111,19 @@ opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[
 processFile(name:String):() = do
     time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
     println("Processing file " name)
-    var rs:FileReadStream = FileReadStream(name)
+    rs:FileReadStream = FileReadStream(name)
     start = nanoTime()
     database:Map[\CaseInsensitiveString, ZZ32\] =
         BIG UNIONSUM [l<-rs.lines()] words(l)
     rs.close()
     acq = nanoTime()
     time("Acquired words",start,acq)
-    var invDatabase:Map[\ZZ32,List[\String\]\] =
+    invDatabase:Map[\ZZ32,List[\String\]\] =
         BIG UNIONUNION [(x,y) <-database] makeInv(x.asString(),y)
     inv = nanoTime()
     time("Inverted database",acq,inv)
-    try
-        for i <- seq(1#100) do
-            (c,m,newinv) = invDatabase.extractMaximum().get
-            invDatabase := newinv
-            println(m ": " c " times")
-        end
-    catch e
-            NotFound => println("end")
+    for (c,m) <- seq(invDatabase.reverse()) do
+        println(m ": " c " times")
     end
     finish = nanoTime()
     time("Outputted",inv,finish)
@@ -137,6 +132,8 @@ end
 
 
 run() = do
-    processFile(getEnvironment("fortress.autohome", "ProjectFortress/demos/") "testData") 
+    (* change the final string below to "testData" for quick test,
+       "hamlet" for thorough test comparable to wordcount.fss. *)
+    processFile(getEnvironment("fortress.autohome", "ProjectFortress/demos/") "hamlet")
 end
 end
