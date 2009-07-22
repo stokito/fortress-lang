@@ -48,6 +48,8 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
 
+import scala.collection.mutable.{Map => MMap}
+
 /* Questions
  */
 /* Invariants
@@ -60,14 +62,20 @@ object STypeCheckerFactory {
            traits: TraitTable,
            env: STypeEnv)
            (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer)
+    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer, MMap.empty)
   
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: STypeEnv,
            errors: ErrorLog)
           (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, errors)(analyzer)
+    new STypeCheckerImpl(current, traits, env, errors)(analyzer, MMap.empty)
+
+  def makeTryChecker(current: CompilationUnitIndex,
+                     traits: TraitTable,
+                     env: STypeEnv)
+                    (implicit analyzer: TypeAnalyzer): TryChecker =
+    new TryChecker(current, traits, env)(analyzer, MMap.empty)
 }
 
 /**
@@ -78,8 +86,9 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
                        traits: TraitTable,
                        env: STypeEnv,
                        errors: ErrorLog)
-                      (implicit analyzer: TypeAnalyzer)
-    extends STypeChecker(current, traits, env, errors)(analyzer)
+                      (implicit analyzer: TypeAnalyzer,
+                                envCache: MMap[APIName, STypeEnv])
+    extends STypeChecker(current, traits, env, errors)(analyzer, envCache)
     with Dispatch with Common
     with Decls with Functionals with Operators
     with Misc
@@ -101,7 +110,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                             val traits: TraitTable, 
                             val env: STypeEnv,
                             val errors: ErrorLog)
-                           (implicit val analyzer: TypeAnalyzer) {
+                           (implicit val analyzer: TypeAnalyzer,
+                                     val envCache: MMap[APIName, STypeEnv]) {
 
   /** Oracle for determining exclusion between types. */
   protected val exclusions = new ExclusionOracle(analyzer, errors)
@@ -113,33 +123,31 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
-    STypeCheckerFactory.make(current, traits, newEnv, errors)(newAnalyzer)
+    new STypeCheckerImpl(current, traits, newEnv, errors)(newAnalyzer, envCache)
 
   def extend(bindings: List[Binding]) =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env.extend(bindings),
-                             errors)
+    new STypeCheckerImpl(current,
+                         traits,
+                         env.extend(bindings),
+                         errors)
 
   def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env,
-                             errors)(analyzer.extend(sparams, where))
+    new STypeCheckerImpl(current,
+                         traits,
+                         env,
+                         errors)(analyzer.extend(sparams, where), envCache)
 
   def extend(sparams: List[StaticParam],
              params: Option[List[Param]],
-             where: Option[WhereClause]) = params match {
-    case Some(ps) =>
-      STypeCheckerFactory.make(current,
-                               traits,
-                               env.extend(ps),
-                               errors)(analyzer.extend(sparams, where))
-    case None =>
-      STypeCheckerFactory.make(current,
-                               traits,
-                               env,
-                               errors)(analyzer.extend(sparams, where))
+             where: Option[WhereClause]) = {
+    val newEnv = params match {
+      case Some(ps) => env.extend(ps)
+      case None => env
+    }
+    new STypeCheckerImpl(current,
+                         traits,
+                         newEnv,
+                         errors)(analyzer.extend(sparams, where), envCache)
   }
 
   def extend(id: Id, typ: Type): STypeChecker =
@@ -150,22 +158,22 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         NodeFactory.makeLValue(p._1,p._2)))
 
   def extend(decl: LocalVarDecl): STypeChecker =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env.extend(decl),
-                             errors)
+    new STypeCheckerImpl(current,
+                         traits,
+                         env.extend(decl),
+                         errors)
 
   def extendWithFunctions[T <: Functional](methods: Relation[IdOrOpOrAnonymousName, T]) =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env.extendWithFunctions(methods),
-                             errors)
+    new STypeCheckerImpl(current,
+                         traits,
+                         env.extendWithFunctions(methods),
+                         errors)
 
   def extendWithout(declSite: Node, names: Set[Id]) =
-    STypeCheckerFactory.make(current,
-                             traits,
-                             env.extendWithout(names),
-                             errors)
+    new STypeCheckerImpl(current,
+                         traits,
+                         env.extendWithout(names),
+                         errors)
 
   def addSelf(self_type: Type) =
     extend(List[LValue](NodeFactory.makeLValue("self", self_type)))
@@ -236,7 +244,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Get the TypeEnv that corresponds to this API.
    */
   protected def getEnvFromApi(api: APIName): STypeEnv =
-    STypeEnv.make(traits.compilationUnit(api))
+    envCache.getOrElseUpdate(api, STypeEnv.make(traits.compilationUnit(api)))  
   
   /**
    * Replaces the given name with the name it aliases
@@ -463,7 +471,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
 class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
                  env: STypeEnv)
-                (implicit analyzer: TypeAnalyzer)
+                (implicit analyzer: TypeAnalyzer,
+                          envCache: MMap[APIName, STypeEnv])
     extends STypeCheckerImpl(current, traits, env, new ErrorLog) {
 
   /** Throws the TypeError exception with the given info. */
