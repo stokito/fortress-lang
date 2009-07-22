@@ -4018,6 +4018,7 @@ forDigit(x:ZZ32, radixString:String): Maybe[\Char\] =
     Unsigned types in particular are a bit sticky.
  **)
 strToInt(s: String, radix: ZZ32): ZZ32 = do
+    if |s| = 0 then fail("strToInt of empty string") end
     (i0, neg) =
         if s[0] = '-' then (1, true)
         elif s[0] = '+' then (1, false)

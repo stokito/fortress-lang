@@ -24,6 +24,7 @@
 ;;; TBD: honorary letters
 ;;; TBD: Names of Greek letters, and boldface Greek
 ;;; TBD: ampersand-gluing of identifiers
+;;; TBD: make "|" in a comprehension a separate token type, to help fractions processing?
 
 ;;; The basic plan of the new Fortify code:
 ;;; (1) Divide the region into a list of tokens.
@@ -410,6 +411,7 @@
 
 (defun fortress-comment-line-token ()
   (end-of-line)
+  (when (= (char-before) ?\r) (backward-char))
   'COMMENT-LINE)
 
 (defun fortress-comment-tokens (region-end)
@@ -2018,7 +2020,7 @@
 	     (setq curindent 0)
 	     (push (if (or (eq lns lines) (null (cdr lns))) "" "\\\\") result))
 	    (t (let ((pos (position-if '(lambda (c) (not (= c (elt line 0)))) line)))
-		 (print (list line pos indented-par-last))
+		 ;; (print (list line pos indented-par-last))
 		 (cond ((and (find (elt line 0) ">*#;")
 			     (or (null pos) (= (elt line pos) ?\s))
 			     (or (not (find (elt line 0) "*#"))
@@ -2253,12 +2255,13 @@
 ;;; ****************************************************************
 
 (defun fortress-intraline-idioms (tokens *fortress-matching-hashtable*)
-  (fortress-process-surds
-   (fortress-process-subscripts
-    (fortress-process-superscripts
-     (fortress-process-opr-and-BIG
-      (fortress-process-colons
-       (fortress-process-compound-assignment tokens)))))))
+  (fortress-process-surds ;Must process surds after processing fractions
+   (fortress-process-fractions
+    (fortress-process-subscripts
+     (fortress-process-superscripts
+      (fortress-process-opr-and-BIG
+       (fortress-process-colons
+	(fortress-process-compound-assignment tokens))))))))
 
 ;;; Turn a compound assignment (an operator followed by an equals sign)
 ;;; into a single operator that is a RELATION.
@@ -2508,6 +2511,103 @@
 			       '(LEFT-PARENTHESIS LEFT-BRACKET LEFT-ENCLOSER LEFT-WHITE-BRACKET))
 			 (setq skipto (gethash (car z) *fortress-matching-hashtable*))))))))))
 
+;;; The idea here is that a tight fraction xxx/yyy gets turned into LaTeX {xxx \over yyy}.
+;;; In order to do this, we need to process all tight juxtapositions that fall within a line.
+;;; To do THAT, we keep a stack that is pushed when we see a left encloser and popped
+;;; when we see a right encloser.  Each stack entry tracks the latest token that could
+;;; not be part of a tight juxtaposition as well as the position of any tight "/".
+
+;;; A stack entry is a triple of (left-encloser juxta-start-or-nil tight-slash-or-nil).
+
+(defun fortress-process-fractions (tokens)
+  (let ((dummy (cons (list 'DUMMY) tokens)))
+    (do ((toks tokens (cdr toks))
+	 (prev dummy toks)
+	 (stack (list (list nil nil nil))))
+	((null toks)
+	 (fortress-maybe-process-one-fraction (second (first stack))
+					      (third (first stack))
+					      prev))
+      (let ((thistok (car toks)))
+	(ecase (car thistok)
+	  ((LEFT-PARENTHESIS LEFT-BRACKET LEFT-BRACE LEFT-WHITE-BRACKET)
+	   (unless (second (first stack))
+	     (setf (second (first stack)) prev))
+	   (when (gethash thistok *fortress-matching-hashtable*)
+	     (push (list thistok nil nil) stack)))
+	  ((RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-BRACE RIGHT-WHITE-BRACKET)
+	   (when (gethash thistok *fortress-matching-hashtable*)
+	     (fortress-maybe-process-one-fraction (second (first stack))
+						  (third (first stack))
+						  prev)
+	     (pop stack)))
+	  ((NEWLINE)
+	   (fortress-maybe-process-one-fraction (second (first stack))
+						(third (first stack))
+						prev)
+	   (dolist (s stack) (setf (second s) nil)))
+	  ((WHITESPACE DIGIT-GROUP-SEPARATOR COMMENT COMMENT-LINE COMMENT-START COMMENT-MIDDLE COMMENT-END
+		       AMPERSAND COLON COMMA OPERATOR-WORD SEMICOLON UNKNOWN)
+	   (fortress-maybe-process-one-fraction (second (first stack))
+						(third (first stack))
+						prev)
+	   (setf (second (first stack)) nil)
+	   (setf (third (first stack)) nil))
+	  ((OPERATOR RELATION)
+	   (cond ((string= (second thistok) "/")
+		  (when (second (first stack))
+		    (setf (third (first stack)) prev)))
+		 (t (fortress-maybe-process-one-fraction (second (first stack))
+							 (third (first stack))
+							 prev)
+		    (setf (second (first stack)) nil)
+		    (setf (third (first stack)) nil))))
+	  ((BIGOP)
+	   (fortress-maybe-process-one-fraction (second (first stack))
+						(third (first stack))
+						prev)
+	   (setf (second (first stack)) nil)
+	   (setf (third (first stack)) nil))
+	  ((KEYWORD)
+	   (ecase (gethash (cadr thistok) *fortress-keyword-hashtable*)
+	     ((KEYWORD)
+	      (fortress-maybe-process-one-fraction (second (first stack))
+						   (third (first stack))
+						   prev)
+	      (setf (second (first stack)) nil)
+	      (setf (third (first stack)) nil))
+	     ((IDENTIFIER)
+	      (unless (second (first stack))
+		(setf (second (first stack)) prev)))))
+	  ((CHARACTER-LITERAL CIRCUMFLEX DOT EXTRA IDENTIFIER NUMBER
+			      STRING STRING-START STRING-MIDDLE STRING-END)
+	   (unless (second (first stack))
+	     (setf (second (first stack)) prev))))))
+    (rest dummy)))
+
+;;; If the numerator or denominator is surrounded by matching parentheses,
+;;; those parentheses are not rendered.
+
+(defun fortress-maybe-process-one-fraction (left middle right)
+  (when (and left
+	     middle
+	     (not (eq (cdr middle) right)))
+    ;; We have a fraction to render, all right.
+    (fortress-maybe-suppress-parentheses (second left) (first middle))
+    (fortress-maybe-suppress-parentheses (third middle) (first right))
+    (setf (cdr left) (cons (list 'EXTRA "" "{") (cdr left)))
+    (setf (third (second middle)) "\\over")
+    (setf (cdr right) (cons (list 'EXTRA "" "}") (cdr right)))))
+
+
+(defun fortress-maybe-suppress-parentheses (leftend rightend)
+  (when (and (eq (car leftend) 'LEFT-PARENTHESIS)
+	     (eq (car rightend) 'RIGHT-PARENTHESIS)
+	     (eq (gethash leftend *fortress-matching-hashtable*) rightend))
+    (setf (third leftend) "")
+    (setf (third rightend) "")))
+
+;;; This routine must come after fraction processing because it checks for suppressed parentheses.
 
 (defun fortress-process-surds (tokens)
   (do ((toks tokens (cdr toks)))
@@ -2550,7 +2650,9 @@
 		       (when (and finalplace
 				  (cdr finalplace)
 				  (memq (car (cadr finalplace))
-					'(RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-WHITE-BRACKET RIGHT-ENCLOSER)))
+					'(RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-WHITE-BRACKET RIGHT-ENCLOSER))
+				  (not (string= (third (cadr finalplace)) "")) ;Watch out for suppressed parentheses
+				  )
 			 (rplacd (last finaltok) (list "\\,")))))
 		   (when (eq (car (cadr toks)) 'WHITESPACE)
 		     (rplaca (cadr toks) 'NOSPACE)))))))))
@@ -2648,8 +2750,11 @@
 	  ((memq thiskind '(OPERATOR OPERATOR-WORD RELATION))
 	   (fortress-intertoken-postop-check prev2 prev1 tok0 tok1 tok2))
 	  ((and (eq thiskind 'WHITESPACE)
-		(or (memq (car prev1) '(LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET))
-		    (memq (car tok1) '(RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET))))
+		(or (and (memq (car prev1) '(LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET))
+			 (not (string= (third prev1) ""))) ;Watch out for suppressed parentheses here
+		    (and (memq (car tok1) '(RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET))
+			 (not (string= (third tok1) ""))) ;Watch out for suppressed parentheses here
+		    ))
 	   (cond ((and (null (cdddr tok0))
 		       (string= (second tok0) " ")
 		       (string= (third tok0) " "))
@@ -2903,11 +3008,13 @@
 (defun fortify-fortress-block (tokens)
   (fortify-careful-TeX-concat
    (fortify-eliminate-redundant-math-mode-pairs
-    (append '("\\begin{FortressCode}\n")
+    (append (list "\\begin{FortressCode}\n")
 	    (let ((rev (reverse tokens)))
-	      (apply 'append (mapcar 'cddr (reverse (if (eq (car (car rev)) 'NEWLINE) (cdr rev) rev)))))
+	      (apply 'append (mapcar 'cddr (reverse (cond ((not (eq (car (car rev)) 'NEWLINE)) rev)
+							  ((not (eq (car (cadr rev)) 'NEWLINE)) (cdr rev))
+							  (t ;; Avoid leaving a blank line that TeX would treat as \par
+							   (rplaca (cddr (car rev)) " \\\\") rev))))))
 	    (list "\n\\end{FortressCode}\n")))))
-
 
 (defun fortify-eliminate-redundant-math-mode-pairs (strs)
   (let ((s strs) (z '()))
@@ -2921,11 +3028,11 @@
     (reverse z)))
 
 (defun fortify-careful-TeX-concat (strs)
-  (do ((s strs (cdr s))
+  (do ((s (remove "" strs) (cdr s))
        (z '() (cond ((= (length (car s)) 1)
 		     (cons (car s) z))
-		    (t (let ((c1 (if (= (length (car s)) 0) ?@ (elt (car s) (- (length (car s)) 1))))
-			     (c2 (if (or (null (cdr s)) (= (length (cadr s)) 0)) ?@ (elt (cadr s) 0))))
+		    (t (let ((c1 (elt (car s) (- (length (car s)) 1)))
+			     (c2 (if (null (cdr s)) ?@ (elt (cadr s) 0))))
 			 (cond ((and (or (and (<= ?A c1) (<= c1 ?Z)) (and (<= ?a c1) (<= c1 ?z)))
 				     (or (and (<= ?A c2) (<= c2 ?Z)) (and (<= ?a c2) (<= c2 ?z))))
 				(cons "{}" (cons (car s) z)))
@@ -3017,8 +3124,8 @@
    ("self" IDENTIFIER) ("settable" KEYWORD) ("setter" KEYWORD) ("spawn" KEYWORD)
    ("syntax" KEYWORD) ("test" KEYWORD) ("then" KEYWORD) ("throw" KEYWORD)
    ("throws" KEYWORD) ("trait" KEYWORD) ("transient" KEYWORD) ("try" KEYWORD)
-   ("tryatomic" KEYWORD) ("type" KEYWORD) ("typecase" KEYWORD) ("unit" KEYWORD)
-   ("value" KEYWORD) ("var" KEYWORD) ("where" KEYWORD) ("while" KEYWORD)
+   ("tryatomic" KEYWORD) ("type" KEYWORD) ("typed" KEYWORD) ("typecase" KEYWORD)
+   ("unit" KEYWORD) ("value" KEYWORD) ("var" KEYWORD) ("where" KEYWORD) ("while" KEYWORD)
    ("widens" KEYWORD) ("with" KEYWORD) ("wrapped" KEYWORD)
    ))
 
