@@ -64,7 +64,7 @@ public class PreDisambiguationDesugarer {
             desugaredApis.add(api);
         }
         return new ApiResult
-            (IndexBuilder.buildApis(desugaredApis,
+            (IndexBuilder.buildApis(desugaredApis,  apiEnv,
                                     System.currentTimeMillis()).apis(),
              IterUtil.<StaticError>empty());
     }

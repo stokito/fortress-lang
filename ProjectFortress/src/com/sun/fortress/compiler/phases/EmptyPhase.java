@@ -25,6 +25,7 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
@@ -32,6 +33,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.useful.Debug;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -55,12 +57,25 @@ public class EmptyPhase extends Phase {
     @Override
     public AnalyzeResult execute() throws StaticError {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Empty");
-        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis,
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis, env,
                                                                  lastModified);
+        // Index building might fail if imports or comprises clauses contain unresolvable types.
+        if (!apiIndex.isSuccessful()) {
+            throw new MultipleStaticError(apiIndex.errors());
+        }
+        
         IndexBuilder.ComponentResult componentIndex = IndexBuilder
             .buildComponents(components, lastModified);
+
+        // Index building might fail if imports, exports, or comprises
+        // clauses contain unresolvable types.
+        if (!componentIndex.isSuccessful()) {
+            throw new MultipleStaticError(componentIndex.errors());
+        }
+
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(),
-                                 IterUtil.<StaticError>empty(),
+                                 CollectUtil.union(CollectUtil.asSet(apiIndex.errors()),
+                                                   CollectUtil.asSet(componentIndex.errors())),
                                  Option.<TypeCheckerOutput> none());
     }
 

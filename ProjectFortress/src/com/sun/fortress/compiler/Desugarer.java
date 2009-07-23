@@ -78,8 +78,9 @@ public class Desugarer {
         }
         return new ApiResult
             (IndexBuilder.buildApis(desugaredApis,
+                                    env,
                                     System.currentTimeMillis()).apis(),
-             IterUtil.<StaticError>empty());
+                                    IterUtil.<StaticError>empty());
     }
 
     public static Api desugarApi(ApiIndex apiIndex, GlobalEnvironment env) {

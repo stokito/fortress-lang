@@ -43,12 +43,13 @@ public class GrammarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase GrammarPhase");
         AnalyzeResult previous = parentPhase.getResult();
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap
-            (CollectUtil.union(repository.apis(), previous.apis()));
+//        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap
+//            (CollectUtil.union(repository.apis(), previous.apis()));
+         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(previous.apis());
 
         Collection<Api> apis = GrammarRewriter.rewriteApis(previous.apis(), apiEnv);
 
-        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apis, lastModified);
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apis, env, lastModified);
         if (!apiDone.isSuccessful()) {
             throw new MultipleStaticError(apiDone.errors());
         }

@@ -153,6 +153,7 @@ public class StaticChecker {
         }
         return new ApiResult
             (IndexBuilder.buildApis(checkedApis,
+                                    env,
                                     System.currentTimeMillis()).apis(),
              failedApis,
              errors,
@@ -198,11 +199,11 @@ public class StaticChecker {
 
                 // Check if this is a compound API, and, if so, link it into a single API.
                 // The AST associated with an ApiIndex is always an Api.
-                errors = new CompoundApiChecker(env.apis()).check(api_ast);
+                errors = new CompoundApiChecker(env.apis(), env).check(api_ast);
                 if (! errors.isEmpty()) {
                     return new TypeCheckerResult(ast, errors);
                 }
-                ast = new ApiLinker(env.apis()).link(api_ast);
+                ast = new ApiLinker(env.apis(), env).link(api_ast);
 //                 Nodes.printNode((Api)ast, "api_linked_ast.");
                 index = IndexBuilder.builder.buildApiIndex(api_ast,
                                                            System.currentTimeMillis());
