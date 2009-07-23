@@ -48,12 +48,12 @@ public class Coercion extends Function {
         _declaringTrait = declaringTrait;
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
-        putThunk(new Thunk<Option<Type>>() {
-          @Override public Option<Type> value() {
-            return Option.<Type>some(
-                NodeFactory.makeTraitType(_declaringTrait,
-                                          TypesUtil.staticParamsToArgs(_traitParams)));
-          }
+        _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
+            public Option<Type> value() {
+                return Option.<Type>some(
+                    NodeFactory.makeTraitType(_declaringTrait,
+                                              TypesUtil.staticParamsToArgs(_traitParams)));
+            }
         });
     }
 

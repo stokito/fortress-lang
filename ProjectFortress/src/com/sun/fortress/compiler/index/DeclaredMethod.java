@@ -40,7 +40,7 @@ public class DeclaredMethod extends Method {
         _ast = ast;
         _declaringTrait = declaringTrait;
         if (NodeUtil.getReturnType(_ast).isSome())
-            putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     /**
@@ -115,7 +115,7 @@ public class DeclaredMethod extends Method {
     }
 
     @Override
-    public boolean hasDeclaredReturnType() {
+    public boolean hasExplicitType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }
 }

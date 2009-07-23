@@ -31,11 +31,9 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 
 /** Comprises {@link Function} and {@link Method}. */
-public abstract class Functional {
+public abstract class Functional extends InferredTypeIndex {
 
     //public abstract Node ast();
-
-    public abstract Span getSpan();
 
     public abstract List<StaticParam> staticParameters();
 
@@ -71,61 +69,13 @@ public abstract class Functional {
         
         return sb.toString();
     }
-    
-    // Lazy return type inference -----
 
-    /**
-     * Thunks are used to lazily get the return type of Functionals, as return
-     * types may not be available for functionals in the current program during
-     * type checking.
-     */
-    protected Option<Thunk<Option<Type>>> _thunk = Option.none();
-
-    /**
-     * This index might have built up some visitors to apply to the return
-     * type. Apply all of these in order when accessing the return type.
-     */
-    protected Iterable<NodeUpdateVisitor> _thunkVisitors = CollectUtil.emptyList();
-    
-    public boolean hasThunk() {
-        return _thunk.isSome();
-    }
-    
-    public void putThunk(Thunk<Option<Type>> thunk) {
-        if (_thunk.isSome()) return;
-        _thunk = Option.some(thunk);
-    }
-
-    protected void pushVisitor(NodeUpdateVisitor visitor) {
-        _thunkVisitors = IterUtil.compose(_thunkVisitors, visitor);
+    public Option<Type> getReturnType() {
+        return getInferredType();
     }
 
     /** Override in indices where return types can be elided. */
     public boolean hasDeclaredReturnType() {
-        return false;
-    }
-
-    /**
-     * Evaluate the thunk to get a return type. Then replace the thunk with one
-     * that simply gets back the previously evaluated return type. After type
-     * checking, the result of this method will always be Some(type).
-     */
-    public Option<Type> getReturnType() {
-        if (_thunk.isNone()) return Option.none();
-        Option<Type> result = _thunk.unwrap().value();
-
-        // Use the visitors if there are any.
-        if (result.isSome() && !IterUtil.isEmpty(_thunkVisitors)) {
-            Type type = result.unwrap();
-            for (NodeUpdateVisitor visitor : _thunkVisitors) {
-                type = (Type)type.accept(visitor);
-            }
-            _thunkVisitors = CollectUtil.emptyList();
-            result = Option.some(type);
-        }
-
-        // Store the computed return type.
-        _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(result));
-        return result;
+        return hasExplicitType();
     }
 }

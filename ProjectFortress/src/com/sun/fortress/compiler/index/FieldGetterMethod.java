@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 
 public class FieldGetterMethod extends Method {
@@ -39,7 +40,7 @@ public class FieldGetterMethod extends Method {
         _ast = ast;
         _declaringTrait = declaringTrait;
         if (_ast.getIdType().isSome())
-            putThunk(SimpleBox.make(_ast.getIdType()));
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(_ast.getIdType()));
     }
 
     /**

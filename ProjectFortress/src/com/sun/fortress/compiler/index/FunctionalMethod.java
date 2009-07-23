@@ -27,6 +27,7 @@ import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -45,7 +46,7 @@ public class FunctionalMethod extends Function {
         _declaringTrait = declaringTrait;
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
         if (NodeUtil.getReturnType(_ast).isSome())
-            putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     /**
@@ -126,7 +127,7 @@ public class FunctionalMethod extends Function {
 	}
 
     @Override
-    public boolean hasDeclaredReturnType() {
+    public boolean hasExplicitType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }
 

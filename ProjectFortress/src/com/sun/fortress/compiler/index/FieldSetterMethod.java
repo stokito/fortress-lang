@@ -39,6 +39,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 
 public class FieldSetterMethod extends Method {
@@ -49,7 +50,7 @@ public class FieldSetterMethod extends Method {
     public FieldSetterMethod(Binding ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
-        putThunk(SimpleBox.make(Option.<Type>some(Types.VOID)));
+        _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
 
     /**

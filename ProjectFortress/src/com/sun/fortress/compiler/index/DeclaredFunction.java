@@ -26,6 +26,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredFunction extends Function {
@@ -34,7 +35,7 @@ public class DeclaredFunction extends Function {
     public DeclaredFunction(FnDecl ast) {
       _ast = ast;
       if (NodeUtil.getReturnType(_ast).isSome())
-          putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+          _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
     /**
@@ -101,7 +102,7 @@ public class DeclaredFunction extends Function {
 	}
 
     @Override
-    public boolean hasDeclaredReturnType() {
+    public boolean hasExplicitType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }
 

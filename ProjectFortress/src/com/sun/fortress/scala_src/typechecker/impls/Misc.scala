@@ -388,29 +388,28 @@ trait Misc { self: STypeChecker with Common =>
       SFor(SExprInfo(span,parenthesized,Some(Types.VOID)), newGens, newBody)
     }
 
-    case v@SVarRef(SExprInfo(span,paren,_), id, sargs, depth) =>
-      getTypeFromName(id) match {
-        case Some(ty) =>
-          if ( NodeUtil.isSingletonObject(v) )
-            ty match {
-              case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
-                if ( NodeUtil.isGenericSingletonType(typ) &&
-                     staticArgsMatchStaticParams(sargs, params)) {
-                  // make a trait type that is GenericType instantiated
-                  val newType = NodeFactory.makeTraitType(sp, pr, name,
-                                                          toJavaList(sargs))
-                  SVarRef(SExprInfo(span,paren,Some(newType)), id, sargs, depth)
-                } else {
-                  signal(v, "Unexpected type for a singleton object reference.")
-                  v
-                }
-              case _ =>
-                signal(v, "Unexpected type for a singleton object reference.")
-                v
+    case v@SVarRef(SExprInfo(span,paren,_), id, sargs, depth) => {
+      val checkedId = check(id).asInstanceOf[Id]
+      val ty = getTypeFromName(checkedId).getOrElse(return expr)
+      if ( NodeUtil.isSingletonObject(v) )
+        ty match {
+          case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
+            if ( NodeUtil.isGenericSingletonType(typ) &&
+                 staticArgsMatchStaticParams(sargs, params)) {
+              // make a trait type that is GenericType instantiated
+              val newType = NodeFactory.makeTraitType(sp, pr, name,
+                                                      toJavaList(sargs))
+              SVarRef(SExprInfo(span,paren,Some(newType)), checkedId, sargs, depth)
+            } else {
+              signal(v, "Unexpected type for a singleton object reference.")
+              v
             }
-          else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), id, sargs, depth)
-        case None => signal(id, errorMsg("Type of the variable '", id, "' not found.")); v
-      }
+          case _ =>
+            signal(v, "Unexpected type for a singleton object reference.")
+            v
+        }
+      else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), checkedId, sargs, depth)
+    }
 
     case STypecase(SExprInfo(span, paren, _),
                    bindIds, bindExpr, clauses, elseClause) => {
