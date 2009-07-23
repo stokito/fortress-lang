@@ -21,12 +21,16 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 
 import com.sun.fortress.useful.NI;
+import com.sun.fortress.nodes_util.Modifiers;
 
 /** Comprises DeclaredVariable, ParamVariable, and SingletonVariable. */
-public abstract class Variable {
+public abstract class Variable extends InferredTypeIndex {
+
+    public abstract Modifiers modifiers();
+
+    public abstract boolean mutable();
 
     public Variable acceptNodeUpdateVisitor(NodeUpdateVisitor v) {
-        // TODO Auto-generated method stub
-        return null;
+        return this;
     }
 }

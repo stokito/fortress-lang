@@ -57,7 +57,7 @@ trait Operators { self: STypeChecker with Common =>
         case Some(api) => getEnvFromApi(api)
         case _ => env
       }
-      if (!tyEnv.isDefinedAt(op)) {
+      if (!tyEnv.contains(op)) {
         if ( enclosing ) signal(op, errorMsg("Enclosing operator not found: ", op))
         else signal(op, errorMsg("Operator not found: ", OprUtil.decorateOperator(op)))
       }

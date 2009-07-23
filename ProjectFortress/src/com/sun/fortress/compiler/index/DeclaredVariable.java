@@ -18,12 +18,68 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes_util.Modifiers;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.lambda.Thunk;
+import edu.rice.cs.plt.lambda.Box;
+import edu.rice.cs.plt.lambda.SimpleBox;
 
 public class DeclaredVariable extends Variable {
 
-    private final LValue _ast;
+    protected final LValue _lvalue;
+    protected int _position;
 
-    public DeclaredVariable(LValue ast) { _ast = ast; }
+    public DeclaredVariable(LValue lvalue, VarDecl decl) {
+        _lvalue = lvalue;
 
-    public LValue ast() { return _ast; }
+        // Figure out my position in the decl.
+        int i = 0;
+        for (LValue lv : decl.getLhs()) {
+            // lvalue came from decl in the first place, so referential equality
+            // works just fine.
+            if (lv == lvalue) {
+                _position = i;
+                break;
+            }
+            ++i;
+        }
+
+        Option<Type> idType = _lvalue.getIdType();
+        if (idType.isSome()) {
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(idType));
+        }
+    }
+
+    public LValue ast() { return _lvalue; }
+
+    public Modifiers modifiers() {
+        return _lvalue.getMods();
+    }
+
+    public boolean mutable() {
+        return _lvalue.isMutable();
+    }
+
+    public int position() {
+        return _position;
+    }
+
+    @Override
+    public boolean hasExplicitType() {
+        return _lvalue.getIdType().isSome();
+    }
+
+    @Override
+    public String toString() {
+        return _lvalue.toString();
+    }
+
+    @Override
+    public Span getSpan() {
+        return NodeUtil.getSpan(_lvalue);
+    }
 }

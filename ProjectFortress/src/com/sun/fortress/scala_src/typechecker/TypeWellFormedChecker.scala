@@ -95,7 +95,7 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case SAnyType(_) => // OK
       case SBottomType(_) => // OK
       case t@SVarType(_, name, _) =>
-        if ( ! analyzer.kindEnv.isDefinedAt(name) )
+        if ( ! analyzer.kindEnv.contains(name) )
           error("Unbound type: " + name, t)
       case t@STraitType(_, name, sargs, _) =>
         getTypes(name) match {

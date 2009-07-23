@@ -69,7 +69,7 @@ trait StaticEnv[T] {
   def apply(x: Name): Option[EnvBinding] = lookup(x)
   
   /** Does the environment contain a binding for the given name? */
-  def isDefinedAt(x: Name): Boolean = lookup(x).isDefined
+  def contains(x: Name): Boolean = lookup(x).isDefined
   
   /**
    * Gets the type stored for the given variable name, if that binding exists.

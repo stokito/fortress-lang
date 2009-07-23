@@ -63,12 +63,12 @@ public class Constructor extends Function {
         _throwsClause = throwsClause;
         _where = where;
         
-        putThunk(new Thunk<Option<Type>>() {
-          @Override public Option<Type> value() {
-            return Option.<Type>some(
-                NodeFactory.makeTraitType(_declaringTrait,
-                                          TypesUtil.staticParamsToArgs(_staticParams)));
-          }
+        _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
+            public Option<Type> value() {
+                return Option.<Type>some(
+                    NodeFactory.makeTraitType(_declaringTrait,
+                                              TypesUtil.staticParamsToArgs(_staticParams)));
+            }
         });
     }
 

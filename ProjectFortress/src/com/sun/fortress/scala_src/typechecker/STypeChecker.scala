@@ -297,9 +297,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   protected def nameHasBinding(name: Name): Boolean =
     handleAlias(name, toList(current.ast.getImports)) match {
       case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-        getEnvFromApi(api).isDefinedAt(id)
+        getEnvFromApi(api).contains(id)
       case id@SIdOrOpOrAnonymousName(_, None) =>
-        env.isDefinedAt(id) || analyzer.kindEnv.isDefinedAt(id)
+        env.contains(id) || analyzer.kindEnv.contains(id)
       case _ => false
     }
 

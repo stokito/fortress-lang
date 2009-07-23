@@ -179,18 +179,6 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       case _ => Nil
     }
   
-  protected def extractVariableBindings[T <: Variable]
-      (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] =
-    
-    toMap(m).flatMap(xv =>{ 
-      xv match{
-        case (x:Id, v:DeclaredVariable) => extractNodeBindings(v.ast)
-        case (x:Id, v:SingletonVariable) =>
-          extractNodeBindings(NF.makeLValue(x, v.declaringTrait))
-        case (x:Id, v:ParamVariable) =>  extractNodeBindings(v.ast)
-      }
-    })
-  
   protected def extractTypeConsBindings[T <: TypeConsIndex]
       (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] =
     
@@ -235,6 +223,21 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         case _ => Nil
       }
     })
+
+  protected def extractVariableBindings[T <: Variable]
+      (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] = {
+
+      toMap(m).map(xv => {
+        val (x:Id, v:Variable) = xv
+
+        // Lazily compute the type for this function binding at the time of
+        // lookup.
+        val lazyTypeEvaluation: TypeThunk = new TypeThunk {
+          def apply: Option[Type] = v.getInferredType
+        }
+        makeBinding(x, lazyTypeEvaluation, v.modifiers, v.mutable)
+      })
+    }
   
   protected def extractFunctionBindings[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],

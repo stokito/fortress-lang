@@ -717,7 +717,7 @@ object ExportChecker {
  */
 object DeclaredVariable {
   def unapply(variable:JavaDeclaredVariable) = Some(variable.ast)
-  def apply(lvalue:LValue) = new JavaDeclaredVariable(lvalue)
+  def apply(lvalue:LValue, decl:VarDecl) = new JavaDeclaredVariable(lvalue, decl)
 }
 
 object ParamVariable {

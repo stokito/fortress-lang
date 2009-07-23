@@ -520,7 +520,7 @@ public class IndexBuilder {
     private void buildVariables(VarDecl ast,
             Map<Id, Variable> variables) {
         for (LValue b : ast.getLhs()) {
-            variables.put(b.getName(), new DeclaredVariable(b));
+            variables.put(b.getName(), new DeclaredVariable(b, ast));
         }
     }
 
@@ -558,7 +558,7 @@ public class IndexBuilder {
             Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
             Id name = b.getName();
-            fields.put(name, new DeclaredVariable(b));
+            fields.put(name, new DeclaredVariable(b, ast));
             if (!mods.isHidden()) {
                 getters.put(name, new FieldGetterMethod(b, declaringTrait));
             }
