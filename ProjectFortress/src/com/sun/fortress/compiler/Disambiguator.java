@@ -101,7 +101,6 @@ public class Disambiguator {
         return results;
     }
 
-    /** Result of {@link #disambiguateApis}. */
     public static class ApiResult extends StaticPhaseResult {
         private final Iterable<Api> _apis;
 
@@ -119,7 +118,7 @@ public class Disambiguator {
     /**
      * Disambiguate the given apis. To support circular references,
      * the apis should appear in the given environment.
-     * @param apis_to_disambiguate Apis currently being disambiguated.
+     * @param apisToDisambiguate Apis currently being disambiguated.
      * @param globalEnv The current global environment.
      */
     public static ApiResult disambiguateApis(Iterable<Api> apisToDisambiguate,
@@ -166,7 +165,7 @@ public class Disambiguator {
         }
 
         // Rebuild the indices
-        IndexBuilder.ApiResult rebuiltIndx = IndexBuilder.buildApis(newApis, System.currentTimeMillis());
+        IndexBuilder.ApiResult rebuiltIndx = IndexBuilder.buildApis(newApis, globalEnv, System.currentTimeMillis());
 
         GlobalEnvironment newGlobalEnv = new GlobalEnvironment.FromMap(CollectUtil.union(globalEnv.apis(),
                                                                                          rebuiltIndx.apis()));
@@ -193,10 +192,10 @@ public class Disambiguator {
             }
         }
 
-        IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
-        GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(rebuiltIndx2.apis());
-
-        initializeGrammarIndexExtensions(rebuiltIndx2.apis().values(), globalEnv.apis().values() );
+        IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, newGlobalEnv, System.currentTimeMillis());
+        GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(CollectUtil.union(newGlobalEnv.apis(),
+                                                                                           rebuiltIndx2.apis()));
+        initializeGrammarIndexExtensions(rebuiltIndx2.apis().values(), newGlobalEnv2.apis().values() );
         results = disambiguateGrammarMembers(rebuiltIndx2.apis().values(), errors, newGlobalEnv2);
         return new ApiResult(results, errors);
     }

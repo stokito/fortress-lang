@@ -144,7 +144,7 @@ public class GrammarRewriter {
 
     private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis,
                                                             GlobalEnvironment env) {
-        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
+        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, env, System.currentTimeMillis() );
         return apiN.apis().values();
     }
 

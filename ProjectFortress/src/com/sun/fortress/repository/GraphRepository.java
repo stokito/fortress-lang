@@ -789,7 +789,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Shell shell = new Shell(this);
         AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
-                          knownApis, new ArrayList<Api>(), components, now );
+                          knownApis, new ArrayList<Api>(), components, now);
         Debug.debug( Debug.Type.REPOSITORY, 1, "Shell.analyze for ", component, " done." );
         if ( !result.isSuccessful() ){
             throw new MultipleStaticError(result.errors());

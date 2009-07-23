@@ -29,7 +29,7 @@ import _root_.java.util.{List => JList}
 import _root_.java.util.Map
 import _root_.java.util.ArrayList
 
-class ApiLinker(env: Map[APIName, ApiIndex]) {
+class ApiLinker(env: Map[APIName, ApiIndex], globalEnv: GlobalEnvironment) {
   def link(api: Api): Api = {
     api match {
       case SApi(info, name, imports, decls, comprises) => {

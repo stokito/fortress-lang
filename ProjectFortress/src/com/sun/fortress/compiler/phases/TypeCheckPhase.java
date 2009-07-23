@@ -48,7 +48,7 @@ public class TypeCheckPhase extends Phase {
         AnalyzeResult previous = parentPhase.getResult();
 
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(previous
-                .apiIterator(), lastModified);
+                .apiIterator(), this.env,  lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder
                 .buildComponents(previous.componentIterator(), lastModified);
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(),

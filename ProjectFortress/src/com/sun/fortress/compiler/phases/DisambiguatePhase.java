@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
@@ -25,16 +25,29 @@ import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+
 public class DisambiguatePhase extends Phase {
 
     public DisambiguatePhase(Phase parentPhase) {
         super(parentPhase);
+    }
+
+    private Iterable<Api> apiAsts(Map<APIName, ApiIndex> apis) {
+        Set<Api> result = new HashSet<Api>();
+        for (ApiIndex api : apis.values()) {
+            result.add((Api) api.ast());
+        }
+        return result;
     }
 
     @Override
@@ -51,9 +64,9 @@ public class DisambiguatePhase extends Phase {
         //                                                                                      previous.apis())));
 
         GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(),
-                                                                                      previous.apis()));
+                previous.apis()));
 
-        //        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(previous.apis());
+        // GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(previous.apis());
 
 //          System.out.println("rawApiEnv:");
 //          rawApiEnv.print();
@@ -73,9 +86,9 @@ public class DisambiguatePhase extends Phase {
         // of disambiguation from call to call. This needs to be fixed. 
         // EricAllen 7/8/2009
         Disambiguator.ApiResult apiDR =
-            Disambiguator.disambiguateApis(rawApiEnv.apiAsts(),
-                                           rawApiEnv);      
- 
+                Disambiguator.disambiguateApis(apiAsts(previous.apis()),
+                        rawApiEnv);
+
 //         for (Api api : apiDR.apis()) { 
 //             Nodes.printNode(api, "apiDR.");
 //         }
@@ -87,7 +100,7 @@ public class DisambiguatePhase extends Phase {
 
         // Rebuild ApiIndices.
         IndexBuilder.ApiResult apiIR =
-            IndexBuilder.buildApis(apiDR.apis(), lastModified);
+                IndexBuilder.buildApis(apiDR.apis(), rawApiEnv, lastModified);
 
 //         for (ApiIndex api : apiIR.apis().values()) { 
 //             Nodes.printNode(api.ast(), "apiIR.");
@@ -99,31 +112,31 @@ public class DisambiguatePhase extends Phase {
 
         // Rebuild GlobalEnvironment.
         GlobalEnvironment apiEnv =
-            new GlobalEnvironment.FromMap(CollectUtil.union(rawApiEnv.apis(), apiIR.apis()));
-        
+                new GlobalEnvironment.FromMap(CollectUtil.union(rawApiEnv.apis(), apiIR.apis()));
+
 //         System.err.println("DisambiguatePhase apiEnv");
 //         apiEnv.print();
 //         System.err.println("end DisambiguatePhase apiEnv");
 
         Disambiguator.ComponentResult componentDR =
-            Disambiguator.disambiguateComponents(previous.componentIterator(),
-                                                 apiEnv,
-                                                 previous.components());
+                Disambiguator.disambiguateComponents(previous.componentIterator(),
+                        apiEnv,
+                        previous.components());
         if (!componentDR.isSuccessful()) {
             throw new MultipleStaticError(componentDR.errors());
         }
 
         // Rebuild ComponentIndices.
         IndexBuilder.ComponentResult componentsDone =
-            IndexBuilder.buildComponents(componentDR.components(), lastModified);
+                IndexBuilder.buildComponents(componentDR.components(), lastModified);
         if (!componentsDone.isSuccessful()) {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
-        return new AnalyzeResult(apiEnv.apis(),
-                                 componentsDone.components(),
-                                 IterUtil.<StaticError> empty(),
-                                 previous.typeCheckerOutput());
+        return new AnalyzeResult(apiIR.apis(),
+                componentsDone.components(),
+                IterUtil.<StaticError>empty(),
+                previous.typeCheckerOutput());
 
     }
 

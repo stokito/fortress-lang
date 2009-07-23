@@ -31,7 +31,7 @@ import _root_.java.util.{List => JList}
 import _root_.java.util.Map
 import _root_.java.util.ArrayList
 
-class CompoundApiChecker(env: Map[APIName, ApiIndex]) {
+class CompoundApiChecker(env: Map[APIName, ApiIndex], globalEnv: GlobalEnvironment) {
   val errors = new ErrorLog()
   
   def signal(msg: String, hasAt: HasAt) = {

@@ -72,6 +72,7 @@ public class PreTypeCheckDesugarer {
         }
         return new ApiResult
             (IndexBuilder.buildApis(desugaredApis,
+                                    env,
                                     System.currentTimeMillis()).apis(),
              IterUtil.<StaticError>empty());
     }

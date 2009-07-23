@@ -15,4 +15,4 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Compiled5.ax.A4 comprises {Compiled5.ax.A3, Compiled5.ax.A4} end
+api Compiled5.ax.A4 comprises {Compiled5.ax.A3, Compiled5.ax.A2} end
