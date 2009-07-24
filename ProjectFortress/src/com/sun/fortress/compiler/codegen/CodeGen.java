@@ -122,9 +122,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
         this.singletonObjects = c.singletonObjects;
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
-        
+
     }
-    
+
     private APIName thisApi() {
         return ci.ast().getName();
     }
@@ -233,7 +233,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.internalObject, "<init>", NamingCzar.voidToVoid);
-        
+
         // TODO Initialize fields.
         int pno = 1;
         for (Param p : params) {
@@ -265,7 +265,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private void addStaticVar( VarCodeGen v ) {
-        debug("addLocalVar " + v);
+        debug("addStaticVar " + v);
         lexEnv.put(v.name.getText(), v);
     }
 
@@ -403,11 +403,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
     }
-    
+
     private void allSayWhats() {
         return; // This is a great place for a breakpoint!
     }
-    
+
     private <T> T sayWhat(ASTNode x) {
         allSayWhats();
         throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
@@ -429,21 +429,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Debug.debug(Debug.Type.CODEGEN,1,message);
     }
 
-    public void defaultCase(Node x) {
-        System.out.println("defaultCase: " + x + " of class " + x.getClass());
-        sayWhat(x);
-    }
-
-    public void forImportStar(ImportStar x) {
-        // do nothing, don't think there is any code go generate
-    }
-    
-    public void forBlock(Block x) {
-        boolean oldInABlock = inABlock;
-        inABlock = true;
+    private void doStatements(List<Expr> stmts) {
         int onStack = 0;
-        debug("forBlock ", x);
-        for ( Expr e : x.getExprs() ) {
+        for ( Expr e : stmts ) {
             popAll(onStack);
             e.accept(this);
             onStack = 1;
@@ -453,6 +441,25 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // For now we always have 1 pointer on stack and this doesn't
             // matter.
         }
+    }
+
+    public void defaultCase(Node x) {
+        System.out.println("defaultCase: " + x + " of class " + x.getClass());
+        sayWhat(x);
+    }
+
+    public void forImportStar(ImportStar x) {
+        // do nothing, don't think there is any code go generate
+    }
+
+    public void forBlock(Block x) {
+        if (x.isAtomicBlock()) {
+            sayWhat(x, "Can't generate code for atomic block yet.");
+        }
+        boolean oldInABlock = inABlock;
+        inABlock = true;
+        debug("forBlock ", x);
+        doStatements(x.getExprs());
         inABlock=oldInABlock;
     }
     public void forChainExpr(ChainExpr x) {
@@ -513,7 +520,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         // Must do this first, to get local decls right.
         generateTopLevelOverloads();
-        
+
         /*
          * Must process these first to put them into scope.
          * This probably will generalize to include VarDecl, in which case
@@ -532,12 +539,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 null,
                 null);
 
-       // Singletons; 
-        
+       // Singletons;
+
         for (ObjectDecl y : singletonObjects) {
             singletonObjectFieldAndInit(y);
         }
-        
+
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         mv.visitEnd();
@@ -555,6 +562,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
 
     public void forDo(Do x) {
+        // TODO: these ought to occur in parallel!
         debug("forDo ", x);
         int onStack = 0;
         for ( Block b : x.getFronts() ) {
@@ -626,12 +634,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
         CodeGen cg = new CodeGen(this);
         cg.localsDepth = 0;
 
+        VarCodeGen selfVar = null;
+
         if (!functionalMethod && (inAnObject || inATrait)) {
             // TODO: Add proper type information here based on the
             // enclosing trait/object decl.  For now we can get away
             // with just stashing a null as we're not using it to
             // determine stack sizing or anything similarly crucial.
-            cg.addLocalVar(new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null));
+            selfVar = new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null);
+            cg.addLocalVar(selfVar);
         } else {
             // Top-level function or functional method
             // DO NOT special case run() here and make it non-static (that used to happen),
@@ -650,11 +661,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitCode();
 
         // Now inside method body.  Generate code for the method body.
+        List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
         for (Param p : params) {
             VarCodeGen v = cg.addParam(p);
+            paramsGen.add(v);
             // v.pushValue(cg.mv);
         }
         body.unwrap().accept(cg);
+        for (VarCodeGen v : paramsGen) {
+            v.outOfScope(cg.mv);
+        }
+        if (selfVar != null) selfVar.outOfScope(cg.mv);
 
         // Method body is complete except for returning final result if any.
         // TODO: Fancy footwork here later on if we need to return a non-pointer;
@@ -679,9 +696,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     /**
-     * Creates a name that will not collide with any overloaded functions 
+     * Creates a name that will not collide with any overloaded functions
      * (the overloaded name "wins" because it if it is exported, this one is not).
-     * 
+     *
      * @param name
      * @param sig The jvm signature for a method, e.g., (ILjava/lang/Object;)D
      * @return
@@ -700,7 +717,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     public void forFnRef(FnRef x) {
         debug("forFnRef ", x);
         String name = x.getOriginalName().getText();
-        
+
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
 
@@ -821,9 +838,47 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 
+    public void forLocalVarDecl(LocalVarDecl d) {
+        debug("forLocalVarDecl", d);
+        List<LValue> lhs = d.getLhs();
+        if (lhs.size()!=1) {
+            sayWhat(d, "Can't yet generate code for bindings of multiple lhs variables");
+        }
+        LValue v = lhs.get(0);
+        if (v.isMutable()) {
+            sayWhat(d, "Can't yet generate code for mutable variable declarations.");
+        }
+        if (!d.getRhs().isSome()) {
+            // Just a forward declaration to be bound in subsequent
+            // code.  But we need to leave a marker so that the
+            // definitions down different control flow paths are
+            // consistent; basically we need to create the definition
+            // here, and the use that VarCodeGen object for the
+            // subsequent true definitions.
+            sayWhat(d, "Can't yet handle forward binding declarations.");
+        }
+        if (!v.getIdType().isSome()) {
+            sayWhat(d, "Variable being bound lacks type information!");
+        }
+
+        Expr rhs = d.getRhs().unwrap();
+        rhs.accept(this);
+
+        Type ty = v.getIdType().unwrap();
+        VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, localsDepth, mv);
+        vcg.assignValue(mv);
+
+        CodeGen cg = new CodeGen(this);
+        cg.addLocalVar(vcg);
+
+        cg.doStatements(d.getBody());
+
+        vcg.outOfScope(mv);
+    }
+
     public void forObjectDecl(ObjectDecl x) {
     }
-    
+
     public void forObjectDeclPrePass(ObjectDecl x) {
         debug("forObjectDecl", x);
         TraitTypeHeader header = x.getHeader();
@@ -852,14 +907,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
         List<Param> params;
         if (x.getParams().isSome()) {
             params = x.getParams().unwrap();
-            
+
              // Generate the factory method
             String classDesc = NamingCzar.only.internalToDesc(classFile);
             String sig = NamingCzar.only.jvmSignatureFor(params, classDesc, thisApi());
             String init_sig = NamingCzar.only.jvmSignatureFor(params, "V", thisApi());
-            
+
             String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
-            
+
             mv = cw.visitMethod(Opcodes.ACC_STATIC,
                     mname,
                     sig,
@@ -868,17 +923,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             mv.visitTypeInsn(Opcodes.NEW, classFile);
             mv.visitInsn(Opcodes.DUP);
-            
+
             // iterate, pushing parameters, beginning at zero.
            // TODO actually handle N>0 parameters.
-            
+
             int stack_offset = 0;
             for (Param p : params) {
                 // when we unbox, this will be type-dependent
                 mv.visitVarInsn(Opcodes.ALOAD, stack_offset);
-                stack_offset++; 
+                stack_offset++;
             }
-            
+
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", init_sig);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -890,7 +945,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         CodeGenClassWriter prev = cw;
-        
+
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
 
@@ -899,11 +954,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
         cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
-        
+
         // Emit fields here, one per parameter.
 
         generateFieldsAndInitMethod(classFile, params);
-        
+
         BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
         // need to add locals to the environment, yes.
@@ -911,7 +966,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         for (Param p : params) {
             Type param_type = p.getIdType().unwrap();
             String objectFieldName = p.getName().getText();
-            Id id = 
+            Id id =
                NodeFactory.makeId(NodeUtil.getSpan(p.getName()), objectFieldName);
             addStaticVar(new VarCodeGen.FieldVar(id,
                     param_type,
@@ -919,12 +974,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     objectFieldName,
                     NamingCzar.jvmTypeDesc(param_type, component.getName(), true)));
         }
-                
+
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
         }
-        
+
         lexEnv = savedLexEnv;
         dumpClass( classFile );
         cw = prev;
@@ -938,7 +993,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private void singletonObjectFieldAndInit(ObjectDecl x) {
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
                 NodeUtil.getName(x).getText());
-        
+
         String objectFieldName = x.getHeader().getName().stringName();
 
 
@@ -955,9 +1010,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
         mv.visitFieldInsn(Opcodes.PUTSTATIC, packageAndClassName, objectFieldName, classDesc);
-        
+
         Id id = (Id)  x.getHeader().getName();
-        
+
         addStaticVar(new VarCodeGen.SingletonObject(
                     id,
                     NodeFactory.makeTraitType(id),
@@ -978,7 +1033,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // This sets up the parallel task construct.
     // Caveat: We create separate taskClasses for every task
     public String delegate(ASTNode x) {
-        
+
         // For now we only delegate function applications.
         if (! (x instanceof _RewriteFnApp)) {
             sayWhat(x);
@@ -1025,11 +1080,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
             sayWhat(x, "Looking for a FnRef");
 
         FnRef fnRef = (FnRef) function;
-        IdOrOp originalName = fnRef.getOriginalName();        
+        IdOrOp originalName = fnRef.getOriginalName();
 
         Function f = ci.functions().matchFirst(originalName).iterator().next();
         List<Param> params = f.parameters();
-        
+
         int argsIndex = 0;
         int varIndex = 1;
         for (Param p : params) {
@@ -1291,7 +1346,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Expr obj = x.getObj();
         List<StaticArg> sargs = x.getStaticArgs();
         Expr arg = x.getArg();
-        
+
         Option<Type> mt = x.getOverloadingType();
         Type domain_type;
         Type range_type;
@@ -1304,7 +1359,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             domain_type = exprType(arg);
             range_type = exprType(x);
         }
-        
+
         int savedParamCount = paramCount;
         try {
             // put object on stack
@@ -1331,7 +1386,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
      */
     private Type exprType(Expr expr) {
         Option<Type> exprType = expr.getInfo().getExprType();
-            
+
             if (!exprType.isSome()) {
                 sayWhat(expr, "Missing type information for " + expr);
             }
@@ -1340,7 +1395,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
     private Option<Type> exprOptType(Expr expr) {
         Option<Type> exprType = expr.getInfo().getExprType();
-  
+
         return exprType;
     }
 
@@ -1362,7 +1417,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             arg.accept(this);
         }
     }
-    
+
     public void for_RewriteFnApp(_RewriteFnApp x) {
         debug("for_RewriteFnApp ", x,
                      " args = ", x.getArgument(), " function = ", x.getFunction());
@@ -1401,7 +1456,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 apiname = thisApi();
                 set_of_f = fnrl.matchFirst(fn);
             } else {
-                
+
                 IdOrOp fnnoapi = NodeFactory.makeLocalIdOrOp(fn);
                 apiname = fnapi.unwrap();
                 ApiIndex ai = env.api(apiname);

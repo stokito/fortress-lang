@@ -611,8 +611,8 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true);
     }
 
-        public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
-            final APIName ifNone, final boolean withLSemi) {
+    public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
+                                     final APIName ifNone, final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
             public void defaultCase(ASTNode x) {
                 throw new CompilerError(NodeUtil.getSpan(x),

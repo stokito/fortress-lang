@@ -23,7 +23,8 @@ export Executable
 
 fib(n: ZZ32): ZZ32 =
     if n <= 2 then
-        1
+        r = 1
+        r
     else
         t1 = fib(n-1)
         t2 = fib(n-2)
