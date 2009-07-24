@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2008 Sun Microsystems, Inc.,
+ Copyright 2009 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-/* 
+/*
  * Class for doing transformations on grammars.
  */
 

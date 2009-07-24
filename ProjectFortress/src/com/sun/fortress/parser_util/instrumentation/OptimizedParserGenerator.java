@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2008 Sun Microsystems, Inc.,
+ Copyright 2009 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -31,17 +31,17 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-/* 
+/*
  * Command-line tool for instrumenting the Fortress grammar.
- * 
- * This tool is specific to the Fortress grammar: It knows package names and 
+ *
+ * This tool is specific to the Fortress grammar: It knows package names and
  * the name of the main grammar file. It's output file is hard-coded.
  * It would be nice to change these eventually.
  *
  * Assumptions:
  *  - the input grammar does not use the global state options
  *    (the tool assumes it has complete control over the state)
- * 
+ *
  */
 
 public class OptimizedParserGenerator {
