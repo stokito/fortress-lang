@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 // import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.compiler.NamingCzar;
 
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
@@ -80,22 +81,22 @@ public abstract class VarCodeGen {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
     }
-    
-   protected abstract static class NeedsType extends VarCodeGen {
-        
+
+    protected abstract static class NeedsType extends VarCodeGen {
+
         protected final String packageAndClassName;
         protected final String objectFieldName;
         protected final String classDesc;
-        
+
         public NeedsType(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType);
             this.packageAndClassName = owner;
             this.objectFieldName = name;
             this.classDesc = desc;
         }
-   }
-    
-    
+    }
+
+
     public static class FieldVar extends NeedsType {
         public FieldVar(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType, owner, name, desc);
@@ -116,18 +117,18 @@ public abstract class VarCodeGen {
         @Override
         public void outOfScope(CodeGenMethodVisitor mv) {
             // TODO Auto-generated method stub
-            
+
         }
-       
+
     }
 
     public static class SingletonObject extends NeedsType {
-        
-        
+
+
         public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType, owner, name, desc);
         }
-        
+
         public void pushValue(CodeGenMethodVisitor mv) {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
         }
@@ -141,9 +142,9 @@ public abstract class VarCodeGen {
         public void outOfScope(CodeGenMethodVisitor mv) {
             // never happens
         }
-        
+
     }
-    
+
     /** Function parameter.  Since function parameters are immutable
      * in Fortress, we assume that we won't need other special
      * provisions for them (we'll simply copy references where
@@ -195,6 +196,10 @@ public abstract class VarCodeGen {
 
         public void outOfScope(CodeGenMethodVisitor mv) {
             Label finish = new Label();
+            mv.visitLabel(finish);
+            mv.visitLocalVariable(name.getText(),
+                                  NamingCzar.jvmTypeDesc(fortressType, null),
+                                  null, start, finish, offset);
             // call mv.visitLocalVariable here.
         }
     }
