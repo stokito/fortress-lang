@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2007 Sun Microsystems, Inc.,
+ Copyright 2009 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -17,7 +17,7 @@
 
 /*
  * Class containing names and imports for a given component.
- * Used in the Fortress com.sun.fortress.parser.preparser 
+ * Used in the Fortress com.sun.fortress.parser.preparser
  * @see{com.sun.fortress.parser.NameAndImportCollector}.
  */
 
@@ -76,7 +76,7 @@ public class NameAndImportCollection {
         String s = "Component " + this.getComponentName() + " has the following imports\n";
         for (Import i : this.imports) {
             s += "  a)" + i.toString() +"\n";
-		}		
+		}
 		return s;
 	}
 
