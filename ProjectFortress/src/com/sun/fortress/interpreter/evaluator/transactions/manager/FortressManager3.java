@@ -1,19 +1,19 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 /* Based on Backoff Manager */
 
@@ -21,6 +21,7 @@ package com.sun.fortress.interpreter.evaluator.transactions.manager;
 
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
+
 import java.util.Collection;
 
 /**
@@ -49,20 +50,18 @@ public class FortressManager3 extends BaseManager {
         while (mine.getNestingDepth() < yours.getNestingDepth()) {
             yours = yours.getParent();
         }
-        
+
         int myId = (int) mine.getID();
         int yourId = (int) yours.getID();
 
-        if (myId < yourId) 
-            return other;
+        if (myId < yourId) return other;
         else return me;
     }
 
     public void pickOne(Transaction me, Transaction other) {
         Transaction winner = lowerNumbered(me, other);
         Transaction loser;
-        if (winner == me) 
-            loser = other; 
+        if (winner == me) loser = other;
         else loser = me;
 
         if (winner.isActive()) {
@@ -85,12 +84,11 @@ public class FortressManager3 extends BaseManager {
         if (winner == me) {
             // It's possible that one of my competitors already committed.  We might want to be smarter later, but for now!
             boolean ilose = false;
-            
+
             for (Transaction t : others) {
                 if (t != me) {
                     t.abort();
-                    if (!t.isAborted())
-                        ilose = true;
+                    if (!t.isAborted()) ilose = true;
                 }
             }
             if (ilose) me.abort();
@@ -107,6 +105,6 @@ public class FortressManager3 extends BaseManager {
 
     public void resolveConflict(Transaction me, Collection<Transaction> others) {
         if (me == null || !me.isActive()) return;
-        pickOne(me,others);
+        pickOne(me, others);
     }
 }

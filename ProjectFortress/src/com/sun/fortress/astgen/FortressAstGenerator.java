@@ -1,50 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
+
+import edu.rice.cs.astgen.*;
+import edu.rice.cs.astgen.Types.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeInterface;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Types.ClassName;
-import edu.rice.cs.astgen.Types.OptionClassName;
-import edu.rice.cs.astgen.Types.PrimitiveArrayName;
-import edu.rice.cs.astgen.Types.PrimitiveName;
-import edu.rice.cs.astgen.Types.ReferenceArrayName;
-import edu.rice.cs.astgen.Types.SequenceClassName;
-import edu.rice.cs.astgen.Types.TupleClassName;
-import edu.rice.cs.astgen.Types.TypeName;
-import edu.rice.cs.astgen.Types.TypeNameVisitor;
+import java.util.*;
 
 /* Generates FortressAst.fsi and FortressAst.fss, fortress representations
  * of the fortress ast( Fortress.ast )
@@ -54,19 +34,19 @@ public class FortressAstGenerator extends CodeGenerator {
         super(ast);
     }
 
-    public Iterable<Class<? extends CodeGenerator>> dependencies(){
+    public Iterable<Class<? extends CodeGenerator>> dependencies() {
         return new ArrayList<Class<? extends CodeGenerator>>();
     }
 
     @Override
-    public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i){
+    public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i) {
     }
 
     @Override
-    public void generateClassMembers(TabPrintWriter writer, NodeClass c){
+    public void generateClassMembers(TabPrintWriter writer, NodeClass c) {
     }
 
-    private List<? extends NodeInterface> getInterfaces(){
+    private List<? extends NodeInterface> getInterfaces() {
         return mkList(ast.interfaces());
     }
 
@@ -76,24 +56,24 @@ public class FortressAstGenerator extends CodeGenerator {
      *  HasAt
      *  Applicable
      */
-    private boolean ignoreInterface( String name ){
-        if ( name.equals( "UIDObject" ) ){
+    private boolean ignoreInterface(String name) {
+        if (name.equals("UIDObject")) {
             return true;
         }
-        if ( name.equals( "HasAt" ) ){
+        if (name.equals("HasAt")) {
             return true;
         }
-        if ( name.equals( "Applicable" ) ){
+        if (name.equals("Applicable")) {
             return true;
         }
         return false;
     }
 
-    private List<TypeName> filterInterfaces(List<TypeName> interfaces){
+    private List<TypeName> filterInterfaces(List<TypeName> interfaces) {
         List<TypeName> ok = new ArrayList<TypeName>();
 
-        for ( TypeName name : interfaces ){
-            if ( ! ignoreInterface(fieldType(name)) ){
+        for (TypeName name : interfaces) {
+            if (!ignoreInterface(fieldType(name))) {
                 ok.add(name);
             }
         }
@@ -101,76 +81,76 @@ public class FortressAstGenerator extends CodeGenerator {
         return ok;
     }
 
-    private String extendsClause( NodeInterface box ){
+    private String extendsClause(NodeInterface box) {
         List<TypeName> interfaces = filterInterfaces(box.interfaces());
-        if ( interfaces.isEmpty() ){
+        if (interfaces.isEmpty()) {
             return "";
         }
-        if ( interfaces.size() == 1 ){
+        if (interfaces.size() == 1) {
             return "extends " + fieldType(interfaces.get(0));
         }
         StringBuffer buffer = new StringBuffer();
-        buffer.append( "extends { " );
+        buffer.append("extends { ");
         int i = 0;
-        for ( TypeName name : interfaces ){
-            if ( i != 0 ){
-                buffer.append( ", " );
+        for (TypeName name : interfaces) {
+            if (i != 0) {
+                buffer.append(", ");
             }
             i += 1;
-            buffer.append( fieldType(name) );
+            buffer.append(fieldType(name));
         }
-        buffer.append( " }" );
+        buffer.append(" }");
 
         return buffer.toString();
     }
 
-    private String extendsClause( NodeClass box ){
-        if ( ast.isRoot(box) ){
+    private String extendsClause(NodeClass box) {
+        if (ast.isRoot(box)) {
             return "";
         }
         List<String> names = new ArrayList<String>();
-        if ( ! ignoreInterface(fieldType(box.superClass())) ){
+        if (!ignoreInterface(fieldType(box.superClass()))) {
             names.add(fieldType(box.superClass()));
         }
-        for ( TypeName name : box.interfaces() ){
-            if ( ! ignoreInterface(fieldType(name)) ){
+        for (TypeName name : box.interfaces()) {
+            if (!ignoreInterface(fieldType(name))) {
                 names.add(fieldType(name));
             }
         }
         StringBuffer buffer = new StringBuffer();
         buffer.append("extends ");
-        if ( names.size() == 1 ){
-            buffer.append( names.get( 0 ) );
+        if (names.size() == 1) {
+            buffer.append(names.get(0));
         } else {
             int i = 0;
-            buffer.append( "{ " );
-            for ( String name : names ){
-                if ( i != 0 ){
-                    buffer.append( ", " );
+            buffer.append("{ ");
+            for (String name : names) {
+                if (i != 0) {
+                    buffer.append(", ");
                 }
                 i += 1;
-                buffer.append( name );
+                buffer.append(name);
             }
-            buffer.append( " }" );
+            buffer.append(" }");
         }
         return buffer.toString();
     }
 
-    private String fieldType(TypeName type){
-        return type.accept(new TypeNameVisitor<String>(){
+    private String fieldType(TypeName type) {
+        return type.accept(new TypeNameVisitor<String>() {
             /** A type declared in the AST.  Has 0 type arguments. */
-            public String forTreeNode(ClassName t){
+            public String forTreeNode(ClassName t) {
                 return t.name();
             }
 
             /** A primitive type. */
-            public String forPrimitive(PrimitiveName t){
+            public String forPrimitive(PrimitiveName t) {
                 String name = t.name();
                 String method;
-                if ( name.equals("int") ){
+                if (name.equals("int")) {
                     return "ZZ32";
                 }
-                if ( name.equals("boolean") ){
+                if (name.equals("boolean")) {
                     return "Boolean";
                 }
                 /*
@@ -189,39 +169,39 @@ public class FortressAstGenerator extends CodeGenerator {
             }
 
             /** A {@code java.lang.String}.  Has 0 type arguments. */
-            public String forString(ClassName t){
+            public String forString(ClassName t) {
                 return "String";
             }
 
             /** An array of primitives. */
-            public String forPrimitiveArray(PrimitiveArrayName t){
+            public String forPrimitiveArray(PrimitiveArrayName t) {
                 throw new RuntimeException("Can't handle primitive array");
             }
 
             /** An array of reference types (non-primitives). */
-            public String forReferenceArray(ReferenceArrayName t){
+            public String forReferenceArray(ReferenceArrayName t) {
                 throw new RuntimeException("Can't handle reference array");
             }
 
             /** A list, set, or other subtype of {@code java.lang.Iterable}. */
-            public String forSequenceClass(SequenceClassName t){
+            public String forSequenceClass(SequenceClassName t) {
                 return sub("List[\\@type\\]", "@type", t.elementType().accept(this));
             }
 
             /** A {@code edu.rice.cs.plt.tuple.Option}.  Has 1 type argument. */
-            public String forOptionClass(OptionClassName t){
+            public String forOptionClass(OptionClassName t) {
                 return sub("Maybe[\\@type\\]", "@type", t.elementType().accept(this));
             }
 
             /** A tuple (see definition in {@link TupleName} documentation). */
-            public String forTupleClass(TupleClassName t){
+            public String forTupleClass(TupleClassName t) {
                 throw new RuntimeException("Can't handle tuple");
             }
 
             /** A type for which none of the other cases apply. */
-            public String forGeneralClass(ClassName t){
+            public String forGeneralClass(ClassName t) {
                 String name = t.className();
-                if ( name.equals("BigInteger") ){
+                if (name.equals("BigInteger")) {
                     return "ZZ64";
                 }
                 return t.className();
@@ -234,11 +214,11 @@ public class FortressAstGenerator extends CodeGenerator {
      * List:
      *  span
      */
-    private boolean ignoreField( Field field ){
-        if ( field.name().equals( "span" ) ){
+    private boolean ignoreField(Field field) {
+        if (field.name().equals("span")) {
             return true;
         }
-        if ( field.name().equals( "parenthesized" ) ){
+        if (field.name().equals("parenthesized")) {
             return true;
         }
 
@@ -246,19 +226,19 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     /* remove ignored fields */
-    private Iterable<Field> filterFields(Iterable<Field> fields){
+    private Iterable<Field> filterFields(Iterable<Field> fields) {
         List<Field> ok = new ArrayList<Field>();
 
-        for ( Field field : fields ){
-            if ( ! ignoreField( field ) ){
-                ok.add( field );
+        for (Field field : fields) {
+            if (!ignoreField(field)) {
+                ok.add(field);
             }
         }
 
         return ok;
     }
 
-    private String traitFields( List<Field> fields ){
+    private String traitFields(List<Field> fields) {
         /* RMC: Temporary hack to eliminate shadowing. After all, we don't actually
          * use the AST types at all any longer.
          */
@@ -277,11 +257,11 @@ public class FortressAstGenerator extends CodeGenerator {
         */
     }
 
-    private String fields( NodeInterface box ){
+    private String fields(NodeInterface box) {
         return traitFields(box.fields());
     }
 
-    private String fields( NodeClass box ){
+    private String fields(NodeClass box) {
         /* RMC: Temporary hack to eliminate shadowing. After all, we don't actually
          * use the AST types at all any longer.
          */
@@ -314,129 +294,132 @@ public class FortressAstGenerator extends CodeGenerator {
      * sub( "foo @bar @baz", "@bar", "1", "@baz", "2" ) ->
      * "foo 1 2"
      */
-    private String sub( String s, String... args ){
-        if ( args.length == 0 ){
+    private String sub(String s, String... args) {
+        if (args.length == 0) {
             return s;
         } else {
-            Map<String,String> map = new HashMap<String,String>();
-            return sub(String.format(s.replaceAll( args[ 0 ], "%1\\$s" ), args[ 1 ]), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
+            Map<String, String> map = new HashMap<String, String>();
+            return sub(String.format(s.replaceAll(args[0], "%1\\$s"), args[1]), Arrays.asList(args).subList(2, args.length).toArray(new String[0]));
             // return sub( s.replaceAll( args[ 0 ], args[ 1 ] ), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
         }
     }
 
     /* Iterable -> List */
-    private <T> List<T> mkList(Iterable<T> iter){
+    private <T> List<T> mkList(Iterable<T> iter) {
         List<T> list = new ArrayList<T>();
-        for ( T i : iter ){
+        for (T i : iter) {
             list.add(i);
         }
 
         return list;
     }
 
-    private <T extends NodeType> Iterable<T> sort(Iterable<T> boxes){
+    private <T extends NodeType> Iterable<T> sort(Iterable<T> boxes) {
         List<T> list = mkList(boxes);
-        Collections.sort(list, new Comparator<NodeType>(){
-            public int compare( NodeType b1, NodeType b2 ){
-                return b1.name().compareTo( b2.name() );
+        Collections.sort(list, new Comparator<NodeType>() {
+            public int compare(NodeType b1, NodeType b2) {
+                return b1.name().compareTo(b2.name());
             }
         });
         return list;
     }
 
-    private boolean ignoreClass( String name ){
-        if ( name.startsWith("_") ){
+    private boolean ignoreClass(String name) {
+        if (name.startsWith("_")) {
             return true;
         }
 
         /* TODO: this won't be needed once TemplateGap's are removed from Fortress.ast */
-        if ( name.startsWith( "TemplateGap" ) ){
+        if (name.startsWith("TemplateGap")) {
             return true;
         }
         return false;
     }
 
-    private void generateBody( PrintWriter writer, boolean isApi ){
-        for ( NodeInterface box : sort(getInterfaces()) ){
-            if ( box.name().startsWith("_") ){
+    private void generateBody(PrintWriter writer, boolean isApi) {
+        for (NodeInterface box : sort(getInterfaces())) {
+            if (box.name().startsWith("_")) {
                 continue;
             }
-            writer.println(sub("trait @name @extends @fields end", "@name", box.name(), "@extends", extendsClause(box), "@fields", fields(box) ));
+            writer.println(sub("trait @name @extends @fields end", "@name", box.name(), "@extends", extendsClause(box), "@fields", fields(box)));
         }
 
-        for ( NodeClass c : sort(ast.classes()) ){
-            if ( ignoreClass(c.name()) ){
+        for (NodeClass c : sort(ast.classes())) {
+            if (ignoreClass(c.name())) {
                 continue;
             }
-            if ( c.isAbstract() ){
-                writer.println(sub( "trait @name @extends @fields end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c) ));
+            if (c.isAbstract()) {
+                writer.println(sub("trait @name @extends @fields end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c)));
             } else {
                 String asString;
-                if ( isApi ){
+                if (isApi) {
                     asString = "asString():String";
                 } else {
                     asString = sub("asString():String = \"@name\"", "@name", c.name());
                 }
-                writer.println(sub( "object @name @fields @extends\n @asString\n end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c), "@asString", asString ));
+                writer.println(sub("object @name @fields @extends\n @asString\n end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c), "@asString", asString));
             }
         }
     }
 
-    private void generateFile( String file, String preamble, boolean isApi ){
+    private void generateFile(String file, String preamble, boolean isApi) {
         FileWriter out = null;
         PrintWriter writer = null;
-        try{
-            out = options.createFileInOutDir( file );
+        try {
+            out = options.createFileInOutDir(file);
             writer = new PrintWriter(out);
 
-            writer.println( copyright() );
+            writer.println(copyright());
 
-            writer.println( preamble );
+            writer.println(preamble);
 
             writer.println();
 
             generateBody(writer, isApi);
 
             writer.println();
-            writer.println( "end" );
+            writer.println("end");
 
             writer.close();
             out.close();
-        } catch ( IOException ie ){
+        }
+        catch (IOException ie) {
             ie.printStackTrace();
-        } finally {
-            try{
-                if ( out != null ){
+        }
+        finally {
+            try {
+                if (out != null) {
                     out.close();
                 }
-                if ( writer != null ){
+                if (writer != null) {
                     writer.close();
                 }
-            } catch ( IOException ie ){
+            }
+            catch (IOException ie) {
                 ie.printStackTrace();
             }
         }
     }
 
-    private void generateApi(){
-        generateFile( "FortressAst.fsi", "api FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange", true );
+    private void generateApi() {
+        generateFile("FortressAst.fsi", "api FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange", true);
     }
 
-    private void generateComponent(){
-        generateFile( "FortressAst.fss", "component FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange\nexport FortressAst", false );
+    private void generateComponent() {
+        generateFile("FortressAst.fss", "component FortressAst\nimport List.{...}\nimport FortressLibrary.{...} except ExtentRange\nexport FortressAst", false);
     }
 
-    public void generateAdditionalCode(){
+    public void generateAdditionalCode() {
         generateApi();
         generateComponent();
     }
 
-    private String copyright(){
+    private String copyright() {
         StringWriter string = new StringWriter();
-        PrintWriter writer = new PrintWriter( string );
+        PrintWriter writer = new PrintWriter(string);
         writer.println("(* THIS FILE WAS AUTOMATICALLY GENERATED BY");
         writer.println(sub("   @class FROM Fortress.ast *)", "@class", this.getClass().getName()));
         return string.toString();
     }
-        // names.addAll(Arrays.asList(box.getInterfaceNames()));
+    // names.addAll(Arrays.asList(box.getInterfaceNames()));
 }

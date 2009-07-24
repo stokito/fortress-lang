@@ -1,46 +1,31 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.useful.Debug;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SuperSyntaxDef;
-import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.syntax_abstractions.phases.ExtensionDesugarer;
-
+import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.*;
 
 /* Composes grammars together into a flat PEG. */
 class GrammarComposer {
@@ -56,9 +41,8 @@ class GrammarComposer {
     }
 
     /* entry point for grammars */
-    public static PEG pegForGrammar(GrammarIndex grammar){
-        Debug.debug(Debug.Type.SYNTAX, 2,
-                    "GrammarComposer: create parser for grammar " + grammar.getName());
+    public static PEG pegForGrammar(GrammarIndex grammar) {
+        Debug.debug(Debug.Type.SYNTAX, 2, "GrammarComposer: create parser for grammar " + grammar.getName());
         List<NonterminalDef> definitions = grammar.getDefinitionAsts();
         List<NonterminalExtensionDef> extensions = grammar.getExtensionAsts();
         GrammarComposer composer = new GrammarComposer(collectImports(grammar));
@@ -70,18 +54,16 @@ class GrammarComposer {
      * @imports - list of immediately imported api's that contain grammars
      */
     public static PEG pegForComponent(List<GrammarIndex> imports) {
-        Debug.debug(Debug.Type.SYNTAX, 2,
-                    "GrammarComposer: create parser for component");
+        Debug.debug(Debug.Type.SYNTAX, 2, "GrammarComposer: create parser for component");
         Debug.debug(Debug.Type.SYNTAX, 2, "Imports: ", imports);
         List<NonterminalDef> definitions = new LinkedList<NonterminalDef>();
-        List<NonterminalExtensionDef> extensions =
-            ExtensionDesugarer.createImplicitExtensions(imports);
+        List<NonterminalExtensionDef> extensions = ExtensionDesugarer.createImplicitExtensions(imports);
         GrammarComposer composer = new GrammarComposer(collectImports(imports));
         return composer.compose(definitions, extensions);
     }
 
     /* get the complete list of imported grammars */
-    private static Set<GrammarIndex> collectImports(GrammarIndex grammar){
+    private static Set<GrammarIndex> collectImports(GrammarIndex grammar) {
         return collectImports(grammar.getExtended());
     }
 
@@ -90,7 +72,7 @@ class GrammarComposer {
      */
     private static Set<GrammarIndex> collectImports(List<GrammarIndex> extended) {
         Set<GrammarIndex> all = new HashSet<GrammarIndex>();
-        for (GrammarIndex extendedGrammar : extended){
+        for (GrammarIndex extendedGrammar : extended) {
             all.add(extendedGrammar);
             all.addAll(collectImports(extendedGrammar));
         }
@@ -100,15 +82,14 @@ class GrammarComposer {
     /* create a peg and populate it with nonterminals according to the
      * grammar composition rules
      */
-    private PEG compose(Collection<NonterminalDef> definitions,
-                        Collection<NonterminalExtensionDef> extensions){
+    private PEG compose(Collection<NonterminalDef> definitions, Collection<NonterminalExtensionDef> extensions) {
         PEG peg = new PEG();
         /* adds nonterminal definitions for 2nd generation extended grammars */
         addGrammarDefsOnly(peg);
         /* adds nonterminal definitions for immediately extended grammars */
         addDefs(peg, definitions);
         /* modify nonterminals to include extended alternatives */
-        for (NonterminalExtensionDef e : extensions){
+        for (NonterminalExtensionDef e : extensions) {
             applyExtension(peg, e);
         }
         computeNativeNonterminals(peg);
@@ -119,9 +100,9 @@ class GrammarComposer {
     private void computeNativeNonterminals(PEG peg) {
         for (GrammarIndex grammar : grammarMap.values()) {
             GrammarDecl grammarDef = grammar.ast();
-            Debug.debug(Debug.Type.SYNTAX, 3,
-                        "Grammar " + grammarDef.getName() +
-                        " native?: " + grammarDef.isNativeDef());
+            Debug.debug(Debug.Type.SYNTAX,
+                        3,
+                        "Grammar " + grammarDef.getName() + " native?: " + grammarDef.isNativeDef());
             if (grammarDef.isNativeDef()) {
                 // A native grammar can only contain nonterminal declarations
                 for (GrammarMemberDecl member : grammarDef.getMembers()) {
@@ -132,15 +113,15 @@ class GrammarComposer {
     }
 
     /* populate entries for definition sites only */
-    private void addGrammarDefsOnly(PEG peg){
-        for (GrammarIndex grammar : grammarMap.values()){
+    private void addGrammarDefsOnly(PEG peg) {
+        for (GrammarIndex grammar : grammarMap.values()) {
             addDefs(peg, grammar.getDefinitionAsts());
         }
     }
 
     /* populate peg for a single grammar and its definitions */
     private void addDefs(PEG peg, Collection<NonterminalDef> nonterminals) {
-        for (NonterminalDef nonterminal : nonterminals){
+        for (NonterminalDef nonterminal : nonterminals) {
             Id nonterminalName = nonterminal.getName();
             List<SyntaxDef> defs = peg.create(nonterminalName);
             Debug.debug(Debug.Type.SYNTAX, 2, "Add ", nonterminalName, " to peg definition");
@@ -190,7 +171,7 @@ class GrammarComposer {
             defs.add(def);
         } else if (decl instanceof SuperSyntaxDef) {
             SuperSyntaxDef def = (SuperSyntaxDef) decl;
-            for (SyntaxDecl extension : findExtension(def.getNonterminal(), def.getGrammarId())){
+            for (SyntaxDecl extension : findExtension(def.getNonterminal(), def.getGrammarId())) {
                 resolveAndAdd(defs, extension, false);
             }
         } else {
@@ -200,13 +181,12 @@ class GrammarComposer {
 
     /* lookup the choices of a nonterminal in a specific grammar */
     private Collection<SyntaxDecl> findExtension(Id nonterminalName, Id grammarName) {
-        Debug.debug(Debug.Type.SYNTAX, 3,
-                    "Searching for extension for nonterminal " + nonterminalName +
-                    " and grammar " + grammarName);
+        Debug.debug(Debug.Type.SYNTAX,
+                    3,
+                    "Searching for extension for nonterminal " + nonterminalName + " and grammar " + grammarName);
         GrammarIndex grammar = grammarMap.get(grammarName);
         if (grammar == null) {
-            throw new MacroError(grammarName,
-                                 "Could not find grammar: " + grammarName);
+            throw new MacroError(grammarName, "Could not find grammar: " + grammarName);
         }
 
         Option<NonterminalIndex> nt = grammar.getNonterminalDecl(nonterminalName);
@@ -214,8 +194,7 @@ class GrammarComposer {
             return nt.unwrap().getSyntaxDecls();
         } else {
             throw new MacroError(nonterminalName,
-                                 "Could not find nonterminal " + nonterminalName +
-                                 " in grammar " + grammarName);
+                                 "Could not find nonterminal " + nonterminalName + " in grammar " + grammarName);
         }
     }
 }

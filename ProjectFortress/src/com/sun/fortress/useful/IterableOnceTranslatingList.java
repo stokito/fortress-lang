@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -25,8 +25,7 @@ public class IterableOnceTranslatingList<From, To> implements IterableOnce<To> {
     private List<? extends From> list;
     private F<? super From, ? extends To> translator;
 
-    public IterableOnceTranslatingList(List<? extends From> list,
-                                       F<? super From, ? extends To> translator) {
+    public IterableOnceTranslatingList(List<? extends From> list, F<? super From, ? extends To> translator) {
         this.list = list;
         this.translator = translator;
     }
@@ -44,8 +43,7 @@ public class IterableOnceTranslatingList<From, To> implements IterableOnce<To> {
     }
 
     public To next() {
-        if (i >= list.size())
-            return null;
+        if (i >= list.size()) return null;
         From id = list.get(i);
         i++;
         return translator.apply(id);

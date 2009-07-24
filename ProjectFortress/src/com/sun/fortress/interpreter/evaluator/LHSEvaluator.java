@@ -1,70 +1,45 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
+
+import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.exceptions.FortressException;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.types.*;
+import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.interpreter.glue.Glue;
+import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.NI;
+import com.sun.fortress.useful.Voidoid;
+import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.Driver;
-import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
-import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.types.FTypeVector;
-import com.sun.fortress.interpreter.evaluator.values.FArray;
-import com.sun.fortress.interpreter.evaluator.values.FMatrix;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FTuple;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVector;
-import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
-import com.sun.fortress.interpreter.evaluator.values.Indexed;
-import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
-import com.sun.fortress.nodes.Name;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.Voidoid;
-import com.sun.fortress.nodes_util.NodeUtil;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
+public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forSubscriptExpr(com.sun.fortress.interpreter.nodes.SubscriptExpr)
      */
@@ -73,7 +48,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         Expr obj = x.getObj();
         FValue arr = obj.accept(evaluator);
         List<FValue> indices = evaluator.evalExprListParallel(x.getSubs());
-        List<FValue> args = new ArrayList<FValue>(1+indices.size());
+        List<FValue> args = new ArrayList<FValue>(1 + indices.size());
         args.add(value);
         args.addAll(indices);
         Option<Op> op = x.getOp();
@@ -82,7 +57,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
         }
-        evaluator.invokeMethod(arr,opString,args,x);
+        evaluator.invokeMethod(arr, opString, args, x);
         return null;
     }
 
@@ -93,9 +68,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (val instanceof FObject) {
             FObject obj = (FObject) val;
             if (what instanceof Id) {
-                obj.getSelfEnv().assignValue(x, ((Id)what).getText(), value);
+                obj.getSelfEnv().assignValue(x, ((Id) what).getText(), value);
             } else {
-                bug("'what' not instanceof IDName, instead is " + what );
+                bug("'what' not instanceof IDName, instead is " + what);
             }
             return null;
         } else {
@@ -109,8 +84,10 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     }
 
     LHSEvaluator(Evaluator evaluator, FValue value) {
-        this.evaluator = evaluator; this.value = value;
+        this.evaluator = evaluator;
+        this.value = value;
     }
+
     Evaluator evaluator;
     FValue value;
 
@@ -124,8 +101,15 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (ft != null) {
             // Check that variable can receive type
             if (!ft.typeMatch(value)) {
-                String m = errorMsg("Type mismatch assigning ", value, " (type ",
-                                    value.type(), ") to ", s, " (type ", ft, ")");
+                String m = errorMsg("Type mismatch assigning ",
+                                    value,
+                                    " (type ",
+                                    value.type(),
+                                    ") to ",
+                                    s,
+                                    " (type ",
+                                    ft,
+                                    ")");
                 return error(x, e, m);
             }
         }
@@ -149,18 +133,17 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 Type t = type.unwrap();
                 outerType = EvalType.getFType(t, evaluator.e);
 
-//                if (outerType instanceof FAggregateType) {
-//                    bestGuess = ((FAggregateType) outerType).getElementType();
-//                } else {
-//                    bestGuess = error(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
-//                }
+                //                if (outerType instanceof FAggregateType) {
+                //                    bestGuess = ((FAggregateType) outerType).getElementType();
+                //                } else {
+                //                    bestGuess = error(x, com.sun.fortress.interpreter.evaluator.e, "Assigning matrix/vector/array to non-aggregate type " + outerType);
+                //                }
             } else {
                 // Take the (urk!) JOIN of the types of the array elements.
                 // Do we require that they all lie on the same chain in
                 // the type system?  Not sure.
 
-                outerType = error(x, evaluator.e,
-                            "Can't infer element type for array construction");
+                outerType = error(x, evaluator.e, "Can't infer element type for array construction");
             }
 
             /*
@@ -184,10 +167,12 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     }
                     Environment wknInstantiationEnv = Driver.getFortressLibrary();
 
-                    Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams);
+                    Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
+                                                                      genericName,
+                                                                      bestGuess,
+                                                                      natParams);
                     // Now invoke f.
-                    FValue theArray =
-                        f.functionInvocation(Collections.<FValue>emptyList(), x);
+                    FValue theArray = f.functionInvocation(Collections.<FValue>emptyList(), x);
                     // Do the copy.
                     iuo_tuple.copyTo(new IndexedArrayWrapper(theArray));
                     evaluator.e.putValue(s, theArray);
@@ -205,14 +190,12 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     } else if (outerType instanceof FTypeArray) {
                         Indexed it = new Indexed(iuo_tuple, bestGuess);
                         iuo_tuple.copyTo(it);
-                        evaluator.e.putValue(s, new FArray(it,
-                                (FTypeArray) outerType));
+                        evaluator.e.putValue(s, new FArray(it, (FTypeArray) outerType));
 
                     } else if (outerType instanceof FTypeMatrix) {
                         Indexed it = new Indexed(iuo_tuple, bestGuess);
                         iuo_tuple.copyTo(it);
-                        evaluator.e.putValue(s, new FMatrix(it,
-                                (FTypeMatrix) outerType));
+                        evaluator.e.putValue(s, new FMatrix(it, (FTypeMatrix) outerType));
 
                     } else if (outerType instanceof FTypeVector) {
                         Indexed it = new Indexed(iuo_tuple, bestGuess);
@@ -222,9 +205,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 }
 
 
-
-            } catch (FortressException ex) {
-                throw ex.setContext(x,evaluator.e);
+            }
+            catch (FortressException ex) {
+                throw ex.setContext(x, evaluator.e);
             }
 
         } else {
@@ -235,21 +218,20 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 if (type.isSome()) {
                     Type t = type.unwrap();
                     outerType = EvalType.getFType(t, evaluator.e);
-                    if (value.type().subtypeOf(outerType))
-                        evaluator.e.putVariable(s, value, outerType);
+                    if (value.type().subtypeOf(outerType)) evaluator.e.putVariable(s, value, outerType);
                     else {
-                        error(x, evaluator.e,
-                         errorMsg("RHS expression type ", value.type(),
-                                  " is not assignable to LHS type ", outerType));
-                         }
+                        error(x, evaluator.e, errorMsg("RHS expression type ",
+                                                       value.type(),
+                                                       " is not assignable to LHS type ",
+                                                       outerType));
+                    }
                 } else {
-                    if (mutable)
-                        putOrAssignVariable(x, s);
-                    else
-                        evaluator.e.putValue(s, value);
+                    if (mutable) putOrAssignVariable(x, s);
+                    else evaluator.e.putValue(s, value);
                 }
-            } catch (FortressException ex) {
-                throw ex.setContext(x,evaluator.e);
+            }
+            catch (FortressException ex) {
+                throw ex.setContext(x, evaluator.e);
             }
         }
 
@@ -271,7 +253,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         if (!(value instanceof FTuple)) {
             error(x, evaluator.e, errorMsg("RHS yields non-tuple ", value));
         }
-        FTuple t = (FTuple)value;
+        FTuple t = (FTuple) value;
         Iterator<FValue> rhsIterator = t.getVals().iterator();
         for (Expr lhs : x.getExprs()) {
             // TODO: arity matching and exotic tuple types.

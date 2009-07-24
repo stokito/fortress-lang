@@ -1,34 +1,33 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.interpreter.evaluator.values;
-
-import java.util.List;
 
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.useful.BATreeEC;
-import com.sun.fortress.useful.HasAt;
+
+import java.util.List;
 
 abstract public class GenericFunctionOrConstructor extends SingleFcn implements GenericFunctionOrMethod {
 
     BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
-        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
+            new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
 
     volatile Simple_fcn symbolicInstantiation;
 
@@ -63,7 +62,6 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
         }
         return foo.applyInnerPossiblyGeneric(args);
     }
-
 
 
     abstract protected Simple_fcn getSymbolic() throws Error, ProgramError;

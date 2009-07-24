@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
@@ -23,15 +23,14 @@ import edu.rice.cs.astgen.NodeType;
 import edu.rice.cs.astgen.TabPrintWriter;
 import edu.rice.cs.astgen.Types.TypeName;
 
-public class TemplateDepthFirstVoidVisitorGenerator extends
-        DepthFirstVoidVisitorGenerator {
+public class TemplateDepthFirstVoidVisitorGenerator extends DepthFirstVoidVisitorGenerator {
 
     public TemplateDepthFirstVoidVisitorGenerator(ASTModel ast) {
         super(ast);
     }
 
     protected void generateVisitor(NodeType root) {
-        String visitorName = "Template"+root.name() + "DepthFirstVisitor_void";
+        String visitorName = "Template" + root.name() + "DepthFirstVisitor_void";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
 
         // Class header
@@ -45,13 +44,16 @@ public class TemplateDepthFirstVoidVisitorGenerator extends
         writer.startLine(" ** defaultDoFirst() and defaultCase(), respectively, which (unless");
         writer.startLine(" ** overridden) are no-ops.");
         writer.startLine(" **/");
-        writer.startLine("@SuppressWarnings(value={\"unused\"})");        
+        writer.startLine("@SuppressWarnings(value={\"unused\"})");
         writer.startLine("public class " + visitorName);
-        if (options.usePLT) { writer.print(" extends " + root.name() + "VisitorRunnable1"); }
-        else { writer.print(" implements " + root.name() + "Visitor_void"); }
+        if (options.usePLT) {
+            writer.print(" extends " + root.name() + "VisitorRunnable1");
+        } else {
+            writer.print(" implements " + root.name() + "Visitor_void");
+        }
         writer.print(" {");
         writer.indent();
-        
+
         outputDefaultCaseVoidMethod(writer, root);
         writer.println();
 
@@ -62,34 +64,37 @@ public class TemplateDepthFirstVoidVisitorGenerator extends
         writer.startLine("public void defaultDoFirst(" + root.name() + " that) {");
         writer.print("}");
         writer.println();
-        
+
         writer.startLine("/* Methods to handle a node before recursion. */");
         for (NodeType t : ast.descendents(root)) {
-          outputDelegatingForCase(t, writer, root, "void", "DoFirst", "defaultDoFirst");
+            outputDelegatingForCase(t, writer, root, "void", "DoFirst", "defaultDoFirst");
         }
-        
+
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-          outputDelegatingForCase(t, writer, root, "void", "Only", "defaultCase");
+            outputDelegatingForCase(t, writer, root, "void", "Only", "defaultCase");
         }
-        
+
         writer.startLine("/* Methods to recur on each child. */");
         for (NodeType t : ast.descendents(root)) {
-          if (!t.isAbstract()) {
-            outputVisitMethod(t, writer, root);
-          }
+            if (!t.isAbstract()) {
+                outputVisitMethod(t, writer, root);
+            }
         }
 
         writer.println();
         outputRecurMethod(writer, root, "void");
-        
+
         // Output helpers
-        for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
+        for (TypeName t : helpers()) {
+            writer.println();
+            generateHelper(t, writer, root);
+        }
         clearHelpers();
-        
+
         writer.unindent();
         writer.startLine("}");
         writer.println();
         writer.close();
-      }
+    }
 }

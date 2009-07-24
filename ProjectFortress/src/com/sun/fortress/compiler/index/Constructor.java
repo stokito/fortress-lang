@@ -1,47 +1,32 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.sun.fortress.compiler.typechecker.TypesUtil;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.NI;
-
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.Collections;
+import java.util.List;
 
 public class Constructor extends Function {
 
@@ -51,23 +36,16 @@ public class Constructor extends Function {
     private final Option<List<BaseType>> _throwsClause;
     private final Option<WhereClause> _where;
 
-    public Constructor(Id declaringTrait,
-                       List<StaticParam> staticParams,
-                       Option<List<Param>> params,
-                       Option<List<BaseType>> throwsClause,
-                       Option<WhereClause> where)
-    {
+    public Constructor(Id declaringTrait, List<StaticParam> staticParams, Option<List<Param>> params, Option<List<BaseType>> throwsClause, Option<WhereClause> where) {
         _declaringTrait = declaringTrait;
         _staticParams = staticParams;
         _params = params;
         _throwsClause = throwsClause;
         _where = where;
-        
+
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
             public Option<Type> value() {
-                return Option.<Type>some(
-                    NodeFactory.makeTraitType(_declaringTrait,
-                                              TypesUtil.staticParamsToArgs(_staticParams)));
+                return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, TypesUtil.staticParamsToArgs(_staticParams)));
             }
         });
     }
@@ -88,9 +66,13 @@ public class Constructor extends Function {
     }
 
     @Override
-    public Span getSpan() { return NodeUtil.getSpan(_declaringTrait); }
+    public Span getSpan() {
+        return NodeUtil.getSpan(_declaringTrait);
+    }
 
-    public Id declaringTrait() { return _declaringTrait; }
+    public Id declaringTrait() {
+        return _declaringTrait;
+    }
 
     public IdOrOpOrAnonymousName toUndecoratedName() {
         // This choice is not tested yet, it could well be the wrong one.
@@ -102,41 +84,40 @@ public class Constructor extends Function {
         return _declaringTrait;
     }
 
-//    public List<StaticParam> staticParams() { return _staticParams; }
-//    public Option<List<Param>> params() { return _params; }
-//    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
-    public Option<WhereClause> where() { return _where; }
+    //    public List<StaticParam> staticParams() { return _staticParams; }
+    //    public Option<List<Param>> params() { return _params; }
 
-	@Override
-	public Option<Expr> body() {
-		return Option.none();
-	}
+    //    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
+    public Option<WhereClause> where() {
+        return _where;
+    }
 
-	@Override
-	public List<Param> parameters() {
-		if( _params.isNone() )
-			return Collections.emptyList();
-		else
-			return Collections.unmodifiableList(_params.unwrap());
-	}
+    @Override
+    public Option<Expr> body() {
+        return Option.none();
+    }
 
-	@Override
-	public List<StaticParam> staticParameters() {
-		return Collections.unmodifiableList(_staticParams);
-	}
+    @Override
+    public List<Param> parameters() {
+        if (_params.isNone()) return Collections.emptyList();
+        else return Collections.unmodifiableList(_params.unwrap());
+    }
 
-	@Override
-	public List<BaseType> thrownTypes() {
-		if( _throwsClause.isNone() )
-			return Collections.emptyList();
-		else
-			return Collections.unmodifiableList(_throwsClause.unwrap());
-	}
+    @Override
+    public List<StaticParam> staticParameters() {
+        return Collections.unmodifiableList(_staticParams);
+    }
 
-	@Override
-	public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
+    @Override
+    public List<BaseType> thrownTypes() {
+        if (_throwsClause.isNone()) return Collections.emptyList();
+        else return Collections.unmodifiableList(_throwsClause.unwrap());
+    }
+
+    @Override
+    public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
         return new Constructor(this, v);
-	}
+    }
 
 
 }

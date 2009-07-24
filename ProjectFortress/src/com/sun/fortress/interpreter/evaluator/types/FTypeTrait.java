@@ -1,35 +1,35 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
+
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.interpreter.env.BetterEnv;
+import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.HasAt;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.BuildTraitEnvironment;
-import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.HasAt;
 
 public class FTypeTrait extends FTraitOrObject {
 
@@ -64,7 +64,7 @@ public class FTypeTrait extends FTraitOrObject {
     public Set<FType> getTransitiveComprises() {
         if (transitiveComprises == null) {
             Set<FType> tmp = Collections.unmodifiableSet(new HashSet<FType>(computeTransitiveComprises()));
-            synchronized(this) {
+            synchronized (this) {
                 if (transitiveComprises == null) {
                     transitiveComprises = tmp;
                 }
@@ -75,7 +75,7 @@ public class FTypeTrait extends FTraitOrObject {
 
     protected Set<FType> computeTransitiveComprises() {
         Set<FType> res = new BASet<FType>(FType.comparator);
-        if (comprises==null) {
+        if (comprises == null) {
             res.add(this);
         } else {
             for (FType c : comprises) {
@@ -104,17 +104,16 @@ public class FTypeTrait extends FTraitOrObject {
         Environment forTraitMethods = getMethodExecutionEnv();
         List<Decl> defs = getASTmembers();
 
-        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
-                forTraitMethods, this, null);
+        BuildTraitEnvironment inner = new BuildTraitEnvironment(into, forTraitMethods, this, null);
 
         inner.doDefs1234(defs);
         membersInitialized = true;
     }
 
     public BetterEnv getMembers() {
-        if (! membersInitialized) {
+        if (!membersInitialized) {
             synchronized (this) {
-                if (! membersInitialized) {
+                if (!membersInitialized) {
                     initializeMembers();
                 }
             }

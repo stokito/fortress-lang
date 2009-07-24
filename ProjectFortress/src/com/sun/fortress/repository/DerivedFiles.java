@@ -1,37 +1,35 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository;
+
+import com.sun.fortress.compiler.PathTaggedApiName;
+import com.sun.fortress.exceptions.InterpreterBug;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.fortress.compiler.PathTaggedApiName;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.exceptions.InterpreterBug;
-
 public class DerivedFiles<T> {
-    protected final Map<PathTaggedApiName, T> cached =
-        new HashMap<PathTaggedApiName, T>();
+    protected final Map<PathTaggedApiName, T> cached = new HashMap<PathTaggedApiName, T>();
 
     protected final IO<PathTaggedApiName, T> ioForPathTaggedApiNames;
 
-    public DerivedFiles (IO<PathTaggedApiName, T> io) {
+    public DerivedFiles(IO<PathTaggedApiName, T> io) {
         this.ioForPathTaggedApiNames = io;
     }
 
@@ -40,11 +38,11 @@ public class DerivedFiles<T> {
         if (x == null) {
             try {
                 long lastModified = ioForPathTaggedApiNames.lastModified(name);
-                if (lastModified < mustBeNewerThan)
-                    return null;
+                if (lastModified < mustBeNewerThan) return null;
                 x = ioForPathTaggedApiNames.read(name);
                 cached.put(name, x);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 /*
                  * This will probably never hit, because of the lastModified
                  * check above.
@@ -62,7 +60,8 @@ public class DerivedFiles<T> {
         cached.put(name, x);
         try {
             ioForPathTaggedApiNames.write(name, x);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             InterpreterBug.bug("Failed to write " + name);
         }
     }

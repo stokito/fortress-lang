@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -25,24 +25,24 @@ public class StringEncodedAggregate {
         int a = 0;
         int l = s.length();
         while (a != -1 && a != l) {
-            int b = s.indexOf(d,a);
+            int b = s.indexOf(d, a);
             if (b == -1)
                 throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
-            set.add(s.substring(a,b));
-            a = b+1;
+            set.add(s.substring(a, b));
+            a = b + 1;
         }
         return set;
     }
 
     public static StringBuffer setToString(Set<String> set, char d, StringBuffer sb) {
         for (String s : set) {
-            if (s.indexOf(d) != -1)
-                    throw new Error("String " + s + " in set contains delimiter " + d);
+            if (s.indexOf(d) != -1) throw new Error("String " + s + " in set contains delimiter " + d);
             sb.append(s);
             sb.append(d);
         }
         return sb;
     }
+
     public static StringBuffer setToFormattedString(Set<String> set, char d, StringBuffer sb) {
         boolean first = true;
         sb.append("\n\t\"");
@@ -52,10 +52,8 @@ public class StringEncodedAggregate {
             } else {
                 sb.append("\"+\n\t\"");
             }
-            if (s.indexOf(d) != -1)
-                    throw new Error("String " + s + " in set contains delimiter " + d);
-            if (s.startsWith("\\\\u"))
-                s = "\\u" + s.substring(3);
+            if (s.indexOf(d) != -1) throw new Error("String " + s + " in set contains delimiter " + d);
+            if (s.startsWith("\\\\u")) s = "\\u" + s.substring(3);
             sb.append(s);
             sb.append(d);
         }
@@ -67,17 +65,17 @@ public class StringEncodedAggregate {
         int a = 0;
         int l = s.length();
         while (a != -1 && a != l) {
-            int b = s.indexOf(d,a);
+            int b = s.indexOf(d, a);
             if (b == -1)
                 throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
-            String key = s.substring(a,b);
-            a = b+1;
+            String key = s.substring(a, b);
+            a = b + 1;
 
-            b = s.indexOf(d,a);
+            b = s.indexOf(d, a);
             if (b == -1)
                 throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
-            String value = s.substring(a,b);
-            a = b+1;
+            String value = s.substring(a, b);
+            a = b + 1;
             map.put(key, value);
         }
         return map;
@@ -96,24 +94,23 @@ public class StringEncodedAggregate {
         int a = 0;
         int l = s.length();
         while (a != -1 && a != l) {
-            int b = s.indexOf(d,a);
+            int b = s.indexOf(d, a);
             if (b == -1)
                 throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
-            String k = s.substring(a,b);
-            a = b+1;
+            String k = s.substring(a, b);
+            a = b + 1;
 
-            b = s.indexOf(d,a);
+            b = s.indexOf(d, a);
             if (b == -1)
                 throw new Error("Improperly formatted string representation of aggregate; no ending delimiter");
-            String value = s.substring(a,b);
-            a = b+1;
-            if (k.equals(key))
-                return value;
+            String value = s.substring(a, b);
+            a = b + 1;
+            if (k.equals(key)) return value;
         }
         return null;
     }
 
-   public static StringBuffer mapToFormattedString(Map<String, String> map, char d, StringBuffer sb) {
+    public static StringBuffer mapToFormattedString(Map<String, String> map, char d, StringBuffer sb) {
         boolean first = true;
         sb.append("\n\t\"");
         for (String key : map.keySet()) {
@@ -123,17 +120,13 @@ public class StringEncodedAggregate {
             } else {
                 sb.append("\"+\n\t\"");
             }
-            if (key.indexOf(d) != -1)
-                throw new Error("Key " + key + " in map contains delimiter " + d);
-            if (value.indexOf(d) != -1)
-                throw new Error("Value " + value + " in map contains delimiter " + d);
-            if (key.startsWith("\\\\u"))
-                key = "\\u" + key.substring(3);
+            if (key.indexOf(d) != -1) throw new Error("Key " + key + " in map contains delimiter " + d);
+            if (value.indexOf(d) != -1) throw new Error("Value " + value + " in map contains delimiter " + d);
+            if (key.startsWith("\\\\u")) key = "\\u" + key.substring(3);
             sb.append(key);
             sb.append(d);
             sb.append("\"+\"");
-            if (value.startsWith("\\\\u"))
-                value = "\\u" + value.substring(3);
+            if (value.startsWith("\\\\u")) value = "\\u" + value.substring(3);
             sb.append(value);
             sb.append(d);
         }
@@ -145,30 +138,30 @@ public class StringEncodedAggregate {
         return mapPairToString(from1, to1, from2, to2, d, new StringBuffer());
     }
 
-    public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d, StringBuffer sb) {
+    public static StringBuffer mapPairToString(String from1,
+                                               String to1,
+                                               String from2,
+                                               String to2,
+                                               char d,
+                                               StringBuffer sb) {
 
 
-            if (from1.indexOf(d) != -1)
-                throw new Error("Key " + from1 + " in map contains delimiter " + d);
-            if (to1.indexOf(d) != -1)
-                throw new Error("Value " + to1 + " in map contains delimiter " + d);
-            sb.append(from1);
-            sb.append(d);
+        if (from1.indexOf(d) != -1) throw new Error("Key " + from1 + " in map contains delimiter " + d);
+        if (to1.indexOf(d) != -1) throw new Error("Value " + to1 + " in map contains delimiter " + d);
+        sb.append(from1);
+        sb.append(d);
 
-            sb.append(to1);
-            sb.append(d);
+        sb.append(to1);
+        sb.append(d);
 
 
+        if (from2.indexOf(d) != -1) throw new Error("Key " + from2 + " in map contains delimiter " + d);
+        if (to2.indexOf(d) != -1) throw new Error("Value " + to2 + " in map contains delimiter " + d);
+        sb.append(from2);
+        sb.append(d);
 
-            if (from2.indexOf(d) != -1)
-                throw new Error("Key " + from2 + " in map contains delimiter " + d);
-            if (to2.indexOf(d) != -1)
-                throw new Error("Value " + to2 + " in map contains delimiter " + d);
-            sb.append(from2);
-            sb.append(d);
-
-            sb.append(to2);
-            sb.append(d);
+        sb.append(to2);
+        sb.append(d);
 
 
         return sb;

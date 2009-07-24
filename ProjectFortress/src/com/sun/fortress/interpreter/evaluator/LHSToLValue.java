@@ -1,44 +1,33 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Lhs;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.interpreter.evaluator._WrappedFValue;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * LHSToLValue evaluates the provided LHS to the point that we can,
@@ -47,7 +36,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
  * ALHSEvaluator.  Cache computations are represented using
  * _WrappedFValue AST com.sun.fortress.interpreter.nodes.
  */
-public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
+public class LHSToLValue extends NodeAbstractVisitor<Lhs> {
     Evaluator evaluator;
 
     LHSToLValue(Evaluator evaluator) {
@@ -59,7 +48,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
         if (v instanceof FObject) {
             return new _WrappedFValue(NodeUtil.getSpan(x), false, v);
         }
-        return error(x,evaluator.e, desc);
+        return error(x, evaluator.e, desc);
     }
 
     public List<Expr> wrapEvalParallel(List<Expr> es) {
@@ -92,8 +81,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
     public Lhs forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
-        return ExprFactory.makeSubscriptExpr(NodeUtil.getSpan(x), warray, wsubs,
-                                             x.getOp(), x.getStaticArgs());
+        return ExprFactory.makeSubscriptExpr(NodeUtil.getSpan(x), warray, wsubs, x.getOp(), x.getStaticArgs());
     }
 
     /* (non-Javadoc)

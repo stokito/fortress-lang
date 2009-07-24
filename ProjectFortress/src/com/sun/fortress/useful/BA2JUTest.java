@@ -1,33 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 import java.util.Comparator;
 
-import junit.framework.TestCase;
-
-public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
+public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(BA2JUTest.class);
     }
 
-    static Comparator<Integer> IC  = new Comparator<Integer>() {
+    static Comparator<Integer> IC = new Comparator<Integer>() {
         public int compare(Integer o1, Integer o2) {
             return o1.compareTo(o2);
         }
@@ -37,8 +35,7 @@ public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
     static Integer TWO = Integer.valueOf(2);
     static Integer THREE = Integer.valueOf(3);
 
-    BA2Tree<String, Integer, String> t =
-        new BA2Tree<String, Integer, String> (String.CASE_INSENSITIVE_ORDER, IC);
+    BA2Tree<String, Integer, String> t = new BA2Tree<String, Integer, String>(String.CASE_INSENSITIVE_ORDER, IC);
 
     int pcount;
 
@@ -48,6 +45,7 @@ public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         assertEquals(t.max(), null);
         t.ok();
     }
+
     public void testOne() {
         t = t.putNew("a", ONE, "b");
         assertEquals(t.size(), 1);
@@ -56,6 +54,7 @@ public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         assertEquals(t.get("a", ONE), "b");
         t.ok();
     }
+
     public void testTwo() {
         t = t.putNew("a", ONE, "b");
         t = t.putNew("c", TWO, "d");
@@ -85,16 +84,16 @@ public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
     }
 
     public void test8() {
-        String[] a = {"01", "02", "03", "04", "05",
-                      "06", "07", "08"
-                      };
+        String[] a = {
+                "01", "02", "03", "04", "05", "06", "07", "08"
+        };
         foreachPermutation(a, 0);
     }
 
     public void test8Dupes() {
-        String[] a = {"01",  "03", "05",
-                      "06", "07", "06", "05", "01"
-                      };
+        String[] a = {
+                "01", "03", "05", "06", "07", "06", "05", "01"
+        };
         foreachPermutation(a, 0);
     }
 
@@ -120,17 +119,15 @@ public class BA2JUTest extends com.sun.fortress.useful.TestCaseWrapper  {
                 System.err.println();
             }
             //u.ok();
-            if (++pcount % 1000 == 0)
-                System.err.print(".");
-            if (pcount % 100000 == 0)
-                System.err.println();
+            if (++pcount % 1000 == 0) System.err.print(".");
+            if (pcount % 100000 == 0) System.err.println();
 
         } else {
             for (int j = i; j < a.length; j++) {
                 String str = a[i];
                 a[i] = a[j];
                 a[j] = str;
-                foreachPermutation(a, i+1);
+                foreachPermutation(a, i + 1);
             }
         }
     }

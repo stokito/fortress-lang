@@ -1,28 +1,28 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.disambiguator;
 
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.Op;
+
 import java.util.List;
 import java.util.Set;
-
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Op;
 
 public abstract class NameEnv extends TypeNameEnv {
 
@@ -33,16 +33,19 @@ public abstract class NameEnv extends TypeNameEnv {
      * than 1.
      */
     public abstract Set<Id> explicitVariableNames(Id name);
+
     /**
      * Produce the set of all unaliased expilcit variable names in this environment.
      */
     public abstract List<Id> explicitVariableNames();
+
     /**
      * Produce the set of unaliased qualified names corresponding to the given
      * function name.  Imported names are included.  An undefined reference
      * produces an empty set.
      */
     public abstract Set<IdOrOp> explicitFunctionNames(IdOrOp name);
+
     /**
      * Produce the set of unqualified, unambiguous names corresponding to the
      * given function name.  Imported names are included. An undefined reference
@@ -57,12 +60,14 @@ public abstract class NameEnv extends TypeNameEnv {
      * greater than 1.
      */
     public abstract Set<Id> onDemandVariableNames(Id name);
+
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given function name.  An undefined reference
      * produces an empty set.
      */
     public abstract Set<Id> onDemandFunctionNames(Id name);
+
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given operator name.  An undefined reference
@@ -75,6 +80,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * determine whether a variable exists.  Assumes {@code name.getApi().isSome()}.
      */
     public abstract boolean hasQualifiedVariable(Id name);
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a function exists.  Assumes {@code name.getApi().isSome()}.

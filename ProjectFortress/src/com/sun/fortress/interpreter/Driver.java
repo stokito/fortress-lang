@@ -1,110 +1,64 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter;
 
-import static com.sun.fortress.compiler.WellKnownNames.*;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import com.sun.fortress.interpreter.env.APIWrapper;
-import com.sun.fortress.interpreter.env.CUWrapper;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
-import com.sun.fortress.interpreter.env.ForeignComponentWrapper;
-import com.sun.fortress.interpreter.env.NonApiWrapper;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
-
-import com.sun.fortress.repository.DerivedFiles;
-import com.sun.fortress.repository.ForeignJava;
-import com.sun.fortress.repository.FortressRepository;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.compiler.WellKnownNames;
+import static com.sun.fortress.compiler.WellKnownNames.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.exceptions.RedefinitionError;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.env.*;
 import com.sun.fortress.interpreter.evaluator.CollectTests;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
-import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.glue.prim.StringPrim;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.AliasedSimpleName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TestDecl;
-import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.CheckedNullPointerException;
+import com.sun.fortress.repository.ForeignJava;
+import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.useful.Visitor1;
 import com.sun.fortress.useful.Visitor2;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.io.IOException;
+import java.util.*;
 
 
 public class Driver {
 
     private static boolean _libraryTest = false;
 
-    private Driver() {};
+    private Driver() {
+    }
+
+    ;
 
     static public void runTests() {
     }
@@ -113,6 +67,7 @@ public class Driver {
      * Native code sometimes needs access to the library component wrapper.
      */
     static ComponentWrapper libraryComponentWrapper = null;
+
     public static Environment getFortressLibrary() {
         return libraryComponentWrapper.getEnvironment();
     }
@@ -126,9 +81,7 @@ public class Driver {
         libraryComponentWrapper = null;
     }
 
-    public static Environment evalComponent(ComponentIndex p,
-                                            GraphRepository fr)
-        throws IOException {
+    public static Environment evalComponent(ComponentIndex p, GraphRepository fr) throws IOException {
 
         Init.initializeEverything();
 
@@ -191,21 +144,29 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(anyTypeLibrary(), anyTypeLibrary(), fr), linker, WellKnownNames.defaultLibrary(), fr);
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(anyTypeLibrary(),
+                                                                                   anyTypeLibrary(),
+                                                                                   fr),
+                                                         linker,
+                                                         WellKnownNames.defaultLibrary(),
+                                                         fr);
         builtins.getEnvironment().installPrimitives();
         linker.put(anyTypeLibrary(), builtins);
 
         APIWrapper lib = null;
 
-        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile,
+        libraryComponentWrapper = ensureApiImplemented(fr,
+                                                       linker,
+                                                       pile,
                                                        NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
                                                                                fortressLibrary()));
         lib = libraryComponentWrapper.getExportedCW(fortressLibrary());
 
-        ComponentWrapper nativescomp =
-            ensureApiImplemented(fr, linker, pile,
-                                 NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
-                                                         fortressBuiltin()));
+        ComponentWrapper nativescomp = ensureApiImplemented(fr,
+                                                            linker,
+                                                            pile,
+                                                            NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
+                                                                                    fortressBuiltin()));
         APIWrapper natives = nativescomp.getExportedCW(fortressBuiltin());
 
         /*
@@ -224,7 +185,7 @@ public class Driver {
 
                 ensureImportsImplemented(fr, linker, pile, imports);
             } else {
-                foreigns.add((ForeignComponentWrapper)naw);
+                foreigns.add((ForeignComponentWrapper) naw);
             }
         }
 
@@ -250,8 +211,8 @@ public class Driver {
             change |= injectLibraryTraits(components, natives);
         }
 
-        for (ForeignComponentWrapper cw: foreigns) {
-          
+        for (ForeignComponentWrapper cw : foreigns) {
+
             cw.populateOne();
         }
         /*
@@ -283,7 +244,7 @@ public class Driver {
             cw.reset();
         }
 
-         for (CUWrapper cw : components) {
+        for (CUWrapper cw : components) {
             cw.initVars();
         }
 
@@ -299,8 +260,7 @@ public class Driver {
      * @param linker
      * @param cw
      */
-    private static boolean injectTraitMembersForDesugaring(
-            HashMap<String, NonApiWrapper> linker, ComponentWrapper cw) {
+    private static boolean injectTraitMembersForDesugaring(HashMap<String, NonApiWrapper> linker, ComponentWrapper cw) {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
         boolean change = false;
@@ -308,11 +268,10 @@ public class Driver {
         for (Import i : imports) {
             if (i instanceof ImportApi) {
 
-                    /*
-                     * Not-yet-implemented because of issues with selectors.
-                     */
-                bug(errorMsg("NYI 'Import api APIName'; ",
-                             "try 'import APIName.{...}' instead."));
+                /*
+                * Not-yet-implemented because of issues with selectors.
+                */
+                bug(errorMsg("NYI 'Import api APIName'; ", "try 'import APIName.{...}' instead."));
             } else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
                 APIName source = ix.getApiName();
@@ -336,34 +295,30 @@ public class Driver {
                          */
                         /* probable bug: need to insert into ownNonFunction names */
                         change |= cw.injectAtTopLevel(alias.unwrap(name).stringName(),
-                                                                name.stringName(),
-                                                                api_cw,
-                                                                cw.excludedImportNames);
+                                                      name.stringName(),
+                                                      api_cw,
+                                                      cw.excludedImportNames);
                     }
 
                 } else if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed. */
-                    final List<IdOrOpOrAnonymousName> excepts = ((ImportStar) ix)
-                            .getExceptNames();
-                    final Set<String> except_names = Useful.applyToAllInserting(
-                            excepts,
-                            new Fn<IdOrOpOrAnonymousName, String>() {
-                                public String apply(IdOrOpOrAnonymousName n) {
-                                    return NodeUtil.nameString(n);
-                                }
-                            },
-                            new HashSet<String>());
+                    final List<IdOrOpOrAnonymousName> excepts = ((ImportStar) ix).getExceptNames();
+                    final Set<String> except_names = Useful.applyToAllInserting(excepts,
+                                                                                new Fn<IdOrOpOrAnonymousName, String>() {
+                                                                                    public String apply(
+                                                                                            IdOrOpOrAnonymousName n) {
+                                                                                        return NodeUtil.nameString(n);
+                                                                                    }
+                                                                                },
+                                                                                new HashSet<String>());
 
                     for (String s : api_cw.getTopLevelRewriteNames()) {
-                        if (! except_names.contains(s) &&
-                                !cw.isOwnName(s) &&
-                                !cw.excludedImportNames.contains(s)) {
+                        if (!except_names.contains(s) && !cw.isOwnName(s) && !cw.excludedImportNames.contains(s)) {
                             change |= cw.injectAtTopLevel(s, s, api_cw, cw.excludedImportNames);
                         }
                     }
                     for (String s : api_cw.getFunctionals()) {
-                        if (! except_names.contains(s) &&
-                                !cw.excludedImportNames.contains(s)) {
+                        if (!except_names.contains(s) && !cw.excludedImportNames.contains(s)) {
                             change |= cw.injectAtTopLevel(s, s, api_cw, cw.excludedImportNames);
                         }
                     }
@@ -377,8 +332,7 @@ public class Driver {
         return change;
     }
 
-    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
-            APIWrapper lib) {
+    private static boolean injectLibraryTraits(List<ComponentWrapper> components, APIWrapper lib) {
         boolean change = false;
         for (ComponentWrapper cw : components) {
             for (String s : lib.getTopLevelRewriteNames()) {
@@ -401,9 +355,10 @@ public class Driver {
                     FTraitOrObjectOrGeneric tooog = (FTraitOrObjectOrGeneric) o;
                     tooog.initializeFunctionalMethods(e);
                     if (tooog instanceof FTraitOrObject) {
-                        for (FType t : ((FTraitOrObject)tooog).getProperTransitiveExtends())
+                        for (FType t : ((FTraitOrObject) tooog).getProperTransitiveExtends()) {
                             if (t instanceof FTraitOrObjectOrGeneric)
-                                ((FTraitOrObject)t).initializeFunctionalMethods(e);
+                                ((FTraitOrObject) t).initializeFunctionalMethods(e);
+                        }
                     } else {
 
                     }
@@ -420,9 +375,9 @@ public class Driver {
                     FTraitOrObjectOrGeneric tooog = (FTraitOrObjectOrGeneric) o;
                     tooog.finishFunctionalMethods(e);
                     if (tooog instanceof FTraitOrObject) {
-                        for (FType t : ((FTraitOrObject)tooog).getProperTransitiveExtends())
-                            if (t instanceof FTraitOrObjectOrGeneric)
-                                ((FTraitOrObject)t).finishFunctionalMethods(e);
+                        for (FType t : ((FTraitOrObject) tooog).getProperTransitiveExtends()) {
+                            if (t instanceof FTraitOrObjectOrGeneric) ((FTraitOrObject) t).finishFunctionalMethods(e);
+                        }
                     }
                 }
             }
@@ -434,7 +389,7 @@ public class Driver {
      * For each imported API, checks to see if it is already "linked". If not,
      * "finds" it (looks for apiname.fss/apiname.tfs) and reads it in and sticks
      * it in the "pile".
-     *
+     * <p/>
      * For each component, also reads in the corresponding APIs so that we know
      * what to export.
      *
@@ -442,14 +397,10 @@ public class Driver {
      * @param pile
      * @param imports
      */
-    private static void ensureImportsImplemented (
-            GraphRepository fr,
-            HashMap<String, NonApiWrapper> linker,
-            Stack<NonApiWrapper> pile,
-            List<Import> imports
-        )
-        throws IOException
-    {
+    private static void ensureImportsImplemented(GraphRepository fr,
+                                                 HashMap<String, NonApiWrapper> linker,
+                                                 Stack<NonApiWrapper> pile,
+                                                 List<Import> imports) throws IOException {
 
         for (Import i : imports) {
             if (i instanceof ImportApi) {
@@ -459,13 +410,11 @@ public class Driver {
                     APIName id = adi.getApiName();
                     ensureApiImplemented(fr, linker, pile, id);
                 }
-            }
-            else if (i instanceof ImportedNames) {
+            } else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
                 APIName source = ix.getApiName();
                 ensureApiImplemented(fr, linker, pile, source);
-            }
-            else {
+            } else {
                 bug(i, "Unrecognized import");
             }
         }
@@ -479,10 +428,10 @@ public class Driver {
      * @param pile
      * @param id
      */
-    private static ComponentWrapper ensureApiImplemented(
-            GraphRepository fr,
-            HashMap<String, NonApiWrapper> linker,
-            Stack<NonApiWrapper> pile, APIName name) throws IOException {
+    private static ComponentWrapper ensureApiImplemented(GraphRepository fr,
+                                                         HashMap<String, NonApiWrapper> linker,
+                                                         Stack<NonApiWrapper> pile,
+                                                         APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
         NonApiWrapper newwrapper = linker.get(apiname);
         if (newwrapper == null) {
@@ -496,15 +445,21 @@ public class Driver {
             APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary());
 
             if (ForeignJava.only.definesApi(newapi.getName())) {
-                ForeignComponentWrapper fcw = new ForeignComponentWrapper(apicw, linker, WellKnownNames.defaultLibrary());
+                ForeignComponentWrapper fcw = new ForeignComponentWrapper(apicw,
+                                                                          linker,
+                                                                          WellKnownNames.defaultLibrary());
                 fcw.touchExports(true);
                 linker.put(apiname, fcw);
                 pile.push(fcw);
                 // no need to push for additional imports, at least not quite yet.
                 return null;
             } else {
-                ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
-                ComponentWrapper compwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary(), fr);
+                ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr);
+                ComponentWrapper compwrapper = new ComponentWrapper(newcomp,
+                                                                    apicw,
+                                                                    linker,
+                                                                    WellKnownNames.defaultLibrary(),
+                                                                    fr);
                 compwrapper.touchExports(true);
                 linker.put(apiname, compwrapper);
                 pile.push(compwrapper);
@@ -518,42 +473,38 @@ public class Driver {
     }
 
     private static ComponentWrapper commandLineComponent(GraphRepository fr,
-            HashMap<String, NonApiWrapper> linker,
-            Stack<NonApiWrapper> pile, ComponentIndex comp_index) throws IOException {
+                                                         HashMap<String, NonApiWrapper> linker,
+                                                         Stack<NonApiWrapper> pile,
+                                                         ComponentIndex comp_index) throws IOException {
 
-            Component comp = (Component) (comp_index.ast());
-            APIName name = comp.getName();
-            String apiname = NodeUtil.nameString(name);
-            ComponentWrapper comp_wrapper;
+        Component comp = (Component) (comp_index.ast());
+        APIName name = comp.getName();
+        String apiname = NodeUtil.nameString(name);
+        ComponentWrapper comp_wrapper;
 
-            List<APIWrapper> exports_list = new ArrayList<APIWrapper>(1);
-            for (APIName ex_apiname : comp.getExports()) {
-                String ex_name = NodeUtil.nameString(ex_apiname);
-                Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
-                exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary()) );
-            }
+        List<APIWrapper> exports_list = new ArrayList<APIWrapper>(1);
+        for (APIName ex_apiname : comp.getExports()) {
+            String ex_name = NodeUtil.nameString(ex_apiname);
+            Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
+            exports_list.add(new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary()));
+        }
 
-            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary(), fr);
-            fr.deleteComponent(name, false);
-            comp_wrapper.touchExports(true);
-            linker.put(apiname, comp_wrapper);
-            pile.push(comp_wrapper);
+        comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary(), fr);
+        fr.deleteComponent(name, false);
+        comp_wrapper.touchExports(true);
+        linker.put(apiname, comp_wrapper);
+        pile.push(comp_wrapper);
 
-            for (CUWrapper apicw : exports_list) {
-                List<Import> imports  = apicw.getImports();
-                linker.put(apicw.name(), comp_wrapper);
-                ensureImportsImplemented(fr, linker, pile, imports);
-            }
+        for (CUWrapper apicw : exports_list) {
+            List<Import> imports = apicw.getImports();
+            linker.put(apicw.name(), comp_wrapper);
+            ensureImportsImplemented(fr, linker, pile, imports);
+        }
         return comp_wrapper;
     }
 
     // This runs the program from inside a task.
-    public static FValue
-        runProgramTask(ComponentIndex p,
-                       String toBeRun,
-                       GraphRepository fr)
-        throws IOException
-    {
+    public static FValue runProgramTask(ComponentIndex p, String toBeRun, GraphRepository fr) throws IOException {
 
         Environment e = evalComponent(p, fr);
 
@@ -565,7 +516,7 @@ public class Driver {
         // } catch (IOException ioe) {
         // System.out.println("io exception" + ioe);
         // }
-       return ret;
+        return ret;
     }
 
     static FortressTaskRunnerGroup group;
@@ -574,51 +525,41 @@ public class Driver {
         int numThreads;
 
         String numThreadsString = System.getenv("FORTRESS_THREADS");
-        if (numThreadsString != null)
-            numThreads = Integer.parseInt(numThreadsString);
+        if (numThreadsString != null) numThreads = Integer.parseInt(numThreadsString);
         else {
             int availThreads = Runtime.getRuntime().availableProcessors();
-            if (availThreads <= 2)
-                numThreads = availThreads;
-            else
-                numThreads = (int) Math.floor((double) availThreads/2.0);
+            if (availThreads <= 2) numThreads = availThreads;
+            else numThreads = (int) Math.floor((double) availThreads / 2.0);
         }
         return numThreads;
     }
 
 
-    public static void runTests(GraphRepository fr, ComponentIndex p, boolean verbose)
-        throws Throwable {
+    public static void runTests(GraphRepository fr, ComponentIndex p, boolean verbose) throws Throwable {
 
-        CollectTests bte = new CollectTests ();
+        CollectTests bte = new CollectTests();
         bte.visit(p.ast());
         List<String> tests = CollectTests.getTests();
 
-        if (group == null)
-            group = new FortressTaskRunnerGroup(getNumThreads());
+        if (group == null) group = new FortressTaskRunnerGroup(getNumThreads());
 
         StringPrim.GetProgramArgs.registerProgramArgs(Collections.<String>emptyList());
 
         for (String s : tests) {
-            if ( verbose )
-                System.err.print("starting " + s + "... ");
+            if (verbose) System.err.print("starting " + s + "... ");
             EvaluatorTask evTask = new EvaluatorTask(fr, p, s);
             group.invoke(evTask);
             if (evTask.causedException()) {
                 throw evTask.taskException();
             }
-            if ( verbose )
-                System.err.println("finishing " + s);
+            if (verbose) System.err.println("finishing " + s);
         }
     }
 
     // This creates the parallel context
-    public static FValue runProgram(GraphRepository fr, ComponentIndex p,
-                                    List<String> args)
-        throws Throwable {
+    public static FValue runProgram(GraphRepository fr, ComponentIndex p, List<String> args) throws Throwable {
 
-        if (group == null)
-            group = new FortressTaskRunnerGroup(getNumThreads());
+        if (group == null) group = new FortressTaskRunnerGroup(getNumThreads());
 
         StringPrim.GetProgramArgs.registerProgramArgs(args);
 
@@ -646,9 +587,10 @@ public class Driver {
         }
     }
 
-    private static ComponentIndex readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
+    private static ComponentIndex readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws
+                                                                                                               IOException {
 
-        String name  = key;
+        String name = key;
         APIName apiname = NodeFactory.makeAPIName(NodeFactory.interpreterSpan, name);
 
         ComponentIndex ci = p.getComponent(apiname);
@@ -658,7 +600,7 @@ public class Driver {
 
 
     private static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
-        String name  = key;
+        String name = key;
         APIName apiname = NodeFactory.makeAPIName(NodeFactory.interpreterSpan, name);
         ApiIndex ci = p.getApi(apiname);
         CompilationUnit c = ci.ast();

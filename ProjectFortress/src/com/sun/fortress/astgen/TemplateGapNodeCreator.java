@@ -1,38 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeInterface;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Types;
+import edu.rice.cs.astgen.*;
 import edu.rice.cs.astgen.Types.TypeName;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static java.util.Arrays.asList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
 
@@ -40,27 +32,15 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     private TypeName listIdType = Types.parse("List<Id>", ast);
 
     public static List<Field> TEMPLATEGAPFIELDS; {
-        TEMPLATEGAPFIELDS = asList(
-            new Field(Types.parse("ASTNodeInfo", ast), "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true),
-            new Field(idType , "gapId", Option.<String>none(), false, false, true),
-            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
-        );
+        TEMPLATEGAPFIELDS = asList(new Field(Types.parse("ASTNodeInfo", ast), "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 
     public static List<Field> TEMPLATEGAPEXPRFIELDS; {
-        TEMPLATEGAPEXPRFIELDS = asList(
-            new Field(Types.parse("ExprInfo", ast), "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true),
-            new Field(idType , "gapId", Option.<String>none(), false, false, true),
-            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
-        );
+        TEMPLATEGAPEXPRFIELDS = asList(new Field(Types.parse("ExprInfo", ast), "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 
     public static List<Field> TEMPLATEGAPTYPEFIELDS; {
-        TEMPLATEGAPTYPEFIELDS = asList(
-            new Field(Types.parse("TypeInfo", ast), "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true),
-            new Field(idType , "gapId", Option.<String>none(), false, false, true),
-            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
-        );
+        TEMPLATEGAPTYPEFIELDS = asList(new Field(Types.parse("TypeInfo", ast), "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 
     public TemplateGapNodeCreator(ASTModel ast) {
@@ -78,27 +58,21 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
         NodeType abstractNode;
         NodeType exprNode;
         NodeType typeNode;
-        if ( ast.typeForName("AbstractNode").isSome() &&
-             ast.typeForName("Expr").isSome() &&
-             ast.typeForName("Type").isSome() ) {
+        if (ast.typeForName("AbstractNode").isSome() && ast.typeForName("Expr").isSome() && ast.typeForName("Type").isSome()) {
             abstractNode = ast.typeForName("AbstractNode").unwrap();
-            exprNode     = ast.typeForName("Expr").unwrap();
-            typeNode     = ast.typeForName("Type").unwrap();
-        } else
-            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
-        for (NodeClass nodeClass: ast.classes()) {
-            if ( nodeClass.getClass() == NodeClass.class &&
-                 ast.isDescendent(abstractNode, nodeClass) &&
-                 !nodeClass.name().startsWith("_Ellipses") &&
-                 !nodeClass.name().startsWith("_SyntaxTransformation")){
+            exprNode = ast.typeForName("Expr").unwrap();
+            typeNode = ast.typeForName("Type").unwrap();
+        } else throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
+        for (NodeClass nodeClass : ast.classes()) {
+            if (nodeClass.getClass() == NodeClass.class && ast.isDescendent(abstractNode, nodeClass) && !nodeClass.name().startsWith("_Ellipses") && !nodeClass.name().startsWith("_SyntaxTransformation")) {
                 List<TypeName> interfaces = new LinkedList<TypeName>();
                 interfaces.add(templateGapName);
                 String infoType;
                 List<Field> fields;
-                if ( ast.isDescendent(exprNode, nodeClass) ) {
+                if (ast.isDescendent(exprNode, nodeClass)) {
                     infoType = "ExprInfo";
                     fields = TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
-                } else if ( ast.isDescendent(typeNode, nodeClass) ) {
+                } else if (ast.isDescendent(typeNode, nodeClass)) {
                     infoType = "TypeInfo";
                     fields = TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
                 } else {
@@ -106,13 +80,11 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
                     fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
                 }
                 TypeName superName = Types.parse(nodeClass.name(), ast);
-                NodeType templateGap = new TemplateGapClass("TemplateGap"+nodeClass.name(),
-                                                            fields, superName, interfaces,
-                                                            infoType);
+                NodeType templateGap = new TemplateGapClass("TemplateGap" + nodeClass.name(), fields, superName, interfaces, infoType);
                 templateGaps.add(new Pair<NodeType, NodeType>(templateGap, nodeClass));
-	    }
+            }
         }
-        for (Pair<NodeType, NodeType> p: templateGaps) {
+        for (Pair<NodeType, NodeType> p : templateGaps) {
             ast.addType(p.first(), false, p.second());
         }
     }

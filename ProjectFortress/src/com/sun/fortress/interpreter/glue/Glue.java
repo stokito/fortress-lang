@@ -1,24 +1,21 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
@@ -32,6 +29,9 @@ import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Glue {
 
@@ -41,11 +41,11 @@ public class Glue {
             List<FType> traits = fto.getTransitiveExtends();
             for (FType t : traits) {
 
-                    String fttn = t.getName();
-                    if (fttn.equals(trait)) {
-                        Number n = t.getWithin().getNat(nat);
-                        return n.intValue();
-                    }
+                String fttn = t.getName();
+                if (fttn.equals(trait)) {
+                    Number n = t.getWithin().getNat(nat);
+                    return n.intValue();
+                }
 
 
             }
@@ -59,10 +59,10 @@ public class Glue {
             List<FType> traits = fto.getTransitiveExtends();
             for (FType t : traits) {
 
-                    String fttn = t.getName();
-                    if (fttn.equals(trait)) {
-                        return  t.getWithin().getLeafType(param); // leaf
-                    }
+                String fttn = t.getName();
+                if (fttn.equals(trait)) {
+                    return t.getWithin().getLeafType(param); // leaf
+                }
 
             }
         }
@@ -80,9 +80,8 @@ public class Glue {
             List<FType> traits = fto.getTransitiveExtends();
             for (FType t : traits) {
 
-                    String fttn = t.getName();
-                    if (fttn.equals(name))
-                        return true;
+                String fttn = t.getName();
+                if (fttn.equals(name)) return true;
 
             }
         }
@@ -99,7 +98,7 @@ public class Glue {
      * array traits.  The input axis is assumed to be numbered
      * starting at zero, but the library convention is numbering
      * starting at one.
-     *
+     * <p/>
      * If the supplied value is NOT an array, then the length
      * returned is -1.  If it is an array but the axis exceeds
      * the dimensionality of the array, then the length returned
@@ -108,7 +107,7 @@ public class Glue {
      */
     static public int lengthAlongArrayAxis(FValue v, int axis) {
         // axis+1 converts zero to one.
-        String goalTraitName = "Indexed" + (axis+1);
+        String goalTraitName = "Indexed" + (axis + 1);
         FType vt = v.type();
         int x = natFromGeneric(vt, goalTraitName, "n");
         if (x >= 0) return x;
@@ -118,7 +117,7 @@ public class Glue {
     }
 
     public static List<FType> parametersForGenericIndexed(FType bestGuess, int[] is) {
-        List<FType> l = new ArrayList<FType>(1+2*is.length);
+        List<FType> l = new ArrayList<FType>(1 + 2 * is.length);
         l.add(bestGuess);
         FType zero = IntNat.make(0);
         for (int i = 0; i < is.length; i++) {
@@ -129,7 +128,7 @@ public class Glue {
     }
 
     public static List<FType> parametersForGenericIndexed(FType bestGuess, List<TypeRange> ltr) {
-        List<FType> l = new ArrayList<FType>(1+2*ltr.size());
+        List<FType> l = new ArrayList<FType>(1 + 2 * ltr.size());
         l.add(bestGuess);
         for (TypeRange i : ltr) {
             l.add(i.getBase());
@@ -140,21 +139,23 @@ public class Glue {
 
     public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, int[] nats) {
         FValue thingMakerValue = e.getRootValue(genericName);
-        GenericFunctionOrConstructor thingMaker =
-            (GenericFunctionOrConstructor) thingMakerValue;
+        GenericFunctionOrConstructor thingMaker = (GenericFunctionOrConstructor) thingMakerValue;
         List<FType> l = parametersForGenericIndexed(T, nats);
         return thingMaker.typeApply(l);
     }
 
     public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T) {
         FValue thingMakerValue = e.getRootValue(genericName);
-        GenericFunctionOrConstructor thingMaker =
-            (GenericFunctionOrConstructor) thingMakerValue;
+        GenericFunctionOrConstructor thingMaker = (GenericFunctionOrConstructor) thingMakerValue;
         List<FType> l = Useful.list(T);
         return thingMaker.typeApply(l);
     }
 
-    public static FTraitOrObject instantiateGenericType(Environment e, String genericName, FType T, List<TypeRange> nats, HasAt x) {
+    public static FTraitOrObject instantiateGenericType(Environment e,
+                                                        String genericName,
+                                                        FType T,
+                                                        List<TypeRange> nats,
+                                                        HasAt x) {
         List<FType> l = parametersForGenericIndexed(T, nats);
         FTraitOrObject f = instantiateGenericType(e, genericName, l, x);
         return f;
@@ -163,7 +164,7 @@ public class Glue {
     private static FTraitOrObject instantiateGenericType(Environment e, String genericName, List<FType> l, HasAt x) {
         FType thingMakerValue = e.getRootType(genericName); // top level
         Factory1P<List<FType>, FTraitOrObject, HasAt> thingMaker =
-            (Factory1P<List<FType>, FTraitOrObject, HasAt>) thingMakerValue;
+                (Factory1P<List<FType>, FTraitOrObject, HasAt>) thingMakerValue;
         FTraitOrObject f = thingMaker.make(l, x);
         return f;
     }

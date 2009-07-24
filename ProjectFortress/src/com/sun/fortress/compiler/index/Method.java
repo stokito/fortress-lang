@@ -1,35 +1,37 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
 
 import java.util.List;
 
-import edu.rice.cs.plt.tuple.Option;
-
-/** Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod. */
+/**
+ * Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod.
+ */
 public abstract class Method extends Functional {
     public abstract Node ast();
+
     public abstract Id getDeclaringTrait();
-    
+
     /**
      * Returns a version of this Functional, with params replaced with args.
      * The contract of this method requires
@@ -39,8 +41,6 @@ public abstract class Method extends Functional {
 
     @Override
     public String toString() {
-        return String.format("%s.%s",
-                             getDeclaringTrait().getText(),
-                             super.toString());
+        return String.format("%s.%s", getDeclaringTrait().getText(), super.toString());
     }
 }

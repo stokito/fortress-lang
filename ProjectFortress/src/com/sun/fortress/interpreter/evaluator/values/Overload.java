@@ -1,29 +1,29 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-
-import java.util.List;
 
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
 
 
 // Note: implements Comparable, but only for equivalence classes of
@@ -45,9 +45,11 @@ public class Overload implements Comparable, HasAt {
             super(mc);
             params = Useful.prepend(mc.getDefiner(), super.getParams());
         }
+
         public int getSelfParameterIndex() {
             return -1;
         }
+
         public List<FType> getParams() {
             return params;
         }
@@ -78,7 +80,7 @@ public class Overload implements Comparable, HasAt {
 
     public int getSelfParameterIndex() {
         if (fn instanceof HasSelfParameter) {
-            return ((HasSelfParameter)fn).getSelfParameterIndex();
+            return ((HasSelfParameter) fn).getSelfParameterIndex();
         }
         return -1;
     }

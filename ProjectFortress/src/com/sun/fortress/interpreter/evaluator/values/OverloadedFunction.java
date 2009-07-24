@@ -1,61 +1,41 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.exceptions.FortressException;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.exceptions.ProgramError;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
-import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.types.FTypeOverloadedArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
+import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.BATreeEC;
-import com.sun.fortress.useful.DebugletPrintStream;
-import com.sun.fortress.useful.Factory1P;
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Memo1P;
-import com.sun.fortress.useful.Ordinal;
-import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.*;
 
-public class  OverloadedFunction extends Fcn
-    implements Factory1P<List<FType>, Fcn, HasAt> {
+import java.util.*;
+
+public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fcn, HasAt> {
 
     private final boolean debug = false;
     private final boolean debugMatch = false;
@@ -98,12 +78,12 @@ public class  OverloadedFunction extends Fcn
 
     public static void exclDumpSkip() {
         if (DUMP_EXCLUSION && excl_skip > 0) {
-            System.out.print("excl_skip = "+excl_skip+"; ");
+            System.out.print("excl_skip = " + excl_skip + "; ");
         }
     }
 
     BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
-        new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
+            new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
 
     @Override
     public boolean needsInference() {
@@ -112,11 +92,13 @@ public class  OverloadedFunction extends Fcn
 
     public String getString() {
         if (pendingOverloads.size() > 0) {
-            return Useful.listInDelimiters("{\n\t",overloads,
-                                           " PENDING BELOW", "\n\t")
-              + Useful.listInDelimiters("\n*\t",pendingOverloads, "}", "\n*\t");
+            return Useful.listInDelimiters("{\n\t", overloads, " PENDING BELOW", "\n\t") + Useful.listInDelimiters(
+                    "\n*\t",
+                    pendingOverloads,
+                    "}",
+                    "\n*\t");
         }
-        return Useful.listInDelimiters("{\n\t",overloads, "}", "\n\t");
+        return Useful.listInDelimiters("{\n\t", overloads, "}", "\n\t");
     }
 
     public boolean getFinished() {
@@ -131,7 +113,9 @@ public class  OverloadedFunction extends Fcn
         return fnName;
     }
 
-    public boolean seqv(FValue v) { return false; }
+    public boolean seqv(FValue v) {
+        return false;
+    }
 
     public boolean hasSelfDotMethodInvocation() {
         return false;
@@ -150,8 +134,7 @@ public class  OverloadedFunction extends Fcn
      * of an overloading until actual types are known.
      */
     public void finishInitializingFirstPart() {
-        if (finishedFirst)
-            return;
+        if (finishedFirst) return;
 
         Overload ol;
         for (int i = 0; i < pendingOverloads.size(); i++) {
@@ -162,136 +145,128 @@ public class  OverloadedFunction extends Fcn
 
             String ps = ol.ps != null ? String.valueOf(ol.ps) + " " : "";
 
-            if (sfcn instanceof FunctionClosure)  {
+            if (sfcn instanceof FunctionClosure) {
                 FunctionClosure cl = (FunctionClosure) sfcn;
-                if (! cl.getFinished())
-                    cl.finishInitializing();
+                if (!cl.getFinished()) cl.finishInitializing();
 
                 if (debug) {
-                    System.err.println("Overload " + ps  + cl);
+                    System.err.println("Overload " + ps + cl);
                 }
 
-            } else if (sfcn instanceof Constructor)  {
+            } else if (sfcn instanceof Constructor) {
                 Constructor cl = (Constructor) sfcn;
-                if (! cl.getFinished())
-                    cl.finishInitializing();
+                if (!cl.getFinished()) cl.finishInitializing();
 
                 if (debug) {
-                    System.err.println("Overload " + ps  + cl);
+                    System.err.println("Overload " + ps + cl);
                 }
 
-            } else if (sfcn instanceof GenericConstructor)  {
+            } else if (sfcn instanceof GenericConstructor) {
                 if (debug) {
-                    System.err.println("Overload " + ps  + sfcn);
+                    System.err.println("Overload " + ps + sfcn);
                 }
 
             } else if (sfcn instanceof Dummy_fcn) {
-                if (debug)
-                    System.err.println("Overload primitive " + ps  + sfcn);
+                if (debug) System.err.println("Overload primitive " + ps + sfcn);
 
             } else if (sfcn instanceof FGenericFunction) {
-                if (debug)
-                    System.err.println("Overload generic " + ps  + sfcn);
+                if (debug) System.err.println("Overload generic " + ps + sfcn);
 
             } else {
-                bug(errorMsg("Expected a closure or primitive, instead got ",
-                             sfcn));
-             }
+                bug(errorMsg("Expected a closure or primitive, instead got ", sfcn));
+            }
 
-            if (ol.ps != null)
-                ol.ps.close();
+            if (ol.ps != null) ol.ps.close();
         }
         finishedFirst = true;
     }
+
     /**
      * The second part of finishing ensures that the overloadings
      * are consistent, and assigns a type to the value.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public synchronized boolean finishInitializingSecondPart() {
 
         boolean change = false;
 
-        if (finishedSecond)
-            return change;
+        if (finishedSecond) return change;
 
         while (true) {
 
-        List<Overload> old_pendingOverloads = pendingOverloads;
-        pendingOverloads = new ArrayList<Overload>();
-        List<Overload> new_overloads = new ArrayList<Overload>();
+            List<Overload> old_pendingOverloads = pendingOverloads;
+            pendingOverloads = new ArrayList<Overload>();
+            List<Overload> new_overloads = new ArrayList<Overload>();
 
-        for (Overload overload : old_pendingOverloads) {
-            // Duplicate detector
-            if (allOverloadsEver.containsKey(overload)) {
-                SingleFcn thisFn = overload.getFn();
-                SingleFcn otherFn = allOverloadsEver.get(overload).getFn();
-                // Debugging output
-                if (debug) {
-                    String ps = overload.ps != null ? String.valueOf(overload.ps) + " " : "";
-                    System.err.println("Not putting " + ps + overload + "\n   equal to " + otherFn);
-                }
-                continue;
-            } else {
-                change = true;
-                new_overloads.add(overload);
-                allOverloadsEver.put(overload, overload);
-            }
-        }
-
-        if (new_overloads.size() == 0) {
-            bless();
-            return change;
-        }
-
-        new_overloads.addAll(overloads);
-
-        // Put shorter parameter lists first (it's a funny sort order).
-        // TODO I don't understand what's "unchecked" about the next line.
-        java.util.Collections.<Overload>sort(new_overloads);
-        ArrayList<FType> ftalist = new ArrayList<FType> (new_overloads.size());
-
-        OverloadComparisonResult ocr = new OverloadComparisonResult();
-
-        for (int i = 0; i< new_overloads.size(); i++) {
-            Overload o1 = new_overloads.get(i);
-            Fcn fn = o1.getFn();
-            if (fn instanceof GenericFunctionOrConstructor) {
-                needsInference = true;
-            } else {
-                FType ty = fn.type();
-                if (ty != null) ftalist.add(ty);
-            }
-
-            if (!noCheck && !o1.guaranteedOK) {
-
-                for (int j = i-1; j >= 0 ; j--) {
-
-                    Overload o2 = new_overloads.get(j);
-                    if (o2.guaranteedOK)
-                        continue;
-                    SingleFcn f1 = o1.getFn();
-                    SingleFcn f2 = o2.getFn();
-
-                    if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1))
-                        continue;
-
-                    ocr.reset();
-                    ocr.completeOverloadingCheck(o1, o2, new_overloads, within);
-
+            for (Overload overload : old_pendingOverloads) {
+                // Duplicate detector
+                if (allOverloadsEver.containsKey(overload)) {
+                    SingleFcn thisFn = overload.getFn();
+                    SingleFcn otherFn = allOverloadsEver.get(overload).getFn();
+                    // Debugging output
+                    if (debug) {
+                        String ps = overload.ps != null ? String.valueOf(overload.ps) + " " : "";
+                        System.err.println("Not putting " + ps + overload + "\n   equal to " + otherFn);
+                    }
+                    continue;
+                } else {
+                    change = true;
+                    new_overloads.add(overload);
+                    allOverloadsEver.put(overload, overload);
                 }
             }
-        }
-        FType ftoa = FTypeOverloadedArrow.make(ftalist);
-        this.setFtypeUnconditionally(ftoa);
-        //String ftoas = ftoa.toString();
-        //System.err.println(ftoas);
-        this.overloads = new_overloads;
 
-        if (!finishedFirst) {
-            // Come here if we generated MORE overloads as a side-effect.
-            finishInitializingFirstPart();
-        }
+            if (new_overloads.size() == 0) {
+                bless();
+                return change;
+            }
+
+            new_overloads.addAll(overloads);
+
+            // Put shorter parameter lists first (it's a funny sort order).
+            // TODO I don't understand what's "unchecked" about the next line.
+            java.util.Collections.<Overload>sort(new_overloads);
+            ArrayList<FType> ftalist = new ArrayList<FType>(new_overloads.size());
+
+            OverloadComparisonResult ocr = new OverloadComparisonResult();
+
+            for (int i = 0; i < new_overloads.size(); i++) {
+                Overload o1 = new_overloads.get(i);
+                Fcn fn = o1.getFn();
+                if (fn instanceof GenericFunctionOrConstructor) {
+                    needsInference = true;
+                } else {
+                    FType ty = fn.type();
+                    if (ty != null) ftalist.add(ty);
+                }
+
+                if (!noCheck && !o1.guaranteedOK) {
+
+                    for (int j = i - 1; j >= 0; j--) {
+
+                        Overload o2 = new_overloads.get(j);
+                        if (o2.guaranteedOK) continue;
+                        SingleFcn f1 = o1.getFn();
+                        SingleFcn f2 = o2.getFn();
+
+                        if (genericFMAndInstance(f1, f2) || genericFMAndInstance(f2, f1)) continue;
+
+                        ocr.reset();
+                        ocr.completeOverloadingCheck(o1, o2, new_overloads, within);
+
+                    }
+                }
+            }
+            FType ftoa = FTypeOverloadedArrow.make(ftalist);
+            this.setFtypeUnconditionally(ftoa);
+            //String ftoas = ftoa.toString();
+            //System.err.println(ftoas);
+            this.overloads = new_overloads;
+
+            if (!finishedFirst) {
+                // Come here if we generated MORE overloads as a side-effect.
+                finishInitializingFirstPart();
+            }
 
         }
     }
@@ -318,7 +293,8 @@ public class  OverloadedFunction extends Fcn
         private boolean result2Subtype1Failure;
 
         private int l1;
-        private int l2;;
+        private int l2;
+        ;
 
         private boolean rest1;
         private boolean rest2;
@@ -351,7 +327,10 @@ public class  OverloadedFunction extends Fcn
 
         }
 
-        public void completeOverloadingCheck(Overload o1, Overload o2, Collection<Overload> new_overloads, Environment within) {
+        public void completeOverloadingCheck(Overload o1,
+                                             Overload o2,
+                                             Collection<Overload> new_overloads,
+                                             Environment within) {
 
             OverloadComparisonResult ocr = this;
 
@@ -362,8 +341,8 @@ public class  OverloadedFunction extends Fcn
                 l1 = pl1.size();
                 l2 = pl2.size();
 
-                rest1 = (l1 > 0 && pl1.get(l1-1) instanceof FTypeRest);
-                rest2 = (l2 > 0 && pl2.get(l2-1) instanceof FTypeRest);
+                rest1 = (l1 > 0 && pl1.get(l1 - 1) instanceof FTypeRest);
+                rest2 = (l2 > 0 && pl2.get(l2 - 1) instanceof FTypeRest);
 
                 // by construction, l1 is bigger.
                 // (see sort order above)
@@ -379,118 +358,112 @@ public class  OverloadedFunction extends Fcn
                     min = l1;
                 } else if (rest1) {
                     // rest1
-                    if (l2 < l1-1)
-                        return;
+                    if (l2 < l1 - 1) return;
                     min = l2;
                 } else {
                     // neither
-                    if (l1 != l2)
-                        return;
+                    if (l1 != l2) return;
                     min = l1;
                 }
 
-            //    if (!do_continue) {
+                //    if (!do_continue) {
 
 
-//                  int p1better = -1; // set to index where p1 is subtype
-//                  int p2better = -1; // set to index where p2 is subtype
+                //                  int p1better = -1; // set to index where p1 is subtype
+                //                  int p2better = -1; // set to index where p2 is subtype
 
-//                  boolean distinct = false; // known to exclude
-//                  int unrelated = -1; // neither subtype nor exclude nor identical
-//                  boolean unequal = false;
-//                  boolean sawSymbolic1 = false;
-//                  boolean sawSymbolic2 = false;
-//                  int selfIndex = -1;
+                //                  boolean distinct = false; // known to exclude
+                //                  int unrelated = -1; // neither subtype nor exclude nor identical
+                //                  boolean unequal = false;
+                //                  boolean sawSymbolic1 = false;
+                //                  boolean sawSymbolic2 = false;
+                //                  int selfIndex = -1;
 
-                    /* This is a hack for dealing with cases like
-                     *
-       trait Bar[\A,nat n\]
-           get():ZZ32 = n
-       end
+                /* This is a hack for dealing with cases like
+                *
+  trait Bar[\A,nat n\]
+      get():ZZ32 = n
+  end
 
-       object Baz[\A,nat n\]() extends Bar[\A,n\]
-       end
+  object Baz[\A,nat n\]() extends Bar[\A,n\]
+  end
 
-       f[\A\](x:Bar[\A,17\]) = 20
-       g[\A\](x:Baz[\A,17\]) = 21
-       h[\A\](x:Bar[\A,17\]) = 22
-       h[\A\](x:Baz[\A,17\]) = 23
+  f[\A\](x:Bar[\A,17\]) = 20
+  g[\A\](x:Baz[\A,17\]) = 21
+  h[\A\](x:Bar[\A,17\]) = 22
+  h[\A\](x:Baz[\A,17\]) = 23
 
 
 
-                     */
-//                  boolean allObjInstance1 = true;
-//                  boolean allObjInstance2 = true;
+                */
+                //                  boolean allObjInstance1 = true;
+                //                  boolean allObjInstance2 = true;
 
-                    exclDumpln("Checking exclusion of ",pl1," and ",pl2,":");
-                    for (int k = 0; k < min; k++) {
-                        FType p1 = pl1.get(k);
-                        FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2-1);
-                        exclDump(k,": ",p1," and ",p2,", ",p1.getExtends()," and ",p2.getExtends(),", ");
+                exclDumpln("Checking exclusion of ", pl1, " and ", pl2, ":");
+                for (int k = 0; k < min; k++) {
+                    FType p1 = pl1.get(k);
+                    FType p2 = k < l2 ? pl2.get(k) : pl2.get(l2 - 1);
+                    exclDump(k, ": ", p1, " and ", p2, ", ", p1.getExtends(), " and ", p2.getExtends(), ", ");
 
-                        p1 = deRest(p1);
-                        p2 = deRest(p2);
+                    p1 = deRest(p1);
+                    p2 = deRest(p2);
 
-                        if (p1==p2  && !p1.isSymbolic() && !p2.isSymbolic()) {
-                            exclDumpln("equal.");
-                            continue;
+                    if (p1 == p2 && !p1.isSymbolic() && !p2.isSymbolic()) {
+                        exclDumpln("equal.");
+                        continue;
+                    }
+
+                    allObjInstance1 &= p1 instanceof FTypeObject;
+                    allObjInstance2 &= p2 instanceof FTypeObject;
+
+                    unequal = true;
+
+                    if (o1.getSelfParameterIndex() == k && o1.getSelfParameterIndex() == o2.getSelfParameterIndex()) {
+                        exclDumpln("self params.");
+                        // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
+                        selfIndex = k;
+                        /*
+                        * Somebody Else's Problem -- if self parameters are different,
+                        * any problems will be flagged at the object level.
+                        */
+                        if (!p1.equals(p2)) distinct = true; // This seems wrong/unnecessary
+                    }
+
+                    if (p1.excludesOther(p2)) {
+                        exclDumpln("distinct.");
+                        distinct = true;
+                    } else {
+
+                        boolean local_unrelated = true;
+                        // Check for subtype constraint.
+                        boolean p1subp2 = p1.subtypeOf(p2);
+                        boolean p2subp1 = p2.subtypeOf(p1);
+                        if (p1subp2 && !p2subp1) {
+                            p1better = k;
+                            local_unrelated = false;
+                            exclDumpln(" left better.");
+                        } else if (p2subp1 && !p1subp2) {
+                            p2better = k;
+                            local_unrelated = false;
+                            exclDumpln(" right better.");
+                        } else if (selfIndex != k) {
+                            if (p1.isSymbolic()) sawSymbolic1 = true;
+
+                            if (p2.isSymbolic()) sawSymbolic2 = true;
                         }
-
-                        allObjInstance1 &= p1 instanceof FTypeObject;
-                        allObjInstance2 &= p2 instanceof FTypeObject;
-
-                        unequal = true;
-
-                        if ( o1.getSelfParameterIndex() == k &&
-                                o1.getSelfParameterIndex() == o2.getSelfParameterIndex()) {
-                            exclDumpln("self params.");
-                            // ONLY set this when the self indices coincide -- otherwise, they obey the same rules.
-                            selfIndex = k;
-                            /*
-                             * Somebody Else's Problem -- if self parameters are different,
-                             * any problems will be flagged at the object level.
-                             */
-                            if (! p1.equals(p2))
-                                distinct = true; // This seems wrong/unnecessary
-                        }
-
-                        if (p1.excludesOther(p2)) {
-                            exclDumpln("distinct.");
-                            distinct = true;
-                        } else {
-
-                            boolean local_unrelated = true;
-                            // Check for subtype constraint.
-                            boolean p1subp2 = p1.subtypeOf(p2);
-                            boolean p2subp1 = p2.subtypeOf(p1);
-                            if (p1subp2 && !p2subp1) {
-                                p1better = k;
-                                local_unrelated = false;
-                                exclDumpln(" left better.");
-                            } else if (p2subp1 && !p1subp2) {
-                                p2better = k;
-                                local_unrelated = false;
-                                exclDumpln(" right better.");
-                            } else if (selfIndex != k) {
-                                if (p1.isSymbolic() )
-                                    sawSymbolic1 = true;
-
-                                if (p2.isSymbolic() )
-                                    sawSymbolic2 = true;
-                            }
-                            if (local_unrelated && unrelated == -1) {
-                                // Here we check for self parameters!
-                                if (selfIndex != k) {
-                                    unrelated = k;
-                                    exclDumpln("Unrelated.");
-                                }
+                        if (local_unrelated && unrelated == -1) {
+                            // Here we check for self parameters!
+                            if (selfIndex != k) {
+                                unrelated = k;
+                                exclDumpln("Unrelated.");
                             }
                         }
                     }
-
-                    distinct |= unequal && (allObjInstance1 || allObjInstance2);
                 }
-      //      }
+
+                distinct |= unequal && (allObjInstance1 || allObjInstance2);
+            }
+            //      }
 
             if (!distinct) {
                 if (p1better >= 0 && p2better >= 0) {
@@ -499,18 +472,17 @@ public class  OverloadedFunction extends Fcn
                     FType r1 = o1.getFn().getRange();
                     FType r2 = o2.getFn().getRange();
                     if (p1better >= 0) {
-                     // subtype rule applies
-                        result1Subtype2Failure = ! r1.subtypeOf(r2);
+                        // subtype rule applies
+                        result1Subtype2Failure = !r1.subtypeOf(r2);
                     } else if (p2better >= 0) {
-                    // subtype rule applies
-                        result2Subtype1Failure = ! r2.subtypeOf(r1);
+                        // subtype rule applies
+                        result2Subtype1Failure = !r2.subtypeOf(r1);
                     }
                 }
             }
 
 
-            describeOverloadingFailure(o1, o2, within, pl1,
-                                       pl2);
+            describeOverloadingFailure(o1, o2, within, pl1, pl2);
 
             return;
         }
@@ -518,43 +490,39 @@ public class  OverloadedFunction extends Fcn
         public boolean overloadOk() {
 
             // exclusion is good.
-            if (distinct)
-                return true;
+            if (distinct) return true;
 
             // non-ground types need exclusion
-            if ( sawSymbolic1 || sawSymbolic2 || unrelated != -1) {
+            if (sawSymbolic1 || sawSymbolic2 || unrelated != -1) {
                 return false;
             }
 
             // meet rule
-            if (p1better >= 0 && p2better >= 0 &&  !meetOk)
-                return false;
+            if (p1better >= 0 && p2better >= 0 && !meetOk) return false;
 
             // neither is better, not a functional method
-            if (p1better < 0 && p2better < 0 && selfIndex < 0)
-                return false;
+            if (p1better < 0 && p2better < 0 && selfIndex < 0) return false;
 
-            if (result1Subtype2Failure || result2Subtype1Failure)
-                return false;
+            if (result1Subtype2Failure || result2Subtype1Failure) return false;
 
             return true;
         }
 
-        private void describeOverloadingFailure(Overload o1, Overload o2,
-                Environment within,
-                List<FType> pl1, List<FType> pl2) {
+        private void describeOverloadingFailure(Overload o1,
+                                                Overload o2,
+                                                Environment within,
+                                                List<FType> pl1,
+                                                List<FType> pl2) {
             if (distinct) return;
             OverloadComparisonResult ocr = this;
             if (sawSymbolic1 || sawSymbolic2) {
                 exclDumpSkip();
                 String explanation;
-                if (sawSymbolic1 && sawSymbolic2)
-                    explanation = errorMsg("\n", o1, " and\n", o2, " have parameters\n");
-                else if (sawSymbolic1)
-                    explanation = errorMsg("\n", o1, " has a parameter\n");
-                else
-                    explanation = errorMsg("\n", o2, " has a parameter\n");
-                explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
+                if (sawSymbolic1 && sawSymbolic2) explanation = errorMsg("\n", o1, " and\n", o2, " have parameters\n");
+                else if (sawSymbolic1) explanation = errorMsg("\n", o1, " has a parameter\n");
+                else explanation = errorMsg("\n", o2, " has a parameter\n");
+                explanation =
+                        explanation + "with generic type, at least one pair of parameters must have excluding types";
                 error(o1, o2, within, explanation);
             }
 
@@ -563,42 +531,67 @@ public class  OverloadedFunction extends Fcn
                 String s1 = parameterName(unrelated, o1);
                 String s2 = parameterName(unrelated, o2);
 
-                String explanation = errorMsg(Ordinal.ordinal(unrelated+1), " parameters ", s1, ":", pl1, " and ", s2, ":", pl2, " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
+                String explanation = errorMsg(Ordinal.ordinal(unrelated + 1),
+                                              " parameters ",
+                                              s1,
+                                              ":",
+                                              pl1,
+                                              " and ",
+                                              s2,
+                                              ":",
+                                              pl2,
+                                              " are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present");
                 error(o1, o2, within, explanation);
             }
 
-            if (p1better >= 0 && p2better >= 0 &&  !meetOk) {
+            if (p1better >= 0 && p2better >= 0 && !meetOk) {
                 exclDumpSkip();
-                error(o1, o2, within,
-                        errorMsg("Overloading of\n\t(first) ", o1, " and\n\t(second) ", o2, " fails because\n\t",
-                                formatParameterComparison(p1better, o1, o2, "more"), " but\n\t",
-                                formatParameterComparison(p2better, o1, o2, "less")));
+                error(o1, o2, within, errorMsg("Overloading of\n\t(first) ",
+                                               o1,
+                                               " and\n\t(second) ",
+                                               o2,
+                                               " fails because\n\t",
+                                               formatParameterComparison(p1better, o1, o2, "more"),
+                                               " but\n\t",
+                                               formatParameterComparison(p2better, o1, o2, "less")));
             }
             if (p1better < 0 && p2better < 0 && selfIndex < 0) {
                 exclDumpSkip();
                 String explanation = null;
                 if (l1 == l2 && rest1 == rest2) {
-                    if (unequal)
-                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                        " fails because their parameter lists have potentially overlapping (non-excluding) types");
-                    else
-                        explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                        " fails because their parameter lists have the same types");
-                } else
-                    explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                    " fails because of ambiguity in overlapping rest (...) parameters");
+                    if (unequal) explanation = errorMsg("Overloading of ",
+                                                        o1,
+                                                        " and ",
+                                                        o2,
+                                                        " fails because their parameter lists have potentially overlapping (non-excluding) types");
+                    else explanation = errorMsg("Overloading of ",
+                                                o1,
+                                                " and ",
+                                                o2,
+                                                " fails because their parameter lists have the same types");
+                } else explanation = errorMsg("Overloading of ",
+                                              o1,
+                                              " and ",
+                                              o2,
+                                              " fails because of ambiguity in overlapping rest (...) parameters");
                 error(o1, o2, within, explanation);
             }
 
             if (result1Subtype2Failure) {
-                String explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                " fails because the first parameter list is a subtype of the second, but the first result is not a subtype of the second");
-               // System.err.println("FAIL " + explanation);
-               error(o1, o2, within, explanation);
+                String explanation = errorMsg("Overloading of ",
+                                              o1,
+                                              " and ",
+                                              o2,
+                                              " fails because the first parameter list is a subtype of the second, but the first result is not a subtype of the second");
+                // System.err.println("FAIL " + explanation);
+                error(o1, o2, within, explanation);
             }
             if (result2Subtype1Failure) {
-                String explanation = errorMsg("Overloading of ", o1, " and ", o2,
-                " fails because the second parameter list is a subtype of the first, but the second result is not a subtype of the first");
+                String explanation = errorMsg("Overloading of ",
+                                              o1,
+                                              " and ",
+                                              o2,
+                                              " fails because the second parameter list is a subtype of the first, but the second result is not a subtype of the first");
                 // System.err.println("FAIL " + explanation);
                 error(o1, o2, within, explanation);
             }
@@ -617,8 +610,7 @@ public class  OverloadedFunction extends Fcn
         return false;
     }
 
-    static private String formatParameterComparison(int i, Overload o1, Overload o2,
-            String how) {
+    static private String formatParameterComparison(int i, Overload o1, Overload o2, String how) {
         String s1 = parameterName(i, o1);
         String s2 = parameterName(i, o2);
         return "(first) " + s1 + " is " + how + " specific than (second) " + s2;
@@ -635,7 +627,7 @@ public class  OverloadedFunction extends Fcn
             NonPrimitive np = (NonPrimitive) f1;
             s1 = np.getParameters().get(i).getName();
         } else {
-            s1 = "parameter " + (i+1);
+            s1 = "parameter " + (i + 1);
         }
         return s1;
     }
@@ -659,8 +651,7 @@ public class  OverloadedFunction extends Fcn
         List<FType> meet = meet_set.iterator().next();
 
         for (Overload o : overloads2) {
-            if (meet.equals(o.getParams()))
-                return true;
+            if (meet.equals(o.getParams())) return true;
         }
         // TODO finish this.
 
@@ -668,7 +659,7 @@ public class  OverloadedFunction extends Fcn
     }
 
     static private FType deRest(FType p1) {
-        if (p1 instanceof FTypeRest) p1 = ((FTypeRest)p1).getType();
+        if (p1 instanceof FTypeRest) p1 = ((FTypeRest) p1).getType();
         return p1;
     }
 
@@ -692,21 +683,20 @@ public class  OverloadedFunction extends Fcn
     }
 
     public void addOverload(SingleFcn fn) {
-//      if (finishedFirst && !fn.getFinished())
-//          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
+        //      if (finishedFirst && !fn.getFinished())
+        //          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
         addOverload(new Overload(fn));
     }
 
     public void addOverload(SingleFcn fn, boolean guaranteedOK) {
-//      if (finishedFirst && !fn.getFinished())
-//          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
-      addOverload(new Overload(fn, this, guaranteedOK));
-  }
+        //      if (finishedFirst && !fn.getFinished())
+        //          throw new IllegalStateException("Any functions added after finishedFirst must have types assigned.");
+        addOverload(new Overload(fn, this, guaranteedOK));
+    }
 
     public void addOverloads(OverloadedFunction cls) {
-        if (cls == this)
-            return; // Prevents a comodification exception if
-                    // we import FortressLibrary a second time.
+        if (cls == this) return; // Prevents a comodification exception if
+        // we import FortressLibrary a second time.
 
         List<Overload> clso = cls.overloads;
         for (Overload cl : clso) {
@@ -718,7 +708,8 @@ public class  OverloadedFunction extends Fcn
 
                 addOverload(cl);
             }
-        } catch (ConcurrentModificationException ex) {
+        }
+        catch (ConcurrentModificationException ex) {
             bug("Whoops, concurrent modification");
         }
 
@@ -732,7 +723,7 @@ public class  OverloadedFunction extends Fcn
      */
     public void addOverload(Overload overload) {
 
-         if (!finishedSecond) {
+        if (!finishedSecond) {
             // Reset finishedFirst -- new overloads can appear as side-effect
             // of finishing first overloads.
             finishedFirst = false;
@@ -741,8 +732,7 @@ public class  OverloadedFunction extends Fcn
             // InstantiationLock.lastOverloadThrowable = Useful.backtrace(0, 1000);
         } else {
             // InstantiationLock.L.lock();
-            if (debug)
-                System.err.println("Lock " + fnName.stringName());
+            if (debug) System.err.println("Lock " + fnName.stringName());
             finishedFirst = false;
             finishedSecond = false;
             pendingOverloads.add(overload);
@@ -770,17 +760,15 @@ public class  OverloadedFunction extends Fcn
             best_f = bestMatch(args, overloads);
 
             if (best_f instanceof FunctionalMethod) {
-                FunctionalMethod fm = (FunctionalMethod)best_f;
-                if (debugMatch)
-                    System.err.print("\nRefining functional method "+ best_f);
+                FunctionalMethod fm = (FunctionalMethod) best_f;
+                if (debugMatch) System.err.print("\nRefining functional method " + best_f);
                 best_f = fm.getApplicableClosure(args);
             }
             if (best_f instanceof GenericFunctionOrMethod) {
-                return bug(errorMsg("overload res yielded generic ",best_f));
+                return bug(errorMsg("overload res yielded generic ", best_f));
             }
 
-            if (debugMatch)
-                System.err.println("Choosing " + best_f + " for args " + args);
+            if (debugMatch) System.err.println("Choosing " + best_f + " for args " + args);
             cache.syncPut(args, best_f);
         }
 
@@ -789,12 +777,11 @@ public class  OverloadedFunction extends Fcn
 
     /**
      * Returns index of best match for args among the overloaded functions.
+     *
      * @throws Error
      */
-    public SingleFcn bestMatch(List<FValue> args,
-                               List<Overload> someOverloads) throws Error {
-        if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
-            bug("Cannot call before 'setFinished()'");
+    public SingleFcn bestMatch(List<FValue> args, List<Overload> someOverloads) throws Error {
+        if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread()) bug("Cannot call before 'setFinished()'");
 
         SingleFcn best = bestMatchInternal(args, someOverloads);
         if (best == null) {
@@ -802,17 +789,18 @@ public class  OverloadedFunction extends Fcn
             // Replay the test for debugging
             // best = bestMatchInternal(args, someOverloads);
             error(errorMsg("Failed to find any matching overload, args = ",
-                           Useful.listInParens(args), ", overload = ", this));
+                           Useful.listInParens(args),
+                           ", overload = ",
+                           this));
         }
         return best;
     }
 
-    private SingleFcn bestMatchInternal(List<FValue> args,
-                                        List<Overload> someOverloads) {
+    private SingleFcn bestMatchInternal(List<FValue> args, List<Overload> someOverloads) {
         SingleFcn best_sfn = null;
 
         if (debugMatch) {
-            System.err.println("Seeking best match for "+args);
+            System.err.println("Seeking best match for " + args);
         }
 
         for (Overload o : someOverloads) {
@@ -827,25 +815,22 @@ public class  OverloadedFunction extends Fcn
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) sfn;
                 try {
                     sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, gsfn.getWithin());
-                    if (debugMatch)
-                        System.err.println("Inferred from " + gsfn + " to " + sfn);
-                } catch (FortressException pe) {
-                    if (debugMatch)
-                        System.err.println("No match for " + gsfn);
+                    if (debugMatch) System.err.println("Inferred from " + gsfn + " to " + sfn);
+                }
+                catch (FortressException pe) {
+                    if (debugMatch) System.err.println("No match for " + gsfn);
                     continue; // No match, means no dice.
                 }
 
             } else if (debugMatch) {
-                System.err.println("Trying w/o instantiation: "+ sfn);
+                System.err.println("Trying w/o instantiation: " + sfn);
             }
 
             oargs = sfn.fixupArgCount(args);
 
             // Non-generic, old code.
-            if (oargs != null &&
-                argsMatchTypes(oargs,  sfn.getDomain()) &&
-                (best_sfn == null ||
-                 FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
+            if (oargs != null && argsMatchTypes(oargs, sfn.getDomain()) &&
+                (best_sfn == null || FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
                 best_sfn = sfn;
             }
 
@@ -868,12 +853,13 @@ public class  OverloadedFunction extends Fcn
     public static boolean argsMatchTypes(List<FValue> args, List<FType> l) {
         for (int j = 0; j < args.size(); j++) {
             FValue a = args.get(j);
-            FType t = Useful.clampedGet(l,j).deRest();
+            FType t = Useful.clampedGet(l, j).deRest();
             try {
-                if (! t.typeMatch(a)) {
+                if (!t.typeMatch(a)) {
                     return false;
                 }
-            } catch (FortressException e) {
+            }
+            catch (FortressException e) {
                 return false;
             }
         }
@@ -893,12 +879,10 @@ public class  OverloadedFunction extends Fcn
      * very exciting overload consistency test.
      */
     public void bless() {
-        if (finishedSecond)
-            return;
+        if (finishedSecond) return;
         finishedSecond = true;
         finishedFirst = true;
-        if (debug)
-            System.err.println("Unlock " + fnName.stringName());
+        if (debug) System.err.println("Unlock " + fnName.stringName());
     }
 
     /* This code gives overloaded functions the interface of a set of generic
@@ -911,7 +895,7 @@ public class  OverloadedFunction extends Fcn
         public Fcn make(List<FType> args, HasAt location) {
             // TODO finish this.
 
-            SingleFcn   f = null;
+            SingleFcn f = null;
             OverloadedFunction of = null;
 
             for (Overload ol : getOverloads()) {
@@ -928,8 +912,7 @@ public class  OverloadedFunction extends Fcn
                         if (f == null) {
                             f = tf;
                         } else if (of == null) {
-                            of = new OverloadedFunction(getFnName(),
-                                    getWithin());
+                            of = new OverloadedFunction(getFnName(), getWithin());
                             of.addOverload(f);
                             of.addOverload(tf);
                         } else {
@@ -939,18 +922,19 @@ public class  OverloadedFunction extends Fcn
 
                 }
             }
-           if (of != null) {
-               of.finishInitializing();
-               return of;
-           }
-           if (f != null) return f;
-           return error(location,
-                   errorMsg("No matches for instantiation of overloaded function ",
-                   OverloadedFunction.this, " with ", Useful.listInParens(args)));
+            if (of != null) {
+                of.finishInitializing();
+                return of;
+            }
+            if (f != null) return f;
+            return error(location, errorMsg("No matches for instantiation of overloaded function ",
+                                            OverloadedFunction.this,
+                                            " with ",
+                                            Useful.listInParens(args)));
         }
     }
 
-     Memo1P<List<FType>, Fcn, HasAt> memo = new Memo1P<List<FType>, Fcn, HasAt>(new Factory());
+    Memo1P<List<FType>, Fcn, HasAt> memo = new Memo1P<List<FType>, Fcn, HasAt>(new Factory());
 
     public Fcn make(List<FType> l, HasAt location) {
         return memo.make(l, location);
@@ -958,16 +942,16 @@ public class  OverloadedFunction extends Fcn
 
 
     public static boolean compatible(List<FType> args, List<StaticParam> val) {
-       if (args.size() != val.size()) return false;
-       for (int i = 0; i < args.size(); i++) {
-           // TODO need to make this check more comprehensive and detailed.
-           FType a = args.get(i);
-           StaticParam p = val.get(i);
-           if (NodeUtil.isTypeParam(p)) {
-               if (a instanceof FTypeNat) return false;
-           }
-       }
-       return true;
+        if (args.size() != val.size()) return false;
+        for (int i = 0; i < args.size(); i++) {
+            // TODO need to make this check more comprehensive and detailed.
+            FType a = args.get(i);
+            StaticParam p = val.get(i);
+            if (NodeUtil.isTypeParam(p)) {
+                if (a instanceof FTypeNat) return false;
+            }
+        }
+        return true;
     }
 
     public Fcn typeApply(List<StaticArg> args, Environment e, HasAt location) {

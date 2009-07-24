@@ -1,42 +1,33 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class FTypeObject extends FTraitOrObject {
@@ -58,14 +49,17 @@ public class FTypeObject extends FTraitOrObject {
     // functional methods, and dotted methods
     List<IdOrOpOrAnonymousName> methods = new ArrayList<IdOrOpOrAnonymousName>();
 
-    public FTypeObject(String name, Environment env, HasAt at,
+    public FTypeObject(String name,
+                       Environment env,
+                       HasAt at,
                        Option<List<Param>> params,
-                       List<Decl> members, AbstractNode def) {
+                       List<Decl> members,
+                       AbstractNode def) {
         super(name, env, at, members, def);
         this.declaredMembersOf = new BetterEnv(at);
-        for(Decl v : members) {
+        for (Decl v : members) {
             if (v instanceof VarDecl) {
-                for (LValue lhs : ((VarDecl)v).getLhs()) {
+                for (LValue lhs : ((VarDecl) v).getLhs()) {
                     fields.add(lhs.getName());
                 }
                 if (params.isSome()) {
@@ -74,7 +68,7 @@ public class FTypeObject extends FTraitOrObject {
                     }
                 }
             } else if (v instanceof FnDecl) {
-                methods.add(NodeUtil.getName((FnDecl)v));
+                methods.add(NodeUtil.getName((FnDecl) v));
             }
         }
         cannotBeExtended = true;
@@ -105,28 +99,26 @@ public class FTypeObject extends FTraitOrObject {
 
     protected synchronized void initializeMembers() {
 
-        if (membersInitialized)
-               return;
+        if (membersInitialized) return;
         BetterEnv into = getMembersInternal();
-         List<Decl> defs = getASTmembers();
+        List<Decl> defs = getASTmembers();
 
         /* The parameters to BuildObjectEnvironment are
          * myseriously backwards-looking
          */
-         BuildObjectEnvironment inner =
-           new BuildObjectEnvironment(methodEnv, getWithin(), this, null);
+        BuildObjectEnvironment inner = new BuildObjectEnvironment(methodEnv, getWithin(), this, null);
 
-         // Wish we could say this, but it doesn't work yet.
-           //  new BuildObjectEnvironment(into, methodEnv, this, null);
-           //methodEnv.augment(into);
+        // Wish we could say this, but it doesn't work yet.
+        //  new BuildObjectEnvironment(into, methodEnv, this, null);
+        //methodEnv.augment(into);
 
         inner.doDefs1234(defs);
 
         // This is a minor hack to deal with messed-up object environments.
-        for(Decl v : members) {
+        for (Decl v : members) {
             if (v instanceof FnDecl) {
-                String s = NodeUtil.nameAsMethod((FnDecl)v);//.getName().stringName();
-                declaredMembersOf.putValueRaw(s,  methodEnv.getLeafValue(s));
+                String s = NodeUtil.nameAsMethod((FnDecl) v);//.getName().stringName();
+                declaredMembersOf.putValueRaw(s, methodEnv.getLeafValue(s));
             }
         }
 
@@ -134,7 +126,7 @@ public class FTypeObject extends FTraitOrObject {
     }
 
     public BetterEnv getMembers() {
-        if (! membersInitialized) {
+        if (!membersInitialized) {
             initializeMembers();
         }
         return declaredMembersOf;

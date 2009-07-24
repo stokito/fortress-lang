@@ -1,42 +1,25 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.Set;
-
 import com.sun.fortress.interpreter.evaluator.values.Overload;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.ArrayType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.MatrixType;
-import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitObjectDecl;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.WhereExtends;
+import com.sun.fortress.nodes.*;
+
+import java.util.Set;
 
 public class ScoutVisitor extends NodeAbstractVisitor_void {
     /* (non-Javadoc)

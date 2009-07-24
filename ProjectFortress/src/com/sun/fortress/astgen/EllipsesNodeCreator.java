@@ -1,37 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
 
-import java.util.LinkedList;
-import java.util.ArrayList;
-import java.util.List;
-
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeInterface;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Types;
-import edu.rice.cs.astgen.Types.TypeName;
-import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.astgen.*;
 import edu.rice.cs.plt.tuple.Pair;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
 
@@ -49,33 +39,27 @@ public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
         NodeType abstractNode;
         NodeType exprNode;
         NodeType typeNode;
-        if ( ast.typeForName("AbstractNode").isSome() &&
-             ast.typeForName("Expr").isSome() &&
-             ast.typeForName("Type").isSome() ) {
+        if (ast.typeForName("AbstractNode").isSome() && ast.typeForName("Expr").isSome() && ast.typeForName("Type").isSome()) {
             abstractNode = ast.typeForName("AbstractNode").unwrap();
-            exprNode     = ast.typeForName("Expr").unwrap();
-            typeNode     = ast.typeForName("Type").unwrap();
-        } else
-            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
+            exprNode = ast.typeForName("Expr").unwrap();
+            typeNode = ast.typeForName("Type").unwrap();
+        } else throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
 
-            abstractNode = ast.typeForName("AbstractNode").unwrap();
-        for ( NodeType n : ast.classes() ){
-            if ( n.getClass() == NodeClass.class &&
-                 ast.isDescendent(abstractNode, n) &&
-                 !n.name().startsWith("_SyntaxTransformation") &&
-                 !n.name().startsWith("TemplateGap")){
+        abstractNode = ast.typeForName("AbstractNode").unwrap();
+        for (NodeType n : ast.classes()) {
+            if (n.getClass() == NodeClass.class && ast.isDescendent(abstractNode, n) && !n.name().startsWith("_SyntaxTransformation") && !n.name().startsWith("TemplateGap")) {
 
                 String infoType;
-                if ( ast.isDescendent(exprNode, n) ) infoType = "ExprInfo";
-                else if ( ast.isDescendent(typeNode, n) ) infoType = "TypeInfo";
+                if (ast.isDescendent(exprNode, n)) infoType = "ExprInfo";
+                else if (ast.isDescendent(typeNode, n)) infoType = "TypeInfo";
                 else infoType = "ASTNodeInfo";
 
-                NodeType child = new EllipsesNode((NodeClass) n,ast,infoType);
-                all.add( new Pair<NodeType,NodeType>( child, n ) );
+                NodeType child = new EllipsesNode((NodeClass) n, ast, infoType);
+                all.add(new Pair<NodeType, NodeType>(child, n));
             }
         }
-        for (Pair<NodeType, NodeType> p: all) {
-            ast.addType( p.first(), false, p.second() );
+        for (Pair<NodeType, NodeType> p : all) {
+            ast.addType(p.first(), false, p.second());
         }
     }
 

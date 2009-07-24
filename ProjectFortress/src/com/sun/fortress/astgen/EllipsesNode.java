@@ -1,45 +1,36 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collections;
+import edu.rice.cs.astgen.*;
 
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Types;
-import edu.rice.cs.astgen.Types.TypeName;
-import edu.rice.cs.plt.tuple.Option;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class EllipsesNode extends NodeClass {
 
     private String nodeField = "repeatedNode";
     private String infoType;
 
-    public EllipsesNode( NodeClass parent, ASTModel ast, String in_infoType ){
-        super( "_Ellipses" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_Ellipses",ast)) );
+    public EllipsesNode(NodeClass parent, ASTModel ast, String in_infoType) {
+        super("_Ellipses" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_Ellipses", ast)));
         infoType = in_infoType;
     }
 
@@ -52,7 +43,7 @@ public class EllipsesNode extends NodeClass {
         return fields(ast);
     }
 
-    private static List<Field> fields( ASTModel ast ){
+    private static List<Field> fields(ASTModel ast) {
         return new ArrayList<Field>();
     }
 
@@ -108,12 +99,12 @@ public class EllipsesNode extends NodeClass {
         writer.close();
     }
 
-    private String getter( String s ){
-        return "get" + s.substring(0,1).toUpperCase() + s.substring(1);
+    private String getter(String s) {
+        return "get" + s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     private void writeGetters(TabPrintWriter writer, String name) {
-        writer.startLine(String.format("final public AbstractNode %s(){ return _%s; }", getter(nodeField), nodeField ) );
+        writer.startLine(String.format("final public AbstractNode %s(){ return _%s; }", getter(nodeField), nodeField));
         /*
         writer.startLine(String.format("final public String %s(){ return _%s; }", getter(fieldTransformer), fieldTransformer ) );
         writer.startLine("final public java.util.Map<String,Object> getVariables(){ return _variables; }" );
@@ -124,24 +115,24 @@ public class EllipsesNode extends NodeClass {
 
     private void writeAcceptors(ASTModel ast, TabPrintWriter writer, String name) {
 
-        for (NodeType t: ast.ancestorRoots(this)) {
+        for (NodeType t : ast.ancestorRoots(this)) {
 
-            writer.startLine("public <RetType> RetType accept("+t.name()+"Visitor<RetType> visitor) {");
+            writer.startLine("public <RetType> RetType accept(" + t.name() + "Visitor<RetType> visitor) {");
             writer.indent();
-            writer.startLine("return visitor.for"+name+"(this);");
+            writer.startLine("return visitor.for" + name + "(this);");
             writer.unindent();
             writer.startLine("}");
 
-            writer.startLine("public void accept("+t.name()+"Visitor_void visitor) {");
+            writer.startLine("public void accept(" + t.name() + "Visitor_void visitor) {");
             writer.indent();
-            writer.startLine("visitor.for"+name+"(this);");
+            writer.startLine("visitor.for" + name + "(this);");
             writer.unindent();
             writer.startLine("}");
         }
 
         writer.startLine("public Node accept(TemplateUpdateVisitor visitor) {");
         writer.indent();
-        writer.startLine("return visitor.for"+name+"(this);");
+        writer.startLine("return visitor.for" + name + "(this);");
         writer.unindent();
         writer.startLine("}");
     }
@@ -165,7 +156,7 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
-        writer.startLine("public " + className+"() {");
+        writer.startLine("public " + className + "() {");
         writer.indent();
         writer.startLine("super(NodeFactory.make" + infoType + "(NodeFactory.macroSpan));");
         writer.startLine(String.format("this._%s = null;", nodeField));

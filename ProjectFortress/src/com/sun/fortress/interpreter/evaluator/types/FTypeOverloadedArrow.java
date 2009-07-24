@@ -1,33 +1,32 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.List;
-import java.util.Set;
-
+import com.sun.fortress.exceptions.UnificationError;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1;
 import com.sun.fortress.useful.Useful;
 
-import com.sun.fortress.exceptions.UnificationError;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.interpreter.evaluator.Environment;
+import java.util.List;
+import java.util.Set;
 
 public class FTypeOverloadedArrow extends FType {
 
@@ -65,8 +64,8 @@ public class FTypeOverloadedArrow extends FType {
     public boolean subtypeOf(FType other) {
         if (commonSubtypeOf(other)) return true;
         if (other instanceof FType) {
-            FType fta = (FType)(other);
-            for (FType  i : l) {
+            FType fta = (FType) (other);
+            for (FType i : l) {
                 if (i.subtypeOf(fta)) return true;
             }
         }
@@ -74,8 +73,10 @@ public class FTypeOverloadedArrow extends FType {
     }
 
     @Override
-    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
+    protected boolean unifyNonVar(Environment env,
+                                  Set<String> tp_set,
+                                  BoundingMap<String, FType, TypeLatticeOps> abm,
+                                  Type val) {
         // Note that this attempts unification, but then rolls back
         // the results.  This is because we otherwise need to choose
         // the "best" overloading based on the available static types,
@@ -90,17 +91,17 @@ public class FTypeOverloadedArrow extends FType {
 
         BoundingMap<String, FType, TypeLatticeOps> savedAbm = abm.copy();
         BoundingMap<String, FType, TypeLatticeOps> unifiedAbm = null;
-        if (FType.DUMP_UNIFY)
-            System.out.println("\tAttempting to unify overloadings.");
+        if (FType.DUMP_UNIFY) System.out.println("\tAttempting to unify overloadings.");
         for (FType t : l) {
             try {
-                t.unify(env,tp_set,abm,val);
+                t.unify(env, tp_set, abm, val);
                 if (unifiedAbm != null) return true;
                 unifiedAbm = abm.copy();
-            } catch (UnificationError e) {
-                if (FType.DUMP_UNIFY)
-                    System.out.println("\tOverloading "+t+" != "+val+", abm ="+abm);
-            } finally {
+            }
+            catch (UnificationError e) {
+                if (FType.DUMP_UNIFY) System.out.println("\tOverloading " + t + " != " + val + ", abm =" + abm);
+            }
+            finally {
                 abm.assign(savedAbm);
             }
         }

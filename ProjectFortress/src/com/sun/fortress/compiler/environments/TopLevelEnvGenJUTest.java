@@ -1,26 +1,21 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.environments;
-
-import java.io.File;
-import java.io.IOException;
-
-import junit.framework.TestCase;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.NamingCzar;
@@ -34,56 +29,60 @@ import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Path;
+import junit.framework.TestCase;
+
+import java.io.File;
+import java.io.IOException;
 
 public class TopLevelEnvGenJUTest extends TestCase {
 
     private BaseEnv testCompiledEnv;
     private BaseEnv testCompiledImportEnv;
-	private BaseEnv testCompiledNestedImportEnv;
-	private BaseEnv testLibraryEnv;
+    private BaseEnv testCompiledNestedImportEnv;
+    private BaseEnv testLibraryEnv;
 
-	private String fsiFiles[];
-	private String fssFiles[];
+    private String fsiFiles[];
+    private String fssFiles[];
 
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
     @Override
     protected void setUp() throws Exception {
-    	fssFiles = new String[4];
-    	fsiFiles = new String[3];
+        fssFiles = new String[4];
+        fsiFiles = new String[3];
 
-    	fssFiles[0] = "TestCompiledEnvironments";
-    	fssFiles[1] = "TestCompiledImports";
-    	fssFiles[2] = "TestCompiledNestedImports";
-    	fssFiles[3] = WellKnownNames.fortressLibrary();
+        fssFiles[0] = "TestCompiledEnvironments";
+        fssFiles[1] = "TestCompiledImports";
+        fssFiles[2] = "TestCompiledNestedImports";
+        fssFiles[3] = WellKnownNames.fortressLibrary();
 
-    	for(String fssFile : fssFiles) {
-        	compileTestProgram(fssFile + ".fss");
-    	}
-    	testCompiledEnv = SimpleClassLoader.loadEnvironment(fssFiles[0], false);
-    	testCompiledImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[1], false);
-    	testCompiledNestedImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[2], false);
-    	testLibraryEnv = SimpleClassLoader.loadEnvironment(fssFiles[3], false);
+        for (String fssFile : fssFiles) {
+            compileTestProgram(fssFile + ".fss");
+        }
+        testCompiledEnv = SimpleClassLoader.loadEnvironment(fssFiles[0], false);
+        testCompiledImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[1], false);
+        testCompiledNestedImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[2], false);
+        testLibraryEnv = SimpleClassLoader.loadEnvironment(fssFiles[3], false);
 
-    	fsiFiles[0] = "AsciiVal";
-    	fsiFiles[1] = "a.b.NestedOne";
-    	fsiFiles[2] = "a.b.c.d.NestedTwo";
+        fsiFiles[0] = "AsciiVal";
+        fsiFiles[1] = "a.b.NestedOne";
+        fsiFiles[2] = "a.b.c.d.NestedTwo";
     }
 
     public void testConstructor() {
-    	WorseEnv worseEnv = new WorseEnv();
-    	assertFalse(worseEnv.isTopLevel());
-    	assertTrue(testCompiledEnv.isTopLevel());
+        WorseEnv worseEnv = new WorseEnv();
+        assertFalse(worseEnv.isTopLevel());
+        assertTrue(testCompiledEnv.isTopLevel());
     }
 
     public void testNameMangling() {
-    	String input = "/.;$<>[]:\\";
-    	String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
-    	assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
-    	input = "hello" + input;
-    	mangledInput = "\\=" + "hello" + mangledInput;
-    	assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
+        String input = "/.;$<>[]:\\";
+        String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
+        assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
+        input = "hello" + input;
+        mangledInput = "\\=" + "hello" + mangledInput;
+        assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
     }
 
     public void testRemoveMethods() {
@@ -114,11 +113,9 @@ public class TopLevelEnvGenJUTest extends TestCase {
         testCompiledEnv.putNatRaw("run", 0);
     }
 
-    public void testGetPutApi() throws IOException,
-                                       InstantiationException,
-                                       IllegalAccessException {
-    	FInt val = FInt.make(65);
-    	String apiName = fsiFiles[0];
+    public void testGetPutApi() throws IOException, InstantiationException, IllegalAccessException {
+        FInt val = FInt.make(65);
+        String apiName = fsiFiles[0];
 
         assertNull(testCompiledImportEnv.getApiNull(apiName));
         Environment loadedEnv = SimpleClassLoader.loadEnvironment(fsiFiles[0], true);
@@ -131,31 +128,29 @@ public class TopLevelEnvGenJUTest extends TestCase {
         assertEquals(val, loadedEnv.getRootValueNull("A"));
     }
 
-    public void testGetPutApiInNestedDir() throws IOException,
-                                                  InstantiationException,
-                                                  IllegalAccessException {
-    	FInt level = FInt.make(1);
+    public void testGetPutApiInNestedDir() throws IOException, InstantiationException, IllegalAccessException {
+        FInt level = FInt.make(1);
 
-    	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[1]));
-       	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[2]));
-       	assertNull(testCompiledNestedImportEnv.getApiNull("NonExistentApi"));
+        assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[1]));
+        assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[2]));
+        assertNull(testCompiledNestedImportEnv.getApiNull("NonExistentApi"));
 
-    	Environment loadedLevel1Api = SimpleClassLoader.loadEnvironment(fsiFiles[1], true);
-    	Environment loadedLevel2Api = SimpleClassLoader.loadEnvironment(fsiFiles[2], true);
-    	testCompiledNestedImportEnv.putApi(fsiFiles[1], loadedLevel1Api);
-    	testCompiledNestedImportEnv.putApi(fsiFiles[2], loadedLevel2Api);
+        Environment loadedLevel1Api = SimpleClassLoader.loadEnvironment(fsiFiles[1], true);
+        Environment loadedLevel2Api = SimpleClassLoader.loadEnvironment(fsiFiles[2], true);
+        testCompiledNestedImportEnv.putApi(fsiFiles[1], loadedLevel1Api);
+        testCompiledNestedImportEnv.putApi(fsiFiles[2], loadedLevel2Api);
 
-    	Environment env1 = testCompiledNestedImportEnv.getApiNull(fsiFiles[1]);
-       	Environment env2 = testCompiledNestedImportEnv.getApiNull(fsiFiles[2]);
+        Environment env1 = testCompiledNestedImportEnv.getApiNull(fsiFiles[1]);
+        Environment env2 = testCompiledNestedImportEnv.getApiNull(fsiFiles[2]);
 
-    	assertEquals(loadedLevel1Api, env1);
-    	assertEquals(loadedLevel2Api, env2);
+        assertEquals(loadedLevel1Api, env1);
+        assertEquals(loadedLevel2Api, env2);
 
-    	env1.putValueRaw("level1", level);
-    	env2.putValueRaw("level2", level);
+        env1.putValueRaw("level1", level);
+        env2.putValueRaw("level2", level);
 
-    	assertEquals(level, loadedLevel1Api.getRootValueNull("level1"));
-    	assertEquals(level, loadedLevel2Api.getRootValueNull("level2"));
+        assertEquals(level, loadedLevel1Api.getRootValueNull("level1"));
+        assertEquals(level, loadedLevel2Api.getRootValueNull("level2"));
     }
 
     public void testGetPutTypeRaw() {
@@ -217,15 +212,14 @@ public class TopLevelEnvGenJUTest extends TestCase {
         testCompiledEnv.putValueRaw("K", b);
         testCompiledEnv.putValueRaw("l", c);
 
-    	StringBuffer buffer = new StringBuffer();
-    	testCompiledEnv.verboseDump = true;
-    	testCompiledEnv.dump(buffer);
+        StringBuffer buffer = new StringBuffer();
+        testCompiledEnv.verboseDump = true;
+        testCompiledEnv.dump(buffer);
     }
 
     private void compileTestProgram(String testFileName) throws UserError {
         Path path = ProjectProperties.SOURCE_PATH;
-        String s = ProjectProperties.BASEDIR + "tests" +
-                   File.separator + testFileName;
+        String s = ProjectProperties.BASEDIR + "tests" + File.separator + testFileName;
 
         //        System.err.println("compileTestProgram(" + s + ")");
 
@@ -234,17 +228,17 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
         if (s.contains(File.separator)) {
             String head = s.substring(0, s.lastIndexOf(File.separator));
-            s = s.substring(s.lastIndexOf(File.separator)+1, s.length());
+            s = s.substring(s.lastIndexOf(File.separator) + 1, s.length());
             path = path.prepend(head);
         }
 
         // HACK: We need to compile these test programs using the old Fortress
         // libraries instead of the new compiler libraries. 
         // Shell.useFortressLibraries();
-        
+
         Iterable<? extends StaticError> errors = Shell.compilerPhases(path, s);
 
-        for (StaticError error: errors) {
+        for (StaticError error : errors) {
             fail(error.toString());
         }
     }

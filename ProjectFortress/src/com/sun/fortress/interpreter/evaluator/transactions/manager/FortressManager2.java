@@ -1,19 +1,19 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 /* Based on Backoff Manager */
 
@@ -21,6 +21,7 @@ package com.sun.fortress.interpreter.evaluator.transactions.manager;
 
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
+
 import java.util.Collection;
 
 /**
@@ -45,21 +46,23 @@ public class FortressManager2 extends BaseManager {
     public void pickOne(Transaction me, Transaction other) {
         int mine = (int) me.getID();
         int yours = (int) other.getID();
-        
+
         if (mine < yours) {
             if (me.isActive()) {
-                FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and " + other + " by killing " + other);
+                FortressTaskRunner.debugPrintln(
+                        "Resolve Conflict between " + me + " and " + other + " by killing " + other);
                 if (!other.abort())
                     // My competitor already committed.  We might want to be smarter later, but for now!
                     me.abort();
             }
         } else if (mine > yours) {
             if (other.isActive()) {
-                FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and " + other + " by killing " + me);
+                FortressTaskRunner.debugPrintln(
+                        "Resolve Conflict between " + me + " and " + other + " by killing " + me);
                 me.abort();
                 sleepFactor(mine);
             }
-        } else  return;
+        } else return;
     }
 
     public void pickOne(Transaction me, Collection<Transaction> others) {
@@ -80,13 +83,13 @@ public class FortressManager2 extends BaseManager {
             FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and others by killing them");
             // It's possible that one of my competitors already committed.  We might want to be smarter later, but for now!
             boolean ilose = false;
-            
+
             for (Transaction t : others) {
                 if (t != me) {
-                    FortressTaskRunner.debugPrintln("Resolve Conflict between " + me + " and others by killing them including " + t);
+                    FortressTaskRunner.debugPrintln(
+                            "Resolve Conflict between " + me + " and others by killing them including " + t);
                     t.abort();
-                    if (!t.isAborted())
-                        ilose = true;
+                    if (!t.isAborted()) ilose = true;
                 }
             }
             if (ilose) me.abort();
@@ -107,7 +110,7 @@ public class FortressManager2 extends BaseManager {
 
     public void resolveConflict(Transaction me, Collection<Transaction> others) {
         if (me == null || !me.isActive()) return;
-        pickOne(me,others);
+        pickOne(me, others);
     }
 
     public void waitToRestart() {

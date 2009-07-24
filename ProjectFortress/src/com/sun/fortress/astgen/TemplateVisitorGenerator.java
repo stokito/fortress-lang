@@ -1,39 +1,32 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
 
 
-import java.util.LinkedList;
-import java.util.ArrayList;
-import java.util.List;
-
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.CodeGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeInterface;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.UpdateVisitorGenerator;
+import edu.rice.cs.astgen.*;
 import edu.rice.cs.astgen.Types.TypeName;
+import edu.rice.cs.astgen.UpdateVisitorGenerator;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
@@ -42,18 +35,18 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
     public TemplateVisitorGenerator(ASTModel ast) {
         super(ast);
-        if ( ast.typeForName("Expr").isSome() &&
-             ast.typeForName("Type").isSome() ) {
+        if (ast.typeForName("Expr").isSome() && ast.typeForName("Type").isSome()) {
             exprNode = ast.typeForName("Expr").unwrap();
             typeNode = ast.typeForName("Type").unwrap();
-        } else
-            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
+        } else throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
     }
 
     @Override
     protected void generateVisitor(NodeType root) {
         // only defined for the "Node" class
-        if (!root.name().equals("Node")) { return; }
+        if (!root.name().equals("Node")) {
+            return;
+        }
 
         String visitorName = "TemplateUpdateVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
@@ -78,10 +71,9 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
         if (options.usePLT) {
             writer.print(" extends " + root.name() + "VisitorLambda<" + root.name() + ">");
-          }
-          else {
+        } else {
             writer.print(" implements " + root.name() + "Visitor<" + root.name() + ">");
-          }
+        }
 
         writer.print(" {");
         writer.indent();
@@ -90,35 +82,35 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
-          if (!t.isAbstract()) {
-            writer.println();
-            if (t.name().startsWith("_SyntaxTransformation")){
-                outputForTransformationCaseOnly(t, writer, root);
-            } else if ( t instanceof EllipsesNode ){
-                outputForEllipsesCaseOnly( (EllipsesNode) t, writer, root );
-            } else {
-                outputForCaseOnly(t, writer, root);
+            if (!t.isAbstract()) {
+                writer.println();
+                if (t.name().startsWith("_SyntaxTransformation")) {
+                    outputForTransformationCaseOnly(t, writer, root);
+                } else if (t instanceof EllipsesNode) {
+                    outputForEllipsesCaseOnly((EllipsesNode) t, writer, root);
+                } else {
+                    outputForCaseOnly(t, writer, root);
+                }
             }
-          }
-//          if (t instanceof NodeClass) {
-//              outputTemplateForCaseOnly(t, writer, root);
-//          }
+            //          if (t instanceof NodeClass) {
+            //              outputTemplateForCaseOnly(t, writer, root);
+            //          }
         }
         writer.println();
 
         writer.startLine("/** Methods to recur on each child. */");
         for (NodeType t : ast.descendents(root)) {
-          if (!t.isAbstract()) {
-            writer.println();
-            outputVisitMethod(t, writer, root);
-          }
-//          if (t instanceof NodeClass) {
-//              outputTemplateVisitMethod(t, writer, root);
-//          }
+            if (!t.isAbstract()) {
+                writer.println();
+                outputVisitMethod(t, writer, root);
+            }
+            //          if (t instanceof NodeClass) {
+            //              outputTemplateVisitMethod(t, writer, root);
+            //          }
         }
 
         NodeType templateGapInterface = null;
-        for (NodeInterface ni: ast.interfaces()) {
+        for (NodeInterface ni : ast.interfaces()) {
             if (ni.name().equals("TemplateGap")) {
                 templateGapInterface = ni;
             }
@@ -134,7 +126,10 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         outputEllipsesDefaultCase(writer, root);
 
         // Output helpers
-        for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
+        for (TypeName t : helpers()) {
+            writer.println();
+            generateHelper(t, writer, root);
+        }
 
         writer.unindent();
         writer.startLine("}");
@@ -142,7 +137,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.close();
     }
 
-    protected void outputForTransformationCaseOnly(NodeType node, TabPrintWriter writer, NodeType root ){
+    protected void outputForTransformationCaseOnly(NodeType node, TabPrintWriter writer, NodeType root) {
         List<String> params = new ArrayList<String>();
         /*
         for (Field f : node.allFields(ast)) {
@@ -156,7 +151,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine("}");
     }
 
-    protected void outputForEllipsesCaseOnly( EllipsesNode node, TabPrintWriter writer, NodeType root ){
+    protected void outputForEllipsesCaseOnly(EllipsesNode node, TabPrintWriter writer, NodeType root) {
         List<String> params = new ArrayList<String>();
         outputForCaseHeader(node, writer, root.name(), "Only", params);
         writer.indent();
@@ -165,20 +160,20 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine("}");
     }
 
-    protected void outputTransformationDefaultCase( TabPrintWriter writer, NodeType root ){
-        writer.startLine(String.format("public %s defaultTransformationNodeCase( _SyntaxTransformation s ){", root.name() ));
+    protected void outputTransformationDefaultCase(TabPrintWriter writer, NodeType root) {
+        writer.startLine(String.format("public %s defaultTransformationNodeCase( _SyntaxTransformation s ){", root.name()));
         writer.indent();
         writer.startLine("return s;");
         writer.unindent();
-        writer.startLine( "}" );
+        writer.startLine("}");
     }
 
-    protected void outputEllipsesDefaultCase( TabPrintWriter writer, NodeType root ){
-        writer.startLine(String.format("public %s defaultEllipsesNodeOnly( _Ellipses s ){", root.name() ));
+    protected void outputEllipsesDefaultCase(TabPrintWriter writer, NodeType root) {
+        writer.startLine(String.format("public %s defaultEllipsesNodeOnly( _Ellipses s ){", root.name()));
         writer.indent();
         writer.startLine("return s;");
         writer.unindent();
-        writer.startLine( "}" );
+        writer.startLine("}");
     }
 
     @Override
@@ -187,7 +182,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.indent();
 
         boolean isTemplateGap = false;
-        for (TypeName typeName: t.interfaces()) {
+        for (TypeName typeName : t.interfaces()) {
             if (typeName.name().equals("TemplateGap")) {
                 isTemplateGap = true;
             }
@@ -204,10 +199,11 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
                 }
             }
             writer.startLine("return forTemplateGapOnly((TemplateGap) that");
-            for (String recurVal : recurVals) { writer.print(", " + recurVal); }
+            for (String recurVal : recurVals) {
+                writer.print(", " + recurVal);
+            }
             writer.print(");");
-        }
-        else {
+        } else {
             List<String> recurVals = new LinkedList<String>();
             for (Field f : t.allFields(ast)) {
                 Option<String> recur = recurExpression(f.type(), "that." + f.getGetterName() + "()", root, true);
@@ -218,8 +214,10 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
                 }
             }
             writer.startLine("return " + visitorMethodName(t) + "Only(that");
-            if (!t.name().startsWith("_SyntaxTransformation")){
-                for (String recurVal : recurVals) { writer.print(", " + recurVal); }
+            if (!t.name().startsWith("_SyntaxTransformation")) {
+                for (String recurVal : recurVals) {
+                    writer.print(", " + recurVal);
+                }
             }
             writer.print(");");
         }
@@ -232,15 +230,16 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         outputTemplateForCaseHeader(t.name(), writer, retType, "", IterUtil.<String>empty());
     }
 
-    protected void outputTemplateForCaseHeader(String name, TabPrintWriter writer, String retType,
-            String suff, Iterable<String> extraParams) {
+    protected void outputTemplateForCaseHeader(String name, TabPrintWriter writer, String retType, String suff, Iterable<String> extraParams) {
         writer.startLine("public ");
         writer.print(retType);
         writer.print(" ");
         writer.print(visitorTemplateMethodName(name));
         writer.print(suff + "("); // Only(
         writer.print("TemplateGap" + name + " that");
-        for (String p : extraParams) { writer.print(", " + p); }
+        for (String p : extraParams) {
+            writer.print(", " + p);
+        }
         writer.print(") {");
     }
 
@@ -257,20 +256,18 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         List<String> getters = new LinkedList<String>(); // expressions
         List<String> paramRefs = new LinkedList<String>(); // variable names or null
         List<Field> fields;
-        if ( ast.isDescendent(exprNode, root) )
-            fields = TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
-        else if ( ast.isDescendent(typeNode, root) )
-            fields = TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
-        else
-            fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
+        if (ast.isDescendent(exprNode, root)) fields = TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
+        else if (ast.isDescendent(typeNode, root)) fields = TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
+        else fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
         for (Field f : fields) {
             getters.add("that." + f.getGetterName() + "()");
             if (canRecurOn(f.type(), root)) {
                 String paramName = f.name() + "_result";
                 params.add(f.type().name() + " " + paramName);
                 paramRefs.add(paramName);
+            } else {
+                paramRefs.add(null);
             }
-            else { paramRefs.add(null); }
         }
         outputTemplateForCaseHeader("", writer, root.name(), "Only", params);
         writer.indent();
@@ -288,10 +285,10 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
     @Override
     public void generateClassMembers(TabPrintWriter writer, NodeClass arg1) {
-        if (arg1.name().startsWith("_SyntaxTransformation")){
+        if (arg1.name().startsWith("_SyntaxTransformation")) {
             writer.startLine("public Node accept(TemplateUpdateVisitor visitor) {");
             writer.indent();
-            writer.startLine("return visitor.for"+arg1.name()+"(this);");
+            writer.startLine("return visitor.for" + arg1.name() + "(this);");
             writer.unindent();
             writer.startLine("}");
         }

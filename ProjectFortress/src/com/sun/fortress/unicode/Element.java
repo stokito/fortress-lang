@@ -1,42 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.unicode;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.io.*;
+import java.util.*;
 
 public class Element {
     // 0028;LEFT PARENTHESIS;Ps;0;ON;;;;;Y;OPENING PARENTHESIS;;;;
     //     1                2  3 4  56789 a                   bcde
 
     static final Element collision = new Element("0000;SOME COLLISION;;;;;;;;;;;;;");
-    static ArrayList<XForm> xforms = new  ArrayList<XForm>();
+    static ArrayList<XForm> xforms = new ArrayList<XForm>();
 
     String[] fields;
 
@@ -56,11 +45,9 @@ public class Element {
             return new String(ca);
         }
         for (String s : spaceFreeAliases) {
-            if (shortest == null)
-                shortest = s;
-            // Note the need for a well-defined "shortest"
-            else if (s.length() < shortest.length() ||
-                     s.length() == shortest.length() && s.compareTo(shortest) < 0)
+            if (shortest == null) shortest = s;
+                // Note the need for a well-defined "shortest"
+            else if (s.length() < shortest.length() || s.length() == shortest.length() && s.compareTo(shortest) < 0)
                 shortest = s;
         }
         return shortest;
@@ -75,7 +62,7 @@ public class Element {
             ca[2] = '\"';
             return new String(ca);
         }
-        return "0x"+unicode();
+        return "0x" + unicode();
     }
 
     String escapedShortName() {
@@ -95,14 +82,11 @@ public class Element {
 
     public String toString() {
         String s = otherName();
-        return unicode() + " " + (s.length() > 0 ? name() + "(" + otherName() + ")"
-                : name());
+        return unicode() + " " + (s.length() > 0 ? name() + "(" + otherName() + ")" : name());
     }
 
     public boolean simpleEquals(Element that) {
-        return this == that ||
-               this.name().equals(that.otherName()) ||
-               that.name().equals(this.otherName());
+        return this == that || this.name().equals(that.otherName()) || that.name().equals(this.otherName());
     }
 
     Element(String line) {
@@ -110,8 +94,7 @@ public class Element {
     }
 
     void addUnderXForm(Map<String, Element> m, XForm x) {
-        if ("<control>".equals(name()))
-            return;
+        if ("<control>".equals(name())) return;
         addUnderXForm(name(), m, x);
         addUnderXForm(otherName(), m, x);
     }
@@ -120,60 +103,57 @@ public class Element {
 
         if (s.length() == 0) return;
         String t = x.translate(s);
-        if (t != null)
-            addAlias(s, m, x, t, false);
+        if (t != null) addAlias(s, m, x, t, false);
     }
 
-    public final static String[] keyswordsTriggeringErrorIgnore = { "YOGH", "CYRILLIC", "GEORGIAN", "HANGUL", "GUJARATI" };
+    public final static String[] keyswordsTriggeringErrorIgnore =
+            {"YOGH", "CYRILLIC", "GEORGIAN", "HANGUL", "GUJARATI"};
 
     static void Systemerrprintln(String s) {
         for (String k : keyswordsTriggeringErrorIgnore) {
-            if (s.indexOf(k) != -1)
-                return;
+            if (s.indexOf(k) != -1) return;
         }
         System.err.println(s);
     }
 
     public void addAlias(String original,
-            Map<String, Element> m,
-            NamedXForm translatorToBlame,
-            String translated,
-            boolean becauseISaySo) {
+                         Map<String, Element> m,
+                         NamedXForm translatorToBlame,
+                         String translated,
+                         boolean becauseISaySo) {
         Element o = (Element) m.get(translated);
-        String[] synonyms = new String[]{"MINUS SIGN",
-                                         "ASTERISK OPERATOR",
-                                         "DOT OPERATOR",
-                                         "VECTOR OR CROSS PRODUCT"};
-        List<String> synonymOperators =
-            new LinkedList<String>(java.util.Arrays.asList(synonyms));
+        String[] synonyms = new String[]{
+                "MINUS SIGN", "ASTERISK OPERATOR", "DOT OPERATOR", "VECTOR OR CROSS PRODUCT"
+        };
+        List<String> synonymOperators = new LinkedList<String>(java.util.Arrays.asList(synonyms));
 
         if (o == null) {
-           m.put(translated, this);
-           this.addName(translated);
-        } else if ( synonymOperators.contains(o.name()) ) {
-           m.put(translated, this);
-           this.addName(translated);
+            m.put(translated, this);
+            this.addName(translated);
+        } else if (synonymOperators.contains(o.name())) {
+            m.put(translated, this);
+            this.addName(translated);
         } else if (o == this) {
             // No-op transform, re-add of same.
         } else if (o.name().equals(translated)) {
             // Existing entry owns it.
             Systemerrprintln("Name collision of " + this + " and owner " + o + " on name " + translated);
             collision.addName(translated);
-            translatorToBlame.addName(translated,original);
-            } else if (this.name().equals(translated)) {
+            translatorToBlame.addName(translated, original);
+        } else if (this.name().equals(translated)) {
             // Unusual, but just in case.
             this.addName(translated);
         } else if (o.otherName().equals(translated)) {
             // Existing entry owns it.
             Systemerrprintln("Name collision of " + this + " and owner (other) " + o + " on name " + translated);
             collision.addName(translated);
-            translatorToBlame.addName(translated,original);
-            } else if (this.otherName().equals(translated) && ! o.otherName().equals(translated)) {
+            translatorToBlame.addName(translated, original);
+        } else if (this.otherName().equals(translated) && !o.otherName().equals(translated)) {
             m.put(translated, this);
             this.addName(translated);
             o.removeName(translated);
             collision.addName(translated);
-            translatorToBlame.addName(translated,original);
+            translatorToBlame.addName(translated, original);
             Systemerrprintln("Name collision of owner (other) " + this + " and " + o + " on name " + translated);
         } else {
             if (becauseISaySo) {
@@ -185,7 +165,7 @@ public class Element {
                 Systemerrprintln("Name collision of " + this + " and " + o + " on name " + translated);
             }
             collision.addName(translated);
-            translatorToBlame.addName(translated,original);
+            translatorToBlame.addName(translated, original);
             o.removeName(translated);
         }
     }
@@ -193,10 +173,8 @@ public class Element {
     private void addName(String s) {
         aliases.add(s);
         if (s.indexOf(' ') == -1) {
-            if (s.indexOf('-') == -1)
-                spaceFreeAliases.add(s);
-            else if (!s.matches(".*[a-zA-Z].*"))
-                spaceFreeAliases.add(s);
+            if (s.indexOf('-') == -1) spaceFreeAliases.add(s);
+            else if (!s.matches(".*[a-zA-Z].*")) spaceFreeAliases.add(s);
         }
     }
 
@@ -206,8 +184,9 @@ public class Element {
     }
 
     static void forAll(ArrayList<Element> l, XForm x, Map<String, Element> m) {
-        for (int i = 0; i < l.size(); i++)
+        for (int i = 0; i < l.size(); i++) {
             l.get(i).addUnderXForm(m, x);
+        }
     }
 
     public static void main(String[] args) throws IOException {
@@ -216,19 +195,19 @@ public class Element {
 
         HashMap<String, Element> h = generateAbbreviated(chars);
 
-//        HashSet tokens = new HashSet();
-//
-//        {
-//            for (int i = 0; i < chars.size(); i++) {
-//                Element e = (Element) chars.get(i);
-//                String s = e.name();
-//                StringTokenizer st = new StringTokenizer(s);
-//                while (st.hasMoreTokens()) {
-//                    String tok = st.nextToken();
-//                    tokens.add(tok);
-//                }
-//            }
-//        }
+        //        HashSet tokens = new HashSet();
+        //
+        //        {
+        //            for (int i = 0; i < chars.size(); i++) {
+        //                Element e = (Element) chars.get(i);
+        //                String s = e.name();
+        //                StringTokenizer st = new StringTokenizer(s);
+        //                while (st.hasMoreTokens()) {
+        //                    String tok = st.nextToken();
+        //                    tokens.add(tok);
+        //                }
+        //            }
+        //        }
         Set<String> keys = h.keySet();
 
         System.err.println(collision.aliases.toString());
@@ -260,13 +239,13 @@ public class Element {
             }
         }, h);
 
-        final String[] abbrevs = { "LETTER " , "DIGIT ", "NUMERAL ", "RADICAL ", "WITH ", "SIGN "};
+        final String[] abbrevs = {"LETTER ", "DIGIT ", "NUMERAL ", "RADICAL ", "WITH ", "SIGN "};
 
         for (int i = 0; i < abbrevs.length; i++) {
             final String iLoveSuperfluousTemporaries = abbrevs[i];
             XForm xform = new XForm("Remove " + iLoveSuperfluousTemporaries) {
                 String translate(String x) {
-                    String t =  x.replace(iLoveSuperfluousTemporaries, "");
+                    String t = x.replace(iLoveSuperfluousTemporaries, "");
                     if (t.equals(x)) return null;
                     return t;
                 }
@@ -277,7 +256,7 @@ public class Element {
 
         XForm xform = new XForm("Remove OF") {
             String translate(String x) {
-                String t =  x.replace( " OF", "");
+                String t = x.replace(" OF", "");
                 if (t.equals(x)) return null;
                 return t;
             }
@@ -318,8 +297,8 @@ public class Element {
                 break;
             }
         }
-        if (! nonHexSeen) {
-            System.err.println("String '" + s +"' looks like a hex number");
+        if (!nonHexSeen) {
+            System.err.println("String '" + s + "' looks like a hex number");
         }
         return nonHexSeen;
     }
@@ -330,12 +309,10 @@ public class Element {
 
     // Coped from Useful to simplify tool management.
     public static BufferedReader filenameToBufferedReader(String filename) throws FileNotFoundException {
-        return new BufferedReader(
-                new FileReader(filename));
+        return new BufferedReader(new FileReader(filename));
     }
 
     public static BufferedWriter filenameToBufferedWriter(String filename) throws IOException {
-        return new BufferedWriter(
-                new FileWriter(filename));
+        return new BufferedWriter(new FileWriter(filename));
     }
 }

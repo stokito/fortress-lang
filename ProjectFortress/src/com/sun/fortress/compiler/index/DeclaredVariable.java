@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
@@ -21,12 +21,11 @@ import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.Modifiers;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.lambda.Thunk;
-import edu.rice.cs.plt.lambda.Box;
+import com.sun.fortress.nodes_util.Span;
 import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
+import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredVariable extends Variable {
 
@@ -54,7 +53,9 @@ public class DeclaredVariable extends Variable {
         }
     }
 
-    public LValue ast() { return _lvalue; }
+    public LValue ast() {
+        return _lvalue;
+    }
 
     public Modifiers modifiers() {
         return _lvalue.getMods();

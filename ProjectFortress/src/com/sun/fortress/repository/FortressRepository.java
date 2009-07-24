@@ -1,29 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository;
 
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.APIName;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.exceptions.StaticError;
 
 /**
  * Allows the {@link Fortress} class to interface with a custom repository
@@ -57,7 +58,7 @@ public interface FortressRepository {
     /**
      * Removes the AST for the component form any in-memory caches and/or maps,
      * and optionally remove it from any stable storage as well.
-     *
+     * <p/>
      * Used to avoid memory leaks in unit testing, and to clear non-standard
      * scribbles from the cache.
      *
@@ -84,30 +85,31 @@ public interface FortressRepository {
     /**
      * Return the last modification date of an api.
      */
-    public long getModifiedDateForApi(APIName name) throws FileNotFoundException ;
+    public long getModifiedDateForApi(APIName name) throws FileNotFoundException;
 
     /**
      * Return the last modification date of a component.
      */
-    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException ;
+    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException;
 
     /**
      * True if this API has a foreign implementation.
-     * 
+     *
      * @param name
      * @return
      */
     public boolean isForeign(APIName name);
-    
+
     /**
      * Debugging methods.
      */
     public boolean setVerbose(boolean new_value);
+
     public boolean verbose();
 
-	/**
-	 * Clear
-	 */
+    /**
+     * Clear
+     */
 
     public void clear();
 }

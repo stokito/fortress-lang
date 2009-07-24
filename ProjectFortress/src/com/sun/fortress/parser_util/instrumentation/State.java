@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /*
@@ -22,11 +22,8 @@
 package com.sun.fortress.parser_util.instrumentation;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class State implements xtc.util.State {
 
@@ -34,7 +31,8 @@ public class State implements xtc.util.State {
     private LinkedList<List<Info.SequenceInfo>> saved = new LinkedList<List<Info.SequenceInfo>>();
     private int depth = 0;
 
-    public State() {}
+    public State() {
+    }
 
     public void reset(String file) {
         // No action required
@@ -63,7 +61,9 @@ public class State implements xtc.util.State {
         for (Info.SequenceInfo i : current) {
             i.startedCount++;
             i.endedCount++;
-            if (parseDone) { i.committedCount++; }
+            if (parseDone) {
+                i.committedCount++;
+            }
         }
 
         List<Info.SequenceInfo> top = null;

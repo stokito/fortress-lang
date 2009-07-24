@@ -1,28 +1,24 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.util;
 
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.exceptions.MacroError;
+import com.sun.fortress.nodes.*;
 
 /**
  * Translate a Fortress type to a corresponding Java type
@@ -46,25 +42,22 @@ public class FortressTypeToJavaType {
                     return that.getName().getText();
                 }
                 if (that.getArgs().size() != 1) {
-                    throw new MacroError(that,
-                                         "One type argument was expected for type "
-                                         + that.getName());
+                    throw new MacroError(that, "One type argument was expected for type " + that.getName());
                 }
                 String arg = that.getArgs().get(0).accept(this);
                 if (that.getName().getText().equals("List")) {
-                    return "List<"+arg+ ">";
+                    return "List<" + arg + ">";
                 }
                 if (that.getName().getText().equals("Maybe")) {
-                    return "Option<"+arg+">";
+                    return "Option<" + arg + ">";
                 }
                 if (that.getName().getText().equals("Just")) {
-                    return "Option<"+arg+">";
+                    return "Option<" + arg + ">";
                 }
                 if (that.getName().getText().equals("Nothing")) {
-                    return "Option<"+arg+">";
+                    return "Option<" + arg + ">";
                 }
-                throw new MacroError(that, "Unexpected trait type "+ that.getName()
-                                     + "[\\" + that.getArgs() + "\\]");
+                throw new MacroError(that, "Unexpected trait type " + that.getName() + "[\\" + that.getArgs() + "\\]");
             }
 
             @Override

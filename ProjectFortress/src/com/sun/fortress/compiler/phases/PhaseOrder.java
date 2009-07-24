@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
@@ -84,42 +84,41 @@ public enum PhaseOrder {
     public Phase makePhase(FortressRepository repository,
                            GlobalEnvironment env, Iterable<Api> apis,
                            Iterable<Component> components, long lastModified)
-        throws StaticError {
-        Phase empty = new EmptyPhase(repository, env, apis, components,
-                                     lastModified);
+            throws StaticError {
+        Phase empty = new EmptyPhase(env, apis, components, lastModified);
         switch (this) {
-        case EMPTY:
-            return empty;
-        default:
-            return makePhaseHelper(empty);
+            case EMPTY:
+                return empty;
+            default:
+                return makePhaseHelper(empty);
         }
     }
 
     private Phase makePhaseHelper(Phase phase) {
         switch (this) {
-        case EMPTY:
-            return phase;
-        case PREDISAMBIGUATEDESUGAR:
-return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
-        case DISAMBIGUATE:
-            return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
-        case GRAMMAR:
-            return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
-        case PRETYPECHECKDESUGAR:
-            return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
-        case TYPECHECK:
-            return new TypeCheckPhase(PRETYPECHECKDESUGAR.makePhaseHelper(phase));
-        case DESUGAR:
-            return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
-        case OVERLOADREWRITE:
-            return new OverloadRewritingPhase(DESUGAR.makePhaseHelper(phase));
-        case ENVGEN:
-            return new EnvGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
-        case CODEGEN:
-            return new CodeGenerationPhase(ENVGEN.makePhaseHelper(phase));
-        default:
-            return InterpreterBug.bug("Unknown static analysis phase: "
-                                      + phaseName);
+            case EMPTY:
+                return phase;
+            case PREDISAMBIGUATEDESUGAR:
+                return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
+            case DISAMBIGUATE:
+                return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
+            case GRAMMAR:
+                return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
+            case PRETYPECHECKDESUGAR:
+                return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
+            case TYPECHECK:
+                return new TypeCheckPhase(PRETYPECHECKDESUGAR.makePhaseHelper(phase));
+            case DESUGAR:
+                return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
+            case OVERLOADREWRITE:
+                return new OverloadRewritingPhase(DESUGAR.makePhaseHelper(phase));
+            case ENVGEN:
+                return new EnvGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
+            case CODEGEN:
+                return new CodeGenerationPhase(ENVGEN.makePhaseHelper(phase));
+            default:
+                return InterpreterBug.bug("Unknown static analysis phase: "
+                        + phaseName);
         }
     }
 

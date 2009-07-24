@@ -1,52 +1,35 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.parser_util.instrumentation;
 
+import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.Visitor;
+import static com.sun.fortress.useful.Useful.utf8BufferedFileReader;
+import xtc.parser.Production;
+import xtc.tree.Attribute;
+
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import xtc.parser.Module;
-import xtc.parser.Production;
-import xtc.parser.Sequence;
-import xtc.parser.Element;
-import xtc.parser.Action;
-import xtc.parser.Name;
-import xtc.parser.SemanticPredicate;
-import xtc.parser.ParserAction;
-import xtc.tree.Attribute;
-
-import static com.sun.fortress.parser_util.instrumentation.Util.getFreshName;
-import static com.sun.fortress.useful.Useful.utf8BufferedFileReader;
-
-import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.Visitor;
-import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.RenameParserVisitor;
 
 /* 
  * Command-line tool for instrumenting the Fortress grammar.
@@ -80,12 +63,10 @@ public class OptimizedParserGenerator {
         String destDir = args[1];
         String transientListFile = args[2];
 
-        Collection<String> transientList = 
-            readTransientList(new File(transientListFile));
+        Collection<String> transientList = readTransientList(new File(transientListFile));
 
         Visitor transientVisitor = new TransientVisitor(transientList);
-        ParserGenerator.go(MAIN_FILE, srcDir, destDir,
-                           transientVisitor);
+        ParserGenerator.go(MAIN_FILE, srcDir, destDir, transientVisitor);
     }
 
     static class TransientVisitor extends Visitor {
@@ -95,10 +76,8 @@ public class OptimizedParserGenerator {
             this.transientList = transientList;
         }
 
-        public List<Attribute> adjustProductionAttributes(Production p, 
-                                                           List<Attribute> old_attrs) {
-            boolean forceTransient = 
-                FORCE_ALL_TRANSIENT || transientList.contains(p.name.toString());
+        public List<Attribute> adjustProductionAttributes(Production p, List<Attribute> old_attrs) {
+            boolean forceTransient = FORCE_ALL_TRANSIENT || transientList.contains(p.name.toString());
             if (forceTransient) {
                 System.err.println("Making '" + p.name.toString() + "' transient");
             }
@@ -146,12 +125,19 @@ public class OptimizedParserGenerator {
                 list.add(line);
             }
             return list;
-        } catch (FileNotFoundException fnfe) {
+        }
+        catch (FileNotFoundException fnfe) {
             return new LinkedList<String>();
-        } catch (IOException ioe) {
+        }
+        catch (IOException ioe) {
             throw new RuntimeException(ioe);
-        } finally {
-            if (in != null) try { in.close(); } catch (IOException ioe) {}
+        }
+        finally {
+            if (in != null) try {
+                in.close();
+            }
+            catch (IOException ioe) {
+            }
         }
     }
 }

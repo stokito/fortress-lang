@@ -1,38 +1,36 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.Collections;
-import java.util.List;
-
-import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MethodClosure extends FunctionClosure implements Method {
 
@@ -61,7 +59,7 @@ public class MethodClosure extends FunctionClosure implements Method {
      * to be called by the functional method wrapper.
      */
     protected List<Parameter> adjustParameterList(List<Parameter> params2) {
-        return selfParameterIndex == -1 ? params2 :  Useful.removeIndex(selfParameterIndex, params2);
+        return selfParameterIndex == -1 ? params2 : Useful.removeIndex(selfParameterIndex, params2);
     }
 
     // The choice of evaluation environment is the only difference between applying
@@ -85,17 +83,15 @@ public class MethodClosure extends FunctionClosure implements Method {
             // environment is the
             // instantiation of some generic? It seems like signatures etc will
             // depend on this.
-            Evaluator eval =
-                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue), args));
+            Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue), args));
             // selfName() was rewritten to our special "$self", and
             // we don't care about shadowing here.
             eval.e.putValueRaw(selfName(), selfValue);
             return eval.eval(body);
         } else if (def instanceof Method) {
-            return ((Method)def).applyMethod(selfValue, args);
+            return ((Method) def).applyMethod(selfValue, args);
         } else {
-            return bug(errorMsg("MethodClosure ",this,
-                                " has neither body nor def instanceof Method"));
+            return bug(errorMsg("MethodClosure ", this, " has neither body nor def instanceof Method"));
 
         }
     }
@@ -112,11 +108,11 @@ public class MethodClosure extends FunctionClosure implements Method {
     }
 
     public FValue applyMethod(FObject self, FValue a, FValue b) {
-        return applyMethod(self, Useful.list(a,b));
+        return applyMethod(self, Useful.list(a, b));
     }
 
     public FValue applyMethod(FObject self, FValue a, FValue b, FValue c) {
-        return applyMethod(self, Useful.list(a,b,c));
+        return applyMethod(self, Useful.list(a, b, c));
     }
 
     /* A MethodClosure should be invoked via applyInnerPossiblyGeneric iff:
@@ -128,18 +124,19 @@ public class MethodClosure extends FunctionClosure implements Method {
      */
     public FValue applyInnerPossiblyGeneric(List<FValue> args) {
         if (selfParameterIndex == -1) {
-            return bug(errorMsg("MethodClosure for dotted method ",this,
+            return bug(errorMsg("MethodClosure for dotted method ",
+                                this,
                                 " was invoked as if it were a functional method."));
         }
         // We're a functional method instance, so fish out self and
         // chain to applyMethod.
-        FObject self = (FObject)args.get(selfParameterIndex).getValue();
-        args = Useful.removeIndex(selfParameterIndex,args);
-        return applyMethod(self,args);
+        FObject self = (FObject) args.get(selfParameterIndex).getValue();
+        args = Useful.removeIndex(selfParameterIndex, args);
+        return applyMethod(self, args);
     }
 
     public FValue applyToArgs() {
-        return bug(errorMsg("No recipient object for method ",this));
+        return bug(errorMsg("No recipient object for method ", this));
     }
 
     public FValue applyToArgs(FValue a) {
@@ -158,29 +155,29 @@ public class MethodClosure extends FunctionClosure implements Method {
 
     public FValue applyToArgs(FValue a, FValue b, FValue c) {
         if (selfParameterIndex <= 0) {
-            return applyToArgs(toSelf(a), Useful.list(b,c));
+            return applyToArgs(toSelf(a), Useful.list(b, c));
         } else if (selfParameterIndex == 1) {
-            return applyToArgs(toSelf(b), Useful.list(a,c));
+            return applyToArgs(toSelf(b), Useful.list(a, c));
         } else {
-            return applyToArgs(toSelf(c), Useful.list(a,b));
+            return applyToArgs(toSelf(c), Useful.list(a, b));
         }
     }
 
     public FValue applyToArgs(FValue a, FValue b, FValue c, FValue d) {
         if (selfParameterIndex <= 0) {
-            return applyToArgs(toSelf(a), Useful.list(b,c,d));
+            return applyToArgs(toSelf(a), Useful.list(b, c, d));
         } else if (selfParameterIndex == 1) {
-            return applyToArgs(toSelf(b), Useful.list(a,c,d));
+            return applyToArgs(toSelf(b), Useful.list(a, c, d));
         } else if (selfParameterIndex == 2) {
-            return applyToArgs(toSelf(c), Useful.list(a,b,d));
+            return applyToArgs(toSelf(c), Useful.list(a, b, d));
         } else {
-            return applyToArgs(toSelf(d), Useful.list(a,b,c));
+            return applyToArgs(toSelf(d), Useful.list(a, b, c));
         }
     }
 
     protected FObject toSelf(FValue a) {
         if (a instanceof FObject) return (FObject) a;
-        return bug(errorMsg("Non-object recipient ",a," for method ",this));
+        return bug(errorMsg("Non-object recipient ", a, " for method ", this));
     }
 
     public String selfName() {
@@ -196,7 +193,7 @@ public class MethodClosure extends FunctionClosure implements Method {
 
         @Override
         public boolean equiv(MethodClosure x, MethodClosure y) {
-            return Simple_fcn.signatureEquivalence.equiv(x,y);
+            return Simple_fcn.signatureEquivalence.equiv(x, y);
         }
 
     };

@@ -1,21 +1,26 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.environments;
+
+import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.interpreter.evaluator.BaseEnv;
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,12 +28,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.interpreter.evaluator.BaseEnv;
-import com.sun.fortress.repository.CacheBasedRepository;
-import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.useful.Useful;
 
 public class SimpleClassLoader extends ClassLoader {
 
@@ -51,11 +50,9 @@ public class SimpleClassLoader extends ClassLoader {
      * @throws IOException
      * @throws Error
      */
-    private static byte[] getTheBytes(String className)
-            throws FileNotFoundException, IOException, Error {
-                
-        FileInputStream classStream = new FileInputStream(ProjectProperties.ENVIRONMENT_CACHE_DIR +
-                File.separator + className + ".class");
+    private static byte[] getTheBytes(String className) throws FileNotFoundException, IOException, Error {
+
+        FileInputStream classStream = new FileInputStream(ProjectProperties.ENVIRONMENT_CACHE_DIR + File.separator + className + ".class");
         int expected_length = classStream.available();
         byte[] bytecode = new byte[expected_length];
         int read = classStream.read(bytecode);
@@ -64,32 +61,30 @@ public class SimpleClassLoader extends ClassLoader {
         }
         return bytecode;
     }
-    
 
-    public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi)
-                                    throws IOException, InstantiationException, IllegalAccessException {
-    	String className = fortressFileName;
-    	if(isApi) {
-    		className = NamingCzar.classNameForApiEnvironment(className);
-    	}
-    	else {
-    		className = NamingCzar.classNameForComponentEnvironment(className);
-    	}
 
-       
+    public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi) throws IOException, InstantiationException, IllegalAccessException {
+        String className = fortressFileName;
+        if (isApi) {
+            className = NamingCzar.classNameForApiEnvironment(className);
+        } else {
+            className = NamingCzar.classNameForComponentEnvironment(className);
+        }
+
+
         byte[] bytecode = getTheBytes(className);
-        
+
         SimpleClassLoader classLoader = aLoader; // new SimpleClassLoader();
-        
+
         if (reloadEnvs.contains(fortressFileName)) {
             classLoader = new SimpleClassLoader();
             aLoader = classLoader;
             reloadEnvs.clear();
         }
-        
+
         BaseEnv envObject = (BaseEnv) defineAsNecessaryAndAllocate(className, bytecode);
 
-        return(envObject);
+        return (envObject);
     }
 
     /**
@@ -106,10 +101,10 @@ public class SimpleClassLoader extends ClassLoader {
         }
         return generatedClass;
     }
-    
+
     public static Object defineAsNecessaryAndAllocate(String className, byte[] bytecode) throws InstantiationException, IllegalAccessException {
         return defineAsNecessary(className, bytecode).newInstance();
     }
 
- 
+
 }

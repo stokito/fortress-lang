@@ -1,52 +1,29 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.parser_util.instrumentation;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import xtc.parser.Module;
-import xtc.parser.Production;
-import xtc.parser.Sequence;
-import xtc.parser.Element;
-import xtc.parser.Action;
-import xtc.parser.Name;
-import xtc.parser.SemanticPredicate;
-import xtc.parser.ParserAction;
+import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.RenameParserVisitor;
+import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.Visitor;
+import static com.sun.fortress.parser_util.instrumentation.Util.getFreshName;
+import xtc.parser.*;
 import xtc.tree.Attribute;
 
-import static com.sun.fortress.parser_util.instrumentation.Util.getFreshName;
-import static com.sun.fortress.useful.Useful.utf8BufferedFileReader;
-
-import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.Visitor;
-import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.RenameParserVisitor;
+import java.util.*;
 
 /* 
  * Command-line tool for instrumenting the Fortress grammar.
@@ -63,8 +40,7 @@ import static com.sun.fortress.parser_util.instrumentation.ParserGenerator.Renam
 
 public class InstrumentedParserGenerator {
 
-    static final String PACKAGE =
-        "com.sun.fortress.parser_util.instrumentation";
+    static final String PACKAGE = "com.sun.fortress.parser_util.instrumentation";
     static final String INFO_NAME = "moduleInfos";
 
     static final String PARSER_PACKAGE = "com.sun.fortress.parser";
@@ -108,7 +84,7 @@ public class InstrumentedParserGenerator {
         }
 
         public void instrumentModules(Collection<Module> modules) {
-            String allModulesInfoType = "java.util.LinkedList<"+MODULE_INFO_CLASS+">";
+            String allModulesInfoType = "java.util.LinkedList<" + MODULE_INFO_CLASS + ">";
             this.infoCode.add(declaration(allModulesInfoType, allModulesInfo));
             super.instrumentModules(modules);
         }
@@ -127,8 +103,7 @@ public class InstrumentedParserGenerator {
             }
 
             indents.add(0);
-            code.add(String.format("public static java.util.Collection<%s> %s() {",
-                                   MODULE_INFO_CLASS, INFO_NAME));
+            code.add(String.format("public static java.util.Collection<%s> %s() {", MODULE_INFO_CLASS, INFO_NAME));
             indents.add(2);
             code.add(String.format("return %s;", allModulesInfo));
             indents.add(0);
@@ -138,13 +113,10 @@ public class InstrumentedParserGenerator {
         public void instrumentModule(Module module) {
             String moduleInfo = getFreshName("moduleInfo");
             moduleInfoMap.put(module, moduleInfo);
-            infoCode.add(declaration(MODULE_INFO_CLASS, moduleInfo, 
-                                     allModulesInfo,
-                                     quote(module.name.name)));
+            infoCode.add(declaration(MODULE_INFO_CLASS, moduleInfo, allModulesInfo, quote(module.name.name)));
             super.instrumentModule(module);
-            module.attributes = module.attributes == null 
-                ? new LinkedList<Attribute>() 
-                : new LinkedList<Attribute>(module.attributes);
+            module.attributes = module.attributes == null ? new LinkedList<Attribute>() : new LinkedList<Attribute>(
+                    module.attributes);
             module.attributes.add(new Attribute("stateful", STATE_CLASS));
         }
 
@@ -152,15 +124,11 @@ public class InstrumentedParserGenerator {
             String productionInfo = getFreshName("productionInfo");
             String moduleInfo = moduleInfoMap.get(m);
             productionInfoMap.put(p, productionInfo);
-            infoCode.add(declaration(PRODUCTION_INFO_CLASS, 
-                                     productionInfo, 
-                                     moduleInfo, 
-                                     quote(p.name.name)));
+            infoCode.add(declaration(PRODUCTION_INFO_CLASS, productionInfo, moduleInfo, quote(p.name.name)));
             super.instrumentProduction(p, m);
         }
 
-        public List<Attribute> adjustProductionAttributes(Production p, 
-                                                           List<Attribute> old_attrs) {
+        public List<Attribute> adjustProductionAttributes(Production p, List<Attribute> old_attrs) {
             List<Attribute> attrs = new LinkedList<Attribute>();
             if (old_attrs != null) attrs.addAll(old_attrs);
             attrs.add(new Attribute("stateful"));
@@ -170,11 +138,8 @@ public class InstrumentedParserGenerator {
         public void instrumentSequence(Sequence seq, int index, Production p, Module m) {
             String sequenceInfo = getFreshName("sequenceInfo");
             String pi = productionInfoMap.get(p);
-            infoCode.add(declaration(SEQUENCE_INFO_CLASS, 
-                                     sequenceInfo, 
-                                     pi,
-                                     quote(seq.name == null ? null : seq.name.name), 
-                                     index));
+            infoCode.add(declaration(SEQUENCE_INFO_CLASS, sequenceInfo, pi, quote(
+                    seq.name == null ? null : seq.name.name), index));
             List<Element> els = new LinkedList<Element>();
             els.add(makeSequenceAction(sequenceInfo));
             els.addAll(seq.elements);
@@ -198,12 +163,17 @@ public class InstrumentedParserGenerator {
         StringBuilder buffer = new StringBuilder();
         boolean first = true;
         for (Object arg : args) {
-            if (!first) { buffer.append(", "); }
+            if (!first) {
+                buffer.append(", ");
+            }
             buffer.append(arg);
             first = false;
         }
         return String.format("private static final %s %s = new %s(%s);",
-                             className, varName, className, buffer.toString());
+                             className,
+                             varName,
+                             className,
+                             buffer.toString());
     }
 
     private static String quote(String in) {

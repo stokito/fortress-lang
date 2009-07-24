@@ -1,56 +1,34 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import com.sun.fortress.exceptions.FortressException;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
-import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
-import com.sun.fortress.interpreter.evaluator.values.Overload;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.useful.BoundingMap;
-import com.sun.fortress.useful.EmptyLatticeIntervalError;
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.TopSort;
-import com.sun.fortress.useful.TopSortItemImpl;
-import com.sun.fortress.useful.Useful;
+import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.*;
+
+import java.util.*;
 
 abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
 
@@ -72,17 +50,16 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * required by this object or trait.  For objects, this
      * must be empty; if it isn't, the contents form an error
      * message.
-     *
      */
     volatile BetterEnv requiredMembers;
 
     /**
      * Generics defined by this type and supertypes.
      */
-    volatile MultiMap<String, GenericMethod> generics =
-        new MultiMap<String, GenericMethod>();
+    volatile MultiMap<String, GenericMethod> generics = new MultiMap<String, GenericMethod>();
 
     abstract protected void finishInitializing();
+
     abstract public BetterEnv getMembers();
 
     public BetterEnv getSuppliedMembers() {
@@ -108,9 +85,8 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     }
 
     final public void setExtendsAndExcludes(List<FType> extends_, List<FType> excludes) {
-        if (this.extends_ != null)
-            throw new IllegalStateException("Second set of extends");
-        if (extends_.size()==0) {
+        if (this.extends_ != null) throw new IllegalStateException("Second set of extends");
+        if (extends_.size() == 0) {
             extends_ = FTypeTop.ONLY.getTransitiveExtends();
         }
         this.extends_ = extends_;
@@ -124,61 +100,62 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     }
 
     private void initializeExcludes(List<FType> excludes) {
-        if (excludes != null)
-            for (FType t : excludes)
-                addExclude(t);
+        if (excludes != null) for (FType t : excludes) {
+            addExclude(t);
+        }
     }
 
     private void enforceValueness() {
         if (isValueType()) return;
         for (FType t : getExtends()) {
             if (t instanceof FTraitOrObjectOrGeneric && t.isValueType()) {
-                error(at,
-                      errorMsg(this, ": non-value subtype of value type ",t));
+                error(at, errorMsg(this, ": non-value subtype of value type ", t));
             }
         }
     }
 
     public List<FType> getExtends() {
-        if (extends_ == null)
-            bug(at, errorMsg(this, ": Get of unset extends"));
+        if (extends_ == null) bug(at, errorMsg(this, ": Get of unset extends"));
         // throw new IllegalStateException("Get of unset extends");
         return extends_;
     }
 
-        /**
-         * Returns extends, without checking for null;
-         * if null, then extends has not yet been initialized.
-         * Used by FType to implement constraint checks from
-         * where clauses.
-         *
-         * @return
-         */
-    @Override protected List<FType> getExtendsNull() {
+    /**
+     * Returns extends, without checking for null;
+     * if null, then extends has not yet been initialized.
+     * Used by FType to implement constraint checks from
+     * where clauses.
+     *
+     * @return
+     */
+    @Override
+    protected List<FType> getExtendsNull() {
         return extends_;
     }
 
 
-
-    /** Only implemented by subtypes which extend GenericTypeInstance.
-     *  Method included here to permit sharing of the complicated code in
-     *  unifyNonVarGeneric.
+    /**
+     * Only implemented by subtypes which extend GenericTypeInstance.
+     * Method included here to permit sharing of the complicated code in
+     * unifyNonVarGeneric.
      */
     protected FTypeGeneric getGeneric() {
-        return bug(errorMsg("getGeneric() of non-Generic ",this));
+        return bug(errorMsg("getGeneric() of non-Generic ", this));
     }
 
-    /** When dealing with operator type instantiation, we create a fresh
-     *  copy of the body and a fresh type to match.  This method allows
-     *  us to get back the original FTypeGeneric that gave rise to the type.
+    /**
+     * When dealing with operator type instantiation, we create a fresh
+     * copy of the body and a fresh type to match.  This method allows
+     * us to get back the original FTypeGeneric that gave rise to the type.
      */
     protected FTypeGeneric getOriginal() {
         return getGeneric().getOriginal();
     }
 
-    /** Only implemented by subtypes which extend GenericTypeInstance.
-     *  Method included here to permit sharing of the complicated code in
-     *  unifyNonVarGeneric.
+    /**
+     * Only implemented by subtypes which extend GenericTypeInstance.
+     * Method included here to permit sharing of the complicated code in
+     * unifyNonVarGeneric.
      */
     protected List<FType> getTypeParams() {
         return bug(errorMsg("getTypeParams() of non-Generic ", this));
@@ -194,6 +171,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
 
     /**
      * Transitive closure of extends, not including self
+     *
      * @return
      */
     public List<FType> getProperTransitiveExtends() {
@@ -251,7 +229,9 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         visitTrait(this, unsorted, toItems);
         List<TopSortItemImpl<FType>> sorted = TopSort.<TopSortItemImpl<FType>>breadthFirst(unsorted);
         ArrayList<FType> l = new ArrayList<FType>(sorted.size());
-        for (TopSortItemImpl<FType> x : sorted) l.add(x.x);
+        for (TopSortItemImpl<FType> x : sorted) {
+            l.add(x.x);
+        }
         return l;
     }
 
@@ -265,8 +245,8 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * @return
      */
     private static TopSortItemImpl<FType> visitTrait(FType t,
-            ArrayList<TopSortItemImpl<FType>> unsorted,
-            HashMap<FType, TopSortItemImpl<FType>> toItems) {
+                                                     ArrayList<TopSortItemImpl<FType>> unsorted,
+                                                     HashMap<FType, TopSortItemImpl<FType>> toItems) {
         TopSortItemImpl<FType> tsi = toItems.get(t);
         if (tsi == null) {
             tsi = new TopSortItemImpl<FType>(t);
@@ -275,10 +255,10 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         }
         for (FType e : t.getExtends()) {
             if (e instanceof FType) {
-                tsi.edgeTo(visitTrait((FType)e,unsorted, toItems));
+                tsi.edgeTo(visitTrait((FType) e, unsorted, toItems));
             }
-         }
-         return tsi;
+        }
+        return tsi;
     }
 
     /**
@@ -286,12 +266,13 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      * implement GenericTypeInstance.  They should override
      * unifyNonVar with a call to this method.
      */
-    protected final boolean unifyNonVarGeneric(Environment e, Set<String> tp_set, BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        if (DUMP_UNIFY)
-            System.out.println("unify GT/O  "+this+" and "+val + " abm= " + abm);
+    protected final boolean unifyNonVarGeneric(Environment e,
+                                               Set<String> tp_set,
+                                               BoundingMap<String, FType, TypeLatticeOps> abm,
+                                               Type val) {
+        if (DUMP_UNIFY) System.out.println("unify GT/O  " + this + " and " + val + " abm= " + abm);
         if (!(val instanceof TraitType)) {
-            if (DUMP_UNIFY)
-                System.out.println("   not TraitType");
+            if (DUMP_UNIFY) System.out.println("   not TraitType");
             return false;
         }
         TraitType pt = (TraitType) val;
@@ -302,37 +283,33 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         // the name in this context.
         FType eval_val_generic = eval_type.evalType(pt);
         if (getOriginal() != eval_val_generic) {
-            if (DUMP_UNIFY)
-                System.out.println("   getOriginal "+getOriginal()+
-                                   " != "+eval_val_generic +
-                                   "    "+getGeneric().getClass()+
-                                   " and "+eval_val_generic.getClass());
+            if (DUMP_UNIFY) System.out.println(
+                    "   getOriginal " + getOriginal() + " != " + eval_val_generic + "    " + getGeneric().getClass() +
+                    " and " + eval_val_generic.getClass());
             return false;
         }
         Iterator<StaticArg> val_args_iterator = pt.getArgs().iterator();
         StaticArg targ = null;
         FType t = null;
         try {
-            for (FType param_ftype: getTypeParams()) {
+            for (FType param_ftype : getTypeParams()) {
                 targ = val_args_iterator.next();
                 t = param_ftype;
                 if (targ instanceof TypeArg) {
-                    param_ftype.unify(env, tp_set, abm,
-                                      ((TypeArg)targ).getTypeArg());
+                    param_ftype.unify(env, tp_set, abm, ((TypeArg) targ).getTypeArg());
                 } else if (param_ftype instanceof FTypeNat) {
                     param_ftype.unifyStaticArg(env, tp_set, abm, targ);
                 } else {
-                    bug(val,e,
-                        errorMsg("Can't handle unification of parameters ",
-                                 this, " and ", val));
+                    bug(val, e, errorMsg("Can't handle unification of parameters ", this, " and ", val));
                 }
             }
-        } catch (FortressException p) {
+        }
+        catch (FortressException p) {
             if (DUMP_UNIFY) System.out.println("   Arg unification failed.");
             return false;
-        } catch (EmptyLatticeIntervalError p) {
-            if (DUMP_UNIFY)
-                System.out.println("Interval went empty unifying " + t + " and " + targ);
+        }
+        catch (EmptyLatticeIntervalError p) {
+            if (DUMP_UNIFY) System.out.println("Interval went empty unifying " + t + " and " + targ);
             return false;
         }
         return true;
@@ -344,11 +321,11 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                 if (requiredMembers == null) {
                     /* Begin with data about this type */
 
-                    MultiMap<String, Overload> thisRequires = new MultiMap<String, Overload> ();
-                    MultiMap<String, Overload> thisSupplies = new MultiMap<String, Overload> ();
-                    MultiMap<String, Overload> overrides = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> thisRequires = new MultiMap<String, Overload>();
+                    MultiMap<String, Overload> thisSupplies = new MultiMap<String, Overload>();
+                    MultiMap<String, Overload> overrides = new MultiMap<String, Overload>();
 
-                    MultiMap<String, Overload> allMethods = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> allMethods = new MultiMap<String, Overload>();
 
                     BetterEnv m = getMembers();
 
@@ -358,18 +335,20 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                         if (fv instanceof OverloadedFunction) {
                             // Treat the overloaded function as a bag of separate
                             // definitions.
-                            List<Overload> overloads = ((OverloadedFunction) fv)
-                                    .getOverloads();
+                            List<Overload> overloads = ((OverloadedFunction) fv).getOverloads();
                             for (Overload ov : overloads) {
                                 MethodClosure sfcn = (MethodClosure) (ov.getFn());
                                 methodClosureIntoRandS(s, sfcn, thisRequires, thisSupplies, overrides);
                             }
-                        } else if (fv instanceof MethodClosure)
-                            methodClosureIntoRandS(s, (MethodClosure) fv, thisRequires, thisSupplies, overrides);
+                        } else if (fv instanceof MethodClosure) methodClosureIntoRandS(s,
+                                                                                       (MethodClosure) fv,
+                                                                                       thisRequires,
+                                                                                       thisSupplies,
+                                                                                       overrides);
                     }
 
-                    MultiMap<String, Overload> parentRequires = new MultiMap<String, Overload> ();
-                    MultiMap<String, Overload> parentSupplies = new MultiMap<String, Overload> ();
+                    MultiMap<String, Overload> parentRequires = new MultiMap<String, Overload>();
+                    MultiMap<String, Overload> parentSupplies = new MultiMap<String, Overload>();
 
                     // Supplied = union[exts] supplied + own supplied
                     // Required = union[exts] required + own required - Supplied
@@ -395,8 +374,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                     for (String s : overrides.keySet()) {
                         Set<Overload> overs = overrides.get(s);
                         Set<Overload> alls = allMethods.get(s);
-                        if (alls == null)
-                            continue;
+                        if (alls == null) continue;
                         for (Overload omc : overs) {
                             Iterator<Overload> imc = alls.iterator();
                             while (imc.hasNext()) {
@@ -412,21 +390,19 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                     // Consistency check: for each key in allMethods, the set of methods (overloadings) must be well-formed.
 
 
-
                 }
             }
         }
-     }
-    private void addEnvToMultiMap(BetterEnv ps,
-            MultiMap<String, Overload> mmap) {
+    }
+
+    private void addEnvToMultiMap(BetterEnv ps, MultiMap<String, Overload> mmap) {
         for (String s : ps.youngestFrame()) {
             FValue fv = ps.getLeafValue(s);
 
             if (fv instanceof OverloadedFunction) {
                 // Treat the overloaded function as a bag of separate
                 // definitions.
-                List<Overload> overloads = ((OverloadedFunction) fv)
-                        .getOverloads();
+                List<Overload> overloads = ((OverloadedFunction) fv).getOverloads();
                 for (Overload ov : overloads) {
                     MethodClosure mc = (MethodClosure) (ov.getFn());
                     Overload mo = wrapInOverload(mc);
@@ -444,10 +420,11 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         return new Overload.MethodOverload(mc);
     }
 
-    private void methodClosureIntoRandS(String s, MethodClosure mc,
-            MultiMap<String, Overload> thisRequires,
-            MultiMap<String, Overload> thisSupplies,
-            MultiMap<String, Overload> thisOverrides) {
+    private void methodClosureIntoRandS(String s,
+                                        MethodClosure mc,
+                                        MultiMap<String, Overload> thisRequires,
+                                        MultiMap<String, Overload> thisSupplies,
+                                        MultiMap<String, Overload> thisOverrides) {
 
         Overload mo = wrapInOverload(mc);
 

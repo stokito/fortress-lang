@@ -1,34 +1,31 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.repository;
+
+import com.sun.fortress.compiler.PathTaggedApiName;
+import com.sun.fortress.exceptions.shell.RepositoryError;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.useful.Fn;
+import edu.rice.cs.plt.tuple.Option;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import com.sun.fortress.compiler.PathTaggedApiName;
-import com.sun.fortress.exceptions.shell.RepositoryError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.useful.Fn;
-import com.sun.fortress.useful.Pair;
-
-import edu.rice.cs.plt.tuple.Option;
 
 public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
 
@@ -46,8 +43,7 @@ public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
         }
         Option<CompilationUnit> candidate = ASTIO.readJavaAst(s);
         if (candidate.isNone()) {
-            throw new RepositoryError(
-                    "Could not deserialize contents of repository file " + s);
+            throw new RepositoryError("Could not deserialize contents of repository file " + s);
         }
         return candidate.unwrap();
     }
@@ -62,7 +58,6 @@ public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
         File f = new File(s);
         return f.lastModified();
     }
-
 
 
 }

@@ -1,34 +1,30 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
+
+import edu.rice.cs.astgen.*;
+import edu.rice.cs.astgen.DepthFirstVisitorGenerator;
+import edu.rice.cs.astgen.Types.TypeName;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import edu.rice.cs.astgen.ASTModel;
-import edu.rice.cs.astgen.DepthFirstVisitorGenerator;
-import edu.rice.cs.astgen.Field;
-import edu.rice.cs.astgen.NodeClass;
-import edu.rice.cs.astgen.NodeType;
-import edu.rice.cs.astgen.TabPrintWriter;
-import edu.rice.cs.astgen.Types.TypeName;
 
 public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerator {
 
@@ -37,7 +33,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
     }
 
     protected void generateVisitor(NodeType root) {
-        String visitorName = "Template"+root.name() + "DepthFirstVisitor";
+        String visitorName = "Template" + root.name() + "DepthFirstVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
         Map<Class<?>, TemplateGapClass> nodeClasses = new HashMap<Class<?>, TemplateGapClass>();
         Map<Class<?>, TransformationNode> nodeClassesTransformation = new HashMap<Class<?>, TransformationNode>();
@@ -53,10 +49,13 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         writer.startLine(" ** top of this delegation tree is defaultCase(), which (unless overridden)");
         writer.startLine(" ** throws an exception.");
         writer.startLine(" **/");
-        writer.startLine("@SuppressWarnings(value={\"unused\"})");        
+        writer.startLine("@SuppressWarnings(value={\"unused\"})");
         writer.startLine("public abstract class " + visitorName + "<RetType>");
-        if (options.usePLT) { writer.print(" extends " + root.name() + "VisitorLambda<RetType>"); }
-        else { writer.print(" implements " + root.name() + "Visitor<RetType>"); }
+        if (options.usePLT) {
+            writer.print(" extends " + root.name() + "VisitorLambda<RetType>");
+        } else {
+            writer.print(" implements " + root.name() + "Visitor<RetType>");
+        }
         writer.print(" {");
         writer.indent();
 
@@ -70,17 +69,17 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
                 if (!nodeClasses.containsKey(t.getClass())) {
                     nodeClasses.put(t.getClass(), (TemplateGapClass) t);
                 }
-                outputNonstandardClassesForCaseOnly((TemplateGapClass) t, writer, root);   
-            } else if (t instanceof TransformationNode ) {
+                outputNonstandardClassesForCaseOnly((TemplateGapClass) t, writer, root);
+            } else if (t instanceof TransformationNode) {
                 if (!nodeClassesTransformation.containsKey(t.getClass())) {
                     nodeClassesTransformation.put(t.getClass(), (TransformationNode) t);
                 }
-                outputNonstandardClassesForCaseOnly((TransformationNode) t, writer, root); 
-            } else if (t instanceof EllipsesNode ) {
+                outputNonstandardClassesForCaseOnly((TransformationNode) t, writer, root);
+            } else if (t instanceof EllipsesNode) {
                 if (!nodeClassesEllipses.containsKey(t.getClass())) {
                     nodeClassesEllipses.put(t.getClass(), (EllipsesNode) t);
                 }
-                outputNonstandardClassesForCaseOnly((EllipsesNode) t, writer, root); 
+                outputNonstandardClassesForCaseOnly((EllipsesNode) t, writer, root);
             } else {
                 outputForCaseOnly(t, writer, root);
             }
@@ -111,11 +110,17 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         outputRecurMethod(writer, root, "RetType");
 
         // Output helpers, if necessary
-        for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
+        for (TypeName t : helpers()) {
+            writer.println();
+            generateHelper(t, writer, root);
+        }
         clearHelpers();
 
         // output array seeds, if necessary
-        for (TypeName t : this.arraySeeds()) { writer.println(); generateArraySeed(t, writer); }
+        for (TypeName t : this.arraySeeds()) {
+            writer.println();
+            generateArraySeed(t, writer);
+        }
         clearArraySeeds();
 
         writer.unindent();
@@ -123,7 +128,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         writer.println();
         writer.close();
     }
-    
+
     private void outputNonstandardDefaultCaseMethod(TabPrintWriter writer, TemplateGapClass t) {
         writer.startLine("/**");
         writer.startLine(" * This method is run for all cases that are not handled elsewhere.");
@@ -135,7 +140,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
         writer.startLine("throw new IllegalArgumentException(\"Visitor \" + getClass().getName()");
         writer.print(" + \" does not support visiting values of type \" + that.getClass().getName());");
         writer.unindent();
-        writer.startLine("}");  
+        writer.startLine("}");
     }
 
     private void outputNonstandardDefaultCaseMethod(TabPrintWriter writer, TransformationNode t) {
@@ -168,6 +173,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
 
     /**
      * Direct all calls to the default case for this non standard type of classes
+     *
      * @param t
      * @param writer
      * @param root
@@ -175,7 +181,9 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
     protected void outputNonstandardClassesForCaseOnly(TemplateGapClass t, TabPrintWriter writer, NodeType root) {
         List<String> recurDecls = new LinkedList<String>();
         for (Field f : t.allFields(ast)) {
-            if (canRecurOn(f.type(), root)) { recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result"); }
+            if (canRecurOn(f.type(), root)) {
+                recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result");
+            }
         }
         outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
         writer.indent();
@@ -187,6 +195,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
 
     /**
      * Direct all calls to the default case for this non standard type of classes
+     *
      * @param t
      * @param writer
      * @param root
@@ -194,7 +203,9 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
     protected void outputNonstandardClassesForCaseOnly(TransformationNode t, TabPrintWriter writer, NodeType root) {
         List<String> recurDecls = new LinkedList<String>();
         for (Field f : t.allFields(ast)) {
-            if (canRecurOn(f.type(), root)) { recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result"); }
+            if (canRecurOn(f.type(), root)) {
+                recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result");
+            }
         }
         outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
         writer.indent();
@@ -206,6 +217,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
 
     /**
      * Direct all calls to the default case for this non standard type of classes
+     *
      * @param t
      * @param writer
      * @param root
@@ -213,7 +225,9 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
     protected void outputNonstandardClassesForCaseOnly(EllipsesNode t, TabPrintWriter writer, NodeType root) {
         List<String> recurDecls = new LinkedList<String>();
         for (Field f : t.allFields(ast)) {
-            if (canRecurOn(f.type(), root)) { recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result"); }
+            if (canRecurOn(f.type(), root)) {
+                recurDecls.add(resultType(f.type()).name() + " " + f.name() + "_result");
+            }
         }
         outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
         writer.indent();

@@ -1,61 +1,44 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.environments;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.CompilationUnitIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.index.DeclaredVariable;
-import com.sun.fortress.compiler.index.ObjectTraitIndex;
-import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Pair;
-
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
+import org.objectweb.asm.*;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 
 public class TopLevelEnvGen {
@@ -68,13 +51,16 @@ public class TopLevelEnvGen {
 
 
     public static class CompilationUnitResult extends StaticPhaseResult {
-        private final Map<APIName, Pair<String,byte[]>> _compUnits;
-        public CompilationUnitResult(Map<APIName, Pair<String, byte[]>> compUnits,
-                       Iterable<? extends StaticError> errors) {
+        private final Map<APIName, Pair<String, byte[]>> _compUnits;
+
+        public CompilationUnitResult(Map<APIName, Pair<String, byte[]>> compUnits, Iterable<? extends StaticError> errors) {
             super(errors);
             _compUnits = compUnits;
         }
-        public Map<APIName, Pair<String, byte[]>> generatedEnvs() { return _compUnits; }
+
+        public Map<APIName, Pair<String, byte[]>> generatedEnvs() {
+            return _compUnits;
+        }
     }
 
     /**
@@ -83,16 +69,17 @@ public class TopLevelEnvGen {
      */
     public static CompilationUnitResult generateApiEnvs(Map<APIName, ApiIndex> apis) {
 
-        Map<APIName, Pair<String,byte[]>> compiledApis = new HashMap<APIName, Pair<String,byte[]>>();
+        Map<APIName, Pair<String, byte[]>> compiledApis = new HashMap<APIName, Pair<String, byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
-        for(APIName apiName : apis.keySet()) {
+        for (APIName apiName : apis.keySet()) {
             String className = NamingCzar.classNameForApiEnvironment(apiName);
 
             try {
                 byte[] envClass = generateForCompilationUnit(className, apis.get(apiName));
-                compiledApis.put(apiName, new Pair<String,byte[]>(className, envClass));
-            } catch(StaticError staticError) {
+                compiledApis.put(apiName, new Pair<String, byte[]>(className, envClass));
+            }
+            catch (StaticError staticError) {
                 errors.add(staticError);
             }
         }
@@ -104,22 +91,22 @@ public class TopLevelEnvGen {
         return new CompilationUnitResult(compiledApis, errors);
     }
 
-     /**
+    /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
     public static CompilationUnitResult generateComponentEnvs(Map<APIName, ComponentIndex> components) {
 
-        Map<APIName, Pair<String,byte[]>> compiledComponents = new HashMap<APIName, Pair<String,byte[]>>();
+        Map<APIName, Pair<String, byte[]>> compiledComponents = new HashMap<APIName, Pair<String, byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
-        for(APIName componentName : components.keySet()) {
+        for (APIName componentName : components.keySet()) {
             String className = NamingCzar.classNameForComponentEnvironment(componentName);
             try {
-                byte[] envClass = generateForCompilationUnit(className,
-                                                             components.get(componentName));
-                compiledComponents.put(componentName, new Pair<String,byte[]>(className,envClass));
-            } catch(StaticError staticError) {
+                byte[] envClass = generateForCompilationUnit(className, components.get(componentName));
+                compiledComponents.put(componentName, new Pair<String, byte[]>(className, envClass));
+            }
+            catch (StaticError staticError) {
                 errors.add(staticError);
             }
         }
@@ -135,8 +122,7 @@ public class TopLevelEnvGen {
      * Given one component, generate a Java bytecode compiled environment
      * for that component.
      */
-    private static byte[] generateForCompilationUnit(String className,
-                               CompilationUnitIndex compUnitIndex) {
+    private static byte[] generateForCompilationUnit(String className, CompilationUnitIndex compUnitIndex) {
 
         /*
          *  With new ClassWriter(ClassWriter.COMPUTE_FRAMES) everything is
@@ -149,9 +135,7 @@ public class TopLevelEnvGen {
          */
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-        cw.visit(Opcodes.V1_5,
-            Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
-            className, null, Type.getType(BaseEnv.class).getInternalName(), null);
+        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL, className, null, Type.getType(BaseEnv.class).getInternalName(), null);
 
         // Implementing "static reflection" for the interpreter
         EnvSymbolNames symbolNames = new EnvSymbolNames();
@@ -170,19 +154,18 @@ public class TopLevelEnvGen {
         writeDumpMethod(cw, className, symbolNames);
         cw.visitEnd();
 
-        return(cw.toByteArray());
+        return (cw.toByteArray());
     }
 
     /**
      * Write the import statements as fields in this compiled environment.
      * This method will be invoked by writeFields().
      */
-    private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
-                                          EnvSymbolNames symbolNames) {
+    private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex, EnvSymbolNames symbolNames) {
         CompilationUnit comp = compUnitIndex.ast();
         final Set<String> importedApiNames = new HashSet<String>();
 
-        for(Import imports : comp.getImports()) {
+        for (Import imports : comp.getImports()) {
             if (imports instanceof ImportApi) {
                 ImportApi importApi = (ImportApi) imports;
                 for (AliasedAPIName api : importApi.getApis()) {
@@ -198,7 +181,7 @@ public class TopLevelEnvGen {
 
         // XXX: SUPER DUPER HACKY
         // Rewrite the AST to include these builtin imports!
-        for(String builtinLib : WellKnownNames.defaultLibrary()) {
+        for (String builtinLib : WellKnownNames.defaultLibrary()) {
             importedApiNames.add(builtinLib);
         }
 
@@ -218,12 +201,11 @@ public class TopLevelEnvGen {
     /**
      * Write all the fields that will be used in this compiled environment
      */
-    private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
-                                    EnvSymbolNames symbolNames) {
+    private static void writeFields(ClassWriter cw, CompilationUnitIndex compUnitIndex, EnvSymbolNames symbolNames) {
 
         // Create all variables as fields in the environment
         Set<String> idStringSet = new HashSet<String>();
-        for(Id id : compUnitIndex.variables().keySet()) {
+        for (Id id : compUnitIndex.variables().keySet()) {
             String idString = NodeUtil.nameString(id);
             if (idString.equals("_")) {
                 Variable v = compUnitIndex.variables().get(id);
@@ -243,7 +225,7 @@ public class TopLevelEnvGen {
 
         // Create all functions as fields in the environment
         idStringSet.clear();
-        for(IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
+        for (IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
             String idString = NodeUtil.nameString(id);
             idStringSet.add(idString);
         }
@@ -251,7 +233,7 @@ public class TopLevelEnvGen {
 
         // Create all types as fields in the environment
         idStringSet.clear();
-        for(Id id : compUnitIndex.typeConses().keySet()) {
+        for (Id id : compUnitIndex.typeConses().keySet()) {
             String idString = NodeUtil.nameString(id);
             idStringSet.add(idString);
         }
@@ -260,7 +242,7 @@ public class TopLevelEnvGen {
         // Special case for singleton objects; get to the object through
         // its type
         idStringSet.clear();
-        for(Id id : compUnitIndex.typeConses().keySet()) {
+        for (Id id : compUnitIndex.typeConses().keySet()) {
             TypeConsIndex tci = compUnitIndex.typeConses().get(id);
             if (tci instanceof ObjectTraitIndex) {
                 ObjectTraitIndex oti = (ObjectTraitIndex) tci;
@@ -286,8 +268,7 @@ public class TopLevelEnvGen {
      * @param compUnitIndex
      * @param symbolNames
      */
-    private static void handleWeirdToplevelDecls(final ClassWriter cw,
-            CompilationUnitIndex compUnitIndex, final EnvSymbolNames symbolNames) {
+    private static void handleWeirdToplevelDecls(final ClassWriter cw, CompilationUnitIndex compUnitIndex, final EnvSymbolNames symbolNames) {
         CompilationUnit compUnit = compUnitIndex.ast();
         if (compUnit instanceof Component) {
             Component component = (Component) compUnit;
@@ -308,17 +289,15 @@ public class TopLevelEnvGen {
                 }
             }
 
-        // Scan for all object exprs in a component; the interpreter will
-        // promote those to top level.
-        NodeDepthFirstVisitor_void visitor = new NodeDepthFirstVisitor_void() {
+            // Scan for all object exprs in a component; the interpreter will
+            // promote those to top level.
+            NodeDepthFirstVisitor_void visitor = new NodeDepthFirstVisitor_void() {
 
                 @Override
                 public void forObjectExprOnly(ObjectExpr that) {
                     String idString = WellKnownNames.objectExprName(that);
-                    nameToField(EnvironmentClass.FVALUE, cw, symbolNames,
-                            idString);
-                    nameToField(EnvironmentClass.FTYPE, cw, symbolNames,
-                            idString);
+                    nameToField(EnvironmentClass.FVALUE, cw, symbolNames, idString);
+                    nameToField(EnvironmentClass.FTYPE, cw, symbolNames, idString);
                     // super.forObjectExprOnly(that);
                 }
 
@@ -327,15 +306,13 @@ public class TopLevelEnvGen {
         }
     }
 
-    private static void namesToFields(EnvironmentClass nameSpace,
-            ClassWriter cw, EnvSymbolNames symbolNames, Set<String> idStringSet) {
-        for(String idString : idStringSet) {
-           nameToField(nameSpace, cw, symbolNames, idString);
+    private static void namesToFields(EnvironmentClass nameSpace, ClassWriter cw, EnvSymbolNames symbolNames, Set<String> idStringSet) {
+        for (String idString : idStringSet) {
+            nameToField(nameSpace, cw, symbolNames, idString);
         }
     }
 
-    private static void nameToField(EnvironmentClass nameSpace,
-            ClassWriter cw, EnvSymbolNames symbolNames, String idString) {
+    private static void nameToField(EnvironmentClass nameSpace, ClassWriter cw, EnvSymbolNames symbolNames, String idString) {
         symbolNames.add(nameSpace, idString);
         idString = idString + nameSpace.namespace();
         cw.visitField(Opcodes.ACC_PUBLIC, NamingCzar.mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
@@ -353,9 +330,7 @@ public class TopLevelEnvGen {
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                Type.getType(BaseEnv.class).getInternalName(), "<init>",
-                "()V");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(BaseEnv.class).getInternalName(), "<init>", "()V");
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "setTopLevel", "()V");
         mv.visitInsn(Opcodes.RETURN);
@@ -369,13 +344,8 @@ public class TopLevelEnvGen {
      * interpreter uses a switch instruction for ***GetRaw
      * based on the hash values of String names in this namespace.
      */
-    private static void writeMethodGetRaw(ClassWriter cw, String className,
-            String methodName, EnvironmentClass environmentClass, EnvSymbolNames symbolNames) {
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-            methodName,
-            "(Ljava/lang/String;)" +
-            environmentClass.descriptor(),
-            null, null);
+    private static void writeMethodGetRaw(ClassWriter cw, String className, String methodName, EnvironmentClass environmentClass, EnvSymbolNames symbolNames) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)" + environmentClass.descriptor(), null, null);
         mv.visitCode();
 
         Label beginFunction = new Label();
@@ -408,50 +378,44 @@ public class TopLevelEnvGen {
         mv.visitEnd();
     }
 
-    private static void getRawHelper(MethodVisitor mv, String className,
-            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
-            List<Integer> sortedCodes, Label returnNull) {
+    private static void getRawHelper(MethodVisitor mv, String className, Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, List<Integer> sortedCodes, Label returnNull) {
         int[] codes = new int[sortedCodes.size()];
         Label[] labels = new Label[sortedCodes.size()];
-        for(int i = 0; i < codes.length; i++) {
+        for (int i = 0; i < codes.length; i++) {
             codes[i] = sortedCodes.get(i);
             Label label = new Label();
             labels[i] = label;
         }
         mv.visitVarInsn(Opcodes.ILOAD, 2);
         mv.visitLookupSwitchInsn(returnNull, codes, labels);
-        for(int i = 0; i < codes.length; i++) {
+        for (int i = 0; i < codes.length; i++) {
             mv.visitLabel(labels[i]);
             getRawBaseCase(mv, className, hashCodeRelation, environmentClass, codes[i], returnNull);
         }
     }
 
-    private static void getRawBaseCase(MethodVisitor mv, String className,
-            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
-            int code, Label returnNull) {
+    private static void getRawBaseCase(MethodVisitor mv, String className, Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, int code, Label returnNull) {
 
-            PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
-            Iterator<String> iterator = strings.iterator();
-            while(iterator.hasNext()) {
-                String testString = iterator.next();
-                mv.visitVarInsn(Opcodes.ALOAD, 1);
-                mv.visitLdcInsn(testString);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
-                Label afterReturn = new Label();
-                if (iterator.hasNext()) {
-                    mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
-                } else {
-                    mv.visitJumpInsn(Opcodes.IFEQ, returnNull);
-                }
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
-                String idString = testString + environmentClass.namespace();
-                mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    NamingCzar.mangleIdentifier(idString),
-                        environmentClass.descriptor());
-                mv.visitInsn(Opcodes.ARETURN);
-                mv.visitLabel(afterReturn);
+        PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
+        Iterator<String> iterator = strings.iterator();
+        while (iterator.hasNext()) {
+            String testString = iterator.next();
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn(testString);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+            Label afterReturn = new Label();
+            if (iterator.hasNext()) {
+                mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
+            } else {
+                mv.visitJumpInsn(Opcodes.IFEQ, returnNull);
             }
-            mv.visitJumpInsn(Opcodes.GOTO, returnNull);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            String idString = testString + environmentClass.namespace();
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitLabel(afterReturn);
+        }
+        mv.visitJumpInsn(Opcodes.GOTO, returnNull);
     }
 
 
@@ -460,12 +424,8 @@ public class TopLevelEnvGen {
      * interpreter uses a switch instruction for ***PutRaw
      * based on the hash values of String names in this namespace.
      */
-    private static void writeMethodPutRaw(ClassWriter cw, String className,
-            String methodName, EnvironmentClass environmentClass, EnvSymbolNames symbolNames) {
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-            methodName,
-            "(" + STRING_DESCRIPTOR + environmentClass.descriptor() + ")V",
-            null, null);
+    private static void writeMethodPutRaw(ClassWriter cw, String className, String methodName, EnvironmentClass environmentClass, EnvSymbolNames symbolNames) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(" + STRING_DESCRIPTOR + environmentClass.descriptor() + ")V", null, null);
         mv.visitCode();
 
         Label beginFunction = new Label();
@@ -485,10 +445,8 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.RETURN);
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
-        mv.visitLocalVariable("this", "L" + className + ";", null,
-                beginFunction, endFunction, 0);
-        mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null,
-                beginFunction, endFunction, 1);
+        mv.visitLocalVariable("this", "L" + className + ";", null, beginFunction, endFunction, 0);
+        mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null, beginFunction, endFunction, 1);
         mv.visitLocalVariable("value", environmentClass.descriptor(), null, beginFunction, endFunction, 2);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
         // See comment above on ClassWriter.COMPUTE_FRAMES
@@ -496,33 +454,29 @@ public class TopLevelEnvGen {
         mv.visitEnd();
     }
 
-    private static void putRawHelper(MethodVisitor mv, String className,
-            EnvironmentClass environmentClass, Relation<String, Integer> hashCodeRelation,
-            List<Integer> sortedCodes, Label notFound) {
+    private static void putRawHelper(MethodVisitor mv, String className, EnvironmentClass environmentClass, Relation<String, Integer> hashCodeRelation, List<Integer> sortedCodes, Label notFound) {
 
         int[] codes = new int[sortedCodes.size()];
         Label[] labels = new Label[sortedCodes.size()];
-        for(int i = 0; i < codes.length; i++) {
+        for (int i = 0; i < codes.length; i++) {
             codes[i] = sortedCodes.get(i);
             Label label = new Label();
             labels[i] = label;
         }
         mv.visitVarInsn(Opcodes.ILOAD, 3);
         mv.visitLookupSwitchInsn(notFound, codes, labels);
-        for(int i = 0; i < codes.length; i++) {
+        for (int i = 0; i < codes.length; i++) {
             mv.visitLabel(labels[i]);
             putRawBaseCase(mv, className, hashCodeRelation, environmentClass, codes[i], notFound);
         }
 
     }
 
-    private static void putRawBaseCase(MethodVisitor mv, String className,
-            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
-            int code, Label notFound ) {
+    private static void putRawBaseCase(MethodVisitor mv, String className, Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, int code, Label notFound) {
 
         PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
         Iterator<String> iterator = strings.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             String testString = iterator.next();
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(testString);
@@ -536,8 +490,7 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             String idString = testString + environmentClass.namespace();
-            mv.visitFieldInsn(Opcodes.PUTFIELD, className,
-                    NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitFieldInsn(Opcodes.PUTFIELD, className, NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
             mv.visitInsn(Opcodes.RETURN);
             mv.visitLabel(afterSetValue);
         }
@@ -576,8 +529,7 @@ public class TopLevelEnvGen {
         mv.visitEnd();
     }
 
-    private static void writeRemoveMethod(ClassWriter cw, String className, String methodName,
-                                          String invokeMethod, EnvironmentClass environmentClass) {
+    private static void writeRemoveMethod(ClassWriter cw, String className, String methodName, String invokeMethod, EnvironmentClass environmentClass) {
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, methodName, "(Ljava/lang/String;)V", null, null);
         mv.visitCode();
         Label l0 = new Label();
@@ -585,8 +537,7 @@ public class TopLevelEnvGen {
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitVarInsn(Opcodes.ALOAD, 1);
         mv.visitInsn(Opcodes.ACONST_NULL);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, invokeMethod,
-                           "(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, invokeMethod, "(Ljava/lang/String;" + environmentClass.descriptor() + ")V");
         Label l1 = new Label();
         mv.visitLabel(l1);
         mv.visitInsn(Opcodes.RETURN);
@@ -615,11 +566,8 @@ public class TopLevelEnvGen {
         writeRemoveMethod(cw, className, "removeType", "putTypeRaw", EnvironmentClass.FTYPE);
     }
 
-    private static void writeDumpMethod(ClassWriter cw, String className,
-                                        EnvSymbolNames symbolNames) {
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC,
-                               "dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;",
-                               null, new String[] { "java/io/IOException" });
+    private static void writeDumpMethod(ClassWriter cw, String className, EnvSymbolNames symbolNames) {
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "dump", "(Ljava/lang/Appendable;)Ljava/lang/Appendable;", null, new String[]{"java/io/IOException"});
         mv.visitCode();
         Label l0 = new Label();
         mv.visitLabel(l0);
@@ -671,58 +619,46 @@ public class TopLevelEnvGen {
         mv.visitEnd();
     }
 
-    private static int dumpFields(MethodVisitor mv, String className,
-                                  EnvironmentClass eClass,
-                                  EnvSymbolNames symbolNames,
-                                  int linebreaks) {
+    private static int dumpFields(MethodVisitor mv, String className, EnvironmentClass eClass, EnvSymbolNames symbolNames, int linebreaks) {
         for (String fieldName : symbolNames.getSymbolNames(eClass)) {
             Label l6 = new Label();
             mv.visitLabel(l6);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn("(" + fieldName + " = ");
-            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
-                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
             mv.visitInsn(Opcodes.POP);
             Label l7 = new Label();
             mv.visitLabel(l7);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = fieldName + eClass.namespace();
-            mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    NamingCzar.mangleIdentifier(idString), eClass.descriptor());
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), eClass.descriptor());
             Label l8 = new Label();
             mv.visitJumpInsn(Opcodes.IFNULL, l8);
             Label l9 = new Label();
             mv.visitLabel(l9);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    NamingCzar.mangleIdentifier(idString), eClass.descriptor());
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, eClass
-                    .internalName(), "toString", "()Ljava/lang/String;");
-            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
-                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), eClass.descriptor());
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, eClass.internalName(), "toString", "()Ljava/lang/String;");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
             mv.visitInsn(Opcodes.POP);
             Label afterNull = new Label();
             mv.visitJumpInsn(Opcodes.GOTO, afterNull);
             mv.visitLabel(l8);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn("null");
-            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
-                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
             mv.visitInsn(Opcodes.POP);
             mv.visitLabel(afterNull);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(") ");
-            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",
-                    "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
             mv.visitInsn(Opcodes.POP);
             linebreaks = (linebreaks + 1) % 5;
             if (linebreaks == 0) {
                 mv.visitVarInsn(Opcodes.ALOAD, 1);
                 mv.visitLdcInsn("\n");
-                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-                        "java/lang/Appendable", "append",
-                        "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
                 mv.visitInsn(Opcodes.POP);
             }
         }
@@ -730,33 +666,34 @@ public class TopLevelEnvGen {
         return linebreaks;
     }
 
-    private static void outputClassFiles(Map<APIName, Pair<String,byte[]>> compiledCompUnits,
-                            String classSuffix, HashSet<StaticError> errors) {
+    private static void outputClassFiles(Map<APIName, Pair<String, byte[]>> compiledCompUnits, String classSuffix, HashSet<StaticError> errors) {
         for (APIName componentName : compiledCompUnits.keySet()) {
-            Pair<String,byte[]> compOutput = compiledCompUnits.get(componentName);
+            Pair<String, byte[]> compOutput = compiledCompUnits.get(componentName);
             String fileName = ProjectProperties.ENVIRONMENT_CACHE_DIR + File.separator + compOutput.getA() + ".class";
-             outputClassFile(compOutput.getB(), fileName, errors);
+            outputClassFile(compOutput.getB(), fileName, errors);
         }
     }
 
     /**
      * Given a Java bytecode class stored in a byte array, save that
      * class into a file on disk.
+     *
      * @throws IOException
      */
-    private static void outputClassFile(byte[] bytecode, String fileName,
-                                           HashSet<StaticError> errors) {
+    private static void outputClassFile(byte[] bytecode, String fileName, HashSet<StaticError> errors) {
         FileOutputStream outStream = null;
         try {
             outStream = new FileOutputStream(new File(fileName));
             outStream.write(bytecode);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             errors.add(new WrappedException(e));
-        } finally {
+        }
+        finally {
             try {
-            	if (outStream != null)
-            		outStream.close();
-            } catch(IOException e) {
+                if (outStream != null) outStream.close();
+            }
+            catch (IOException e) {
                 errors.add(new WrappedException(e));
             }
         }

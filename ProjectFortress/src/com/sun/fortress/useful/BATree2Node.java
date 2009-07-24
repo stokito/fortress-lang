@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -40,19 +40,14 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         return recursiveToStringBuffer(new StringBuffer(), false).toString();
     }
 
-    public StringBuffer recursiveToStringBuffer(StringBuffer b,
-            boolean withParens) {
+    public StringBuffer recursiveToStringBuffer(StringBuffer b, boolean withParens) {
         if (left != null || right != null) {
-            if (withParens)
-                b.append("(");
-            if (left != null)
-                left.recursiveToStringBuffer(b, withParens).append(" ");
+            if (withParens) b.append("(");
+            if (left != null) left.recursiveToStringBuffer(b, withParens).append(" ");
             toStringBuffer(b);
-            if (right != null)
-                right.recursiveToStringBuffer(b.append(" "), withParens);
+            if (right != null) right.recursiveToStringBuffer(b.append(" "), withParens);
 
-            if (withParens)
-                b.append(")");
+            if (withParens) b.append(")");
         } else {
             toStringBuffer(b);
         }
@@ -63,27 +58,20 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         int lw = 0;
         int rw = 0;
         if (left != null) {
-            if (c.compare(left.key, key) >= 0)
-                throw new Error("Left key too big");
+            if (c.compare(left.key, key) >= 0) throw new Error("Left key too big");
             left.ok(c);
-            if (c.compare(left.max().key, key) >= 0)
-                throw new Error("Left max key too big");
+            if (c.compare(left.max().key, key) >= 0) throw new Error("Left max key too big");
             lw = left.weight;
         }
         if (right != null) {
-            if (c.compare(right.key, key) <= 0)
-                throw new Error("Right key too small");
+            if (c.compare(right.key, key) <= 0) throw new Error("Right key too small");
             right.ok(c);
-            if (c.compare(right.min().key, key) <= 0)
-                throw new Error("Right min key too small");
+            if (c.compare(right.min().key, key) <= 0) throw new Error("Right min key too small");
             rw = right.weight;
         }
-        if (weight != 1 + lw + rw)
-            throw new Error("Weight wrong");
-        if (lw >> 1 > rw)
-            throw new Error("Left too heavy");
-        if (rw >> 1 > lw)
-            throw new Error("Right too heavy");
+        if (weight != 1 + lw + rw) throw new Error("Weight wrong");
+        if (lw >> 1 > rw) throw new Error("Left too heavy");
+        if (rw >> 1 > lw) throw new Error("Right too heavy");
 
     }
 
@@ -107,7 +95,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         return weight(right);
     }
 
-    public static <T,U,V> int weight(BATree2Node<T,U,V> n) {
+    public static <T, U, V> int weight(BATree2Node<T, U, V> n) {
         return n == null ? 0 : n.weight;
     }
 
@@ -127,8 +115,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         weight = 1;
     }
 
-    BATree2Node(BATree2Node<T, U, V> n, BATree2Node<T, U, V> l,
-            BATree2Node<T, U, V> r) {
+    BATree2Node(BATree2Node<T, U, V> n, BATree2Node<T, U, V> l, BATree2Node<T, U, V> r) {
         key = n.key;
         data1 = n.data1;
         data2 = n.data2;
@@ -146,16 +133,14 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
             return l.get(at);
         } else if (at > lw) {
             return r.get(at - lw - 1);
-        } else
-            return this;
+        } else return this;
     }
 
     public BATree2Node<T, U, V> getObject(T k, Comparator<T> comp) {
         BATree2Node<T, U, V> t = this;
         while (t != null) {
             int c = comp.compare(k, t.key);
-            if (c == 0)
-                break;
+            if (c == 0) break;
             if (c < 0) {
                 t = t.left;
             } else {
@@ -171,8 +156,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         BATree2Node<T, U, V> t = this;
         while (t != null) {
             int c = comp.compare(k, t.key);
-            if (c == 0)
-                return toTheLeft + weight(t.left);
+            if (c == 0) return toTheLeft + weight(t.left);
             if (c < 0) {
                 t = t.left;
             } else {
@@ -185,15 +169,17 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
 
     BATree2Node<T, U, V> min() {
         BATree2Node<T, U, V> t = this;
-        while (t.left != null)
+        while (t.left != null) {
             t = t.left;
+        }
         return t;
     }
 
     BATree2Node<T, U, V> max() {
         BATree2Node<T, U, V> t = this;
-        while (t.right != null)
+        while (t.right != null) {
             t = t.right;
+        }
         return t;
     }
 
@@ -221,8 +207,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
                     } else {
                         // LR to root
                         BATree2Node<T, U, V> lr = l.right;
-                        return assemble(l.left, l, lr.left, lr, lr.right, this,
-                                r);
+                        return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                     }
                 }
             }
@@ -243,8 +228,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
                     } else {
                         // RL to root
                         BATree2Node<T, U, V> rl = r.left;
-                        return assemble(l, this, rl.left, rl, rl.right, r,
-                                r.right);
+                        return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                     }
                 }
             }
@@ -256,26 +240,29 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
     }
 
     private BATree2Node<T, U, V> assembleLeft(BATree2Node<T, U, V> ll,
-            BATree2Node<T, U, V> l, BATree2Node<T, U, V> lr,
-            BATree2Node<T, U, V> old, BATree2Node<T, U, V> r) {
-        return new BATree2Node<T, U, V>(l, ll, new BATree2Node<T, U, V>(old,
-                lr, r));
+                                              BATree2Node<T, U, V> l,
+                                              BATree2Node<T, U, V> lr,
+                                              BATree2Node<T, U, V> old,
+                                              BATree2Node<T, U, V> r) {
+        return new BATree2Node<T, U, V>(l, ll, new BATree2Node<T, U, V>(old, lr, r));
     }
 
     private BATree2Node<T, U, V> assembleRight(BATree2Node<T, U, V> l,
-            BATree2Node<T, U, V> old, BATree2Node<T, U, V> rl,
-            BATree2Node<T, U, V> r, BATree2Node<T, U, V> rr) {
-        return new BATree2Node<T, U, V>(r,
-                new BATree2Node<T, U, V>(old, l, rl), rr);
+                                               BATree2Node<T, U, V> old,
+                                               BATree2Node<T, U, V> rl,
+                                               BATree2Node<T, U, V> r,
+                                               BATree2Node<T, U, V> rr) {
+        return new BATree2Node<T, U, V>(r, new BATree2Node<T, U, V>(old, l, rl), rr);
     }
 
     private BATree2Node<T, U, V> assemble(BATree2Node<T, U, V> ll,
-            BATree2Node<T, U, V> l, BATree2Node<T, U, V> lr,
-            BATree2Node<T, U, V> top, BATree2Node<T, U, V> rl,
-            BATree2Node<T, U, V> r, BATree2Node<T, U, V> rr) {
-        return new BATree2Node<T, U, V>(top,
-                new BATree2Node<T, U, V>(l, ll, lr), new BATree2Node<T, U, V>(
-                        r, rl, rr));
+                                          BATree2Node<T, U, V> l,
+                                          BATree2Node<T, U, V> lr,
+                                          BATree2Node<T, U, V> top,
+                                          BATree2Node<T, U, V> rl,
+                                          BATree2Node<T, U, V> r,
+                                          BATree2Node<T, U, V> rr) {
+        return new BATree2Node<T, U, V>(top, new BATree2Node<T, U, V>(l, ll, lr), new BATree2Node<T, U, V>(r, rl, rr));
     }
 
     public BATree2Node<T, U, V> getLeft() {

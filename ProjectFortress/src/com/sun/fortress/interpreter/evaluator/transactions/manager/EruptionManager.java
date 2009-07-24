@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions.manager;
@@ -34,53 +34,54 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
  * priorities between the two transactions. Of course, at contention
  * time, if the other transaction has a lower priority, we just erupt
  * past it.
- *
+ * <p/>
  * The reasoning behind this management scheme is that if a particular
  * transaction is blocking resources critical to many other
  * transactions, it will gain all of their priority in addition to its
  * own and thus be much more likely to finish quickly and get out of
  * the way of all the others.
- *
+ * <p/>
  * Note that while a transaction is blocked, other transactions can
  * pile up behind it and increase its priority enough to outweigh the
  * transaction it's blocked behind.
  *
  * @author Bill Scherer
- *
- **/
+ */
 
 public class EruptionManager extends BaseManager {
-  static final int SLEEP_PERIOD = 1000;
+    static final int SLEEP_PERIOD = 1000;
 
-  /** Creates a new instance of EruptionManager */
-  public EruptionManager() {
-    priority = 0;
-  }
-
-  public void resolveConflict(Transaction me, Transaction other) {
-    long transferred = 0;
-    ContentionManager otherManager = other.getContentionManager();
-    for (int attempts = 0; ; attempts++) {
-      long otherPriority = otherManager.getPriority();
-      long delta = otherPriority - priority;
-      if (delta < 0 || attempts > delta * delta) {
-        transferred = 0;
-        other.abort();
-        return;
-      }
-      // Unsafe increment, but too expensive to synchronize.
-      if (priority > transferred) {
-        otherManager.setPriority(otherPriority + priority - transferred);
-        transferred = priority;
-      }
-      if (attempts < delta) {
-        sleep(SLEEP_PERIOD);
-      }
+    /**
+     * Creates a new instance of EruptionManager
+     */
+    public EruptionManager() {
+        priority = 0;
     }
-  }
 
-  public void openSucceeded() {
-    priority++;
-  }
+    public void resolveConflict(Transaction me, Transaction other) {
+        long transferred = 0;
+        ContentionManager otherManager = other.getContentionManager();
+        for (int attempts = 0; ; attempts++) {
+            long otherPriority = otherManager.getPriority();
+            long delta = otherPriority - priority;
+            if (delta < 0 || attempts > delta * delta) {
+                transferred = 0;
+                other.abort();
+                return;
+            }
+            // Unsafe increment, but too expensive to synchronize.
+            if (priority > transferred) {
+                otherManager.setPriority(otherPriority + priority - transferred);
+                transferred = priority;
+            }
+            if (attempts < delta) {
+                sleep(SLEEP_PERIOD);
+            }
+        }
+    }
+
+    public void openSucceeded() {
+        priority++;
+    }
 
 }

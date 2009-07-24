@@ -1,25 +1,24 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+Copyright 2009 Sun Microsystems, Inc.,
+4150 Network Circle, Santa Clara, California 95054, U.S.A.
+All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+U.S. Government Rights - Commercial software.
+Government users are subject to the Sun Microsystems, Inc. standard
+license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.NI
 
@@ -36,7 +35,7 @@ object SExprUtil {
    * by the typechecker.
    */
   def haveTypes(exprs: List[Expr]): Boolean =
-    exprs.forall((e:Expr) => getType(e).isDefined)
+    exprs.forall((e: Expr) => getType(e).isDefined)
 
   /**
    * Given an expression, return an identical expression with the given type
@@ -45,11 +44,12 @@ object SExprUtil {
   def addType(expr: Expr, typ: Type): Expr = {
     object adder extends Walker {
       var swap = false
+
       override def walk(node: Any): Any = node match {
         case SExprInfo(a, b, _) if !swap =>
           swap = true
           SExprInfo(a, b, Some(typ))
-        case _ if(!swap) => super.walk(node)
+        case _ if (!swap) => super.walk(node)
         case _ => node
       }
     }
@@ -76,13 +76,13 @@ object SExprUtil {
     case _ => NI.nyi()
   }
 
-  /** Create a coercion invocation from t to u. */
+  /**Create a coercion invocation from t to u. */
   def makeCoercion(t: Type, u: Type, arg: Expr): CoercionInvocation = {
     val SExprInfo(span, paren, _) = arg.getInfo
     SCoercionInvocation(SExprInfo(span, paren, Some(u)),
-                        u,
-                        List[StaticArg](),
-                        arg)
+      u,
+      List[StaticArg](),
+      arg)
   }
 
 }

@@ -1,30 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.lambda.Thunk;
-import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.SimpleBox;
+import edu.rice.cs.plt.lambda.Thunk;
+import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Represents functional and variable indices because they may or may not have
@@ -32,7 +32,9 @@ import edu.rice.cs.plt.iter.IterUtil;
  */
 abstract public class InferredTypeIndex { /* comprises {Functional, Variable} */
 
-    /** A function to evaluate to get the type of this index. */
+    /**
+     * A function to evaluate to get the type of this index.
+     */
     protected Option<Thunk<Option<Type>>> _thunk = Option.none();
 
     public boolean hasThunk() {
@@ -75,7 +77,7 @@ abstract public class InferredTypeIndex { /* comprises {Functional, Variable} */
         if (result.isSome() && !IterUtil.isEmpty(_thunkVisitors)) {
             Type type = result.unwrap();
             for (NodeUpdateVisitor visitor : _thunkVisitors) {
-                type = (Type)type.accept(visitor);
+                type = (Type) type.accept(visitor);
             }
             _thunkVisitors = CollectUtil.emptyList();
             result = Option.some(type);
@@ -85,6 +87,6 @@ abstract public class InferredTypeIndex { /* comprises {Functional, Variable} */
         _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(result));
         return result;
     }
-    
+
     public abstract Span getSpan();
 }

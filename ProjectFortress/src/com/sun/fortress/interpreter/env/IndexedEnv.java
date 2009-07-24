@@ -1,41 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.interpreter.env;
 
-import java.io.IOException;
-import java.util.List;
-
-import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.FunctionalRef;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
+
+import java.io.IOException;
+import java.util.List;
 
 public class IndexedEnv implements Environment {
 
@@ -419,9 +409,11 @@ public class IndexedEnv implements Environment {
 
     }
 
-    public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
-            Visitor2<String, Number> vi, Visitor2<String, FValue> vv,
-            Visitor2<String, Boolean> vb) {
+    public void visit(Visitor2<String, FType> vt,
+                      Visitor2<String, Number> vn,
+                      Visitor2<String, Number> vi,
+                      Visitor2<String, FValue> vv,
+                      Visitor2<String, Boolean> vb) {
         // TODO Auto-generated method stub
 
     }

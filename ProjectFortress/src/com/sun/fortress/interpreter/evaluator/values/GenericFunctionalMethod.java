@@ -1,23 +1,20 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.interpreter.evaluator.values;
-
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
@@ -29,6 +26,9 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
+import edu.rice.cs.plt.tuple.Option;
+
+import java.util.List;
 
 public class GenericFunctionalMethod extends FGenericFunction implements HasSelfParameter {
 
@@ -36,7 +36,10 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     int selfParameterIndex;
     private FTypeGeneric selfParameterType;
 
-    public GenericFunctionalMethod(Environment e, FnDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
+    public GenericFunctionalMethod(Environment e,
+                                   FnDecl fndef,
+                                   int self_parameter_index,
+                                   FTypeGeneric self_parameter_type) {
         super(e, fndef);
         this.selfParameterIndex = self_parameter_index;
         this.selfParameterType = self_parameter_type;
@@ -49,14 +52,19 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
         FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDecl());
 
         FunctionalMethod cl = FType.anyAreSymbolic(args) ?
-                new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :
-            new FunctionalMethod(clenv, fndef, args, selfParameterIndex, instantiatedSelfType);
-         cl.finishInitializing();
-         return cl;
+                              new FunctionalMethodInstance(clenv,
+                                                           fndef,
+                                                           args,
+                                                           this,
+                                                           selfParameterIndex,
+                                                           instantiatedSelfType) :
+                              new FunctionalMethod(clenv, fndef, args, selfParameterIndex, instantiatedSelfType);
+        cl.finishInitializing();
+        return cl;
     }
 
     @Override
-    public  List<StaticParam> getStaticParams() {
+    public List<StaticParam> getStaticParams() {
         return NodeUtil.getStaticParams(selfParameterType.getDef());
     }
 
@@ -73,8 +81,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
             GenericFunctionalMethod oc = (GenericFunctionalMethod) o;
-            return getDef() == oc.getDef() &&
-            selfParameterType.equals(oc.selfParameterType);
+            return getDef() == oc.getDef() && selfParameterType.equals(oc.selfParameterType);
         }
         return false;
     }
@@ -86,6 +93,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     public FTraitOrObjectOrGeneric getSelfParameterType() {
         return selfParameterType;
     }
+
     public FTypeGeneric getSelfParameterTypeAsGeneric() {
         return selfParameterType;
     }
@@ -94,12 +102,12 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     public String toString() {
         FnDecl node = fndef;
         // Code lifted from ErrorMsgMaker.forFnDecl
-        return selfParameterType.toString() +
-            Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) +
-            "." + NodeUtil.nameString(NodeUtil.getName(node))
-        //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
-        + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(NodeUtil.getParams(node)))
-        + (NodeUtil.getReturnType(node).isSome() ? (":" + NodeUtil.getReturnType(node).unwrap().accept(ErrorMsgMaker.ONLY)) : "") + fndef.at();
+        return selfParameterType.toString() + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) +
+               "." + NodeUtil.nameString(NodeUtil.getName(node))
+               //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
+               + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(NodeUtil.getParams(node))) + (NodeUtil.getReturnType(
+                node).isSome() ? (":" + NodeUtil.getReturnType(node).unwrap().accept(ErrorMsgMaker.ONLY)) : "") +
+               fndef.at();
     }
 
 }

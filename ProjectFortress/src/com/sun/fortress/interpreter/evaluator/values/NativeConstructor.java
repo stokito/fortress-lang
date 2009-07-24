@@ -1,36 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.ObjectConstructor;
-import com.sun.fortress.useful.HasAt;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import java.util.List;
+import java.util.Vector;
 
 public abstract class NativeConstructor extends Constructor {
 
@@ -38,16 +33,15 @@ public abstract class NativeConstructor extends Constructor {
 
     private static List<NativeConstructor> nativeConstructors = new Vector<NativeConstructor>();
 
-    public NativeConstructor(Environment env,
-                             FTypeObject selfType,
-                             ObjectConstructor def) {
-        super(env,selfType,def);
+    public NativeConstructor(Environment env, FTypeObject selfType, ObjectConstructor def) {
+        super(env, selfType, def);
         nativeConstructors.add(this);
     }
 
     public static void unregisterAllConstructors() {
-        for (NativeConstructor n : nativeConstructors)
+        for (NativeConstructor n : nativeConstructors) {
             n.unregister();
+        }
         nativeConstructors.clear();
     }
 
@@ -92,11 +86,9 @@ public abstract class NativeConstructor extends Constructor {
     }
 
     /**
-     *
      * Apply a constructor.  This method allows separate specification
      * of the lexical environment; this is done to simplify implementation
      * of object expressions.
-     *
      */
     @Override
     public FValue applyConstructor(List<FValue> args) {
@@ -111,8 +103,7 @@ public abstract class NativeConstructor extends Constructor {
 
     private void initializeSelfEnv() {
         // Problem -- we need to detach self-env from other env.
-        if (methodsEnv == null)
-            bug("Null methods env for " + this);
+        if (methodsEnv == null) bug("Null methods env for " + this);
 
         Environment self_env = methodsEnv.extendAt(getAt());
 
@@ -126,8 +117,7 @@ public abstract class NativeConstructor extends Constructor {
         // or objectExpr value.
         if (defs.size() > 0) {
             Environment lex_env = getWithin();
-            EvalVarsEnvironment eve =
-                new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
+            EvalVarsEnvironment eve = new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 
@@ -142,7 +132,6 @@ public abstract class NativeConstructor extends Constructor {
     protected void oneTimeInit(Environment self_env) {
     }
 
-    protected abstract FNativeObject makeNativeObject(List<FValue> args,
-                                                      NativeConstructor con);
+    protected abstract FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con);
 
 }

@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -23,7 +23,7 @@ import java.util.Comparator;
 /**
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
- *
+ * <p/>
  * Does not yet support item removal; does not yet support all the SortedMap
  * methods that it could in principle support.
  */
@@ -51,11 +51,9 @@ public class BA2Tree<T1, T2, U> {
         public StringBuffer recursiveToStringBuffer(StringBuffer b) {
             if (left != null || right != null) {
                 b.append("(");
-                if (left != null)
-                    left.recursiveToStringBuffer(b).append(" ");
+                if (left != null) left.recursiveToStringBuffer(b).append(" ");
                 toStringBuffer(b);
-                if (right != null)
-                    right.recursiveToStringBuffer(b.append(" "));
+                if (right != null) right.recursiveToStringBuffer(b.append(" "));
 
                 b.append(")");
             } else {
@@ -68,47 +66,43 @@ public class BA2Tree<T1, T2, U> {
             int lw = 0;
             int rw = 0;
             if (left != null) {
-                if (c.compare(left,this) >= 0)
-                    throw new Error("Left key too big");
+                if (c.compare(left, this) >= 0) throw new Error("Left key too big");
                 left.ok(c);
-                if (c.compare(left.max(),this) >= 0)
-                    throw new Error("Left max key too big");
+                if (c.compare(left.max(), this) >= 0) throw new Error("Left max key too big");
                 lw = left.weight;
             }
             if (right != null) {
-                if (c.compare(right,this) <= 0)
-                    throw new Error("Right key too small");
+                if (c.compare(right, this) <= 0) throw new Error("Right key too small");
                 right.ok(c);
-                if (c.compare(right.min(),this) <= 0)
-                    throw new Error("Right min key too small");
-                rw =  right.weight;
+                if (c.compare(right.min(), this) <= 0) throw new Error("Right min key too small");
+                rw = right.weight;
             }
-            if (weight != 1 + lw + rw)
-                throw new Error("Weight wrong");
-            if (lw >> 1 > rw)
-                throw new Error("Left too heavy");
-            if (rw >> 1 > lw)
-                throw new Error("Right too heavy");
+            if (weight != 1 + lw + rw) throw new Error("Weight wrong");
+            if (lw >> 1 > rw) throw new Error("Left too heavy");
+            if (rw >> 1 > lw) throw new Error("Right too heavy");
 
         }
+
         T1 key1;
         T2 key2;
         U data;
         int weight;
         Node<T1, T2, U> left;
         Node<T1, T2, U> right;
+
         int leftWeight() {
             return weight(left);
         }
+
         int rightWeight() {
             return weight(right);
         }
 
-        public static <T1,T2,U> int weight(Node<T1,T2,U> n) {
+        public static <T1, T2, U> int weight(Node<T1, T2, U> n) {
             return n == null ? 0 : n.weight;
         }
 
-        Node(T1 k1, T2 k2, U d, Node<T1, T2,U> l, Node<T1, T2,U> r) {
+        Node(T1 k1, T2 k2, U d, Node<T1, T2, U> l, Node<T1, T2, U> r) {
             key1 = k1;
             key2 = k2;
             data = d;
@@ -124,7 +118,7 @@ public class BA2Tree<T1, T2, U> {
             weight = 1;
         }
 
-        Node(Node<T1, T2,U> n, Node<T1, T2,U> l, Node<T1, T2,U> r) {
+        Node(Node<T1, T2, U> n, Node<T1, T2, U> l, Node<T1, T2, U> r) {
             key1 = n.key1;
             key2 = n.key2;
             data = n.data;
@@ -135,8 +129,8 @@ public class BA2Tree<T1, T2, U> {
 
         // Index 0 is leftmost.
         Node<T1, T2, U> get(int at) {
-            Node<T1, T2,U> l = left;
-            Node<T1, T2,U> r = right;
+            Node<T1, T2, U> l = left;
+            Node<T1, T2, U> r = right;
             int lw = weight(l);
             if (at < lw) {
                 return l.get(at);
@@ -148,9 +142,8 @@ public class BA2Tree<T1, T2, U> {
         Node<T1, T2, U> getObject(T1 k1, T2 k2, BA2Tree<T1, T2, U> comp) {
             Node<T1, T2, U> t = this;
             while (t != null) {
-                int c = comp.compare(k1, k2,t);
-                if (c == 0)
-                    break;
+                int c = comp.compare(k1, k2, t);
+                if (c == 0) break;
                 if (c < 0) {
                     t = t.left;
                 } else {
@@ -166,8 +159,7 @@ public class BA2Tree<T1, T2, U> {
             Node<T1, T2, U> t = this;
             while (t != null) {
                 int c = comp.compare(k1, k2, t);
-                if (c == 0)
-                    return toTheLeft + weight(t.left);
+                if (c == 0) return toTheLeft + weight(t.left);
                 if (c < 0) {
                     t = t.left;
                 } else {
@@ -179,30 +171,33 @@ public class BA2Tree<T1, T2, U> {
         }
 
 
-
         Node<T1, T2, U> min() {
             Node<T1, T2, U> t = this;
-            while (t.left != null) t = t.left;
+            while (t.left != null) {
+                t = t.left;
+            }
             return t;
         }
 
         Node<T1, T2, U> max() {
             Node<T1, T2, U> t = this;
-            while (t.right != null) t = t.right;
+            while (t.right != null) {
+                t = t.right;
+            }
             return t;
         }
 
-        Node<T1, T2,U> add(T1 k1, T2 k2, U d, BA2Tree<T1, T2, U> comp) {
-            int c = comp.compare(k1, k2,this);
-            Node<T1, T2,U> l = left;
-            Node<T1, T2,U> r = right;
+        Node<T1, T2, U> add(T1 k1, T2 k2, U d, BA2Tree<T1, T2, U> comp) {
+            int c = comp.compare(k1, k2, this);
+            Node<T1, T2, U> l = left;
+            Node<T1, T2, U> r = right;
             if (c < 0) {
                 // left
                 if (l == null) {
-                    l = new Node<T1, T2,U>(k1, k2,d);
+                    l = new Node<T1, T2, U>(k1, k2, d);
 
                 } else {
-                    l = l.add(k1, k2,d, comp);
+                    l = l.add(k1, k2, d, comp);
                     // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
                     if (weight(l) >> 1 > weight(r)) {
                         // Must rotate.
@@ -211,19 +206,19 @@ public class BA2Tree<T1, T2, U> {
                             return assembleLeft(l.left, l, l.right, this, r);
                         } else {
                             // LR to root
-                            Node<T1, T2,U> lr = l.right;
+                            Node<T1, T2, U> lr = l.right;
                             return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                         }
                     }
                 }
-                return new Node<T1, T2,U>(this,l,r);
+                return new Node<T1, T2, U>(this, l, r);
             } else if (c > 0) {
                 // right
                 if (r == null) {
-                    r = new Node<T1, T2,U>(k1, k2,d);
+                    r = new Node<T1, T2, U>(k1, k2, d);
                 } else {
-                    r = r.add(k1, k2,d, comp);
-//                  Worst-case balance: 2^(n-1) vs 2^(n+1)-1
+                    r = r.add(k1, k2, d, comp);
+                    //                  Worst-case balance: 2^(n-1) vs 2^(n+1)-1
                     if (weight(r) >> 1 > weight(l)) {
                         // Must rotate.
                         if (r.rightWeight() >= r.leftWeight()) {
@@ -232,33 +227,42 @@ public class BA2Tree<T1, T2, U> {
 
                         } else {
                             // RL to root
-                            Node<T1, T2,U> rl = r.left;
+                            Node<T1, T2, U> rl = r.left;
                             return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                         }
                     }
                 }
-                return new Node<T1, T2,U>(this,l,r);
+                return new Node<T1, T2, U>(this, l, r);
             } else {
                 // Update value.
-                return new Node<T1, T2,U>(k1, k2,d,l,r);
+                return new Node<T1, T2, U>(k1, k2, d, l, r);
             }
         }
-        private Node<T1, T2,U> assembleLeft(Node<T1, T2, U> ll, Node<T1, T2, U> l, Node<T1, T2, U> lr, Node<T1, T2, U> old, Node<T1, T2, U> r) {
-            return new Node<T1, T2,U>(l,
-                    ll,
-                    new Node<T1, T2,U>(old, lr, r));
+
+        private Node<T1, T2, U> assembleLeft(Node<T1, T2, U> ll,
+                                             Node<T1, T2, U> l,
+                                             Node<T1, T2, U> lr,
+                                             Node<T1, T2, U> old,
+                                             Node<T1, T2, U> r) {
+            return new Node<T1, T2, U>(l, ll, new Node<T1, T2, U>(old, lr, r));
         }
-        private Node<T1, T2,U> assembleRight(Node<T1, T2, U> l, Node<T1, T2, U> old, Node<T1, T2, U> rl, Node<T1, T2, U> r, Node<T1, T2, U> rr) {
-                    return new Node<T1, T2,U>(r,
-                    new Node<T1, T2,U>(old, l, rl),
-                    rr);
+
+        private Node<T1, T2, U> assembleRight(Node<T1, T2, U> l,
+                                              Node<T1, T2, U> old,
+                                              Node<T1, T2, U> rl,
+                                              Node<T1, T2, U> r,
+                                              Node<T1, T2, U> rr) {
+            return new Node<T1, T2, U>(r, new Node<T1, T2, U>(old, l, rl), rr);
         }
-        private Node<T1, T2,U> assemble(Node<T1, T2, U> ll, Node<T1, T2, U> l, Node<T1, T2, U> lr,
-                              Node<T1, T2, U> top,
-                              Node<T1, T2, U> rl, Node<T1, T2, U> r, Node<T1, T2, U> rr) {
-            return new Node<T1, T2,U>(top,
-                    new Node<T1, T2,U>(l, ll, lr),
-                    new Node<T1, T2,U>(r, rl, rr));
+
+        private Node<T1, T2, U> assemble(Node<T1, T2, U> ll,
+                                         Node<T1, T2, U> l,
+                                         Node<T1, T2, U> lr,
+                                         Node<T1, T2, U> top,
+                                         Node<T1, T2, U> rl,
+                                         Node<T1, T2, U> r,
+                                         Node<T1, T2, U> rr) {
+            return new Node<T1, T2, U>(top, new Node<T1, T2, U>(l, ll, lr), new Node<T1, T2, U>(r, rl, rr));
         }
 
         public T1 getKey1() {
@@ -279,7 +283,7 @@ public class BA2Tree<T1, T2, U> {
 
     }
 
-    Node<T1, T2,U> root;
+    Node<T1, T2, U> root;
     Comparator<T1> comp1;
     Comparator<T2> comp2;
 
@@ -290,15 +294,15 @@ public class BA2Tree<T1, T2, U> {
     }
 
     int compare(Node<T1, T2, U> a, T1 b1, T2 b2) {
-        return compare (a.key1, a.key2, b1, b2);
+        return compare(a.key1, a.key2, b1, b2);
     }
 
     int compare(T1 a1, T2 a2, Node<T1, T2, U> b) {
-        return compare (a1, a2, b.key1, b.key2);
+        return compare(a1, a2, b.key1, b.key2);
     }
 
     int compare(Node<T1, T2, U> a, Node<T1, T2, U> b) {
-        return compare (a.key1, a.key2, b.key1, b.key2);
+        return compare(a.key1, a.key2, b.key1, b.key2);
     }
 
     public BA2Tree(Comparator<T1> c1, Comparator<T2> c2) {
@@ -306,7 +310,7 @@ public class BA2Tree<T1, T2, U> {
         comp2 = c2;
     }
 
-    BA2Tree(Node<T1, T2,U> r, Comparator<T1> c1, Comparator<T2> c2) {
+    BA2Tree(Node<T1, T2, U> r, Comparator<T1> c1, Comparator<T2> c2) {
         this(c1, c2);
         root = r;
 
@@ -319,28 +323,25 @@ public class BA2Tree<T1, T2, U> {
 
     public U get(T1 k1, T2 k2) {
         if (root == null) return null;
-        Node<T1, T2,U> f = root.getObject(k1, k2, this);
+        Node<T1, T2, U> f = root.getObject(k1, k2, this);
         if (f == null) return null;
         return f.data;
     }
 
-    public Node<T1, T2,U> getEntry(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k);
+    public Node<T1, T2, U> getEntry(int k) {
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k);
     }
 
     public U getData(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).data;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).data;
     }
 
     public Pair<T1, T2> getKey(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
         Node<T1, T2, U> n = root.get(k);
-        return new Pair<T1,T2>(n.key1, n.key2);
+        return new Pair<T1, T2>(n.key1, n.key2);
 
     }
 
@@ -356,13 +357,13 @@ public class BA2Tree<T1, T2, U> {
 
     public U min() {
         if (root == null) return null;
-        Node<T1, T2,U> f = root.min();
+        Node<T1, T2, U> f = root.min();
         return f.data;
     }
 
     public U max() {
         if (root == null) return null;
-        Node<T1, T2,U> f = root.max();
+        Node<T1, T2, U> f = root.max();
         return f.data;
     }
 
@@ -378,15 +379,16 @@ public class BA2Tree<T1, T2, U> {
      * Applicative put;
      * returns a new data structure without affecting any other instances.
      */
-    public BA2Tree<T1, T2,U> putNew(T1 k1, T2 k2, U d) {
+    public BA2Tree<T1, T2, U> putNew(T1 k1, T2 k2, U d) {
         if (root == null) {
-            return new BA2Tree<T1, T2,U>(new Node<T1, T2, U>(k1, k2,d,null, null), comp1, comp2);
+            return new BA2Tree<T1, T2, U>(new Node<T1, T2, U>(k1, k2, d, null, null), comp1, comp2);
         }
 
-        return new BA2Tree<T1, T2,U>(root.add(k1, k2,d, this), comp1, comp2);
+        return new BA2Tree<T1, T2, U>(root.add(k1, k2, d, this), comp1, comp2);
     }
-    public BA2Tree<T1, T2,U> copy() {
-         return new BA2Tree<T1, T2,U>(root, comp1, comp2);
+
+    public BA2Tree<T1, T2, U> copy() {
+        return new BA2Tree<T1, T2, U>(root, comp1, comp2);
     }
 
     public U put(T1 k1, T2 k2, U d) {
@@ -395,11 +397,10 @@ public class BA2Tree<T1, T2, U> {
             return null;
         }
         Node<T1, T2, U> old = root;
-        root = root.add(k1, k2,d, this);
+        root = root.add(k1, k2, d, this);
 
         // Performance hack; if it wasn't there, then the tree got bigger.
-        if (old.weight < root.weight)
-            return null;
+        if (old.weight < root.weight) return null;
         return old.getObject(k1, k2, this).data;
     }
 
@@ -418,8 +419,7 @@ public class BA2Tree<T1, T2, U> {
             root = old.add(k1, k2, d, this);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight)
-                return null;
+            if (old.weight < root.weight) return null;
         }
         return old.getObject(k1, k2, this).data;
     }
@@ -428,7 +428,7 @@ public class BA2Tree<T1, T2, U> {
         root = null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BA2Tree) {
             BA2Tree bat = (BA2Tree) o;
@@ -438,8 +438,7 @@ public class BA2Tree<T1, T2, U> {
             Node a = root;
             Node b = bat.root;
             for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i))))
-                    return false;
+                if (!(a.get(i).equals(b.get(i)))) return false;
             }
             return true;
         }

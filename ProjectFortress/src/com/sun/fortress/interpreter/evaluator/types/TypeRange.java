@@ -1,41 +1,45 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
+import com.sun.fortress.exceptions.InterpreterBug;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TypeRange {
     FTypeNat base;
     FTypeNat size;
 
-    public FTypeNat getBase() { return base; }
-    public FTypeNat getSize() { return size; }
+    public FTypeNat getBase() {
+        return base;
+    }
+
+    public FTypeNat getSize() {
+        return size;
+    }
 
     public TypeRange(FTypeNat base, FTypeNat size) {
         this.base = base;
@@ -54,8 +58,7 @@ public class TypeRange {
         } else if (v instanceof FIntLiteral) {
             FIntLiteral i = (FIntLiteral) v;
             return new TypeRange(0, i.getInt());
-        } else
-            return NI.ni();
+        } else return NI.ni();
     }
 
     public Long getEvaluatedBase() {
@@ -110,7 +113,7 @@ public class TypeRange {
     public String toString() {
         String sbase = String.valueOf(base);
         if (sbase.equals("0")) return String.valueOf(size);
-        else return  sbase + "#" + String.valueOf(size);
+        else return sbase + "#" + String.valueOf(size);
     }
 
     public static List<TypeRange> makeList(FValue[] val) {

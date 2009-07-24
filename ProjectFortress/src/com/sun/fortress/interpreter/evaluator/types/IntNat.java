@@ -1,59 +1,54 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.Set;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.IntArg;
-import com.sun.fortress.nodes.IntExpr;
-import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.IntBase;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1;
+
+import java.util.Set;
 
 
 public class IntNat extends FTypeNat {
     private final static IntNat[] small = new IntNat[1025];
 
     static {
-       for (int i = 0; i < small.length; i++)
-           small[i] = new IntNat(i);
+        for (int i = 0; i < small.length; i++) {
+            small[i] = new IntNat(i);
+        }
     }
 
     public static void reset() {
-        for (int i = 0; i < small.length; i++)
+        for (int i = 0; i < small.length; i++) {
             small[i] = new IntNat(i);
+        }
     }
 
     public static IntNat make(Long ll) {
         long l = ll.longValue();
-        if (l < small.length  && l >= 0)
-            return small[(int)l];
+        if (l < small.length && l >= 0) return small[(int) l];
         return memo.make(ll);
     }
 
     public static IntNat make(long l) {
-        if (l < small.length  && l >= 0)
-            return small[(int)l];
+        if (l < small.length && l >= 0) return small[(int) l];
         return memo.make(Long.valueOf(l));
     }
 
@@ -80,8 +75,7 @@ public class IntNat extends FTypeNat {
     String lazyName;
 
     public String getName() {
-        if (lazyName == null)
-            lazyName = "nat " + i;
+        if (lazyName == null) lazyName = "nat " + i;
         return lazyName;
     }
 
@@ -127,27 +121,30 @@ public class IntNat extends FTypeNat {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        if (FType.DUMP_UNIFY)
-            System.out.println("unifying IntNat "+this+" and "+val);
+    protected boolean unifyNonVar(Environment env,
+                                  Set<String> tp_set,
+                                  BoundingMap<String, FType, TypeLatticeOps> abm,
+                                  Type val) {
+        if (FType.DUMP_UNIFY) System.out.println("unifying IntNat " + this + " and " + val);
         return false;
     }
 
     @Override
-    public void unifyStaticArg(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
-        if (FType.DUMP_UNIFY)
-            System.out.println("unifying IntNat "+this+" and "+ val.getClass().getSimpleName() + " " + val);
+    public void unifyStaticArg(Environment env,
+                               Set<String> tp_set,
+                               BoundingMap<String, FType, TypeLatticeOps> abm,
+                               StaticArg val) {
+        if (FType.DUMP_UNIFY) System.out.println(
+                "unifying IntNat " + this + " and " + val.getClass().getSimpleName() + " " + val);
         if (val instanceof IntArg) {
-            IntExpr n = ((IntArg)val).getIntVal();
+            IntExpr n = ((IntArg) val).getIntVal();
             if (n instanceof IntBase) {
-                if (((IntBase)n).getIntVal().getIntVal().intValue() == this.getValue()) {
+                if (((IntBase) n).getIntVal().getIntVal().intValue() == this.getValue()) {
                     // no error
                     return;
                 }
             } else if (n instanceof IntRef) {
-                String nm = ((IntRef)n).getName().getText();
+                String nm = ((IntRef) n).getName().getText();
                 abm.joinPut(nm, this);
                 return;
             }

@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -39,15 +39,15 @@ public class DefaultComparator<T extends Comparable> implements Comparator<T> {
             return rc >= 0 ? -rc : 1;
         }
     }
-    
+
     public final static <U extends Comparable> DefaultComparator<U> normal() {
         return (DefaultComparator<U>) V;
     }
-    
+
     public final static <U extends Comparable> DefaultComparator<U> reversed() {
         return (DefaultComparator<U>) Vreversed;
     }
-    
+
     public final static DefaultComparator V = new DefaultComparator();
     public final static DefaultComparator Vreversed = new Reversed();
 

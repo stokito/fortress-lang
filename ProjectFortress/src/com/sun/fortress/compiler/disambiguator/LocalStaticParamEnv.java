@@ -1,32 +1,32 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.disambiguator;
 
-import java.util.List;
-import java.util.Collections;
-import java.util.Set;
-
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.useful.Useful;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     private List<StaticParam> _staticParams;
@@ -37,12 +37,12 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
     }
 
     public Option<StaticParam> hasTypeParam(IdOrOp name) {
-    	for (StaticParam typeVar : _staticParams) {
-            if ( typeVar.getName().equals(name) ) {
+        for (StaticParam typeVar : _staticParams) {
+            if (typeVar.getName().equals(name)) {
                 return Option.some(typeVar);
             }
-    	}
-    	return super.hasTypeParam(name);
+        }
+        return super.hasTypeParam(name);
     }
 
     @Override
@@ -72,6 +72,6 @@ public class LocalStaticParamEnv extends DelegatingTypeNameEnv {
 
     @Override
     public String toString() {
-        return (Useful.listInOxfords(_staticParams)+"  "+super.toString());
+        return (Useful.listInOxfords(_staticParams) + "  " + super.toString());
     }
 }

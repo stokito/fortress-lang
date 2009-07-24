@@ -1,19 +1,19 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions;
 
@@ -30,7 +30,9 @@ public class AtomicArray<T> extends NativeConstructor.FNativeObject {
     private final NativeConstructor con;
     private ReferenceCell[] array;
 
-    /** Creates a new instance of AtomicArray */
+    /**
+     * Creates a new instance of AtomicArray
+     */
     public AtomicArray(NativeConstructor con, int capacity) {
         super(con);
         this.con = con;
@@ -45,7 +47,7 @@ public class AtomicArray<T> extends NativeConstructor.FNativeObject {
     }
 
     public boolean seqv(FValue v) {
-        return v==this;
+        return v == this;
     }
 
     public T get(int i) {
@@ -59,7 +61,7 @@ public class AtomicArray<T> extends NativeConstructor.FNativeObject {
     /**
      * Init is equivalent to set, but fails (returns false) for non-null
      * contents.
-     **/
+     */
     public boolean init(int i, T value) {
         if (get(i) == null) {
             array[i].storeValue((FValue) value);

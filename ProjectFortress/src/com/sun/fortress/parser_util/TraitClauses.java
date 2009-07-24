@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /*
@@ -21,28 +21,27 @@
  */
 package com.sun.fortress.parser_util;
 
-import java.util.Collections;
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
-
-import com.sun.fortress.nodes.Type;
+import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
+import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
+import java.util.Collections;
+import java.util.List;
 
 public class TraitClauses {
 
-    private List<BaseType>         excludes  = Collections.<BaseType>emptyList();
+    private List<BaseType> excludes = Collections.<BaseType>emptyList();
     private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
-    private Option<WhereClause>    where     = Option.<WhereClause>none();
-    private boolean hasEllipses  = false;
-    private boolean setExcludes  = false;
+    private Option<WhereClause> where = Option.<WhereClause>none();
+    private boolean hasEllipses = false;
+    private boolean setExcludes = false;
     private boolean setComprises = false;
-    private boolean setWhere     = false;
+    private boolean setWhere = false;
 
-    public TraitClauses() {}
+    public TraitClauses() {
+    }
 
     public List<BaseType> getExcludes() {
         return excludes;
@@ -61,45 +60,42 @@ public class TraitClauses {
     }
 
     private void multiple(TraitClause t) {
-        error(t.span().begin.at() + ": Trait declarations should not have " +
-              "multiple " + t.message() + " clauses.");
+        error(t.span().begin.at() + ": Trait declarations should not have " + "multiple " + t.message() + " clauses.");
     }
 
     public void set(TraitClause t) {
         if (t instanceof Excludes) {
             if (setExcludes) multiple(t);
             else {
-                excludes    = ((Excludes)t).getExcludes();
+                excludes = ((Excludes) t).getExcludes();
                 setExcludes = true;
             }
         } else if (t instanceof Comprises) {
             if (setComprises) multiple(t);
             else {
-                comprises    = ((Comprises)t).getComprises();
-                hasEllipses  = ((Comprises)t).hasEllipses();
+                comprises = ((Comprises) t).getComprises();
+                hasEllipses = ((Comprises) t).hasEllipses();
                 setComprises = true;
             }
         } else if (t instanceof Where) {
             if (setWhere) multiple(t);
             else {
-                where    = ((Where)t).getWhere();
+                where = ((Where) t).getWhere();
                 setWhere = true;
             }
         }
     }
 
     public int hashCode() {
-        return MagicNumbers.hashList(excludes, MagicNumbers.m)
-            + comprises.hashCode() * MagicNumbers.a
-            + where.hashCode() * MagicNumbers.t;
+        return MagicNumbers.hashList(excludes, MagicNumbers.m) + comprises.hashCode() * MagicNumbers.a +
+               where.hashCode() * MagicNumbers.t;
     }
 
     public boolean equals(Object o) {
         if (o.getClass().equals(this.getClass())) {
             TraitClauses tc = (TraitClauses) o;
-            return excludes.equals(tc.getExcludes())
-                && comprises.equals(tc.getComprises())
-                && where.equals(tc.getWhere());
+            return excludes.equals(tc.getExcludes()) && comprises.equals(tc.getComprises()) &&
+                   where.equals(tc.getWhere());
         }
         return false;
     }

@@ -1,28 +1,28 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.reader;
+
+import com.sun.fortress.nodes_util.Unprinter;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-
-import com.sun.fortress.nodes_util.Unprinter;
 
 public class Lex {
     BufferedReader reader;
@@ -35,6 +35,7 @@ public class Lex {
     public Lex(BufferedReader r) {
         this(r, "unnamed file");
     }
+
     public Lex(BufferedReader r, String name) {
         this.reader = r;
         this.name = name;
@@ -70,8 +71,7 @@ public class Lex {
             } else if (x == '\n') {
                 // Look back one in case it is a Windows file
                 // Do not double-count the line.
-                if (lastread != '\r')
-                    line++;
+                if (lastread != '\r') line++;
                 column = 0;
             }
         }
@@ -81,7 +81,6 @@ public class Lex {
 
     /**
      * Undoes previous read (multiple calls only undo a single read).
-     *
      */
     private void unread() {
         last = lastread;
@@ -115,8 +114,7 @@ public class Lex {
         while (c != -1 && Character.isWhitespace(c)) {
             c = read();
         }
-        if (c == -1)
-            return true;
+        if (c == -1) return true;
         unread();
         return false;
     }
@@ -128,7 +126,7 @@ public class Lex {
      * <li>A double-quoted, encoded string
      * <li>A sequence of non-whitespace, non-(, non-) characters.
      * </ul>
-     *
+     * <p/>
      * This method is mostly used for reading from OCaml-com.sun.fortress.interpreter.parser-generated ASTs.
      *
      * @throws IOException
@@ -149,9 +147,7 @@ public class Lex {
             sb.append('"');
         } else {
             boolean quoted = false;
-            while (i != -1 &&
-                    (quoted ||
-                    i != '(' && i != ')' && !Character.isWhitespace(i))) {
+            while (i != -1 && (quoted || i != '(' && i != ')' && !Character.isWhitespace(i))) {
                 if (quoted) {
                     sb.append((char) i);
                     quoted = false;
@@ -169,9 +165,10 @@ public class Lex {
 
     /**
      * Returns a name after skipping leading whitespace
-     * @see #name(boolean)
+     *
      * @return a name
      * @throws IOException
+     * @see #name(boolean)
      */
     public String name() throws IOException {
         return name(true);
@@ -179,7 +176,7 @@ public class Lex {
 
     /**
      * Returns a name after optionally skipping leading whitespace.
-     *
+     * <p/>
      * A name is one of
      * <ul>
      * <li> single parentheses (S-expr delimiter)
@@ -197,11 +194,10 @@ public class Lex {
      */
     public String name(boolean skipLeadingWhite) throws IOException {
         StringBuffer sb = new StringBuffer();
-        if (skipLeadingWhite)
-            white();
+        if (skipLeadingWhite) white();
         int c = read();
-        if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@'
-                || c == '=' || c == ',' || c == ':' || c == '~' || c == '!') {
+        if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@' || c == '=' || c == ',' || c == ':' || c == '~' ||
+            c == '!') {
             sb.append((char) c);
             read();
             unread(); // Need to advance the line/column to next.
@@ -211,12 +207,12 @@ public class Lex {
             sb.append('"');
             readQuoted(sb);
             sb.append('"');
-         } else {
-             // Allow leading "-"
-             if (c == '-') {
-                 sb.append((char) c);
-                 c = read();
-             }
+        } else {
+            // Allow leading "-"
+            if (c == '-') {
+                sb.append((char) c);
+                c = read();
+            }
             while (c != -1 && (c == '_' || c == '$' || Character.isLetterOrDigit(c))) {
                 sb.append((char) c);
                 c = read();
@@ -254,25 +250,23 @@ public class Lex {
                     state = SAW_BACKSLASH;
                 }
             } else if (state == SAW_BACKSLASH) {
-                if (c == 'b' || c == 't' || c == 'n' || c == 'f'
-                        || c == 'r' || c == '\"' || c == '\\') {
+                if (c == 'b' || c == 't' || c == 'n' || c == 'f' || c == 'r' || c == '\"' || c == '\\') {
                     state = NORMAL;
                 } else if (c == '\'') {
                     state = SAW_BACKSLASH_TICK;
                 } else if (File.separator.equals("\\")) {
                     state = NORMAL;
                 } else {
-                    unexpected("Backslash escape " + c + "(hex "
-                            + Integer.toHexString(c) + ") ");
+                    unexpected("Backslash escape " + c + "(hex " + Integer.toHexString(c) + ") ");
                 }
             } else if (state == SAW_BACKSLASH_TICK) {
-                 if (c == '\'') {
+                if (c == '\'') {
                     // Decipher string accumulated in escaped.
                     state = NORMAL;
                 }
             }
             sb.append(c);
-           i = read();
+            i = read();
         }
     }
 
@@ -285,19 +279,18 @@ public class Lex {
      */
     public int integer() throws IOException {
         String s = string();
-        if (s.startsWith("-"))
-            return - Integer.parseInt(s.substring(1));
+        if (s.startsWith("-")) return -Integer.parseInt(s.substring(1));
         return Integer.parseInt(s);
     }
 
     public void unexpected(String got, String wanted) throws IOException {
-        throw new IOException("Near line " + line + " and column " + column
-                + " got " + got + ", wanted " + wanted + ", reading " + name);
+        throw new IOException(
+                "Near line " + line + " and column " + column + " got " + got + ", wanted " + wanted + ", reading " +
+                name);
     }
 
     public void unexpected(String got) throws IOException {
-        throw new IOException("Near line " + line + " and column " + column
-                + " got " + got + ", reading " + name);
+        throw new IOException("Near line " + line + " and column " + column + " got " + got + ", reading " + name);
     }
 
     public Lex lp() throws IOException {
@@ -314,42 +307,36 @@ public class Lex {
      * Skips over whitespace, and consumes a white-space-or-(-or-)-terminated
      * string that may contain ( and ) if they are expected.
      *
-     * @param s
-     *            The string that is expected in the input
+     * @param s The string that is expected in the input
      * @throws IOException
      */
     public void expect(String s) throws IOException {
         white();
         int i = 0;
         int l = s.length();
-        if (l == 0)
-            return; // Empty strings are strings too.
+        if (l == 0) return; // Empty strings are strings too.
         int c = read();
         while (c != -1 && i < l) {
             if (s.charAt(i) != c) {
-                if (Character.isWhitespace(c) || c == '(' || c == ')')
-                    break;
-                throw new IOException("Expected " + s.substring(0, i) + "["
-                        + s.substring(i, i + 1) + "]" + s.substring(i + 1)
-                        + " saw [" + (char) c + "] instead at line " + line()
-                        + " and column " + column() + " of " + name);
+                if (Character.isWhitespace(c) || c == '(' || c == ')') break;
+                throw new IOException("Expected " + s.substring(0, i) + "[" + s.substring(i, i + 1) + "]" + s.substring(
+                        i + 1) + " saw [" + (char) c + "] instead at line " + line() + " and column " + column() +
+                                      " of " + name);
             }
             c = read();
             i++;
         }
-        if ((c == -1 || Character.isWhitespace(c) || c == '(' || c == ')')
-                && i == l) {
+        if ((c == -1 || Character.isWhitespace(c) || c == '(' || c == ')') && i == l) {
             unread();
         } else if (i != l) {
-            throw new IOException("Expected " + s.substring(0, i) + "["
-                    + s.substring(i, i + 1) + "]" + s.substring(i + 1)
-                    + " saw [" + (char) c + "] instead at line " + line()
-                    + " and column " + column() + " of " + name);
+            throw new IOException("Expected " + s.substring(0, i) + "[" + s.substring(i, i + 1) + "]" + s.substring(
+                    i + 1) + " saw [" + (char) c + "] instead at line " + line() + " and column " + column() + " of " +
+                                  name);
 
         } else {
-            throw new IOException("Expected " + s
-                    + " followed by whitespace but saw [" + (char) c
-                    + "] instead at line " + line() + " and column " + column() + " of " + name);
+            throw new IOException(
+                    "Expected " + s + " followed by whitespace but saw [" + (char) c + "] instead at line " + line() +
+                    " and column " + column() + " of " + name);
 
         }
     }
@@ -359,33 +346,29 @@ public class Lex {
      * and ) if they are expected. The string need not be terminated, and the
      * next read will see the character immediately following.
      *
-     * @param s
-     *            The string that is expected in the input
+     * @param s The string that is expected in the input
      * @throws IOException
      */
     public void expectPrefix(String s) throws IOException {
         white();
         int i = 0;
         int l = s.length();
-        if (l == 0)
-            return; // Empty strings are strings too.
+        if (l == 0) return; // Empty strings are strings too.
         int c = read();
         while (c != -1 && !Character.isWhitespace(c) && i < l) {
-            if (s.charAt(i) != c)
-                throw new IOException("Expected " + s.substring(0, i) + "["
-                        + s.substring(i, i + 1) + "]" + s.substring(i + 1)
-                        + " saw [" + (char) c + "] instead at line " + line()
-                        + " and column " + column()  + " of " + name);
+            if (s.charAt(i) != c) throw new IOException("Expected " + s.substring(0, i) + "[" + s.substring(i, i + 1) +
+                                                        "]" + s.substring(i + 1) + " saw [" + (char) c +
+                                                        "] instead at line " + line() + " and column " + column() +
+                                                        " of " + name);
             c = read();
             i++;
         }
         if (i == l) {
             unread();
-        } else /* i < l */{
-            throw new IOException("Expected " + s.substring(0, i) + "["
-                    + s.substring(i, i + 1) + "]" + s.substring(i + 1)
-                    + " saw [" + (char) c + "] instead at line " + line()
-                    + " and column " + column()  + " of " + name);
+        } else /* i < l */ {
+            throw new IOException("Expected " + s.substring(0, i) + "[" + s.substring(i, i + 1) + "]" + s.substring(
+                    i + 1) + " saw [" + (char) c + "] instead at line " + line() + " and column " + column() + " of " +
+                                  name);
 
         }
     }
@@ -400,16 +383,13 @@ public class Lex {
 
     public boolean boolean_() throws IOException {
         String s = string();
-        if (s.startsWith("t"))
-            return true;
-        if (s.startsWith("f"))
-            return false;
-        if (s.startsWith("T"))
-            return true;
-        if (s.startsWith("F"))
-            return false;
-        throw new IOException("Expected true or false, saw " + s + "instead at line " + line()
-                    + " and column " + column()  + " of " + name);
+        if (s.startsWith("t")) return true;
+        if (s.startsWith("f")) return false;
+        if (s.startsWith("T")) return true;
+        if (s.startsWith("F")) return false;
+        throw new IOException(
+                "Expected true or false, saw " + s + "instead at line " + line() + " and column " + column() + " of " +
+                name);
 
     }
 

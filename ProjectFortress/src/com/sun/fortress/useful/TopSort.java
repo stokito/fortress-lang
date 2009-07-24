@@ -1,42 +1,38 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- *
  * A class that performs two different kinds of topological sort, given
  * a List of elements that implement Item.
- * <p>
+ * <p/>
  * In a breadth first topological sort, unprocessed items with zero predecessors
  * are stored in a queue (FIFO), so that first all the roots are visited, then
  * all items at distance 1, then 2, and so on.
- * <p>
+ * <p/>
  * In a depth first topological sort, unprocessed items with zero predecessors
  * are stored in a stack (LIFO), so that all items reachable only from the
  * first root are visited before any other root is processed, and so on.
- *
  */
 public class TopSort {
     /**
@@ -53,8 +49,7 @@ public class TopSort {
         while (i.hasNext()) {
             T it = i.next();
             n++;
-            if (it.predecessorCount() == 0)
-                pending.add(it);
+            if (it.predecessorCount() == 0) pending.add(it);
         }
 
         int j = 0;
@@ -72,8 +67,7 @@ public class TopSort {
             }
         }
 
-        if (n != sorted.size())
-            throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
 
         return sorted;
     }
@@ -81,6 +75,7 @@ public class TopSort {
     public static <T extends TopSortItem<T>> List<T> depthFirst(T[] unsorted) {
         return depthFirst(Useful.list(unsorted));
     }
+
     public static <T extends TopSortItem<T>> List<T> breadthFirst(T[] unsorted) {
         return breadthFirst(Useful.list(unsorted));
     }
@@ -89,8 +84,7 @@ public class TopSort {
      * @param unsorted Unordered list of items
      * @return topologically ordered list of items, prioritized by comparator comp
      */
-    public static <T extends TopSortItem<T>> List<T>
-       prioritized(Iterable<T> unsorted, Comparator<T> comp) {
+    public static <T extends TopSortItem<T>> List<T> prioritized(Iterable<T> unsorted, Comparator<T> comp) {
         Iterator<T> i = unsorted.iterator();
 
         ArrayList<T> sorted = new ArrayList<T>();
@@ -100,8 +94,7 @@ public class TopSort {
         while (i.hasNext()) {
             T it = i.next();
             n++;
-            if (it.predecessorCount() == 0)
-                pending.add(it);
+            if (it.predecessorCount() == 0) pending.add(it);
         }
 
         int j = 0;
@@ -119,8 +112,7 @@ public class TopSort {
             }
         }
 
-        if (n != sorted.size())
-            throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
 
         return sorted;
     }
@@ -134,15 +126,14 @@ public class TopSort {
         ArrayList<T> pending = new ArrayList<T>();
 
         while (i.hasNext()) {
-            T it =  i.next();
+            T it = i.next();
             n++;
-            if (it.predecessorCount() == 0)
-                pending.add(it);
+            if (it.predecessorCount() == 0) pending.add(it);
         }
 
         int j = pending.size();
         while (j > 0) {
-            T it = pending.remove(j-1);
+            T it = pending.remove(j - 1);
             sorted.add(it);
             Iterator<T> iti = it.successors();
             while (iti.hasNext()) {
@@ -154,8 +145,7 @@ public class TopSort {
             j = pending.size();
         }
 
-        if (n != sorted.size())
-            throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
 
         return sorted;
     }

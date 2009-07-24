@@ -1,35 +1,32 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
 
-import java.util.Collections;
-import java.util.List;
-
-import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Thunk;
-import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.Collections;
+import java.util.List;
 
 public class DeclaredMethod extends Method {
 
@@ -47,66 +44,69 @@ public class DeclaredMethod extends Method {
      * Copy another DeclaredMethod, performing a substitution with the visitor.
      */
     public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
-        _ast = (FnDecl)that._ast.accept(visitor);
+        _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
-        
+
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
     }
 
-    public FnDecl ast() { return _ast; }
+    public FnDecl ast() {
+        return _ast;
+    }
 
     @Override
-    public Span getSpan() { return NodeUtil.getSpan(_ast); }
+    public Span getSpan() {
+        return NodeUtil.getSpan(_ast);
+    }
 
-	@Override
-	public Option<Expr> body() {
-		return _ast.accept(new NodeDepthFirstVisitor<Option<Expr>>(){
-			@Override
-			public Option<Expr> defaultCase(Node that) {
-				return Option.none();
-			}
-			@Override
-			public Option<Expr> forFnDecl(FnDecl that) {
-                            return that.getBody();
-			}
-		});
-	}
+    @Override
+    public Option<Expr> body() {
+        return _ast.accept(new NodeDepthFirstVisitor<Option<Expr>>() {
+            @Override
+            public Option<Expr> defaultCase(Node that) {
+                return Option.none();
+            }
 
-	@Override
-	public List<Param> parameters() {
-		return NodeUtil.getParams(_ast);
-	}
+            @Override
+            public Option<Expr> forFnDecl(FnDecl that) {
+                return that.getBody();
+            }
+        });
+    }
 
-	@Override
-	public List<StaticParam> staticParameters() {
-		return NodeUtil.getStaticParams(_ast);
-	}
+    @Override
+    public List<Param> parameters() {
+        return NodeUtil.getParams(_ast);
+    }
 
-	@Override
-	public List<BaseType> thrownTypes() {
-		if( NodeUtil.getThrowsClause(_ast).isNone() )
-			return Collections.emptyList();
-		else
-			return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
-	}
+    @Override
+    public List<StaticParam> staticParameters() {
+        return NodeUtil.getStaticParams(_ast);
+    }
 
-	@Override
-	public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer replacer = new StaticTypeReplacer(params,args);
-		return new DeclaredMethod(this, replacer);
-	}
+    @Override
+    public List<BaseType> thrownTypes() {
+        if (NodeUtil.getThrowsClause(_ast).isNone()) return Collections.emptyList();
+        else return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
+    }
 
-	@Override
-	public Id getDeclaringTrait() {
-		return this._declaringTrait;
-	}
+    @Override
+    public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
+        return new DeclaredMethod(this, replacer);
+    }
 
-	@Override
-	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new DeclaredMethod(this, visitor);
-	}
+    @Override
+    public Id getDeclaringTrait() {
+        return this._declaringTrait;
+    }
+
+    @Override
+    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+        return new DeclaredMethod(this, visitor);
+    }
 
     @Override
     public IdOrOp name() {

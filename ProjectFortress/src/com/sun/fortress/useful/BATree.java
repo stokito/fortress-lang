@@ -1,45 +1,39 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
- *
+ * <p/>
  * Does not yet support all the SortedMap methods that it could in principle support.
  */
-public class BATree<T, U> extends AbstractMap<T,U>
-         implements Map<T,U>, java.io.Serializable, Cloneable {
+public class BATree<T, U> extends AbstractMap<T, U> implements Map<T, U>, java.io.Serializable, Cloneable {
 
-     static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
+    static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
 
         final Comparator<? super T> comp;
-        BATreeNode<T,U> root;
+        BATreeNode<T, U> root;
 
-        EntrySet(BATreeNode<T,U> r, Comparator<? super T> c) {
+        EntrySet(BATreeNode<T, U> r, Comparator<? super T> c) {
             root = r;
             comp = c;
         }
@@ -47,19 +41,17 @@ public class BATree<T, U> extends AbstractMap<T,U>
         /* (non-Javadoc)
          * @see java.util.AbstractCollection#contains(java.lang.Object)
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings ("unchecked")
         @Override
         public boolean contains(Object o) {
-            if (root == null)
-                return false;
+            if (root == null) return false;
 
             if (o instanceof Map.Entry<?, ?>) {
                 Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-                BATreeNode<T,U> n = root;
+                BATreeNode<T, U> n = root;
                 // TODO Since there's no side effects, we can fake out the generic, I think.
                 n = n.getObject((T) e.getKey(), comp);
-                if (n == null)
-                    return false;
+                if (n == null) return false;
                 return n.data.equals(e.getValue());
             }
             return false;
@@ -85,8 +77,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
             }
 
             public java.util.Map.Entry<T, U> next() {
-                if (hasNext())
-                    return root.get(i++);
+                if (hasNext()) return root.get(i++);
                 return null;
             }
 
@@ -112,19 +103,19 @@ public class BATree<T, U> extends AbstractMap<T,U>
         }
     }
 
-    volatile BATreeNode<T,U> root;
+    volatile BATreeNode<T, U> root;
     Comparator<? super T> comp;
 
     public BATree(Comparator<? super T> c) {
         comp = c;
     }
 
-    protected BATree(BATreeNode<T,U> r, Comparator<? super T> c) {
+    protected BATree(BATreeNode<T, U> r, Comparator<? super T> c) {
         root = r;
         comp = c;
     }
 
-    public BATree(BATree<T,U> t) {
+    public BATree(BATree<T, U> t) {
         root = t.root;
         comp = t.comp;
     }
@@ -138,30 +129,27 @@ public class BATree<T, U> extends AbstractMap<T,U>
         else return root.weight;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public U get(Object k) {
         if (root == null) return null;
-        BATreeNode<T,U> f = root.getObject((T)k, comp);
+        BATreeNode<T, U> f = root.getObject((T) k, comp);
         if (f == null) return null;
         return f.data;
     }
 
-    public BATreeNode<T,U> getEntry(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k);
+    public BATreeNode<T, U> getEntry(int k) {
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k);
     }
 
     public U getData(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).data;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).data;
     }
 
     public T getKey(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).key;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).key;
     }
 
     /**
@@ -176,13 +164,13 @@ public class BATree<T, U> extends AbstractMap<T,U>
 
     public U min() {
         if (root == null) return null;
-        BATreeNode<T,U> f = root.min();
+        BATreeNode<T, U> f = root.min();
         return f.data;
     }
 
     public U max() {
         if (root == null) return null;
-        BATreeNode<T,U> f = root.max();
+        BATreeNode<T, U> f = root.max();
         return f.data;
     }
 
@@ -198,23 +186,23 @@ public class BATree<T, U> extends AbstractMap<T,U>
      * Applicative put;
      * returns a new data structure without affecting any other instances.
      */
-    public BATree<T,U> putNew(T k, U d) {
+    public BATree<T, U> putNew(T k, U d) {
         if (root == null) {
-            return new BATree<T,U>(new BATreeNode<T, U>(k,d,null, null), comp);
+            return new BATree<T, U>(new BATreeNode<T, U>(k, d, null, null), comp);
         }
 
-        return new BATree<T,U>(root.add(k,d, comp), comp);
-    }
-    public BATree<T,U> copy() {
-         return new BATree<T,U>(root, comp);
+        return new BATree<T, U>(root.add(k, d, comp), comp);
     }
 
-    @SuppressWarnings("unchecked")
+    public BATree<T, U> copy() {
+        return new BATree<T, U>(root, comp);
+    }
+
+    @SuppressWarnings ("unchecked")
     @Override
     public U remove(Object arg0) {
         T k = (T) arg0;
-        if (root == null)
-            return null;
+        if (root == null) return null;
         BATreeNode<T, U> old = root;
         root = root.delete(k, comp);
         if (root == null || root.weight < old.weight) {
@@ -227,21 +215,20 @@ public class BATree<T, U> extends AbstractMap<T,U>
      * From the department of ugly patterns; it's hard to call
      * copy from a subclass.
      */
-    protected BATreeNode<T,U> getRoot() {
+    protected BATreeNode<T, U> getRoot() {
         return root;
     }
 
     public U put(T k, U d) {
         if (root == null) {
-            root = new BATreeNode<T, U>(k,d,null, null);
+            root = new BATreeNode<T, U>(k, d, null, null);
             return null;
         }
         BATreeNode<T, U> old = root;
-        root = root.add(k,d, comp);
+        root = root.add(k, d, comp);
 
         // Performance hack; if it wasn't there, then the tree got bigger.
-        if (old.weight < root.weight)
-            return null;
+        if (old.weight < root.weight) return null;
         return old.getObject(k, comp).data;
     }
 
@@ -260,8 +247,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
             root = old.add(k, d, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight)
-                return null;
+            if (old.weight < root.weight) return null;
         }
         return old.getObject(k, comp).data;
     }
@@ -281,8 +267,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
             next = root.add(k, d, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (next.weight == root.weight)
-                return root.getObject(k, comp).getValue();
+            if (next.weight == root.weight) return root.getObject(k, comp).getValue();
 
             root = next;
             return d;
@@ -294,7 +279,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
         root = null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BATree) {
             BATree bat = (BATree) o;
@@ -304,8 +289,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
             BATreeNode a = root;
             BATreeNode b = bat.root;
             for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i))))
-                    return false;
+                if (!(a.get(i).equals(b.get(i)))) return false;
             }
             return true;
         }
@@ -317,7 +301,7 @@ public class BATree<T, U> extends AbstractMap<T,U>
      */
     @Override
     public Set<java.util.Map.Entry<T, U>> entrySet() {
-        return new EntrySet<T,U>(root, comp);
+        return new EntrySet<T, U>(root, comp);
     }
 
 }

@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
@@ -27,8 +27,7 @@ public class DepthFirstVoidVisitorGenerator extends edu.rice.cs.astgen.DepthFirs
         super(ast);
     }
 
-    protected void outputDelegatingForCase(NodeType t, TabPrintWriter writer, NodeType root,
-            String retType, String suff, String defaultMethod) {
+    protected void outputDelegatingForCase(NodeType t, TabPrintWriter writer, NodeType root, String retType, String suff, String defaultMethod) {
         if (!(t instanceof TemplateGapClass)) {
             super.outputDelegatingForCase(t, writer, root, retType, suff, defaultMethod);
         }
@@ -40,7 +39,7 @@ public class DepthFirstVoidVisitorGenerator extends edu.rice.cs.astgen.DepthFirs
         outputDefaultTemplateMethod(writer, root);
     }
 
-    protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root ){
+    protected void outputDefaultTemplateMethod(TabPrintWriter writer, NodeType root) {
         writer.startLine("public void defaultTemplateGap(TemplateGap t){");
         writer.indent();
         writer.startLine("throw new RuntimeException(\"Please use TemplateDepthFirstVoidVisitor if you intend to visit template gaps, if not then a template gap survived longer than its expected life time.\");");
@@ -49,7 +48,6 @@ public class DepthFirstVoidVisitorGenerator extends edu.rice.cs.astgen.DepthFirs
     }
 
 
-  
     protected void outputVisitMethod(NodeType t, TabPrintWriter writer, NodeType root) {
         if (t instanceof TemplateGapClass) {
             outputForCaseHeader(t, writer, "void", "");
@@ -58,8 +56,7 @@ public class DepthFirstVoidVisitorGenerator extends edu.rice.cs.astgen.DepthFirs
             writer.unindent();
             writer.startLine("}");
             writer.println();
-        }
-        else {
+        } else {
             super.outputVisitMethod(t, writer, root);
         }
     }

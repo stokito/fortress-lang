@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -30,15 +30,14 @@ public class AnyListComparer<T> implements Comparator<List<? extends T>> {
         if (l0 < l1) return -1;
         if (l0 > l1) return 1;
         for (int i = 0; i < l0; i++) {
-            int c = compareElements.compare(arg0.get(i),arg1.get(i));
-            if (c != 0)
-                return c;
+            int c = compareElements.compare(arg0.get(i), arg1.get(i));
+            if (c != 0) return c;
         }
         return 0;
     }
 
 
-    public AnyListComparer (Comparator<T> compareElements) {
+    public AnyListComparer(Comparator<T> compareElements) {
         this.compareElements = compareElements;
     }
 

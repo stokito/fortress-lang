@@ -1,40 +1,38 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.List;
-
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
 
 
 public class Dummy_fcn extends Simple_fcn {
     private List<FType> domain;
     private String allocationSite;
-    private IdOrOpOrAnonymousName fnName  = NodeFactory.makeId(NodeFactory.interpreterSpan, "Dummy");
+    private IdOrOpOrAnonymousName fnName = NodeFactory.makeId(NodeFactory.interpreterSpan, "Dummy");
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Fcn#getFnName()
@@ -55,21 +53,23 @@ public class Dummy_fcn extends Simple_fcn {
         setFtype(FTypeArrow.make(_params, FTypeVoid.ONLY));
     }
 
-    public List<FType> getDomain() {return domain;}
+    public List<FType> getDomain() {
+        return domain;
+    }
 
     public FValue applyInnerPossiblyGeneric(List<FValue> vals) {
         return NI.nyi("Dummy_fcn.apply_inner");
     }
 
     public String toString() {
-        return "DummyFunc"+Useful.listInParens(domain);
+        return "DummyFunc" + Useful.listInParens(domain);
     }
 
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.values.Simple_fcn#at()
      */
     @Override
-    public String  at() {
+    public String at() {
         return allocationSite;
     }
 

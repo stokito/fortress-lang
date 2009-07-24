@@ -1,51 +1,40 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.Collection;
-import java.util.List;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.ItemSymbol;
-import com.sun.fortress.nodes.KeywordSymbol;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.IdentifierUtil;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Debug;
-
+import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.Collection;
+import java.util.List;
 
 /* ItemDisambiguator
  * - Disambiguates "items" to nonterminals or keywords/tokens
@@ -76,8 +65,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     public Node forApi(Api that) {
         if (this._globalEnv.definesApi(that.getName())) {
             this._currentApi = this._globalEnv.api(that.getName());
-        } else
-            error("Undefined API ", that);
+        } else error("Undefined API ", that);
         return super.forApi(that);
     }
 
@@ -87,7 +75,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         if (index.isSome()) {
             this._currentGrammarIndex = index.unwrap();
         } else {
-            error("Grammar "+that.getName()+" not found", that);
+            error("Grammar " + that.getName() + " not found", that);
         }
         return super.forGrammarDecl(that);
     }
@@ -97,23 +85,21 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             APIName api = name.getApiName().unwrap();
             if (this._globalEnv.definesApi(api)) {
                 return Option.some(_globalEnv.api(api).grammars().get(name.getText()));
-            }
-            else {
+            } else {
                 return Option.none();
             }
-        } else
-            return Option.some(((ApiIndex) _currentApi).grammars().get(name));
+        } else return Option.some(((ApiIndex) _currentApi).grammars().get(name));
     }
 
     @Override
     public Node forUnparsedTransformer(UnparsedTransformer that) {
         NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-        Option<Id> oname =
-            nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex),
-                                      that.getNonterminal());
+        Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex),
+                                                     that.getNonterminal());
         if (oname.isSome()) {
             return new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that, oname.unwrap())),
-                                           that.getTransformer(), oname.unwrap());
+                                           that.getTransformer(),
+                                           oname.unwrap());
         } else {
             throw new MacroError(that, "Cannot find nonterminal " + that.getNonterminal());
         }
@@ -130,8 +116,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         if (IdentifierUtil.validId(item.getItem())) {
             Id name = makeId(NodeUtil.getSpan(item), item.getItem());
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-            Option<Id> oname =
-                nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
+            Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
             if (oname.isSome()) {
                 name = oname.unwrap();
                 return makeNonterminal(item, name);
@@ -146,12 +131,9 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     private static Id makeId(Span span, String item) {
         int lastIndexOf = item.lastIndexOf('.');
         if (lastIndexOf != -1) {
-            APIName apiName = NodeFactory.makeAPIName(span,
-                                                      item.substring(0, lastIndexOf));
-            return NodeFactory.makeId(span, apiName,
-                                      NodeFactory.makeId(span, item.substring(lastIndexOf+1)));
-        }
-        else {
+            APIName apiName = NodeFactory.makeAPIName(span, item.substring(0, lastIndexOf));
+            return NodeFactory.makeId(span, apiName, NodeFactory.makeId(span, item.substring(lastIndexOf + 1)));
+        } else {
             return NodeFactory.makeId(span, item);
         }
     }

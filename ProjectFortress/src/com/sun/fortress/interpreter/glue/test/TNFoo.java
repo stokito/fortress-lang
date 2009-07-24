@@ -1,23 +1,21 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.test;
-
-import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -28,6 +26,8 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.ObjectConstructor;
 
+import java.util.List;
+
 public class TNFoo extends NativeConstructor {
     public TNFoo(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
@@ -35,7 +35,7 @@ public class TNFoo extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        return new Obj(args.get(0).getString(),getSelfEnv().getLeafValue("n").getInt(),con);
+        return new Obj(args.get(0).getString(), getSelfEnv().getLeafValue("n").getInt(), con);
     }
 
     private static final class Obj extends FNativeObject {
@@ -61,7 +61,7 @@ public class TNFoo extends NativeConstructor {
         }
 
         public boolean seqv(FValue v) {
-            if (v==this) return true;
+            if (v == this) return true;
             if (!(v instanceof Obj)) return false;
             Obj o = (Obj) v;
             if (con != o.getConstructor()) return false;

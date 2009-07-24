@@ -1,40 +1,33 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.List;
-import java.util.Map;
 import com.sun.fortress.interpreter.env.CUWrapper;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.NonApiWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
 import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+
+import java.util.List;
+import java.util.Map;
 
 public class BuildApiEnvironment extends BuildTopLevelEnvironments {
 
@@ -154,16 +147,14 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         this.api = api;
     }
 
-    public BuildApiEnvironment(Environment within,
-            Map<String, NonApiWrapper> linker) {
+    public BuildApiEnvironment(Environment within, Map<String, NonApiWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }
 
     private void handlePossibleFM(List<Decl> tdecls) {
         for (Decl adod : tdecls) {
-            ArrowOrFunctional aof = adod
-                    .accept(IsAnArrowName.isAnArrowName);
+            ArrowOrFunctional aof = adod.accept(IsAnArrowName.isAnArrowName);
             if (aof == ArrowOrFunctional.FUNCTIONAL) {
                 // Only certain things can be a functional method.
                 FnDecl fadod = (FnDecl) adod;

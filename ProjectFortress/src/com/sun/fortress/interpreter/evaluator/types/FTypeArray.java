@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
@@ -21,7 +21,6 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
-
 
 
 public class FTypeArray extends FAggregateType {
@@ -39,8 +38,7 @@ public class FTypeArray extends FAggregateType {
 
     public String getName() {
         // TODO need to stick the indices in there
-        if (lazyName == null)
-            lazyName = "Array " + Useful.inOxfords(indexedType.getName());
+        if (lazyName == null) lazyName = "Array " + Useful.inOxfords(indexedType.getName());
         return lazyName;
     }
 
@@ -53,8 +51,7 @@ public class FTypeArray extends FAggregateType {
     public boolean equals(Object other) {
         if (other instanceof FTypeArray) {
             FTypeArray fta = (FTypeArray) other;
-            return fta.indexedType.equals(indexedType)
-                    && fta.indices.equals(indices);
+            return fta.indexedType.equals(indexedType) && fta.indices.equals(indices);
         }
         return false;
     }
@@ -101,27 +98,27 @@ public class FTypeArray extends FAggregateType {
 
     public static FType make(FType elt_type, TypeIndices f_indices, Environment e, HasAt at) {
 
-//        if (f_indices instanceof TypeFixedDimIndices) {
-//            TypeFixedDimIndices tfdi = (TypeFixedDimIndices) f_indices;
-//            List<TypeRange> ranges = tfdi.getRanges();
-//
-//            // Lookup a particular trait name, and return it.
-//            int rank = ranges.size();
-//            String traitName = "Array" + String.valueOf(rank);
-//            FType arrayType = e.getTypeNull(traitName);
-//
-//            if (arrayType instanceof FTypeGeneric) {
-//                FTypeGeneric gat = (FTypeGeneric) arrayType;
-//                ArrayList<FType> args = new ArrayList<FType>(1 + 2*ranges.size());
-//                // Instantiate gat with element type, and sequence of lo-hi pairs.
-//                args.add(elt_type);
-//                for (TypeRange tr : ranges) {
-//                    args.add(tr.base);
-//                    args.add(tr.size);
-//                }
-//                return gat.make(args, at);
-//            }
-//        }
+        //        if (f_indices instanceof TypeFixedDimIndices) {
+        //            TypeFixedDimIndices tfdi = (TypeFixedDimIndices) f_indices;
+        //            List<TypeRange> ranges = tfdi.getRanges();
+        //
+        //            // Lookup a particular trait name, and return it.
+        //            int rank = ranges.size();
+        //            String traitName = "Array" + String.valueOf(rank);
+        //            FType arrayType = e.getTypeNull(traitName);
+        //
+        //            if (arrayType instanceof FTypeGeneric) {
+        //                FTypeGeneric gat = (FTypeGeneric) arrayType;
+        //                ArrayList<FType> args = new ArrayList<FType>(1 + 2*ranges.size());
+        //                // Instantiate gat with element type, and sequence of lo-hi pairs.
+        //                args.add(elt_type);
+        //                for (TypeRange tr : ranges) {
+        //                    args.add(tr.base);
+        //                    args.add(tr.size);
+        //                }
+        //                return gat.make(args, at);
+        //            }
+        //        }
 
         return new FTypeArray(elt_type, f_indices);
     }

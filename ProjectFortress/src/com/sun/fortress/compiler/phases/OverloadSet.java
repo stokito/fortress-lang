@@ -1,68 +1,37 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.*;
+import edu.rice.cs.plt.tuple.Option;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.compiler.codegen.CodeGen;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.index.Functional;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
-import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.IntersectionType;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.BATree;
-import com.sun.fortress.useful.DefaultComparator;
-import com.sun.fortress.useful.F;
-import com.sun.fortress.useful.GMultiMap;
-import com.sun.fortress.useful.Hasher;
-import com.sun.fortress.useful.MagicNumbers;
-import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.TopSort;
-import com.sun.fortress.useful.TopSortItemImpl;
-import com.sun.fortress.useful.Useful;
-
-import edu.rice.cs.plt.tuple.Option;
+import java.util.*;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
 
@@ -75,22 +44,28 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public static class TaggedFunctionName implements Comparable<TaggedFunctionName> {
         final private APIName tagA;
         final private Function tagF;
+
         public TaggedFunctionName(APIName a, Function f) {
             this.tagF = f;
             this.tagA = a;
         }
+
         public List<Param> tagParameters() {
             return tagF.parameters();
         }
+
         public List<Param> callParameters() {
             return tagF.parameters();
         }
+
         public Type getReturnType() {
             return tagF.getReturnType().unwrap();
         }
+
         public int hashCode() {
             return tagF.hashCode() + MagicNumbers.a * tagA.hashCode();
         }
+
         public boolean equals(Object o) {
             if (o instanceof TaggedFunctionName) {
                 TaggedFunctionName tfn = (TaggedFunctionName) o;
@@ -98,13 +73,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
             return false;
         }
+
         public List<BaseType> thrownTypes() {
             return tagF.thrownTypes();
         }
+
         public String toString() {
             return tagA.toString() + ".." + tagF.toString();
         }
-        
+
         @Override
         public int compareTo(TaggedFunctionName o) {
             int i = tagF.toUndecoratedName().toString().compareTo(o.tagF.toUndecoratedName().toString());
@@ -128,7 +105,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 if (i != 0)
                     return i;
-                
+
             }
             return 0;
         }
@@ -143,15 +120,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     final Set<TaggedFunctionName> lessSpecificThanSoFar;
     final IdOrOpOrAnonymousName name;
-    
+
     /**
      * This overloaded function may have a member whose signature matches
      * the overloaded function's signature.  If so, the principalMember is not
-     * null. 
-     * 
+     * null.
      */
     TaggedFunctionName principalMember;
-    
+
     /**
      * If there are subsets of the overload set that have principal
      * members, those can be referenced by name (the signature of the principal
@@ -162,11 +138,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * Thus, when iterating over the values in this set to generate code,
      * it is necessary to guard against generating code for the outermost
      * overloaded set.
-     * 
+     * <p/>
      * Uses a comparator that takes parameter lists into account.
      */
     private BATree<String, OverloadSet> overloadSubsets = new BATree<String, OverloadSet>(DefaultComparator.<String>normal());
-    
+
     /**
      * Used to answer subtype questions.
      */
@@ -192,9 +168,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     final Type selectedParameterType;
 
     final int paramCount;
-    
+
     final APIName ifNone;
-    
+
     /**
      * Which parameter is used to split this set into subsets?
      */
@@ -203,8 +179,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     boolean splitDone;
 
     protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                Set<TaggedFunctionName> lessSpecificThanSoFar,
-                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+                          Set<TaggedFunctionName> lessSpecificThanSoFar,
+                          BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.ifNone = ifNone;
         this.name = name;
         this.ta = ta;
@@ -216,20 +192,21 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-            Set<TaggedFunctionName> lessSpecificThanSoFar,
-            int paramCount, APIName ifNone) {
+                          Set<TaggedFunctionName> lessSpecificThanSoFar,
+                          int paramCount, APIName ifNone) {
         this(ifNone, name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
-            null, null, paramCount);
+                null, null, paramCount);
     }
-    
+
     protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
 
-        this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
+        this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
 
             @Override
             public TaggedFunctionName apply(Function f) {
                 return new TaggedFunctionName(apiname, f);
-            }} ), n, apiname);
+            }
+        }), n, apiname);
 
         // Ensure that they are all the same size.
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
@@ -243,12 +220,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    abstract protected  void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
-            String sig);
+    abstract protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+                                                   String sig);
 
     /**
      * Creates a dispatch-child overload set; one in which the dispatch choices have been reduced.
-     * 
+     *
      * @param childLSTSF
      * @param childTestedIndices
      * @param t
@@ -258,13 +235,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     /**
      * Creates a subset overload set; one that can be named independently as an overloaded function.
-     * 
+     *
      * @param childLSTSF
      * @param principalMember
      * @return
      */
     abstract protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName principalMember);
-    
+
     public void split(boolean computeSubsets) {
         /* First determine if there are any overload subsets.
            This matters because it may affect naming of the leaf (single) functions.
@@ -295,7 +272,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         }
                         OverloadSet subset = makeSubset(subLSTSF, f);
                         subset.overloadSubsets = overloadSubsets;
-                        
+
                         overloadSubsets.put(jvmSignatureFor(f), subset);
                     }
                 }
@@ -308,27 +285,27 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         if (principalMember != null)
             overloadSubsets.put(jvmSignatureFor(principalMember), this);
-        
+
         /* Split set into dispatch tree. */
         splitInternal();
-        
+
     }
-    
-    
+
 
     public void splitInternal() {
         if (splitDone)
             return;
 
         if (lessSpecificThanSoFar.size() == 1) {
-                splitDone = true;
-                return;
+            splitDone = true;
+            return;
             // If there are no other alternatives, then we are done.
         }
 
         {
             // Accumulate sets of parameter types.
-            int nargs = paramCount;;
+            int nargs = paramCount;
+            ;
 
             MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
             for (int i = 0; i < nargs; i++) {
@@ -358,7 +335,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             // Choose parameter index with greatest variation.
             // Choose parameter index with the smallest largest subset.
-            int besti = -1; int best = 0;
+            int besti = -1;
+            int best = 0;
             boolean greatest_variation = false;
             for (int i = 0; i < nargs; i++) {
                 if (testedIndices.contains(i))
@@ -392,7 +370,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             int i = 0;
             TopSortItemImpl<Type>[] potypes =
-                new OverloadSet.POType[dispatchTypes.size()];
+                    new OverloadSet.POType[dispatchTypes.size()];
             /* Convert set of dispatch types into something that can be
                (topologically) sorted. */
             for (Type t : dispatchTypes) {
@@ -405,7 +383,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
              * hope N is not too large.
              */
             for (i = 0; i < potypes.length; i++) {
-                for (int j = i+1; j < potypes.length; j++) {
+                for (int j = i + 1; j < potypes.length; j++) {
                     Type ti = potypes[i].x;
                     Type tj = potypes[j].x;
                     if (ta.subtype(ti, tj).isTrue()) {
@@ -425,25 +403,25 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Type t = specificFirst.get(i).x;
                 Set<TaggedFunctionName> childLSTSF = new HashSet<TaggedFunctionName>();
 
-                    for (TaggedFunctionName f : lessSpecificThanSoFar) {
+                for (TaggedFunctionName f : lessSpecificThanSoFar) {
 //                        if (alreadySelected.contains(f))
 //                            continue;
-                        List<Param> parameters = f.tagParameters();
-                        Param p = parameters.get(dispatchParameterIndex);
-                        Type pt = p.getIdType().unwrap();
-                        if (ta.subtype(t, pt).isTrue()) {
-                            childLSTSF.add(f);
-                            alreadySelected.add(f);
+                    List<Param> parameters = f.tagParameters();
+                    Param p = parameters.get(dispatchParameterIndex);
+                    Type pt = p.getIdType().unwrap();
+                    if (ta.subtype(t, pt).isTrue()) {
+                        childLSTSF.add(f);
+                        alreadySelected.add(f);
 
-                        }
                     }
+                }
 
-               childLSTSF = thin(childLSTSF, childTestedIndices);
+                childLSTSF = thin(childLSTSF, childTestedIndices);
 
-               // ought to not be necessary
-               if (paramCount == childTestedIndices.size()) {
-                        // Choose most specific member of lessSpecificThanSoFar
-                   childLSTSF = mostSpecificMemberOf(childLSTSF);
+                // ought to not be necessary
+                if (paramCount == childTestedIndices.size()) {
+                    // Choose most specific member of lessSpecificThanSoFar
+                    childLSTSF = mostSpecificMemberOf(childLSTSF);
 
                 }
 
@@ -452,7 +430,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 children[i] = ch;
 
             }
-            for (OverloadSet child: children) {
+            for (OverloadSet child : children) {
                 child.splitInternal();
             }
         }
@@ -474,7 +452,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         continue;
                     Type tx = px.get(i).getIdType().unwrap();
                     Type ty = px.get(i).getIdType().unwrap();
-                    if (! tx.equals(ty))
+                    if (!tx.equals(ty))
                         return false;
                 }
                 return true;
@@ -556,7 +534,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // if any type of the candidate is not a subtype(or eq)
             // of the corresponding type of the msf, then the candidate
             // is NOT better.
-            if (! ta.subtype(cand_t, msf_t).isTrue()) {
+            if (!ta.subtype(cand_t, msf_t).isTrue()) {
                 cand_better = false;
                 break;
             }
@@ -606,7 +584,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private static Type join(Type r, Type r0, TypeAnalyzer ta) {
         // Eventually we want to use the join from TypeAnalyzer, once we
         // figure out how to deal with union types.
-        if(r == null) {
+        if (r == null) {
             r = r0;
         } else if (r.equals(r0)) {
             // ok
@@ -626,7 +604,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * overloaded functions) and an indication of how many parameters actually
      * appeared, create the signature for the overloaded function that will be
      * called.
-     *
+     * <p/>
      * There's some fiddliness with varargs that has to be sorted out.
      *
      * @param t
@@ -643,12 +621,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         return s;
     }
-    
+
     /**
      * Checks the parameter count against the intersection type to see if
      * this is a real overloading, or one that can trivially be disambiguated
      * by counting parameters.
-     * 
+     *
      * @param t
      * @param paramCount
      * @return
@@ -656,6 +634,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public static boolean actuallyOverloaded(IntersectionType t, int paramCount) {
         return matchingCount(t, paramCount) > 1;
     }
+
     public static int matchingCount(IntersectionType t, int paramCount) {
         int sum = 0;
         List<Type> types = t.getElements();
@@ -675,9 +654,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 } else if (paramCount != 1) {
                     continue;
                 }
-                
+
                 sum++;
-                
+
             } else if (type instanceof IntersectionType) {
                 sum += matchingCount((IntersectionType) type, paramCount);
             } else {
@@ -698,7 +677,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             if (type instanceof ArrowType) {
                 ArrowType at = (ArrowType) type;
-                
+
                 // Ensure that the domain count matches the paramCount
                 r0 = at.getDomain();
                 if (r0 instanceof TupleType) {
@@ -708,7 +687,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 } else if (paramCount != 1) {
                     continue;
                 }
-                
+
                 r0 = at.getRange();
             } else if (type instanceof IntersectionType) {
                 r0 = getRangeSignature((IntersectionType) type, paramCount, ta);
@@ -725,7 +704,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return r;
     }
 
-    private  static Type getParamType(IntersectionType t, int i, int paramCount, TypeAnalyzer ta) {
+    private static Type getParamType(IntersectionType t, int i, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
 
         Type r = null;
@@ -752,12 +731,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public static Type getParamType(Type type, int i, int paramCount,
-            TypeAnalyzer ta) {
+                                    TypeAnalyzer ta) {
         Type r0;
         if (type instanceof ArrowType) {
             ArrowType at = (ArrowType) type;
             r0 = at.getDomain();
-            
+
             // Ensure that the domain count matches the paramCount
             if (r0 instanceof TupleType) {
                 TupleType tt = (TupleType) r0;
@@ -788,12 +767,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             com.sun.fortress.nodes.Type tp = p.getIdType().unwrap();
             if (ti == null)
                 return false;
-            if (! ta.subtype(tp, ti).isTrue())
+            if (!ta.subtype(tp, ti).isTrue())
                 return false;
         }
         return true;
     }
-    
+
     /**
      * @param paramCount
      * @return
@@ -802,7 +781,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String s = "(";
 
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.boxedImplDesc(getParamType(t,i,paramCount, ta), null);
+            s += NamingCzar.boxedImplDesc(getParamType(t, i, paramCount, ta), null);
         }
         s += ")";
         return s;
@@ -831,7 +810,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public String[] getExceptions() {
         HashSet<Type> exceptions = new HashSet<Type>();
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            List<BaseType> f_exceptions =  f.thrownTypes();
+            List<BaseType> f_exceptions = f.thrownTypes();
             exceptions.addAll(f_exceptions);
         }
         String[] string_exceptions = new String[exceptions.size()];
@@ -844,22 +823,22 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     public void generateCall(MethodVisitor mv, int firstArgIndex, Label failLabel) {
         if (!splitDone) {
-             InterpreterBug.bug("Must split overload set before generating call(s)");
-             return;
+            InterpreterBug.bug("Must split overload set before generating call(s)");
+            return;
         }
 
         if (lessSpecificThanSoFar.size() == 1) {
             // Emit casts and call of f.
-            TaggedFunctionName f =  lessSpecificThanSoFar.iterator().next();
+            TaggedFunctionName f = lessSpecificThanSoFar.iterator().next();
 
             String sig = jvmSignatureFor(f);
-            
+
             int i = firstArgIndex;
             List<Param> params = f.callParameters();
 
-            for (Param p : params ) {
+            for (Param p : params) {
                 mv.visitVarInsn(Opcodes.ALOAD, i);
-                
+
                 Type ty = p.getIdType().unwrap();
                 mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc(ty, ifNone, false));
                 i++;
@@ -881,7 +860,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
-                if (i+1 < children.length)
+                if (i + 1 < children.length)
                     lookahead = new Label();
                 else lookahead = null;
             }
@@ -913,7 +892,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (lessSpecificThanSoFar.size() == 1) {
             return indent + lessSpecificThanSoFar.iterator().next().toString();
         } else {
-            String s =  indent + "#" + dispatchParameterIndex + "\n";
+            String s = indent + "#" + dispatchParameterIndex + "\n";
             for (int i = 0; i < children.length; i++) {
                 OverloadSet os = children[i];
                 s += indent + os.selectedParameterType + "->" + os.toStringR(indent + "   ") + "\n";
@@ -924,17 +903,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     /**
      * Overloaded functions get a slightly mangled name.
-     * 
+     *
      * @param name
      * @return
      */
     public static String oMangle(String name) {
         return /* "O$" + */ name; // no mangling after all.
     }
- 
+
     public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
         generateAnOverloadDefinitionInner(name, cv);
-        
+
         for (Map.Entry<String, OverloadSet> o_entry : getOverloadSubsets().entrySet()) {
             String ss = o_entry.getKey();
             OverloadSet sos = o_entry.getValue();
@@ -943,7 +922,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
     }
-    
+
     public void generateAnOverloadDefinitionInner(String name, ClassVisitor cv) {
 
         // "(" anOverloadedArg^N ")" returnType
@@ -981,7 +960,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     }
 
-   
 
     public BATree<String, OverloadSet> getOverloadSubsets() {
         return overloadSubsets;
@@ -989,16 +967,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     static public class Local extends AmongApis {
         public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(apiname, name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>(){
+            super(apiname, name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
 
                 @Override
                 public TaggedFunctionName apply(Function f) {
                     return new TaggedFunctionName(apiname, f);
-                }} ), n);
+                }
+            }), n);
         }
-      
+
     }
-    
+
     static public class AmongApis extends OverloadSet {
         /**
          * Emit the invocation for a particular type of overloaded functions.
@@ -1008,37 +987,37 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          * @param sig
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
-                String sig) {
-            
-           
+                                              String sig) {
+
+
             String ownerName = NamingCzar.only.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.only.apiAndMethodToMethod(f.tagA, f.tagF);
-            
+
             if (getOverloadSubsets().containsKey(sig))
                 mname = NamingCzar.only.mangleAwayFromOverload(mname);
-            
+
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
 
         /* Boilerplate follows, because this is a subtype. */
 
         protected AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                Set<TaggedFunctionName> lessSpecificThanSoFar,
-                BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
+                            Set<TaggedFunctionName> lessSpecificThanSoFar,
+                            BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
             super(ifNone, name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
         }
 
         public AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
             super(name, ta, defs, n, ifNone);
         }
-        
+
         protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
             return new AmongApis(ifNone, name, ta, childLSTSF,
                     childTestedIndices, this, t, paramCount);
         }
 
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName principalMember) {
-            OverloadSet subset =  new AmongApis(ifNone, name, ta, childLSTSF, paramCount);
+            OverloadSet subset = new AmongApis(ifNone, name, ta, childLSTSF, paramCount);
             subset.principalMember = principalMember;
             return subset;
         }

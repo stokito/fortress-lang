@@ -1,99 +1,89 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.exceptions.ProgramError;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.EvalType;
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.useful.Factory1P;
+import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Memo1P;
+import edu.rice.cs.plt.tuple.Option;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.sun.fortress.exceptions.ProgramError;
-import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes_util.NodeComparator;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.BATreeEC;
-import com.sun.fortress.useful.Factory1P;
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Memo1P;
-import com.sun.fortress.useful.Useful;
-
-import edu.rice.cs.plt.tuple.Option;
-
 public class FGenericFunction extends GenericFunctionOrConstructor
-                              implements GenericFunctionOrMethod,
-                              Factory1P<List<FType>, Simple_fcn, HasAt> {
+        implements GenericFunctionOrMethod, Factory1P<List<FType>, Simple_fcn, HasAt> {
 
     FnDecl fndef;
 
 
-     /* (non-Javadoc)
-      * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
-      */
+    /* (non-Javadoc)
+    * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
+    */
 
-     protected Simple_fcn getSymbolic() throws Error, ProgramError {
-         if (symbolicInstantiation == null) {
-             synchronized (this) {
-                 if (symbolicInstantiation == null) {
-                     List<FType> symbolic_static_args = FunctionsAndState.symbolicStaticsByPartition.get(this);
-                     if (symbolic_static_args == null) {
-                         /* TODO This is not quite right, because we risk
-                          * identifying two functions whose where clauses are
-                          * interpreted differently in two different environments.
-                          */
-                         symbolic_static_args =
-                             FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
-                                     createSymbolicInstantiation(getEnv(), getStaticParams(), getWhere(), fndef));
-                     }
-                     symbolicInstantiation = typeApply(symbolic_static_args, fndef);
-                 }
-             }
-         }
-         return symbolicInstantiation;
-     }
+    protected Simple_fcn getSymbolic() throws Error, ProgramError {
+        if (symbolicInstantiation == null) {
+            synchronized (this) {
+                if (symbolicInstantiation == null) {
+                    List<FType> symbolic_static_args = FunctionsAndState.symbolicStaticsByPartition.get(this);
+                    if (symbolic_static_args == null) {
+                        /* TODO This is not quite right, because we risk
+                        * identifying two functions whose where clauses are
+                        * interpreted differently in two different environments.
+                        */
+                        symbolic_static_args = FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
+                                                                                                             createSymbolicInstantiation(
+                                                                                                                     getEnv(),
+                                                                                                                     getStaticParams(),
+                                                                                                                     getWhere(),
+                                                                                                                     fndef));
+                    }
+                    symbolicInstantiation = typeApply(symbolic_static_args, fndef);
+                }
+            }
+        }
+        return symbolicInstantiation;
+    }
 
-   /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
-     */
+    /* (non-Javadoc)
+    * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#at()
+    */
     @Override
     public String at() {
         return fndef.at();
     }
 
-     public String stringName() {
+    public String stringName() {
         return fndef.stringName();
     }
 
-     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.values.FValue#getString()
-     */
+    /* (non-Javadoc)
+    * @see com.sun.fortress.interpreter.evaluator.values.FValue#getString()
+    */
     @Override
     public String getString() {
         return s(fndef);
@@ -104,16 +94,20 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return getString() + fndef.at();
     }
 
-    public boolean seqv(FValue v) { return false; }
+    public boolean seqv(FValue v) {
+        return false;
+    }
 
     protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
-        FunctionClosure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new FunctionClosure(clenv, fndef, args);
+        FunctionClosure cl = FType.anyAreSymbolic(args) ?
+                             new ClosureInstance(clenv, fndef, args, this) :
+                             new FunctionClosure(clenv, fndef, args);
         cl.finishInitializing();
         return cl;
     }
 
-//    public BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
-//        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
+    //    public BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
+    //        new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
 
     private class Factory implements Factory1P<List<FType>, Simple_fcn, HasAt> {
 
@@ -169,10 +163,8 @@ public class FGenericFunction extends GenericFunctionOrConstructor
     public Simple_fcn typeApply(List<FType> argValues, HasAt location) throws ProgramError {
         List<StaticParam> params = getStaticParams();
 
-        if (argValues.size() != params.size() ) {
-            error(location,
-                  errorMsg("Generic instantiation (size) mismatch, expected ",
-                           params, " got ", argValues));
+        if (argValues.size() != params.size()) {
+            error(location, errorMsg("Generic instantiation (size) mismatch, expected ", params, " got ", argValues));
         }
         return make(argValues, location);
     }
@@ -181,8 +173,8 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return typeApply(argValues, fndef);
     }
 
-    public  List<StaticParam> getStaticParams() {
-        return  NodeUtil.getStaticParams(fndef);
+    public List<StaticParam> getStaticParams() {
+        return NodeUtil.getStaticParams(fndef);
     }
 
     public List<Param> getParams() {
@@ -194,7 +186,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return NodeUtil.getWhereClause(fndef);
     }
 
-     @Override
+    @Override
     public IdOrOpOrAnonymousName getFnName() {
         return NodeUtil.getName(fndef);
     }
@@ -214,8 +206,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
             IdOrOpOrAnonymousName fn0 = a0.getName();
             IdOrOpOrAnonymousName fn1 = a1.getName();
             int x = NodeComparator.compare(fn0, fn1);
-            if (x != 0)
-                return x;
+            if (x != 0) return x;
 
             List<StaticParam> oltp0 = a0.getStaticParams();
             List<StaticParam> oltp1 = a1.getStaticParams();
@@ -238,7 +229,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
     // static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
     public Option<Type> getReturnType() {
-         return NodeUtil.getReturnType(fndef);
+        return NodeUtil.getReturnType(fndef);
     }
 
 

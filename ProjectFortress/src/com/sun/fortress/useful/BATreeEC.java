@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -33,7 +33,7 @@ public class BATreeEC<Key, KeyEC, Value> {
         equivalenceClass = e;
     }
 
-    protected BATreeEC(BATreeNodeEC<Key, KeyEC,Value> r, EquivalenceClass<Key, KeyEC> e) {
+    protected BATreeEC(BATreeNodeEC<Key, KeyEC, Value> r, EquivalenceClass<Key, KeyEC> e) {
         root = r;
         equivalenceClass = e;
     }
@@ -45,27 +45,24 @@ public class BATreeEC<Key, KeyEC, Value> {
 
     public Value get(Key k) {
         if (root == null) return null;
-        BATreeNodeEC<Key,KeyEC,Value> f = root.getObject(k, equivalenceClass);
+        BATreeNodeEC<Key, KeyEC, Value> f = root.getObject(k, equivalenceClass);
         if (f == null) return null;
         return f.data;
     }
 
-    public BATreeNodeEC<Key,KeyEC,Value> getEntry(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k);
+    public BATreeNodeEC<Key, KeyEC, Value> getEntry(int k) {
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k);
     }
 
     public Value getData(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).data;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).data;
     }
 
     public KeyEC getKey(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).key;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).key;
     }
 
     /**
@@ -80,13 +77,13 @@ public class BATreeEC<Key, KeyEC, Value> {
 
     public Value min() {
         if (root == null) return null;
-        BATreeNodeEC<Key,KeyEC,Value> f = root.min();
+        BATreeNodeEC<Key, KeyEC, Value> f = root.min();
         return f.data;
     }
 
     public Value max() {
         if (root == null) return null;
-        BATreeNodeEC<Key,KeyEC,Value> f = root.max();
+        BATreeNodeEC<Key, KeyEC, Value> f = root.max();
         return f.data;
     }
 
@@ -104,34 +101,37 @@ public class BATreeEC<Key, KeyEC, Value> {
      */
     public BATreeEC<Key, KeyEC, Value> putNew(Key k, Value d) {
         if (root == null) {
-            return new BATreeEC<Key, KeyEC, Value>(new BATreeNodeEC<Key, KeyEC, Value>(equivalenceClass.translate(k),d,null, null), equivalenceClass);
+            return new BATreeEC<Key, KeyEC, Value>(new BATreeNodeEC<Key, KeyEC, Value>(equivalenceClass.translate(k),
+                                                                                       d,
+                                                                                       null,
+                                                                                       null), equivalenceClass);
         }
 
-        return new BATreeEC<Key, KeyEC, Value>(root.add(k,d, equivalenceClass), equivalenceClass);
+        return new BATreeEC<Key, KeyEC, Value>(root.add(k, d, equivalenceClass), equivalenceClass);
     }
-    public BATreeEC<Key,KeyEC,Value> copy() {
-         return new BATreeEC<Key,KeyEC,Value>(root, equivalenceClass);
+
+    public BATreeEC<Key, KeyEC, Value> copy() {
+        return new BATreeEC<Key, KeyEC, Value>(root, equivalenceClass);
     }
 
     /*
      * From the department of ugly patterns; it's hard to call
      * copy from a subclass.
      */
-    protected BATreeNodeEC<Key,KeyEC,Value> getRoot() {
+    protected BATreeNodeEC<Key, KeyEC, Value> getRoot() {
         return root;
     }
 
     public Value put(Key k, Value d) {
         if (root == null) {
-            root = new BATreeNodeEC<Key, KeyEC, Value>(equivalenceClass.translate(k),d,null, null);
+            root = new BATreeNodeEC<Key, KeyEC, Value>(equivalenceClass.translate(k), d, null, null);
             return null;
         }
         BATreeNodeEC<Key, KeyEC, Value> old = root;
-        root = root.add(k,d, equivalenceClass);
+        root = root.add(k, d, equivalenceClass);
 
         // Performance hack; if it wasn't there, then the tree got bigger.
-        if (old.weight < root.weight)
-            return null;
+        if (old.weight < root.weight) return null;
         return old.getObject(k, equivalenceClass).data;
     }
 
@@ -150,8 +150,7 @@ public class BATreeEC<Key, KeyEC, Value> {
             root = old.add(k, d, equivalenceClass);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight)
-                return null;
+            if (old.weight < root.weight) return null;
         }
         return old.getObject(k, equivalenceClass).data;
     }
@@ -160,7 +159,7 @@ public class BATreeEC<Key, KeyEC, Value> {
         root = null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BATreeEC) {
             BATreeEC bat = (BATreeEC) o;
@@ -170,8 +169,7 @@ public class BATreeEC<Key, KeyEC, Value> {
             BATreeNodeEC a = root;
             BATreeNodeEC b = bat.root;
             for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i))))
-                    return false;
+                if (!(a.get(i).equals(b.get(i)))) return false;
             }
             return true;
         }
