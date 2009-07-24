@@ -15,27 +15,22 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled6
+component Typecase
 export Executable
 
-(** Simple use of higher-order function to simulate sequential generator *)
+(* Simple typecase (no generics).  Also traits, and singleton objects. *)
 
-orderedEnum(lo:ZZ32, hi:ZZ32, f: ZZ32->()): () =
-    if hi < lo then
-        ()
-    elif hi = lo then
-        f(lo)
-    else
-        mid = (lo + hi) DIV 2
-        orderedEnum(lo,mid,f)
-        orderedEnum(mid+1,hi,f)
-    end
+trait A end
+object O extends A end
+object P extends A end
+
+anA(): A = O
 
 run():() = do
-    (** TODO: type annotation should not be necessary! *)
-    orderedEnum(0,9, fn (n: ZZ32) => printlnZZ32(n))
-    (** TODO: closing over non-generic global function *)
-    (*) orderedEnum(0,9,printlnZZ32)
+  typecase x = anA() of
+    O => println("O")
+    else => println("FAIL")
   end
+end
 
 end
