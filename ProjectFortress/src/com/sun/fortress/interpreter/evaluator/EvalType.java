@@ -1,70 +1,52 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.OptionVisitor;
-
+import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.exceptions.FortressException;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.exceptions.ProgramError;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import com.sun.fortress.interpreter.Driver;
-import com.sun.fortress.interpreter.evaluator.types.Bool;
-import com.sun.fortress.interpreter.evaluator.types.BoolType;
+import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
-import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
-import com.sun.fortress.interpreter.evaluator.types.FTypeNat;
-import com.sun.fortress.interpreter.evaluator.types.FTypeOpr;
-import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.types.FTypeVoid;
-import com.sun.fortress.interpreter.evaluator.types.IntNat;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
-import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
-import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.exceptions.ProgramError;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.OptionVisitor;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class EvalType extends NodeAbstractVisitor<FType> {
 
     Environment env;
     private EvalIndices ___evalIndices;
+
     private synchronized EvalIndices evalIndices() {
-        if (___evalIndices == null)
-            ___evalIndices = new EvalIndices(this);
+        if (___evalIndices == null) ___evalIndices = new EvalIndices(this);
         return ___evalIndices;
     }
 
@@ -80,22 +62,33 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(q);
             return result;
-        } catch (FortressException p) {
-            throw p.setContext(q,env);
+        }
+        catch (FortressException p) {
+            throw p.setContext(q, env);
         }
     }
 
     public static FType getFTypeFromOption(Option<Type> opt_t, final Environment e, final FType ifMissing) {
         return opt_t.apply(new OptionVisitor<Type, FType>() {
-            public FType forSome(Type t) { return getFType(t, e); }
-            public FType forNone() { return ifMissing; }
+            public FType forSome(Type t) {
+                return getFType(t, e);
+            }
+
+            public FType forNone() {
+                return ifMissing;
+            }
         });
     }
 
-    public  FType getFTypeFromOption(Option<Type> opt_t, final FType ifMissing) {
+    public FType getFTypeFromOption(Option<Type> opt_t, final FType ifMissing) {
         return opt_t.apply(new OptionVisitor<Type, FType>() {
-            public FType forSome(Type t) { return getFType(t); }
-            public FType forNone() { return ifMissing; }
+            public FType forSome(Type t) {
+                return getFType(t);
+            }
+
+            public FType forNone() {
+                return ifMissing;
+            }
         });
     }
 
@@ -103,7 +96,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return getFTypeFromList(l, new EvalType(e));
     }
 
-    public static FType getFTypeFromList(List<Type> l,  EvalType et) {
+    public static FType getFTypeFromList(List<Type> l, EvalType et) {
         if (l.size() == 1) {
             return l.get(0).accept(et);
         }
@@ -120,14 +113,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             public List<FType> forSome(List<BaseType> l) {
                 return getFTypeListFromList(l);
             }
-            public List<FType> forNone() { return Collections.emptyList(); }
+
+            public List<FType> forNone() {
+                return Collections.emptyList();
+            }
         });
     }
 
 
     public List<FType> getFTypeListFromList(List<? extends Type> l) {
-        if (l == null ||
-            l.size() == 1 && NodeUtil.isVoidType(l.get(0))) {
+        if (l == null || l.size() == 1 && NodeUtil.isVoidType(l.get(0))) {
             // Flatten out voids.
             // Should this be mutable?
             return Collections.<FType>emptyList();
@@ -138,7 +133,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     private static List<FType> getFTypeListFromNonEmptyList(List<? extends Type> l, EvalType et) {
         ArrayList<FType> a = new ArrayList<FType>(l.size());
-        for (Type t : l) a.add(t.accept(et));
+        for (Type t : l) {
+            a.add(t.accept(et));
+        }
         return a;
     }
 
@@ -146,12 +143,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return t.accept(new EvalType(e));
     }
 
-    public  FType getFType(Type t) {
-     return t.accept(this);
+    public FType getFType(Type t) {
+        return t.accept(this);
     }
 
-    public static List<Parameter> paramsToParameters(Environment env,
-            List<Param> params) {
+    public static List<Parameter> paramsToParameters(Environment env, List<Param> params) {
         if (params.size() == 0) {
             // There must be some way to get the generic parameter attached.
             return Collections.<Parameter>emptyList();
@@ -170,11 +166,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             Id idName = in_p.getName();
             String pname = NodeUtil.nameString(idName);
             FType ptype;
-            if ( ! NodeUtil.isVarargsParam(in_p) ) {
+            if (!NodeUtil.isVarargsParam(in_p)) {
                 Option<Type> type = in_p.getIdType();
                 ptype = e.getFTypeFromOption(type, FTypeTop.ONLY);
-            }
-            else { // a varargs param
+            } else { // a varargs param
                 ptype = FTypeRest.make(e.getFType(in_p.getVarargsType().unwrap()));
             }
             Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
@@ -187,8 +182,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putType(name, type);
-        } catch (FortressException pe) {
-            throw pe.setContext(where,containing);
+        }
+        catch (FortressException pe) {
+            throw pe.setContext(where, containing);
         }
     }
 
@@ -196,7 +192,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putNat(name, nat);
-        } catch (FortressException pe) {
+        }
+        catch (FortressException pe) {
             throw pe.setContext(where, containing);
         }
     }
@@ -205,8 +202,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         // Referenced from BuildEnvironments, perhaps others.
         try {
             containing.putBool(name, b);
-        } catch (FortressException pe) {
-            throw pe.setContext(where,containing);
+        }
+        catch (FortressException pe) {
+            throw pe.setContext(where, containing);
         }
     }
 
@@ -233,7 +231,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 // TODO need to undefine the nats and bools
                 // This means that our choice to use the Java types Boolean etc was wrong,
                 // because they lack lattice structure.
-            } else if ( NodeUtil.isTypeParam(p) ) {
+            } else if (NodeUtil.isTypeParam(p)) {
                 String whence = null;
                 // There's probably some inappropriate ones.
                 if (a instanceof FTypeNat) {
@@ -244,63 +242,57 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     whence = "bool ";
                 }
                 if (whence != null) {
-                    error(within, clenv,
-                          errorMsg("When instantiating ", what,
-                                   "Got ",whence, a,
-                                   " instead of type for param ", p));
+                    error(within, clenv, errorMsg("When instantiating ",
+                                                  what,
+                                                  "Got ",
+                                                  whence,
+                                                  a,
+                                                  " instead of type for param ",
+                                                  p));
                 }
-            } else if ( NodeUtil.isNatParam(p) ) {
+            } else if (NodeUtil.isNatParam(p)) {
                 if (a instanceof IntNat) {
-                    long l = ((IntNat)a).getValue();
+                    long l = ((IntNat) a).getValue();
                     if (l < 0) {
                         // Move this check into the param-specific binding code.
                         error(p, errorMsg("Negative nats are unNATural: " + l));
                     }
 
-                    guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
+                    guardedPutNat(NodeUtil.getName(p), ((IntNat) a).getNumber(), what, clenv);
                 } else if (a instanceof SymbolicNat) {
                     // guardedPutNat(NodeUtil.nameString(p), ((IntNat)a).getNumber(), what, clenv);
                 } else {
-                    error(within, clenv,
-                          errorMsg("Expected Nat, got ", a, " for param ", p,
-                                   " instantiating ", what));
+                    error(within, clenv, errorMsg("Expected Nat, got ", a, " for param ", p, " instantiating ", what));
                 }
-            } else if ( NodeUtil.isIntParam(p) ) {
+            } else if (NodeUtil.isIntParam(p)) {
                 if (a instanceof IntNat) {
-                    guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
+                    guardedPutNat(NodeUtil.getName(p), ((IntNat) a).getNumber(), what, clenv);
                 } else if (a instanceof SymbolicNat) {
                     // guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                 } else {
-                    error(within, clenv,
-                          errorMsg("Expected Int, got ", a, " for param ", p,
-                                   " instantiating ", what));
+                    error(within, clenv, errorMsg("Expected Int, got ", a, " for param ", p, " instantiating ", what));
                 }
-            } else if ( NodeUtil.isBoolParam(p) ) {
+            } else if (NodeUtil.isBoolParam(p)) {
                 if (a instanceof Bool) {
-                    guardedPutBool(NodeUtil.getName(p), ((Bool)a).getBooleanValue(), what, clenv);
+                    guardedPutBool(NodeUtil.getName(p), ((Bool) a).getBooleanValue(), what, clenv);
                 } else if (a instanceof SymbolicBool) {
                     // Fall through
                 } else {
-                    error(within, clenv,
-                          errorMsg("Expected Bool, got ", a, " for param ", p,
-                                   " instantiating ", what));
+                    error(within, clenv, errorMsg("Expected Bool, got ", a, " for param ", p, " instantiating ", what));
                 }
-            } else if ( NodeUtil.isOpParam(p) ) {
+            } else if (NodeUtil.isOpParam(p)) {
                 if (a instanceof FTypeOpr || a instanceof SymbolicOprType) {
                     // Fall through
                 } else {
-                    error(within, clenv,
-                          errorMsg("Expected Opr, got ", a, " for param ", p,
-                                   " instantiating ", what));
+                    error(within, clenv, errorMsg("Expected Opr, got ", a, " for param ", p, " instantiating ", what));
                 }
-            } else if ( NodeUtil.isDimParam(p) ) {
+            } else if (NodeUtil.isDimParam(p)) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
-                error(within, clenv,
-                      errorMsg("Unexpected generic parameter ", p));
+                error(within, clenv, errorMsg("Unexpected generic parameter ", p));
             }
             guardedPutType(NodeUtil.getName(p), a, what, clenv);
-         }
+        }
     }
 
     public ArrayList<FType> forStaticArgList(List<StaticArg> args) {
@@ -320,7 +312,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType defaultCase(Node n) {
-        return bug(n,errorMsg("Can't EvalType this node type " + n.getClass()));
+        return bug(n, errorMsg("Can't EvalType this node type " + n.getClass()));
     }
 
     public FType forOpArg(OpArg b) {
@@ -337,53 +329,46 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             private boolean boolify(BoolExpr ie) {
                 FType t = ie.accept(this);
                 if (!(t instanceof Bool)) {
-                    error(ie, errorMsg("BoolExpr ", ie, " evaluated to ", t,
-                                       " (instead of Bool)"));
+                    error(ie, errorMsg("BoolExpr ", ie, " evaluated to ", t, " (instead of Bool)"));
                 }
-                return ((Bool)t).getBooleanValue();
+                return ((Bool) t).getBooleanValue();
             }
+
             public FType forBoolBase(BoolBase b) {
                 return Bool.make(b.isBoolVal());
             }
+
             public FType forBoolRef(BoolRef n) {
                 Id q = n.getName();
                 try {
                     FType result = env.getType(q);
                     return result;
-                } catch (FortressException p) {
+                }
+                catch (FortressException p) {
                     throw p.setContext(q, env);
                 }
             }
+
             public FType forBoolUnaryOp(BoolUnaryOp n) {
-                if ( n.getOp().getText().equals("NOT") )
-                    return Bool.make(!boolify(n.getBoolVal()));
-                else
-                    return bug(n, errorMsg("EvalType: ", n.getClass(),
-                                           " is not yet implemented."));
+                if (n.getOp().getText().equals("NOT")) return Bool.make(!boolify(n.getBoolVal()));
+                else return bug(n, errorMsg("EvalType: ", n.getClass(), " is not yet implemented."));
             }
 
             private boolean boolOp(BoolBinaryOp n, String op, boolean left, boolean right) {
-                if ( op.equals("OR") )
-                    return left || right;
-                else if ( op.equals("AND") )
-                    return left && right;
-                else if ( op.equals("IMPLIES") )
-                    return !left || right;
-                else if ( op.equals("=") )
-                    return left == right;
-                else
-                    bug(n, errorMsg("EvalType: ", n.getClass(),
-                                    " is not a subtype of BoolExpr."));
+                if (op.equals("OR")) return left || right;
+                else if (op.equals("AND")) return left && right;
+                else if (op.equals("IMPLIES")) return !left || right;
+                else if (op.equals("=")) return left == right;
+                else bug(n, errorMsg("EvalType: ", n.getClass(), " is not a subtype of BoolExpr."));
                 return false;
             }
+
             public FType forBinaryBooluConstraint(BoolBinaryOp n) {
-                return Bool.make(boolOp(n, n.getOp().getText(),
-                                        boolify(n.getLeft()),
-                                        boolify(n.getRight())));
+                return Bool.make(boolOp(n, n.getOp().getText(), boolify(n.getLeft()), boolify(n.getRight())));
             }
+
             public FType defaultCase(Node x) {
-                return bug(x, errorMsg("EvalType: ", x.getClass(),
-                                       " is not a subtype of BoolExpr."));
+                return bug(x, errorMsg("EvalType: ", x.getClass(), " is not a subtype of BoolExpr."));
             }
         });
     }
@@ -396,8 +381,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         try {
             FType result = env.getType(i);
             return result;
-        } catch (FortressException p) {
-            throw p.setContext(i,env);
+        }
+        catch (FortressException p) {
+            throw p.setContext(i, env);
         }
 
     }
@@ -405,19 +391,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     @Override
     public FType forArrowType(ArrowType at) {
         Type domain = at.getDomain();
-        if ( domain instanceof TupleType &&
-             ! ((TupleType)domain).getKeywords().isEmpty()) {
+        if (domain instanceof TupleType && !((TupleType) domain).getKeywords().isEmpty()) {
             return NI.nyi("Can't interpret a type with keywords");
         }
-        return FTypeArrow.make(Types.stripKeywords(domain).accept(this),
-                               at.getRange().accept(this));
+        return FTypeArrow.make(Types.stripKeywords(domain).accept(this), at.getRange().accept(this));
     }
 
     @Override
     public FType forTupleType(TupleType tt) {
-        if ( NodeUtil.isVoidType(tt) )
-            return FTypeVoid.ONLY;
-        else if ( ! NodeUtil.hasVarargs(tt) ) {
+        if (NodeUtil.isVoidType(tt)) return FTypeVoid.ONLY;
+        else if (!NodeUtil.hasVarargs(tt)) {
             List<FType> elts = getFTypeListFromList(tt.getElements());
             return FTypeTuple.make(elts);
         } else {
@@ -437,39 +420,37 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             private long longify(IntExpr ie) {
                 FType t = ie.accept(this);
                 if (!(t instanceof IntNat)) {
-                    error(ie, errorMsg("IntExpr ", ie, " evaluated to ", t,
-                                       " (instead of IntNat)"));
+                    error(ie, errorMsg("IntExpr ", ie, " evaluated to ", t, " (instead of IntNat)"));
                 }
-                return ((IntNat)t).getValue();
+                return ((IntNat) t).getValue();
             }
+
             public FType forIntBase(IntBase n) {
                 return IntNat.make(n.getIntVal().getIntVal().intValue());
             }
+
             public FType forIntRef(IntRef n) {
                 Id q = n.getName();
                 try {
                     FType result = env.getType(q);
                     return result;
-                } catch (FortressException p) {
+                }
+                catch (FortressException p) {
                     throw p.setContext(q, env);
                 }
             }
+
             public FType forIntBinaryOp(IntBinaryOp n) {
-                long left  = longify(n.getLeft());
+                long left = longify(n.getLeft());
                 long right = longify(n.getRight());
-                if ( n.getOp().getText().equals("+") )
-                    return IntNat.make(left + right);
-                else if ( n.getOp().getText().equals("-") )
-                    return IntNat.make(left - right);
-                else if ( n.getOp().getText().equals(" ") )
-                    return IntNat.make(left * right);
-                else
-                    return bug(n, errorMsg("EvalType: ", n.getClass(),
-                                           " is not yet implemented."));
+                if (n.getOp().getText().equals("+")) return IntNat.make(left + right);
+                else if (n.getOp().getText().equals("-")) return IntNat.make(left - right);
+                else if (n.getOp().getText().equals(" ")) return IntNat.make(left * right);
+                else return bug(n, errorMsg("EvalType: ", n.getClass(), " is not yet implemented."));
             }
+
             public FType defaultCase(Node x) {
-                return bug(x, errorMsg("EvalType: ",x.getClass(),
-                                       " is not a subtype of IntExpr."));
+                return bug(x, errorMsg("EvalType: ", x.getClass(), " is not a subtype of IntExpr."));
             }
         });
     }
@@ -478,26 +459,22 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOpParam(com.sun.fortress.interpreter.nodes.OpParam)
      */
     @Override
-        public FType forStaticParam(StaticParam x) {
-        if ( NodeUtil.isOpParam(x) ) {
+    public FType forStaticParam(StaticParam x) {
+        if (NodeUtil.isOpParam(x)) {
             // TODO Auto-generated method stub
             return super.forStaticParam(x);
-        } else
-            return bug(x,errorMsg("Can't EvalType this node type."));
+        } else return bug(x, errorMsg("Can't EvalType this node type."));
     }
 
     private long nonEmpty(List<? extends Type> value) {
-        if (value.size() == 0)
-            error("Empty operands to nat arithmetic");
+        if (value.size() == 0) error("Empty operands to nat arithmetic");
         return longify(value.get(0));
     }
 
     private long longify(Type type) {
         FType t = type.accept(this);
         if (!(t instanceof IntNat)) {
-            error(type,
-                  errorMsg("StaticArg ", type, " evaluated to ", t,
-                           " (instead of IntNat)"));
+            error(type, errorMsg("StaticArg ", type, " evaluated to ", t, " (instead of IntNat)"));
         }
         return ((IntNat) t).getValue();
     }
@@ -529,11 +506,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         FType ft1;
         try {
             ft1 = env.getType(x);
-        } catch (FortressException p) {
-            throw p.setContext(x,env);
+        }
+        catch (FortressException p) {
+            throw p.setContext(x, env);
         }
 
-        if (ft1 instanceof  FTypeGeneric) {
+        if (ft1 instanceof FTypeGeneric) {
             FTypeGeneric ftg = (FTypeGeneric) ft1;
             return ftg.typeApply(x.getArgs(), env, x);
         } else {
@@ -554,7 +532,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
         TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.accept(evalIndices());
         List<TypeRange> ltr = f_indices.getRanges();
-        return Glue.instantiateGenericType(Driver.getFortressLibrary(), WellKnownNames.arrayTrait(ltr.size()), elt_type, ltr, x);
+        return Glue.instantiateGenericType(Driver.getFortressLibrary(),
+                                           WellKnownNames.arrayTrait(ltr.size()),
+                                           elt_type,
+                                           ltr,
+                                           x);
     }
 
     @Override
@@ -577,12 +559,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         if (b.isSome()) {
             FType bt = b.unwrap().accept(this);
             if (bt instanceof IntNat || bt instanceof SymbolicNat) {
-                natB = (FTypeNat)bt;
+                natB = (FTypeNat) bt;
             } else {
-                natB = error(b.unwrap(),
-                             errorMsg(extent,env,"Bad base ",
-                                      b.unwrap(),"=",
-                                      bt.getClass().getName(), " ", bt));
+                natB = error(b.unwrap(), errorMsg(extent,
+                                                  env,
+                                                  "Bad base ",
+                                                  b.unwrap(),
+                                                  "=",
+                                                  bt.getClass().getName(),
+                                                  " ",
+                                                  bt));
             }
         } else {
             natB = IntNat.make(0);
@@ -592,12 +578,16 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             FType st = s.unwrap().accept(this);
             if ((st instanceof IntNat || st instanceof SymbolicNat) &&
                 (op.isNone() || op.unwrap().getText().equals("#"))) {
-                natS = (FTypeNat)st;
+                natS = (FTypeNat) st;
             } else {
-                natS = error(s.unwrap(),
-                             errorMsg(extent,env,"Bad size ",
-                                      s.unwrap(), "=",
-                                      st.getClass().getName(), " ", st));
+                natS = error(s.unwrap(), errorMsg(extent,
+                                                  env,
+                                                  "Bad size ",
+                                                  s.unwrap(),
+                                                  "=",
+                                                  st.getClass().getName(),
+                                                  " ",
+                                                  st));
             }
         } else {
             natS = IntNat.make(0);

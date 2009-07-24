@@ -1,27 +1,27 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.exceptions.FortressException;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.List;
-
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
@@ -30,22 +30,14 @@ import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
-
-import com.sun.fortress.exceptions.transactions.AbortedException;
-import com.sun.fortress.exceptions.transactions.OrphanedException;
-import com.sun.fortress.exceptions.FortressException;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.List;
 
 /**
  * A Closure value is a function, plus some environment information.
@@ -63,7 +55,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
 
     public FunctionClosure(Environment e, Applicable fndef, boolean isFunctionalMethod) {
         super(e); // TODO verify that this is the proper environment
-        def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
+        def = NativeApp.checkAndLoadNative(fndef, isFunctionalMethod);
     }
 
     protected FunctionClosure(Environment e, Applicable fndef, List<FType> args) {
@@ -82,16 +74,16 @@ public class FunctionClosure extends NonPrimitive implements Scope {
         setParamsAndReturnType(method.getParameters(), method.returnType);
     }
 
-//    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,
-//            List<Param> params) {
-//        super(e);
-//        def = NativeApp.checkAndLoadNative(x);
-//        EvalType et = new EvalType(e);
-//        setParamsAndReturnType(
-//                et.paramsToParameters(e, params),
-//                return_type.isPresent() ? et.evalType(return_type.getVal()) : BottomType.ONLY
-//                );
-//    }
+    //    public Closure(BetterEnv e, FnExpr x, Option<Type> return_type,
+    //            List<Param> params) {
+    //        super(e);
+    //        def = NativeApp.checkAndLoadNative(x);
+    //        EvalType et = new EvalType(e);
+    //        setParamsAndReturnType(
+    //                et.paramsToParameters(e, params),
+    //                return_type.isPresent() ? et.evalType(return_type.getVal()) : BottomType.ONLY
+    //                );
+    //    }
 
     @Override
     public boolean isOverride() {
@@ -126,16 +118,15 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     }
 
     public String toString() {
-        return ((instArgs == null ? s(def) :
-            (s(def) + Useful.listInOxfords(instArgs))) + " " +
-            (type() != null ? type() : "NULL")) + " " + def.at();
+        return ((instArgs == null ? s(def) : (s(def) + Useful.listInOxfords(instArgs))) + " " +
+                (type() != null ? type() : "NULL")) + " " + def.at();
     }
 
     public boolean seqv(FValue v) {
         if (!(v instanceof FunctionClosure)) return false;
         FunctionClosure c = (FunctionClosure) v;
         if (getDef() != c.getDef()) return false;
-        if (type()   != c.type()) return false;
+        if (type() != c.type()) return false;
         if (getEnv() == c.getEnv()) return true;
         // TODO: environment walking and matching.  Worth it??
         // We'd need to compute FV(body).
@@ -143,19 +134,18 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     }
 
     public int hashCode() {
-        return def.hashCode() +
-        System.identityHashCode(getEnv()) +
-        (instArgs == null ? 0 : instArgs.hashCode());
+        return def.hashCode() + System.identityHashCode(getEnv()) + (instArgs == null ? 0 : instArgs.hashCode());
     }
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
             FunctionClosure oc = (FunctionClosure) o;
-            return def == oc.def &&
-            getEnv() == oc.getEnv() &&
-            (instArgs == null ? (oc.instArgs == null) :
-                oc.instArgs == null ? false : instArgs.equals(oc.instArgs));
+            return def == oc.def && getEnv() == oc.getEnv() && (instArgs == null ?
+                                                                (oc.instArgs == null) :
+                                                                oc.instArgs == null ?
+                                                                false :
+                                                                instArgs.equals(oc.instArgs));
         }
         return false;
     }
@@ -163,8 +153,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     private void setReturnType(FType rt) {
         // TODO need to get this test right
         if (this.returnType != null && !this.returnType.equals(rt)) {
-            throw new IllegalStateException(
-                    "Attempted second set of closure return type");
+            throw new IllegalStateException("Attempted second set of closure return type");
         }
         returnType = rt;
     }
@@ -179,7 +168,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
      */
     public Expr getBody() {
         Option<Expr> optBody = NodeUtil.getBody(def);
-        assert(optBody.isSome());
+        assert (optBody.isSome());
         return optBody.unwrap();
     }
 
@@ -193,16 +182,21 @@ public class FunctionClosure extends NonPrimitive implements Scope {
         if (def instanceof NativeApp) {
             args = typecheckParams(args);
             try {
-                return ((NativeApp)def).applyToArgs(args);
-            } catch (AbortedException ae) {
+                return ((NativeApp) def).applyToArgs(args);
+            }
+            catch (AbortedException ae) {
                 throw ae;
-            } catch (OrphanedException oe) {
+            }
+            catch (OrphanedException oe) {
                 throw oe;
-            } catch (FortressException fe) {
+            }
+            catch (FortressException fe) {
                 throw fe;
-            } catch (RuntimeException ex) {
+            }
+            catch (RuntimeException ex) {
                 return error(errorMsg("Wrapped exception ", ex.toString()), ex);
-            } catch (Error ex) {
+            }
+            catch (Error ex) {
                 return error(errorMsg("Wrapped error ", ex.toString()), ex);
             }
         } else {
@@ -227,6 +221,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
 
     /**
      * Call this for Closures, not setParams.
+     *
      * @param fparams
      * @param ft
      */
@@ -245,7 +240,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
         List<Param> params = NodeUtil.getParams(x);
         Option<Type> rt = NodeUtil.getReturnType(x);
         Environment env = getEvalEnv(); // should need this for types,
-                                    // below.
+        // below.
         FType ft = EvalType.getFTypeFromOption(rt, env, BottomType.ONLY);
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
 
@@ -256,7 +251,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
 
     @Override
     boolean getFinished() {
-       return returnType != null;
+        return returnType != null;
     }
 
 

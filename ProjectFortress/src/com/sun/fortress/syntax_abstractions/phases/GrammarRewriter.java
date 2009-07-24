@@ -1,61 +1,55 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.exceptions.MultipleStaticError;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
-import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.useful.Debug;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Syntax abstraction entry point:
  * Part of front-end processing of APIs.
- *
+ * <p/>
  * 1) Disambiguate item symbols and rewrite to either nonterminal,
- *    keyword or token symbol
+ * keyword or token symbol
  * 2) Disambiguate nonterminal parameters (Not any more)
- *    We need to support nonterminal parameters to express
- *    desugaring of Fortress comprehensions?
- *    In order to support it,
- *    the parameters should be handled by TemplateVarRewriter.identifierLoop
- *    and Transform should handle it appropriately.
+ * We need to support nonterminal parameters to express
+ * desugaring of Fortress comprehensions?
+ * In order to support it,
+ * the parameters should be handled by TemplateVarRewriter.identifierLoop
+ * and Transform should handle it appropriately.
  * 3) Remove whitespace where indicated by no-whitespace symbols
  * 4) Rewrite escaped symbols
  * 5) Desugar extensions: fill in unmentioned imported grammars
- *    and collect multiple extensions of same nonterminal together.
+ * and collect multiple extensions of same nonterminal together.
  * 6) Name transformers
  * 7) Parse pretemplates and replace with real templates
  * 8) Well-formedness check on template gaps (???)
@@ -66,9 +60,9 @@ public class GrammarRewriter {
         initializeGrammarIndexExtensions(map.values(), env.apis().values());
 
         List<Api> apis = new ArrayList<Api>();
-        for (ApiIndex apii : map.values()) { 
-//            Nodes.printNode(apii.ast(), "before-grammar-rewrite.");
-            apis.add((Api)apii.ast()); 
+        for (ApiIndex apii : map.values()) {
+            //            Nodes.printNode(apii.ast(), "before-grammar-rewrite.");
+            apis.add((Api) apii.ast());
         }
 
         // Steps 1-6
@@ -84,42 +78,37 @@ public class GrammarRewriter {
         List<Api> results = new ArrayList<Api>();
         List<StaticError> allErrors = new ArrayList<StaticError>();
 
-        for (Api api: apis) {
-//             Nodes.printNode(api, "before-rewritePatterns.");
+        for (Api api : apis) {
+            //             Nodes.printNode(api, "before-rewritePatterns.");
             List<StaticError> errors = new ArrayList<StaticError>();
 
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
             api = (Api) api.accept(new ItemDisambiguator(env, errors));
-//             Nodes.printNode(api, "after-ItemDisambiguator.");
+            //             Nodes.printNode(api, "after-ItemDisambiguator.");
             // 2) Disambiguate nonterminal parameters
             // No longer done.
 
             // 3) Remove whitespace where instructed by non-whitespace symbols
-            if (errors.isEmpty())
-                api = (Api) api.accept(new WhitespaceElimination());
-//             Nodes.printNode(api, "after-WhitespaceElimination.");
+            if (errors.isEmpty()) api = (Api) api.accept(new WhitespaceElimination());
+            //             Nodes.printNode(api, "after-WhitespaceElimination.");
             // 4) Rewrite escaped characters
-            if (errors.isEmpty())
-                api = (Api) api.accept(new EscapeRewriter());
-//             Nodes.printNode(api, "after-EscapeRewriter.");
+            if (errors.isEmpty()) api = (Api) api.accept(new EscapeRewriter());
+            //             Nodes.printNode(api, "after-EscapeRewriter.");
             // 5) Desugar extensions
-            if (errors.isEmpty())
-                api = (Api) api.accept(new ExtensionDesugarer(env, errors));
-//             Nodes.printNode(api, "after-ExtensionDesugarer.");
+            if (errors.isEmpty()) api = (Api) api.accept(new ExtensionDesugarer(env, errors));
+            //             Nodes.printNode(api, "after-ExtensionDesugarer.");
             // 6) Rewrite transformer names
-            if (errors.isEmpty())
-                api = (Api) api.accept(new RewriteTransformerNames());
-//             Nodes.printNode(api, "after-RewriteTransformerNames.");
+            if (errors.isEmpty()) api = (Api) api.accept(new RewriteTransformerNames());
+            //             Nodes.printNode(api, "after-RewriteTransformerNames.");
 
             if (errors.isEmpty()) {
                 results.add(api);
             } else {
                 allErrors.addAll(errors);
             }
-//             Nodes.printNode(api, "after-rewritePatterns.");
+            //             Nodes.printNode(api, "after-rewritePatterns.");
         }
-        
 
 
         if (allErrors.isEmpty()) {
@@ -135,22 +124,20 @@ public class GrammarRewriter {
 
         List<Api> results = new ArrayList<Api>();
         for (final ApiIndex api : apiIndexes) {
-//            Nodes.printNode(api.ast(), "before-parseTemplates.");
+            //            Nodes.printNode(api.ast(), "before-parseTemplates.");
             results.add(TemplateParser.parseTemplates(api, ntEnv));
-//            Nodes.printNode(api.ast(), "after-parseTemplates.");
+            //            Nodes.printNode(api.ast(), "after-parseTemplates.");
         }
         return results;
     }
 
-    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis,
-                                                            GlobalEnvironment env) {
-        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, env, System.currentTimeMillis() );
+    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, GlobalEnvironment env) {
+        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, env, System.currentTimeMillis());
         return apiN.apis().values();
     }
 
     private static NTEnv buildNTEnv(Collection<ApiIndex> apis, GlobalEnvironment env) {
-        Map<String, GrammarIndex> grammars =
-            initializeGrammarIndexExtensions(apis, env.apis().values());
+        Map<String, GrammarIndex> grammars = initializeGrammarIndexExtensions(apis, env.apis().values());
         return EnvFactory.makeNTEnv(grammars.values());
     }
 
@@ -158,24 +145,24 @@ public class GrammarRewriter {
                                                                               Collection<ApiIndex> moreApis) {
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
 
-        for (ApiIndex a2: moreApis) {
-            for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+        for (ApiIndex a2 : moreApis) {
+            for (Entry<String, GrammarIndex> e : a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a1: apis) {
-            for (Entry<String, GrammarIndex> e: a1.grammars().entrySet()) {
+        for (ApiIndex a1 : apis) {
+            for (Entry<String, GrammarIndex> e : a1.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a1: apis) {
-            for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
+        for (ApiIndex a1 : apis) {
+            for (Entry<String, GrammarIndex> e : a1.grammars().entrySet()) {
                 GrammarDecl og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                for (Id n: og.getExtendsClause()) {
+                for (Id n : og.getExtendsClause()) {
                     ls.add(grammars.get(n.getText()));
                 }
-                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar ", e.getKey(), " extends ", ls );
+                Debug.debug(Debug.Type.SYNTAX, 3, "Grammar ", e.getKey(), " extends ", ls);
                 e.getValue().setExtended(ls);
             }
         }

@@ -1,34 +1,35 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.disambiguator;
 
-import java.util.*;
-
-import edu.rice.cs.plt.tuple.Option;
-
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes_util.NodeFactory;
+import edu.rice.cs.plt.tuple.Option;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public abstract class TypeNameEnv {
     /**
@@ -39,7 +40,9 @@ public abstract class TypeNameEnv {
      */
     public abstract Option<APIName> apiName(APIName name);
 
-    /** Determine whether a type parameter with the given name is defined. */
+    /**
+     * Determine whether a type parameter with the given name is defined.
+     */
     public abstract Option<StaticParam> hasTypeParam(IdOrOp name);
 
     /**
@@ -49,6 +52,7 @@ public abstract class TypeNameEnv {
      * than 1.
      */
     public abstract Set<Id> explicitTypeConsNames(Id name);
+
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given type constructor name.  An undefined reference
@@ -63,21 +67,24 @@ public abstract class TypeNameEnv {
      * {@code name.getApi().isSome()}.
      */
     public abstract boolean hasQualifiedTypeCons(Id name);
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * provide the corresponding TypeConsIndex (assumed to exist).
      */
     public abstract TypeConsIndex typeConsIndex(Id name);
+
     /**
      * Returns a list of implicitly imported APIS.
      */
     public List<APIName> implicitlyImportedApis() {
         List<APIName> result = new ArrayList<APIName>();
-        for(String defaultLib : WellKnownNames.defaultLibrary()) {
-            result.add(NodeFactory.makeAPIName(NodeFactory.typeSpan,defaultLib));
+        for (String defaultLib : WellKnownNames.defaultLibrary()) {
+            result.add(NodeFactory.makeAPIName(NodeFactory.typeSpan, defaultLib));
         }
         return result;
     }
+
     /**
      * Returns true iff the given api is implicitly imported.
      */
@@ -97,13 +104,18 @@ public abstract class TypeNameEnv {
      * than 1.
      */
     public abstract Set<Id> explicitGrammarNames(String uqname);
+
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
      * determine whether a grammar exists.  Assumes {@code name.getApi().isSome()}.
      */
     public abstract boolean hasQualifiedGrammar(Id name);
-    /** Determine whether a grammar with the given name is defined. */
+
+    /**
+     * Determine whether a grammar with the given name is defined.
+     */
     public abstract boolean hasGrammar(String name);
+
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
      * that correspond to the given grammar name.  An undefined reference

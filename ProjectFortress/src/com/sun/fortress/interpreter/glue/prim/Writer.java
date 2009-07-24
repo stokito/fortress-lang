@@ -1,43 +1,34 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public class Writer extends NativeConstructor {
     private static NativeConstructor con = null;
@@ -48,15 +39,14 @@ public class Writer extends NativeConstructor {
     }
 
     @Override
-protected FNativeObject makeNativeObject(List<FValue> args,
-                                             NativeConstructor con) {
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
         String name = args.get(0).getString();
         try {
-            OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(
-                    name), Charset.forName("UTF-8"));
+            OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(name), Charset.forName("UTF-8"));
             return new PrimWriter(name, w);
-        } catch (FileNotFoundException ex) {
-            return error("FileNotFound: "+name);
+        }
+        catch (FileNotFoundException ex) {
+            return error("FileNotFound: " + name);
         }
     }
 
@@ -86,45 +76,50 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
         @Override
         public boolean seqv(FValue v) {
-            return (v==this);
+            return (v == this);
         }
     }
 
     private static abstract class w2S extends NativeMeth0 {
         protected abstract String f(PrimWriter r) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self) {
             try {
-                return FString.make(f((PrimWriter)self));
-            } catch (IOException e) {
-                return error("Write IOException on "+self.getString());
+                return FString.make(f((PrimWriter) self));
+            }
+            catch (IOException e) {
+                return error("Write IOException on " + self.getString());
             }
         }
     }
 
     private static abstract class wS2V extends NativeMeth1 {
-        protected abstract void f(java.io.Writer r, String s)
-                throws IOException;
+        protected abstract void f(java.io.Writer r, String s) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self, FValue s) {
             try {
-                f(((PrimWriter)self).writer, s.getString());
+                f(((PrimWriter) self).writer, s.getString());
                 return FVoid.V;
-            } catch (IOException e) {
-                return error("Write IOException on "+self.getString());
+            }
+            catch (IOException e) {
+                return error("Write IOException on " + self.getString());
             }
         }
     }
 
     private static abstract class w2V extends NativeMeth0 {
         protected abstract void f(java.io.Writer r) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self) {
             try {
-                f(((PrimWriter)self).writer);
+                f(((PrimWriter) self).writer);
                 return FVoid.V;
-            } catch (IOException e) {
-                return error("IOException on "+self.getString());
+            }
+            catch (IOException e) {
+                return error("IOException on " + self.getString());
             }
         }
     }
@@ -158,21 +153,21 @@ protected FNativeObject makeNativeObject(List<FValue> args,
     }
 
     /**
-       This code used to use FileDescriptor.{out,err}, but now uses
-       System.{out.err}.  We only *write* to the underlying
-       PrintStream, which according to the Java 1.6 docs will bypass
-       the system encoding.  This means we can force UTF-8 here and it
-       will actually mean something (rather than resulting in bogus
-       double-encoded nonsense).
-     **/
+     * This code used to use FileDescriptor.{out,err}, but now uses
+     * System.{out.err}.  We only *write* to the underlying
+     * PrintStream, which according to the Java 1.6 docs will bypass
+     * the system encoding.  This means we can force UTF-8 here and it
+     * will actually mean something (rather than resulting in bogus
+     * double-encoded nonsense).
+     */
     private static abstract class v2w extends NativeFn0 {
         protected abstract OutputStream outputStream();
+
         protected abstract String dummyName();
 
         @Override
         public final FValue applyToArgs() {
-            OutputStreamWriter out =
-                new OutputStreamWriter(this.outputStream(), Charset.forName("UTF-8"));
+            OutputStreamWriter out = new OutputStreamWriter(this.outputStream(), Charset.forName("UTF-8"));
             return new PrimWriter(this.dummyName(), out);
         }
     }
@@ -182,6 +177,7 @@ protected FNativeObject makeNativeObject(List<FValue> args,
         protected OutputStream outputStream() {
             return System.out;
         }
+
         @Override
         protected String dummyName() {
             return "<stdout>";
@@ -193,6 +189,7 @@ protected FNativeObject makeNativeObject(List<FValue> args,
         protected OutputStream outputStream() {
             return System.err;
         }
+
         @Override
         protected String dummyName() {
             return "<stderr>";

@@ -1,91 +1,82 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository;
 
-import java.sql.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.APIName;
-import java.io.FileNotFoundException;
-import com.sun.fortress.exceptions.StaticError;
 
-public class JavaDBRepository extends StubRepository 
-                              implements FortressRepository {
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class JavaDBRepository extends StubRepository implements FortressRepository {
 
     /* 
      * The Derby embedded driver. 
-     */
-    String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+     */ String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 
     /*
      * The database name. 
-     */
-    String dbName="FortressRepository";
+     */ String dbName = "FortressRepository";
 
     /*
      * The Derby prefix for database URLs.
-     */
-    String urlPrefix = "jdbc:derby:";
+     */ String urlPrefix = "jdbc:derby:";
 
     /*
      * The connection URL to use.
-     */
-    String connectionURL = urlPrefix + dbName + ";create=true";
+     */ String connectionURL = urlPrefix + dbName + ";create=true";
 
     /* 
      * The disconnection URL to use.
-     */
-    String disconnectionURL = urlPrefix + ";shutdown=true";
+     */ String disconnectionURL = urlPrefix + ";shutdown=true";
 
     /*
      * Our handle on the connection to the resident fortress 
-     */
-    Connection conn;
+     */ Connection conn;
 
     /*
      * Connect to the resident fortress (creating it if it doesn't already exist).
      */
-    public void connect() { 
-        try { 
+    public void connect() {
+        try {
             // This call to Class.forName is not necessary on Java 6. We include it for robustness.
-            Class.forName(driver); 
+            Class.forName(driver);
 
             conn = DriverManager.getConnection(connectionURL);
         }
-        catch (ClassNotFoundException e) { throw new RuntimeException(e); }
-        catch (SQLException e) {  
-            printSQLException(e); 
-            System.err.println("FAIL: Connection to the resident fortress failed!");            
+        catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        catch (SQLException e) {
+            printSQLException(e);
+            System.err.println("FAIL: Connection to the resident fortress failed!");
         }
     }
 
-    public void disconnect() { 
+    public void disconnect() {
         try {
             conn.close();
             DriverManager.getConnection(disconnectionURL);
-        } 
-        catch (SQLException e)  {	
+        }
+        catch (SQLException e) {
             // Derby signals shutdown by throwing an exception!
             // Check SQLState to ensure normal shutdown.
-            if (! e.getSQLState().equals("XJ015")) {	
+            if (!e.getSQLState().equals("XJ015")) {
                 printSQLException(e);
                 System.err.println("FAIL: The resident fortress did not shut down normally!");
             }
@@ -93,97 +84,93 @@ public class JavaDBRepository extends StubRepository
     }
 
     private void printSQLException(SQLException e) {
-         while (e != null) {
+        while (e != null) {
             System.out.println("\n---SQLException---\n");
             System.out.println("SQLState:   " + e.getSQLState());
             System.out.println("Severity: " + e.getErrorCode());
-            System.out.println("Message:  " + e.getMessage()); 
-            e.printStackTrace();  
+            System.out.println("Message:  " + e.getMessage());
+            e.printStackTrace();
 
             e = e.getNextException();
-         }
-   }    	
-            
+        }
+    }
+
 
     /**
      * Provide an updating view of the apis present in the repository.
      * Need not support mutation.
      */
     //    public Map<APIName, ApiIndex> apis() { 
-    
-//              //  Prepare the insert statement to use 
 
-//             psInsert = conn.prepareStatement("insert into WISH_LIST(WISH_ITEM) values (?)");
+    //              //  Prepare the insert statement to use
 
-
-
-//             //   ## ADD / DISPLAY RECORD SECTION ## 
-
-//             //  The Add-Record Loop - continues until 'exit' is entered 
-
-//             do {
-
-//                 // Call utility method to ask user for input 
-
-//                 answer = WwdUtils.getWishItem();
-
-//                 // Check if it is time to EXIT, if not insert the data   
-
-//                 if (! answer.equals("exit"))
-
-//                 {
-
-//                     //Insert the text entered into the WISH_ITEM table
-
-//                     psInsert.setString(1,answer);
-
-//                     psInsert.executeUpdate();  
+    //             psInsert = conn.prepareStatement("insert into WISH_LIST(WISH_ITEM) values (?)");
 
 
+    //             //   ## ADD / DISPLAY RECORD SECTION ##
 
-//                     //   Select all records in the WISH_LIST table
+    //             //  The Add-Record Loop - continues until 'exit' is entered
 
-//                     myWishes = s.executeQuery("select ENTRY_DATE, WISH_ITEM from WISH_LIST order by ENTRY_DATE");
+    //             do {
 
+    //                 // Call utility method to ask user for input
 
+    //                 answer = WwdUtils.getWishItem();
 
-//                     //  Loop through the ResultSet and print the data 
+    //                 // Check if it is time to EXIT, if not insert the data
 
-//                     System.out.println(printLine);
+    //                 if (! answer.equals("exit"))
 
-//                     while (myWishes.next())
+    //                 {
 
-//                      {
+    //                     //Insert the text entered into the WISH_ITEM table
 
-//                            System.out.println("On " + myWishes.getTimestamp(1) + " I wished for " + myWishes.getString(2));
+    //                     psInsert.setString(1,answer);
 
-//                       }
-
-//                       System.out.println(printLine);
-
-//                       //  Close the resultSet 
-
-//                       myWishes.close();
-
-//                  }       //  END of IF block   
-
-//              // Check if it is time to EXIT, if so end the loop  
-
-//               } while (! answer.equals("exit")) ;  // End of do-while loop 
+    //                     psInsert.executeUpdate();
 
 
+    //                     //   Select all records in the WISH_LIST table
 
-//              // Release the resources (clean up )
+    //                     myWishes = s.executeQuery("select ENTRY_DATE, WISH_ITEM from WISH_LIST order by ENTRY_DATE");
 
-//              psInsert.close();
 
-//              s.close();
+    //                     //  Loop through the ResultSet and print the data
 
-//             conn.close();						
+    //                     System.out.println(printLine);
 
-//             System.out.println("Closed connection");
+    //                     while (myWishes.next())
 
-//    }
+    //                      {
+
+    //                            System.out.println("On " + myWishes.getTimestamp(1) + " I wished for " + myWishes.getString(2));
+
+    //                       }
+
+    //                       System.out.println(printLine);
+
+    //                       //  Close the resultSet
+
+    //                       myWishes.close();
+
+    //                  }       //  END of IF block
+
+    //              // Check if it is time to EXIT, if so end the loop
+
+    //               } while (! answer.equals("exit")) ;  // End of do-while loop
+
+
+    //              // Release the resources (clean up )
+
+    //              psInsert.close();
+
+    //              s.close();
+
+    //             conn.close();
+
+    //             System.out.println("Closed connection");
+
+    //    }
 
     /**
      * Provide an updating view of the components present in the repository.
@@ -240,25 +227,26 @@ public class JavaDBRepository extends StubRepository
 
     /**
      * True if this API has a foreign implementation.
-     * 
+     *
      * @param name
      * @return
      */
     //public boolean isForeign(APIName name);
-    
+
     /**
      * Debugging methods.
      */
     //public boolean setVerbose(boolean new_value);
     //public boolean verbose();
 
-	/**
-	 * Clear
-	 */
+    /**
+     * Clear
+     */
 
     //public void clear();
-
-    public boolean isForeign(APIName name) { return false; }
+    public boolean isForeign(APIName name) {
+        return false;
+    }
 }
 
 

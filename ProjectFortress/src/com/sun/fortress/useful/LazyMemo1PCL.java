@@ -1,25 +1,23 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -31,8 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author chase
  */
-public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Param>
-{
+public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value, Param> {
 
     LazyFactory1P<Index, Value, Param> factory;
 
@@ -44,7 +41,9 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
 
     private final static boolean debug = false;
 
-    public LazyMemo1PCL(LazyFactory1P<Index, Value, Param> factory, Comparator<? super Index> comp, ReentrantLock lock) {
+    public LazyMemo1PCL(LazyFactory1P<Index, Value, Param> factory,
+                        Comparator<? super Index> comp,
+                        ReentrantLock lock) {
         this.factory = factory;
         this.map = new BATree<Index, Value>(comp);
         this.lock = lock;
@@ -62,11 +61,11 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
         if (shadow_map == null) {
             result = map.get(probe);
 
-          /*
-           * If there is a shadow map, it matters whether it is us,
-           * or someone else.  If we hold the lock, we are the uodater
-           * and we should use the shadow map.
-           */
+            /*
+            * If there is a shadow map, it matters whether it is us,
+            * or someone else.  If we hold the lock, we are the uodater
+            * and we should use the shadow map.
+            */
         } else if (lock.isHeldByCurrentThread()) {
             result = shadow_map.get(probe);
             if (result == null) {
@@ -107,7 +106,8 @@ public class LazyMemo1PCL<Index, Value, Param> implements Factory1P<Index, Value
                     result = make(probe, param);
                     map = shadow_map;
                 }
-            } finally {
+            }
+            finally {
                 /*
                  * In all cases, reset the lock and shadow_map
                  * to their prior states.

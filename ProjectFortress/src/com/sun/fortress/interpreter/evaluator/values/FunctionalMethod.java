@@ -1,35 +1,33 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.AssignedList;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
 
 public class FunctionalMethod extends FunctionClosure implements HasSelfParameter {
 
@@ -37,7 +35,10 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
     final private FTraitOrObjectOrGeneric selfParameterType;
     final private String mname;
 
-    public FunctionalMethod(Environment e, Applicable fndef, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+    public FunctionalMethod(Environment e,
+                            Applicable fndef,
+                            int self_parameter_index,
+                            FTraitOrObjectOrGeneric self_parameter_type) {
         super(e, fndef, true);
         selfParameterIndex = self_parameter_index;
         selfParameterType = self_parameter_type;
@@ -45,7 +46,11 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
         // TODO Auto-generated constructor stub
     }
 
-    protected FunctionalMethod(Environment e, Applicable fndef, List<FType> static_args, int self_parameter_index, FTraitOrObjectOrGeneric self_parameter_type) {
+    protected FunctionalMethod(Environment e,
+                               Applicable fndef,
+                               List<FType> static_args,
+                               int self_parameter_index,
+                               FTraitOrObjectOrGeneric self_parameter_type) {
         super(e, fndef, static_args);
         selfParameterIndex = self_parameter_index;
         selfParameterType = self_parameter_type;
@@ -55,18 +60,16 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
 
     public MethodClosure getApplicableClosure(List<FValue> args0) {
         FValue selfVal = args0.get(selfParameterIndex);
-        DottedMethodApplication ma =
-            DottedMethodApplication.make(selfVal,s(def),mname);
+        DottedMethodApplication ma = DottedMethodApplication.make(selfVal, s(def), mname);
         Method cl = ma.getMethod();
         if (cl instanceof MethodClosure) {
-            return (MethodClosure)cl;
+            return (MethodClosure) cl;
         } else if (cl instanceof OverloadedMethod) {
-            List<FValue> args = Useful.removeIndex(selfParameterIndex,args0);
-            OverloadedMethod om = (OverloadedMethod)cl;
+            List<FValue> args = Useful.removeIndex(selfParameterIndex, args0);
+            OverloadedMethod om = (OverloadedMethod) cl;
             return om.getApplicableMethod(args);
         } else {
-            return bug(errorMsg("Functional method resolution for ",this,args0,
-                                " yields non-MethodClosure ",cl));
+            return bug(errorMsg("Functional method resolution for ", this, args0, " yields non-MethodClosure ", cl));
         }
     }
 
@@ -87,18 +90,18 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
     }
 
     public int hashCode() {
-        return def.hashCode() + selfParameterType.hashCode() +
-        (instArgs == null ? 0 : instArgs.hashCode());
+        return def.hashCode() + selfParameterType.hashCode() + (instArgs == null ? 0 : instArgs.hashCode());
     }
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
             FunctionalMethod oc = (FunctionalMethod) o;
-            return def == oc.def &&
-            selfParameterType.equals(oc.selfParameterType) &&
-            (instArgs == null ? (oc.instArgs == null) :
-                oc.instArgs == null ? false : instArgs.equals(oc.instArgs));
+            return def == oc.def && selfParameterType.equals(oc.selfParameterType) && (instArgs == null ?
+                                                                                       (oc.instArgs == null) :
+                                                                                       oc.instArgs == null ?
+                                                                                       false :
+                                                                                       instArgs.equals(oc.instArgs));
         }
         return false;
     }
@@ -112,16 +115,14 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
     }
 
     public String toString() {
-        String res = s(def)+
-                     "fn meth(self "+selfParameterIndex+")";
-        if (instArgs != null)
-            res += Useful.listInOxfords(instArgs);
+        String res = s(def) + "fn meth(self " + selfParameterIndex + ")";
+        if (instArgs != null) res += Useful.listInOxfords(instArgs);
         if (type() != null) {
             res += ":" + type();
         } else {
             res += " [no type]";
         }
-        return res+" ("+def.at()+")";
+        return res + " (" + def.at() + ")";
     }
 
 }

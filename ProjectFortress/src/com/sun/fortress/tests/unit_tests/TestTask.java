@@ -1,26 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
 
+import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
+import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import junit.framework.Assert;
-
-import com.sun.fortress.interpreter.evaluator.transactions.*;
-import com.sun.fortress.interpreter.evaluator.tasks.*;
 
 public class TestTask extends BaseTask {
     public void compute() {
@@ -29,8 +30,9 @@ public class TestTask extends BaseTask {
         runner.setCurrentTask(this);
         Transaction fred = new Transaction();
         ReadSet rs1 = new ReadSet();
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++) {
             rs1.add(fred);
+        }
         Assert.assertEquals(rs1.size(), 1);
 
 
@@ -44,8 +46,8 @@ public class TestTask extends BaseTask {
             tasks[i] = new TestTask2(rs2, transcount);
         }
 
-	//        TestTask2.forkJoin(tasks);
-	//        Assert.assertEquals(rs2.size(), taskcount * transcount);
+        //        TestTask2.forkJoin(tasks);
+        //        Assert.assertEquals(rs2.size(), taskcount * transcount);
     }
 
     public void print() {

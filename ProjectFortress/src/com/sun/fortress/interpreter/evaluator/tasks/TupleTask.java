@@ -1,32 +1,29 @@
 /********************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-********************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ********************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.ForkJoinWorkerThread;
-import jsr166y.ForkJoinTask;
-import com.sun.fortress.interpreter.evaluator.Evaluator;
-import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.Expr;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.Expr;
+import jsr166y.ForkJoinTask;
 
 public class TupleTask extends BaseTask {
     Evaluator eval;
@@ -45,11 +42,14 @@ public class TupleTask extends BaseTask {
             Environment inner = eval.e.extendAt(expr);
             Evaluator e = new Evaluator(inner);
             res = expr.accept(e);
-        } catch (NullPointerException e) {
+        }
+        catch (NullPointerException e) {
             throw e;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             recordException(e);
-        } finally {
+        }
+        finally {
             /* Null out fields so they are not retained by GC after termination. */
             eval = null;
             expr = null;
@@ -58,27 +58,32 @@ public class TupleTask extends BaseTask {
     }
 
     public void print() {
-        System.out.println("Tuple Task: eval = " + eval +
-                           "\n\t Expr = " + expr +
-                           "\n\t Res = " + res +
-                           "\n\t Thread = " + Thread.currentThread());
+        System.out.println(
+                "Tuple Task: eval = " + eval + "\n\t Expr = " + expr + "\n\t Res = " + res + "\n\t Thread = " +
+                Thread.currentThread());
     }
 
     public String toString() {
-        return "[TupleTask" + name() +  ":" + transaction() + "]" ;
+        return "[TupleTask" + name() + ":" + transaction() + "]";
     }
 
-    public FValue getRes() { return res;}
-    public Expr getExpr() {return expr;}
+    public FValue getRes() {
+        return res;
+    }
+
+    public Expr getExpr() {
+        return expr;
+    }
+
     public FValue getResOrException() {
         if (causedException()) {
             Throwable t = taskException();
             if (t instanceof Error) {
-                throw (Error)t;
+                throw (Error) t;
             } else if (t instanceof RuntimeException) {
-                throw (RuntimeException)t;
+                throw (RuntimeException) t;
             } else {
-                error(getExpr(), errorMsg("Wrapped Exception ",t));
+                error(getExpr(), errorMsg("Wrapped Exception ", t));
             }
         }
         return res;
@@ -92,30 +97,30 @@ public class TupleTask extends BaseTask {
     //
     // Actual code cribbed from jsr166y.forkjoin.ForkJoinTask.
     // However we rely on the invariant that the TupleTasks are all non-null.
-//     public static void forkJoin(TupleTask []tasks) {
-//         if (true) { // switch to false for standard version.
-//             int last = tasks.length - 1;
-//             Throwable ex = null;
-//             for (int i = last; i > 0; --i) {
-//                 tasks[i].fork();
-//             }
-//             ex = tasks[0].exec();
-//             for (int i = 1; i <= last; ++i) {
-//                 TupleTask t = tasks[i];
-//                 boolean pop = ForkJoinWorkerThread.removeIfNextLocalTask(t);
-//                 if (ex != null)
-//                     t.cancel();
-//                 else if (!pop)
-//                     ex = t.quietlyJoin();
-//                 else
-//                     ex = t.exec();
-//             }
-//             if (ex != null)
-//                 bug(ex);
-//         } else {
-//             BaseTask.forkJoin(tasks);
-//         }
-//     }
+    //     public static void forkJoin(TupleTask []tasks) {
+    //         if (true) { // switch to false for standard version.
+    //             int last = tasks.length - 1;
+    //             Throwable ex = null;
+    //             for (int i = last; i > 0; --i) {
+    //                 tasks[i].fork();
+    //             }
+    //             ex = tasks[0].exec();
+    //             for (int i = 1; i <= last; ++i) {
+    //                 TupleTask t = tasks[i];
+    //                 boolean pop = ForkJoinWorkerThread.removeIfNextLocalTask(t);
+    //                 if (ex != null)
+    //                     t.cancel();
+    //                 else if (!pop)
+    //                     ex = t.quietlyJoin();
+    //                 else
+    //                     ex = t.exec();
+    //             }
+    //             if (ex != null)
+    //                 bug(ex);
+    //         } else {
+    //             BaseTask.forkJoin(tasks);
+    //         }
+    //     }
 
     public static boolean worthSpawning() {
         return (ForkJoinTask.getSurplusQueuedTaskCount() <= 3);

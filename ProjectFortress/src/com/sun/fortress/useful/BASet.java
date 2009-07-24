@@ -1,39 +1,34 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
- *
+ * <p/>
  * Does not yet support item removal; does not yet support all the SortedSet
  * methods that it could in principle support.  (lacks headset/subset/tailset).
  */
 public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
-     static final class BASnode<T> {
+    static final class BASnode<T> {
 
         public String toString() {
             return toStringBuffer(new StringBuffer()).toString();
@@ -51,11 +46,9 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         public StringBuffer recursiveToStringBuffer(StringBuffer b) {
             if (left != null || right != null) {
                 b.append("(");
-                if (left != null)
-                    left.recursiveToStringBuffer(b).append(" ");
+                if (left != null) left.recursiveToStringBuffer(b).append(" ");
                 toStringBuffer(b);
-                if (right != null)
-                    right.recursiveToStringBuffer(b.append(" "));
+                if (right != null) right.recursiveToStringBuffer(b.append(" "));
 
                 b.append(")");
             } else {
@@ -68,36 +61,32 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             int lw = 0;
             int rw = 0;
             if (left != null) {
-                if (c.compare(left.key,key) >= 0)
-                    throw new Error("Left key too big");
+                if (c.compare(left.key, key) >= 0) throw new Error("Left key too big");
                 left.ok(c);
-                if (c.compare(left.max().key,key) >= 0)
-                    throw new Error("Left max key too big");
+                if (c.compare(left.max().key, key) >= 0) throw new Error("Left max key too big");
                 lw = left.weight;
             }
             if (right != null) {
-                if (c.compare(right.key,key) <= 0)
-                    throw new Error("Right key too small");
+                if (c.compare(right.key, key) <= 0) throw new Error("Right key too small");
                 right.ok(c);
-                if (c.compare(right.min().key,key) <= 0)
-                    throw new Error("Right min key too small");
-                rw =  right.weight;
+                if (c.compare(right.min().key, key) <= 0) throw new Error("Right min key too small");
+                rw = right.weight;
             }
-            if (weight != 1 + lw + rw)
-                throw new Error("Weight wrong");
-            if (lw >> 2 > rw)
-                throw new Error("Left too heavy");
-            if (rw >> 2 > lw)
-                throw new Error("Right too heavy");
+            if (weight != 1 + lw + rw) throw new Error("Weight wrong");
+            if (lw >> 2 > rw) throw new Error("Left too heavy");
+            if (rw >> 2 > lw) throw new Error("Right too heavy");
 
         }
+
         final T key;
         final int weight;
         final BASnode<T> left;
         final BASnode<T> right;
+
         int leftWeight() {
             return weight(left);
         }
+
         int rightWeight() {
             return weight(right);
         }
@@ -130,10 +119,8 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         private int combine(BASnode<T> l, BASnode<T> r) {
             int lw = weight(l);
             int rw = weight(r);
-            if (lw >> 2 > rw)
-                throw new Error("Left too heavy " + lw + " " + rw);
-            if (rw >> 2 > lw)
-                throw new Error("Right too heavy "+ lw + " " + rw);
+            if (lw >> 2 > rw) throw new Error("Left too heavy " + lw + " " + rw);
+            if (rw >> 2 > lw) throw new Error("Right too heavy " + lw + " " + rw);
 
             return lw + rw + 1;
         }
@@ -153,9 +140,8 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         BASnode<T> getObject(T k, Comparator<T> comp) {
             BASnode<T> t = this;
             while (t != null) {
-                int c = comp.compare(k,t.key);
-                if (c == 0)
-                    break;
+                int c = comp.compare(k, t.key);
+                if (c == 0) break;
                 if (c < 0) {
                     t = t.left;
                 } else {
@@ -171,8 +157,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             BASnode<T> t = this;
             while (t != null) {
                 int c = comp.compare(k, t.key);
-                if (c == 0)
-                    return toTheLeft + weight(t.left);
+                if (c == 0) return toTheLeft + weight(t.left);
                 if (c < 0) {
                     t = t.left;
                 } else {
@@ -184,28 +169,31 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         }
 
 
-
         BASnode<T> min() {
             BASnode<T> t = this;
-            while (t.left != null) t = t.left;
+            while (t.left != null) {
+                t = t.left;
+            }
             return t;
         }
 
         BASnode<T> max() {
             BASnode<T> t = this;
-            while (t.right != null) t = t.right;
+            while (t.right != null) {
+                t = t.right;
+            }
             return t;
         }
 
         BASnode<T> add(T k, Comparator<T> comp) {
-            int c = comp.compare(k,key);
+            int c = comp.compare(k, key);
             BASnode<T> l = left;
             BASnode<T> r = right;
             if (c < 0) {
                 // left
                 if (l == null) {
                     l = new BASnode<T>(k);
-                    return new BASnode<T>(this,l,r);
+                    return new BASnode<T>(this, l, r);
                 } else {
                     l = l.add(k, comp);
                     return leftWeightIncreased(l, r);
@@ -214,14 +202,14 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 // right
                 if (r == null) {
                     r = new BASnode<T>(k);
-                    return new BASnode<T>(this,l,r);
+                    return new BASnode<T>(this, l, r);
                 } else {
                     r = r.add(k, comp);
                     return rightWeightIncreased(l, r);
                 }
             } else {
                 // Update value.
-                return new BASnode<T>(k,l,r);
+                return new BASnode<T>(k, l, r);
             }
         }
 
@@ -229,7 +217,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
             int rw = weight(r);
             int lw = weight(l);
-            if (lw  > rw << 1) {
+            if (lw > rw << 1) {
                 // Must rotate.
                 int lrw = l.rightWeight();
                 int llw = l.leftWeight();
@@ -243,14 +231,14 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                     return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                 }
             }
-            return new BASnode<T>(this,l,r);
+            return new BASnode<T>(this, l, r);
         }
 
         private BASnode<T> rightWeightIncreased(BASnode<T> l, BASnode<T> r) {
-           // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
+            // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
             int rw = weight(r);
             int lw = weight(l);
-           if (rw > lw << 1) {
+            if (rw > lw << 1) {
                 // Must rotate.
                 int rrw = r.rightWeight();
                 int rlw = r.leftWeight();
@@ -265,7 +253,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                     return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                 }
             } else {
-                return new BASnode<T>(this,l,r);
+                return new BASnode<T>(this, l, r);
             }
         }
 
@@ -293,57 +281,51 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             }
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings ("unchecked")
         BASnode<T> delete(T k, Comparator<T> comp) {
-            int c = comp.compare(k,key);
+            int c = comp.compare(k, key);
             BASnode<T> l = left;
             BASnode<T> r = right;
-           if (c == 0) {
-               int lw = weight(left);
-               int rw = weight(right);
-               BASnode<T>[] newthis = new BASnode[1];
-               if (lw > rw) {
-                   l = l.deleteMax(newthis);
-               } else {
-                   if (rw > 0)
-                       r = r.deleteMin(newthis);
-                   else
-                       return null;
-               }
-               return new BASnode<T>(newthis[0], l, r);
+            if (c == 0) {
+                int lw = weight(left);
+                int rw = weight(right);
+                BASnode<T>[] newthis = new BASnode[1];
+                if (lw > rw) {
+                    l = l.deleteMax(newthis);
+                } else {
+                    if (rw > 0) r = r.deleteMin(newthis);
+                    else return null;
+                }
+                return new BASnode<T>(newthis[0], l, r);
             } else if (c < 0) {
-                if (l == null)
-                    return this;
+                if (l == null) return this;
                 BASnode<T> nl = l.delete(k, comp);
-                if (nl == l)
-                    return this;
+                if (nl == l) return this;
                 return rightWeightIncreased(nl, r);
             } else {
-                if (r == null)
-                    return this;
+                if (r == null) return this;
                 BASnode<T> nr = r.delete(k, comp);
-                if (nr == r)
-                    return this;
+                if (nr == r) return this;
                 return leftWeightIncreased(l, nr);
             }
         }
 
         private BASnode<T> assembleLeft(BASnode<T> ll, BASnode<T> l, BASnode<T> lr, BASnode<T> old, BASnode<T> r) {
-            return new BASnode<T>(l,
-                    ll,
-                    new BASnode<T>(old, lr, r));
+            return new BASnode<T>(l, ll, new BASnode<T>(old, lr, r));
         }
+
         private BASnode<T> assembleRight(BASnode<T> l, BASnode<T> old, BASnode<T> rl, BASnode<T> r, BASnode<T> rr) {
-                    return new BASnode<T>(r,
-                    new BASnode<T>(old, l, rl),
-                    rr);
+            return new BASnode<T>(r, new BASnode<T>(old, l, rl), rr);
         }
-        private BASnode<T> assemble(BASnode<T> ll, BASnode<T> l, BASnode<T> lr,
-                              BASnode<T> top,
-                              BASnode<T> rl, BASnode<T> r, BASnode<T> rr) {
-            return new BASnode<T>(top,
-                    new BASnode<T>(l, ll, lr),
-                    new BASnode<T>(r, rl, rr));
+
+        private BASnode<T> assemble(BASnode<T> ll,
+                                    BASnode<T> l,
+                                    BASnode<T> lr,
+                                    BASnode<T> top,
+                                    BASnode<T> rl,
+                                    BASnode<T> r,
+                                    BASnode<T> rr) {
+            return new BASnode<T>(top, new BASnode<T>(l, ll, lr), new BASnode<T>(r, rl, rr));
         }
 
         public T getKey() {
@@ -353,10 +335,9 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     }
 
 
-
     BASnode<T> root;
     Comparator<T> comp;
-    
+
     public BASet(Comparator<T> c) {
         comp = c;
     }
@@ -377,19 +358,15 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     }
 
 
-
     public BASnode<T> getEntry(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k);
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k);
     }
 
 
-
     public T getKey(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).key;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).key;
     }
 
     /**
@@ -428,13 +405,14 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
      */
     public BASet<T> putNew(T k) {
         if (root == null) {
-            return new BASet<T>(new BASnode<T>(k,null, null), comp);
+            return new BASet<T>(new BASnode<T>(k, null, null), comp);
         }
 
         return new BASet<T>(root.add(k, comp), comp);
     }
+
     public BASet<T> copy() {
-         return new BASet<T>(root, comp);
+        return new BASet<T>(root, comp);
     }
 
     public void addArray(T[] ks) {
@@ -449,14 +427,13 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     public boolean put(T k) {
         if (root == null) {
-            root = new BASnode<T>(k,null, null);
+            root = new BASnode<T>(k, null, null);
             return true;
         }
         BASnode<T> old = root;
         root = root.add(k, comp);
 
-        if (old.weight < root.weight)
-            return true;
+        if (old.weight < root.weight) return true;
 
         return false;
 
@@ -470,41 +447,38 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         BASnode<T> old;
         synchronized (this) {
             if (root == null) {
-                root = new BASnode<T>(k,  null, null);
+                root = new BASnode<T>(k, null, null);
                 return true;
             }
             old = root;
-            root = old.add(k,  comp);
+            root = old.add(k, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight)
-                return true;
+            if (old.weight < root.weight) return true;
         }
         return false;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     @Override
     public boolean remove(Object k) {
-        if (root == null)
-            return false;
+        if (root == null) return false;
 
         BASnode<T> old = root;
-        root = root.delete((T)k, comp);
+        root = root.delete((T) k, comp);
 
-        if (root == null || old.weight > root.weight)
-            return true;
+        if (root == null || old.weight > root.weight) return true;
 
         return false;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     @Override
     public boolean contains(Object k) {
         BASnode<T> r = root;
         if (r == null) return false;
 
-        r = r.getObject((T)k, comp);
+        r = r.getObject((T) k, comp);
         return (r != null);
     }
 
@@ -512,7 +486,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         root = null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BASet) {
             BASet bat = (BASet) o;
@@ -522,8 +496,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             BASnode a = root;
             BASnode b = bat.root;
             for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i))))
-                    return false;
+                if (!(a.get(i).equals(b.get(i)))) return false;
             }
             return true;
         }
@@ -575,19 +548,19 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         return max();
     }
 
-//    public SortedSet<T> headSet(T arg0) {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public SortedSet<T> subSet(T arg0, T arg1) {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//
-//    public SortedSet<T> tailSet(T arg0) {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
+    //    public SortedSet<T> headSet(T arg0) {
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
+    //
+    //    public SortedSet<T> subSet(T arg0, T arg1) {
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
+    //
+    //    public SortedSet<T> tailSet(T arg0) {
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
 
 }

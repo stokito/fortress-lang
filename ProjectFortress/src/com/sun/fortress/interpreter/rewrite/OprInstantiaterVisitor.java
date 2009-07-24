@@ -1,42 +1,32 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.rewrite;
 
-import java.util.List;
-import java.util.Map;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitObjectDecl;
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.RewriteHackList;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.List;
+import java.util.Map;
 
 
 public class OprInstantiaterVisitor extends NodeUpdateVisitor {
@@ -54,8 +44,7 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
     public Node forOp(Op op) {
         // Replace instance ofs Op with substitution.
         String repl = subst.get(op.getText());
-        if (repl == null)
-            return op;
+        if (repl == null) return op;
         return NodeFactory.makeOp(op, repl);
     }
 
@@ -73,10 +62,13 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
         Type n_type = type == null ? (Type) null : (Type) recur(type);
 
         if (args != n_args || originalName != n_originalName || ops != n_ops || type != n_type) {
-            return ExprFactory.makeOpRef(NodeUtil.getSpan(op), NodeUtil.isParenthesized(op),
-                                         Option.wrap(n_type), n_args,
+            return ExprFactory.makeOpRef(NodeUtil.getSpan(op),
+                                         NodeUtil.isParenthesized(op),
+                                         Option.wrap(n_type),
+                                         n_args,
                                          Environment.TOP_LEVEL,
-                                         n_originalName, n_ops,
+                                         n_originalName,
+                                         n_ops,
                                          op.getOverloadings(),
                                          op.getNewOverloadings(),
                                          op.getOverloadingType());
@@ -87,13 +79,12 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forStaticParam(StaticParam opp) {
-        if ( NodeUtil.isOpParam(opp) ) {
+        if (NodeUtil.isOpParam(opp)) {
             // Replace instance ofs Op with substitution.
             if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
                 return new RewriteHackList();
             } else return opp;
-        } else
-            return opp;
+        } else return opp;
     }
 
 

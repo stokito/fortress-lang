@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -35,19 +35,14 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         return recursiveToStringBuffer(new StringBuffer(), false).toString();
     }
 
-    public StringBuffer recursiveToStringBuffer(StringBuffer b,
-            boolean withParens) {
+    public StringBuffer recursiveToStringBuffer(StringBuffer b, boolean withParens) {
         if (left != null || right != null) {
-            if (withParens)
-                b.append("(");
-            if (left != null)
-                left.recursiveToStringBuffer(b, withParens).append(" ");
+            if (withParens) b.append("(");
+            if (left != null) left.recursiveToStringBuffer(b, withParens).append(" ");
             toStringBuffer(b);
-            if (right != null)
-                right.recursiveToStringBuffer(b.append(" "), withParens);
+            if (right != null) right.recursiveToStringBuffer(b.append(" "), withParens);
 
-            if (withParens)
-                b.append(")");
+            if (withParens) b.append(")");
         } else {
             toStringBuffer(b);
         }
@@ -58,27 +53,20 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         int lw = 0;
         int rw = 0;
         if (left != null) {
-            if (c.compareRightKeys(left.key, key) >= 0)
-                throw new Error("Left key too big");
+            if (c.compareRightKeys(left.key, key) >= 0) throw new Error("Left key too big");
             left.ok(c);
-            if (c.compareRightKeys(left.max().key, key) >= 0)
-                throw new Error("Left max key too big");
+            if (c.compareRightKeys(left.max().key, key) >= 0) throw new Error("Left max key too big");
             lw = left.weight;
         }
         if (right != null) {
-            if (c.compareRightKeys(right.key, key) <= 0)
-                throw new Error("Right key too small");
+            if (c.compareRightKeys(right.key, key) <= 0) throw new Error("Right key too small");
             right.ok(c);
-            if (c.compareRightKeys(right.min().key, key) <= 0)
-                throw new Error("Right min key too small");
+            if (c.compareRightKeys(right.min().key, key) <= 0) throw new Error("Right min key too small");
             rw = right.weight;
         }
-        if (weight != 1 + lw + rw)
-            throw new Error("Weight wrong");
-        if (lw >> 1 > rw)
-            throw new Error("Left too heavy");
-        if (rw >> 1 > lw)
-            throw new Error("Right too heavy");
+        if (weight != 1 + lw + rw) throw new Error("Weight wrong");
+        if (lw >> 1 > rw) throw new Error("Left too heavy");
+        if (rw >> 1 > lw) throw new Error("Right too heavy");
 
     }
 
@@ -104,7 +92,10 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         return n == null ? 0 : n.weight;
     }
 
-    BATreeNodeEC(TrueKey k, Value d, BATreeNodeEC<LookupKey, TrueKey, Value> l, BATreeNodeEC<LookupKey, TrueKey, Value> r) {
+    BATreeNodeEC(TrueKey k,
+                 Value d,
+                 BATreeNodeEC<LookupKey, TrueKey, Value> l,
+                 BATreeNodeEC<LookupKey, TrueKey, Value> r) {
         key = k;
         data = d;
         left = l;
@@ -118,8 +109,9 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         weight = 1;
     }
 
-    BATreeNodeEC(BATreeNodeEC<LookupKey, TrueKey, Value> n, BATreeNodeEC<LookupKey, TrueKey, Value> l,
-            BATreeNodeEC<LookupKey, TrueKey, Value> r) {
+    BATreeNodeEC(BATreeNodeEC<LookupKey, TrueKey, Value> n,
+                 BATreeNodeEC<LookupKey, TrueKey, Value> l,
+                 BATreeNodeEC<LookupKey, TrueKey, Value> r) {
         key = n.key;
         data = n.data;
         left = l;
@@ -136,16 +128,14 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
             return l.get(at);
         } else if (at > lw) {
             return r.get(at - lw - 1);
-        } else
-            return this;
+        } else return this;
     }
 
     public BATreeNodeEC<LookupKey, TrueKey, Value> getObject(LookupKey k, EquivalenceClass<LookupKey, TrueKey> comp) {
         BATreeNodeEC<LookupKey, TrueKey, Value> t = this;
         while (t != null) {
             int c = comp.compare(k, t.key);
-            if (c == 0)
-                break;
+            if (c == 0) break;
             if (c < 0) {
                 t = t.left;
             } else {
@@ -161,8 +151,7 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         BATreeNodeEC<LookupKey, TrueKey, Value> t = this;
         while (t != null) {
             int c = comp.compare(k, t.key);
-            if (c == 0)
-                return toTheLeft + weight(t.left);
+            if (c == 0) return toTheLeft + weight(t.left);
             if (c < 0) {
                 t = t.left;
             } else {
@@ -175,21 +164,23 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
 
     BATreeNodeEC<LookupKey, TrueKey, Value> min() {
         BATreeNodeEC<LookupKey, TrueKey, Value> t = this;
-        while (t.left != null)
+        while (t.left != null) {
             t = t.left;
+        }
         return t;
     }
 
     BATreeNodeEC<LookupKey, TrueKey, Value> max() {
         BATreeNodeEC<LookupKey, TrueKey, Value> t = this;
-        while (t.right != null)
+        while (t.right != null) {
             t = t.right;
+        }
         return t;
     }
 
-    public BATreeNodeEC<LookupKey, TrueKey, Value>
-        add(LookupKey k, Value d,
-                EquivalenceClass<LookupKey, TrueKey> comp) {
+    public BATreeNodeEC<LookupKey, TrueKey, Value> add(LookupKey k,
+                                                       Value d,
+                                                       EquivalenceClass<LookupKey, TrueKey> comp) {
         int c = comp.compare(k, key);
         BATreeNodeEC<LookupKey, TrueKey, Value> l = left;
         BATreeNodeEC<LookupKey, TrueKey, Value> r = right;
@@ -209,8 +200,7 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
                     } else {
                         // LR to root
                         BATreeNodeEC<LookupKey, TrueKey, Value> lr = l.right;
-                        return assemble(l.left, l, lr.left, lr, lr.right, this,
-                                r);
+                        return assemble(l.left, l, lr.left, lr, lr.right, this, r);
                     }
                 }
             }
@@ -231,8 +221,7 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
                     } else {
                         // RL to root
                         BATreeNodeEC<LookupKey, TrueKey, Value> rl = r.left;
-                        return assemble(l, this, rl.left, rl, rl.right, r,
-                                r.right);
+                        return assemble(l, this, rl.left, rl, rl.right, r, r.right);
                     }
                 }
             }
@@ -244,23 +233,35 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
     }
 
     private BATreeNodeEC<LookupKey, TrueKey, Value> assembleLeft(BATreeNodeEC<LookupKey, TrueKey, Value> ll,
-            BATreeNodeEC<LookupKey, TrueKey, Value> l, BATreeNodeEC<LookupKey, TrueKey, Value> lr,
-            BATreeNodeEC<LookupKey, TrueKey, Value> old, BATreeNodeEC<LookupKey, TrueKey, Value> r) {
-        return new BATreeNodeEC<LookupKey, TrueKey, Value>(l, ll, new BATreeNodeEC<LookupKey, TrueKey, Value>(old, lr, r));
+                                                                 BATreeNodeEC<LookupKey, TrueKey, Value> l,
+                                                                 BATreeNodeEC<LookupKey, TrueKey, Value> lr,
+                                                                 BATreeNodeEC<LookupKey, TrueKey, Value> old,
+                                                                 BATreeNodeEC<LookupKey, TrueKey, Value> r) {
+        return new BATreeNodeEC<LookupKey, TrueKey, Value>(l, ll, new BATreeNodeEC<LookupKey, TrueKey, Value>(old,
+                                                                                                              lr,
+                                                                                                              r));
     }
 
     private BATreeNodeEC<LookupKey, TrueKey, Value> assembleRight(BATreeNodeEC<LookupKey, TrueKey, Value> l,
-            BATreeNodeEC<LookupKey, TrueKey, Value> old, BATreeNodeEC<LookupKey, TrueKey, Value> rl,
-            BATreeNodeEC<LookupKey, TrueKey, Value> r, BATreeNodeEC<LookupKey, TrueKey, Value> rr) {
-        return new BATreeNodeEC<LookupKey, TrueKey, Value>(r, new BATreeNodeEC<LookupKey, TrueKey, Value>(old, l, rl), rr);
+                                                                  BATreeNodeEC<LookupKey, TrueKey, Value> old,
+                                                                  BATreeNodeEC<LookupKey, TrueKey, Value> rl,
+                                                                  BATreeNodeEC<LookupKey, TrueKey, Value> r,
+                                                                  BATreeNodeEC<LookupKey, TrueKey, Value> rr) {
+        return new BATreeNodeEC<LookupKey, TrueKey, Value>(r,
+                                                           new BATreeNodeEC<LookupKey, TrueKey, Value>(old, l, rl),
+                                                           rr);
     }
 
     private BATreeNodeEC<LookupKey, TrueKey, Value> assemble(BATreeNodeEC<LookupKey, TrueKey, Value> ll,
-            BATreeNodeEC<LookupKey, TrueKey, Value> l, BATreeNodeEC<LookupKey, TrueKey, Value> lr,
-            BATreeNodeEC<LookupKey, TrueKey, Value> top, BATreeNodeEC<LookupKey, TrueKey, Value> rl,
-            BATreeNodeEC<LookupKey, TrueKey, Value> r, BATreeNodeEC<LookupKey, TrueKey, Value> rr) {
-        return new BATreeNodeEC<LookupKey, TrueKey, Value>(top, new BATreeNodeEC<LookupKey, TrueKey, Value>(l, ll, lr),
-                new BATreeNodeEC<LookupKey, TrueKey, Value>(r, rl, rr));
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> l,
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> lr,
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> top,
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> rl,
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> r,
+                                                             BATreeNodeEC<LookupKey, TrueKey, Value> rr) {
+        return new BATreeNodeEC<LookupKey, TrueKey, Value>(top,
+                                                           new BATreeNodeEC<LookupKey, TrueKey, Value>(l, ll, lr),
+                                                           new BATreeNodeEC<LookupKey, TrueKey, Value>(r, rl, rr));
     }
 
     public BATreeNodeEC<LookupKey, TrueKey, Value> getLeft() {

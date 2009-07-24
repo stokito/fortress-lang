@@ -1,55 +1,39 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import com.sun.fortress.exceptions.MacroError;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-
-import com.sun.fortress.nodes.ASTNode;
-import com.sun.fortress.nodes.ASTNodeInfo;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.CaseTransformer;
-import com.sun.fortress.nodes.CaseTransformerClause;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.Transformer;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
+import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.exceptions.MacroError;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*
  * Rewrite all occurrences of variables in a given template to
@@ -74,29 +58,30 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         this.varsToTypes = varsToTypes;
     }
 
-    @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that,
-                                                     ASTNodeInfo info,
-                                                     Id id_result) {
+    @Override
+    public Node forUnparsedTransformerOnly(UnparsedTransformer that, ASTNodeInfo info, Id id_result) {
         return new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)),
-                                       rewriteVars(that.getTransformer(), that), id_result);
+                                       rewriteVars(that.getTransformer(), that),
+                                       id_result);
     }
 
-    @Override public Node forCaseTransformer(CaseTransformer thatTransformer) {
+    @Override
+    public Node forCaseTransformer(CaseTransformer thatTransformer) {
         final Id gapName = thatTransformer.getGapName();
         final BaseType caseType = lookupType(gapName);
-        Debug.debug(Debug.Type.SYNTAX, 3,
-                    "Case var " + gapName + " has type " + caseType);
+        Debug.debug(Debug.Type.SYNTAX, 3, "Case var " + gapName + " has type " + caseType);
         return thatTransformer.accept(new NodeUpdateVisitor() {
 
-                /* extend the environment and transform the body */
-                @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
-                    TemplateVarRewriter tvr = extendWithCaseBindings(gapName, caseType, that);
-                    return new CaseTransformerClause(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)),
-                                                     that.getConstructor(),
-                                                     that.getParameters(),
-                                                     (Transformer) that.getBody().accept(tvr));
-                }
-            });
+            /* extend the environment and transform the body */
+            @Override
+            public Node forCaseTransformerClause(CaseTransformerClause that) {
+                TemplateVarRewriter tvr = extendWithCaseBindings(gapName, caseType, that);
+                return new CaseTransformerClause(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)),
+                                                 that.getConstructor(),
+                                                 that.getParameters(),
+                                                 (Transformer) that.getBody().accept(tvr));
+            }
+        });
     }
 
     private BaseType lookupType(Id id) {
@@ -123,25 +108,24 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
             outer_depth = new BaseDepth();
         }
         BaseType type = outer_depth.accept(new Depth.Visitor<BaseType>() {
-                public BaseType forBaseDepth(BaseDepth depth) {
-                    return baseType;
-                }
-                public BaseType forListDepth(ListDepth depth) {
-                    return NodeFactory.makeTraitType
-                        (NodeFactory.makeId(NodeUtil.getSpan(baseType), "List"),
-                         NodeFactory.makeTypeArg(depth.getParent().accept(this)));
-                }
-                public BaseType forOptionDepth(OptionDepth depth) {
-                    return NodeFactory.makeTraitType
-                        (NodeFactory.makeId(NodeUtil.getSpan(baseType), "Maybe"),
-                         NodeFactory.makeTypeArg(depth.getParent().accept(this)));
-                }
-            });
+            public BaseType forBaseDepth(BaseDepth depth) {
+                return baseType;
+            }
+
+            public BaseType forListDepth(ListDepth depth) {
+                return NodeFactory.makeTraitType(NodeFactory.makeId(NodeUtil.getSpan(baseType), "List"),
+                                                 NodeFactory.makeTypeArg(depth.getParent().accept(this)));
+            }
+
+            public BaseType forOptionDepth(OptionDepth depth) {
+                return NodeFactory.makeTraitType(NodeFactory.makeId(NodeUtil.getSpan(baseType), "Maybe"),
+                                                 NodeFactory.makeTypeArg(depth.getParent().accept(this)));
+            }
+        });
         return Option.some(type);
     }
 
-    private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType,
-                                                       CaseTransformerClause that) {
+    private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType, CaseTransformerClause that) {
         List<Id> parameters = that.getParameters();
 
         Debug.debug(Debug.Type.SYNTAX, 2, "Case type for ", gapName, " is ", caseType);
@@ -164,17 +148,16 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 throw new MacroError(that, "Empty case expects 0 parameters");
             }
         } else {
-            throw new MacroError(that.getConstructor(),
-                                 "Unrecognized constructor name: " + that.getConstructor());
+            throw new MacroError(that.getConstructor(), "Unrecognized constructor name: " + that.getConstructor());
         }
     }
 
     private BaseType unwrapListType(BaseType type) {
-        if (type instanceof TraitType && ((TraitType)type).getName().getText().equals("List")) {
-            List<StaticArg> params = ((TraitType)type).getArgs();
+        if (type instanceof TraitType && ((TraitType) type).getName().getText().equals("List")) {
+            List<StaticArg> params = ((TraitType) type).getArgs();
             if (params.size() == 1 && params.get(0) instanceof TypeArg) {
                 // FIXME: Check cast to BaseType
-                return (BaseType)((TypeArg)params.get(0)).getTypeArg();
+                return (BaseType) ((TypeArg) params.get(0)).getTypeArg();
             }
         }
         throw new MacroError(type, "expected a List type, got: " + type);
@@ -223,8 +206,9 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
 
     // for testing
     String rewriteVars(String t) {
-        Node src = new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.macroSpan),
-                                           t, NodeFactory.makeId(NodeFactory.macroSpan, "Expr"));
+        Node src = new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.macroSpan), t, NodeFactory.makeId(
+                NodeFactory.macroSpan,
+                "Expr"));
         return rewriteVars(t, src);
     }
 
@@ -232,13 +216,16 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         // FIXME: Accept Fortress identifiers, not Java identifiers
         return Character.isJavaIdentifierStart(c);
     }
+
     boolean identifierChar(char c) {
         // FIXME: Accept Fortress identifiers, not Java identifiers
         return Character.isJavaIdentifierPart(c);
     }
+
     boolean stringStartChar(char c) {
         return c == '"';
     }
+
     boolean stringEndChar(char c) {
         return c == '"';
     }
@@ -256,9 +243,8 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 return index;
             }
         }
-        if ( ! ( src instanceof ASTNode ) )
-            bug(src, "Only ASTNodes are supported.");
-        throw new MacroError((ASTNode)src, "Unclosed string literal in template");
+        if (!(src instanceof ASTNode)) bug(src, "Only ASTNodes are supported.");
+        throw new MacroError((ASTNode) src, "Unclosed string literal in template");
     }
 
     int identifierLoop(String t, int index, int size, StringBuilder output, Node src) {
@@ -277,9 +263,8 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
             }
         }
         String var = varbuffer.toString();
-        if ( ! (src instanceof ASTNode) )
-            bug(src, "Only AST nodes are supported.");
-        Id varId = NodeFactory.makeId(NodeUtil.getSpan((ASTNode)src), var);
+        if (!(src instanceof ASTNode)) bug(src, "Only AST nodes are supported.");
+        Id varId = NodeFactory.makeId(NodeUtil.getSpan((ASTNode) src), var);
         Option<BaseType> otype = tryLookupType(varId);
 
         // FIXME! Add back support for parameters.
@@ -287,8 +272,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         if (otype.isSome()) {
             BaseType btype = otype.unwrap();
             String type = btype.accept(new BaseTypeCollector());
-            Debug.debug(Debug.Type.SYNTAX, 3,
-                        "Found gap: name='" + var + "', type='" + type + "'");
+            Debug.debug(Debug.Type.SYNTAX, 3, "Found gap: name='" + var + "', type='" + type + "'");
             writeVar(var, type, output);
             return index;
         } else {
@@ -438,6 +422,6 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     */
 
     static String getGapString(String var, String type) {
-        return GAPSYNTAXPREFIX+type.trim()+" "+var+" "+GAPSYNTAXSUFFIX;
+        return GAPSYNTAXPREFIX + type.trim() + " " + var + " " + GAPSYNTAXSUFFIX;
     }
 }

@@ -1,64 +1,48 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.StringTokenizer;
 
+import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.Init;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.repository.GraphRepository;
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.StreamForwarder;
+import com.sun.fortress.useful.StringMap;
+import com.sun.fortress.useful.SysDescription;
+import com.sun.fortress.useful.WireTappedPrintStream;
+import edu.rice.cs.plt.iter.IterUtil;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.Shell;
-import com.sun.fortress.interpreter.Driver;
-import com.sun.fortress.interpreter.evaluator.Init;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.useful.StreamForwarder;
-import com.sun.fortress.useful.StringMap;
-import com.sun.fortress.useful.SysDescription;
-import com.sun.fortress.useful.Useful;
-import com.sun.fortress.useful.WireTappedPrintStream;
-
-import edu.rice.cs.plt.iter.IterUtil;
+import java.io.*;
+import java.util.*;
 
 public class FileTests {
 
-    private static  String join(String dir, String file) {
-        if (dir.length() == 0)
-            return file;
+    private static String join(String dir, String file) {
+        if (dir.length() == 0) return file;
         else return dir + "/" + file;
     }
 
@@ -90,11 +74,14 @@ public class FileTests {
         final boolean printSuccess;
         final boolean printFailure;
 
-        public BaseTest(String path, String d, String s, boolean unexpected_only,
+        public BaseTest(String path,
+                        String d,
+                        String s,
+                        boolean unexpected_only,
                         boolean knownFailure,
                         boolean shouldFail) {
             super("testFile");
-            this.f = join(d,s);
+            this.f = join(d, s);
             this.dir = d;
             this.path = path;
             this.name = s;
@@ -118,13 +105,12 @@ public class FileTests {
          * a NumberFormatException.  Thus, the exc string could be tested
          * to see that it contains "NumberFormatException".
          *
-         *
          * @param out
          * @param err
          * @param exc
          * @return
          */
-        public  String testFailed(String out, String err, String exc) {
+        public String testFailed(String out, String err, String exc) {
             return null;
         }
 
@@ -145,65 +131,57 @@ public class FileTests {
         protected String generalTestFailed(String pfx, StringMap props, String out, String err, String exc) {
             String s = null;
 
-            if (s == null)
-                s = generalTestFailed(pfx, props, "out",  out);
+            if (s == null) s = generalTestFailed(pfx, props, "out", out);
 
-            if (s == null)
-                s = generalTestFailed(pfx, props, "err",  err);
+            if (s == null) s = generalTestFailed(pfx, props, "err", err);
 
-            if (s == null)
-                s = generalTestFailed(pfx, props, "exception",  exc) ;
+            if (s == null) s = generalTestFailed(pfx, props, "exception", exc);
             return s;
 
         }
 
-        private String generalTestFailed(String pfx, StringMap props,
-                String which, String contents) {
+        private String generalTestFailed(String pfx, StringMap props, String which, String contents) {
             String what;
             String test;
 
             boolean any_check = false;
 
-            what = pfx+which+"_contains";
+            what = pfx + which + "_contains";
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
-                if (!contents.contains(test))
-                    return what+"="+test;
+                if (!contents.contains(test)) return what + "=" + test;
                 any_check = true;
             }
 
-            what = pfx+which+"_matches";
+            what = pfx + which + "_matches";
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
-                if (!contents.matches(test))
-                    return what+"="+test;
+                if (!contents.matches(test)) return what + "=" + test;
                 any_check = true;
-           }
+            }
 
-            what = pfx+which+"_WImatches";
+            what = pfx + which + "_WImatches";
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
                 String wi_contents = contents.replaceAll("\\s+", " ").trim();
-                if (!wi_contents.matches(test))
-                    return what+"="+test;
+                if (!wi_contents.matches(test)) return what + "=" + test;
                 any_check = true;
-           }
+            }
 
-            what = pfx+which+"_WCIequals";
+            what = pfx + which + "_WCIequals";
             test = props.get(what);
             test = props.getCompletely(test);
             if (test != null && test.length() > 0) {
                 String wci_contents = contents.replaceAll("\\s+", " ").trim();
                 String wci_test = test.replaceAll("\\s+", " ").trim();
-                if (!wci_contents.equalsIgnoreCase(wci_test))
-                    return what+"="+test;
+                if (!wci_contents.equalsIgnoreCase(wci_test)) return what + "=" + test;
                 any_check = true;
             }
 
-            what = pfx+which+"_equals";
+            what = pfx + which + "_equals";
             test = props.get(what);
             test = props.getCompletely(test);
             if (test != null && test.length() > 0) {
@@ -211,19 +189,19 @@ public class FileTests {
                 String wi_contents = contents.replaceAll("[ \\\t]+", " ");
                 String wi_test = test.replaceAll("[ \\\t]+", " ");
                 // Convert Windows CRLF to UNIX LF
-                wi_contents = wi_contents.replaceAll("\\\r\\\n","\n");
-                wi_test = wi_test.replaceAll("\\\r\\\n","\n");
+                wi_contents = wi_contents.replaceAll("\\\r\\\n", "\n");
+                wi_test = wi_test.replaceAll("\\\r\\\n", "\n");
                 // Convert Mac CR to UNIX LF
-                wi_contents = wi_contents.replaceAll("\\\r","\n");
-                wi_test = wi_test.replaceAll("\\\r","\n");
+                wi_contents = wi_contents.replaceAll("\\\r", "\n");
+                wi_test = wi_test.replaceAll("\\\r", "\n");
 
                 if (!wi_contents.equals(wi_test)) {
                     if (wi_contents.trim().equals(wi_test.trim())) {
                         // It is a leading/trailing whitespace problem....
                         char c0 = wi_contents.charAt(0);
                         char t0 = wi_test.charAt(0);
-                        char cN = wi_contents.charAt(wi_contents.length()-1);
-                        char tN = wi_test.charAt(wi_test.length()-1);
+                        char cN = wi_contents.charAt(wi_contents.length() - 1);
+                        char tN = wi_test.charAt(wi_test.length() - 1);
                         String problem = "";
                         if (c0 == ' ' || c0 == '\n') {
                             if (t0 == ' ' || t0 == '\n') {
@@ -256,27 +234,28 @@ public class FileTests {
                         }
 
                         return what + ": " + problem;
-                    } else if (wi_contents.replaceAll("\\s+", " ").trim().equals(wi_test.replaceAll("\\s+", " ").trim())) {
+                    } else if (wi_contents.replaceAll("\\s+", " ").trim().equals(wi_test.replaceAll("\\s+",
+                                                                                                    " ").trim())) {
                         String cL = wi_contents.replaceAll("\n[ \t]+", "\n").trim();
                         String cT = wi_contents.replaceAll("[ \t]+\n", "\n").trim();
                         String tL = wi_test.replaceAll("\n[ \t]+", "\n").trim();
                         String tT = wi_test.replaceAll("[ \t]+\n", "\n").trim();
 
-                        if (cL.equals(tL))
-                            return what + ": different LEADING whitespace on some line(s)";
+                        if (cL.equals(tL)) return what + ": different LEADING whitespace on some line(s)";
 
-                        else if (cT.equals(tT))
-                            return what + ": different TRAILING whitespace on some line(s)";
+                        else if (cT.equals(tT)) return what + ": different TRAILING whitespace on some line(s)";
 
-                        else if (wi_contents.replaceAll("[ \\\t]*\\\n[ \\\t]*", "\n").trim().equals(wi_test.replaceAll("[ \\\t]*\\\n[ \\\t]*", "\n").trim()))
+                        else if (wi_contents.replaceAll("[ \\\t]*\\\n[ \\\t]*", "\n").trim().equals(wi_test.replaceAll(
+                                "[ \\\t]*\\\n[ \\\t]*",
+                                "\n").trim()))
                             return what + ": different LEADING AND TRAILING whitespace on some line(s)";
 
                         return what + ": some sort of an internal whitespace problem (linebreaks?)";
                     }
-                    return what+"="+test;
+                    return what + "=" + test;
                 }
                 any_check = true;
-           }
+            }
 
             if (!any_check && pfx.equals("run_") && which.equals("out")) {
                 // If there is no check specified on run_out, demand that it
@@ -297,26 +276,26 @@ public class FileTests {
      * what is expected, printing, etc.
      */
     public abstract static class SourceFileTest extends BaseTest {
-        public SourceFileTest(String path, String d, String s,
-                boolean unexpected_only,
-                boolean knownFailure,
-                boolean shouldFail) {
+        public SourceFileTest(String path,
+                              String d,
+                              String s,
+                              boolean unexpected_only,
+                              boolean knownFailure,
+                              boolean shouldFail) {
             super(path, d, s, unexpected_only, knownFailure, shouldFail);
         }
 
         public abstract String tag();
 
-         public void testFile() throws Throwable {
+        public void testFile() throws Throwable {
             // Useful when a test is running forever
             //            System.out.println(this.name);
             //            System.out.flush();
 
             PrintStream oldOut = System.out;
             PrintStream oldErr = System.err;
-            WireTappedPrintStream wt_err =
-                WireTappedPrintStream.make(System.err, unexpectedOnly);
-            WireTappedPrintStream wt_out =
-                WireTappedPrintStream.make(System.out, unexpectedOnly);
+            WireTappedPrintStream wt_err = WireTappedPrintStream.make(System.err, unexpectedOnly);
+            WireTappedPrintStream wt_out = WireTappedPrintStream.make(System.out, unexpectedOnly);
             System.setErr(wt_err);
             System.setOut(wt_out);
 
@@ -328,7 +307,10 @@ public class FileTests {
             try {
                 //BufferedReader in = null;
                 try {
-                    oldOut.print(" " + tag() + " ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
+                    oldOut.print(" " + tag() + " ");
+                    oldOut.print(f);
+                    oldOut.print(" ");
+                    oldOut.flush();
                     //in = Useful.utf8BufferedFileReader(fssFile);
 
                     rc = justTheTest();
@@ -358,18 +340,17 @@ public class FileTests {
                         int crLoc = exFirstLine.indexOf("\n");
                         if (crLoc == -1) crLoc = exFirstLine.length();
                         exFirstLine = exFirstLine.substring(0, crLoc);
-                        if (printSuccess)
-                            System.out.println(exFirstLine);
+                        if (printSuccess) System.out.println(exFirstLine);
                         System.out.println(" OK Saw expected exception");
                         return;
                     }
-                }
-                else {
+                } else {
                     unexpectedExceptionBoilerplate(wt_err, wt_out, ex, " UNEXPECTED exception ");
                     // return;
                 }
-            } finally {
-                            //fr.clear();
+            }
+            finally {
+                //fr.clear();
             }
 
             /* Come here IFF NO EXCEPTIONS, to analyze output */
@@ -377,8 +358,8 @@ public class FileTests {
             String outs = wt_out.getString();
             String errs = wt_err.getString();
 
-            boolean anyFails = outs.contains("fail") || outs.contains("FAIL") ||
-                      errs.contains("fail") || errs.contains("FAIL") || rc != 0;
+            boolean anyFails = outs.contains("fail") || outs.contains("FAIL") || errs.contains("fail") || errs.contains(
+                    "FAIL") || rc != 0;
 
             String trueFailure = testFailed(outs, errs, "");
 
@@ -388,7 +369,7 @@ public class FileTests {
                     wt_err.flush(printSuccess);
                     wt_out.flush(printSuccess);
                     // Saw a failure, that is good.
-                    System.out.println(" Saw expected failure" );
+                    System.out.println(" Saw expected failure");
                 } else {
                     if (printFailure) System.out.println();
                     wt_err.flush(printFailure);
@@ -398,7 +379,7 @@ public class FileTests {
                         // Expected exception, saw none.
                         fail("Saw wrong failure.");
                     } else {
-                        System.out.println(" Missing expected failure " );
+                        System.out.println(" Missing expected failure ");
                         // Expected exception, saw none.
                         fail("Expected failure or exception, saw none.");
                     }
@@ -406,15 +387,14 @@ public class FileTests {
             } else {
                 // This logic is a little confusing.
                 // Failure is failure.  TrueFailure contains the better message.
-                if (anyFails && trueFailure == null)
-                    trueFailure = "FAIL or fail should not appear in output";
+                if (anyFails && trueFailure == null) trueFailure = "FAIL or fail should not appear in output";
 
                 long duration = (System.nanoTime() - start) / 1000000;
-                    System.out.println(trueFailure != null ? " FAIL" : " OK (time = " + duration + "ms)");
-                    wt_err.flush(trueFailure != null ? printFailure : printSuccess);
-                    wt_out.flush(trueFailure != null ? printFailure : printSuccess);
+                System.out.println(trueFailure != null ? " FAIL" : " OK (time = " + duration + "ms)");
+                wt_err.flush(trueFailure != null ? printFailure : printSuccess);
+                wt_out.flush(trueFailure != null ? printFailure : printSuccess);
 
-                    assertTrue("Must satisfy " + trueFailure, trueFailure == null);
+                assertTrue("Must satisfy " + trueFailure, trueFailure == null);
 
             }
         }
@@ -426,9 +406,10 @@ public class FileTests {
          * @param s
          * @throws IOException
          */
-        private void unexpectedExceptionBoilerplate(
-                WireTappedPrintStream wt_err, WireTappedPrintStream wt_out,
-                Throwable ex, String s) throws IOException {
+        private void unexpectedExceptionBoilerplate(WireTappedPrintStream wt_err,
+                                                    WireTappedPrintStream wt_out,
+                                                    Throwable ex,
+                                                    String s) throws IOException {
             if (printFailure) System.out.println();
             wt_err.flush(printFailure);
             wt_out.flush(printFailure);
@@ -450,8 +431,13 @@ public class FileTests {
 
         private final StringMap props;
 
-        public TestTest(StringMap props, String path, String d, String s,
-                boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
+        public TestTest(StringMap props,
+                        String path,
+                        String d,
+                        String s,
+                        boolean unexpected_only,
+                        boolean knownFailure,
+                        boolean shouldFail) {
             super(path, d, s, unexpected_only, knownFailure, shouldFail);
             this.props = props;
         }
@@ -459,8 +445,7 @@ public class FileTests {
         static boolean whinedAboutTimingIssues = false;
 
         public void testFile() throws Throwable {
-            String scriptName = ProjectProperties.FORTRESS_AUTOHOME
-                    + "/bin/fortress";
+            String scriptName = ProjectProperties.FORTRESS_AUTOHOME + "/bin/fortress";
             Runtime runtime = Runtime.getRuntime();
             System.out.print(" run  ");
             System.out.print(f);
@@ -468,16 +453,16 @@ public class FileTests {
             System.out.flush();
 
             ArrayList<String> commandAndArgs = new ArrayList<String>();
-	    commandAndArgs.add(scriptName);
+            commandAndArgs.add(scriptName);
             commandAndArgs.add("run");
             commandAndArgs.add(name);
-            for (int i=1; i < Integer.MAX_VALUE; i++) {
-		String s = props.get("arg"+String.valueOf(i));
-		if (s == null) {
-		    break;
-		}
-		commandAndArgs.add(s);
-	    }
+            for (int i = 1; i < Integer.MAX_VALUE; i++) {
+                String s = props.get("arg" + String.valueOf(i));
+                if (s == null) {
+                    break;
+                }
+                commandAndArgs.add(s);
+            }
 
 
             ProcessBuilder pb = new ProcessBuilder(commandAndArgs);
@@ -517,10 +502,10 @@ public class FileTests {
             boolean fail_out = false && s_out.contains("FAIL");
             boolean fail_err = false && s_err.contains("FAIL");
             boolean failed = fail_exit || fail_out || fail_err;
-            String fail_cause = !failed ? ""
-                    : ((fail_exit ? "Exit code != 0" : "")
-                            + (fail_out ? " Stdout contained FAIL" : "") + (fail_err ? " Stderr contained FAIL"
-                            : "")).trim();
+            String fail_cause = !failed ?
+                                "" :
+                                ((fail_exit ? "Exit code != 0" : "") + (fail_out ? " Stdout contained FAIL" : "") +
+                                 (fail_err ? " Stderr contained FAIL" : "")).trim();
 
             String trueFailure = testFailed(s_out, s_err, "");
 
@@ -532,12 +517,11 @@ public class FileTests {
             if (!failed) {
 
                 // check for timing constraint.
-                String timingfile_name = join(dir,name) + ".timing";
+                String timingfile_name = join(dir, name) + ".timing";
                 File timingfile = new File(timingfile_name);
                 if (timingfile.exists()) {
                     // Only check timing constraint if file exists.
-                    StringMap tprops = new StringMap.FromFileProps(
-                            timingfile_name);
+                    StringMap tprops = new StringMap.FromFileProps(timingfile_name);
                     tprops = ProjectProperties.composedWith(tprops);
                     String runTimings = tprops.get("timed", "false");
 
@@ -546,13 +530,14 @@ public class FileTests {
                         int timeLimit = tprops.getInt(whoami, -1);
                         if (timeLimit == -1) {
                             // Complain if machine type not listed
-                            System.err.println("machine type " + whoami + " not listed in timing file " + timingfile_name);
+                            System.err.println(
+                                    "machine type " + whoami + " not listed in timing file " + timingfile_name);
                         } else {
                             long elapsed = (stop_time - start_time);
                             if (timeLimit < elapsed) {
                                 // Late answers are wrong.
-                                fail_cause = "Failed timing deadline " + timeLimit +
-                                " for machine.type " + whoami + " from timing file " + timingfile_name + "; elapsed was " + elapsed;
+                                fail_cause = "Failed timing deadline " + timeLimit + " for machine.type " + whoami +
+                                             " from timing file " + timingfile_name + "; elapsed was " + elapsed;
                                 failed = true;
 
                             } else {
@@ -576,12 +561,10 @@ public class FileTests {
                 fail();
 
             } else if (shouldFail != failed) {
-                System.out.println(failed ? "UNEXPECTED failure (" + fail_cause
-                        + ")" : "Did not see expected failure");
+                System.out.println(failed ? "UNEXPECTED failure (" + fail_cause + ")" : "Did not see expected failure");
                 fail();
             } else {
-                System.out.println(failed ? "Saw expected failure ("
-                        + fail_cause + ")" : "Passed");
+                System.out.println(failed ? "Saw expected failure (" + fail_cause + ")" : "Passed");
             }
         }
 
@@ -592,21 +575,23 @@ public class FileTests {
     }
 
 
-
     public static class ShellTest extends BaseTest {
 
         public ShellTest(String path, String d, String s, boolean unexpected_only, boolean knownFailure) {
-            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX") );
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX"));
         }
 
         public void testFile() throws Throwable {
             String scriptName = f + ".sh";
             Runtime runtime = Runtime.getRuntime();
-            System.out.print("  ") ; System.out.print(f); System.out.print(" "); System.out.flush();
+            System.out.print("  ");
+            System.out.print(f);
+            System.out.print(" ");
+            System.out.flush();
 
             ProcessBuilder pb = new ProcessBuilder(scriptName);
             Map<String, String> env = pb.environment();
-            if (! env.containsKey("FORTRESS_HOME")) {
+            if (!env.containsKey("FORTRESS_HOME")) {
                 env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);
             }
             Process p = pb.start();
@@ -621,57 +606,62 @@ public class FileTests {
             StreamForwarder f_out = new StreamForwarder(out, cached_out, true);
             StreamForwarder f_err = new StreamForwarder(err, cached_err, true);
 
-                f_out.join();
-                f_err.join();
-                int exitValue = p.waitFor();
-                String s_out = cached_out.toString();
-                String s_err = cached_err.toString();
+            f_out.join();
+            f_err.join();
+            int exitValue = p.waitFor();
+            String s_out = cached_out.toString();
+            String s_err = cached_err.toString();
 
-                boolean fail_exit = exitValue != 0;
-                // We've decided that exit codes are definitive.
-                boolean fail_out =  false && s_out.contains("FAIL");
-                boolean fail_err =  false && s_err.contains("FAIL");
-                boolean failed = fail_exit || fail_out || fail_err;
-                String fail_cause = !failed ? "" : (
-                        (fail_exit ? "Exit code != 0" : "") +
-                        (fail_out ? " Stdout contained FAIL" : "") +
-                        (fail_err ? " Stderr contained FAIL" : "")
-                ).trim();
+            boolean fail_exit = exitValue != 0;
+            // We've decided that exit codes are definitive.
+            boolean fail_out = false && s_out.contains("FAIL");
+            boolean fail_err = false && s_err.contains("FAIL");
+            boolean failed = fail_exit || fail_out || fail_err;
+            String fail_cause = !failed ?
+                                "" :
+                                ((fail_exit ? "Exit code != 0" : "") + (fail_out ? " Stdout contained FAIL" : "") +
+                                 (fail_err ? " Stderr contained FAIL" : "")).trim();
 
-                if (failed && printFailure || !failed && printSuccess) {
-                    System.out.print(s_out);
-                    System.out.print(s_err);
-                }
+            if (failed && printFailure || !failed && printSuccess) {
+                System.out.print(s_out);
+                System.out.print(s_err);
+            }
 
-                if (shouldFail != failed) {
-                    System.out.println(failed ? "UNEXPECTED failure ("+ fail_cause+")" : "Did not see expected failure");
-                    fail();
-                } else {
-                    System.out.println(failed ? "Saw expected failure ("+ fail_cause+")" : "Passed");
-                }
+            if (shouldFail != failed) {
+                System.out.println(failed ? "UNEXPECTED failure (" + fail_cause + ")" : "Did not see expected failure");
+                fail();
+            } else {
+                System.out.println(failed ? "Saw expected failure (" + fail_cause + ")" : "Passed");
+            }
         }
     }
 
     private static String makeTestFileName(String name) {
-        if (name.endsWith(".fss") || name.endsWith(".fsi") ) {
+        if (name.endsWith(".fss") || name.endsWith(".fsi")) {
             return name;
-        } else return name+".fss";
+        } else return name + ".fss";
     }
 
     public static class CommandTest extends SourceFileTest {
         private final String command;
         private final StringMap props;
-        public CommandTest(String command, StringMap props, String path, String d, String s,
-                           boolean unexpected_only, boolean knownFailure, boolean shouldFail) {
-            super(path, d, s, unexpected_only, knownFailure, shouldFail );
+
+        public CommandTest(String command,
+                           StringMap props,
+                           String path,
+                           String d,
+                           String s,
+                           boolean unexpected_only,
+                           boolean knownFailure,
+                           boolean shouldFail) {
+            super(path, d, s, unexpected_only, knownFailure, shouldFail);
             this.command = command;
             this.props = props;
         }
 
         @Override
-        protected int justTheTest()
-                throws FileNotFoundException, IOException, Throwable {
-            String[] tokens = new String [] {command, join(dir, makeTestFileName(name))};
+        protected int justTheTest() throws FileNotFoundException, IOException, Throwable {
+            String[] tokens = new String[]{command, join(dir, makeTestFileName(name))};
             int rc = com.sun.fortress.Shell.subMain(tokens);
             return rc;
 
@@ -683,7 +673,7 @@ public class FileTests {
             return command;
         }
 
-        public  String testFailed(String out, String err, String exc) {
+        public String testFailed(String out, String err, String exc) {
             return generalTestFailed(command + "_", props, out, err, exc);
         }
 
@@ -703,11 +693,11 @@ public class FileTests {
          * @throws IOException
          * @throws Throwable
          */
-        protected int justTheTest()
-                throws FileNotFoundException, IOException, Throwable {
+        protected int justTheTest() throws FileNotFoundException, IOException, Throwable {
             String s = f.replaceFirst(".*/", "");
             APIName apiname = NodeFactory.makeAPIName(NodeFactory.testSpan, s);
-            GraphRepository repository = Shell.specificInterpreterRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
+            GraphRepository repository =
+                    Shell.specificInterpreterRepository(ProjectProperties.SOURCE_PATH.prepend(path));
 
             ComponentIndex ci = repository.getLinkedComponent(apiname);
 
@@ -727,13 +717,10 @@ public class FileTests {
                     Driver.runProgram(repository, ci, args);
                 }
                 // Test files requiring "test" command
-                else if (name.equals("XXXTestTest") ||
-                         name.equals("natInference0") ||
-                         name.equals("testTest1") ||
+                else if (name.equals("XXXTestTest") || name.equals("natInference0") || name.equals("testTest1") ||
                          name.equals("testTest2")) {
                     Driver.runTests(repository, ci, false);
-                }
-                else {
+                } else {
                     Driver.runProgram(repository, ci, new ArrayList<String>());
                 }
             }
@@ -748,16 +735,15 @@ public class FileTests {
         }
 
     }
+
     public static void main(String[] args) throws IOException {
         junit.textui.TestRunner.run(FileTests.interpreterSuite("shelltests", true, false));
         junit.textui.TestRunner.run(FileTests.interpreterSuite("tests", true, false));
         junit.textui.TestRunner.run(FileTests.interpreterSuite("not_passing_yet", false, true));
     }
 
-    public static TestSuite interpreterSuite(
-            String dir_name,
-            boolean failsOnly,
-            boolean expect_failure) throws IOException {
+    public static TestSuite interpreterSuite(String dir_name, boolean failsOnly, boolean expect_failure) throws
+                                                                                                         IOException {
 
         TestSuite suite = new TestSuite("Runs all tests in " + dir_name) {
             public void run(TestResult result) {
@@ -777,33 +763,37 @@ public class FileTests {
         int testCount = testCount();
         int i = testCount;
 
-        for(String s : shuffled){
-              if (i <= 0) {
-                  System.out.println("Early testing exit after " + testCount + " tests");
-                  break;
-              }
-              boolean decrement = true;
-              if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss")) {
-                  System.out.println("Not compiling file " + s);
-                  decrement = false;
-              } else if (!s.startsWith(".")) {
-                  if (s.endsWith(".fss")) {
-                      int l = s.lastIndexOf(".fss");
-                      String testname = s.substring(0, l);
-                      suite.addTest(new InterpreterTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                  } else if (s.endsWith(".sh")) {
-                      int l = s.lastIndexOf(".sh");
-                      String testname = s.substring(0, l);
-                      suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                  } else {
-                      System.out.println("Not compiling file " + s);
-                      decrement = false;
-                  }
-              }
+        for (String s : shuffled) {
+            if (i <= 0) {
+                System.out.println("Early testing exit after " + testCount + " tests");
+                break;
+            }
+            boolean decrement = true;
+            if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss")) {
+                System.out.println("Not compiling file " + s);
+                decrement = false;
+            } else if (!s.startsWith(".")) {
+                if (s.endsWith(".fss")) {
+                    int l = s.lastIndexOf(".fss");
+                    String testname = s.substring(0, l);
+                    suite.addTest(new InterpreterTest(dir.getCanonicalPath(),
+                                                      dirname,
+                                                      testname,
+                                                      failsOnly,
+                                                      expect_failure));
+                } else if (s.endsWith(".sh")) {
+                    int l = s.lastIndexOf(".sh");
+                    String testname = s.substring(0, l);
+                    suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                } else {
+                    System.out.println("Not compiling file " + s);
+                    decrement = false;
+                }
+            }
 
-              if (decrement) {
-                  i--;
-              }
+            if (decrement) {
+                i--;
+            }
 
         }
         return suite;
@@ -813,9 +803,9 @@ public class FileTests {
      * Generates a suite of tests from directory dir_name, using "foo.test" files
      * to determine the content of the test.  failsOnly means to only print failing
      * tests (either normal tests that fail, or XXX tests that succeed).
-     *
+     * <p/>
      * WARNING: expect_failure  is not treated consistently.
-     *
+     * <p/>
      * It either means, "the test fails, and that is a good thing",
      * or it means, "the test fails, it is a bad thing, but we are working on it
      * and do not want to be bothered by something we already know is a problem".
@@ -840,9 +830,12 @@ public class FileTests {
 
         Iterable<String> shuffled = shuffledFileList(dir, shuffle);
 
-        return suiteFromListOfFiles(shuffled, dir_name_from_user,
-                dir_name_slashes_normalized, dir_name_canonical, failsOnly,
-                expect_failure);
+        return suiteFromListOfFiles(shuffled,
+                                    dir_name_from_user,
+                                    dir_name_slashes_normalized,
+                                    dir_name_canonical,
+                                    failsOnly,
+                                    expect_failure);
     }
 
     /**
@@ -856,9 +849,11 @@ public class FileTests {
      * @throws IOException
      */
     public static TestSuite suiteFromListOfFiles(Iterable<String> shuffled,
-            String dir_name_from_user, String dir_name_slashes_normalized,
-            String dir_name_canonical, boolean failsOnly, boolean expect_failure)
-            throws IOException {
+                                                 String dir_name_from_user,
+                                                 String dir_name_slashes_normalized,
+                                                 String dir_name_canonical,
+                                                 boolean failsOnly,
+                                                 boolean expect_failure) throws IOException {
         int testCount = testCount();
         int i = testCount;
 
@@ -872,79 +867,93 @@ public class FileTests {
         List<Test> commandTests = new ArrayList<Test>();
         List<Test> runTests = new ArrayList<Test>();
 
-        for(String s : shuffled){
-              int slashi = s.lastIndexOf('/');
-              if (slashi != -1) {
-                  String candidatedir = s.substring(0,slashi);
-                  s = s.substring(slashi+1);
-                  dir_name_from_user = candidatedir;
-                  dir_name_slashes_normalized = candidatedir;
-                  dir_name_canonical =
-                      directoryAsFile(dir_name_slashes_normalized).getCanonicalPath();
-              }
+        for (String s : shuffled) {
+            int slashi = s.lastIndexOf('/');
+            if (slashi != -1) {
+                String candidatedir = s.substring(0, slashi);
+                s = s.substring(slashi + 1);
+                dir_name_from_user = candidatedir;
+                dir_name_slashes_normalized = candidatedir;
+                dir_name_canonical = directoryAsFile(dir_name_slashes_normalized).getCanonicalPath();
+            }
 
 
-              if (i <= 0) {
-                  System.out.println("Early testing exit after " + testCount + " tests");
-                  break;
-              }
-              boolean decrement = true;
-              boolean shouldFail = s.startsWith("XXX");
+            if (i <= 0) {
+                System.out.println("Early testing exit after " + testCount + " tests");
+                break;
+            }
+            boolean decrement = true;
+            boolean shouldFail = s.startsWith("XXX");
 
-              if (s.endsWith(".fss") || s.endsWith(".fsi") ) {
-                  // do nothing
-                  decrement = false;
-              } else if (!s.startsWith(".")) {
-                  if (s.endsWith(".sh")) {
-                      int l = s.lastIndexOf(".sh");
-                      String testname = s.substring(0, l);
-                      suite.addTest(new ShellTest(dir_name_canonical, dir_name_slashes_normalized, testname, failsOnly, expect_failure));
-                  } else if (s.endsWith(".test")) { // need to define the test of tests.
+            if (s.endsWith(".fss") || s.endsWith(".fsi")) {
+                // do nothing
+                decrement = false;
+            } else if (!s.startsWith(".")) {
+                if (s.endsWith(".sh")) {
+                    int l = s.lastIndexOf(".sh");
+                    String testname = s.substring(0, l);
+                    suite.addTest(new ShellTest(dir_name_canonical,
+                                                dir_name_slashes_normalized,
+                                                testname,
+                                                failsOnly,
+                                                expect_failure));
+                } else if (s.endsWith(".test")) { // need to define the test of tests.
 
-                      StringMap props = new StringMap.FromFileProps(join(dir_name_canonical, s));
-                      props = ProjectProperties.composedWith(props);
+                    StringMap props = new StringMap.FromFileProps(join(dir_name_canonical, s));
+                    props = ProjectProperties.composedWith(props);
 
-                      int l = s.lastIndexOf(".test");
-                      String testname = s.substring(0, l);
+                    int l = s.lastIndexOf(".test");
+                    String testname = s.substring(0, l);
 
-                      String testNames = props.get("tests");
-                      if (testNames == null)
-                          testNames = "";
-                      else
-                          testNames = testNames.trim();
+                    String testNames = props.get("tests");
+                    if (testNames == null) testNames = "";
+                    else testNames = testNames.trim();
 
-                      if (testNames.length() > 0) {
-                          StringTokenizer st = new StringTokenizer(testNames);
-                          while  (st.hasMoreTokens()) {
-                              String token = st.nextToken();
-                                  standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, token,
-                                                        expect_failure, shouldFail, failsOnly,
-                                                        commandTests, runTests);
-                          }
-                      }
-                      else {
-                              standardCompilerTests(props, dir_name_canonical, dir_name_slashes_normalized, testname,
-                                                    expect_failure, shouldFail, failsOnly,
-                                                    commandTests, runTests);
-                      }
-                  } else {
-                      System.out.println("Not compiling file " + s);
-                      decrement = false;
-                  }
-              }
+                    if (testNames.length() > 0) {
+                        StringTokenizer st = new StringTokenizer(testNames);
+                        while (st.hasMoreTokens()) {
+                            String token = st.nextToken();
+                            standardCompilerTests(props,
+                                                  dir_name_canonical,
+                                                  dir_name_slashes_normalized,
+                                                  token,
+                                                  expect_failure,
+                                                  shouldFail,
+                                                  failsOnly,
+                                                  commandTests,
+                                                  runTests);
+                        }
+                    } else {
+                        standardCompilerTests(props,
+                                              dir_name_canonical,
+                                              dir_name_slashes_normalized,
+                                              testname,
+                                              expect_failure,
+                                              shouldFail,
+                                              failsOnly,
+                                              commandTests,
+                                              runTests);
+                    }
+                } else {
+                    System.out.println("Not compiling file " + s);
+                    decrement = false;
+                }
+            }
 
-              if (decrement) {
-                  i--;
-              }
+            if (decrement) {
+                i--;
+            }
 
         }
         // Do all the larger tests
         if (i > 0) {
-            for (Test test: commandTests)
+            for (Test test : commandTests) {
                 suite.addTest(test);
+            }
 
-            for (Test test: runTests)
+            for (Test test : runTests) {
                 suite.addTest(test);
+            }
         }
         return suite;
     }
@@ -955,41 +964,51 @@ public class FileTests {
      * @param dirname
      * @param testname
      * @param expect_not_passing Test does not pass yet
-     * @param shouldFail Test passes, if it fails (e.g., is an error printed?)
+     * @param shouldFail         Test passes, if it fails (e.g., is an error printed?)
      * @param failsOnly
      * @param commandTests
      * @param runTests
      * @throws IOException
      */
-    private static void standardCompilerTests(StringMap props, String canonicalDirName,
-                                              String dirname, String testname,
+    private static void standardCompilerTests(StringMap props,
+                                              String canonicalDirName,
+                                              String dirname,
+                                              String testname,
                                               boolean expect_not_passing,
                                               boolean shouldFail,
                                               boolean failsOnly,
                                               List<Test> commandTests,
                                               List<Test> runTests) throws IOException {
-        String[] commands = new String [] {"compile", "desugar", "link", "api",
-                                           "parse", "disambiguate", "grammar", "typecheck",
-                                           "unparse", "compare", "build"};
-        String[] supported = new String [] {"run", "fss", "fsi"};
+        String[] commands = new String[]{
+                "compile", "desugar", "link", "api", "parse", "disambiguate", "grammar", "typecheck", "unparse",
+                "compare", "build"
+        };
+        String[] supported = new String[]{"run", "fss", "fsi"};
         boolean found = false;
-        for ( String c : new ArrayList<String>(java.util.Arrays.asList(commands)) ) {
+        for (String c : new ArrayList<String>(java.util.Arrays.asList(commands))) {
             if (props.get(c) != null) {
-                commandTests.add(new CommandTest(c, props, canonicalDirName,
-                                                 dirname, testname, failsOnly,
-                                                 expect_not_passing, shouldFail));
+                commandTests.add(new CommandTest(c,
+                                                 props,
+                                                 canonicalDirName,
+                                                 dirname,
+                                                 testname,
+                                                 failsOnly,
+                                                 expect_not_passing,
+                                                 shouldFail));
                 found = true;
             }
         }
-        if (props.get("run") != null)
-            runTests.add(new TestTest(props, canonicalDirName,
-                                      dirname, testname, failsOnly,
-                                      expect_not_passing, shouldFail));
-        for ( String c : new ArrayList<String>(java.util.Arrays.asList(supported)) ) {
+        if (props.get("run") != null) runTests.add(new TestTest(props,
+                                                                canonicalDirName,
+                                                                dirname,
+                                                                testname,
+                                                                failsOnly,
+                                                                expect_not_passing,
+                                                                shouldFail));
+        for (String c : new ArrayList<String>(java.util.Arrays.asList(supported))) {
             if (props.get(c) != null) found = true;
         }
-        if (! found)
-            System.out.println("Not supported " + dirname + "/" + testname);
+        if (!found) System.out.println("Not supported " + dirname + "/" + testname);
     }
 
     /**
@@ -997,8 +1016,7 @@ public class FileTests {
      * @return
      * @throws FileNotFoundException
      */
-    private static File directoryAsFile(String dirname)
-            throws FileNotFoundException {
+    private static File directoryAsFile(String dirname) throws FileNotFoundException {
         File dir = new File(dirname);
         if (!dir.exists()) {
             System.err.println(dirname + " does not exist");
@@ -1017,18 +1035,16 @@ public class FileTests {
     private static int testCount() {
         int testCount = Integer.MAX_VALUE;
         try {
-            testCount = ProjectProperties.getInt("fortress.unittests.count",
-                    Integer.MAX_VALUE);
-        } catch (NumberFormatException ex) {
-            System.err
-                    .println("Failed to translate property fortress.unittests.count as an int, string = "
-                            + ProjectProperties.get("fortress.unittests.count"));
+            testCount = ProjectProperties.getInt("fortress.unittests.count", Integer.MAX_VALUE);
+        }
+        catch (NumberFormatException ex) {
+            System.err.println("Failed to translate property fortress.unittests.count as an int, string = " +
+                               ProjectProperties.get("fortress.unittests.count"));
             System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
         }
 
         /* Limited testing count, such as it is. */
-        if (testCount != Integer.MAX_VALUE)
-            System.err.println("Test count = " + testCount);
+        if (testCount != Integer.MAX_VALUE) System.err.println("Test count = " + testCount);
         return testCount;
     }
 
@@ -1043,21 +1059,19 @@ public class FileTests {
 
         long seed = default_seed;
         try {
-            seed = ProjectProperties.getLong("fortress.unittests.seed",
-                    default_seed);
-        } catch (NumberFormatException ex) {
-            System.err
-                    .println("Failed to translate property fortress.unittests.seed as a long, string = "
-                            + ProjectProperties.get("fortress.unittests.seed"));
+            seed = ProjectProperties.getLong("fortress.unittests.seed", default_seed);
+        }
+        catch (NumberFormatException ex) {
+            System.err.println(
+                    "Failed to translate property fortress.unittests.seed as a long, string = " + ProjectProperties.get(
+                            "fortress.unittests.seed"));
             System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
         }
         Random random = new java.util.Random(seed);
 
-        Iterable<String> shuffled = shuffle ? IterUtil.shuffle(Arrays.asList(files),
-                random) : Arrays.asList(files);
+        Iterable<String> shuffled = shuffle ? IterUtil.shuffle(Arrays.asList(files), random) : Arrays.asList(files);
 
-        System.err.println("Test shuffling seed env var = FORTRESS_UNITTESTS_SEED="
-                + Long.toHexString(seed) + "_16");
+        System.err.println("Test shuffling seed env var = FORTRESS_UNITTESTS_SEED=" + Long.toHexString(seed) + "_16");
         return shuffled;
     }
 }

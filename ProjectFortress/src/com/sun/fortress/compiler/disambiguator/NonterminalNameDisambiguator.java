@@ -1,41 +1,35 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.disambiguator;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Debug;
-
+import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.*;
 
 public class NonterminalNameDisambiguator {
 
@@ -62,10 +56,10 @@ public class NonterminalNameDisambiguator {
      * the next.  If it is, the next element must be a grammar.
      * E.g. if Foo.Bar is an API, then return the API name Foo.Bar.Baz.
      * Return none if no API is found and some if an API is found.
+     *
      * @param name
-     * @return
-     * TODO: we don't check for the case if an API exists which name is a prefix of
-     * the intended name.
+     * @return TODO: we don't check for the case if an API exists which name is a prefix of
+     *         the intended name.
      */
     private Option<APIName> grammarName(APIName name) {
         List<Id> ids = new LinkedList<Id>();
@@ -74,7 +68,7 @@ public class NonterminalNameDisambiguator {
         Span span = NodeFactory.macroSpan;
         while (it.hasNext() && !foundApi) {
             ids.add(it.next());
-            boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span,ids));
+            boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span, ids));
             if (realApi) {
                 foundApi = true;
             }
@@ -86,12 +80,13 @@ public class NonterminalNameDisambiguator {
         Collection<Id> aids = new LinkedList<Id>();
         aids.addAll(ids);
         aids.add(grammarName);
-        return Option.some(NodeFactory.makeAPIName(span,aids));
+        return Option.some(NodeFactory.makeAPIName(span, aids));
     }
 
     /**
      * Disambiguate the given nonterminal name against
      * the given nonterminal environment.
+     *
      * @param currentEnv
      * @param name
      * @return
@@ -103,18 +98,19 @@ public class NonterminalNameDisambiguator {
             Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
             // Check that the qualifying part is a real grammar
             if (realApiGrammarOpt.isNone()) {
-                error("Undefined grammar: " +
-                      NodeUtil.nameString(originalApiGrammar) +
-                      " obtained from "+name, originalApiGrammar);
+                error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar) + " obtained from " + name,
+                      originalApiGrammar);
                 return Option.none();
             }
             APIName realApiGrammar = realApiGrammarOpt.unwrap();
             Id newN;
-            if (originalApiGrammar == realApiGrammar) { newN = name; }
-            else { newN = NodeFactory.makeId(realApiGrammar, name); }
+            if (originalApiGrammar == realApiGrammar) {
+                newN = name;
+            } else {
+                newN = NodeFactory.makeId(realApiGrammar, name);
+            }
             if (!currentEnv.hasQualifiedNonterminal(newN)) {
-                error("Undefined qualified nonterminal: " +
-                      NodeUtil.nameString(newN), newN);
+                error("Undefined qualified nonterminal: " + NodeUtil.nameString(newN), newN);
                 return Option.none();
             }
             return Option.some(newN);
@@ -137,17 +133,14 @@ public class NonterminalNameDisambiguator {
                 }
                 // If too many are found we are not sure which one is the right...
                 if (names.size() > 1) {
-                    error("Nonterminal name may refer to: " +
-                          NodeUtil.namesString(names), name);
+                    error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
                     return Option.none();
                 }
-                Debug.debug( Debug.Type.SYNTAX, 4, uqname, " is qualified as ",
-                             IterUtil.first(names) );
+                Debug.debug(Debug.Type.SYNTAX, 4, uqname, " is qualified as ", IterUtil.first(names));
                 return Option.some(IterUtil.first(names));
             }
             // names.size() > 1
-            error("Nonterminal name may refer to: " + NodeUtil.namesString(names),
-                  name);
+            error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
             return Option.none();
         }
     }

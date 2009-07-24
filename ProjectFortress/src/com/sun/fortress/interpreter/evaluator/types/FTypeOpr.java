@@ -1,34 +1,33 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.Set;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1C;
-import com.sun.fortress.useful.DefaultComparator;
+
+import java.util.Set;
 
 public class FTypeOpr extends FType {
     private FTypeOpr(String s) {
@@ -44,7 +43,7 @@ public class FTypeOpr extends FType {
     }
 
     public static void reset() {
-        memo = new Memo1C<String, FType>( new Factory(), DefaultComparator.V);
+        memo = new Memo1C<String, FType>(new Factory(), DefaultComparator.V);
     }
 
     static public FType make(String s) {
@@ -56,20 +55,20 @@ public class FTypeOpr extends FType {
      *      com.sun.fortress.interpreter.nodes.TypeRef)
      */
     @Override
-    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        bug(val,env,
-                   errorMsg("Unimplemented --  unify opr parameter ", this,
-                            " and  type argument ", val));
+    protected boolean unifyNonVar(Environment env,
+                                  Set<String> tp_set,
+                                  BoundingMap<String, FType, TypeLatticeOps> abm,
+                                  Type val) {
+        bug(val, env, errorMsg("Unimplemented --  unify opr parameter ", this, " and  type argument ", val));
         return false;
     }
 
     @Override
-    public void unifyStaticArg(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, StaticArg val) {
-        bug(val,env,
-                   errorMsg("Unimplemented --  unify opr parameter ", this,
-                            " and  type argument ", val));
+    public void unifyStaticArg(Environment env,
+                               Set<String> tp_set,
+                               BoundingMap<String, FType, TypeLatticeOps> abm,
+                               StaticArg val) {
+        bug(val, env, errorMsg("Unimplemented --  unify opr parameter ", this, " and  type argument ", val));
     }
 
     /* (non-Javadoc)

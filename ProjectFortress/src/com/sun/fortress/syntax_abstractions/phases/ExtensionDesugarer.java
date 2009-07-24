@@ -1,57 +1,37 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalExtendIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SuperSyntaxDef;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.tools.FortressAstToConcrete;
-
+import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.*;
 
 /* ExtensionDesugarer rewrites grammars to satisfy
  * the following postconditions:
@@ -87,8 +67,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
     /* Get a list of grammars that an imported grammar imports ?? */
     public static List<NonterminalExtensionDef> createImplicitExtensions(List<GrammarIndex> grammars) {
-        return rewriteMembers(grammarExtensionMap(grammars),
-                              new HashMap<Id,List<NonterminalExtensionDef>>());
+        return rewriteMembers(grammarExtensionMap(grammars), new HashMap<Id, List<NonterminalExtensionDef>>());
     }
 
     @Override
@@ -107,7 +86,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         if (index.isSome()) {
             return rewriteGrammar(that, index.unwrap());
         } else {
-            error("Grammar "+that.getName()+" not found", that);
+            error("Grammar " + that.getName() + " not found", that);
         }
         return super.forGrammarDecl(that);
     }
@@ -126,13 +105,11 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
     }
 
     private Node rewriteGrammar(GrammarDecl grammar, GrammarIndex index) {
-        Debug.debug(Debug.Type.SYNTAX, 1,
-                    "Desugaring extensions for grammar " + grammar.getName());
+        Debug.debug(Debug.Type.SYNTAX, 1, "Desugaring extensions for grammar " + grammar.getName());
 
         List<GrammarMemberDecl> members = grammar.getMembers();
         List<GrammarMemberDecl> newMembers = new ArrayList<GrammarMemberDecl>();
-        Map<Id, List<NonterminalExtensionDef>> extMap =
-            new HashMap<Id, List<NonterminalExtensionDef>>();
+        Map<Id, List<NonterminalExtensionDef>> extMap = new HashMap<Id, List<NonterminalExtensionDef>>();
 
         // Split into defs, extensions
         // Group extensions by extended nonterminal
@@ -140,22 +117,23 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         // Create mapping (NT => List<GrammarIndex>) of nonterminals
         //   with public extensions in imported grammars
-        Map<Id, List<GrammarIndex>> grammarExtensionMap =
-            grammarExtensionMap(index);
+        Map<Id, List<GrammarIndex>> grammarExtensionMap = grammarExtensionMap(index);
 
         newMembers.addAll(rewriteMembers(grammarExtensionMap, extMap));
 
         // Recombine into GrammarDecl
-        GrammarDecl result =
-            new GrammarDecl(grammar.getInfo(), grammar.getName(),
-                            grammar.getExtendsClause(), newMembers,
-                            grammar.getTransformers(), grammar.isNativeDef());
+        GrammarDecl result = new GrammarDecl(grammar.getInfo(),
+                                             grammar.getName(),
+                                             grammar.getExtendsClause(),
+                                             newMembers,
+                                             grammar.getTransformers(),
+                                             grammar.isNativeDef());
 
         // Comment this debug statement out until FortressAstToConcrete supports syntax abstraction nodes.
         // (Necessary because this desugarer is run on imported APIs with grammar definitions.)
         // EricAllen 7/6/2009
-//         Debug.debug(Debug.Type.SYNTAX, 3,
-//                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
+        //         Debug.debug(Debug.Type.SYNTAX, 3,
+        //                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
 
         return result;
     }
@@ -183,7 +161,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
             newMembers.add(combine(name, extensions, extendingGrammars));
         }
         return newMembers;
-	}
+    }
 
     private void split(List<GrammarMemberDecl> members,
                        List<GrammarMemberDecl> newMembers,
@@ -244,8 +222,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
             availableGrammarNames.add(g.getName());
         }
 
-        Debug.debug(Debug.Type.SYNTAX, 3,
-                    "Extensions of " + name + " available from " + availableGrammarNames);
+        Debug.debug(Debug.Type.SYNTAX, 3, "Extensions of " + name + " available from " + availableGrammarNames);
 
         List<SyntaxDecl> resultDecls = new ArrayList<SyntaxDecl>();
         for (NonterminalExtensionDef extension : extensions) {
@@ -254,11 +231,11 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                 /* if the syntax is a definition then add it directly */
                 if (decl instanceof SyntaxDef) {
                     resultDecls.add(decl);
-                /* otherwise if it invokes an inherited definition then
-                 * remove the grammar that contains the alternative from
-                 * the list of available grammars and add it to the list of
-                 * used grammars.
-                 */
+                    /* otherwise if it invokes an inherited definition then
+                    * remove the grammar that contains the alternative from
+                    * the list of available grammars and add it to the list of
+                    * used grammars.
+                    */
                 } else if (decl instanceof SuperSyntaxDef) {
                     SuperSyntaxDef ssd = (SuperSyntaxDef) decl;
                     Id superGrammarName = ssd.getGrammarId();
@@ -268,13 +245,10 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                         resultDecls.add(decl);
                     } else if (usedGrammarNames.contains(superGrammarName)) {
                         throw new MacroError(decl,
-                                             "Extensions of " + name +
-                                             " from " + superGrammarName +
+                                             "Extensions of " + name + " from " + superGrammarName +
                                              " have already been included.");
                     } else {
-                        throw new MacroError(decl,
-                                             "No extensions of " + name +
-                                             " in grammar " + ssd.getGrammarId());
+                        throw new MacroError(decl, "No extensions of " + name + " in grammar " + ssd.getGrammarId());
                     }
                 }
             }
@@ -284,8 +258,10 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         /* add an implicit super alternative for grammars that were not used */
         for (GrammarIndex eg : extendingGrammars) {
             if (availableGrammarNames.contains(eg.getName())) {
-                resultDecls.add(new SuperSyntaxDef(NodeFactory.makeSpanInfo(theSpan), Option.some("private"),
-                                                   name, eg.getName()));
+                resultDecls.add(new SuperSyntaxDef(NodeFactory.makeSpanInfo(theSpan),
+                                                   Option.some("private"),
+                                                   name,
+                                                   eg.getName()));
             }
         }
         return new NonterminalExtensionDef(NodeFactory.makeSpanInfo(theSpan), name, resultDecls);

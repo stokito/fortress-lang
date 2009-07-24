@@ -1,45 +1,31 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
 
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.useful.Useful;
+import junit.framework.Assert;
+
 import java.math.BigInteger;
 import java.util.Collections;
 
-import junit.framework.Assert;
-
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FloatLiteralExpr;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.StringLiteralExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.useful.Useful;
-import com.sun.fortress.nodes_util.SourceLoc;
-import com.sun.fortress.nodes_util.SourceLocRats;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.ExprFactory;
-
-public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
+public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper {
     public void testSourceLoc() {
         SourceLoc sl1 = new SourceLocRats("cat", 1, 2, 0);
         SourceLoc sl2 = new SourceLocRats("cat", 1, 2, 0);
@@ -70,7 +56,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     }
 
     Span newSpan(String f, int l, int c1, int c2) {
-        return new Span(new SourceLocRats(f,l,c1,0), new SourceLocRats(f,l,c2,0));
+        return new Span(new SourceLocRats(f, l, c1, 0), new SourceLocRats(f, l, c2, 0));
     }
 
 
@@ -88,9 +74,11 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     Id newId(String id, int l, int c1, int c2) {
         return NodeFactory.makeId(newSpan("somefile", l, c1, c2), id);
     }
+
     Id newId(String id) {
         return NodeFactory.makeId(newSpan("somefile", 1, 2, 3), id);
     }
+
     public void testAPIName() {
         Span span11 = newSpan("cat", 1, 2, 3);
         Span span12 = newSpan("cat", 1, 2, 3);
@@ -133,7 +121,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         Assert.assertEquals(e1.hashCode(), e2.hashCode());
         Assert.assertFalse(e1.equals(e3));
         Assert.assertFalse(e1.hashCode() == e3.hashCode());
-        }
+    }
 
     private void nnn(Object e1, Object e2, Object e3) {
         Assert.assertFalse(e1.hashCode() == e2.hashCode());
@@ -181,10 +169,12 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         Span span1 = newSpan("cat", 1, 2, 3);
         return ExprFactory.makeStringLiteralExpr(span1, s);
     }
+
     IntLiteralExpr newInt(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);
         return ExprFactory.makeIntLiteralExpr(span1, s);
     }
+
     FloatLiteralExpr newFloat(String s) {
         Span span1 = newSpan("emu", 1, 2, 3);
         return ExprFactory.makeFloatLiteralExpr(span1, s);
@@ -217,7 +207,8 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         try {
             ExprFactory.makeTupleExpr(span1, Collections.<Expr>emptyList());
             Assert.fail("Should have thrown exception, empty list not allowed");
-        } catch (Error e) {
+        }
+        catch (Error e) {
 
         }
     }
@@ -229,7 +220,6 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         VoidLiteralExpr v2 = ExprFactory.makeVoidLiteralExpr(span2);
         Assert.assertEquals(v1, v2);
     }
-
 
 
 }

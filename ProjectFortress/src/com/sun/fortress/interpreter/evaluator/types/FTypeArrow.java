@@ -1,25 +1,21 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.exceptions.FortressException;
@@ -27,12 +23,11 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.useful.BoundingMap;
-import com.sun.fortress.useful.EmptyLatticeIntervalError;
-import com.sun.fortress.useful.Factory2;
-import com.sun.fortress.useful.Fn2;
-import com.sun.fortress.useful.Memo2;
-import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.*;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 
 // TODO Need to memoize this to preserve Equality.
@@ -52,7 +47,7 @@ public class FTypeArrow extends FType {
     }
 
     static public FType make(FType d, FType r) {
-        return memo.make(d,r);
+        return memo.make(d, r);
     }
 
     public static FType make(List<FType> domain2, FType range2) {
@@ -61,6 +56,7 @@ public class FTypeArrow extends FType {
 
     private FType domain;
     private FType range;
+
     private FTypeArrow(FType d, FType r) {
         super("(" + d.getName() + "->" + r.getName() + ")");
         domain = d;
@@ -70,6 +66,7 @@ public class FTypeArrow extends FType {
     public FType getRange() {
         return range;
     }
+
     public FType getDomain() {
         return domain;
     }
@@ -82,18 +79,16 @@ public class FTypeArrow extends FType {
         if (commonSubtypeOf(other)) return true;
         if (other instanceof FTypeArrow) {
             FTypeArrow that = (FTypeArrow) other;
-            return this.range.subtypeOf(that.range) &&
-                   that.domain.subtypeOf(this.domain);
+            return this.range.subtypeOf(that.range) && that.domain.subtypeOf(this.domain);
         }
         return false;
     }
 
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (! (other instanceof FTypeArrow)) return false;
+        if (!(other instanceof FTypeArrow)) return false;
         FTypeArrow that = (FTypeArrow) other;
-        return this.range.equals(that.range) &&
-               this.domain.equals(that.domain);
+        return this.range.equals(that.range) && this.domain.equals(that.domain);
     }
 
     public boolean excludesOther(FType other) {
@@ -133,7 +128,8 @@ public class FTypeArrow extends FType {
         } else if (other instanceof FTypeArrow) {
             FTypeArrow fta_other = (FTypeArrow) other;
             return Useful.<FType, FType, FType>setProduct(this.domain.meet(fta_other.domain),
-                    this.range.join(fta_other.range), makerObject);
+                                                          this.range.join(fta_other.range),
+                                                          makerObject);
         } else return Collections.<FType>emptySet();
     }
 
@@ -149,18 +145,19 @@ public class FTypeArrow extends FType {
         } else if (other instanceof FTypeArrow) {
             FTypeArrow fta_other = (FTypeArrow) other;
             return Useful.<FType, FType, FType>setProduct(this.domain.join(fta_other.domain),
-                    this.range.meet(fta_other.range), makerObject);
+                                                          this.range.meet(fta_other.range),
+                                                          makerObject);
         } else return Collections.<FType>emptySet();
     }
 
     @Override
-    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        if (FType.DUMP_UNIFY)
-            System.out.println("unify arrow "+this+" and "+val+", abm="+abm);
+    protected boolean unifyNonVar(Environment env,
+                                  Set<String> tp_set,
+                                  BoundingMap<String, FType, TypeLatticeOps> abm,
+                                  Type val) {
+        if (FType.DUMP_UNIFY) System.out.println("unify arrow " + this + " and " + val + ", abm=" + abm);
         if (!(val instanceof ArrowType)) {
-            if (FType.DUMP_UNIFY)
-                System.out.println("       non-arrow");
+            if (FType.DUMP_UNIFY) System.out.println("       non-arrow");
             return false;
         }
         ArrowType arr = (ArrowType) val;
@@ -168,17 +165,17 @@ public class FTypeArrow extends FType {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
             Type valdom = arr.getDomain();
-            if ( valdom instanceof TupleType &&
-                 ! ((TupleType)valdom).getKeywords().isEmpty()) {
+            if (valdom instanceof TupleType && !((TupleType) valdom).getKeywords().isEmpty()) {
                 return false;
                 // TODO: handle domains containing keywords
-            }
-            else {
+            } else {
                 domain.unify(env, tp_set, dual, Types.stripKeywords(valdom));
             }
-        } catch (FortressException p) {
+        }
+        catch (FortressException p) {
             return false;
-        } catch (EmptyLatticeIntervalError p) {
+        }
+        catch (EmptyLatticeIntervalError p) {
             return false;
         }
         return true;

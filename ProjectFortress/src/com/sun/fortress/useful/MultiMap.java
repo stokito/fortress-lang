@@ -1,43 +1,39 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A MultiMap is implemented as a Map from keys to sets of
  * values, and in fact the regular Map methods act on sets,
  * not items.
  */
-public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V> {
+public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K, V> {
 
     /**
      *
      */
     private static final long serialVersionUID = 3275403475085923977L;
+
     public MultiMap() {
         super();
     }
-
 
 
     public MultiMap(Map<? extends K, ? extends Set<V>> m) {
@@ -47,7 +43,7 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
     // TODO can we get the Java generics right on this?
     public void addInverse(Map<V, K> m) {
         for (Map.Entry<V, K> e : m.entrySet()) {
-            putItem((K)e.getValue(), (V)e.getKey());
+            putItem((K) e.getValue(), (V) e.getKey());
         }
 
     }
@@ -63,9 +59,10 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         }
         return s;
     }
-    
+
     /**
      * Ensures that k is in the map, perhaps mapping to an empty set.
+     *
      * @param k
      * @return
      */
@@ -73,10 +70,11 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         Set<V> s = get(k);
         if (s == null) {
             s = new HashSet<V>();
-            put(k,s);
-        } 
+            put(k, s);
+        }
         return s;
     }
+
     public Set<V> putItems(K k, Collection<V> vs) {
         Set<V> s = get(k);
         if (s == null) {
@@ -87,6 +85,7 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         }
         return s;
     }
+
     public Set<V> removeItem(K k, V v) {
         Set<V> s = get(k);
         if (s != null) {
@@ -98,6 +97,7 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         }
         return s;
     }
+
     public Set<V> removeItemAllowEmpty(K k, V v) {
         Set<V> s = get(k);
         if (s != null) {

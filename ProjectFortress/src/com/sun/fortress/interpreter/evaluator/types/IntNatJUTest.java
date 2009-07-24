@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
@@ -33,10 +33,10 @@ public class IntNatJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         IntNat z = IntNat.make(4);
 
         assertEquals(x.hashCode(), y.hashCode());
-        assertFalse(x.hashCode() ==  z.hashCode());
+        assertFalse(x.hashCode() == z.hashCode());
 
-        System.out.println("IntNat(3).hashCode() = " + x.hashCode() );
-        System.out.println("IntNat(4).hashCode() = " + z.hashCode() );
+        System.out.println("IntNat(3).hashCode() = " + x.hashCode());
+        System.out.println("IntNat(4).hashCode() = " + z.hashCode());
 
         x = IntNat.make(123456789);
         y = IntNat.make(123456789);

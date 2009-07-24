@@ -1,40 +1,32 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue;
 
-import java.util.ArrayList;
-
 import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FTuple;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.IndexedSource;
-import com.sun.fortress.interpreter.evaluator.values.IndexedTarget;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.useful.HasAt;
-
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.evaluator.values.*;
 
-/** This wrapper class is used in the implementation of pasting in
-    LHSEvaluator and IUOTuple.
+import java.util.ArrayList;
+
+/**
+ * This wrapper class is used in the implementation of pasting in
+ * LHSEvaluator and IUOTuple.
  */
 public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
 
@@ -57,7 +49,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
         putter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayPutter);
         getter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayGetter);
         rank = Glue.arrayRank(array);
-        l = new ArrayList<FValue>(1+rank);
+        l = new ArrayList<FValue>(1 + rank);
     }
 
     public void put(FValue what, int[] indices, int indices_depth) {
@@ -75,20 +67,20 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
             l.add(FTuple.make(tup));
         }
         l.add(what);
-        putter.applyMethod(array,l);
+        putter.applyMethod(array, l);
     }
 
     public void put(FValue what, int index) {
         l.clear();
         l.add(FInt.make(index));
         l.add(what);
-        putter.applyMethod(array,l);
+        putter.applyMethod(array, l);
     }
 
     public FValue get(int[] indices, int indices_depth) {
         l.clear();
         if (indices_depth == 1) {
-          l.add(FInt.make(indices[0]));
+            l.add(FInt.make(indices[0]));
         } else {
             // This "fixes" the row-column confusion in pasted arrays.
             l.add(FInt.make(indices[1]));
@@ -97,7 +89,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
                 l.add(FInt.make(indices[i]));
             }
         }
-        return getter.applyMethod(array,l);
+        return getter.applyMethod(array, l);
     }
 
     public int dim() {

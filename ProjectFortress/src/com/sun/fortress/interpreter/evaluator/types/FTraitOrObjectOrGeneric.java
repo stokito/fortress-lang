@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 /*
  * Created on Sep 25, 2007
@@ -20,21 +20,21 @@
  */
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.List;
-import java.util.SortedSet;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
-import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
+import java.util.SortedSet;
 
 public abstract class FTraitOrObjectOrGeneric extends FType {
 
@@ -43,8 +43,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         this.env = env;
         this.decl = def;
         boolean isValueType = false;
-        if (def instanceof TraitObjectDecl)
-            isValueType = ((TraitObjectDecl) def).getHeader().getMods().isValue();
+        if (def instanceof TraitObjectDecl) isValueType = ((TraitObjectDecl) def).getHeader().getMods().isValue();
         this.isValueType = isValueType;
     }
 
@@ -58,7 +57,8 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
 
     final private boolean isValueType;
 
-    @Override public boolean isValueType() {
+    @Override
+    public boolean isValueType() {
         return this.isValueType;
     }
 
@@ -71,7 +71,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         return env;
     }
 
-    public  AbstractNode getDecl() {
+    public AbstractNode getDecl() {
         return decl;
     }
 
@@ -79,22 +79,19 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         initializeFunctionalMethods(getWithin());
 
     }
+
     public final void initializeFunctionalMethods(Environment topLevel) {
-        if (isSymbolic)
-            return;
+        if (isSymbolic) return;
         FTraitOrObjectOrGeneric tooog = this;
         // List<Decl> defs = members;
 
-        SortedSet<FnDecl> defs = Useful
-                .<Decl, FnDecl> filteredSortedSet(members,
-                        new Fn<Decl, FnDecl>() {
-                            @Override
-                            public FnDecl apply(Decl x) {
-                                if (x instanceof FnDecl)
-                                    return (FnDecl) x;
-                                return null;
-                            }
-                        }, NodeComparator.fnAbsDeclOrDeclComparer);
+        SortedSet<FnDecl> defs = Useful.<Decl, FnDecl>filteredSortedSet(members, new Fn<Decl, FnDecl>() {
+            @Override
+            public FnDecl apply(Decl x) {
+                if (x instanceof FnDecl) return (FnDecl) x;
+                return null;
+            }
+        }, NodeComparator.fnAbsDeclOrDeclComparer);
 
         if (tooog instanceof FTypeGeneric) {
 
@@ -112,8 +109,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // If the container is generic, then we create an
                     // empty top-level overloading, to be filled in as
                     // the container is instantiated.
-                    Fcn cl = new GenericFunctionalMethod(getWithin(), fndod,
-                                                         spi, (FTypeGeneric)tooog);
+                    Fcn cl = new GenericFunctionalMethod(getWithin(), fndod, spi, (FTypeGeneric) tooog);
 
                     topLevel.putValueNoShadowFn(fndodname, cl);
                     // TODO test and other modifiers
@@ -144,16 +140,14 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
 
 
     public void finishFunctionalMethods() {
-        if (functionalMethodsFinished)
-            return;
+        if (functionalMethodsFinished) return;
         Environment topLevel = getWithin();
         finishFunctionalMethods(topLevel);
         functionalMethodsFinished = true;
     }
 
     public void finishFunctionalMethods(Environment topLevel) {
-        if (isSymbolic)
-            return;
+        if (isSymbolic) return;
 
         topLevel = topLevel.getTopLevel();
 
@@ -162,8 +156,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         for (Decl dod : defs) {
             // Filter out non-functions.
             if (dod instanceof FnDecl) {
-                int spi = NodeUtil
-                        .selfParameterIndex((FnDecl) dod);
+                int spi = NodeUtil.selfParameterIndex((FnDecl) dod);
                 if (spi >= 0) {
                     // If it is a functional method, it is definitely a
                     // FnDecl

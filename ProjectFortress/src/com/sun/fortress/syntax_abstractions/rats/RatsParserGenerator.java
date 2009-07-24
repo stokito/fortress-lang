@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /*
@@ -21,17 +21,15 @@
  */
 package com.sun.fortress.syntax_abstractions.rats;
 
+import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.useful.Debug;
+import xtc.parser.Module;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
-
-import xtc.parser.Module;
-
-import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
-import com.sun.fortress.useful.Debug;
 
 public class RatsParserGenerator {
 
@@ -47,45 +45,30 @@ public class RatsParserGenerator {
         fortressGrammar.setName(freshFortressName);
         fortressGrammar.clone(grammarTempDir);
 
-        String fortressRats = destinationDir + "TemplateParser" +".rats";
-        String[] args = {"-no-exit",
-                         "-in", grammarTempDir,
-                         "-out", destinationDir,
-                         "-Ochunks",
-                         /* leave this out so that unused productions
-                          * are still accessible via reflection
-                          */
-                         // "-Ogrammar",
-                         "-Oterminals",
-                         "-Ocost",
-                         "-Otransient",
-                         "-Onontransient",
-                         "-Orepeated",
-                         "-Oleft2",
-                         "-Ooptional",
-                         "-Ochoices1",
-                         "-Ochoices2",
-                         "-Oerrors1",
-                         "-Oselect",
-                         "-Ovalues",
-                         "-Omatches",
-                         "-Oprefixes",
-                         "-Ognodes",
-                         "-Olocation",
-                         fortressRats};
+        String fortressRats = destinationDir + "TemplateParser" + ".rats";
+        String[] args = {
+                "-no-exit", "-in", grammarTempDir, "-out", destinationDir, "-Ochunks",
+                /* leave this out so that unused productions
+                * are still accessible via reflection
+                */
+                // "-Ogrammar",
+                "-Oterminals", "-Ocost", "-Otransient", "-Onontransient", "-Orepeated", "-Oleft2", "-Ooptional",
+                "-Ochoices1", "-Ochoices2", "-Oerrors1", "-Oselect", "-Ovalues", "-Omatches", "-Oprefixes", "-Ognodes",
+                "-Olocation", fortressRats
+        };
         xtc.parser.Rats.main(args);
 
-        String fortressJava = RatsUtil.TEMPLATEPARSER + freshFortressName +".java";
-        int parserResult = JavaC.compile(grammarTempDir, grammarTempDir,
-                                         grammarTempDir + fortressJava);
+        String fortressJava = RatsUtil.TEMPLATEPARSER + freshFortressName + ".java";
+        int parserResult = JavaC.compile(grammarTempDir, grammarTempDir, grammarTempDir + fortressJava);
         if (parserResult != 0) {
             throw new RuntimeException("A compiler error occured while compiling a temporary parser.");
         }
 
         ParserLoader parserLoader = new ParserLoader(grammarTempDir);
         try {
-            return parserLoader.findClass("com.sun.fortress.parser.templateparser."+freshFortressName);
-        } catch (ClassNotFoundException e) {
+            return parserLoader.findClass("com.sun.fortress.parser.templateparser." + freshFortressName);
+        }
+        catch (ClassNotFoundException e) {
             throw new WrappedException(e, Debug.isOnMax());
         }
     }
@@ -101,8 +84,7 @@ public class RatsParserGenerator {
         @Override
         public Class<?> findClass(String name) throws ClassNotFoundException {
             byte[] b = loadClassData(name);
-            if (b != null)
-                return defineClass(null, b, 0, b.length);
+            if (b != null) return defineClass(null, b, 0, b.length);
             throw new ClassNotFoundException(name);
         }
 
@@ -110,14 +92,16 @@ public class RatsParserGenerator {
             byte[] res = null;
             classname = classname.replace('.', File.separatorChar);
 
-            File classfile = new File(basedir + classname+".class");
+            File classfile = new File(basedir + classname + ".class");
             if (classfile.exists()) {
                 res = new byte[(int) classfile.length()];
                 try {
                     new FileInputStream(classfile).read(res);
-                } catch (FileNotFoundException e) {
+                }
+                catch (FileNotFoundException e) {
                     throw new ClassNotFoundException(e.getMessage(), e);
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     throw new ClassNotFoundException(e.getMessage(), e);
                 }
             }

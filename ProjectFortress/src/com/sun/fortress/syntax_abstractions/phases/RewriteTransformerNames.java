@@ -1,42 +1,32 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.List;
-import java.util.LinkedList;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.Transformer;
-import com.sun.fortress.nodes.NamedTransformerDef;
-import com.sun.fortress.nodes.PreTransformerDef;
-import com.sun.fortress.nodes.ASTNodeInfo;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /*
  * Collect transformer names
@@ -48,7 +38,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
     private Option<String> productionName;
     // private Option<List<NonterminalParameter>> parameters;
 
-    public RewriteTransformerNames(){
+    public RewriteTransformerNames() {
         this.api = Option.none();
         this.grammar = Option.none();
     }
@@ -61,7 +51,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDecl(GrammarDecl that) {
-        grammar = Option.some(that.getName().toString().replace( '.', '_' ));
+        grammar = Option.some(that.getName().toString().replace('.', '_'));
         return super.forGrammarDecl(that);
     }
 
@@ -88,22 +78,20 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
      * If this ever matters then take off the prefix:
      * api.unwrap() + "_"
      */
-    private String transformationName( String name ){
-        return api.unwrap() + "_" + grammar.unwrap() + "_" +
-            RatsUtil.getFreshName( name + "Transformer" );
+    private String transformationName(String name) {
+        return api.unwrap() + "_" + grammar.unwrap() + "_" + RatsUtil.getFreshName(name + "Transformer");
     }
 
     @Override
-    public Node forPreTransformerDefOnly(PreTransformerDef that, ASTNodeInfo info,
-                                         Transformer transformer) {
+    public Node forPreTransformerDefOnly(PreTransformerDef that, ASTNodeInfo info, Transformer transformer) {
         try {
-            Debug.debug( Debug.Type.SYNTAX, 1,
-                         "Found a pre-transformer " + productionName.unwrap());
+            Debug.debug(Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
             List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
-            return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan("RewriteTransformerNames.forPreTransformerDefOnly")),
-                                           name, params, transformer );
-        } catch (OptionUnwrapException e){
+            return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(
+                    "RewriteTransformerNames.forPreTransformerDefOnly")), name, params, transformer);
+        }
+        catch (OptionUnwrapException e) {
             throw new MacroError("Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e);
         }
     }

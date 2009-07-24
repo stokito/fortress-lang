@@ -1,97 +1,69 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import xtc.tree.Attribute;
-import xtc.tree.Comment;
-import xtc.parser.Action;
-import xtc.parser.Element;
-import xtc.parser.FullProduction;
-import xtc.parser.Module;
-import xtc.parser.ModuleDependency;
-import xtc.parser.ModuleImport;
-import xtc.parser.ModuleInstantiation;
-import xtc.parser.ModuleModification;
-import xtc.parser.ModuleList;
-import xtc.parser.ModuleName;
-import xtc.parser.NonTerminal;
-import xtc.parser.OrderedChoice;
-import xtc.parser.Production;
-import xtc.parser.Sequence;
-
 import com.sun.fortress.compiler.index.GrammarIndex;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.exceptions.MacroError;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
-import com.sun.fortress.useful.Debug;
-import com.sun.fortress.nodes.ASTNode;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.KeywordSymbol;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
+import com.sun.fortress.useful.Debug;
+import xtc.parser.*;
+import xtc.tree.Attribute;
+import xtc.tree.Comment;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.*;
 
 /* Creates a Rats! parser from a PEG. */
 public class ParserMaker {
 
-    private static final String FORTRESS =
-        "com.sun.fortress.parser.Fortress";
-    private static final String TEMPLATEPARSER =
-        "com.sun.fortress.parser.templateparser.TemplateParser";
-    private static final String COMPILATION =
-        "com.sun.fortress.parser.Compilation";
-    private static final String TEMPLATECOMPILATION =
-        "com.sun.fortress.parser.templateparser.Compilation";
+    private static final String FORTRESS = "com.sun.fortress.parser.Fortress";
+    private static final String TEMPLATEPARSER = "com.sun.fortress.parser.templateparser.TemplateParser";
+    private static final String COMPILATION = "com.sun.fortress.parser.Compilation";
+    private static final String TEMPLATECOMPILATION = "com.sun.fortress.parser.templateparser.Compilation";
 
     private static final String USER_MODULE_NAME = "USER";
 
-    private ParserMaker() {}
+    private ParserMaker() {
+    }
 
     /* takes a string and converts it to some internal name */
     public static class Mangler {
         Set<Id> nativeNonterminals;
+
         Mangler(Set<Id> nativeNonterminals) {
             this.nativeNonterminals = nativeNonterminals;
         }
+
         public String forDefinition(Id id) {
             return forDefinition(NodeUtil.nameString(id));
         }
+
         public String forDefinition(String name) {
             return mangle(name);
         }
+
         public String forReference(Id id) {
             String name = NodeUtil.nameString(id);
             // Don't mangle native nonterminals
@@ -102,13 +74,14 @@ public class ParserMaker {
                 return mangle(name);
             }
         }
+
         private String mangle(String name) {
             return "USER_" + name.replaceAll("_", "__").replace('.', '_');
         }
     }
 
     /* main entry point for a grammar of an api */
-    public static Class<?> parserForGrammar(GrammarIndex grammar){
+    public static Class<?> parserForGrammar(GrammarIndex grammar) {
         PEG peg = GrammarComposer.pegForGrammar(grammar);
         return makeParser(peg);
     }
@@ -151,22 +124,19 @@ public class ParserMaker {
         Map<String, Module> templateModules = getBaseModules(RatsUtil.getTemplateParserPath());
         for (Id definedByPegId : peg.keySet()) {
             String definedByPeg = NodeUtil.nameString(definedByPegId);
-            Debug.debug(Debug.Type.SYNTAX, 3,
-                        "Checking if " + definedByPeg + " is native");
+            Debug.debug(Debug.Type.SYNTAX, 3, "Checking if " + definedByPeg + " is native");
             if (nativeNonterminals.contains(definedByPegId)) {
                 Debug.debug(Debug.Type.SYNTAX, 3, "... yes!");
                 String moduleName = getRatsModuleName(definedByPeg, definedByPegId);
                 String ntName = afterLastDot(definedByPeg, definedByPegId);
                 String userExtensionsName = mangler.forDefinition(definedByPeg);
                 Module baseModule = baseModules.get(moduleName);
-                if (baseModule.modification != null){
-                    Debug.debug(Debug.Type.SYNTAX, 3,
-                                baseModule.getClassName() + " is a modification");
+                if (baseModule.modification != null) {
+                    Debug.debug(Debug.Type.SYNTAX, 3, baseModule.getClassName() + " is a modification");
                 }
-                Debug.debug(Debug.Type.SYNTAX, 3,
-                            "Modify " + definedByPeg +
-                            "; ntName=" + ntName +
-                            "; baseModule=" + moduleName);
+                Debug.debug(Debug.Type.SYNTAX,
+                            3,
+                            "Modify " + definedByPeg + "; ntName=" + ntName + "; baseModule=" + moduleName);
                 boolean found = false;
                 for (Production p : baseModule.productions) {
                     if (ntName.equals(p.name.name)) {
@@ -182,8 +152,7 @@ public class ParserMaker {
                 }
                 if (!found) {
                     throw new MacroError(definedByPegId,
-                                         "Failed to modify " + definedByPeg +
-                                         ".  Could not find a production for it.");
+                                         "Failed to modify " + definedByPeg + ".  Could not find a production for it.");
                 }
             }
         }
@@ -194,8 +163,7 @@ public class ParserMaker {
         ModuleName uname = new ModuleName("USERvar");
         /* modify fortress modules */
         for (Module baseModule : baseModules.values()) {
-            if (!baseModule.name.name.equals(FORTRESS) &&
-                !baseModule.name.name.equals(TEMPLATEPARSER) &&
+            if (!baseModule.name.name.equals(FORTRESS) && !baseModule.name.name.equals(TEMPLATEPARSER) &&
                 !baseModule.name.name.equals(COMPILATION)) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
@@ -203,8 +171,7 @@ public class ParserMaker {
                 userModule.parameters = new ModuleList(ups);
                 userModule.dependencies.add(new ModuleImport(bname));
                 List<ModuleName> bps = new LinkedList<ModuleName>();
-                if (baseModule.parameters != null)
-                    bps.addAll(baseModule.parameters.names);
+                if (baseModule.parameters != null) bps.addAll(baseModule.parameters.names);
                 bps.add(uname);
                 baseModule.parameters = new ModuleList(bps);
                 baseModule.dependencies.add(new ModuleImport(uname));
@@ -212,19 +179,17 @@ public class ParserMaker {
         }
 
         /* modify template parser modules */
-        for (Module baseModule : templateModules.values()){
-            if (!baseModule.name.name.equals(TEMPLATEPARSER) &&
-                !baseModule.name.name.equals(FORTRESS) &&
+        for (Module baseModule : templateModules.values()) {
+            if (!baseModule.name.name.equals(TEMPLATEPARSER) && !baseModule.name.name.equals(FORTRESS) &&
                 !baseModule.name.name.equals(TEMPLATECOMPILATION)) {
                 List<ModuleName> bps = new LinkedList<ModuleName>();
-                if (baseModule.parameters != null)
-                    bps.addAll(baseModule.parameters.names);
+                if (baseModule.parameters != null) bps.addAll(baseModule.parameters.names);
                 bps.add(uname);
                 baseModule.parameters = new ModuleList(bps);
                 baseModule.dependencies.add(new ModuleImport(uname));
 
-                for (ModuleDependency dependancy : baseModule.dependencies){
-                    if (dependancy instanceof ModuleModification){
+                for (ModuleDependency dependancy : baseModule.dependencies) {
+                    if (dependancy instanceof ModuleModification) {
                         dependancy.arguments.names.add(uname);
                     }
                 }
@@ -247,16 +212,14 @@ public class ParserMaker {
         // and add an instantiation with all the other modules
         List<ModuleName> argslist = new LinkedList<ModuleName>();
         for (Module baseModule : baseModules.values()) {
-            if (baseModule != mainModule &&
-                !baseModule.name.name.equals(FORTRESS) &&
-                !baseModule.name.name.equals(COMPILATION)) {
+            if (baseModule != mainModule && !baseModule.name.name.equals(FORTRESS) && !baseModule.name.name.equals(
+                    COMPILATION)) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 argslist.add(bname);
             }
         }
         ModuleList args = new ModuleList(argslist);
-        ModuleInstantiation inst =
-            new ModuleInstantiation(new ModuleName(USER_MODULE_NAME), args, uname);
+        ModuleInstantiation inst = new ModuleInstantiation(new ModuleName(USER_MODULE_NAME), args, uname);
         mainModule.dependencies.add(inst);
 
         // Generate parser
@@ -276,7 +239,7 @@ public class ParserMaker {
             }
         }
         File f = new File(srcDir);
-        for (String s: f.list(new RatsFilenameFilter())) {
+        for (String s : f.list(new RatsFilenameFilter())) {
             String name = s.substring(0, s.length() - 5);
             String filename = srcDir + File.separatorChar + s;
             map.put(name, RatsUtil.getRatsModule(filename));
@@ -288,29 +251,26 @@ public class ParserMaker {
      * add it to the peg
      */
     private static void addEntry(Module m, Mangler mangler, PEG peg, Id nt) {
-        Debug.debug(Debug.Type.SYNTAX, 2,
-                    "Create productions for the nonterminal " + nt);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Create productions for the nonterminal " + nt);
 
         String name = mangler.forDefinition(nt);
         String javaType = peg.getJavaType(nt);
 
-        ComposingSyntaxDefTranslator translator =
-            new ComposingSyntaxDefTranslator(mangler, nt, javaType, (NTEnv)peg);
+        ComposingSyntaxDefTranslator translator = new ComposingSyntaxDefTranslator(mangler, nt, javaType, (NTEnv) peg);
         List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.getAll(nt)));
 
         /* don't add an empty sequence */
         List<Attribute> attributes = new LinkedList<Attribute>();
         OrderedChoice choice = new OrderedChoice(sequences);
-        Production p = new FullProduction(attributes, javaType,
-                                          new NonTerminal(name), choice);
+        Production p = new FullProduction(attributes, javaType, new NonTerminal(name), choice);
         m.productions.add(p);
     }
 
     /* Filter redundant syntax defs.  Rats! will complain if they are left in. */
     private static List<SyntaxDef> unique(List<SyntaxDef> defs) {
         List<SyntaxDef> all = new LinkedList<SyntaxDef>();
-        for (SyntaxDef def : defs){
-            if (! all.contains(def)){
+        for (SyntaxDef def : defs) {
+            if (!all.contains(def)) {
                 all.add(def);
             }
         }
@@ -351,10 +311,11 @@ public class ParserMaker {
     private static void collectKeywords(final Set<String> keywords, SyntaxDef def) {
         for (SyntaxSymbol symbol : def.getSyntaxSymbols()) {
             symbol.accept(new NodeDepthFirstVisitor_void() {
-                    @Override public void forKeywordSymbolOnly(KeywordSymbol that) {
-                        keywords.add(that.getToken());
-                    }
-                });
+                @Override
+                public void forKeywordSymbolOnly(KeywordSymbol that) {
+                    keywords.add(that.getToken());
+                }
+            });
         }
     }
 
@@ -401,9 +362,8 @@ public class ParserMaker {
         if (lastDot >= 0) {
             return name.substring(0, lastDot);
         } else {
-            if ( ! ( src instanceof ASTNode ) )
-                bug(src, "Only ASTNodes are supported.");
-            throw new MacroError((ASTNode)src, "Saw unqualified name: " + name);
+            if (!(src instanceof ASTNode)) bug(src, "Only ASTNodes are supported.");
+            throw new MacroError((ASTNode) src, "Saw unqualified name: " + name);
         }
     }
 
@@ -412,9 +372,8 @@ public class ParserMaker {
         if (lastDot >= 0) {
             return name.substring(lastDot + 1);
         } else {
-            if ( ! ( src instanceof ASTNode ) )
-                bug(src, "Only ASTNodes are supported.");
-            throw new MacroError((ASTNode)src, "Saw unqualified name: " + name);
+            if (!(src instanceof ASTNode)) bug(src, "Only ASTNodes are supported.");
+            throw new MacroError((ASTNode) src, "Saw unqualified name: " + name);
         }
     }
 

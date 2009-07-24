@@ -1,39 +1,33 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
+
+import com.sun.fortress.nodes.*;
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.Relation;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.Op;
-
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.collect.Relation;
-
-/** Comprises {@link ApiIndex} and {@link CompilationUnit}. */
+/**
+ * Comprises {@link ApiIndex} and {@link CompilationUnit}.
+ */
 public abstract class CompilationUnitIndex {
 
     private final CompilationUnit _ast;
@@ -45,29 +39,24 @@ public abstract class CompilationUnitIndex {
     private final Map<Id, Unit> _units;
     private final long _modifiedDate;
 
-    public CompilationUnitIndex(CompilationUnit ast,
-                                Map<Id, Variable> variables,
-                                Relation<IdOrOpOrAnonymousName, Function> functions,
-                                Set<ParametricOperator> parametricOperators,
-                                Map<Id, TypeConsIndex> typeConses,
-                                Map<Id, Dimension> dimensions,
-                                Map<Id, Unit> units,
-                                long modifiedDate) {
+    public CompilationUnitIndex(CompilationUnit ast, Map<Id, Variable> variables, Relation<IdOrOpOrAnonymousName, Function> functions, Set<ParametricOperator> parametricOperators, Map<Id, TypeConsIndex> typeConses, Map<Id, Dimension> dimensions, Map<Id, Unit> units, long modifiedDate) {
         _ast = ast;
         _variables = CollectUtil.immutable(variables);
         _functions = CollectUtil.immutable(functions);
         _parametricOperators = CollectUtil.immutable(parametricOperators);
-        _typeConses = CollectUtil.immutable(
-                          CollectUtil.union(typeConses,
-                                  CollectUtil.union(dimensions, units)));
+        _typeConses = CollectUtil.immutable(CollectUtil.union(typeConses, CollectUtil.union(dimensions, units)));
         _dimensions = CollectUtil.immutable(dimensions);
         _units = CollectUtil.immutable(units);
         _modifiedDate = modifiedDate;
     }
 
-    public CompilationUnit ast() { return _ast; }
+    public CompilationUnit ast() {
+        return _ast;
+    }
 
-    public APIName name() { return ast().getName(); }
+    public APIName name() {
+        return ast().getName();
+    }
 
     public abstract Set<APIName> exports();
 
@@ -83,45 +72,53 @@ public abstract class CompilationUnitIndex {
         return result;
     }
 
-    public Set<APIName> comprises() { 
+    public Set<APIName> comprises() {
         final Set<APIName> result = new HashSet<APIName>();
-        for (APIName _apiName : ast().getComprises()) { 
+        for (APIName _apiName : ast().getComprises()) {
             result.add(_apiName);
         }
         return result;
     }
 
-    public Map<Id, Variable> variables() { return _variables; }
+    public Map<Id, Variable> variables() {
+        return _variables;
+    }
 
-    public Relation<IdOrOpOrAnonymousName, Function> functions() { return _functions; }
+    public Relation<IdOrOpOrAnonymousName, Function> functions() {
+        return _functions;
+    }
 
-    public Set<ParametricOperator> parametricOperators() { return _parametricOperators; }
+    public Set<ParametricOperator> parametricOperators() {
+        return _parametricOperators;
+    }
 
-    public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
+    public Map<Id, TypeConsIndex> typeConses() {
+        return _typeConses;
+    }
 
-    public Map<Id, Dimension> dimensions() { return _dimensions; }
+    public Map<Id, Dimension> dimensions() {
+        return _dimensions;
+    }
 
-    public Map<Id, Unit> units() { return _units; }
+    public Map<Id, Unit> units() {
+        return _units;
+    }
 
-    public long modifiedDate() { return _modifiedDate; }
+    public long modifiedDate() {
+        return _modifiedDate;
+    }
 
     public boolean declared(IdOrOpOrAnonymousName name) {
-        if ( name instanceof Id ) {
-            Id id = (Id)name;
-            return ( _variables.keySet().contains(id) ||
-                     _functions.firstSet().contains(id) ||
-                     _typeConses.keySet().contains(id) ||
-                     _dimensions.keySet().contains(id) ||
-                     _units.keySet().contains(id) );
+        if (name instanceof Id) {
+            Id id = (Id) name;
+            return (_variables.keySet().contains(id) || _functions.firstSet().contains(id) || _typeConses.keySet().contains(id) || _dimensions.keySet().contains(id) || _units.keySet().contains(id));
         } else {
-            if ( _functions.firstSet().contains(name) )
-                return true;
+            if (_functions.firstSet().contains(name)) return true;
             else {
-                if ( name instanceof Op ) {
-                    Op op = (Op)name;
-                    for ( ParametricOperator opr : _parametricOperators ) {
-                        if ( opr.name().getText().equals(op.getText()) )
-                            return true;
+                if (name instanceof Op) {
+                    Op op = (Op) name;
+                    for (ParametricOperator opr : _parametricOperators) {
+                        if (opr.name().getText().equals(op.getText())) return true;
                     }
                     return false;
                 } else return false;

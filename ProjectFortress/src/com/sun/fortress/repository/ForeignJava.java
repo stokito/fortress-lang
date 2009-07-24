@@ -1,94 +1,45 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
-
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.nativeInterface.*;
+import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.AliasedSimpleName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitObjectDecl;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.GraphNode;
-import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.Bijection;
-import com.sun.fortress.useful.CheapSerializer;
-import com.sun.fortress.useful.F;
-import com.sun.fortress.useful.HashBijection;
-import com.sun.fortress.useful.IMultiMap;
-import com.sun.fortress.useful.MagicNumbers;
-import com.sun.fortress.useful.MapOfMap;
-import com.sun.fortress.useful.MapOfMapOfSet;
-import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.Useful;
-import com.sun.fortress.useful.VersionMismatch;
-
+import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+
+import java.io.*;
+import java.util.*;
 
 public class ForeignJava {
 
@@ -98,12 +49,14 @@ public class ForeignJava {
 
     }
 
-   /** given an API Name, what Java classes does it use (include)?  (Existing
+    /**
+     * given an API Name, what Java classes does it use (include)?  (Existing
      * Java class, not its compiled Fortress wrapper class.)
      * This is a subset of all the classes available in the package
      * corresponding to the API Name.
      */
-    MultiMap<APIName, org.objectweb.asm.Type> classesIncludedInForeignAPI = new MultiMap<APIName, org.objectweb.asm.Type>();
+    MultiMap<APIName, org.objectweb.asm.Type> classesIncludedInForeignAPI =
+            new MultiMap<APIName, org.objectweb.asm.Type>();
 
     /**
      * given an API Name, what Java classes is it actually importing?
@@ -111,14 +64,18 @@ public class ForeignJava {
      * with javaImplementedAPIs, because two imports (from different APIs) from
      * the same foreign API might reference different classes.
      */
-    MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByAPI = new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
-    MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByComp = new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
+    MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByAPI =
+            new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
+    MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByComp =
+            new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
 
     /**
      * This is an in-memory cache of information read from disk (if any).
      */
-    Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByAPIOld = new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
-    Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByCompOld = new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
+    Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByAPIOld =
+            new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
+    Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByCompOld =
+            new MapOfMap<APIName, org.objectweb.asm.Type, Long>();
 
     /**
      * Given a foreign API Name, what other (foreign) APIs does it import?
@@ -175,53 +132,56 @@ public class ForeignJava {
     static ClassNode findClass(String s) throws IOException {
         ClassReader cr = new ClassReader(s);
         ClassNode cn = new ClassNode();
-        cr.accept(cn, ClassReader.SKIP_DEBUG|ClassReader.SKIP_FRAMES|ClassReader.SKIP_CODE);
+        cr.accept(cn, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
         return cn;
     }
 
-   static CheapSerializer<Type> typeSerializer = new CheapSerializer<Type>() {
+    static CheapSerializer<Type> typeSerializer = new CheapSerializer<Type>() {
 
 
+        @Override
+        public Type read(InputStream i) throws IOException {
+            return Type.getType(CheapSerializer.STRING.read(i));
+        }
 
-    @Override
-    public Type read(InputStream i) throws IOException {
-        return Type.getType(CheapSerializer.STRING.read(i));
-    }
+        @Override
+        public void write(OutputStream o, Type data) throws IOException {
+            CheapSerializer.STRING.write(o, data.getDescriptor());
+        }
 
-    @Override
-    public void write(OutputStream o, Type data) throws IOException {
-        CheapSerializer.STRING.write(o, data.getDescriptor());
-    }
+        byte[] V = {'A', 'S', 'M', '.', 'T', 'Y', 'P', 'E', '_', '1', '.', '0', ' '};
 
-    byte[] V = {'A', 'S', 'M', '.', 'T', 'Y', 'P', 'E', '_', '1', '.', '0', ' '};
+        @Override
+        public void version(OutputStream o) throws IOException {
+            o.write(V);
+        }
 
-    @Override
-    public void version(OutputStream o) throws IOException {
-        o.write(V);
-    }
-
-    @Override
-    public void version(InputStream o) throws IOException, VersionMismatch {
-        check(o,V);
-    }
+        @Override
+        public void version(InputStream o) throws IOException, VersionMismatch {
+            check(o, V);
+        }
 
     };
 
-    static CheapSerializer<Map<Type, Long>> dependenceSerializer =
-        new CheapSerializer.MAP<Type, Long>(typeSerializer, CheapSerializer.LONG);
+    static CheapSerializer<Map<Type, Long>> dependenceSerializer = new CheapSerializer.MAP<Type, Long>(typeSerializer,
+                                                                                                       CheapSerializer.LONG);
 
     private static Span span() {
         return NodeFactory.internalSpan;
     }
+
     private static Span span(MethodNode m) {
         return NodeFactory.makeSpan(methodName(m));
     }
+
     private static Span span(APIName a) {
         return NodeFactory.makeSpan(a.getText());
     }
+
     private static Span span(String s) {
         return NodeFactory.makeSpan(s);
     }
+
     private static Span span(Type t) {
         return NodeFactory.makeSpan(t.getDescriptor());
     }
@@ -232,11 +192,11 @@ public class ForeignJava {
 
     static org.objectweb.asm.Type returnType(MethodNode meth) {
         return org.objectweb.asm.Type.getReturnType(meth.desc);
-   }
+    }
 
     static org.objectweb.asm.Type[] argumentTypes(MethodNode meth) {
         return org.objectweb.asm.Type.getArgumentTypes(meth.desc);
-   }
+    }
 
     static String getName(MethodNode m) {
         return m.name;
@@ -244,9 +204,10 @@ public class ForeignJava {
 
     static String getSimpleName(String internal_name) {
         int last_slash = internal_name.lastIndexOf("/");
-        String simple_name = internal_name.substring(last_slash+1);
+        String simple_name = internal_name.substring(last_slash + 1);
         return simple_name;
     }
+
     static String getSimpleName(ClassNode cl) {
         return getSimpleName(cl.name);
     }
@@ -257,6 +218,7 @@ public class ForeignJava {
         package_name = Useful.replace(package_name, "/", ".");
         return package_name;
     }
+
     static String getPackageName(ClassNode cl) {
         return getPackageName(cl.name);
     }
@@ -276,8 +238,8 @@ public class ForeignJava {
         for (AliasedSimpleName name : names) {
             Option<IdOrOpOrAnonymousName> opt_alias = name.getAlias();
             if (opt_alias.isSome()) {
-//                throw StaticError.make(
-//                "Import aliasing not yet implemented for foreign imports ", i);
+                //                throw StaticError.make(
+                //                "Import aliasing not yet implemented for foreign imports ", i);
             }
 
             IdOrOpOrAnonymousName imported = name.getName();
@@ -326,20 +288,22 @@ public class ForeignJava {
              */
             ClassNode imported_class = null;
             while (last_dot > 0) {
-                String candidate_class = suffix.substring(0,last_dot);
+                String candidate_class = suffix.substring(0, last_dot);
                 candidate_class = pkg_name_string + "." + Useful.replace(candidate_class, ".", "$");
-                    try {
-                        imported_class = findClass(candidate_class);
-                        break;
-                        // exit with imported_class and last_dot
-                    } catch (IOException e) {
-                        // failed to get this one
-                    }
+                try {
+                    imported_class = findClass(candidate_class);
+                    break;
+                    // exit with imported_class and last_dot
+                }
+                catch (IOException e) {
+                    // failed to get this one
+                }
                 last_dot = suffix.lastIndexOf('.', last_dot);
             }
             if (imported_class == null) {
                 // Could not match a class to any prefix
-                throw StaticError.make("Could not find any Java package.class prefix of  "+ pkg_name_string + "." + suffix, i);
+                throw StaticError.make(
+                        "Could not find any Java package.class prefix of  " + pkg_name_string + "." + suffix, i);
             }
             /* imported_class specifies the class,
              * the item is the unused portion of the suffix.
@@ -361,21 +325,21 @@ public class ForeignJava {
 
         } /* for name : names */
 
-//        System.err.println("classesIncludedInForeignAPI="+classesIncludedInForeignAPI);
-//        System.err.println("classesImportedByAPI="+classesImportedByAPI);
-//        System.err.println("itemsFromClasses="+itemsFromClasses);
+        //        System.err.println("classesIncludedInForeignAPI="+classesIncludedInForeignAPI);
+        //        System.err.println("classesImportedByAPI="+classesImportedByAPI);
+        //        System.err.println("itemsFromClasses="+itemsFromClasses);
 
     }
 
     /**
      * @param imported_type
      */
-    private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package, org.objectweb.asm.Type imported_type) {
+    private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package,
+                                                           org.objectweb.asm.Type imported_type) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
         com.sun.fortress.nodes.Type t = NamingCzar.only.fortressTypeForForeignJavaType(imported_type);
-        if (t != null)
-            return t;
+        if (t != null) return t;
 
         String internal_name = imported_type.getInternalName();
         String package_name = getPackageName(internal_name);
@@ -393,7 +357,7 @@ public class ForeignJava {
         /*
          * Ensure that the API and class appear.
          */
-        classesIncludedInForeignAPI.putItem(api_name,imported_type);
+        classesIncludedInForeignAPI.putItem(api_name, imported_type);
 
 
         /*
@@ -406,7 +370,8 @@ public class ForeignJava {
             itemsFromClasses.putKey(imported_type);
             // Construct a minimal trait declaration for this class.
             classToTraitType(imported_type, api_name, name, Collections.<Decl>emptyList());
-        };
+        }
+        ;
 
         // LOSE THE DOTTED REFERENCE, at least for now.
         // name = NodeFactory.makeId(api_name, name);
@@ -414,15 +379,23 @@ public class ForeignJava {
         return NodeFactory.makeTraitType(span(imported_type), false, name);
     }
 
-    private void classToTraitType(Type imported_class, APIName api_name,
-            Id name, List<Decl> decls) {
+    private void classToTraitType(Type imported_class, APIName api_name, Id name, List<Decl> decls) {
         List<StaticParam> sparams = Collections.emptyList();
         List<TraitTypeWhere> extendsC = Collections.emptyList();
         Modifiers mods = Modifiers.None;
         Option<WhereClause> whereC = Option.none();
         List<BaseType> excludesC = Collections.emptyList();
         Option<List<BaseType>> comprisesC = Option.none();
-        TraitDecl td = NodeFactory.makeTraitDecl (span(imported_class), mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC, Option.<com.sun.fortress.nodes.Type>none());
+        TraitDecl td = NodeFactory.makeTraitDecl(span(imported_class),
+                                                 mods,
+                                                 name,
+                                                 sparams,
+                                                 extendsC,
+                                                 whereC,
+                                                 decls,
+                                                 excludesC,
+                                                 comprisesC,
+                                                 Option.<com.sun.fortress.nodes.Type>none());
         // Need to fake up an API for this class, too.
         classToTraitDecl.put(imported_class, td);
         apiToStaticDecls.putItem(api_name, td);
@@ -434,7 +407,7 @@ public class ForeignJava {
         cachedFakeApis.remove(api_name);
     }
 
-    static Comparator<MethodNode> methodNodeComparator = new Comparator<MethodNode> () {
+    static Comparator<MethodNode> methodNodeComparator = new Comparator<MethodNode>() {
 
         public int compare(MethodNode o1, MethodNode o2) {
             return methodName(o1).compareTo(methodName(o2));
@@ -444,8 +417,7 @@ public class ForeignJava {
 
     private long subsetHash(org.objectweb.asm.Type t, ClassNode cn) {
         long h = t.hashCode();
-        BASet<MethodNode> methods =
-            new BASet<MethodNode> (methodNodeComparator, cn.methods);
+        BASet<MethodNode> methods = new BASet<MethodNode>(methodNodeComparator, cn.methods);
         for (MethodNode m : methods) {
             int access = m.access;
             if (isPublic(access)) {
@@ -465,10 +437,8 @@ public class ForeignJava {
         org.objectweb.asm.Type t = type(imported_class);
         APIName importer = comp.getName();
 
-        if (comp instanceof Api)
-            classesImportedByAPI.putItem(importer, t, subsetHash(t, imported_class));
-        else
-            classesImportedByComp.putItem(importer, t, subsetHash(t, imported_class));
+        if (comp instanceof Api) classesImportedByAPI.putItem(importer, t, subsetHash(t, imported_class));
+        else classesImportedByComp.putItem(importer, t, subsetHash(t, imported_class));
 
         Set<String> old = itemsFromClasses.get(t);
 
@@ -489,9 +459,9 @@ public class ForeignJava {
         itemsFromClasses.putItem(t, imported_item);
 
         List<MethodNode> methods = imported_class.methods;
-//        Field[] fields = imported_class.getDeclaredFields();
-//        Class[] interfaces = imported_class.getInterfaces();
-//        Class super_class = imported_class.getSuperclass();
+        //        Field[] fields = imported_class.getDeclaredFields();
+        //        Class[] interfaces = imported_class.getInterfaces();
+        //        Class super_class = imported_class.getSuperclass();
 
         ArrayList<Decl> trait_decls = new ArrayList<Decl>();
 
@@ -499,7 +469,7 @@ public class ForeignJava {
             int access = m.access;
             if (isPublic(access)) {
                 if (isStatic(access)) {
-                 // static goes to api-indexed set
+                    // static goes to api-indexed set
                     FnDecl decl = recurOnMethod(pkg_name, imported_class, m, true);
                     apiToStaticDecls.putItem(pkg_name, decl);
                 } else {
@@ -517,8 +487,7 @@ public class ForeignJava {
 
     private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
         String methodKey = methodName(m);
-        if (methodToDecl.containsKey(methodKey))
-            return methodToDecl.get(methodKey);
+        if (methodToDecl.containsKey(methodKey)) return methodToDecl.get(methodKey);
 
         Type rt = returnType(m);
         Type[] pts = argumentTypes(m);
@@ -530,26 +499,31 @@ public class ForeignJava {
         for (Type pt : pts) {
             com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt);
             Span param_span = NodeFactory.makeSpan(span(m) + " p#" + i);
-            Id id = NodeFactory.makeId(param_span, "p"+(i++));
+            Id id = NodeFactory.makeId(param_span, "p" + (i++));
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
 
         Span fn_span = span(m);
-        Id id = is_static ?
-                NodeFactory.makeId(fn_span, getSimpleName(cl)+"."+ getName(m)) :
-            NodeFactory.makeId(fn_span, getName(m));
-        FnDecl fndecl = NodeFactory.makeFnDecl(fn_span, Modifiers.None,
-                id, params,Option.some(return_type), Option.<Expr>none());
+        Id id = is_static ? NodeFactory.makeId(fn_span, getSimpleName(cl) + "." + getName(m)) : NodeFactory.makeId(
+                fn_span,
+                getName(m));
+        FnDecl fndecl = NodeFactory.makeFnDecl(fn_span,
+                                               Modifiers.None,
+                                               id,
+                                               params,
+                                               Option.some(return_type),
+                                               Option.<Expr>none());
         methodToDecl.put(methodKey, fndecl);
         return fndecl;
     }
+
     /**
      * @param m
      * @return
      */
     private static String methodName(MethodNode m) {
-        return m.name+m.desc;
+        return m.name + m.desc;
     }
 
     private boolean isPublic(int modifiers) {
@@ -576,10 +550,9 @@ public class ForeignJava {
 
             List<Import> imports = new ArrayList<Import>();
             IMultiMap<APIName, Id> gi = generatedImports.get(name);
-            if (gi != null)
-                for (APIName a : gi.keySet()) {
-                    importAnApi(imports, a, gi.get(a));
-                }
+            if (gi != null) for (APIName a : gi.keySet()) {
+                importAnApi(imports, a, gi.get(a));
+            }
 
             List<Decl> decls = new ArrayList<Decl>();
             for (Decl d : apiToStaticDecls.get(name)) {
@@ -593,6 +566,7 @@ public class ForeignJava {
         return result;
 
     }
+
     private void importAnApi(List<Import> imports, APIName a, Set<Id> items) {
 
         List<AliasedSimpleName> lasn = new ArrayList<AliasedSimpleName>();
@@ -600,7 +574,8 @@ public class ForeignJava {
             @Override
             public AliasedSimpleName apply(Id x) {
                 return NodeFactory.makeAliasedSimpleName(x);
-            } }, lasn);
+            }
+        }, lasn);
 
         ImportNames imp_names = NodeFactory.makeImportNames(span(), Option.some("java"), a, lasn);
 
@@ -639,11 +614,11 @@ public class ForeignJava {
         APIName next_name = next.getName();
 
         Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld =
-            (node instanceof ApiGraphNode) ? classesImportedByAPIOld : classesImportedByCompOld;
+                (node instanceof ApiGraphNode) ? classesImportedByAPIOld : classesImportedByCompOld;
 
         MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = classImportedByCurrent(node);
 
-        if (! classesImportedByOld.containsKey(node_name)) {
+        if (!classesImportedByOld.containsKey(node_name)) {
             // read the data from disk.
             readDependenceDataForAST(classesImportedByOld, node);
         }
@@ -651,57 +626,59 @@ public class ForeignJava {
         Map<Type, Long> oldmap = classesImportedByOld.get(node_name);
         Map<Type, Long> newmap = classesImportedByNew.get(node_name);
 
-        if (oldmap == null || newmap == null)
-            return true;
+        if (oldmap == null || newmap == null) return true;
 
         // need to implement proper test.
 
-        return ! oldmap.equals(newmap);
+        return !oldmap.equals(newmap);
     }
 
-     public void writeDependenceDataForAST(GraphNode node) {
+    public void writeDependenceDataForAST(GraphNode node) {
         try {
-            if (!hasForeignDependence(node))
-                return;
+            if (!hasForeignDependence(node)) return;
             String s = dependsFileName(node);
-            OutputStream o =
-                    new FileOutputStream(s);
+            OutputStream o = new FileOutputStream(s);
             MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = classImportedByCurrent(node);
 
             dependenceSerializer.version(o);
             dependenceSerializer.write(o, classesImportedByNew.get(node.getName()));
 
             o.close();
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
 
         }
     }
 
-    static private void readDependenceDataForAST(Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld, GraphNode node) throws Error {
+    static private void readDependenceDataForAST(Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld,
+                                                 GraphNode node) throws Error {
         InputStream i;
         String s = dependsFileName(node);
         boolean found = false;
         try {
             i = new FileInputStream(s);
             try {
-            dependenceSerializer.version(i);
-            Map<Type, Long> object = dependenceSerializer.read(i);
+                dependenceSerializer.version(i);
+                Map<Type, Long> object = dependenceSerializer.read(i);
 
-            classesImportedByOld.put(node.getName(),  object);
-            } finally {
+                classesImportedByOld.put(node.getName(), object);
+            }
+            finally {
                 i.close();
             }
             found = true;
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
-        } catch (VersionMismatch e) {
+        }
+        catch (VersionMismatch e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        if (! found)
-            classesImportedByOld.put(node.getName(),  Collections.<Type, Long>emptyMap());
+        if (!found) classesImportedByOld.put(node.getName(), Collections.<Type, Long>emptyMap());
 
     }
 
@@ -711,10 +688,9 @@ public class ForeignJava {
         return classesImportedByNew.containsKey(node.getName());
     }
 
-    private MapOfMap<APIName, org.objectweb.asm.Type, Long> classImportedByCurrent(
-            GraphNode node) {
+    private MapOfMap<APIName, org.objectweb.asm.Type, Long> classImportedByCurrent(GraphNode node) {
         MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew =
-            (node instanceof ApiGraphNode) ? classesImportedByAPI : classesImportedByComp;
+                (node instanceof ApiGraphNode) ? classesImportedByAPI : classesImportedByComp;
         return classesImportedByNew;
     }
 
@@ -747,25 +723,24 @@ public class ForeignJava {
             if (i == -1) {
                 s = Useful.substring(s, 1, Integer.MAX_VALUE);
             } else {
-                s = Useful.substring(s, i+1, Integer.MAX_VALUE);
+                s = Useful.substring(s, i + 1, Integer.MAX_VALUE);
             }
             final String startswith = s + ".";
 
             Set<OverloadSet> some_overloads = Useful.matchingSubset(overloads,
-                    new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
+                                                                    new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
 
-                        @Override
-                        public Boolean apply(OverloadSet x) {
-                            String name = x.getName().stringName();
-                            return name.startsWith(startswith);
-                        }
+                                                                        @Override
+                                                                        public Boolean apply(OverloadSet x) {
+                                                                            String name = x.getName().stringName();
+                                                                            return name.startsWith(startswith);
+                                                                        }
 
-            });
+                                                                    });
 
             FortressTransformer.transform(t.getClassName(), some_overloads);
         }
     }
-
 
 
 }

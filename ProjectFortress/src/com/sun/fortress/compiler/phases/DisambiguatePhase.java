@@ -21,20 +21,18 @@ import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.Disambiguator;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes_util.Nodes;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 public class DisambiguatePhase extends Phase {
 

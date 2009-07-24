@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -33,8 +33,8 @@ public final class Debug {
 
     /* A list of possible debugging type. */
     public enum Type {
-        FORTRESS("fortress"), ASTGEN("astgen"), CODEGEN("codegen"), 
-        ENVGEN("envgen"), COMPILER("compiler"), INTERPRETER("interpreter"), 
+        FORTRESS("fortress"), ASTGEN("astgen"), CODEGEN("codegen"),
+        ENVGEN("envgen"), COMPILER("compiler"), INTERPRETER("interpreter"),
         PARSER("parser"), REPOSITORY("repository"), SYNTAX("syntax");
 
         private final String name;
@@ -58,7 +58,7 @@ public final class Debug {
         }
 
         public static void setAllOn() {
-            for( Type type : Type.values() ) {
+            for (Type type : Type.values()) {
                 type.setOn(true);
             }
         }
@@ -68,7 +68,7 @@ public final class Debug {
     /* Return a string specifying the debugging types suppored */
     public static String typeStrings() {
         String retString = "";
-        for( Type type : Type.values() ) {
+        for (Type type : Type.values()) {
             retString += type.toString() + " ";
         }
         return retString;
@@ -82,42 +82,42 @@ public final class Debug {
         boolean somethingIsOn = false;
         int tokenConsumed = 0;
 
-        for(int i=0; i<options.size(); i++) {
+        for (int i = 0; i < options.size(); i++) {
             String option = options.get(i);
 
-            if( option.equals(Type.FORTRESS.toString()) ) {
+            if (option.equals(Type.FORTRESS.toString())) {
                 Type.FORTRESS.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.ASTGEN.toString()) ) {
+            } else if (option.equals(Type.ASTGEN.toString())) {
                 Type.ASTGEN.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.ENVGEN.toString()) ) {
+            } else if (option.equals(Type.ENVGEN.toString())) {
                 Type.ENVGEN.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.CODEGEN.toString()) ) {
+            } else if (option.equals(Type.CODEGEN.toString())) {
                 Type.CODEGEN.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.COMPILER.toString()) ) {
+            } else if (option.equals(Type.COMPILER.toString())) {
                 Type.COMPILER.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.INTERPRETER.toString()) ) {
+            } else if (option.equals(Type.INTERPRETER.toString())) {
                 Type.INTERPRETER.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.PARSER.toString()) ) {
+            } else if (option.equals(Type.PARSER.toString())) {
                 Type.PARSER.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.REPOSITORY.toString()) ) {
+            } else if (option.equals(Type.REPOSITORY.toString())) {
                 Type.REPOSITORY.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
-            } else if( option.equals(Type.SYNTAX.toString()) ) {
+            } else if (option.equals(Type.SYNTAX.toString())) {
                 Type.SYNTAX.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
@@ -126,7 +126,8 @@ public final class Debug {
                     int l = Integer.valueOf(option);
                     Debug.level = l;
                     tokenConsumed++;
-                } catch(NumberFormatException e) {
+                }
+                catch (NumberFormatException e) {
                     /* Doesn't recognize this option; we are done.
                     */
                     break;
@@ -134,7 +135,7 @@ public final class Debug {
             }
         }
 
-        if( somethingIsOn == false ) {
+        if (somethingIsOn == false) {
             /* -debug flag is set but no debugging type specified */
             Type.setAllOn();
         }
@@ -146,12 +147,12 @@ public final class Debug {
      * and no specific debugging level is set when fortress is run.
      */
     public static void debug(Type type, Object... msgs) {
-        if ( type.isOn() && Debug.level == MAX_LEVEL ) {
-        	String msgToPrint = "[" + type.toString() + "] ";
-        	for(Object s : msgs) {
-        		msgToPrint += s.toString();
-        	}
-            debugPS.println( msgToPrint );
+        if (type.isOn() && Debug.level == MAX_LEVEL) {
+            String msgToPrint = "[" + type.toString() + "] ";
+            for (Object s : msgs) {
+                msgToPrint += s.toString();
+            }
+            debugPS.println(msgToPrint);
         }
     }
 
@@ -160,24 +161,24 @@ public final class Debug {
      * set when fortress is run.
      */
     public static void debug(Type type, int level, Object... msgs) {
-        if ( type.isOn() && level <= Debug.level ) {
-           	String msgToPrint = "[" + type.toString() + "] ";
-        	for(Object s : msgs) {
-        		msgToPrint += s.toString();
-        	}
-            debugPS.println( msgToPrint );
+        if (type.isOn() && level <= Debug.level) {
+            String msgToPrint = "[" + type.toString() + "] ";
+            for (Object s : msgs) {
+                msgToPrint += s.toString();
+            }
+            debugPS.println(msgToPrint);
         }
     }
 
     public static boolean isOnMax() {
-        return(Debug.level == MAX_LEVEL);
+        return (Debug.level == MAX_LEVEL);
     }
 
     /* Checking whether debugging is on in the most general sense: that the debug
      * level is on at all..
      */
     public static boolean isOn() {
-        return(Debug.level > 0);
+        return (Debug.level > 0);
     }
 
     /* Checking whether debugging is on for the type specified by the
@@ -185,7 +186,7 @@ public final class Debug {
      * is run or is set to the MAX_LEVEL.
      */
     public static boolean isOnMaxFor(Type type) {
-        if(type.isOn() && Debug.level == MAX_LEVEL) return true;
+        if (type.isOn() && Debug.level == MAX_LEVEL) return true;
         return false;
     }
 
@@ -193,7 +194,7 @@ public final class Debug {
      * type specified by the arguments.
      */
     public static boolean isOnFor(int l, Type type) {
-        if(type.isOn() && l <= Debug.level ) return true;
+        if (type.isOn() && l <= Debug.level) return true;
         return false;
     }
 
@@ -207,7 +208,6 @@ public final class Debug {
        debugPS.println( String.format("End of Array %s", o.toString()) );
        }
        }*/
-
 
 
 }

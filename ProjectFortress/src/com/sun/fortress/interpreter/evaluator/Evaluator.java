@@ -1,39 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
+import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.exceptions.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
-import java.util.concurrent.Callable;
-
-import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.exceptions.FortressError;
-import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.exceptions.LabelException;
-import com.sun.fortress.exceptions.NamedLabelException;
-import com.sun.fortress.exceptions.ProgramError;
-import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.env.BetterEnv;
@@ -43,117 +31,24 @@ import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
-import com.sun.fortress.interpreter.evaluator.values.Constructor;
-import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
-import com.sun.fortress.interpreter.evaluator.values.FAsIf;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FChar;
-import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
-import com.sun.fortress.interpreter.evaluator.values.FIntLiteral;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FTuple;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
-import com.sun.fortress.interpreter.evaluator.values.IUOTuple;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.Selectable;
+import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
-import com.sun.fortress.nodes.ArrayComprehension;
-import com.sun.fortress.nodes.ArrayComprehensionClause;
-import com.sun.fortress.nodes.ArrayElement;
-import com.sun.fortress.nodes.ArrayElements;
-import com.sun.fortress.nodes.ArrayExpr;
-import com.sun.fortress.nodes.AsExpr;
-import com.sun.fortress.nodes.AsIfExpr;
-import com.sun.fortress.nodes.Assignment;
-import com.sun.fortress.nodes.AtomicExpr;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.CaseClause;
-import com.sun.fortress.nodes.CaseExpr;
-import com.sun.fortress.nodes.Catch;
-import com.sun.fortress.nodes.CatchClause;
-import com.sun.fortress.nodes.ChainExpr;
-import com.sun.fortress.nodes.CharLiteralExpr;
-import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.Exit;
-import com.sun.fortress.nodes.ExponentiationMI;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExprMI;
-import com.sun.fortress.nodes.ExtentRange;
-import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.FloatLiteralExpr;
-import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.GeneratorClause;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.If;
-import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.Juxt;
-import com.sun.fortress.nodes.KeywordExpr;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.Label;
-import com.sun.fortress.nodes.LetExpr;
-import com.sun.fortress.nodes.Lhs;
-import com.sun.fortress.nodes.Link;
-import com.sun.fortress.nodes.MathItem;
-import com.sun.fortress.nodes.MathPrimary;
-import com.sun.fortress.nodes.MethodInvocation;
-import com.sun.fortress.nodes.Name;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NonExprMI;
-import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.FunctionalRef;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.ParenthesisDelimitedMI;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StringLiteralExpr;
-import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.SubscriptingMI;
-import com.sun.fortress.nodes.Throw;
-import com.sun.fortress.nodes.Try;
-import com.sun.fortress.nodes.TryAtomicExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Typecase;
-import com.sun.fortress.nodes.TypecaseClause;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._RewriteFnApp;
-import com.sun.fortress.nodes._RewriteFnRef;
-import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.nodes._RewriteObjectExprRef;
-import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.OprUtil;
-import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
-
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Stack;
+import java.util.concurrent.Callable;
+
 public class Evaluator extends EvaluatorBase<FValue> {
-     boolean debug = false;
+    boolean debug = false;
 
     public FValue eval(Expr e) {
         return e.accept(this);
@@ -161,7 +56,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     /**
      * Creates a new evaluator in a primitive environment.
-     *
      */
     public Evaluator(HasAt within) {
         this(BetterEnv.primitive(within));
@@ -201,12 +95,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue NI(String s, AbstractNode n) {
-        return bug(n, this.getClass().getName() + "." + s
-                + " not implemented, input \n" + NodeUtil.dump(n));
+        return bug(n, this.getClass().getName() + "." + s + " not implemented, input \n" + NodeUtil.dump(n));
     }
 
     public FValue defaultCase(Node n) {
-        return bug(n, errorMsg("Cannot evaluate the node ",n," of type ",n.getClass()));
+        return bug(n, errorMsg("Cannot evaluate the node ", n, " of type ", n.getClass()));
     }
 
     public FValue forAsExpr(AsExpr x) {
@@ -214,11 +107,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue val = expr.accept(this);
         Type ty = x.getAnnType();
         FType fty = EvalType.getFType(ty, e);
-        if (val.type().subtypeOf(fty))
-            return val;
-        else
-            return error(x, e, errorMsg("The type of expression ", val.type(),
-                                        " is not a subtype of ", fty, "."));
+        if (val.type().subtypeOf(fty)) return val;
+        else return error(x, e, errorMsg("The type of expression ", val.type(), " is not a subtype of ", fty, "."));
     }
 
     public FValue forAsIfExpr(AsIfExpr x) {
@@ -226,11 +116,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue val = expr.accept(this);
         Type ty = x.getAnnType();
         FType fty = EvalType.getFType(ty, e);
-        if (val.type().subtypeOf(fty))
-            return new FAsIf(val,fty);
-        else
-            return error(x, e, errorMsg("Type of expression, ", val.type(),
-                                        ", not a subtype of ", fty, "."));
+        if (val.type().subtypeOf(fty)) return new FAsIf(val, fty);
+        else return error(x, e, errorMsg("Type of expression, ", val.type(), ", not a subtype of ", fty, "."));
     }
 
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
@@ -280,15 +167,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
             rhsIt = rhs_tuple.getVals().iterator();
             // Verify, now, that LHS and RHS sizes match.
             if (rhs_tuple.getVals().size() != lhsSize) {
-                error(x,e,
-                      errorMsg("Tuple assignment size mismatch, | lhs | = ",
-                               lhsSize, ", | rhs | = ",
-                               rhs_tuple.getVals().size()));
+                error(x, e, errorMsg("Tuple assignment size mismatch, | lhs | = ",
+                                     lhsSize,
+                                     ", | rhs | = ",
+                                     rhs_tuple.getVals().size()));
             }
         } else if (lhsSize != 1) {
-            error(x,e,
-                  errorMsg("Tuple assignment size mismatch, | lhs | = ",
-                           lhsSize, ", rhs is not a tuple"));
+            error(x, e, errorMsg("Tuple assignment size mismatch, | lhs | = ", lhsSize, ", rhs is not a tuple"));
         }
 
         for (Lhs lhs : lhses) {
@@ -306,17 +191,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Evaluator current = new Evaluator(this);
         FValue res = FVoid.V;
         try {
-            res = FortressTaskRunner.doIt (
-                                           new Callable<FValue>() {
-                                               public FValue call() {
-                                                   Evaluator ev = new Evaluator(current.e.extendAt(expr));
-                                                   return expr.accept(ev);
-                                               }
-                                           }
-                                           );
-        } catch (RuntimeException re) {
+            res = FortressTaskRunner.doIt(new Callable<FValue>() {
+                public FValue call() {
+                    Evaluator ev = new Evaluator(current.e.extendAt(expr));
+                    return expr.accept(ev);
+                }
+            });
+        }
+        catch (RuntimeException re) {
             throw re;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
         return res;
@@ -333,20 +218,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return expr.accept(ev);
         }
         try {
-            res = FortressTaskRunner.doItOnce(
-                new Callable<FValue>() {
-                    public FValue call() {
-                        Evaluator ev = new Evaluator(current.e.extendAt(expr));
-                        FValue res1 = expr.accept(ev);
-                        return res1;
-                    }
+            res = FortressTaskRunner.doItOnce(new Callable<FValue>() {
+                public FValue call() {
+                    Evaluator ev = new Evaluator(current.e.extendAt(expr));
+                    FValue res1 = expr.accept(ev);
+                    return res1;
                 }
-                                              );
-        } catch (AbortedException ae) {
+            });
+        }
+        catch (AbortedException ae) {
             FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.tryatomicFailureException);
-            FortressError f_exc = new FortressError(x,e,f);
+            FortressError f_exc = new FortressError(x, e, f);
             throw f_exc;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
         return res;
@@ -385,8 +270,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
-            if (f.isAtomicBlock())
-                tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
+            if (f.isAtomicBlock()) tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
             else {
                 tasks.add(new TupleTask(f, new Evaluator(this)));
             }
@@ -414,7 +298,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @param exprs
      * @return
      */
-     <T extends Expr> List<FValue> evalExprList(List<T> exprs) {
+    <T extends Expr> List<FValue> evalExprList(List<T> exprs) {
         List<FValue> res = new ArrayList<FValue>(exprs.size());
         return evalExprList(exprs, res);
     }
@@ -447,9 +331,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (exp instanceof LetExpr) {
                 Environment inner = this.e.extendAt(exp);
                 BuildLetEnvironments be = new BuildLetEnvironments(inner);
-                    res = be.doLets((LetExpr) exp);
+                res = be.doLets((LetExpr) exp);
             } else {
-                    res = exp.accept(this);
+                res = exp.accept(this);
             }
         }
         return res;
@@ -460,29 +344,30 @@ public class Evaluator extends EvaluatorBase<FValue> {
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
         ArrayList<TupleTask> TupleTasks = new ArrayList<TupleTask>(sz);
-        if (sz<2 || !TupleTask.worthSpawning()) {
-            evalExprList(exprs,resList);
+        if (sz < 2 || !TupleTask.worthSpawning()) {
+            evalExprList(exprs, resList);
         } else {
             for (Expr expr : exprs)
-                // We want to add things to the front of the list.
+            // We want to add things to the front of the list.
+            {
                 TupleTasks.add(0, new TupleTask(expr, this));
+            }
 
             BaseTask currentTask = FortressTaskRunner.getTask();
             TupleTask.invokeAll(TupleTasks);
             FortressTaskRunner.setCurrentTask(currentTask);
 
             for (TupleTask task : TupleTasks) {
-                resList.add(0,task.getResOrException());
+                resList.add(0, task.getResOrException());
             }
         }
 
-        if (resList.size() != exprs.size())
-            bug("We should have the same number of results as we did exprs resList = " +
-                resList + " exprs = " + exprs );
+        if (resList.size() != exprs.size()) bug(
+                "We should have the same number of results as we did exprs resList = " + resList + " exprs = " + exprs);
         return resList;
     }
 
-    CaseClause findExtremum(CaseExpr x, Fcn fcn ) {
+    CaseClause findExtremum(CaseExpr x, Fcn fcn) {
         List<CaseClause> clauses = x.getClauses();
         Iterator<CaseClause> i = clauses.iterator();
 
@@ -498,8 +383,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             vargs.add(winner);
             FValue invoke = fcn.functionInvocation(vargs, x);
             if (!(invoke instanceof FBool)) {
-                return error(x,errorMsg("Non-boolean result ",invoke,
-                                        " in chain, args ", vargs));
+                return error(x, errorMsg("Non-boolean result ", invoke, " in chain, args ", vargs));
             }
             FBool boolres = (FBool) invoke;
             if (boolres.getBool()) {
@@ -517,18 +401,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Option<FunctionalRef> compare = x.getCompare();
             if (compare.isSome()) {
                 FValue op = getOp(compare.unwrap());
-                return forBlock(findExtremum(x,(Fcn) op).getBody());
-            } else
-                return error(x,errorMsg("Missing operator for the extremum ",
-                                        "expression ", x));
+                return forBlock(findExtremum(x, (Fcn) op).getBody());
+            } else return error(x, errorMsg("Missing operator for the extremum ", "expression ", x));
         } else {
             // Evaluate the parameter
             FValue paramValue = param.unwrap().accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue(x.getEqualsOp());
             Option<FunctionalRef> compare = x.getCompare();
-            if (compare.isSome())
-                fcn = (Fcn) getOp(compare.unwrap());
+            if (compare.isSome()) fcn = (Fcn) getOp(compare.unwrap());
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
@@ -538,13 +419,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> vargs = new ArrayList<FValue>();
                 vargs.add(paramValue);
                 vargs.add(match);
-                if (Glue.extendsGenericTrait(match.type(),
-                                             WellKnownNames.containsTypeName)) {
+                if (Glue.extendsGenericTrait(match.type(), WellKnownNames.containsTypeName)) {
                     fcn = (Fcn) Driver.getFortressLibrary().getRootValue(WellKnownNames.containsMatchName);
                 }
                 FBool success = (FBool) fcn.functionInvocation(vargs, c);
-                if (success.getBool())
-                    return forBlock(c.getBody());
+                if (success.getBool()) return forBlock(c.getBody());
             }
             Option<Block> _else = x.getElseClause();
             if (_else.isSome()) {
@@ -552,7 +431,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return forBlock(_else.unwrap());
             }
             FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.matchFailureException);
-            FortressError f_exc = new FortressError(x,e,f);
+            FortressError f_exc = new FortressError(x, e, f);
             throw f_exc;
         }
     }
@@ -586,10 +465,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 vargs.set(1, exprVal);
                 FValue invoke = fcn.functionInvocation(vargs, x);
                 if (!(invoke instanceof FBool)) {
-                    return error(x,errorMsg("Non-boolean result ",invoke,
-                                            " in chain, args ", vargs));
+                    return error(x, errorMsg("Non-boolean result ", invoke, " in chain, args ", vargs));
                 }
-                boolres = (FBool)invoke;
+                boolres = (FBool) invoke;
                 idVal = exprVal;
             }
             return boolres;
@@ -597,8 +475,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     private boolean isShadow(Expr expr, String name) {
-        return (expr instanceof VarRef &&
-                NodeUtil.nameString(((VarRef)expr).getVarId()).equals(name));
+        return (expr instanceof VarRef && NodeUtil.nameString(((VarRef) expr).getVarId()).equals(name));
     }
 
     private boolean isShadow(Option<String> var, String name) {
@@ -611,7 +488,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private Option<String> getName(Expr expr) {
         if (expr instanceof VarRef) {
-            return Option.some(NodeUtil.nameString(((VarRef)expr).getVarId()));
+            return Option.some(NodeUtil.nameString(((VarRef) expr).getVarId()));
         } else { // !(expr instanceof VarRef)
             return Option.<String>none();
         }
@@ -648,26 +525,24 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
                 res.add(val.type());
             } else { // bindIds.size() > 1
-                List<Pair<FValue,Option<String>>> vals =
-                    new ArrayList<Pair<FValue,Option<String>>>();
+                List<Pair<FValue, Option<String>>> vals = new ArrayList<Pair<FValue, Option<String>>>();
                 if (expr instanceof TupleExpr) {
-                    for (Expr e : ((TupleExpr)expr).getExprs()) {
-                        vals.add(new Pair<FValue,Option<String>>(e.accept(ev),
-                                                                 getName(e)));
+                    for (Expr e : ((TupleExpr) expr).getExprs()) {
+                        vals.add(new Pair<FValue, Option<String>>(e.accept(ev), getName(e)));
                     }
                 } else { // !(expr instanceof TupleExpr)
                     FValue val = expr.accept(ev);
                     if (!(val instanceof FTuple)) {
                         error(expr, "RHS does not yield a tuple.");
                     }
-                    for (FValue v : ((FTuple)val).getVals()) {
-                        vals.add(new Pair<FValue,Option<String>>(v, Option.<String>none()));
+                    for (FValue v : ((FTuple) val).getVals()) {
+                        vals.add(new Pair<FValue, Option<String>>(v, Option.<String>none()));
                     }
                 }
                 int index = 0;
                 for (Id id : bindIds) {
                     String name = id.getText();
-                    Pair<FValue,Option<String>> pair = vals.get(index);
+                    Pair<FValue, Option<String>> pair = vals.get(index);
                     FValue val = pair.getA();
                     if (isShadow(pair.getB(), name)) {
                         /* Avoid shadow error when we bind the same var name */
@@ -684,8 +559,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return res;
     }
 
-    private boolean moreSpecificHelper(TypecaseClause candidate,
-                                       TypecaseClause current, Evaluator ev) {
+    private boolean moreSpecificHelper(TypecaseClause candidate, TypecaseClause current, Evaluator ev) {
         List<Type> candType = candidate.getMatchType();
         List<Type> curType = current.getMatchType();
         List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
@@ -701,8 +575,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // the
     // best matches so far, it should only get added to the result list once.
 
-    public List<TypecaseClause> BestMatches(TypecaseClause candidate,
-            List<TypecaseClause> bestSoFar, Evaluator ev) {
+    public List<TypecaseClause> BestMatches(TypecaseClause candidate, List<TypecaseClause> bestSoFar, Evaluator ev) {
         List<TypecaseClause> result = new ArrayList<TypecaseClause>();
         boolean addedCandidate = false;
 
@@ -730,8 +603,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         String result = "";
         for (Iterator<Id> i = x.getIds().iterator(); i.hasNext();) {
             result = result.concat(i.next().getText());
-            if (i.hasNext())
-                result = result.concat(".");
+            if (i.hasNext()) result = result.concat(".");
         }
         return FString.make(result);
     }
@@ -752,7 +624,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             String t = target.unwrap().getText();
             e = new NamedLabelException(x, t, res);
         } else {
-            e = new LabelException(x,res);
+            e = new LabelException(x, res);
         }
         throw e;
     }
@@ -766,24 +638,23 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return forFieldRefCommon(x, x.getField());
     }
 
-    private FValue forFieldRefCommon(FieldRef x, Name fld) throws FortressException,
-            ProgramError {
+    private FValue forFieldRefCommon(FieldRef x, Name fld) throws FortressException, ProgramError {
         String fname = NodeUtil.nameString(fld);
         Expr obj = x.getObj();
         FValue fobj = obj.accept(this);
         FValue gv = fobj.getValue();
         try {
             if (gv instanceof Selectable) {
-                FValue res = ((Selectable)gv).select(fname);
+                FValue res = ((Selectable) gv).select(fname);
                 if (!(res instanceof Method)) return res;
                 // If it's a method, fall through and make dotted method app.
             } else {
-                return error(errorMsg("Non-object ",fobj," cannot have field ",
-                                      NodeUtil.nameString(fld)));
+                return error(errorMsg("Non-object ", fobj, " cannot have field ", NodeUtil.nameString(fld)));
             }
-            return DottedMethodApplication.make(fobj,fname,fname);
-        } catch (FortressException ex) {
-            throw ex.setContext(x,e);
+            return DottedMethodApplication.make(fobj, fname, fname);
+        }
+        catch (FortressException ex) {
+            throw ex.setContext(x, e);
         }
     }
 
@@ -797,9 +668,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
         String mname = NodeUtil.nameString(method);
         List<StaticArg> sargs = x.getStaticArgs();
         if (sargs.isEmpty()) {
-            return invokeMethod(self,mname,args,x);
+            return invokeMethod(self, mname, args, x);
         } else {
-            return invokeGenericMethod(self,mname,sargs,args,x);
+            return invokeGenericMethod(self, mname, sargs, args, x);
         }
     }
 
@@ -812,7 +683,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forGeneratorClause(GeneratorClause x) {
-        return bug(x,errorMsg("Generator clause "+x+" remains after desugaring"));
+        return bug(x, errorMsg("Generator clause " + x + " remains after desugaring"));
     }
 
     public FValue forId(Id x) {
@@ -825,10 +696,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             IfClause ifclause = i.next();
             GeneratorClause cond = ifclause.getTestClause();
             Expr testExpr;
-            if (cond.getBind().isEmpty())
-                testExpr = cond.getInit();
-            else
-                testExpr = bug(ifclause,"Undesugared generalized if expression.");
+            if (cond.getBind().isEmpty()) testExpr = cond.getInit();
+            else testExpr = bug(ifclause, "Undesugared generalized if expression.");
             FValue clauseVal = testExpr.accept(this);
             if (clauseVal instanceof FBool) {
                 if (((FBool) clauseVal).getBool()) {
@@ -836,20 +705,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             } else {
                 if (clauseVal.type() instanceof FTraitOrObject) {
-                    if (((FTraitOrObject)clauseVal.type()).getName().equals("Just"))
-                        return ifclause.getBody().accept(this);
+                    if (((FTraitOrObject) clauseVal.type()).getName().equals("Just")) return ifclause.getBody().accept(
+                            this);
                 } else {
-                    return error(ifclause,
-                                 errorMsg("If clause did not return boolean, " +
-                                          "but ", clauseVal));
+                    return error(ifclause, errorMsg("If clause did not return boolean, " + "but ", clauseVal));
                 }
             }
         }
         Option<Block> else_ = x.getElseClause();
         if (else_.isSome()) {
             return else_.unwrap().accept(this);
-        }
-        else {
+        } else {
             return FVoid.V;
         }
     }
@@ -861,16 +727,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forLabel(Label x) {
         Id name = x.getName();
-        Block body  = x.getBody();
+        Block body = x.getBody();
         FValue res = FVoid.V;
         try {
             Evaluator ev = new Evaluator(e.extendAt(body));
             res = ev.forBlock(body);
-        } catch (NamedLabelException e) {
+        }
+        catch (NamedLabelException e) {
             if (e.match(name.getText())) {
                 return e.res();
             } else throw e;
-        } catch (LabelException e) {
+        }
+        catch (LabelException e) {
             return e.res();
         }
         return res;
@@ -882,7 +750,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue f = fns.pop();
 
             if (f instanceof Fcn) {
-                tos = ((Fcn)f).functionInvocation(argList(tos), loc);
+                tos = ((Fcn) f).functionInvocation(argList(tos), loc);
             } else {
                 tos = Fcn.functionInvocation(Useful.list(f, tos), times, loc);
             }
@@ -891,11 +759,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forJuxt(Juxt x) {
-        if ( x.isTight() ) {
+        if (x.isTight()) {
             /** Assumes wrapped FnRefs have ids fields of length 1. */
             return forTightJuxt(x, false);
-        } else
-            return forJuxtCommon(x);
+        } else return forJuxtCommon(x);
     }
 
     public FValue forJuxtCommon(Juxt x) {
@@ -906,13 +773,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // We do not handle functional methods, and overlap therewith, at all.
         List<Expr> exprs = x.getExprs();
         FValue times;
-        if (exprs.size() == 0)
-            bug(x,"empty juxtaposition");
+        if (exprs.size() == 0) bug(x, "empty juxtaposition");
         try {
-                // times = e.getValue("juxtaposition");
+            // times = e.getValue("juxtaposition");
             times = e.getValueNull(x.getInfixJuxt());
-        } catch (FortressException fe) {
-            throw fe.setContext(x,e);
+        }
+        catch (FortressException fe) {
+            throw fe.setContext(x, e);
         }
         List<FValue> evaled = evalExprListParallel(exprs);
         Boolean inFunction = true;
@@ -956,14 +823,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // MDEs occur only within ArrayElements, and reset
         // row evaluation to an outercontext (in the scope
         // of the element, that is).
-        return bug(x,"Singleton paste?  Can't judge dimensionality without type inference.");
+        return bug(x, "Singleton paste?  Can't judge dimensionality without type inference.");
         // Evaluator notInPaste = new Evaluator(this);
         // return x.getElement().accept(notInPaste);
     }
 
     /**
      * Evaluates a pasting, outermost.
-     *
+     * <p/>
      * In an outer context, the across-all-dimensions correctness and size
      * information for the IUOTuples can be correctly determined. Until then, it
      * is too early to expand scalars up to full rank.
@@ -988,17 +855,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
             GenericConstructor gc = (GenericConstructor) v;
             List<StaticArg> args = x.getStaticArgs();
             Constructor cl = (Constructor) gc.typeApply(args, e, x);
-            return cl.applyOEConstructor( x, e);
+            return cl.applyOEConstructor(x, e);
         } else if (v instanceof Constructor) {
             Constructor cl = (Constructor) v;
             // FTypeObject fto = (FTypeObject) ft;
             // cl.setParams(Collections.<Parameter> emptyList());
             // BuildEnvironments.finishObjectTrait(x.getTraits(), fto, e);
             // cl.finishInitializing();
-            return cl.applyOEConstructor( x, e);
+            return cl.applyOEConstructor(x, e);
         } else {
-            return bug(x,e, errorMsg("_RewriteObjectExpr ", s,
-                                              " has 'constructor' ", v));
+            return bug(x, e, errorMsg("_RewriteObjectExpr ", s, " has 'constructor' ", v));
         }
 
         // Option<List<Type>> traits = x.getTraits();
@@ -1013,37 +879,34 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (op.getLexicalDepth() != Environment.TOP_LEVEL) {
                 bug("Expect all oprefs to be top level " + op);
             }
-            if (op.getNames().size() != 1)
-                bug("Should have rewritten ops to length 1, op="+
-                        op + ", list =" + op.getNames());
+            if (op.getNames().size() != 1) bug(
+                    "Should have rewritten ops to length 1, op=" + op + ", list =" + op.getNames());
             IdOrOp name = op.getNames().get(0);
-            if ( ! (name instanceof Op) )
-                bug("The name field of OpRef should be Op.");
-            FValue v = e.getValue((Op)name, Environment.TOP_LEVEL);
+            if (!(name instanceof Op)) bug("The name field of OpRef should be Op.");
+            FValue v = e.getValue((Op) name, Environment.TOP_LEVEL);
             return v;
             //return e.getValue(op);
-        } catch (FortressException ex) {
-            throw ex.setContext(op,e);
+        }
+        catch (FortressException ex) {
+            throw ex.setContext(op, e);
         }
     }
 
-//    public FValue forEnclosing(Enclosing x) {
-//        return getOp(x);
-//    }
-//
-//    public FValue forOp(Op op) {
-//        return getOp(op);
-//    }
+    //    public FValue forEnclosing(Enclosing x) {
+    //        return getOp(x);
+    //    }
+    //
+    //    public FValue forOp(Op op) {
+    //        return getOp(op);
+    //    }
 
     private boolean isExponentiation(OpExpr expr) {
         FunctionalRef ref = expr.getOp();
 
         IdOrOp name = ref.getOriginalName();
         if (!(name instanceof Op)) return false;
-        else return (((Op)name).getText().equals("^") ||
-                     OprUtil.isPostfix((Op)name));
+        else return (((Op) name).getText().equals("^") || OprUtil.isPostfix((Op) name));
     }
-
 
 
     // This method is not necessary in the long run. These nodes will
@@ -1061,39 +924,37 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                                      that.getArgs()));
     }
 
-    /** Assumes {@code x.getOps()} is a list of length 1.  At the
+    /**
+     * Assumes {@code x.getOps()} is a list of length 1.  At the
      * moment it appears that this is true for every OpExpr node that
-     * is ever created. */
+     * is ever created.
+     */
     public FValue forOpExpr(OpExpr x) {
         FunctionalRef ref = x.getOp();
 
         IdOrOp op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = getOp(ref); //op.accept(this);
-        fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
+        fvalue = applyToStaticArgs(fvalue, ref.getStaticArgs(), ref);
         // Evaluate actual parameters.
         int s = args.size();
         FValue res = FVoid.V;
         List<FValue> vargs;
 
-        if (op instanceof Op && OprUtil.isPostfix((Op)op) &&
-            args.size() == 1) {
-        // It is a static error if a function argument is immediately followed
-        // by a non-expression element.  For example, f(x)!
-        // It is a static error if an exponentiation is immediately followed
-        // by a non-expression element.  For example, a^b!
+        if (op instanceof Op && OprUtil.isPostfix((Op) op) && args.size() == 1) {
+            // It is a static error if a function argument is immediately followed
+            // by a non-expression element.  For example, f(x)!
+            // It is a static error if an exponentiation is immediately followed
+            // by a non-expression element.  For example, a^b!
             Expr arg = args.get(0);
-            if (arg instanceof OpExpr &&
-                isExponentiation((OpExpr)arg)) { // a^b!
+            if (arg instanceof OpExpr && isExponentiation((OpExpr) arg)) { // a^b!
                 vargs = error(arg,
                               "Syntax Error: an exponentiation should not be " +
-                              "immediately followed by a non-expression " +
-                              "element.");
-            } else if ( arg instanceof Juxt &&
-                        ((Juxt)arg).isTight() ) { // f(x)!
-                vargs = Useful.list(forTightJuxt((Juxt)arg, true));
+                              "immediately followed by a non-expression " + "element.");
+            } else if (arg instanceof Juxt && ((Juxt) arg).isTight()) { // f(x)!
+                vargs = Useful.list(forTightJuxt((Juxt) arg, true));
             } else if (arg instanceof MathPrimary) { // f(x)^y! y[a](x)!
-                vargs = Useful.list(forMathPrimary((MathPrimary)arg, true));
+                vargs = Useful.list(forMathPrimary((MathPrimary) arg, true));
             } else vargs = evalExprListParallel(args);
         } else vargs = evalExprListParallel(args);
 
@@ -1111,12 +972,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
          */
 
         if (!(fvalue instanceof Fcn)) {
-            error(x, e,
-                  errorMsg("Operator ", op.stringName(),
-                           " has a non-function value ", fvalue));
+            error(x, e, errorMsg("Operator ", op.stringName(), " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
-        if (s <= 2 || ((Op)op).isEnclosing()) {
+        if (s <= 2 || ((Op) op).isEnclosing()) {
             res = fcn.functionInvocation(vargs, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);
@@ -1160,77 +1019,88 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
         }
-        return invokeMethod(arr,opString,subs,x);
+        return invokeMethod(arr, opString, subs, x);
     }
 
     // Non-static version provides the obvious arguments.
-    public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
-                               HasAt site) {
+    public FValue invokeMethod(FValue receiver, String mname, List<FValue> args, HasAt site) {
         try {
-            return DottedMethodApplication.invokeMethod(receiver,mname,mname,args);
-        } catch (UnificationError ue) {
+            return DottedMethodApplication.invokeMethod(receiver, mname, mname, args);
+        }
+        catch (UnificationError ue) {
             // If we propagate these, they get misinterpreted by enclosing calls,
             // and we lose calling context information.  This leads to really confusing
             // failures!
             // So we need to wrap them instead.
             // See also Fcn.functionInvocation and invokeGenericMethod
-            return error(site,errorMsg("Unification error: ",ue.getMessage()),ue);
-        } catch (FortressException ex) {
+            return error(site, errorMsg("Unification error: ", ue.getMessage()), ue);
+        }
+        catch (FortressException ex) {
             throw ex.setWhere(site);
-        } catch (StackOverflowError soe) {
-            return error(site,errorMsg("Stack overflow on ",site));
+        }
+        catch (StackOverflowError soe) {
+            return error(site, errorMsg("Stack overflow on ", site));
         }
     }
 
     // Version that evaluates arguments first.
-    public FValue evalAndInvokeMethod(FValue receiver, String mname, List<Expr> args,
-                                      HasAt site) {
-        return invokeMethod(receiver,mname,evalInvocationArgs(args),site);
+    public FValue evalAndInvokeMethod(FValue receiver, String mname, List<Expr> args, HasAt site) {
+        return invokeMethod(receiver, mname, evalInvocationArgs(args), site);
     }
 
-    public FValue invokeGenericMethod(FValue receiver, String mname,
-                                      List<StaticArg> sargs, List<FValue> args,
+    public FValue invokeGenericMethod(FValue receiver,
+                                      String mname,
+                                      List<StaticArg> sargs,
+                                      List<FValue> args,
                                       HasAt site) {
         try {
-            DottedMethodApplication app0 =
-                DottedMethodApplication.make(receiver,mname,mname);
-            DottedMethodApplication app = app0.typeApply(sargs,e,site);
-            return app.functionInvocation(args,site);
-        } catch (UnificationError ue) {
+            DottedMethodApplication app0 = DottedMethodApplication.make(receiver, mname, mname);
+            DottedMethodApplication app = app0.typeApply(sargs, e, site);
+            return app.functionInvocation(args, site);
+        }
+        catch (UnificationError ue) {
             // If we propagate these, they get misinterpreted by enclosing calls,
             // and we lose calling context information.  This leads to really confusing
             // failures!
             // So we need to wrap them instead.
             // See also Fcn.functionInvocation and invokeMethod
-            return error(site,errorMsg("Unification error: ",ue.getMessage()),ue);
-        } catch (FortressException ex) {
+            return error(site, errorMsg("Unification error: ", ue.getMessage()), ue);
+        }
+        catch (FortressException ex) {
             throw ex.setWhere(site);
-        } catch (StackOverflowError soe) {
-            return error(site,errorMsg("Stack overflow on ",site));
+        }
+        catch (StackOverflowError soe) {
+            return error(site, errorMsg("Stack overflow on ", site));
         }
     }
 
-    private boolean isFunction(FValue val) { return (val instanceof Fcn); }
-    private boolean isExpr(MathItem mi)    { return (mi instanceof ExprMI); }
+    private boolean isFunction(FValue val) {
+        return (val instanceof Fcn);
+    }
+
+    private boolean isExpr(MathItem mi) {
+        return (mi instanceof ExprMI);
+    }
+
     private boolean isParenthesisDelimited(MathItem mi) {
         return (mi instanceof ParenthesisDelimitedMI);
     }
+
     private MathItem dummyExpr() {
         Span span = NodeFactory.interpreterSpan;
         Expr dummyE = ExprFactory.makeVoidLiteralExpr(span);
         return ExprFactory.makeNonParenthesisDelimitedMI(span, dummyE);
     }
 
-    private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs,
-                                                boolean isPostfix) {
+    private List<Pair<MathItem, FValue>> stepTwo(List<Pair<MathItem, FValue>> vs, boolean isPostfix) {
         if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
         else if (vs.size() == 1) return vs;
         else { // vs.size() > 1
             int ftnInd = 0;
             FValue ftn = vs.get(ftnInd).getB();
             FValue arg;
-            MathItem argE = vs.get(ftnInd+1).getA();
-            for (Pair<MathItem,FValue> pair : IterUtil.skipFirst(vs)) {
+            MathItem argE = vs.get(ftnInd + 1).getA();
+            for (Pair<MathItem, FValue> pair : IterUtil.skipFirst(vs)) {
                 // 2. If some function element is immediately followed by
                 // an expression element then, find the first such function
                 // element, and call the next element the argument.
@@ -1240,31 +1110,26 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // It is a static error if either the argument is not
                     // parenthesized, or the argument is immediately followed by
                     // a non-expression element.
-                    if (!isParenthesisDelimited(argE))
-                       return error(((ExprMI)argE).getExpr(),
-                                    "Syntax Error: the " +
-                                    "argument is not parenthesized.");
-                    if (ftnInd+2 < vs.size() &&
-                        !isExpr(vs.get(ftnInd+2).getA()))
-                       return error(((ExprMI)argE).getExpr(),
-                                    "Syntax Error: the " +
-                                    "argument should not be immediately followed by a " +
-                                    "non-expression element.");
+                    if (!isParenthesisDelimited(argE)) return error(((ExprMI) argE).getExpr(),
+                                                                    "Syntax Error: the " +
+                                                                    "argument is not parenthesized.");
+                    if (ftnInd + 2 < vs.size() && !isExpr(vs.get(ftnInd + 2).getA()))
+                        return error(((ExprMI) argE).getExpr(),
+                                     "Syntax Error: the " + "argument should not be immediately followed by a " +
+                                     "non-expression element.");
                     // Otherwise, replace the function and argument with a
                     // single element that is the application of the function to
                     // the argument.  This new element is an expression.
-                    Pair<MathItem,FValue> app =
-                        new Pair<MathItem,FValue>(dummyExpr(),
-                                                  Fcn.functionInvocation(arg,ftn,argE));
+                    Pair<MathItem, FValue> app = new Pair<MathItem, FValue>(dummyExpr(), Fcn.functionInvocation(arg,
+                                                                                                                ftn,
+                                                                                                                argE));
                     vs.set(ftnInd, app);
-                    vs.remove(ftnInd+1);
+                    vs.remove(ftnInd + 1);
                     // It is a static error if a function argument is immediately
                     // followed by a postfix operator.  For example, y[a](x)!
-                    if (isPostfix && vs.size() == 2 &&
-                        isFunction(vs.get(0).getB()) && isExpr(vs.get(1).getA()))
-                        return error(((ExprMI)vs.get(1).getA()).getExpr(),
-                                     "Syntax Error: a " +
-                                     "function argument should not be immediately " +
+                    if (isPostfix && vs.size() == 2 && isFunction(vs.get(0).getB()) && isExpr(vs.get(1).getA()))
+                        return error(((ExprMI) vs.get(1).getA()).getExpr(),
+                                     "Syntax Error: a " + "function argument should not be immediately " +
                                      "followed by a postfix operator.");
                     // Reassociate the resulting sequence (which is one element
                     // shorter).
@@ -1277,17 +1142,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    private FValue mathItemApplication(NonExprMI opr, FValue front,
-                                       MathItem loc) {
+    private FValue mathItemApplication(NonExprMI opr, FValue front, MathItem loc) {
         if (opr instanceof ExponentiationMI) {
-            ExponentiationMI expo = (ExponentiationMI)opr;
+            ExponentiationMI expo = (ExponentiationMI) opr;
             IdOrOp op = expo.getOp().getOriginalName();
             FValue fvalue = getOp(expo.getOp()); //op.accept(this);
-            if (!isFunction(fvalue))
-                return error(op, errorMsg("Operator ", op.stringName(),
-                                          " has a non-function value ", fvalue));
+            if (!isFunction(fvalue)) return error(op, errorMsg("Operator ",
+                                                               op.stringName(),
+                                                               " has a non-function value ",
+                                                               fvalue));
             Option<Expr> expr = expo.getExpr();
-            Fcn fcn = (Fcn)fvalue;
+            Fcn fcn = (Fcn) fvalue;
             if (expr.isSome()) { // ^ Exponent
                 FValue exponent = expr.unwrap().accept(this);
                 return fcn.functionInvocation(Useful.list(front, exponent), op);
@@ -1295,21 +1160,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return fcn.functionInvocation(Useful.list(front), op);
             }
         } else { // opr instanceof SubscriptingMI
-            SubscriptingMI sub = (SubscriptingMI)opr;
+            SubscriptingMI sub = (SubscriptingMI) opr;
             String opString = NodeUtil.nameString(sub.getOp());
-            return evalAndInvokeMethod(front,opString,sub.getExprs(),loc);
+            return evalAndInvokeMethod(front, opString, sub.getExprs(), loc);
         }
     }
 
-    private List<Pair<MathItem,FValue>> stepThree(List<Pair<MathItem,FValue>> vs,
-                                                  boolean isPostfix) {
+    private List<Pair<MathItem, FValue>> stepThree(List<Pair<MathItem, FValue>> vs, boolean isPostfix) {
         if (vs.size() < 1) return error("Reassociation of MathPrimary failed!");
         else if (vs.size() == 1) return vs;
         else { // vs.size() > 1
             int frontInd = 0;
             FValue front = vs.get(frontInd).getB();
             MathItem opr;
-            for (Pair<MathItem,FValue> pair : IterUtil.skipFirst(vs)) {
+            for (Pair<MathItem, FValue> pair : IterUtil.skipFirst(vs)) {
                 // 3. If there is any non-expression element (it cannot be the
                 // first element)
                 opr = pair.getA();
@@ -1318,11 +1182,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // immediately preceding it (which must be an expression)
                     // with a single element that does the appropriate operator
                     // application.  This new element is an expression.
-                    Pair<MathItem,FValue> app =
-                        new Pair<MathItem,FValue>(dummyExpr(),
-                                                  mathItemApplication((NonExprMI)opr,front,opr));
+                    Pair<MathItem, FValue> app = new Pair<MathItem, FValue>(dummyExpr(),
+                                                                            mathItemApplication((NonExprMI) opr,
+                                                                                                front,
+                                                                                                opr));
                     vs.set(frontInd, app);
-                    vs.remove(frontInd+1);
+                    vs.remove(frontInd + 1);
                     // Reassociate the resulting sequence (which is one element
                     // shorter).
                     return reassociate(vs, isPostfix);
@@ -1334,21 +1199,20 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    private List<Pair<MathItem,FValue>> reassociate(List<Pair<MathItem,FValue>> vs, boolean isPostfix) {
+    private List<Pair<MathItem, FValue>> reassociate(List<Pair<MathItem, FValue>> vs, boolean isPostfix) {
         if (vs.size() == 1) return vs;
         return stepThree(stepTwo(vs, isPostfix), isPostfix);
     }
 
     private FValue tightJuxt(FValue first, FValue second, MathItem loc, MathPrimary x) {
-        if (isFunction(first)) return Fcn.functionInvocation(second,first,loc);
-        else return Fcn.functionInvocation(Useful.list(first, second),
-                                           e.getValue(x.getInfixJuxt()), loc);
+        if (isFunction(first)) return Fcn.functionInvocation(second, first, loc);
+        else return Fcn.functionInvocation(Useful.list(first, second), e.getValue(x.getInfixJuxt()), loc);
     }
 
-    private FValue leftAssociate(List<Pair<MathItem,FValue>> vs, MathPrimary x) {
+    private FValue leftAssociate(List<Pair<MathItem, FValue>> vs, MathPrimary x) {
         // vs.size() > 1
         FValue result = vs.get(0).getB();
-        for (Pair<MathItem,FValue> i : IterUtil.skipFirst(vs)) {
+        for (Pair<MathItem, FValue> i : IterUtil.skipFirst(vs)) {
             result = tightJuxt(result, i.getB(), i.getA(), x);
         }
         return result;
@@ -1363,25 +1227,24 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue fval = front.accept(this);
         List<MathItem> rest = x.getRest();
         if (!rest.isEmpty()) {
-            List<Pair<MathItem,FValue>> vs =
-                Useful.list(new Pair<MathItem,FValue>(null, fval));
+            List<Pair<MathItem, FValue>> vs = Useful.list(new Pair<MathItem, FValue>(null, fval));
             // It is a static error if an exponentiation is immediately followed
             // by a non-expression element.
             boolean isExponentiation = false;
             for (MathItem mi : rest) {
-                if (mi instanceof ExprMI)
-                    vs.add(new Pair<MathItem,FValue>(mi, ((ExprMI)mi).getExpr().accept(this)));
+                if (mi instanceof ExprMI) vs.add(new Pair<MathItem, FValue>(mi, ((ExprMI) mi).getExpr().accept(this)));
                 else { // mi instanceof NonExprMI
-                    if (isExponentiation)
-                       return error(x, "Syntax Error: an " +
-                                    "exponentiation should not be immediately followed " +
-                                    "by a subscripting or an exponentiation.");
-                    vs.add(new Pair<MathItem,FValue>(mi, null));
+                    if (isExponentiation) return error(x,
+                                                       "Syntax Error: an " +
+                                                       "exponentiation should not be immediately followed " +
+                                                       "by a subscripting or an exponentiation.");
+                    vs.add(new Pair<MathItem, FValue>(mi, null));
                     isExponentiation = (mi instanceof ExponentiationMI);
                 }
             }
             if (isPostfix && isExponentiation) {
-                return error(x, "Syntax Error: an exponentiation should not be " +
+                return error(x,
+                             "Syntax Error: an exponentiation should not be " +
                              "immediately followed by a postfix operator.");
             }
             if (vs.size() == 1) fval = vs.get(0).getB();
@@ -1400,8 +1263,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private FValue forTightJuxt(Juxt x, boolean isPostfix) {
         List<Expr> exprs = x.getExprs();
-        if (exprs.size() == 0)
-            bug(x,e,"empty juxtaposition");
+        if (exprs.size() == 0) bug(x, e, "empty juxtaposition");
         Expr fcnExpr = exprs.get(0);
 
         if (fcnExpr instanceof FieldRef) {
@@ -1425,29 +1287,27 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (fn instanceof FieldRef) {
                 FieldRef arf = (FieldRef) fn;
                 FValue fobj = arf.getObj().accept(this);
-                return invokeGenericMethod(fobj,
-                                           NodeUtil.nameString(fldName(arf)),
-                                           args, evalInvocationArgs(exprs), x);
+                return invokeGenericMethod(fobj, NodeUtil.nameString(fldName(arf)), args, evalInvocationArgs(exprs), x);
             } else if (fn instanceof VarRef) {
                 // FALL OUT TO REGULAR FUNCTION CASE!
             } else {
-                return bug(x,"_RewriteFnRef with unexpected fn " + fn);
+                return bug(x, "_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
             // TODO this ought to be allowed.
-            return bug(fcnExpr,"FnRefs are supposed to be gone from the AST \n" + x.toStringVerbose() );
+            return bug(fcnExpr, "FnRefs are supposed to be gone from the AST \n" + x.toStringVerbose());
         }
 
         FValue fnVal = fcnExpr.accept(this);
         if (fnVal instanceof MethodClosure) {
-            return bug(x,"Unexpected application of " + fcnExpr);
+            return bug(x, "Unexpected application of " + fcnExpr);
         } else if (fnVal instanceof Fcn) {
             if (isPostfix) {
                 // It is a static error if a function argument is immediately
                 // followed by a non-expression element.  For example, f(x)!
-                return error(x, "Syntax Error: a function argument " +
-                             "should not be immediately followed by a non-expression " +
-                             "element.");
+                return error(x,
+                             "Syntax Error: a function argument " +
+                             "should not be immediately followed by a non-expression " + "element.");
             } else {
                 return finishFunctionInvocation(exprs, fnVal, x);
             }
@@ -1462,6 +1322,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     /**
      * Unlike invokeMethod, must handle case where we have a closure-valued field.
+     *
      * @param x
      * @param fobj
      * @param fld
@@ -1469,8 +1330,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      * @throws ProgramError
      */
-    private FValue juxtMemberSelection(Juxt x, FValue fobj, Id fld,
-                                       List<Expr> exprs) throws ProgramError {
+    private FValue juxtMemberSelection(Juxt x, FValue fobj, Id fld, List<Expr> exprs) throws ProgramError {
         List<FValue> args = evalInvocationArgs(exprs);
         String mname = NodeUtil.nameString(fld);
         if (fobj instanceof FObject) {
@@ -1480,7 +1340,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue cl = se.getLeafValueNull(mname); // leaf
             if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
                 // Ordinary closure, assigned to a field.
-                return ((Fcn)cl).functionInvocation(args, x);
+                return ((Fcn) cl).functionInvocation(args, x);
             }
         }
         return invokeMethod(fobj, mname, args, x);
@@ -1491,8 +1351,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @param fcnExpr
      * @return
      */
-    private FValue finishFunctionInvocation(List<Expr> exprs, FValue foo,
-            AbstractNode loc) {
+    private FValue finishFunctionInvocation(List<Expr> exprs, FValue foo, AbstractNode loc) {
         return Fcn.functionInvocation(evalInvocationArgs(exprs), foo, loc);
     }
 
@@ -1504,7 +1363,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     List<FValue> evalInvocationArgs(List<Expr> exprs) {
         List<FValue> rest = evalExprListParallel(exprs.subList(1, exprs.size()));
-        if (rest.size()==1) {
+        if (rest.size() == 1) {
             FValue val = rest.get(0);
             if (val instanceof FVoid) {
                 rest = new ArrayList<FValue>(0);
@@ -1523,8 +1382,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    private FValue handleException(Try x, FObject exc,
-                                   FortressException original) {
+    private FValue handleException(Try x, FObject exc, FortressException original) {
         FType excType = exc.type();
         Option<Catch> _catchClause = x.getCatchClause();
         if (_catchClause.isSome()) {
@@ -1540,21 +1398,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         Evaluator evClause = new Evaluator(this, _catch);
                         evClause.e.putValue(name.getText(), exc);
                         return catchBody.accept(evClause);
-                    } catch (FortressException err) {
-                        throw err.setContext(x,e);
+                    }
+                    catch (FortressException err) {
+                        throw err.setContext(x, e);
                     }
                 }
             }
         }
         for (BaseType forbidType : x.getForbidClause()) {
-            if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
+            if (excType.subtypeOf(EvalType.getFType(forbidType, e))) {
                 Environment libE = Driver.getFortressLibrary();
                 FType ftype = libE.getRootTypeNull(WellKnownNames.forbiddenException); // toplevel
                 List<FValue> args = new ArrayList<FValue>();
                 args.add(exc);
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
                 FObject f = (FObject) c.functionInvocation(args, forbidType);
-                FortressError f_exc = new FortressError(x,e,f);
+                FortressError f_exc = new FortressError(x, e, f);
                 throw f_exc;
             }
         }
@@ -1569,13 +1428,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
         try {
             res = body.accept(this);
             return res;
-        } catch (LabelException exc) {
+        }
+        catch (LabelException exc) {
             return handleException(x,
-                                   (FObject)Driver.getFortressLibrary().getRootValue(WellKnownNames.labelException),
+                                   (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.labelException),
                                    exc);
-        } catch (FortressError exc) {
+        }
+        catch (FortressError exc) {
             return handleException(x, exc.getException(), exc);
-        } finally {
+        }
+        finally {
             Option<Block> finallyClause = x.getFinallyClause();
             if (finallyClause.isSome()) {
                 Block b = finallyClause.unwrap();
@@ -1585,7 +1447,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTupleExpr(TupleExpr x) {
-        if ( x.getVarargs().isSome() || x.getKeywords().size() > 0 ) { // ArgExpr
+        if (x.getVarargs().isSome() || x.getKeywords().size() > 0) { // ArgExpr
             List<Expr> exprs = x.getExprs();
             return FTuple.make(evalExprListParallel(exprs));
         } else {
@@ -1621,22 +1483,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return result;
         } else {
             // throw new MatchFailure();
-            return error(x, e, errorMsg("typecase match failure given ",resTuple));
+            return error(x, e, errorMsg("typecase match failure given ", resTuple));
         }
     }
 
     public FValue forVarRef(VarRef x) {
-        if ( NodeUtil.isSingletonObject(x) ) {
+        if (NodeUtil.isSingletonObject(x)) {
             Id name = x.getVarId();
             FValue g = forIdOfTLRef(name);
-            return applyToActualStaticArgs(g,x.getStaticArgs(),x);
+            return applyToActualStaticArgs(g, x.getStaticArgs(), x);
         }
 
-//        Id id = x.getVar();
-//        String s= id.getText();
-//        if (s.contains("$self")) {
-//            id = x.getVar();
-//        }
+        //        Id id = x.getVar();
+        //        String s= id.getText();
+        //        if (s.contains("$self")) {
+        //            id = x.getVar();
+        //        }
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVarId());
@@ -1653,10 +1515,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr body = x.getBody();
         GeneratorClause cond = x.getTestExpr();
         Expr test;
-        if (cond.getBind().isEmpty())
-            test = cond.getInit();
-        else
-            test = bug(x,"Undesugared generalized while expression.");
+        if (cond.getBind().isEmpty()) test = cond.getInit();
+        else test = bug(x, "Undesugared generalized while expression.");
         FValue clauseVal = test.accept(this);
         if (clauseVal instanceof FBool) {
             FBool res = (FBool) clauseVal;
@@ -1666,16 +1526,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             return FVoid.V;
         } else {
-            return error(test,
-                         errorMsg("While condition does not have type Boolean, " +
-                                  "but ", clauseVal));
+            return error(test, errorMsg("While condition does not have type Boolean, " + "but ", clauseVal));
         }
     }
 
     public FValue forThrow(Throw throw1) {
         Expr ex = throw1.getExpr();
         FObject v = (FObject) ex.accept(this);
-        FortressError f_exc = new FortressError(throw1,e,v);
+        FortressError f_exc = new FortressError(throw1, e, v);
         throw f_exc;
         // neverReached
     }
@@ -1685,10 +1543,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFloatLiteralExpr(FloatLiteralExpr x) {
-        return new FFloatLiteral(x.getText(), x.getIntPart(),
-                                 x.getNumerator(),
-                                 x.getDenomBase(),
-                                 x.getDenomPower());
+        return new FFloatLiteral(x.getText(), x.getIntPart(), x.getNumerator(), x.getDenomBase(), x.getDenomPower());
     }
 
     public FValue forIntLiteralExpr(IntLiteralExpr x) {
@@ -1707,14 +1562,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue for_RewriteFnRef(_RewriteFnRef x) {
         Expr name = x.getFnExpr();
         FValue g = name.accept(this);
-        return applyToStaticArgs(g,x.getStaticArgs(),x);
+        return applyToStaticArgs(g, x.getStaticArgs(), x);
     }
 
     public FValue applyToStaticArgs(FValue g, List<StaticArg> args, HasAt x) {
-        if (args.size() == 0)
-            return g;
-        else
-            return applyToActualStaticArgs(g,args,x);
+        if (args.size() == 0) return g;
+        else return applyToActualStaticArgs(g, args, x);
     }
 
     public FValue applyToActualStaticArgs(FValue g, List<StaticArg> args, HasAt x) {
@@ -1723,11 +1576,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
         } else if (g instanceof GenericConstructor) {
             return ((GenericConstructor) g).typeApply(args, e, x);
         } else if (g instanceof OverloadedFunction) {
-            return((OverloadedFunction) g).typeApply(args, e, x);
+            return ((OverloadedFunction) g).typeApply(args, e, x);
         } else if (g instanceof GenericSingleton) {
             return ((GenericSingleton) g).typeApply(args, e, x);
         } else {
-            return error(x, e, errorMsg("Unexpected _RewriteFnRef value, ",g));
+            return error(x, e, errorMsg("Unexpected _RewriteFnRef value, ", g));
         }
     }
 

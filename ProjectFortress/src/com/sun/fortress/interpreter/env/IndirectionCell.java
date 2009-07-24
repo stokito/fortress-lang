@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.env;
@@ -20,16 +20,15 @@ package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class IndirectionCell extends FValue {
     protected volatile FValue theValue;
+
     public String toString() {
-        if (theValue==null) return "null";
-        if (theValue instanceof IndirectionCell)
-            return "Uninitialized " + theValue.getClass().getSimpleName();
+        if (theValue == null) return "null";
+        if (theValue instanceof IndirectionCell) return "Uninitialized " + theValue.getClass().getSimpleName();
         return theValue.toString();
     }
 
@@ -37,8 +36,7 @@ public class IndirectionCell extends FValue {
     }
 
     public void storeValue(FValue f2) {
-        if (theValue != null)
-            bug("Internal error, second store of indirection cell");
+        if (theValue != null) bug("Internal error, second store of indirection cell");
         theValue = f2;
     }
 
@@ -65,7 +63,7 @@ public class IndirectionCell extends FValue {
     }
 
     public boolean seqv(FValue v) {
-        bug(errorMsg("seqv on IndirectionCell ",this," and ",v));
+        bug(errorMsg("seqv on IndirectionCell ", this, " and ", v));
         return false;
     }
 

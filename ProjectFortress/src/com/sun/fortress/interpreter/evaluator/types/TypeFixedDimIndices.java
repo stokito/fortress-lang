@@ -1,29 +1,29 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
-
-import java.util.Iterator;
-import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+
+import java.util.Iterator;
+import java.util.List;
 
 
 public class TypeFixedDimIndices extends TypeIndices {
@@ -49,13 +49,12 @@ public class TypeFixedDimIndices extends TypeIndices {
             Iterator<TypeRange> other_iter = tfdi.ranges.iterator();
             for (TypeRange i : ranges) {
                 TypeRange j = other_iter.next();
-                if (!i.compatible(j))
-                    return false;
+                if (!i.compatible(j)) return false;
             }
             return true;
         }
 
-         NI.nyi("Indices compatibility, other is not fixed sized"); // TODO
+        NI.nyi("Indices compatibility, other is not fixed sized"); // TODO
         return false;
     }
 
@@ -74,8 +73,7 @@ public class TypeFixedDimIndices extends TypeIndices {
             Iterator<TypeRange> other_iter = tfdi.ranges.iterator();
             for (TypeRange i : ranges) {
                 TypeRange j = other_iter.next();
-                if (!i.equals(j))
-                    return false;
+                if (!i.equals(j)) return false;
             }
             return true;
         }

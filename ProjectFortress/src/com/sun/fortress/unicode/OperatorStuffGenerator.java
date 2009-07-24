@@ -1,52 +1,44 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.unicode;
+
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.useful.BASet;
-import com.sun.fortress.useful.BATree;
-import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.DefaultComparator;
-import com.sun.fortress.useful.StringEncodedAggregate;
+import java.util.*;
 
 
 /**
  * Given the following inputs:
- *
+ * <p/>
  * 1) A com.sun.fortress.unicode data file
- *
+ * <p/>
  * 2) A list of optional abbreviation strings (e.g., "LETTER ") This is encoded
  * into class Element.
- *
+ * <p/>
  * 3) A list of operator groups, defined as GroupName indented Unicode name,
  * comma-separated extra aliases. Note that spaces are NOT separators; com.sun.fortress.unicode
  * names often contain several words separated by spaces.
- *
+ * <p/>
  * Generate several files, depending on the com.sun.fortress.parser implementation technology.
  * For OCaml/Elkhound, generate input files to the grammar, scanner, and token
  * list.
@@ -85,24 +77,27 @@ public class OperatorStuffGenerator {
         ArrayList<Element> chars = null;
         try {
             chars = Element.readUnicodeFile(unicodeFile);
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        HashMap<String, Element> namesToElements = Element
-                .generateAbbreviated(chars);
+        HashMap<String, Element> namesToElements = Element.generateAbbreviated(chars);
         HashSet<Element> allElements = new HashSet<Element>();
         try {
 
             readOperators(operatorFile, groups, namesToElements, allElements);
             generateJavaFile(theJavaFile, groups, namesToElements, allElements, pkg, cls);
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -127,10 +122,9 @@ public class OperatorStuffGenerator {
      * @throws IOException
      */
     private static void readOperators(String operatorFile,
-            MultiMap<String, Element> groups,
-            HashMap<String, Element> namesToElements,
-            HashSet<Element> allElements) throws FileNotFoundException,
-            IOException {
+                                      MultiMap<String, Element> groups,
+                                      HashMap<String, Element> namesToElements,
+                                      HashSet<Element> allElements) throws FileNotFoundException, IOException {
         BufferedReader br = Element.filenameToBufferedReader(operatorFile);
         String line = br.readLine();
         String currentGroup = null;
@@ -151,14 +145,11 @@ public class OperatorStuffGenerator {
                         System.err.println("NOT SEEN IN UNICODE: " + name);
                     } else {
                         allElements.add(e);
-                        e.addAlias(e.name(), namesToElements, doofusUser,
-                                fortressName(tokens[0]), true);
+                        e.addAlias(e.name(), namesToElements, doofusUser, fortressName(tokens[0]), true);
                         for (int i = 1; i < tokens.length; i++) {
                             name = tokens[i].trim();
-                            if ( name.startsWith("\\U") )
-                                name = name.toLowerCase();
-                            e.addAlias(e.name(), namesToElements, doofusUser,
-                                       name, true);
+                            if (name.startsWith("\\U")) name = name.toLowerCase();
+                            e.addAlias(e.name(), namesToElements, doofusUser, name, true);
                         }
                         groups.putItem(currentGroup, e);
                     }
@@ -175,19 +166,21 @@ public class OperatorStuffGenerator {
     }
 
     private static void generateJavaFile(String theJavaFile,
-            MultiMap<String, Element> groups,
-            HashMap<String, Element> namesToElements,
-            HashSet<Element> allElements,
-            String pkg, String cls) throws IOException {
+                                         MultiMap<String, Element> groups,
+                                         HashMap<String, Element> namesToElements,
+                                         HashSet<Element> allElements,
+                                         String pkg,
+                                         String cls) throws IOException {
         BufferedWriter tjf = Element.filenameToBufferedWriter(theJavaFile);
 
         Set<Element> enclosing = groups.get("enclosing");
         Set<Element> enclosing_left = groups.get("enclosing_left");
         Set<Element> enclosing_right = groups.get("enclosing_right");
 
-        tjf.write("/* THIS FILE WAS AUTOMATICALLY GENERATED BY com.sun.fortress.unicode.OperatorStuffGenerator.java FROM operators.txt */");
+        tjf.write(
+                "/* THIS FILE WAS AUTOMATICALLY GENERATED BY com.sun.fortress.unicode.OperatorStuffGenerator.java FROM operators.txt */");
         tjf.newLine();
-        tjf.write("package "+pkg+";");
+        tjf.write("package " + pkg + ";");
         tjf.newLine();
         tjf.write("import com.sun.fortress.useful.*;");
         tjf.newLine();
@@ -195,7 +188,7 @@ public class OperatorStuffGenerator {
         tjf.newLine();
         tjf.write("import java.util.Map;");
         tjf.newLine();
-        tjf.write("class "+ cls +" {");
+        tjf.write("class " + cls + " {");
         tjf.newLine();
 
         Set<String> s_enclosing = new BASet<String>(DefaultComparator.V);
@@ -210,17 +203,16 @@ public class OperatorStuffGenerator {
             String sname = e.escapedShortName();
             // PARSER
 
-            Set<String> which_set = enclosing.contains(e) ? s_enclosing
-                    : enclosing_left.contains(e) ? s_left : enclosing_right
-                            .contains(e) ? s_right : s_ops;
+            Set<String> which_set = enclosing.contains(e) ?
+                                    s_enclosing :
+                                    enclosing_left.contains(e) ? s_left : enclosing_right.contains(e) ? s_right : s_ops;
 
             which_set.add(sname);
 
             // If we just parsed a left or an enclosing,
             // we need to also emit some match code.
             if (which_set == s_left) {
-                l2r.put(sname,
-                        otherEnd(ename, namesToElements, enclosing_right));
+                l2r.put(sname, otherEnd(ename, namesToElements, enclosing_right));
 
             } else if (which_set == s_enclosing) {
                 l2r.put(sname, sname);
@@ -229,36 +221,41 @@ public class OperatorStuffGenerator {
             for (String a : e.spaceFreeAliases) {
                 String s = a.replace("\\", "\\\\");
                 s = s.replace("\"", "\\\"");
-                if (! s.equals(sname))
-                    aliases.put(s, sname);
+                if (!s.equals(sname)) aliases.put(s, sname);
             }
 
 
         }
 
-        tjf.write("   final private static String encodedEnclosing ="
-                + StringEncodedAggregate.setToFormattedString(s_enclosing, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedEnclosing =" + StringEncodedAggregate.setToFormattedString(
+                s_enclosing,
+                ';',
+                new StringBuffer()) + ";");
         tjf.newLine();
-        tjf.write("   final private static String encodedLeft ="
-                + StringEncodedAggregate.setToFormattedString(s_left, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedLeft =" + StringEncodedAggregate.setToFormattedString(s_left,
+                                                                                                               ';',
+                                                                                                               new StringBuffer()) +
+                  ";");
         tjf.newLine();
-        tjf.write("   final private static String encodedRight ="
-                + StringEncodedAggregate.setToFormattedString(s_right, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedRight =" + StringEncodedAggregate.setToFormattedString(s_right,
+                                                                                                                ';',
+                                                                                                                new StringBuffer()) +
+                  ";");
         tjf.newLine();
-        tjf.write("   final private static String encodedOps ="
-                + StringEncodedAggregate.setToFormattedString(s_ops, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedOps =" + StringEncodedAggregate.setToFormattedString(s_ops,
+                                                                                                              ';',
+                                                                                                              new StringBuffer()) +
+                  ";");
         tjf.newLine();
-        tjf.write("   final private static String encodedL2R ="
-                + StringEncodedAggregate.mapToFormattedString(l2r, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedL2R =" + StringEncodedAggregate.mapToFormattedString(l2r,
+                                                                                                              ';',
+                                                                                                              new StringBuffer()) +
+                  ";");
         tjf.newLine();
-        tjf.write("   final private static String encodedAliases ="
-                + StringEncodedAggregate.mapToFormattedString(aliases, ';',
-                        new StringBuffer()) + ";");
+        tjf.write("   final private static String encodedAliases =" + StringEncodedAggregate.mapToFormattedString(
+                aliases,
+                ';',
+                new StringBuffer()) + ";");
         tjf.newLine();
 
         for (String k : groups.keySet()) {
@@ -272,34 +269,39 @@ public class OperatorStuffGenerator {
 
             String enc_group = "encoded_" + k;
 
-            tjf.write("   final private static String "
-                    + enc_group
-                    + " ="
-                    + StringEncodedAggregate.setToFormattedString(s_e, ';',
+            tjf.write(
+                    "   final private static String " + enc_group + " =" + StringEncodedAggregate.setToFormattedString(
+                            s_e,
+                            ';',
                             new StringBuffer()) + ";");
             tjf.newLine();
         }
 
-        tjf.write("   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(DefaultComparator.V));");
         tjf.newLine();
-        tjf.write("   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.V));");
+        tjf.write(
+                "   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.V));");
         tjf.newLine();
 
         for (String k : groups.keySet()) {
 
             String enc_group = "encoded_" + k;
 
-            tjf.write("   static Set<String> p_" + k
-                    + " = StringEncodedAggregate.stringToSet(" + enc_group
-                    + ",';',new BASet<String>(DefaultComparator.V));");
+            tjf.write("   static Set<String> p_" + k + " = StringEncodedAggregate.stringToSet(" + enc_group +
+                      ",';',new BASet<String>(DefaultComparator.V));");
             tjf.newLine();
 
         }
@@ -318,10 +320,11 @@ public class OperatorStuffGenerator {
      * @param allElements
      * @throws IOException
      */
-    private static void generateOCamlFiles(String[] args, String dir,
-            MultiMap<String, Element> groups,
-            HashMap<String, Element> namesToElements,
-            HashSet<Element> allElements) throws IOException {
+    private static void generateOCamlFiles(String[] args,
+                                           String dir,
+                                           MultiMap<String, Element> groups,
+                                           HashMap<String, Element> namesToElements,
+                                           HashSet<Element> allElements) throws IOException {
         String parserOpsFile = dir + args[3];
         String parserLeftFile = dir + args[4];
         String parserRightFile = dir + args[5];
@@ -332,16 +335,11 @@ public class OperatorStuffGenerator {
         String tokensFile = dir + args[9];
         String precedenceFile = dir + args[10];
 
-        BufferedWriter par_ops = Element
-                .filenameToBufferedWriter(parserOpsFile);
-        BufferedWriter par_left = Element
-                .filenameToBufferedWriter(parserLeftFile);
-        BufferedWriter par_right = Element
-                .filenameToBufferedWriter(parserRightFile);
-        BufferedWriter par_enc = Element
-                .filenameToBufferedWriter(parserEncFile);
-        BufferedWriter par_match = Element
-                .filenameToBufferedWriter(parserMatchFile);
+        BufferedWriter par_ops = Element.filenameToBufferedWriter(parserOpsFile);
+        BufferedWriter par_left = Element.filenameToBufferedWriter(parserLeftFile);
+        BufferedWriter par_right = Element.filenameToBufferedWriter(parserRightFile);
+        BufferedWriter par_enc = Element.filenameToBufferedWriter(parserEncFile);
+        BufferedWriter par_match = Element.filenameToBufferedWriter(parserMatchFile);
 
         BufferedWriter lex = Element.filenameToBufferedWriter(lexerFile);
         BufferedWriter tok = Element.filenameToBufferedWriter(tokensFile);
@@ -374,9 +372,11 @@ public class OperatorStuffGenerator {
                 continue;
             }
 
-            BufferedWriter par_something = enclosing.contains(e) ? par_enc
-                    : enclosing_left.contains(e) ? par_left : enclosing_right
-                            .contains(e) ? par_right : par_ops;
+            BufferedWriter par_something = enclosing.contains(e) ?
+                                           par_enc :
+                                           enclosing_left.contains(e) ?
+                                           par_left :
+                                           enclosing_right.contains(e) ? par_right : par_ops;
 
             par_something.write(" -> \"" + sname + "\" {\"" + sname + "\"}");
             par_something.newLine();
@@ -384,9 +384,7 @@ public class OperatorStuffGenerator {
             // If we just parsed a left or an enclosing,
             // we need to also emit some match code.
             if (par_something == par_left) {
-                par_match.write("| \"" + sname + "\",\""
-                        + otherEnd(ename, namesToElements, enclosing_right)
-                        + "\"");
+                par_match.write("| \"" + sname + "\",\"" + otherEnd(ename, namesToElements, enclosing_right) + "\"");
                 par_match.newLine();
             } else if (par_something == par_enc) {
                 par_match.write("| \"" + sname + "\",\"" + sname + "\"");
@@ -414,15 +412,13 @@ public class OperatorStuffGenerator {
             String sep = "[";
             for (Element e : els) {
                 String ename = e.escapedShortName();
-                if (shortOnly && e.shortName().length() > max)
-                    continue;
+                if (shortOnly && e.shortName().length() > max) continue;
                 prc.write(sep);
                 prc.write("\"" + ename + "\"");
                 sep = "; ";
                 sawOne = true;
             }
-            if (!sawOne)
-                prc.write(sep);
+            if (!sawOne) prc.write(sep);
             prc.write("]");
             prc.newLine();
         }
@@ -437,8 +433,7 @@ public class OperatorStuffGenerator {
         prc.close();
     }
 
-    private static String otherEnd(String ename, HashMap<String, Element> h,
-            Set<Element> enclosing_right) {
+    private static String otherEnd(String ename, HashMap<String, Element> h, Set<Element> enclosing_right) {
         String formulaOther = ename.replaceAll("LEFT", "RIGHT");
         Element otherE = h.get(formulaOther);
         if (otherE != null && enclosing_right.contains(otherE)) {
@@ -449,10 +444,8 @@ public class OperatorStuffGenerator {
         if (ename.equals("LEFT_ARC_LESS_THAN_BRACKET"))
             return h.get("RIGHT_ARC_GREATER_THAN_BRACKET").escapedShortName();
         if (ename.equals("DOUBLE_LEFT_ARC_GREATER_THAN_BRACKET"))
-            return h.get("DOUBLE_RIGHT_ARC_LESS_THAN_BRACKET")
-                    .escapedShortName();
-        throw new Error("Unmatched left end " + ename + " formulaOther="
-                + formulaOther + " otherE=" + otherE);
+            return h.get("DOUBLE_RIGHT_ARC_LESS_THAN_BRACKET").escapedShortName();
+        throw new Error("Unmatched left end " + ename + " formulaOther=" + formulaOther + " otherE=" + otherE);
 
     }
 

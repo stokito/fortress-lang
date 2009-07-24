@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -25,27 +25,28 @@ import java.util.Set;
 /**
  * A hashmap that can be parameterized by a non-standard hash function.
  */
-public class GHashMap<K, V> implements Map<K,V>, Cloneable {
+public class GHashMap<K, V> implements Map<K, V>, Cloneable {
     Hasher<K> hasher;
-    HashMap<WrappedKey,V> map;
+    HashMap<WrappedKey, V> map;
 
     public Object clone() {
-        @SuppressWarnings("unchecked")
-        HashMap<WrappedKey,V> clonedMap = (HashMap<WrappedKey,V>) map.clone();
-        GHashMap<K,V> copy = new GHashMap<K,V>(hasher, clonedMap);
+        @SuppressWarnings ("unchecked") HashMap<WrappedKey, V> clonedMap = (HashMap<WrappedKey, V>) map.clone();
+        GHashMap<K, V> copy = new GHashMap<K, V>(hasher, clonedMap);
         return copy;
     }
 
     class WrappedKey {
         K value;
         int h;
+
         public int hashCode() {
             return h;
         }
+
         WrappedKey(K k) {
             value = k;
             long lh = hasher.hash(value);
-            h = (int)(lh) ^ (int)(lh >>> 32);
+            h = (int) (lh) ^ (int) (lh >>> 32);
         }
 
         public boolean equals(Object o) {
@@ -61,12 +62,12 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
         }
     }
 
-     class FauxEntry implements Map.Entry<K,V> {
+    class FauxEntry implements Map.Entry<K, V> {
 
-        Map.Entry<WrappedKey,V> theRealOne;
+        Map.Entry<WrappedKey, V> theRealOne;
 
         public K getKey() {
-           return ((WrappedKey)theRealOne.getKey()).value;
+            return ((WrappedKey) theRealOne.getKey()).value;
         }
 
         public V getValue() {
@@ -77,7 +78,7 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
             return theRealOne.setValue(arg0);
         }
 
-        FauxEntry(Map.Entry<WrappedKey,V> e) {
+        FauxEntry(Map.Entry<WrappedKey, V> e) {
             theRealOne = e;
         }
     }
@@ -88,23 +89,23 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
         }
     };
 
-    private final F<Map.Entry<WrappedKey,V>, Map.Entry<K,V>> entryUnmapper =
-        new F<Map.Entry<WrappedKey,V>, Map.Entry<K,V>>() {
-        /* (non-Javadoc)
-         * @see com.sun.fortress.interpreter.useful.Fn#apply(T)
-         */
-        @Override
-        public Map.Entry<K,V> apply(Map.Entry<WrappedKey,V> x) {
-            // TODO Auto-generated method stub
-            return new FauxEntry(x);
-        }
-    };
+    private final F<Map.Entry<WrappedKey, V>, Map.Entry<K, V>> entryUnmapper =
+            new F<Map.Entry<WrappedKey, V>, Map.Entry<K, V>>() {
+                /* (non-Javadoc)
+                * @see com.sun.fortress.interpreter.useful.Fn#apply(T)
+                */
+                @Override
+                public Map.Entry<K, V> apply(Map.Entry<WrappedKey, V> x) {
+                    // TODO Auto-generated method stub
+                    return new FauxEntry(x);
+                }
+            };
 
     public GHashMap(Hasher<K> hasher) {
-        this(hasher, new HashMap<WrappedKey,V>());
+        this(hasher, new HashMap<WrappedKey, V>());
     }
 
-    private GHashMap(Hasher<K> hasher, HashMap<WrappedKey,V> map) {
+    private GHashMap(Hasher<K> hasher, HashMap<WrappedKey, V> map) {
         this.hasher = hasher;
         this.map = map;
     }
@@ -119,9 +120,9 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#containsKey(java.lang.Object)
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean containsKey(Object arg0) {
-       return map.containsKey(new WrappedKey((K)arg0));
+        return map.containsKey(new WrappedKey((K) arg0));
     }
 
     /* (non-Javadoc)
@@ -134,13 +135,13 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#entrySet()
      */
-    public Set<Map.Entry<K,V>> entrySet() {
-       // The elements of the resulting set are all FauxEntries.
-       // But it's necessary to return a Set<Map.Entry<K,V>> to match
-       // the signature of method entrySet in interface Map.Entry.
-       // eric.allen@sun.com 9/21/2006
-       Set<Map.Entry<WrappedKey,V>> s = map.entrySet();
-       return Useful.applyToAll(s, entryUnmapper);
+    public Set<Map.Entry<K, V>> entrySet() {
+        // The elements of the resulting set are all FauxEntries.
+        // But it's necessary to return a Set<Map.Entry<K,V>> to match
+        // the signature of method entrySet in interface Map.Entry.
+        // eric.allen@sun.com 9/21/2006
+        Set<Map.Entry<WrappedKey, V>> s = map.entrySet();
+        return Useful.applyToAll(s, entryUnmapper);
     }
 
     /* (non-Javadoc)
@@ -150,6 +151,7 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#isEmpty()
      */
+
     public boolean isEmpty() {
         return map.isEmpty();
     }
@@ -165,21 +167,24 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
      * @see java.util.Map#put(K, V)
      */
     public V put(K arg0, V arg1) {
-        return  map.put(new WrappedKey(arg0), arg1);
+        return map.put(new WrappedKey(arg0), arg1);
     }
 
     public V putIfAbsent(K arg0, V arg1) {
-        WrappedKey wk = new WrappedKey((K)arg0);
+        WrappedKey wk = new WrappedKey((K) arg0);
         V v = map.get(wk);
-        if (v != null) { return v; }
-        else { return map.put(wk, (V)arg1); }
+        if (v != null) {
+            return v;
+        } else {
+            return map.put(wk, (V) arg1);
+        }
     }
 
     /* (non-Javadoc)
      * @see java.util.Map#putAll(java.util.Map)
      */
     public void putAll(Map<? extends K, ? extends V> arg0) {
-        for (Map.Entry<? extends K, ? extends V> asdf: arg0.entrySet()) {
+        for (Map.Entry<? extends K, ? extends V> asdf : arg0.entrySet()) {
             Map.Entry<? extends K, ? extends V> e = asdf;
             put(e.getKey(), e.getValue());
         }
@@ -188,23 +193,23 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
     /* (non-Javadoc)
      * @see java.util.Map#get(java.lang.Object)
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public V get(Object arg0) {
-       // UGLY HACK: We must take an arbitrary Object in order
-       // to satisfy the Map<K,V> interface.
-       // But we have to perform an unchecked cast arg0 to K in order
-       // to wrap it. eric.allen@sun.com 9/21/2006
-       // This is a problem because the hash function is undefined
-       // for non-K objects.
-       return map.get(new WrappedKey((K)arg0));
+        // UGLY HACK: We must take an arbitrary Object in order
+        // to satisfy the Map<K,V> interface.
+        // But we have to perform an unchecked cast arg0 to K in order
+        // to wrap it. eric.allen@sun.com 9/21/2006
+        // This is a problem because the hash function is undefined
+        // for non-K objects.
+        return map.get(new WrappedKey((K) arg0));
     }
 
-     /* (non-Javadoc)
-     * @see java.util.Map#remove(java.lang.Object)
-     */
-    @SuppressWarnings("unchecked")
+    /* (non-Javadoc)
+    * @see java.util.Map#remove(java.lang.Object)
+    */
+    @SuppressWarnings ("unchecked")
     public V remove(Object arg0) {
-       return map.remove(new WrappedKey((K)arg0));
+        return map.remove(new WrappedKey((K) arg0));
     }
 
     /* (non-Javadoc)

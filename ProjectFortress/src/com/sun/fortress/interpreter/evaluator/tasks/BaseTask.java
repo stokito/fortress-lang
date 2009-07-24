@@ -1,28 +1,28 @@
 /********************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-********************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ********************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.tasks;
-
-import jsr166y.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
+import jsr166y.RecursiveAction;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class BaseTask extends RecursiveAction {
     Throwable err = null;
@@ -42,16 +42,24 @@ public abstract class BaseTask extends RecursiveAction {
         depth = p.depth() + 1;
         if (debug) {
             count = counter.getAndIncrement();
-            name =  p.name() + "." + count;
+            name = p.name() + "." + count;
         } else {
             name = "BaseTask";
             count = 0;
         }
     }
 
-    public int depth() { return depth;}
-    public int count() { return count;}
-    public String name() {return name;}
+    public int depth() {
+        return depth;
+    }
+
+    public int count() {
+        return count;
+    }
+
+    public String name() {
+        return name;
+    }
 
     // For primordial evaluator task
     public BaseTask() {
@@ -62,28 +70,37 @@ public abstract class BaseTask extends RecursiveAction {
         name = "0";
     }
 
-    public BaseTask parent() { return parent;}
+    public BaseTask parent() {
+        return parent;
+    }
 
     public int transactionNesting() {
-        if (transaction == null)
-            return 0;
+        if (transaction == null) return 0;
         else return transaction.getNestingDepth();
     }
 
-    public Transaction transaction() { return transaction;}
-    public Boolean inATransaction() { return (transaction != null);}
+    public Transaction transaction() {
+        return transaction;
+    }
+
+    public Boolean inATransaction() {
+        return (transaction != null);
+    }
+
     /**
      * Can this transaction still commit?
      * This method may be called at any time, not just at transaction end,
      * so we do not clear the onValidateOnce table.
+     *
      * @return true iff transaction might still commit
      */
     public boolean validate() {
         try {
-            if (transaction == null)
-                throw new PanicException(Thread.currentThread().getName() + "Attempting to validate null transaction");
+            if (transaction == null) throw new PanicException(
+                    Thread.currentThread().getName() + "Attempting to validate null transaction");
             return transaction.validate();
-        } catch (AbortedException ex) {
+        }
+        catch (AbortedException ex) {
             return false;
         }
     }
@@ -94,8 +111,8 @@ public abstract class BaseTask extends RecursiveAction {
     public void beginTransaction() {
         if (transaction == null) {
             transaction = new Transaction();
-        } else if (!transaction.isActive())
-            throw new AbortedException(transaction, "Parent death detected in beginTransaction");
+        } else if (!transaction.isActive()) throw new AbortedException(transaction,
+                                                                       "Parent death detected in beginTransaction");
         else {
             Transaction parent = transaction;
             Transaction child = new Transaction(transaction);
@@ -112,7 +129,6 @@ public abstract class BaseTask extends RecursiveAction {
     /**
      * Attempts to commit the current transaction of the invoking
      * <code>Thread</code>.
-     *
      *
      * @return whether commit succeeded.
      */
@@ -148,8 +164,13 @@ public abstract class BaseTask extends RecursiveAction {
         err = t;
     }
 
-    public boolean causedException() {return err!=null;}
-    public Throwable taskException() {return err;}
+    public boolean causedException() {
+        return err != null;
+    }
+
+    public Throwable taskException() {
+        return err;
+    }
 
     public abstract void print();
 
@@ -162,7 +183,7 @@ public abstract class BaseTask extends RecursiveAction {
     }
 
     public String toString() {
-        return "[BaseTask" + name() + ":" + transaction + "]" ;
+        return "[BaseTask" + name() + ":" + transaction + "]";
     }
 
 }

@@ -1,44 +1,36 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class Reflect extends NativeConstructor {
     static GenericConstructor gcon = null;
@@ -47,13 +39,13 @@ public class Reflect extends NativeConstructor {
 
     public Reflect(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
-        gcon = (GenericConstructor)env.getLeafValue("Reflect");
+        gcon = (GenericConstructor) env.getLeafValue("Reflect");
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        if (it==null) {
-            synchronized(this) {
-                if (it==null) {
+        if (it == null) {
+            synchronized (this) {
+                if (it == null) {
                     it = new ReflectedType(con);
                 }
             }
@@ -79,25 +71,27 @@ public class Reflect extends NativeConstructor {
 
         public boolean seqv(FValue other) {
             if (!(other instanceof ReflectedType)) return false;
-            return getTy()==((ReflectedType)other).getTy();
+            return getTy() == ((ReflectedType) other).getTy();
         }
     }
 
     public static final ReflectedType makeReflectedType(FType t) {
-        if (gcon==null) {
-            return error("Cannot make Reflect[\\"+t+
-                         "\\]; constructor not invoked from Fortress yet.");
+        if (gcon == null) {
+            return error("Cannot make Reflect[\\" + t + "\\]; constructor not invoked from Fortress yet.");
         }
         Simple_fcn con = gcon.typeApply(Useful.list(t));
-        return (ReflectedType)con.applyToArgs();
+        return (ReflectedType) con.applyToArgs();
     }
 
     public static final class Join extends NativeApp {
-        public final int getArity() { return 2; }
+        public final int getArity() {
+            return 2;
+        }
+
         public FValue applyToArgs(List<FValue> reflecteds) {
             List<FType> tys = new ArrayList<FType>(reflecteds.size());
-            for (FValue v: reflecteds) {
-                tys.add(((ReflectedType)v).getTy());
+            for (FValue v : reflecteds) {
+                tys.add(((ReflectedType) v).getTy());
             }
             Set<FType> join = FType.joinTypes(tys);
             /* For now, just choose a type at random. */
@@ -111,8 +105,8 @@ public class Reflect extends NativeConstructor {
 
     public static final class ToString extends NativeMeth0 {
         public final FValue applyMethod(FObject selfValue) {
-            FType ty = ((ReflectedType)selfValue).getTy();
-            return FString.make("Reflect[\\"+ty.toString()+"\\]");
+            FType ty = ((ReflectedType) selfValue).getTy();
+            return FString.make("Reflect[\\" + ty.toString() + "\\]");
         }
     }
 

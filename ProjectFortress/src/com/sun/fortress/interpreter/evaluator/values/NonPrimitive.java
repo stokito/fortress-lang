@@ -1,37 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.exceptions.FortressException;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import static com.sun.fortress.exceptions.UnificationError.unificationError;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import com.sun.fortress.compiler.WellKnownNames;
-import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.glue.Glue;
@@ -39,9 +32,14 @@ import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 public abstract class NonPrimitive extends Simple_fcn {
 
-    static final List<FValue> VOID_ARG = Collections.singletonList((FValue)FVoid.V);
+    static final List<FValue> VOID_ARG = Collections.singletonList((FValue) FVoid.V);
 
     /*
      * (non-Javadoc)
@@ -70,25 +68,24 @@ public abstract class NonPrimitive extends Simple_fcn {
     }
 
     /**
-     * @param params
-     *            The params to set.
+     * @param params The params to set.
      */
     public final void setParams(List<Parameter> original_params) {
 
         List<Parameter> params = adjustParameterList(original_params);
 
         if (this.params != null) {
-            if (! this.params.equals(params))
-                bug(this.getAt(),
-                        errorMsg("Attempted second set of constructor/function/method params of ",
-                                this, " to ", Useful.listInParens(original_params)));
+            if (!this.params.equals(params)) bug(this.getAt(), errorMsg(
+                    "Attempted second set of constructor/function/method params of ",
+                    this,
+                    " to ",
+                    Useful.listInParens(original_params)));
             // be idempotent
             return;
         }
 
         this.params = params;
-        lastParamIsRest = params.size() > 0
-                && (params.get(params.size() - 1).getType() instanceof FTypeRest);
+        lastParamIsRest = params.size() > 0 && (params.get(params.size() - 1).getType() instanceof FTypeRest);
         setValueType();
     }
 
@@ -102,8 +99,7 @@ public abstract class NonPrimitive extends Simple_fcn {
      * @return Returns the params.
      */
     public List<Parameter> getParameters() {
-        if (params==null)
-            return bug(getAt(),errorMsg("getParams of NonPrimitive ",this));
+        if (params == null) return bug(getAt(), errorMsg("getParams of NonPrimitive ", this));
         return params;
     }
 
@@ -112,10 +108,10 @@ public abstract class NonPrimitive extends Simple_fcn {
         if (cachedDomain == null) {
             synchronized (this) {
                 if (cachedDomain == null) {
-//                    if (this instanceof FunctionalMethod
-//                            && ((FunctionalMethod) this).getSelfParameterType()
-//                                    .toString().contains("ParRange"))
-//                        System.err.println("getDomain of " + this);
+                    //                    if (this instanceof FunctionalMethod
+                    //                            && ((FunctionalMethod) this).getSelfParameterType()
+                    //                                    .toString().contains("ParRange"))
+                    //                        System.err.println("getDomain of " + this);
                     List<FType> l = typeListFromParameters(getParameters());
                     cachedDomain = l;
                 }
@@ -128,7 +124,7 @@ public abstract class NonPrimitive extends Simple_fcn {
         List<FValue> res = new ArrayList<FValue>(args.size());
         for (FValue v : args) {
             if (v instanceof FAsIf) {
-                res.add(((FAsIf)v).getValue());
+                res.add(((FAsIf) v).getValue());
             } else {
                 res.add(v);
             }
@@ -150,17 +146,21 @@ public abstract class NonPrimitive extends Simple_fcn {
             Parameter param = paramsIter.next();
             FType paramType = param.getType();
             if (paramType instanceof FTypeRest) {
-                FType restType = ((FTypeRest)paramType).getType();
+                FType restType = ((FTypeRest) paramType).getType();
                 for (; argsIter.hasNext(); i++) {
                     FValue arg = argsIter.next();
                     if (arg instanceof FAsIf) asif = true;
                     if (!restType.typeMatch(arg)) {
                         error(errorMsg("Closure/Constructor for ",
                                        getAt().stringName(),
-                                       " rest parameter ", i, " (",
+                                       " rest parameter ",
+                                       i,
+                                       " (",
                                        param.getName(),
-                                       ":", restType,
-                                       "...) got type ", arg.type()));
+                                       ":",
+                                       restType,
+                                       "...) got type ",
+                                       arg.type()));
                     }
                 }
             } else {
@@ -170,32 +170,33 @@ public abstract class NonPrimitive extends Simple_fcn {
                 if (!paramType.typeMatch(arg)) {
                     error(errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
-                                   " parameter ", i, " (",
-                                   param.getName(), ":",
-                                   param.getType(), ") got type ",
+                                   " parameter ",
+                                   i,
+                                   " (",
+                                   param.getName(),
+                                   ":",
+                                   param.getType(),
+                                   ") got type ",
                                    arg.type()));
                 }
             }
         }
-        if (asif)
-            return stripAsIf(args);
-        else
-            return args;
+        if (asif) return stripAsIf(args);
+        else return args;
     }
 
     /**
      * Build environment for evaluation of closure.
      * Intended to be called from Closure.
+     *
      * @throws Error
      */
-    public Environment buildEnvFromParams(List<FValue> args)
-            throws Error {
+    public Environment buildEnvFromParams(List<FValue> args) throws Error {
         Environment env = within.extendAt(getAt());
         return buildEnvFromParams(args, env);
     }
 
-    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args)
-            throws Error {
+    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args) throws Error {
         env = env.extendAt(getAt());
         return buildEnvFromParams(args, env);
     }
@@ -203,10 +204,9 @@ public abstract class NonPrimitive extends Simple_fcn {
     private Environment buildEnvFromParams(List<FValue> args, Environment env) throws Error {
         // TODO Here is where we deal with rest parameters.
         List<FValue> argsTemp = fixupArgCount(args);
-        if ( argsTemp == null )
-            return bug("The number of parameters (" + params.size() +
-                       ") does not match with the number of arguments (" +
-                       args.size() + ").");
+        if (argsTemp == null) return bug(
+                "The number of parameters (" + params.size() + ") does not match with the number of arguments (" +
+                args.size() + ").");
         args = argsTemp;
         Iterator<FValue> argsIter = args.iterator();
         FValue arg = null;
@@ -225,12 +225,12 @@ public abstract class NonPrimitive extends Simple_fcn {
                 Environment wknInstantiationEnv = Driver.getFortressLibrary();
 
                 Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
-                        genericName, ((FTypeRest) paramType).getType(),
-                        natParams);
+                                                                  genericName,
+                                                                  ((FTypeRest) paramType).getType(),
+                                                                  natParams);
 
                 FValue theArray = f.applyToArgs();
-                if (!(theArray instanceof FObject))
-                    return bug(errorMsg(f," returned non-FObject ",theArray));
+                if (!(theArray instanceof FObject)) return bug(errorMsg(f, " returned non-FObject ", theArray));
                 // Use a wrapper to simplify our life
                 IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray);
                 int j = 0;
@@ -246,23 +246,28 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = argsIter.next();
                 i++;
                 if (!paramType.typeMatch(arg)) {
-                    unificationError(
-                          errorMsg("Closure/Constructor for ",
-                                   getAt().stringName(),
-                                   " param ", i, " (",
-                                   param.getName(), ":",
-                                   paramType, ") got arg ", arg,
-                                   " of type ", arg.type()));
+                    unificationError(errorMsg("Closure/Constructor for ",
+                                              getAt().stringName(),
+                                              " param ",
+                                              i,
+                                              " (",
+                                              param.getName(),
+                                              ":",
+                                              paramType,
+                                              ") got arg ",
+                                              arg,
+                                              " of type ",
+                                              arg.type()));
                 }
                 arg = arg.getValue(); // Strip asif
                 try {
                     if (param.getMutable()) {
-                        env.putValueRaw(param.getName(), arg,
-                                                    param.getType());
+                        env.putValueRaw(param.getName(), arg, param.getType());
                     } else {
                         env.putValueRaw(param.getName(), arg);
                     }
-                } catch (FortressException ex) {
+                }
+                catch (FortressException ex) {
                     throw ex.setWithin(env);
                 }
             }
@@ -276,11 +281,11 @@ public abstract class NonPrimitive extends Simple_fcn {
      */
     public List<FValue> fixupArgCount(List<FValue> args0, HasAt loc) {
         List<FValue> args = fixupArgCount(args0);
-        if (args==null) {
-            error(loc,
-                  errorMsg("Incorrect number of arguments, expected ",
-                           Useful.listInParens(params), ", got ",
-                           Useful.listInParens(args0)));
+        if (args == null) {
+            error(loc, errorMsg("Incorrect number of arguments, expected ",
+                                Useful.listInParens(params),
+                                ", got ",
+                                Useful.listInParens(args0)));
         }
         return args;
     }
@@ -290,24 +295,22 @@ public abstract class NonPrimitive extends Simple_fcn {
      * @return fixed up arguments, or null if different lengths.
      */
     public List<FValue> fixupArgCount(List<FValue> args) {
-        if (this.params==null) {
-            bug(this.getAt(),
-                "Calling fixupArgCount on "+getAt().stringName()+
-                " with null params");
+        if (this.params == null) {
+            bug(this.getAt(), "Calling fixupArgCount on " + getAt().stringName() + " with null params");
         }
         if (args.size() == params.size()) return args;
         if (hasRest() && args.size() + 1 >= params.size()) {
             return args;
         }
-        if (params.size()==1) {
+        if (params.size() == 1) {
             /* Obscure screw case: a type parameter was instantiated
              * with void / tuple, or we declared a single parameter of
              * void or tuple type ().  This is satisfied by a 0-ary
              * application.  Rather than checking thoroughly, we
              * return a singleton void and let the enclosing test
              * catch it. */
-            if (args.size()==0) return VOID_ARG;
-            return Collections.singletonList((FValue)FTuple.make(args));
+            if (args.size() == 0) return VOID_ARG;
+            return Collections.singletonList((FValue) FTuple.make(args));
         }
         return null;
     }

@@ -1,26 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 
 /**
  * A _WrappedFValue permits the interpreter to incorporate intermediate
@@ -35,7 +36,9 @@ public class _WrappedFValue extends Expr {
 
     /**
      * Constructs a _WrappedFValue.
-     * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
+     *
+     * @throws java.lang.IllegalArgumentException
+     *          If any parameter to the constructor is null.
      */
     public _WrappedFValue(Span in_span, boolean in_is_parenthesized, FValue in_fValue) {
         super();
@@ -53,40 +56,50 @@ public class _WrappedFValue extends Expr {
         _fValue = null;
     }
 
-    final public FValue getFValue() { return _fValue; }
+    final public FValue getFValue() {
+        return _fValue;
+    }
 
     public <RetType> RetType accept(NodeVisitor<RetType> visitor) {
         if (visitor instanceof Evaluator) {
-            @SuppressWarnings("unchecked") // RetType must be FValue
-            RetType result = (RetType)(((Evaluator)visitor).for_WrappedFValue(this));
+            @SuppressWarnings ("unchecked") // RetType must be FValue
+                    RetType result = (RetType) (((Evaluator) visitor).for_WrappedFValue(this));
             return result;
         } else {
-            return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
-                                               visitor.getClass().getName() + " does not support visiting values of type " +
-                                               getClass().getName());
+            return InterpreterBug.<RetType>bug(
+                    "_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                    visitor.getClass().getName() + " does not support visiting values of type " + getClass().getName());
         }
     }
+
     public <RetType> RetType accept(AbstractNodeVisitor<RetType> visitor) {
         return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
                                            visitor.getClass().getName() + " does not support visiting values of type " +
                                            getClass().getName());
     }
+
     public <RetType> RetType accept(ExprVisitor<RetType> visitor) {
         return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
                                            visitor.getClass().getName() + " does not support visiting values of type " +
                                            getClass().getName());
     }
+
     public void accept(NodeVisitor_void visitor) {
-        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
-                           " does not support visiting values of type " + getClass().getName());
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                           visitor.getClass().getName() + " does not support visiting values of type " +
+                           getClass().getName());
     }
+
     public void accept(AbstractNodeVisitor_void visitor) {
-        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
-                           " does not support visiting values of type " + getClass().getName());
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                           visitor.getClass().getName() + " does not support visiting values of type " +
+                           getClass().getName());
     }
+
     public void accept(ExprVisitor_void visitor) {
-        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
-                           " does not support visiting values of type " + getClass().getName());
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                           visitor.getClass().getName() + " does not support visiting values of type " +
+                           getClass().getName());
     }
 
     public java.lang.String toString() {
@@ -98,13 +111,18 @@ public class _WrappedFValue extends Expr {
         return b.toString();
     }
 
-    /** Generate a human-readable representation that can be deserialized. */
+    /**
+     * Generate a human-readable representation that can be deserialized.
+     */
     public java.lang.String serialize() {
         java.io.StringWriter w = new java.io.StringWriter();
         serialize(w);
         return w.toString();
     }
-    /** Generate a human-readable representation that can be deserialized. */
+
+    /**
+     * Generate a human-readable representation that can be deserialized.
+     */
     public void serialize(java.io.Writer writer) {
         walk(new LosslessStringWalker(writer, 2));
     }

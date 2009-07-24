@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -22,9 +22,11 @@ import java.util.Random;
 public class Pickup52 {
 
     static String[] cards = {
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
+            "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+            "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
     };
+
     /**
      * @param args
      */
@@ -32,18 +34,16 @@ public class Pickup52 {
         int l = cards.length;
         for (int i = 0; i < args.length; i++) {
             Random r = new Random(args[i].hashCode());
-            for (int j = 1; j < l-1; j++) {
-                int k = r.nextInt(l-j);
+            for (int j = 1; j < l - 1; j++) {
+                int k = r.nextInt(l - j);
                 // Swap l-j with k.
                 String t = cards[k];
-                cards[k] = cards[l-j];
-                cards[l-j] = t;
+                cards[k] = cards[l - j];
+                cards[l - j] = t;
             }
             for (int j = 0; j < l; j++) {
-                if ((j+1) %13 == 0)
-                    System.out.println(cards[j] + ",");
-                else
-                    System.out.print(cards[j] + ", ");
+                if ((j + 1) % 13 == 0) System.out.println(cards[j] + ",");
+                else System.out.print(cards[j] + ", ");
 
             }
         }

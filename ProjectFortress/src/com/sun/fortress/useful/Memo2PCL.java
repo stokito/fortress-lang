@@ -1,29 +1,26 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Memo2PCL<Index, Part2, Value, Param> implements Factory2P<Index, Part2, Value, Param>
-{
+public class Memo2PCL<Index, Part2, Value, Param> implements Factory2P<Index, Part2, Value, Param> {
 
     Factory2P<Index, Part2, Value, Param> factory;
 
@@ -77,7 +74,8 @@ public class Memo2PCL<Index, Part2, Value, Param> implements Factory2P<Index, Pa
                     System.err.println("M1PCL " + ps + " close");
                     ps.close();
                 }
-            } finally {
+            }
+            finally {
                 shadow_map = null;
                 lock.unlock();
             }

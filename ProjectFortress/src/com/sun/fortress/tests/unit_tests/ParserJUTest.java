@@ -1,58 +1,51 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
-
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import com.sun.fortress.compiler.Parser;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.TestCaseWrapper;
 import com.sun.fortress.useful.WireTappedPrintStream;
-import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.exceptions.StaticError;
-
 import edu.rice.cs.plt.iter.IterUtil;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Arrays;
 
 public class ParserJUTest extends TestCaseWrapper {
 
     private static final String SEP = File.separator;
-    private final static String PARSER_FAIL_TESTS_DIR =
-        ProjectProperties.BASEDIR + "parser_tests" + SEP;
-    private final static String PARSER_NYI_TESTS_DIR =
-        ProjectProperties.BASEDIR + "not_passing_yet" + SEP;
+    private final static String PARSER_FAIL_TESTS_DIR = ProjectProperties.BASEDIR + "parser_tests" + SEP;
+    private final static String PARSER_NYI_TESTS_DIR = ProjectProperties.BASEDIR + "not_passing_yet" + SEP;
+
     private static boolean isNYI(String parent) {
         return parent.contains("not_passing_yet");
     }
 
     public static TestSuite suite() {
-        return new ParserTestSuite("ParserJUTest",
-                                   PARSER_FAIL_TESTS_DIR,
-                                   PARSER_NYI_TESTS_DIR);
+        return new ParserTestSuite("ParserJUTest", PARSER_FAIL_TESTS_DIR, PARSER_NYI_TESTS_DIR);
     }
 
     private final static class ParserTestSuite extends TestSuite {
@@ -62,8 +55,7 @@ public class ParserJUTest extends TestCaseWrapper {
         private final String failTestDir;
         private final String nyiTestDir;
 
-        public ParserTestSuite(String _name, String _failTestDir,
-                               String _nyiTestDir) {
+        public ParserTestSuite(String _name, String _failTestDir, String _nyiTestDir) {
             super(_name);
             failTestDir = _failTestDir;
             nyiTestDir = _nyiTestDir;
@@ -72,10 +64,10 @@ public class ParserJUTest extends TestCaseWrapper {
 
         private void addParserTests() {
             FilenameFilter fssFilter = new FilenameFilter() {
-                    public boolean accept(File dir, String name) {
-                        return (name.endsWith("fss") || name.endsWith("fsi"));
-                    }
-                };
+                public boolean accept(File dir, String name) {
+                    return (name.endsWith("fss") || name.endsWith("fsi"));
+                }
+            };
 
             //Permute filenames for randomness
             String[] files = new File(failTestDir).list(fssFilter);
@@ -113,10 +105,8 @@ public class ParserJUTest extends TestCaseWrapper {
                 // do not print stuff to stdout for JUTests
                 PrintStream oldOut = System.out;
                 PrintStream oldErr = System.err;
-                WireTappedPrintStream wt_err = WireTappedPrintStream.make(
-                    System.err, true);
-                WireTappedPrintStream wt_out = WireTappedPrintStream.make(
-                    System.out, true);
+                WireTappedPrintStream wt_err = WireTappedPrintStream.make(System.err, true);
+                WireTappedPrintStream wt_out = WireTappedPrintStream.make(System.out, true);
                 System.setErr(wt_err);
                 System.setOut(wt_out);
 
@@ -126,8 +116,7 @@ public class ParserJUTest extends TestCaseWrapper {
                 } else if (isNYI(parent)) {
                     assertParserSucceeds(file);
                 } else {
-                    error("Unexpected file in the parser_test directory: " +
-                          name);
+                    error("Unexpected file in the parser_test directory: " + name);
                 }
                 System.setErr(oldErr);
                 System.setOut(oldOut);
@@ -136,28 +125,30 @@ public class ParserJUTest extends TestCaseWrapper {
             private void assertParserFails(File f) throws IOException {
                 try {
                     Parser.Result result = parseFile(f);
-                    assertFalse("Source " + f + " was compiled without parser errors",
-                                result.isSuccessful());
-                } catch (Throwable e) {
+                    assertFalse("Source " + f + " was compiled without parser errors", result.isSuccessful());
+                }
+                catch (Throwable e) {
                 }
             }
 
             private void assertParserSucceeds(File f) throws IOException {
                 Parser.Result result = parseFile(f);
-                assertFalse("Source " + f + " was compiled with parser errors",
-                            !result.isSuccessful());
+                assertFalse("Source " + f + " was compiled with parser errors", !result.isSuccessful());
             }
 
             private Parser.Result parseFile(File f) {
                 try {
-                    return new Parser.Result(Parser.parseFileConvertExn(f),
-                                             f.lastModified());
-                } catch (StaticError se) {
+                    return new Parser.Result(Parser.parseFileConvertExn(f), f.lastModified());
+                }
+                catch (StaticError se) {
                     return new Parser.Result(se);
-                } finally {
+                }
+                finally {
                     try {
-                        Files.rm( f.getCanonicalPath() + ".preparserError.log" );
-                    } catch (IOException e) {}
+                        Files.rm(f.getCanonicalPath() + ".preparserError.log");
+                    }
+                    catch (IOException e) {
+                    }
                 }
             }
         }

@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /*
@@ -22,103 +22,98 @@
 
 package com.sun.fortress.parser_util;
 
+import com.sun.fortress.nodes.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.SpanInfo;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes._RewriteObjectExpr;
-
 public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> {
 
-	private NameAndImportCollection namesAndImports;
+    private NameAndImportCollection namesAndImports;
 
 
+    @Override
+    public List<Import> forComponentOnly(Component that,
+                                         List<Import> info,
+                                         List<Import> name_result,
+                                         List<List<Import>> imports_result,
+                                         List<List<Import>> decls_result,
+                                         List<List<Import>> comprises_result,
+                                         List<List<Import>> exports_result) {
+        this.namesAndImports = new NameAndImportCollection();
+        this.namesAndImports.setComponentName(that.getName());
+        this.namesAndImports.setImports(collapseList(imports_result));
 
-	@Override
-            public List<Import> forComponentOnly(Component that, List<Import> info,
-                                                 List<Import> name_result, List<List<Import>> imports_result,
-                                                 List<List<Import>> decls_result,
-                                                 List<List<Import>> comprises_result,
-                                                 List<List<Import>> exports_result) {
-		this.namesAndImports = new NameAndImportCollection();
-		this.namesAndImports.setComponentName(that.getName());
-		this.namesAndImports.setImports(collapseList(imports_result));
+        return super.forComponentOnly(that,
+                                      info,
+                                      name_result,
+                                      imports_result,
+                                      decls_result,
+                                      comprises_result,
+                                      exports_result);
+    }
 
-		return super.forComponentOnly(that, info, name_result,
-                                              imports_result, decls_result,
-                                              comprises_result, exports_result);
-	}
+    @Override
+    public List<Import> defaultCase(Node that) {
+        return new LinkedList<Import>();
+    }
 
-	@Override
-	public List<Import> defaultCase(Node that) {
-		return new LinkedList<Import>();
-	}
+    /**
+     * @param apis_result
+     * @return
+     */
+    private List<Import> collapseList(List<List<Import>> apis_result) {
+        List<Import> imports = new LinkedList<Import>();
+        for (List<Import> ls : apis_result) {
+            imports.addAll(ls);
+        }
+        return imports;
+    }
 
-	/**
-	 * @param apis_result
-	 * @return
-	 */
-	private List<Import> collapseList(List<List<Import>> apis_result) {
-		List<Import> imports = new LinkedList<Import>();
-		for (List<Import> ls: apis_result) {
-			imports.addAll(ls);
-		}
-		return imports;
-	}
-
-	@Override
-	public List<Import> forImportApiOnly(ImportApi that, List<Import> info,
-			List<List<Import>> apis_result) {
-		List<Import> ls = collapseList(apis_result);
-		ls.add(that);
-		return ls;
-	}
+    @Override
+    public List<Import> forImportApiOnly(ImportApi that, List<Import> info, List<List<Import>> apis_result) {
+        List<Import> ls = collapseList(apis_result);
+        ls.add(that);
+        return ls;
+    }
 
 
-	@Override
-	public List<Import> forImportedNamesOnly(ImportedNames that, List<Import> info,
-			List<Import> api_result) {
-		List<Import> ls = api_result;
-		ls.add(that);
-		return ls;
-	}
+    @Override
+    public List<Import> forImportedNamesOnly(ImportedNames that, List<Import> info, List<Import> api_result) {
+        List<Import> ls = api_result;
+        ls.add(that);
+        return ls;
+    }
 
-	@Override
-	public List<Import> forImportNamesOnly(ImportNames that, List<Import> info,
-			List<Import> api_result,
-			List<List<Import>> aliasedNames_result) {
-		List<Import> ls = collapseList(aliasedNames_result);
-		ls.add(that);
-		return ls;
-	}
+    @Override
+    public List<Import> forImportNamesOnly(ImportNames that,
+                                           List<Import> info,
+                                           List<Import> api_result,
+                                           List<List<Import>> aliasedNames_result) {
+        List<Import> ls = collapseList(aliasedNames_result);
+        ls.add(that);
+        return ls;
+    }
 
-	@Override
-	public List<Import> forImportStarOnly(ImportStar that, List<Import> info,
-			List<Import> api_result,
-			List<List<Import>> except_result) {
-		List<Import> ls = collapseList(except_result);
-		ls.add(that);
-		return ls;
-	}
+    @Override
+    public List<Import> forImportStarOnly(ImportStar that,
+                                          List<Import> info,
+                                          List<Import> api_result,
+                                          List<List<Import>> except_result) {
+        List<Import> ls = collapseList(except_result);
+        ls.add(that);
+        return ls;
+    }
 
-	/**
-	 *
-	 */
-	public NameAndImportCollector() {
+    /**
+     *
+     */
+    public NameAndImportCollector() {
 
-	}
+    }
 
-	public NameAndImportCollection getResult() {
-		return this.namesAndImports;
-	}
+    public NameAndImportCollection getResult() {
+        return this.namesAndImports;
+    }
 
 }

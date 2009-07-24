@@ -1,32 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class FTypeTop extends FTypeTrait {
     public final static FTypeTop ONLY = new FTypeTop();
@@ -34,8 +33,11 @@ public class FTypeTop extends FTypeTrait {
     public final static Set<FType> SingleSet = Useful.<FType>set(ONLY);
 
     private FTypeTop() {
-        super("Any",BetterEnv.blessedEmpty(),new HasAt.FromString("Built in"),
-                Collections.<Decl>emptyList(), null); // HACK need a token here.
+        super("Any",
+              BetterEnv.blessedEmpty(),
+              new HasAt.FromString("Built in"),
+              Collections.<Decl>emptyList(),
+              null); // HACK need a token here.
         membersInitialized = true;
     }
 
@@ -76,7 +78,7 @@ public class FTypeTop extends FTypeTrait {
 
     @Override
     public boolean equals(Object other) {
-        return (other==ONLY);
+        return (other == ONLY);
     }
 
     @Override

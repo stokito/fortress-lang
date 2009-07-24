@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+Copyright 2009 Sun Microsystems, Inc.,
+4150 Network Circle, Santa Clara, California 95054, U.S.A.
+All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+U.S. Government Rights - Commercial software.
+Government users are subject to the Sun Microsystems, Inc. standard
+license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.useful
@@ -21,11 +21,9 @@ import _root_.java.util.ArrayList
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.index._
-import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
-import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
@@ -35,20 +33,19 @@ import com.sun.fortress.scala_src.typechecker.ScalaConstraint
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil.TRUE_FORMULA
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
-import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
 object STypesUtil {
-  
-  /** A function that when applied yields an option type. */
+
+  /**A function that when applied yields an option type. */
   type TypeThunk = Function0[Option[Type]]
 
-  /** A function type that takes two types and returns a boolean. */
+  /**A function type that takes two types and returns a boolean. */
   type Subtype = (Type, Type) => Boolean
-  
+
   /**
    * Return the arrow type of the given Functional index.
-   */  
+   */
   def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
     val params = toList(f.parameters).map(NU.getParamType)
@@ -56,18 +53,18 @@ object STypesUtil {
     val sparams = f.staticParameters
     val effect = NF.makeEffect(f.thrownTypes)
     val where = f match {
-      case f:Constructor => f.where
+      case f: Constructor => f.where
       case _ => none[WhereClause]
     }
     Some(NF.makeArrowType(NF.typeSpan,
-                          false,
-                          argType,
-                          returnType,
-                          effect,
-                          sparams,
-                          where))
+      false,
+      argType,
+      returnType,
+      effect,
+      sparams,
+      where))
   }
-  
+
   /**
    * Make a single argument type from a list of types.
    */
@@ -79,7 +76,7 @@ object STypesUtil {
       val span2 = NU.getSpan(ts.last)
       NF.makeTupleType(NU.spanTwo(span1, span2), toJavaList(ts))
   }
-  
+
   /**
    * Make a domain type from a list of parameters, including varargs and
    * keyword types. Ported from `TypeEnv.domainFromParams`. Returns None if
@@ -93,7 +90,7 @@ object STypesUtil {
       case Nil => NF.typeSpan
       case _ => NU.spanTwo(NU.getSpan(ps.first), NU.getSpan(ps.last))
     }
-    
+
     // Extract out the appropriate parameter types.
     ps.foreach(p => p match {
       case SParam(_, _, _, _, _, Some(vaType)) => // Vararg
@@ -105,9 +102,9 @@ object STypesUtil {
       case _ => return None
     })
     Some(NF.makeDomain(span,
-                       paramTypes,
-                       toJavaOption(varargsType),
-                       keywordTypes))
+      paramTypes,
+      toJavaOption(varargsType),
+      keywordTypes))
   }
 
   /**
@@ -122,29 +119,29 @@ object STypesUtil {
     val params = oldParams.map(p => p match {
       case SParam(info, name, mods, None, defaultExpr, None) =>
         SParam(info,
-               name,
-               mods,
-               Some(NF.make_InferenceVarType(info.getSpan)),
-               defaultExpr,
-               None)
+          name,
+          mods,
+          Some(NF.make_InferenceVarType(info.getSpan)),
+          defaultExpr,
+          None)
       case _ => p
     })
 
     // Get the substitution resulting from params :> expectedDomain
     val paramsDomain = makeDomainType(params).get
     val subst = analyzer.subtype(expectedDomain, paramsDomain).
-                asInstanceOf[ScalaConstraint].scalaSolve(Map())
+            asInstanceOf[ScalaConstraint].scalaSolve(Map())
     subst.map(s =>
-      params.map(p => p match {
-        case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
-          SParam(info,
-                 name,
-                 mods,
-                 Some(substituteTypesForInferenceVars(s, idType)),
-                 defaultExpr,
-                 None)
-        case _ => p              
-      }))
+            params.map(p => p match {
+              case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
+                SParam(info,
+                  name,
+                  mods,
+                  Some(substituteTypesForInferenceVars(s, idType)),
+                  defaultExpr,
+                  None)
+              case _ => p
+            }))
   }
 
   /**
@@ -177,9 +174,9 @@ object STypesUtil {
           SLValue(info, name, mods, Some(typ), mutable)
         }))
 
-      case _:TupleType => None
+      case _: TupleType => None
 
-      case _:Type if ls.length == 1 =>
+      case _: Type if ls.length == 1 =>
         Some(ls.map(lv => {
           val SLValue(info, name, mods, _, mutable) = lv
           SLValue(info, name, mods, Some(typ), mutable)
@@ -187,7 +184,7 @@ object STypesUtil {
 
       case _ => None
     }
-  
+
   /**
    * Convert a static parameter to the corresponding static arg. Ported from
    * `TypeEnv.staticParamsToArgs`.
@@ -195,14 +192,14 @@ object STypesUtil {
   def staticParamToArg(p: StaticParam): StaticArg = {
     val span = NU.getSpan(p)
     (p.getName, p.getKind) match {
-      case (id:Id, _:KindBool) => NF.makeBoolArg(span, NF.makeBoolRef(span, id))
-      case (id:Id, _:KindDim) => NF.makeDimArg(span, NF.makeDimRef(span, id))
-      case (id:Id, _:KindInt) => NF.makeIntArg(span, NF.makeIntRef(span, id))
-      case (id:Id, _:KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id))
-      case (id:Id, _:KindType) => NF.makeTypeArg(span, NF.makeVarType(span, id))
-      case (id:Id, _:KindUnit) =>
+      case (id: Id, _: KindBool) => NF.makeBoolArg(span, NF.makeBoolRef(span, id))
+      case (id: Id, _: KindDim) => NF.makeDimArg(span, NF.makeDimRef(span, id))
+      case (id: Id, _: KindInt) => NF.makeIntArg(span, NF.makeIntRef(span, id))
+      case (id: Id, _: KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id))
+      case (id: Id, _: KindType) => NF.makeTypeArg(span, NF.makeVarType(span, id))
+      case (id: Id, _: KindUnit) =>
         NF.makeUnitArg(span, NF.makeUnitRef(span, false, id))
-      case (op:Op, _:KindOp) => NF.makeOpArg(span, ExprFactory.makeOpRef(op))
+      case (op: Op, _: KindOp) => NF.makeOpArg(span, ExprFactory.makeOpRef(op))
       case _ => bug("Unexpected static parameter kind")
     }
   }
@@ -277,7 +274,7 @@ object STypesUtil {
 
     object substitutionWalker extends Walker {
       override def walk(node: Any): Any = node match {
-        case ty:_InferenceVarType => substitution.get(ty).getOrElse(super.walk(ty))
+        case ty: _InferenceVarType => substitution.get(ty).getOrElse(super.walk(ty))
         case _ => super.walk(node)
       }
     }
@@ -320,22 +317,22 @@ object STypesUtil {
    * other type, this is the singleton set of that type.
    */
   def conjuncts(ty: Type): Set[Type] = ty match {
-    case _:AnyType => Set.empty[Type]
-    case SIntersectionType(_, elts) => Set(elts:_*).flatMap(conjuncts)
+    case _: AnyType => Set.empty[Type]
+    case SIntersectionType(_, elts) => Set(elts: _*).flatMap(conjuncts)
     case _ => Set(ty)
   }
 
   /**
    * Returns TypeConsIndex of "typ".
    */
-  def getTypes(typ:Id, globalEnv: GlobalEnvironment,
+  def getTypes(typ: Id, globalEnv: GlobalEnvironment,
                compilation_unit: CompilationUnitIndex): TypeConsIndex = typ match {
-    case SId(info,Some(name),text) =>
-      globalEnv.api(name).typeConses.get(SId(info,None,text))
+    case SId(info, Some(name), text) =>
+      globalEnv.api(name).typeConses.get(SId(info, None, text))
     case _ => compilation_unit.typeConses.get(typ)
   }
 
-  /** Return the [Scala-based] conditions for subtype <: supertype to hold. */
+  /**Return the [Scala-based] conditions for subtype <: supertype to hold. */
   def checkSubtype(subtype: Type, supertype: Type)
                   (implicit analyzer: TypeAnalyzer): ScalaConstraint = {
     val constraint = analyzer.subtype(subtype, supertype)
@@ -345,11 +342,11 @@ object STypesUtil {
     constraint.asInstanceOf[ScalaConstraint]
   }
 
-  /** Determine if subtype <: supertype. */
+  /**Determine if subtype <: supertype. */
   def isSubtype(subtype: Type, supertype: Type)
                (implicit analyzer: TypeAnalyzer): Boolean =
     checkSubtype(subtype, supertype).isTrue
-  
+
   /**
    * Replaces occurrences of static parameters with corresponding static
    * arguments in the given body type. In the end, any static parameters
@@ -380,32 +377,32 @@ object STypesUtil {
 
     // Gets the actual value out of a static arg.
     def sargToVal(sarg: StaticArg): Node = sarg match {
-      case sarg:TypeArg => sarg.getTypeArg
-      case sarg:IntArg => sarg.getIntVal
-      case sarg:BoolArg => sarg.getBoolArg
-      case sarg:OpArg => sarg.getName
-      case sarg:DimArg => sarg.getDimArg
-      case sarg:UnitArg => sarg.getUnitArg
+      case sarg: TypeArg => sarg.getTypeArg
+      case sarg: IntArg => sarg.getIntVal
+      case sarg: BoolArg => sarg.getBoolArg
+      case sarg: OpArg => sarg.getName
+      case sarg: DimArg => sarg.getDimArg
+      case sarg: UnitArg => sarg.getUnitArg
       case _ => bug("unexpected kind of static arg")
     }
 
     // Replaces all the params with args in a node.
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
-        case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         // TODO: Check proper name for OpArgs.
-        case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
-        case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+        case n: IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case _ => super.walk(node)
       }
     }
 
     // Get the replaced type and clear out its static params, if any.
     Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type],
-                           ignoreLifted))
+      ignoreLifted))
   }
 
   /**
@@ -437,15 +434,15 @@ object STypesUtil {
     def argMatchesParam(argAndParam: (StaticArg, StaticParam)): Boolean = {
       val (arg, param) = argAndParam
       (arg, param.getKind) match {
-        case (STypeArg(_, argType), _:KindType) =>
+        case (STypeArg(_, argType), _: KindType) =>
           toList(param.getExtendsClause).
-            forall(!analyzer.subtype(argType, _).isFalse)
-        case (_:IntArg, _:KindInt) => true
-        case (_:BoolArg, _:KindBool) => true
-        case (_:DimArg, _:KindDim) => true
-        case (_:OpArg, _:KindOp) => true
-        case (_:UnitArg, _:KindUnit) => true
-        case (_:IntArg, _:KindNat) => true
+                  forall(!analyzer.subtype(argType, _).isFalse)
+        case (_: IntArg, _: KindInt) => true
+        case (_: BoolArg, _: KindBool) => true
+        case (_: DimArg, _: KindDim) => true
+        case (_: OpArg, _: KindOp) => true
+        case (_: UnitArg, _: KindUnit) => true
+        case (_: IntArg, _: KindNat) => true
         case (_, _) => false
       }
     }
@@ -460,7 +457,7 @@ object STypesUtil {
   def staticArgsMatchStaticParams(args: List[StaticArg],
                                   params: List[StaticParam])
                                  (implicit analyzer: TypeAnalyzer): Boolean
-    = staticArgsMatchStaticParams(args, params, false)
+  = staticArgsMatchStaticParams(args, params, false)
 
 
   /**
@@ -470,7 +467,7 @@ object STypesUtil {
                                     argType: Type,
                                     expectedType: Option[Type])
                                    (implicit analyzer: TypeAnalyzer)
-                                    : Option[(ArrowType, List[StaticArg])] = {
+  : Option[(ArrowType, List[StaticArg])] = {
 
     val arrows = conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType])
     staticallyMostApplicableArrow(arrows, argType, expectedType)
@@ -486,13 +483,13 @@ object STypesUtil {
                                     argType: Type,
                                     expectedType: Option[Type])
                                    (implicit analyzer: TypeAnalyzer)
-                                    : Option[(ArrowType, List[StaticArg])] = {
+  : Option[(ArrowType, List[StaticArg])] = {
 
     // Filter applicable arrows and their instantiated args.
     val arrowsAndInstantiations =
-      allArrows.flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType],
-                                              argType,
-                                              expectedType))
+    allArrows.flatMap(ty => checkApplicable(ty.asInstanceOf[ArrowType],
+      argType,
+      expectedType))
 
     // Define an ordering relation on arrows with their instantiations.
     def lessThan(overloading1: (ArrowType, List[StaticArg]),
@@ -515,11 +512,11 @@ object STypesUtil {
    * the [possiblly instantiated] arrow type along with any inferred static
    * args are returned.
    */
-   def checkApplicable(fnType: ArrowType,
-                       argType: Type,
-                       expectedType: Option[Type])
-                      (implicit analyzer: TypeAnalyzer)
-                       : Option[(ArrowType, List[StaticArg])] = {
+  def checkApplicable(fnType: ArrowType,
+                      argType: Type,
+                      expectedType: Option[Type])
+                     (implicit analyzer: TypeAnalyzer)
+  : Option[(ArrowType, List[StaticArg])] = {
 
     val sparams = getStaticParams(fnType)
 
@@ -529,26 +526,26 @@ object STypesUtil {
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
     val sargs = sparams.map(makeInferenceArg)
     val infArrow = staticInstantiation(sargs, sparams, fnType, false).
-      getOrElse(return None).asInstanceOf[ArrowType]
+            getOrElse(return None).asInstanceOf[ArrowType]
 
     // 3. argType <:? dom(infArrow) yields a constraint, C1
     val domainConstraint = checkSubtype(argType, infArrow.getDomain)
 
     // 4. if expectedType given, C := C1 AND range(infArrow) <:? expectedType
     val rangeConstraint = expectedType.map(t =>
-      checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
+            checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
     val constraint = domainConstraint.scalaAnd(rangeConstraint, isSubtype)
 
     // Get an inference variable type out of a static arg.
     def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
-      case sarg:TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
+      case sarg: TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
       case _ => None
     }
 
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
     val sparamBounds = sparams.flatMap(staticParamBoundType).
-      map(t => insertStaticParams(t, sparams))
+            map(t => insertStaticParams(t, sparams))
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
@@ -556,11 +553,11 @@ object STypesUtil {
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val resultArrow = substituteTypesForInferenceVars(subst, infArrow).
-      asInstanceOf[ArrowType]
+            asInstanceOf[ArrowType]
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = infVars.map(t =>
-      NF.makeTypeArg(resultArrow.getInfo.getSpan, subst.apply(t)))
-    Some((resultArrow,resultArgs))
+            NF.makeTypeArg(resultArrow.getInfo.getSpan, subst.apply(t)))
+    Some((resultArrow, resultArgs))
   }
 }

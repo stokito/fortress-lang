@@ -1,80 +1,38 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-
-import xtc.parser.Action;
-import xtc.parser.Binding;
-import xtc.parser.CharClass;
-import xtc.parser.CharRange;
-import xtc.parser.Element;
-import xtc.parser.FollowedBy;
-import xtc.parser.NonTerminal;
-import xtc.parser.NotFollowedBy;
-import xtc.parser.Sequence;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes.AndPredicateSymbol;
-import com.sun.fortress.nodes.AnyCharacterSymbol;
-import com.sun.fortress.nodes.BackspaceSymbol;
-import com.sun.fortress.nodes.BreaklineSymbol;
-import com.sun.fortress.nodes.CarriageReturnSymbol;
-import com.sun.fortress.nodes.CharSymbol;
-import com.sun.fortress.nodes.CharacterClassSymbol;
-import com.sun.fortress.nodes.CharacterInterval;
-import com.sun.fortress.nodes.CharacterSymbol;
-import com.sun.fortress.nodes.FormfeedSymbol;
-import com.sun.fortress.nodes.GroupSymbol;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.KeywordSymbol;
-import com.sun.fortress.nodes.NewlineSymbol;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.NotPredicateSymbol;
-import com.sun.fortress.nodes.OptionalSymbol;
-import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
-import com.sun.fortress.nodes.RepeatSymbol;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.TabSymbol;
-import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.nodes.TransformerDecl;
-import com.sun.fortress.nodes.NamedTransformerDef;
-import com.sun.fortress.nodes.WhitespaceSymbol;
+import com.sun.fortress.nodes.*;
+import static com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
+import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
-import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.useful.Debug;
+import xtc.parser.*;
+import xtc.parser.Binding;
 
-import static com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
+import java.util.*;
 
 /* converts fortress syntax definitions into Rats! definitions
  * using Rats! objects
@@ -83,8 +41,8 @@ public class ComposingSyntaxDefTranslator {
 
     private static final String BOUND_VARIABLES = "boundVariables";
 
-    @SuppressWarnings("unused")
-	private Id nt;
+    @SuppressWarnings ("unused")
+    private Id nt;
     private Mangler mangler;
     private String type;
     private NTEnv ntEnv;
@@ -98,8 +56,8 @@ public class ComposingSyntaxDefTranslator {
 
     public List<Sequence> visitSyntaxDefs(Iterable<SyntaxDef> syntaxDefs) {
         List<Sequence> sequence = new LinkedList<Sequence>();
-        for (SyntaxDef syntaxDef: syntaxDefs) {
-	    sequence.add(visitSyntaxDef(syntaxDef));
+        for (SyntaxDef syntaxDef : syntaxDefs) {
+            sequence.add(visitSyntaxDef(syntaxDef));
         }
         return sequence;
     }
@@ -108,7 +66,7 @@ public class ComposingSyntaxDefTranslator {
         List<Element> elms = new ArrayList<Element>();
         GapEnv gapEnv = EnvFactory.makeGapEnv(syntaxDef, ntEnv);
         SymbolTranslator symbolTranslator = new SymbolTranslator(gapEnv, elms);
-        for (SyntaxSymbol sym: syntaxDef.getSyntaxSymbols()) {
+        for (SyntaxSymbol sym : syntaxDef.getSyntaxSymbols()) {
             sym.accept(symbolTranslator);
         }
         Element action = createAction(syntaxDef.getTransformer(), type, gapEnv);
@@ -116,9 +74,7 @@ public class ComposingSyntaxDefTranslator {
         return new Sequence(elms);
     }
 
-    private static Element createAction(TransformerDecl transformation,
-                                        String type,
-                                        GapEnv gapEnv) {
+    private static Element createAction(TransformerDecl transformation, String type, GapEnv gapEnv) {
         List<String> code = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
 
@@ -128,32 +84,35 @@ public class ComposingSyntaxDefTranslator {
             String parameters = collectParameters(def, code, indents);
             String name = def.getName();
             /* rafkind 2/15/09 horrible hack just to get XmlUse.fss to work */
-            if (type.equals("StringLiteralExpr")){
-                code.add(String.format("yyValue = new _SyntaxTransformation%s(\"bogus\", NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
-                                       type, BOUND_VARIABLES, parameters, name));
+            if (type.equals("StringLiteralExpr")) {
+                code.add(String.format(
+                        "yyValue = new _SyntaxTransformation%s(\"bogus\", NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
+                        type,
+                        BOUND_VARIABLES,
+                        parameters,
+                        name));
             } else {
-                code.add(String.format("yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
-                                       type, BOUND_VARIABLES, parameters, name));
+                code.add(String.format(
+                        "yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
+                        type,
+                        BOUND_VARIABLES,
+                        parameters,
+                        name));
             }
             indents.add(4);
         } else {
-            throw new MacroError("Don't know what to do with " + transformation +
-                                 " " + transformation.getClass().getName());
+            throw new MacroError(
+                    "Don't know what to do with " + transformation + " " + transformation.getClass().getName());
         }
         return new Action(code, indents);
     }
 
-    private static String collectParameters( NamedTransformerDef def,
-					     List<String> code,
-					     List<Integer> indents ){
+    private static String collectParameters(NamedTransformerDef def, List<String> code, List<Integer> indents) {
         String variable = RatsUtil.getFreshName("parameterList");
-        code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();",
-			       variable));
+        code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();", variable));
         indents.add(4);
-        for ( NonterminalParameter parameter : def.getParameters() ){
-            code.add( String.format( "%s.add( \"%s\" );",
-				     variable,
-				     parameter.getName().getText() ) );
+        for (NonterminalParameter parameter : def.getParameters()) {
+            code.add(String.format("%s.add( \"%s\" );", variable, parameter.getName().getText()));
             indents.add(4);
         }
         return variable;
@@ -175,8 +134,7 @@ public class ComposingSyntaxDefTranslator {
 
         @Override
         public void forNonterminalSymbol(NonterminalSymbol that) {
-            Debug.debug( Debug.Type.SYNTAX, 3,
-                         "NonterminalSymbol contains: " + that.getNonterminal());
+            Debug.debug(Debug.Type.SYNTAX, 3, "NonterminalSymbol contains: " + that.getNonterminal());
             String renamed = mangler.forReference(that.getNonterminal());
             elements.add(new NonTerminal(renamed));
         }
@@ -230,28 +188,28 @@ public class ComposingSyntaxDefTranslator {
         public void forCharacterClassSymbol(CharacterClassSymbol thatCharacterClassSymbol) {
             List<CharRange> crs = new LinkedList<CharRange>();
             final String mess = "Incorrect escape rewrite: ";
-            for (CharacterSymbol c: thatCharacterClassSymbol.getCharacters()) {
+            for (CharacterSymbol c : thatCharacterClassSymbol.getCharacters()) {
                 // TODO: Error when begin < end
                 CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
-                        @Override
-                        public CharRange forCharacterInterval(CharacterInterval that) {
-                            if (that.getBeginSymbol().length() != 1) {
-                                new MacroError(mess +that.getBeginSymbol());
-                            }
-                            if (that.getEndSymbol().length() != 1) {
-                                new MacroError(mess+that.getEndSymbol());
-                            }
-                            return new CharRange(that.getBeginSymbol().charAt(0), that.getEndSymbol().charAt(0));
+                    @Override
+                    public CharRange forCharacterInterval(CharacterInterval that) {
+                        if (that.getBeginSymbol().length() != 1) {
+                            new MacroError(mess + that.getBeginSymbol());
                         }
+                        if (that.getEndSymbol().length() != 1) {
+                            new MacroError(mess + that.getEndSymbol());
+                        }
+                        return new CharRange(that.getBeginSymbol().charAt(0), that.getEndSymbol().charAt(0));
+                    }
 
-                        @Override
-                        public CharRange forCharSymbol(CharSymbol that) {
-                            if (that.getString().length() != 1) {
-                                new MacroError(mess+that.getString());
-                            }
-                            return new CharRange(that.getString().charAt(0));
+                    @Override
+                    public CharRange forCharSymbol(CharSymbol that) {
+                        if (that.getString().length() != 1) {
+                            new MacroError(mess + that.getString());
                         }
-                    });
+                        return new CharRange(that.getString().charAt(0));
+                    }
+                });
                 crs.add(cr);
             }
             elements.add(new CharClass(crs));
@@ -267,16 +225,16 @@ public class ComposingSyntaxDefTranslator {
                 elements.add(new Binding(prefixJavaVariable(that.getId().getText()), e));
                 return;
             } else if (sublist.isEmpty()) {
-                throw new MacroError("Malformed variable binding, bound to nonsensible symbol: "
-                                     + that.getId().getText() + " " + that.getSymbol());
+                throw new MacroError(
+                        "Malformed variable binding, bound to nonsensible symbol: " + that.getId().getText() + " " +
+                        that.getSymbol());
             } else {
-                throw new MacroError("Malformed variable binding, bound to multiple symbols: "
-                                     + that.getSymbol());
+                throw new MacroError("Malformed variable binding, bound to multiple symbols: " + that.getSymbol());
             }
         }
 
         @Override
-        public void forGroupSymbol(GroupSymbol that){
+        public void forGroupSymbol(GroupSymbol that) {
             super.forGroupSymbol(that);
         }
 
@@ -305,16 +263,14 @@ public class ComposingSyntaxDefTranslator {
             } else if (sublist.size() == 1) {
                 elements.add(new FollowedBy(new Sequence(sublist.get(0))));
                 return;
-            } else if (sublist.size() == 2
-                       && sublist.get(1) instanceof Action ){
+            } else if (sublist.size() == 2 && sublist.get(1) instanceof Action) {
                 /* FIXME: Hack! When the element was a group we know the second thing
                  * in the sequence was an action. Is there a better way to know?
                  */
                 elements.add(new FollowedBy(new Sequence(sublist.get(0))));
                 return;
             } else {
-                throw new MacroError("Malformed AND predicate symbol, bound to multiple symbols: "
-                                     + that.getSymbol());
+                throw new MacroError("Malformed AND predicate symbol, bound to multiple symbols: " + that.getSymbol());
             }
         }
 
@@ -328,12 +284,11 @@ public class ComposingSyntaxDefTranslator {
             } else if (sublist.size() == 1) {
                 elements.add(new NotFollowedBy(new Sequence(sublist.get(0))));
                 return;
-            } else if (sublist.size() == 2 && sublist.get(1) instanceof Action ){
+            } else if (sublist.size() == 2 && sublist.get(1) instanceof Action) {
                 elements.add(new NotFollowedBy(new Sequence(sublist.get(0))));
                 return;
             } else {
-                throw new MacroError("Malformed NOT predicate symbol, bound to multiple symbols: "
-                                     + that.getSymbol());
+                throw new MacroError("Malformed NOT predicate symbol, bound to multiple symbols: " + that.getSymbol());
             }
         }
 
@@ -367,23 +322,22 @@ public class ComposingSyntaxDefTranslator {
                 inner.elements.add(modifier.makePack(result.get(0)));
                 return;
             } else {
-                throw new MacroError
-                    (String.format("Malformed %s symbol while scanning %s, %s",
-                                   modifier.getName(),
-                                   that.getClass().getName(),
-                                   (result.isEmpty()
-                                    ? "not bound to any symbol"
-                                    : ("bound to multiple symbols: " + result))));
+                throw new MacroError(String.format("Malformed %s symbol while scanning %s, %s",
+                                                   modifier.getName(),
+                                                   that.getClass().getName(),
+                                                   (result.isEmpty() ?
+                                                    "not bound to any symbol" :
+                                                    ("bound to multiple symbols: " + result))));
             }
         }
 
         @Override
-        public void forNonterminalSymbol(NonterminalSymbol that){
+        public void forNonterminalSymbol(NonterminalSymbol that) {
             defaultCase(that);
         }
 
         @Override
-        public void forPrefixedSymbol(PrefixedSymbol that){
+        public void forPrefixedSymbol(PrefixedSymbol that) {
             defaultCase(that);
         }
 
@@ -391,8 +345,8 @@ public class ComposingSyntaxDefTranslator {
          * Extract the pattern variables from the group and bind them.
          */
         @Override
-        public void forGroupSymbol(GroupSymbol that){
-            Map<Id,Depth> varMap = new HashMap<Id, Depth>();
+        public void forGroupSymbol(GroupSymbol that) {
+            Map<Id, Depth> varMap = new HashMap<Id, Depth>();
             that.accept(new VariableCollector(varMap));
 
             List<Id> varIds = new ArrayList<Id>(varMap.keySet());
@@ -421,7 +375,7 @@ public class ComposingSyntaxDefTranslator {
             indents2.add(1);
             code2.add(modifier.preUnpack(packedName, freshName));
             int varCount = varIds.size();
-            for (int index = 0; index < varCount ; index++) {
+            for (int index = 0; index < varCount; index++) {
                 Id varId = varIds.get(index);
                 String varName = prefixJavaVariable(varId.getText());
                 String baseFortressType = inner.gapEnv.getJavaType(varId);
@@ -437,29 +391,44 @@ public class ComposingSyntaxDefTranslator {
 
     private static interface Modifier {
         public String getName();
+
         public Element makePack(Element e);
+
         public String preUnpack(String packedName, String rawName);
+
         public String unpackDecl(String fullType, String varName, String packedName, int index);
     }
 
     private static class RepeatModifier implements Modifier {
         boolean isPlus;
+
         RepeatModifier(boolean isPlus) {
             this.isPlus = isPlus;
         }
+
         public String getName() {
-            return isPlus? "repeat" : "repeat-one-or-more";
+            return isPlus ? "repeat" : "repeat-one-or-more";
         }
+
         public Element makePack(Element e) {
             return new xtc.parser.Repetition(isPlus, e);
         }
+
         public String preUnpack(String packedName, String rawName) {
-            return String.format("List<Object[]> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.convertPackedList(%s);",
-                                 packedName, rawName);
+            return String.format(
+                    "List<Object[]> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.convertPackedList(%s);",
+                    packedName,
+                    rawName);
         }
+
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack(%s, %d);",
-                                 fullType, varName, fullType, packedName, index);
+            return String.format(
+                    "List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack(%s, %d);",
+                    fullType,
+                    varName,
+                    fullType,
+                    packedName,
+                    index);
         }
     }
 
@@ -467,9 +436,11 @@ public class ComposingSyntaxDefTranslator {
         public String getName() {
             return "optional";
         }
+
         public Element makePack(Element e) {
             return new xtc.parser.Option(e);
         }
+
         public String preUnpack(String packedName, String rawName) {
             return String.format("Object[] %s = (Object[]) %s;", packedName, rawName);
         }
@@ -481,8 +452,12 @@ public class ComposingSyntaxDefTranslator {
          */
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
             return String.format("%s %s = (%s)(%s == null ? null : %s[%d]);",
-                                 fullType, varName, fullType,
-                                 packedName, packedName, index);
+                                 fullType,
+                                 varName,
+                                 fullType,
+                                 packedName,
+                                 packedName,
+                                 index);
         }
     }
 
@@ -490,7 +465,7 @@ public class ComposingSyntaxDefTranslator {
                                               final List<Integer> indents,
                                               final GapEnv gapEnv) {
         indents.add(4);
-        code.add("Map<String, Level> "+BOUND_VARIABLES+" = new HashMap<String, Level>();");
+        code.add("Map<String, Level> " + BOUND_VARIABLES + " = new HashMap<String, Level>();");
 
         final List<String> listCode = new LinkedList<String>();
         final List<Integer> listIndents = new LinkedList<Integer>();
@@ -503,6 +478,7 @@ public class ComposingSyntaxDefTranslator {
             class DepthConvertVisitor implements Depth.Visitor<String> {
                 String source;
                 int indent;
+
                 DepthConvertVisitor(String source, int indent) {
                     this.source = source;
                     this.indent = indent;
@@ -534,6 +510,7 @@ public class ComposingSyntaxDefTranslator {
                     return getFortressList(fresh, listCode, listIndents);
                     */
                 }
+
                 public String forOptionDepth(OptionDepth d) {
                     throw new MacroError("not supported now");
                     /*
@@ -550,20 +527,24 @@ public class ComposingSyntaxDefTranslator {
                     return fresh;
                     */
                 }
-                @SuppressWarnings("unused")
-                private void addCodeLine(String line){
+
+                @SuppressWarnings ("unused")
+                private void addCodeLine(String line) {
                     listIndents.add(indent);
                     listCode.add(line);
                 }
-            };
+            }
+            ;
             String resultVar = depth.accept(new DepthConvertVisitor(var, 4));
-            int levelDepth = depth.accept( new Depth.Visitor<Integer>(){
+            int levelDepth = depth.accept(new Depth.Visitor<Integer>() {
                 public Integer forOptionDepth(OptionDepth d) {
-                    return 1 + d.getParent().accept( this );
+                    return 1 + d.getParent().accept(this);
                 }
+
                 public Integer forListDepth(ListDepth d) {
-                    return 1 + d.getParent().accept( this );
+                    return 1 + d.getParent().accept(this);
                 }
+
                 public Integer forBaseDepth(BaseDepth d) {
                     return 0;
                 }
@@ -584,16 +565,16 @@ public class ComposingSyntaxDefTranslator {
      * One restriction is the prefix cannot start with _ because that is the "any char"
      * character in Rats!.
      */
-    private static String prefixJavaVariable(String s){
+    private static String prefixJavaVariable(String s) {
         return "fortress_" + s;
     }
 
-    private static String convertToStringLiteralExpr(String id, List<String> code,
-                                                     List<Integer> indents) {
+    private static String convertToStringLiteralExpr(String id, List<String> code, List<Integer> indents) {
         String name = RatsUtil.getFreshName("stringLiteral");
         indents.add(4);
         code.add("StringLiteralExpr " + prefixJavaVariable(name) +
-                 " = ExprFactory.makeStringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
+                 " = ExprFactory.makeStringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" +
+                 prefixJavaVariable(id) + ");");
         return name;
     }
 }

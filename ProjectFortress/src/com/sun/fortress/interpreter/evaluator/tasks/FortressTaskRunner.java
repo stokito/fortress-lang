@@ -1,29 +1,30 @@
 /********************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-********************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ********************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.*;
 import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
-import com.sun.fortress.interpreter.evaluator.transactions.manager.GreedyManager;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
+import com.sun.fortress.interpreter.evaluator.transactions.manager.GreedyManager;
+import jsr166y.ForkJoinWorkerThread;
+
 import java.util.concurrent.Callable;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {
@@ -33,11 +34,13 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     private int retries;
     private static long startTime = System.currentTimeMillis();
 
-    public int retries() { return retries;}
+    public int retries() {
+        return retries;
+    }
 
     private static void incRetries() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        runner.retries+= 1;
+        runner.retries += 1;
     }
 
     private static void resetRetries() {
@@ -50,7 +53,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         return runner.retries;
     }
 
-    public BaseTask task() {return task;}
+    public BaseTask task() {
+        return task;
+    }
 
     public static BaseTask getTask() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
@@ -65,7 +70,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         return transaction() != null;
     }
 
-    public void setTask(BaseTask t) {task = t;}
+    public void setTask(BaseTask t) {
+        task = t;
+    }
 
     public static void setCurrentTask(BaseTask task) {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
@@ -107,7 +114,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return the contention manager
      */
 
-    public static ContentionManager getContentionManager() { return manager;}
+    public static ContentionManager getContentionManager() {
+        return manager;
+    }
 
     public static void debugPrintln(String msg) {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
@@ -125,15 +134,18 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
                 getTask().abortTransaction();
                 throw new AbortedException(transaction(), " commit failed");
             }
-        } catch (FortressError fe) {
+        }
+        catch (FortressError fe) {
             throw fe;
-        } finally {
+        }
+        finally {
             getTask().giveUpTransaction();
         }
     }
 
     /**
      * Execute a transaction
+     *
      * @param xaction execute this object's <CODE>call()</CODE> method.
      * @return result of <CODE>call()</CODE> method
      */
@@ -145,17 +157,24 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
             Transaction me = getTransaction();
             if (me != null && !me.isActive()) {
                 throw new AbortedException(me, "Got to doit with an aborted current transaction");
-	    }
+            }
             try {
                 T result = doItOnce(xaction);
                 return result;
-            } catch (OrphanedException oe) {
+            }
+            catch (OrphanedException oe) {
                 if (oe.getTransaction() != null && oe.getTransaction() != me && oe.getTransaction().getParent() != me)
-                    throw new RuntimeException(Thread.currentThread().getName() + " OE transaction  = " + oe + " me = " + me + " oe parent = " + oe.getTransaction().getParent());
-            } catch (AbortedException ae) {
+                    throw new RuntimeException(
+                            Thread.currentThread().getName() + " OE transaction  = " + oe + " me = " + me +
+                            " oe parent = " + oe.getTransaction().getParent());
+            }
+            catch (AbortedException ae) {
                 if (ae.getTransaction() != null && ae.getTransaction() != me && ae.getTransaction().getParent() != me)
-                    throw new RuntimeException(Thread.currentThread().getName() + " AE transaction  = " + ae + " me = " + me + " ae parent = " + ae.getTransaction().getParent());
-            } finally {
+                    throw new RuntimeException(
+                            Thread.currentThread().getName() + " AE transaction  = " + ae + " me = " + me +
+                            " ae parent = " + ae.getTransaction().getParent());
+            }
+            finally {
                 incRetries();
             }
         }
@@ -163,6 +182,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     /**
      * get thread ID for debugging
+     *
      * @return unique id
      */
     public static int getID() {

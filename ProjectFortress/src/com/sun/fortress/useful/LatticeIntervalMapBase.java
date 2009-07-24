@@ -1,36 +1,39 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.useful;
 
 import java.util.AbstractMap;
 import java.util.Set;
 
-public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> extends
-        AbstractMap<T, U> implements BoundingMap<T, U, L> {
+public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> extends AbstractMap<T, U>
+        implements BoundingMap<T, U, L> {
 
     BATree2<T, U, U> table;
     LatticeOps<U> lattice;
     protected volatile LatticeIntervalMapBase<T, U, L> dualMap;
     // Must be volatile due to lazy initialization / double-checked locking.
 
-    public boolean isForward() { return lattice.isForward(); }
+    public boolean isForward() {
+        return lattice.isForward();
+    }
 
-    public LatticeIntervalMapBase(BATree2<T, U, U> table2, LatticeOps<U> lattice_operations,
-            LatticeIntervalMapBase<T, U, L> supplied_dual) {
+    public LatticeIntervalMapBase(BATree2<T, U, U> table2,
+                                  LatticeOps<U> lattice_operations,
+                                  LatticeIntervalMapBase<T, U, L> supplied_dual) {
         table = table2;
         lattice = lattice_operations;
         dualMap = supplied_dual;
@@ -41,19 +44,20 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
         return lmu.equals(lower);
     }
 
-    abstract protected U lower(BATree2Node<T,U,U> node);
+    abstract protected U lower(BATree2Node<T, U, U> node);
 
-    abstract protected U upper(BATree2Node<T,U,U> node);
+    abstract protected U upper(BATree2Node<T, U, U> node);
 
     abstract protected void putPair(T k, U lower, U upper);
 
-    /** puts min/intersection of v and old.
-     *  returns the new (potentially lower) upper bound.
+    /**
+     * puts min/intersection of v and old.
+     * returns the new (potentially lower) upper bound.
      *
-     *  @throws EmptyLatticeIntervalError
+     * @throws EmptyLatticeIntervalError
      */
     public U meetPut(T k, U v) {
-        BATree2Node<T,U,U> old = table.getNode(k);
+        BATree2Node<T, U, U> old = table.getNode(k);
         if (old != null) {
             U lower = lower(old);
             U upper = lattice.meet(upper(old), v);
@@ -72,16 +76,17 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
      * @throws EmptyLatticeIntervalError
      */
     private void checkOrdered(U lower, U upper) throws Error {
-        if (! leq(lower, upper))
-            throw new EmptyLatticeIntervalError();
+        if (!leq(lower, upper)) throw new EmptyLatticeIntervalError();
     }
-    /** puts max/union of v and old.
-     *  returns the new (potentially higher) lower bound.
+
+    /**
+     * puts max/union of v and old.
+     * returns the new (potentially higher) lower bound.
      *
-     *  @throws EmptyLatticeIntervalError
+     * @throws EmptyLatticeIntervalError
      */
     public U joinPut(T k, U v) {
-        BATree2Node<T,U,U> old = table.getNode(k);
+        BATree2Node<T, U, U> old = table.getNode(k);
         if (old != null) {
             U lower = lattice.join(lower(old), v);
             U upper = upper(old);
@@ -102,7 +107,7 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
      * returns a different result.
      */
     public U put(T k, U v) {
-        BATree2Node<T,U,U> old = table.getNode(k);
+        BATree2Node<T, U, U> old = table.getNode(k);
         if (old != null) {
             U lower = lattice.join(lower(old), v);
             U upper = upper(old);
@@ -113,44 +118,46 @@ public abstract class LatticeIntervalMapBase<T, U, L extends LatticeOps<U>> exte
             putPair(k, v, lattice.one());
             return null;
         }
-   }
+    }
 
     /**
      * Returns the lower (bottom) end of an interval.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public U get(Object k) {
-        BATree2Node<T,U,U> old = table.getNode((T)k);
+        BATree2Node<T, U, U> old = table.getNode((T) k);
         return old == null ? null : lower(old);
     }
 
-     /**
-      * Returns the lower (bottom) end of an interval.
-      */
-      public U getLower(T k) {
-         BATree2Node<T,U,U> old = table.getNode(k);
-         return old == null ? null : lower(old);
-     }
+    /**
+     * Returns the lower (bottom) end of an interval.
+     */
+    public U getLower(T k) {
+        BATree2Node<T, U, U> old = table.getNode(k);
+        return old == null ? null : lower(old);
+    }
 
-      /**
-       * Returns the upper (top) end of an interval.
-       */
-       public U getUpper(T k) {
-          BATree2Node<T,U,U> old = table.getNode(k);
-          return old == null ? null : upper(old);
-      }
+    /**
+     * Returns the upper (top) end of an interval.
+     */
+    public U getUpper(T k) {
+        BATree2Node<T, U, U> old = table.getNode(k);
+        return old == null ? null : upper(old);
+    }
 
-      @Override
+    @Override
     public Set<java.util.Map.Entry<T, U>> entrySet() {
         throw new Error("unimplemented");
     }
 
-      public String toString() {
-          return table.toString();
-      }
+    public String toString() {
+        return table.toString();
+    }
 
-      /** Used for backtracking during unification */
-      abstract public void assign(BoundingMap<T,U,L> replacement);
+    /**
+     * Used for backtracking during unification
+     */
+    abstract public void assign(BoundingMap<T, U, L> replacement);
 
 
 }

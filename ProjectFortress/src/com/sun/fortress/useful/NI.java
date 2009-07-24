@@ -1,27 +1,27 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 /**
  * A bunch of generic methods, inspired by the knights who say this.getClass().getSimpleName().
- *
+ * <p/>
  * The vowels all throw exceptions.
- *
+ * <p/>
  * The consonants are filters.
  */
 public class NI {
@@ -51,14 +51,14 @@ public class NI {
         throw new Error("Not possible");
     }
 
-   /**
+    /**
      * Not Yet.
      */
     public static <T> T nyi() {
         throw new Error("Not yet implemented");
     }
 
-   /**
+    /**
      * Not Yet.
      */
     public static <T> T nyi(String name) {
@@ -68,19 +68,17 @@ public class NI {
     /**
      * Identity function for non-nulls.
      * Throws a CHECKED exception.
-    */
+     */
     public static <T> T cnnf(T x) throws CheckedNullPointerException {
-        if (x == null)
-            throw new CheckedNullPointerException("Null not allowed");
+        if (x == null) throw new CheckedNullPointerException("Null not allowed");
         return x;
     }
-    
+
     /**
      * Identity function for non-nulls.
-    */
+     */
     public static <T> T nnf(T x) {
-        if (x == null)
-            throw new NullPointerException("Null not allowed");
+        if (x == null) throw new NullPointerException("Null not allowed");
         return x;
     }
 

@@ -1,27 +1,27 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.ReadSet;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class ValueNode {
     Transaction writer;
     ReadSet readers;
 
-    public  ValueNode(FValue v, Transaction w, ReadSet r, ValueNode o) {
+    public ValueNode(FValue v, Transaction w, ReadSet r, ValueNode o) {
         old = o;
         value = v;
         writer = w;
@@ -49,36 +49,46 @@ public class ValueNode {
     public static final ValueNode nullValueNode = new ValueNode();
 
     public String toString() {
-        if (this == nullValueNode)
-            return "nullValueNode";
-        else return "ValueNode[" + value +  ":" + writer +  "::" + readers + "]" ;
+        if (this == nullValueNode) return "nullValueNode";
+        else return "ValueNode[" + value + ":" + writer + "::" + readers + "]";
     }
 
-    public FValue getValue() {  return value;}
-    public Transaction getWriter() { return writer;}
-    public ReadSet getReaders() { return readers;}
-    public ValueNode getOld() { return old; }
+    public FValue getValue() {
+        return value;
+    }
+
+    public Transaction getWriter() {
+        return writer;
+    }
+
+    public ReadSet getReaders() {
+        return readers;
+    }
+
+    public ValueNode getOld() {
+        return old;
+    }
 
     public void addReader() {
-        Transaction me  = FortressTaskRunner.getTransaction();
+        Transaction me = FortressTaskRunner.getTransaction();
         if (!readers.add(me)) {
             me.abort();
-            throw new AbortedException(me, "ReadSet Sealed : " + readers );
+            throw new AbortedException(me, "ReadSet Sealed : " + readers);
         }
     }
-            
-    public void AbortAllReaders() {
-        if (this == nullValueNode)
-            throw new RuntimeException(Thread.currentThread().getName() + "Trying to abort all the readers of the null value node");
 
-		readers.seal();
-		for (Transaction r : readers) {
-			r.abort();
-		}
+    public void AbortAllReaders() {
+        if (this == nullValueNode) throw new RuntimeException(
+                Thread.currentThread().getName() + "Trying to abort all the readers of the null value node");
+
+        readers.seal();
+        for (Transaction r : readers) {
+            r.abort();
+        }
     }
 
     public void AbortWriter() {
-        if (writer != null)  {
+        if (writer != null) {
             writer.abort();
         }
     }
@@ -87,20 +97,20 @@ public class ValueNode {
         AbortAllReaders();
         AbortWriter();
     }
-    
+
     public void resolveReadConflicts() {
-        Transaction me  = FortressTaskRunner.getTransaction();  
+        Transaction me = FortressTaskRunner.getTransaction();
         List<Transaction> conflicts = new ArrayList<Transaction>();
-        for (Transaction reader : readers) 
+        for (Transaction reader : readers) {
             if (reader.isActive() && !reader.isAncestorOf(me)) {
                 conflicts.add(reader);
             }
-        if (!conflicts.isEmpty())
-            me.getContentionManager().resolveConflict(me, conflicts);       
+        }
+        if (!conflicts.isEmpty()) me.getContentionManager().resolveConflict(me, conflicts);
     }
 
     public void resolveWriteConflict() {
-        Transaction me  = FortressTaskRunner.getTransaction();  
+        Transaction me = FortressTaskRunner.getTransaction();
         if (writer != null && writer.isActive() && !writer.isAncestorOf(me)) {
             me.getContentionManager().resolveConflict(me, writer);
         }

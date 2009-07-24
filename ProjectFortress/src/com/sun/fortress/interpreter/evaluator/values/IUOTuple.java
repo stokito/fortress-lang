@@ -1,31 +1,30 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.List;
-
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
 
 /**
  * Like a tuple, but not. Useful for intermediate results from array pastings
@@ -85,15 +84,13 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                 if (rank_seen < 0) {
                     rank_seen = element_rank.intValue();
                 } else if (rank_seen != element_rank.intValue()) {
-                    element_rank = error(at,
-                          errorMsg("Mixed-rank pastings within array/matrix paste"));
+                    element_rank = error(at, errorMsg("Mixed-rank pastings within array/matrix paste"));
                 }
                 element_rank = new Integer(((IUOTuple) i).elementRank);
 
                 // non-tuple #1 -- there should be no other tuple elements
             } else if (rank_seen > 0) {
-                element_rank = error(at,
-                      errorMsg("Mixed-rank (paste/nonpaste) elements within array/matrix paste"));
+                element_rank = error(at, errorMsg("Mixed-rank (paste/nonpaste) elements within array/matrix paste"));
                 // The rank is negative or zero, make it zero
             } else {
                 rank_seen = 0;
@@ -103,16 +100,13 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
             // Sanity-check the element rank; they had better all match.
             if (element_rank_seen <= 0) {
                 element_rank_seen = element_rank.intValue();
-            } else if (element_rank_seen != element_rank.intValue()
-                       && element_rank.intValue() > 0) {
-                error(at,
-                      errorMsg("Mixed-rank elements within array/matrix paste"));
+            } else if (element_rank_seen != element_rank.intValue() && element_rank.intValue() > 0) {
+                error(at, errorMsg("Mixed-rank elements within array/matrix paste"));
             }
 
         }
         rank = rank_seen + 1;
-        if (element_rank_seen >= 0)
-            elementRank = element_rank_seen;
+        if (element_rank_seen >= 0) elementRank = element_rank_seen;
     }
 
     public void finish() {
@@ -167,9 +161,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         if (lens[rank - 1] == 0) {
             lens[rank - 1] = l;
         } else if (lens[rank - 1] != l) {
-            error(at, errorMsg("At paste level ", rank,
-                               " pasting lengths ", l, " and ", lens[rank],
-                               " do not match"));
+            error(at, errorMsg("At paste level ", rank, " pasting lengths ", l, " and ", lens[rank], " do not match"));
         }
     }
 
@@ -201,28 +193,28 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                             if (current < 0) {
                                 along_k[coordinate[k]] = length;
                             } else if (length != current) {
-                                error(at,
-                                        errorMsg("Element at ",
-                                            Useful.coordInDelimiters("[",
-                                                coordinate, k, "]"),
-                                            " has extent ", length,
-                                            " along axis ", k,
-                                            " but an earlier element has length ",
-                                            current));
+                                error(at, errorMsg("Element at ",
+                                                   Useful.coordInDelimiters("[", coordinate, k, "]"),
+                                                   " has extent ",
+                                                   length,
+                                                   " along axis ",
+                                                   k,
+                                                   " but an earlier element has length ",
+                                                   current));
                             }
                         } else {
                             int current = extentSums[k];
                             if (current < 0) {
                                 extentSums[k] = length;
                             } else if (length != current) {
-                                error(at,
-                                        errorMsg("Element at ",
-                                            Useful.coordInDelimiters("[",
-                                                coordinate, "]"),
-                                            " has extent ", length,
-                                            " along axis ", k,
-                                            " but an earlier element has length ",
-                                            current));
+                                error(at, errorMsg("Element at ",
+                                                   Useful.coordInDelimiters("[", coordinate, "]"),
+                                                   " has extent ",
+                                                   length,
+                                                   " along axis ",
+                                                   k,
+                                                   " but an earlier element has length ",
+                                                   current));
                             }
                         }
                     }
@@ -263,8 +255,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         copyTo(target, toIndex, fromIndex, dim(), dim);
     }
 
-    public void copyTo(IndexedTarget target, int[] toIndex, int[] pasteIndex,
-            int from_dim, int target_dim) {
+    public void copyTo(IndexedTarget target, int[] toIndex, int[] pasteIndex, int from_dim, int target_dim) {
         int saved = toIndex[from_dim - 1];
         int saved_from = pasteIndex[from_dim - 1];
         List<FValue> vals = getVals();
@@ -273,13 +264,17 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
             for (int j = 0; j < vals.size(); j++) {
                 FValue v = vals.get(j);
                 if (Glue.arrayRank(v) <= 0) {
-                    scalarCopyTo(target, toIndex, pasteIndex, toIndex.length,
-                            target_dim, v);
+                    scalarCopyTo(target, toIndex, pasteIndex, toIndex.length, target_dim, v);
                     // target.put(v, toIndex, target_dim);
                 } else {
                     int[] fromIndex = new int[target_dim];
-                    arrayCopyto(target, toIndex, pasteIndex, toIndex.length,
-                            fromIndex, target_dim, new IndexedArrayWrapper(v));
+                    arrayCopyto(target,
+                                toIndex,
+                                pasteIndex,
+                                toIndex.length,
+                                fromIndex,
+                                target_dim,
+                                new IndexedArrayWrapper(v));
                 }
                 // if v is scalar, spread it across the
                 // extent, as appropriate.
@@ -293,8 +288,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
             for (int j = 0; j < vals.size(); j++) {
                 // The elements, if dimension > 1, should be other IUOTuples.
                 IUOTuple shape = (IUOTuple) vals.get(j);
-                shape.copyTo(target, toIndex, pasteIndex, from_dim - 1,
-                        target_dim);
+                shape.copyTo(target, toIndex, pasteIndex, from_dim - 1, target_dim);
                 // The increment depends on the dimensionality of the
                 // pasted item.
                 toIndex[from_dim - 1] += extents[from_dim - 1][j];
@@ -311,22 +305,23 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
         pasteIndex[from_dim - 1] = saved_from;
     }
 
-    private void arrayCopyto(IndexedTarget target, int[] toIndex,
-            int[] pasteIndex, int dim, int[] fromIndex, int targetDim,
-            IndexedSource v) {
-        if (dim == 0)
-            target.put(v.get(fromIndex, targetDim), toIndex, targetDim);
+    private void arrayCopyto(IndexedTarget target,
+                             int[] toIndex,
+                             int[] pasteIndex,
+                             int dim,
+                             int[] fromIndex,
+                             int targetDim,
+                             IndexedSource v) {
+        if (dim == 0) target.put(v.get(fromIndex, targetDim), toIndex, targetDim);
         else {
             int lo = 0;
-            int hi = (dim <= extents.length) ? extents[dim - 1][pasteIndex[dim - 1]]
-                    : extentSums[dim - 1];
+            int hi = (dim <= extents.length) ? extents[dim - 1][pasteIndex[dim - 1]] : extentSums[dim - 1];
             int saved_to = toIndex[dim - 1];
             int saved_from = fromIndex[dim - 1];
 
             for (int i = lo; i < hi; i++) {
 
-                arrayCopyto(target, toIndex, pasteIndex, dim - 1, fromIndex,
-                        targetDim, v);
+                arrayCopyto(target, toIndex, pasteIndex, dim - 1, fromIndex, targetDim, v);
                 toIndex[dim - 1]++;
                 fromIndex[dim - 1]++;
 
@@ -348,19 +343,21 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
      * @param original_dim
      * @param v
      */
-    private void scalarCopyTo(IndexedTarget target, int[] toIndex,
-            int[] pasteIndex, int dim, int original_dim, FValue v) {
+    private void scalarCopyTo(IndexedTarget target,
+                              int[] toIndex,
+                              int[] pasteIndex,
+                              int dim,
+                              int original_dim,
+                              FValue v) {
         if (dim == 0) {
             target.put(v, toIndex, original_dim);
         } else {
             int lo = 0;
-            int hi = (dim <= extents.length) ? extents[dim - 1][pasteIndex[dim - 1]]
-                    : extentSums[dim - 1];
+            int hi = (dim <= extents.length) ? extents[dim - 1][pasteIndex[dim - 1]] : extentSums[dim - 1];
             int saved_to = toIndex[dim - 1];
             for (int i = lo; i < hi; i++) {
 
-                scalarCopyTo(target, toIndex, pasteIndex, dim - 1,
-                        original_dim, v);
+                scalarCopyTo(target, toIndex, pasteIndex, dim - 1, original_dim, v);
                 toIndex[dim - 1]++;
             }
 

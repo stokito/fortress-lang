@@ -1,43 +1,38 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.interpreter.env;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
 import com.sun.fortress.useful.BASet;
+
+import java.util.HashMap;
+import java.util.Set;
 
 public class APIWrapper extends CUWrapper {
 
-    public APIWrapper(Api api, HashMap<String, NonApiWrapper> linker,
-            String[] implicitLibs) {
+    public APIWrapper(Api api, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super(api, linker, implicitLibs);
         // TODO Auto-generated constructor stub
     }
 
     public CompilationUnit populateOne(NonApiWrapper exporter) {
-        if (visitState != IMPORTED)
-            return bug("Component wrapper in wrong visit state: " + visitState);
+        if (visitState != IMPORTED) return bug("Component wrapper in wrong visit state: " + visitState);
 
         visitState = POPULATED;
 
@@ -45,7 +40,7 @@ public class APIWrapper extends CUWrapper {
 
         CompilationUnit cu = comp_unit;
 
-                                      // Caches information in dis!
+        // Caches information in dis!
         getEnvBuilder().visit(cu);
         // Reset the non-function names from the disambiguator.
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);

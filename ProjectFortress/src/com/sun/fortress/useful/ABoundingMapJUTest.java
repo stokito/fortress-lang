@@ -1,23 +1,21 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
-
-import junit.framework.TestCase;
 
 public class ABoundingMapJUTest extends TestCaseWrapper {
 
@@ -26,8 +24,8 @@ public class ABoundingMapJUTest extends TestCaseWrapper {
     }
 
     LongBitsLatticeOps ops = LongBitsLatticeOps.V;
-    ABoundingMap<String, Long, LongBitsLatticeOps> abm = new
-    ABoundingMap<String, Long, LongBitsLatticeOps>(new BATree<String, Long>(DefaultComparator.V), ops);
+    ABoundingMap<String, Long, LongBitsLatticeOps> abm =
+            new ABoundingMap<String, Long, LongBitsLatticeOps>(new BATree<String, Long>(DefaultComparator.V), ops);
 
     /*
      * Test method for 'com.sun.fortress.interpreter.useful.ABoundingMap.ABoundingMap(Map<T, U>, LatticeOps<U>)'

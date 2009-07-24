@@ -1,29 +1,30 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.environments;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.exceptions.MacroError;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /* maps variables to their types and stuff */
 public class GapEnv {
@@ -32,8 +33,7 @@ public class GapEnv {
     private final Map<Id, Id> varToNT;
     private final Set<Id> stringVars;
 
-    protected GapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth,
-                     Map<Id, Id> varToNT, Set<Id> stringVars) {
+    protected GapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth, Map<Id, Id> varToNT, Set<Id> stringVars) {
         this.ntEnv = ntEnv;
         this.varToDepth = varToDepth;
         this.varToNT = varToNT;
@@ -71,7 +71,8 @@ public class GapEnv {
     }
 
     /* Types */
-    /** id must be bound to a nonterminal
+    /**
+     * id must be bound to a nonterminal
      * the type does not take depth into account
      * (that is, e:Expr* => e has type Expr, not List[\Expr\]
      */
@@ -79,7 +80,7 @@ public class GapEnv {
         Id nt = varToNT.get(var);
         if (nt != null) {
             return ntEnv.getType(nt);
-        } else if (hasJavaStringType(var)){
+        } else if (hasJavaStringType(var)) {
             return NodeFactory.makeTraitType(NodeFactory.makeId(NodeFactory.macroSpan, "StringLiteralExpr"));
         } else {
             throw new MacroError(var, "Not a gap name bound to a nonterminal: " + var);

@@ -1,24 +1,23 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Magic numbers chosen to be:
@@ -86,102 +85,53 @@ public final class MagicNumbers {
     public final static int z = 0x1244f6db;
 
     public final static int[] array = { // 96*13=1248
-        A, B, C, D, E, F, G, H, I, J, K, L, M,
-        N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
-        a, b, c, d, e, f, g, h, i, j, k, l, m,
-        n, o, p, q, r, s, t, u, v, w, x, y, z,
-        M, K, e, a, s, g, z, F, O, p, G, b, E,
-        U, v, W, C, i, d, n, R, o, Z, P, y, k,
-        w, j, r, D, c, A, N, Y, q, H, Q, m, T,
-        L, u, S, I, B, l, V, X, x, h, f, t, J,
-        a, D, Z, X, y, G, S, K, T, l, h, w, N,
-        e, c, U, u, A, v, s, C, V, Q, i, q, r,
-        z, W, j, f, p, B, n, E, g, J, M, I, k,
-        t, m, O, F, b, o, H, x, P, d, L, Y, R,
-        s, L, i, t, p, E, Z, q, m, a, G, j, x,
-        A, l, C, F, H, M, g, T, u, Y, W, n, V,
-        O, f, k, c, e, I, U, J, d, y, r, N, R,
-        D, B, v, h, o, P, b, S, K, Q, w, z, X,
-        O, d, G, e, j, L, b, c, o, R, H, x, w,
-        y, U, I, i, N, D, u, h, r, X, k, F, S,
-        z, a, M, s, V, T, v, f, C, q, W, E, Y,
-        A, g, J, Z, n, p, P, B, t, l, m, Q, K,
-        I, W, U, P, R, E, M, f, e, D, z, y, b,
-        K, X, r, T, B, c, L, j, a, v, V, d, p,
-        t, A, C, H, h, u, s, m, i, x, Z, J, l,
-        O, n, k, Q, w, Y, N, F, o, G, q, g, S,
-        b, z, h, t, Y, s, S, E, X, k, M, A, R,
-        j, o, v, U, i, H, O, B, n, p, r, g, Z,
-        G, x, w, P, C, I, K, d, Q, f, T, l, L,
-        y, F, c, e, W, J, a, V, q, m, u, N, D,
-        t, P, p, V, g, M, c, z, L, J, m, G, K,
-        h, C, j, F, I, o, Y, U, a, T, i, Q, w,
-        S, v, x, u, k, W, O, R, s, D, b, e, Z,
-        N, l, X, E, A, n, f, q, r, H, y, d, B,
-        Y, y, i, N, k, R, p, Q, l, t, M, x, q,
-        I, J, U, E, f, b, s, L, F, d, v, O, a,
-        X, u, Z, C, h, e, j, D, H, g, w, K, B,
-        P, W, o, m, n, r, A, c, z, T, G, S, V,
-        X, H, M, h, x, y, A, C, n, B, f, q, G,
-        g, j, e, i, K, P, F, m, w, V, Z, E, c,
-        S, t, b, Y, a, L, o, u, U, Q, v, R, d,
-        I, s, D, p, O, k, r, W, N, J, l, T, z,
-        e, v, j, r, B, R, b, u, h, P, S, g, A,
-        z, V, w, L, W, C, y, x, t, o, a, H, k,
-        N, I, U, f, m, F, Y, l, i, q, p, D, J,
-        X, O, Z, T, G, d, K, E, n, M, Q, s, c,
-        A, S, m, N, d, Y, c, R, V, Z, b, I, B,
-        x, n, o, j, i, f, X, W, O, k, w, s, p,
-        M, q, G, r, U, e, z, H, T, u, L, J, y,
-        g, E, C, h, v, D, t, a, Q, l, F, K, P,
-        N, r, k, a, s, b, C, S, y, D, l, M, z,
-        m, U, x, E, e, n, d, j, t, L, i, T, G,
-        c, o, q, F, Z, v, X, B, Y, P, A, h, p,
-        K, J, V, R, I, O, u, Q, w, f, g, H, W,
-        d, g, i, K, Z, B, k, T, J, N, b, q, Q,
-        e, D, j, R, u, A, Y, y, E, H, o, X, t,
-        V, F, p, U, m, h, x, P, f, s, G, z, W,
-        r, v, n, l, O, w, I, C, S, L, M, c, a,
-        V, f, b, m, q, g, I, U, O, W, u, Q, M,
-        s, x, h, i, z, r, E, l, G, a, p, R, C,
-        c, N, A, d, t, y, n, F, j, T, o, B, H,
-        e, Y, P, k, X, Z, w, v, K, D, J, L, S,
-        h, o, x, w, W, B, A, F, m, r, c, s, I,
-        S, a, G, y, v, U, g, q, N, n, t, f, Z,
-        K, e, j, u, l, E, d, J, i, Q, k, P, D,
-        V, X, p, L, M, H, z, R, O, b, T, Y, C,
-        I, c, l, K, H, d, C, B, a, p, A, e, W,
-        q, O, n, x, i, u, V, v, X, Z, G, Y, k,
-        b, Q, M, w, j, h, S, f, L, F, y, D, g,
-        s, R, U, m, o, P, N, t, T, J, E, z, r,
-        K, w, Z, t, Y, A, U, c, g, P, J, b, S,
-        l, j, q, R, h, O, H, x, N, y, i, L, M,
-        C, n, Q, E, p, o, V, W, d, r, I, m, k,
-        z, D, a, B, e, X, F, T, G, u, s, f, v,
-        H, s, i, z, p, W, Z, L, D, K, A, Q, T,
-        h, P, x, B, F, I, d, g, R, f, n, V, N,
-        a, E, k, j, l, m, q, r, u, Y, M, S, v,
-        w, o, O, J, X, G, e, U, c, y, b, C, t,
-        a, u, A, l, Q, s, e, j, X, v, F, T, b,
-        Y, q, m, i, S, w, R, J, M, t, k, B, U,
-        C, K, I, H, N, g, O, E, x, L, n, W, f,
-        h, d, r, Z, V, p, G, o, z, P, D, y, c,
-        m, n, q, G, v, W, I, E, l, w, C, Y, e,
-        c, t, M, g, o, j, s, Q, K, O, N, u, p,
-        z, h, x, F, J, R, H, D, i, T, Z, r, P,
-        a, V, k, y, b, f, S, B, X, A, L, d, U,
-        e, C, J, z, f, H, U, W, t, k, I, h, v,
-        Q, X, O, q, i, F, a, o, V, p, M, d, Z,
-        A, T, b, G, x, m, c, u, y, E, g, P, s,
-        Y, B, j, l, n, r, K, N, L, D, R, S, w,
-        z, G, p, N, d, I, j, C, s, r, D, A, c,
-        J, x, Q, B, m, X, f, q, K, g, i, y, b,
-        U, O, T, R, k, n, a, v, H, w, e, l, Z,
-        S, P, t, W, h, V, E, L, M, F, Y, u, o,
-        f, Y, i, S, k, v, p, y, P, z, I, T, L,
-        m, r, q, W, E, e, H, s, B, u, O, a, K,
-        t, R, Z, x, J, l, Q, w, F, d, b, c, o,
-        G, n, X, D, V, M, h, j, C, g, A, U, N
+                                        A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, a,
+                                        b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, M, K,
+                                        e, a, s, g, z, F, O, p, G, b, E, U, v, W, C, i, d, n, R, o, Z, P, y, k, w, j, r,
+                                        D, c, A, N, Y, q, H, Q, m, T, L, u, S, I, B, l, V, X, x, h, f, t, J, a, D, Z, X,
+                                        y, G, S, K, T, l, h, w, N, e, c, U, u, A, v, s, C, V, Q, i, q, r, z, W, j, f, p,
+                                        B, n, E, g, J, M, I, k, t, m, O, F, b, o, H, x, P, d, L, Y, R, s, L, i, t, p, E,
+                                        Z, q, m, a, G, j, x, A, l, C, F, H, M, g, T, u, Y, W, n, V, O, f, k, c, e, I, U,
+                                        J, d, y, r, N, R, D, B, v, h, o, P, b, S, K, Q, w, z, X, O, d, G, e, j, L, b, c,
+                                        o, R, H, x, w, y, U, I, i, N, D, u, h, r, X, k, F, S, z, a, M, s, V, T, v, f, C,
+                                        q, W, E, Y, A, g, J, Z, n, p, P, B, t, l, m, Q, K, I, W, U, P, R, E, M, f, e, D,
+                                        z, y, b, K, X, r, T, B, c, L, j, a, v, V, d, p, t, A, C, H, h, u, s, m, i, x, Z,
+                                        J, l, O, n, k, Q, w, Y, N, F, o, G, q, g, S, b, z, h, t, Y, s, S, E, X, k, M, A,
+                                        R, j, o, v, U, i, H, O, B, n, p, r, g, Z, G, x, w, P, C, I, K, d, Q, f, T, l, L,
+                                        y, F, c, e, W, J, a, V, q, m, u, N, D, t, P, p, V, g, M, c, z, L, J, m, G, K, h,
+                                        C, j, F, I, o, Y, U, a, T, i, Q, w, S, v, x, u, k, W, O, R, s, D, b, e, Z, N, l,
+                                        X, E, A, n, f, q, r, H, y, d, B, Y, y, i, N, k, R, p, Q, l, t, M, x, q, I, J, U,
+                                        E, f, b, s, L, F, d, v, O, a, X, u, Z, C, h, e, j, D, H, g, w, K, B, P, W, o, m,
+                                        n, r, A, c, z, T, G, S, V, X, H, M, h, x, y, A, C, n, B, f, q, G, g, j, e, i, K,
+                                        P, F, m, w, V, Z, E, c, S, t, b, Y, a, L, o, u, U, Q, v, R, d, I, s, D, p, O, k,
+                                        r, W, N, J, l, T, z, e, v, j, r, B, R, b, u, h, P, S, g, A, z, V, w, L, W, C, y,
+                                        x, t, o, a, H, k, N, I, U, f, m, F, Y, l, i, q, p, D, J, X, O, Z, T, G, d, K, E,
+                                        n, M, Q, s, c, A, S, m, N, d, Y, c, R, V, Z, b, I, B, x, n, o, j, i, f, X, W, O,
+                                        k, w, s, p, M, q, G, r, U, e, z, H, T, u, L, J, y, g, E, C, h, v, D, t, a, Q, l,
+                                        F, K, P, N, r, k, a, s, b, C, S, y, D, l, M, z, m, U, x, E, e, n, d, j, t, L, i,
+                                        T, G, c, o, q, F, Z, v, X, B, Y, P, A, h, p, K, J, V, R, I, O, u, Q, w, f, g, H,
+                                        W, d, g, i, K, Z, B, k, T, J, N, b, q, Q, e, D, j, R, u, A, Y, y, E, H, o, X, t,
+                                        V, F, p, U, m, h, x, P, f, s, G, z, W, r, v, n, l, O, w, I, C, S, L, M, c, a, V,
+                                        f, b, m, q, g, I, U, O, W, u, Q, M, s, x, h, i, z, r, E, l, G, a, p, R, C, c, N,
+                                        A, d, t, y, n, F, j, T, o, B, H, e, Y, P, k, X, Z, w, v, K, D, J, L, S, h, o, x,
+                                        w, W, B, A, F, m, r, c, s, I, S, a, G, y, v, U, g, q, N, n, t, f, Z, K, e, j, u,
+                                        l, E, d, J, i, Q, k, P, D, V, X, p, L, M, H, z, R, O, b, T, Y, C, I, c, l, K, H,
+                                        d, C, B, a, p, A, e, W, q, O, n, x, i, u, V, v, X, Z, G, Y, k, b, Q, M, w, j, h,
+                                        S, f, L, F, y, D, g, s, R, U, m, o, P, N, t, T, J, E, z, r, K, w, Z, t, Y, A, U,
+                                        c, g, P, J, b, S, l, j, q, R, h, O, H, x, N, y, i, L, M, C, n, Q, E, p, o, V, W,
+                                        d, r, I, m, k, z, D, a, B, e, X, F, T, G, u, s, f, v, H, s, i, z, p, W, Z, L, D,
+                                        K, A, Q, T, h, P, x, B, F, I, d, g, R, f, n, V, N, a, E, k, j, l, m, q, r, u, Y,
+                                        M, S, v, w, o, O, J, X, G, e, U, c, y, b, C, t, a, u, A, l, Q, s, e, j, X, v, F,
+                                        T, b, Y, q, m, i, S, w, R, J, M, t, k, B, U, C, K, I, H, N, g, O, E, x, L, n, W,
+                                        f, h, d, r, Z, V, p, G, o, z, P, D, y, c, m, n, q, G, v, W, I, E, l, w, C, Y, e,
+                                        c, t, M, g, o, j, s, Q, K, O, N, u, p, z, h, x, F, J, R, H, D, i, T, Z, r, P, a,
+                                        V, k, y, b, f, S, B, X, A, L, d, U, e, C, J, z, f, H, U, W, t, k, I, h, v, Q, X,
+                                        O, q, i, F, a, o, V, p, M, d, Z, A, T, b, G, x, m, c, u, y, E, g, P, s, Y, B, j,
+                                        l, n, r, K, N, L, D, R, S, w, z, G, p, N, d, I, j, C, s, r, D, A, c, J, x, Q, B,
+                                        m, X, f, q, K, g, i, y, b, U, O, T, R, k, n, a, v, H, w, e, l, Z, S, P, t, W, h,
+                                        V, E, L, M, F, Y, u, o, f, Y, i, S, k, v, p, y, P, z, I, T, L, m, r, q, W, E, e,
+                                        H, s, B, u, O, a, K, t, R, Z, x, J, l, Q, w, F, d, b, c, o, G, n, X, D, V, M, h,
+                                        j, C, g, A, U, N
     };
 
     public final static int a(int ii) {
@@ -189,7 +139,7 @@ public final class MagicNumbers {
         if (ii < array.length) {
             // Tossing a bone to the compiler...
             return array[ii];
-        } else return array[ ii % array.length ];
+        } else return array[ii % array.length];
     }
 
     public static int uniformHash(int serial, int f2, int t2) {
@@ -223,9 +173,9 @@ public final class MagicNumbers {
 
     public static int hashList(Collection<? extends Object> list) {
         int ls = list.size();
-        return hashList(list, ls * array[ (ls + 512) & 1023]);
+        return hashList(list, ls * array[(ls + 512) & 1023]);
     }
-    
+
     public static int hashArray(Object[] list, int seed) {
         int ls = list.length;
         int xx = seed | 1;
@@ -240,7 +190,7 @@ public final class MagicNumbers {
 
     public static int hashArray(Object[] list) {
         int ls = list.length;
-        return hashArray(list, ls * array[ (ls + 512) & 1023]);
+        return hashArray(list, ls * array[(ls + 512) & 1023]);
     }
 
     public static long hashArrayLong(Object[] list, long seed) {
@@ -254,8 +204,7 @@ public final class MagicNumbers {
         return xx;
     }
 
-    public static long hashStepLong(long runningHash, int somePrime,
-            int nextItem) {
+    public static long hashStepLong(long runningHash, int somePrime, int nextItem) {
         long ah = runningHash >>> 53;
         runningHash = runningHash * somePrime ^ nextItem + ah;
         return runningHash;
@@ -263,7 +212,7 @@ public final class MagicNumbers {
 
     public static long hashArrayLong(Object[] list) {
         int ls = list.length;
-        return hashArrayLong(list, ls * array[ (ls + 512) & 1023]);
+        return hashArrayLong(list, ls * array[(ls + 512) & 1023]);
     }
 
 }

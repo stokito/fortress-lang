@@ -1,27 +1,27 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
+import junit.framework.TestCase;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import junit.framework.TestCase;
 
 public class PathJUTest extends TestCase {
     public static void main(String[] args) {
@@ -37,7 +37,8 @@ public class PathJUTest extends TestCase {
         try {
             p.findFile(".");
 
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             System.err.println(e);
         }
     }
@@ -47,7 +48,8 @@ public class PathJUTest extends TestCase {
         try {
             p.findFile("thisfileismissing");
 
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             System.err.println(e);
         }
     }
@@ -56,15 +58,18 @@ public class PathJUTest extends TestCase {
         Path p = new Path(".:..");
         try {
             p.findFile("README.txt");
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             System.err.println(e);
         }
         try {
             File f = p.findFile("tests/ProjectFortress/a/b/c/d/e.f");
             System.err.println("Found " + f.getCanonicalPath());
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             System.err.println(e);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println(e);
         }
     }

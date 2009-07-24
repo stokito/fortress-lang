@@ -1,24 +1,23 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.env;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -29,22 +28,21 @@ public class LazilyEvaluatedCell extends IndirectionCell {
     Expr exp;
     Environment e;
 
-    public LazilyEvaluatedCell( Expr exp, Environment e) {
+    public LazilyEvaluatedCell(Expr exp, Environment e) {
         this.exp = exp;
         this.e = e;
     }
 
     public String toString() {
-        if (theValue==null) {
+        if (theValue == null) {
             return "thunk " + NodeUtil.dump(exp);
         }
-        if (theValue instanceof IndirectionCell)
-            return "Uninitialized " + theValue.getClass().getSimpleName();
+        if (theValue instanceof IndirectionCell) return "Uninitialized " + theValue.getClass().getSimpleName();
         return theValue.toString();
     }
 
     public void storeValue(FValue f2) {
-        bug("Cannot store value "+ f2 +" into lazy cell; possible duplicate definition?");
+        bug("Cannot store value " + f2 + " into lazy cell; possible duplicate definition?");
     }
 
     public FValue getValue() {
@@ -73,6 +71,6 @@ public class LazilyEvaluatedCell extends IndirectionCell {
         } else {
             bug("Second init of lazy cell");
         }
-        
+
     }
 }

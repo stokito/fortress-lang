@@ -1,47 +1,35 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public class Reader extends NativeConstructor {
     private static NativeConstructor _con = null;
@@ -52,14 +40,14 @@ public class Reader extends NativeConstructor {
     }
 
     @Override
-    protected FNativeObject makeNativeObject(List<FValue> args,
-                                             NativeConstructor con) {
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
         String name = args.get(0).getString();
         try {
             FileInputStream fir = new FileInputStream(name);
             return new PrimReader(name, fir);
-        } catch (FileNotFoundException ex) {
-            return error("FileNotFound: "+name);
+        }
+        catch (FileNotFoundException ex) {
+            return error("FileNotFound: " + name);
         }
     }
 
@@ -72,8 +60,7 @@ public class Reader extends NativeConstructor {
         public PrimReader(String name, InputStream reader) {
             super(Reader._con);
             this.name = name;
-            InputStreamReader ir =
-                new InputStreamReader(reader, Charset.forName("UTF-8"));
+            InputStreamReader ir = new InputStreamReader(reader, Charset.forName("UTF-8"));
             this.reader = new BufferedReader(ir);
         }
 
@@ -93,24 +80,25 @@ public class Reader extends NativeConstructor {
 
         public void whenUnconsumed() {
             if (consumed) {
-                error(errorMsg(
-                        "Performed operation on consumed FileReadStream ", name));
+                error(errorMsg("Performed operation on consumed FileReadStream ", name));
             }
         }
 
         @Override
         public boolean seqv(FValue v) {
-            return (v==this);
+            return (v == this);
         }
     }
 
     private static abstract class r2S extends NativeMeth0 {
         abstract String f(PrimReader r) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self) {
             try {
                 return FString.make(f((PrimReader) self));
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error("Read IOException on " + self.getString());
             }
         }
@@ -123,7 +111,8 @@ public class Reader extends NativeConstructor {
         public final FValue applyMethod(FObject self) {
             try {
                 return FInt.make(f((PrimReader) self));
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error("Read IOException on " + self.getString());
             }
         }
@@ -136,7 +125,8 @@ public class Reader extends NativeConstructor {
         public final FValue applyMethod(FObject self) {
             try {
                 return FBool.make(f((PrimReader) self));
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error("Read IOException on " + self.getString());
             }
         }
@@ -144,14 +134,15 @@ public class Reader extends NativeConstructor {
 
 
     private static abstract class rS2V extends NativeMeth1 {
-        protected abstract void f(java.io.Reader r, String s)
-                throws IOException;
+        protected abstract void f(java.io.Reader r, String s) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self, FValue s) {
             try {
                 f(((PrimReader) self).reader, s.getString());
                 return FVoid.V;
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error("Read IOException on " + self.getString());
             }
         }
@@ -159,13 +150,15 @@ public class Reader extends NativeConstructor {
 
     private static abstract class r2V extends NativeMeth0 {
         protected abstract void f(java.io.Reader r) throws IOException;
+
         @Override
         public final FValue applyMethod(FObject self) {
             try {
                 f(((PrimReader) self).reader);
                 return FVoid.V;
-            } catch (IOException e) {
-                return error("IOException on "+self.getString());
+            }
+            catch (IOException e) {
+                return error("IOException on " + self.getString());
             }
         }
     }
@@ -221,7 +214,8 @@ public class Reader extends NativeConstructor {
                     return FString.make("");
                 }
                 return FString.make(new String(c, 0, k));
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error(r.getString() + ".read(" + k + ") IO error.");
             }
         }
@@ -249,7 +243,8 @@ public class Reader extends NativeConstructor {
                 r.reader.close();
                 r.eof = true;
                 return FVoid.V;
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 return error("Close IOException on " + x.getString());
             }
         }

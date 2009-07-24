@@ -1,51 +1,38 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.exceptions.FortressException;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.ArrayList;
-import java.util.List;
-import edu.rice.cs.plt.tuple.Option;
-
-import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicBool;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
-import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes.WhereConstraint;
-import com.sun.fortress.nodes.WhereExtends;
-import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.interpreter.evaluator.types.*;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.MagicNumbers;
-import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+import edu.rice.cs.plt.tuple.Option;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SingleFcn extends Fcn implements HasAt {
 
@@ -53,22 +40,28 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         super(within);
     }
 
-    abstract public String  at();
+    abstract public String at();
+
     abstract public List<FType> getDomain();
+
     abstract public FType getRange();
-    public boolean isOverride() { return false; }
+
+    public boolean isOverride() {
+        return false;
+    }
 
     /**
      * For now, prefer to unwrap tuples because that avoid creating
      * new memo entries for tuple types.
+     *
      * @return
      */
     public List<FType> getNormalizedDomain() {
         List<FType> d = getDomain();
         if (d.size() == 1) {
             FType t = d.get(0);
-            if (t  instanceof FTypeTuple) {
-              d = ((FTypeTuple) t).getTypes();
+            if (t instanceof FTypeTuple) {
+                d = ((FTypeTuple) t).getTypes();
             }
         }
         return d;
@@ -79,6 +72,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      * This is just like getNormalizedDomain, except that the method version
      * of functional methods appends a "nat" Type indicating the position of
      * the self parameter.
+     *
      * @return
      */
     public List<FType> getNormalizedDomainForTables() {
@@ -86,22 +80,21 @@ public abstract class SingleFcn extends Fcn implements HasAt {
     }
 
     public List<FValue> fixupArgCount(List<FValue> args) {
-        System.out.println("Naive fixupArgCount "+this+
-                           "("+this.getClass()+")"+
-                           " of "+Useful.listInParens(args));
+        System.out.println("Naive fixupArgCount " + this + "(" + this.getClass() + ")" + " of " + Useful.listInParens(
+                args));
         int dsz = getDomain().size();
         if (args.size() == dsz) return args;
         return null;
     }
 
-     // NOTE: I believe it is ok for functions to use object identity for
+    // NOTE: I believe it is ok for functions to use object identity for
     // equals and hashCode().
 
     static class SignatureEquivalence extends Hasher<SingleFcn> {
         @Override
         public long hash(SingleFcn x) {
             long a = (long) x.asMethodName().hashCode() * MagicNumbers.s;
-            long b =  (long) x.getNormalizedDomainForTables().hashCode() * MagicNumbers.l;
+            long b = (long) x.getNormalizedDomainForTables().hashCode() * MagicNumbers.l;
             // System.err.println("Hash of " + x + " yields " + a + " and " + b);
 
             return a + b;
@@ -111,13 +104,10 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         public boolean equiv(SingleFcn x, SingleFcn y) {
             List<FType> dx = x.getNormalizedDomainForTables();
             List<FType> dy = y.getNormalizedDomainForTables();
-            if (dx.size() != dy.size())
-                return false;
-            if (! x.asMethodName().equals(y.asMethodName()))
-                return false;
+            if (dx.size() != dy.size()) return false;
+            if (!x.asMethodName().equals(y.asMethodName())) return false;
             for (int i = 0; i < dx.size(); i++) {
-                if (! dx.get(i).equals(dy.get(i)))
-                    return false;
+                if (!dx.get(i).equals(dy.get(i))) return false;
             }
             return true;
         }
@@ -133,7 +123,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      * clauses.  The symbolic types so created will be tied to
      * a newly generated environment so that they do not contaminate
      * any "real" environments.
-     *
+     * <p/>
      * The instantiated generics can be used to allow checks on
      * overloading.
      *
@@ -155,8 +145,9 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         List<FType> instantiationTypes;
         try {
             instantiationTypes = createSymbolicInstantiation(tpl, wcl, ge);
-        } catch (FortressException e) {
-            e.setContext(location,ge);
+        }
+        catch (FortressException e) {
+            e.setContext(location, ge);
             throw e;
         }
         return instantiationTypes;
@@ -168,15 +159,18 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                                                           HasAt location) throws Error {
         return createSymbolicInstantiation(tpl, wcl, bte.extendAt(location));
     }
+
     /**
      * @param tpl
      * @param wcl
-     * @param ge The generic environment that is being populated by this instantiation.
+     * @param ge  The generic environment that is being populated by this instantiation.
      * @throws Error
      */
-    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, Option<WhereClause> wcl, Environment ge) throws Error {
+    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl,
+                                                           Option<WhereClause> wcl,
+                                                           Environment ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
-        for (StaticParam tp: tpl) {
+        for (StaticParam tp : tpl) {
             String name = NodeUtil.getName(tp);
             FType t;
             if (NodeUtil.isTypeParam(tp)) {
@@ -195,7 +189,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         }
 
         // Expect that where clauses will add names and constraints.
-        if ( wcl.isSome() ) {
+        if (wcl.isSome()) {
             for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
                 if (wc instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) wc;
@@ -215,9 +209,9 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         EvalType eval_type = new EvalType(ge);
 
         // Process constraints
-        for (StaticParam tp: tpl) {
+        for (StaticParam tp : tpl) {
             String name = NodeUtil.getName(tp);
-            if ( NodeUtil.isTypeParam(tp) ) {
+            if (NodeUtil.isTypeParam(tp)) {
                 String tp_name = NodeUtil.getName(tp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(tp_name); // leaf
                 List<BaseType> oext = tp.getExtendsClause();
@@ -225,8 +219,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
                 st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
-            } else if ( NodeUtil.isNatParam(tp) || NodeUtil.isIntParam(tp) ||
-                        NodeUtil.isOpParam(tp) || NodeUtil.isBoolParam(tp) ) {
+            } else if (NodeUtil.isNatParam(tp) || NodeUtil.isIntParam(tp) || NodeUtil.isOpParam(tp) ||
+                       NodeUtil.isBoolParam(tp)) {
                 // No constraint handling right now
             } else {
                 return bug(tp, errorMsg("Unexpected StaticParam ", tp));
@@ -234,7 +228,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         }
 
         // Expect that where clauses will add names and constraints.
-        if ( wcl.isSome() ) {
+        if (wcl.isSome()) {
             for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
                 if (wc instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) wc;
@@ -255,7 +249,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         @Override
         public long hash(SingleFcn x) {
             long a = (long) x.getFnName().hashCode() * MagicNumbers.N;
-             return a;
+            return a;
         }
 
         @Override

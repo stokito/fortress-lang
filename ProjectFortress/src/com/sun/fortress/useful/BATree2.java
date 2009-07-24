@@ -1,40 +1,35 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A subset of all that you might want in a map, but it is embedded in an
  * applicative framework so that small deltas can be obtained at low cost.
- *
+ * <p/>
  * Does not yet support item removal; does not yet support all the SortedMap
  * methods that it could in principle support.
  */
-public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,Pair<U,V>> {
+public class BATree2<T, U, V> extends AbstractMap<T, Pair<U, V>> implements Map<T, Pair<U, V>> {
 
-    static class EntrySet<T, U, V> extends AbstractSet<Map.Entry<T, Pair<U,V>>>
-           implements Set<Map.Entry<T, Pair<U,V>>> {
+    static class EntrySet<T, U, V> extends AbstractSet<Map.Entry<T, Pair<U, V>>>
+            implements Set<Map.Entry<T, Pair<U, V>>> {
 
         BATree2Node<T, U, V> root;
         Comparator<T> comp;
@@ -47,11 +42,10 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         /* (non-Javadoc)
          * @see java.util.AbstractCollection#contains(java.lang.Object)
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings ("unchecked")
         @Override
         public boolean contains(Object o) {
-            if (root == null)
-                return false;
+            if (root == null) return false;
 
             if (o instanceof Map.Entry<?, ?>) {
                 Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
@@ -59,14 +53,12 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
                 BATree2Node<T, U, V> n = root;
                 // TODO Since there's no side effects, we can fake out the generic, I think.
                 n = n.getObject((T) e.getKey(), comp);
-                if (n == null)
-                    return false;
+                if (n == null) return false;
 
                 Object eo = e.getValue();
                 if (eo instanceof Pair<?, ?>) {
                     Pair<?, ?> ep = (Pair<?, ?>) eo;
-                    return n.data1.equals(ep.getA()) &&
-                           n.data2.equals(ep.getB());
+                    return n.data1.equals(ep.getA()) && n.data2.equals(ep.getB());
                 }
             }
             return false;
@@ -80,20 +72,19 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
          * @see java.util.AbstractCollection#iterator()
          */
         @Override
-        public Iterator<Entry<T, Pair<U,V>>> iterator() {
+        public Iterator<Entry<T, Pair<U, V>>> iterator() {
             return new Iter();
         }
 
-        class Iter implements Iterator<Entry<T, Pair<U,V>>> {
+        class Iter implements Iterator<Entry<T, Pair<U, V>>> {
             int i;
 
             public boolean hasNext() {
                 return i < size();
             }
 
-            public java.util.Map.Entry<T, Pair<U,V>> next() {
-                if (hasNext())
-                    return root.get(i++);
+            public java.util.Map.Entry<T, Pair<U, V>> next() {
+                if (hasNext()) return root.get(i++);
                 return null;
             }
 
@@ -136,10 +127,10 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         else return root.weight;
     }
 
-    @SuppressWarnings("unchecked")
-    public Pair<U,V> get(Object k) {
+    @SuppressWarnings ("unchecked")
+    public Pair<U, V> get(Object k) {
         if (root == null) return null;
-        BATree2Node<T, U, V> f = root.getObject((T)k, comp);
+        BATree2Node<T, U, V> f = root.getObject((T) k, comp);
         if (f == null) return null;
         return f.asPair();
     }
@@ -159,33 +150,28 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
     }
 
     public BATree2Node<T, U, V> getEntry(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k);
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k);
     }
 
-    public Pair<U,V> getData(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).asPair();
+    public Pair<U, V> getData(int k) {
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).asPair();
     }
 
     public U getDataA(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).data1;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).data1;
     }
 
     public V getDataB(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).data2;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).data2;
     }
 
     public T getKey(int k) {
-        if (k < 0 || k >= size())
-            throw new IndexOutOfBoundsException("" + k + " not between 0 and "  + size());
-        return  root.get(k).key;
+        if (k < 0 || k >= size()) throw new IndexOutOfBoundsException("" + k + " not between 0 and " + size());
+        return root.get(k).key;
     }
 
     /**
@@ -198,13 +184,13 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         return root.indexOf(k, comp);
     }
 
-    public Pair<U,V> min() {
+    public Pair<U, V> min() {
         if (root == null) return null;
         BATree2Node<T, U, V> f = root.min();
         return f.asPair();
     }
 
-    public Pair<U,V> max() {
+    public Pair<U, V> max() {
         if (root == null) return null;
         BATree2Node<T, U, V> f = root.max();
         return f.asPair();
@@ -248,13 +234,14 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
      */
     public BATree2<T, U, V> putNew(T k, U d1, V d2) {
         if (root == null) {
-            return new BATree2<T, U, V>(new BATree2Node<T, U, V>(k,d1, d2,null, null), comp);
+            return new BATree2<T, U, V>(new BATree2Node<T, U, V>(k, d1, d2, null, null), comp);
         }
 
-        return new BATree2<T, U, V>(root.add(k,d1, d2, comp), comp);
+        return new BATree2<T, U, V>(root.add(k, d1, d2, comp), comp);
     }
+
     public BATree2<T, U, V> copy() {
-         return new BATree2<T, U, V>(root, comp);
+        return new BATree2<T, U, V>(root, comp);
     }
 
     /*
@@ -265,25 +252,24 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         return root;
     }
 
-    public Pair<U,V> put(T k, U d1, V d2) {
+    public Pair<U, V> put(T k, U d1, V d2) {
         if (root == null) {
-            root = new BATree2Node<T, U, V>(k,d1, d2,null, null);
+            root = new BATree2Node<T, U, V>(k, d1, d2, null, null);
             return null;
         }
         BATree2Node<T, U, V> old = root;
-        root = root.add(k,d1, d2, comp);
+        root = root.add(k, d1, d2, comp);
 
         // Performance hack; if it wasn't there, then the tree got bigger.
-        if (old.weight < root.weight)
-            return null;
+        if (old.weight < root.weight) return null;
         return old.getObject(k, comp).asPair();
     }
 
-     /**
+    /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
      */
-    public Pair<U,V> syncPut(T k, U d1, V d2) {
+    public Pair<U, V> syncPut(T k, U d1, V d2) {
         BATree2Node<T, U, V> old;
         synchronized (this) {
             if (root == null) {
@@ -294,8 +280,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             root = old.add(k, d1, d2, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight)
-                return null;
+            if (old.weight < root.weight) return null;
         }
         return old.getObject(k, comp).asPair();
     }
@@ -304,7 +289,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         root = null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BATree2) {
             BATree2 bat = (BATree2) o;
@@ -314,8 +299,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             BATree2Node a = root;
             BATree2Node b = bat.root;
             for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i))))
-                    return false;
+                if (!(a.get(i).equals(b.get(i)))) return false;
             }
             return true;
         }
@@ -326,8 +310,8 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
      * @see java.util.AbstractMap#entrySet()
      */
     @Override
-    public Set<java.util.Map.Entry<T, Pair<U,V>>> entrySet() {
-        return new EntrySet<T,U,V>(root, comp);
+    public Set<java.util.Map.Entry<T, Pair<U, V>>> entrySet() {
+        return new EntrySet<T, U, V>(root, comp);
     }
 
     /* Slightly more efficient (fewer allocations) versions of get/put */
@@ -338,14 +322,14 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
         if (f == null) return null;
         return f;
     }
+
     public void putPair(T k, U d1, V d2) {
         if (root == null) {
-            root = new BATree2Node<T, U, V>(k,d1, d2,null, null);
-           return;
+            root = new BATree2Node<T, U, V>(k, d1, d2, null, null);
+            return;
         }
-        root = root.add(k,d1, d2, comp);
+        root = root.add(k, d1, d2, comp);
     }
-
 
 
 }

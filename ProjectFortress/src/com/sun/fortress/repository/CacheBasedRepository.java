@@ -1,27 +1,22 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
@@ -29,28 +24,31 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
-import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.nodes_util.NodeComparator;
-import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.ComponentGraphNode;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
 
 public class CacheBasedRepository { // extends StubRepository implements FortressRepository {
 
 
-    protected final BATree<APIName, ApiIndex> apis =
-        new BATree<APIName, ApiIndex>(NodeComparator.apiNameComparer);
+    protected final BATree<APIName, ApiIndex> apis = new BATree<APIName, ApiIndex>(NodeComparator.apiNameComparer);
 
     protected final BATree<APIName, ComponentIndex> components =
-        new BATree<APIName, ComponentIndex>(NodeComparator.apiNameComparer);
+            new BATree<APIName, ComponentIndex>(NodeComparator.apiNameComparer);
 
     protected final String pwd;
 
@@ -58,15 +56,17 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         pwd = _pwd;
     }
 
-    public Map<APIName, ApiIndex> apis() { return apis; }
+    public Map<APIName, ApiIndex> apis() {
+        return apis;
+    }
 
-    public Map<APIName, ComponentIndex> components() { return components; }
+    public Map<APIName, ComponentIndex> components() {
+        return components;
+    }
 
-    public ApiIndex getApi(APIName name, String sourcePath) throws FileNotFoundException,
-            IOException {
+    public ApiIndex getApi(APIName name, String sourcePath) throws FileNotFoundException, IOException {
         ApiIndex ci = apis.get(name);
-        if (ci != null)
-            return ci;
+        if (ci != null) return ci;
         String s = apiFileName(name, sourcePath);
 
         File f = new File(s);
@@ -75,8 +75,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         }
         Option<CompilationUnit> candidate = ASTIO.readJavaAst(s);
         if (candidate.isNone()) {
-            throw new RepositoryError(
-                    "Could not deserialize contents of repository file " + s);
+            throw new RepositoryError("Could not deserialize contents of repository file " + s);
         }
         ci = IndexBuilder.builder.buildApiIndex((Api) candidate.unwrap(), f.lastModified());
         apis.put(name, ci);
@@ -85,12 +84,11 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
 
     public ComponentIndex getComponent(APIName name, String sourcePath) throws FileNotFoundException, IOException {
         ComponentIndex ci = components.get(name);
-        if (ci != null)
-            return ci;
+        if (ci != null) return ci;
         String s = compFileName(name, sourcePath);
 
         File f = new File(s);
-        if (! f.exists()) {
+        if (!f.exists()) {
             throw new FileNotFoundException(s);
         }
         Option<CompilationUnit> candidate = ASTIO.readJavaAst(s);
@@ -107,20 +105,20 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         CompilationUnit ast = def.ast();
         checkName(name, ast);
 
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Api ", name, " created at ", def.modifiedDate() );
+        Debug.debug(Debug.Type.REPOSITORY, 2, "Api ", name, " created at ", def.modifiedDate());
         apis.put(name, def);
 
         try {
             ASTIO.writeJavaAst(ast, apiFileName(ast.getName(), sourcePath));
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new ShellException(e);
         }
     }
 
-    private void checkName(APIName name, CompilationUnit ast)
-            throws RepositoryError {
+    private void checkName(APIName name, CompilationUnit ast) throws RepositoryError {
         APIName actual = ast.getName();
-        if (! actual.equals(name)) {
+        if (!actual.equals(name)) {
             boolean flag = actual.equals(name);
             throw new RepositoryError(actual + " cannot be cached under name " + name);
         }
@@ -129,13 +127,14 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     public void addComponent(APIName name, ComponentIndex def, String sourcePath) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
-        Debug.debug( Debug.Type.REPOSITORY, 2, "addComponent: Component ", name, " created at ", def.modifiedDate() );
+        Debug.debug(Debug.Type.REPOSITORY, 2, "addComponent: Component ", name, " created at ", def.modifiedDate());
         // Cache component for quick retrieval.
         components.put(name, def);
 
         try {
             ASTIO.writeJavaAst(ast, compFileName(ast.getName(), sourcePath));
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new ShellException(e);
         }
     }
@@ -154,15 +153,13 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     }
 
     private String apiFileName(APIName name, String sourcePath) {
-        return NamingCzar.cachedPathNameForApiAst(pwd,  sourcePath, name);
+        return NamingCzar.cachedPathNameForApiAst(pwd, sourcePath, name);
     }
 
-    private long dateFromFile(APIName name, String s, String tag)
-            throws FileNotFoundException {
+    private long dateFromFile(APIName name, String s, String tag) throws FileNotFoundException {
         File f = new File(s);
-            if (! f.exists())
-                throw new FileNotFoundException(tag + name.toString() + " (file " + s + ")");
-            return f.lastModified();
+        if (!f.exists()) throw new FileNotFoundException(tag + name.toString() + " (file " + s + ")");
+        return f.lastModified();
     }
 
     public long getModifiedDateForApi(ApiGraphNode node) throws FileNotFoundException {
@@ -170,14 +167,14 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         String sourcePath = node.getSourcePath();
         ApiIndex i = apis.get(name);
 
-        if (i != null){
-            Debug.debug( Debug.Type.REPOSITORY, 2, "Cached modified date for api ", name, " is ", i.modifiedDate() );
+        if (i != null) {
+            Debug.debug(Debug.Type.REPOSITORY, 2, "Cached modified date for api ", name, " is ", i.modifiedDate());
             return i.modifiedDate();
         }
 
-       String s = apiFileName(name, sourcePath);
-       String tag = "API ";
-       return dateFromFile(name, s, tag);
+        String s = apiFileName(name, sourcePath);
+        String tag = "API ";
+        return dateFromFile(name, s, tag);
     }
 
     public long getModifiedDateForComponent(ComponentGraphNode node) throws FileNotFoundException {
@@ -185,21 +182,26 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         String sourcePath = node.getSourcePath();
 
         ComponentIndex i = components.get(name);
-        if (i != null){
-            Debug.debug( Debug.Type.REPOSITORY, 2, "Cached modified date for component ", name, " is ", i.modifiedDate() );
+        if (i != null) {
+            Debug.debug(Debug.Type.REPOSITORY,
+                        2,
+                        "Cached modified date for component ",
+                        name,
+                        " is ",
+                        i.modifiedDate());
             return i.modifiedDate();
         }
 
-       String s = compFileName(name, sourcePath);
-       String tag = "Component ";
-       return dateFromFile(name, s, tag);
+        String s = compFileName(name, sourcePath);
+        String tag = "Component ";
+        return dateFromFile(name, s, tag);
     }
 
     public void clear() {
-        for(APIName apiName : apis.keySet()) {
+        for (APIName apiName : apis.keySet()) {
             deleteApi(apiName);
         }
-        for(APIName componentName : components.keySet()) {
+        for (APIName componentName : components.keySet()) {
             deleteComponent(componentName);
         }
     }

@@ -1,34 +1,33 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
 import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
+import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Decl;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbstractNode;
 
 abstract public class SymbolicType extends FTypeTrait {
 
@@ -37,7 +36,7 @@ abstract public class SymbolicType extends FTypeTrait {
      */
     @Override
     public boolean typeMatch(FValue val) {
-        bug(errorMsg("Symbolic type ",this," is being matched to value ",val));
+        bug(errorMsg("Symbolic type ", this, " is being matched to value ", val));
         return false;
     }
 
@@ -47,22 +46,19 @@ abstract public class SymbolicType extends FTypeTrait {
     }
 
     public String toString() {
-        return getName()+"@"+getAt().at();
+        return getName() + "@" + getAt().at();
     }
 
     public void addExtend(FType t) {
-        if (transitiveExtends != null)
-            bug("Extending type added after transitive extends probed.");
+        if (transitiveExtends != null) bug("Extending type added after transitive extends probed.");
 
-        if (extends_ == null)
-            extends_ = new ArrayList<FType>();
+        if (extends_ == null) extends_ = new ArrayList<FType>();
 
         extends_.add(t);
     }
 
     public void addExtends(List<FType> t) {
-        if (transitiveExtends != null)
-            bug("Extending type added after transitive extends probed.");
+        if (transitiveExtends != null) bug("Extending type added after transitive extends probed.");
         extends_.addAll(t);
     }
 
@@ -72,7 +68,7 @@ abstract public class SymbolicType extends FTypeTrait {
                 for (FType t2 : other.getExtends()) {
                     exclDump("Checking exclusion of upper bounds; ");
                     if (t1.excludesOther(t2)) {
-                        exclDumpln("upper bounds ",t1," and ",t2," exclude.");
+                        exclDumpln("upper bounds ", t1, " and ", t2, " exclude.");
                         addExclude(other);
                         return true;
                     }
@@ -82,7 +78,7 @@ abstract public class SymbolicType extends FTypeTrait {
             for (FType t1 : getExtends()) {
                 exclDump("Checking exclusion of upper bound; ");
                 if (t1.excludesOther(other)) {
-                    exclDumpln("upper bound ",t1," excludes.");
+                    exclDumpln("upper bound ", t1, " excludes.");
                     addExclude(other);
                     return true;
                 }

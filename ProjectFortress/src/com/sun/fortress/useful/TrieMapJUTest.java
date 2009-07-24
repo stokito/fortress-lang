@@ -1,120 +1,44 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
 
-import java.lang.Integer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
-import junit.framework.TestCase;
-
-public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
+public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
 
     public static void main(String[] args) {
         junit.swingui.TestRunner.run(BATJUTest.class);
     }
 
     static final String[] animals = {
-            "alpaca",
-            "ant",
-            "auk",
-            "bat",
-            "beetle",
-            "bison",
-            "buffalo",
-            "camel",
-            "cat",
-            "cavy",
-            "crab",
-            "deer",
-            "dingo",
-            "dodo",
-            "dog",
-            "dove",
-            "eagle",
-            "eel",
-            "eland",
-            "elephant",
-            "elk",
-            "emu",
-            "finch",
-            "gar",
-            "giraffe",
-            "gnu",
-            "guanaco",
-            "gull",
-            "hawk",
-            "hedgehog",
-            "hyena",
-            "ibis",
-            "iguana",
-            "jackal",
-            "jaguar",
-            "kangaroo",
-            "koala",
-            "lemur",
-            "leopard",
-            "llama",
-            "manatee",
-            "mule",
-            "narwhal",
-            "nutria",
-            "octopus",
-            "osprey",
-            "ostrich",
-            "owl",
-            "penguin",
-            "pigeon",
-            "piranha",
-            "puffin",
-            "quagga",
-            "quail",
-            "quokka",
-            "rat",
-            "ray",
-            "seal",
-            "shark",
-            "snake",
-            "spider",
-            "tern",
-            "tiger",
-            "turtle",
-            "unicorn",
-            "vicuna",
-            "vole",
-            "vulture",
-            "walrus",
-            "warthog",
-            "worm",
-            "xiphias",
-            "yak",
-            "zebra"
-       };
+            "alpaca", "ant", "auk", "bat", "beetle", "bison", "buffalo", "camel", "cat", "cavy", "crab", "deer",
+            "dingo", "dodo", "dog", "dove", "eagle", "eel", "eland", "elephant", "elk", "emu", "finch", "gar",
+            "giraffe", "gnu", "guanaco", "gull", "hawk", "hedgehog", "hyena", "ibis", "iguana", "jackal", "jaguar",
+            "kangaroo", "koala", "lemur", "leopard", "llama", "manatee", "mule", "narwhal", "nutria", "octopus",
+            "osprey", "ostrich", "owl", "penguin", "pigeon", "piranha", "puffin", "quagga", "quail", "quokka", "rat",
+            "ray", "seal", "shark", "snake", "spider", "tern", "tiger", "turtle", "unicorn", "vicuna", "vole",
+            "vulture", "walrus", "warthog", "worm", "xiphias", "yak", "zebra"
+    };
 
-    static final String [] screws = {
-        "",
-        "e",
-        "ee",
-        "eee",
-        "eeee",
-        "eeeee",
-        "eeeeee"
+    static final String[] screws = {
+            "", "e", "ee", "eee", "eeee", "eeeee", "eeeeee"
     };
 
     TrieMap<Integer> screwsMap = null;
@@ -125,35 +49,35 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         if (screwsMap != null) return;
         screwsMap = new TrieMap<Integer>();
         for (int i = 0; i < screws.length; i++) {
-            assertEquals(screwsMap.size(),i);
-            screwsMap.put(screws[i],i);
+            assertEquals(screwsMap.size(), i);
+            screwsMap.put(screws[i], i);
             screwsMap.check();
         }
-        assertEquals(screwsMap.size(),screws.length);
+        assertEquals(screwsMap.size(), screws.length);
     }
 
     synchronized void initAnimalsMap() {
         if (animalsMap != null) return;
         animalsMap = new TrieMap<Integer>();
         for (int i = 0; i < animals.length; i++) {
-            animalsMap.put(animals[i],i);
+            animalsMap.put(animals[i], i);
         }
-        assertEquals(animalsMap.size(),animals.length);
+        assertEquals(animalsMap.size(), animals.length);
     }
 
     synchronized void initBothMap() {
         if (bothMap != null) return;
         initScrewsMap();
         initAnimalsMap();
-        bothMap = (TrieMap<Integer>)screwsMap.clone();
+        bothMap = (TrieMap<Integer>) screwsMap.clone();
         bothMap.putAll(animalsMap);
-        assertEquals(bothMap.size(),screws.length+animals.length);
+        assertEquals(bothMap.size(), screws.length + animals.length);
     }
 
     public void testEmpty() {
         TrieMap<Integer> t = new TrieMap<Integer>();
         assertEquals(t.size(), 0);
-        assert(t.isEmpty());
+        assert (t.isEmpty());
         for (int i = 0; i < animals.length; i++) {
             assertFalse(t.containsKey(animals[i]));
             assertNull(t.get(animals[i]));
@@ -164,11 +88,11 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
             assertNull(t.get(screws[i]));
             assertNull(t.remove(screws[i]));
         }
-        for (Map.Entry<String,Integer> e : t) {
-            fail("iterator yielded "+e);
+        for (Map.Entry<String, Integer> e : t) {
+            fail("iterator yielded " + e);
         }
-        for (Map.Entry<String,Integer> e : t.entrySet()) {
-            fail("entry iterator yielded "+e);
+        for (Map.Entry<String, Integer> e : t.entrySet()) {
+            fail("entry iterator yielded " + e);
         }
     }
 
@@ -176,7 +100,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         initScrewsMap();
         assertTrue(screwsMap != null);
         int n = 0;
-        for (Map.Entry<String,Integer> e : screwsMap) {
+        for (Map.Entry<String, Integer> e : screwsMap) {
             assertEquals(screws[e.getValue()], e.getKey());
             assertTrue(n++ < screwsMap.size());
         }
@@ -189,17 +113,16 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
             assertFalse(screwsMap.containsKey(animals[i]));
             assertNull(screwsMap.get(animals[i]));
         }
-        assertEquals(screwsMap,screwsMap);
+        assertEquals(screwsMap, screwsMap);
     }
 
     public void testBothMap() {
         initBothMap();
         assertTrue(bothMap != null);
         int n = 0;
-        for (Map.Entry<String,Integer> e : bothMap) {
+        for (Map.Entry<String, Integer> e : bothMap) {
             if (e.getValue() < screws.length) {
-                assertTrue(animals[e.getValue()].equals(e.getKey()) ||
-                           screws[e.getValue()].equals(e.getKey()));
+                assertTrue(animals[e.getValue()].equals(e.getKey()) || screws[e.getValue()].equals(e.getKey()));
             } else {
                 assertEquals(animals[e.getValue()], e.getKey());
             }
@@ -214,14 +137,14 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
             boolean b = bothMap.containsKey(screws[i]);
             assertEquals(new Integer(i), bothMap.get(screws[i]));
         }
-        assertEquals(bothMap,bothMap);
+        assertEquals(bothMap, bothMap);
     }
 
     public void testAnimalsMap() {
         initAnimalsMap();
         assertTrue(animalsMap != null);
         int n = 0;
-        for (Map.Entry<String,Integer> e : animalsMap) {
+        for (Map.Entry<String, Integer> e : animalsMap) {
             assertEquals(animals[e.getValue()], e.getKey());
             assertTrue(n++ < animalsMap.size());
         }
@@ -234,13 +157,13 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
             assertFalse(animalsMap.containsKey(screws[i]));
             assertNull(animalsMap.get(screws[i]));
         }
-        assertEquals(animalsMap,animalsMap);
+        assertEquals(animalsMap, animalsMap);
         // throw new Error("animalsMap: "+animalsMap);
     }
 
     // Permutes entries in place, returns array permutation (original indices).
-    private int [] shuffle(String [] entries) {
-        int [] indices = new int[entries.length];
+    private int[] shuffle(String[] entries) {
+        int[] indices = new int[entries.length];
         for (int i = 0; i < indices.length; i++) {
             indices[i] = i;
         }
@@ -258,33 +181,33 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
     }
 
     // Undo permutation given in perm.
-    private void unpermute(String [] entries, int [] perm) {
-        String [] orig = Arrays.copyOf(entries, entries.length);
+    private void unpermute(String[] entries, int[] perm) {
+        String[] orig = Arrays.copyOf(entries, entries.length);
         for (int i = 0; i < perm.length; i++) {
             entries[perm[i]] = orig[i];
         }
     }
 
-    private void permTest(String [] initial, TrieMap<Integer> initialMap) {
-        String [] src = Arrays.copyOf(initial, initial.length);
-        int [] perm = shuffle(src);
+    private void permTest(String[] initial, TrieMap<Integer> initialMap) {
+        String[] src = Arrays.copyOf(initial, initial.length);
+        int[] perm = shuffle(src);
         TrieMap<Integer> srcMap = new TrieMap<Integer>();
         for (int i = 0; i < src.length; i++) {
             assertFalse(initialMap.equals(srcMap));
-            srcMap.put(src[i],new Integer(perm[i]));
+            srcMap.put(src[i], new Integer(perm[i]));
             srcMap.check();
         }
         // System.out.println("permuted: "+srcMap);
         assertEquals(initialMap, srcMap);
         TrieMap<Integer> srcCpy = initialMap.copy();
         shuffle(src);
-        for (int i = src.length-1; i >= 0; i--) {
+        for (int i = src.length - 1; i >= 0; i--) {
             srcMap.remove(src[i]);
             srcCpy.remove(src[i]);
             srcMap.check();
             srcCpy.check();
             assertEquals(srcCpy, srcMap);
-            assertEquals(i,srcCpy.size());
+            assertEquals(i, srcCpy.size());
         }
     }
 

@@ -1,27 +1,27 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRange;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class FRange extends FValue {
@@ -52,7 +52,7 @@ public class FRange extends FValue {
     }
 
     public FType type() {
-        return new FTypeRange(base,size);
+        return new FTypeRange(base, size);
     }
 
     public boolean contains(FValue x) {
@@ -61,19 +61,19 @@ public class FRange extends FValue {
     }
 
     public FRange firstHalf() {
-        return new FRange(base, Integer.highestOneBit(size-1), sequential);
+        return new FRange(base, Integer.highestOneBit(size - 1), sequential);
     }
 
     public FRange secondHalf() {
-        int bot = Integer.highestOneBit(size-1);
-        return new FRange(base+bot, size-bot, sequential);
+        int bot = Integer.highestOneBit(size - 1);
+        return new FRange(base + bot, size - bot, sequential);
     }
 
     public FRange sequential() {
         if (sequential) {
             return this;
         } else {
-            return new FRange(base,size,true);
+            return new FRange(base, size, true);
         }
     }
 

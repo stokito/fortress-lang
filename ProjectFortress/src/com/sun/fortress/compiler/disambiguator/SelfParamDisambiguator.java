@@ -1,43 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 package com.sun.fortress.compiler.disambiguator;
-
-import java.util.List;
 
 import static com.sun.fortress.compiler.IndexBuilder.SELF_NAME;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.ASTNodeInfo;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitTypeHeader;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes_util.Modifiers;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -61,8 +45,11 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
-        ObjectDecl temp = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
-        ObjectDecl that_new = new ObjectDecl(temp.getInfo(), temp.getHeader(), temp.getParams(), Option.some(self_type));
+        ObjectDecl temp = (ObjectDecl) this.replaceSelfParamsWithType(that, self_type);
+        ObjectDecl that_new = new ObjectDecl(temp.getInfo(),
+                                             temp.getHeader(),
+                                             temp.getParams(),
+                                             Option.some(self_type));
         return super.forObjectDecl(that_new);
     }
 
@@ -72,19 +59,23 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         //        System.err.println("SelfParamDisambiguator " + that);
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
-        TraitDecl temp = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
-        TraitDecl that_new = new TraitDecl(temp.getInfo(),temp.getHeader(), temp.getExcludesClause(), temp.getComprisesClause(), temp.isComprisesEllipses(), Option.some(self_type));
+        TraitDecl temp = (TraitDecl) this.replaceSelfParamsWithType(that, self_type);
+        TraitDecl that_new = new TraitDecl(temp.getInfo(),
+                                           temp.getHeader(),
+                                           temp.getExcludesClause(),
+                                           temp.getComprisesClause(),
+                                           temp.isComprisesEllipses(),
+                                           Option.some(self_type));
         return super.forTraitDecl(that_new);
     }
-
 
 
     @Override
     public Node forObjectExpr(ObjectExpr that) {
         // Add a type to self parameters of methods
         Type self_type = TypesUtil.getObjectExprType(that);
-        ObjectExpr temp = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
-        ObjectExpr that_new = new ObjectExpr(temp.getInfo(),temp.getHeader(),Option.some(self_type));
+        ObjectExpr temp = (ObjectExpr) this.replaceSelfParamsWithType(that, self_type);
+        ObjectExpr that_new = new ObjectExpr(temp.getInfo(), temp.getHeader(), Option.some(self_type));
         return super.forObjectExpr(that_new);
     }
 
@@ -99,19 +90,19 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
 
         NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
             int traitNestingDepth = 0;
+
             @Override
-                public Node forParamOnly(Param that, ASTNodeInfo info,
-                                         Id name_result,
-                                                 Option<Type> type_result,
-                                                 Option<Expr> defaultExpr_result,
-                                                 Option<Type> varargsType_result) {
-                if ( ! NodeUtil.isVarargsParam(that) ) {
+            public Node forParamOnly(Param that,
+                                     ASTNodeInfo info,
+                                     Id name_result,
+                                     Option<Type> type_result,
+                                     Option<Expr> defaultExpr_result,
+                                     Option<Type> varargsType_result) {
+                if (!NodeUtil.isVarargsParam(that)) {
                     // my type is broken I need to qualify the type name
                     Option<Type> new_type;
-                    if( name_result.equals(SELF_NAME) )
-                        new_type = Option.some(self_type);
-                    else
-                        new_type = type_result;
+                    if (name_result.equals(SELF_NAME)) new_type = Option.some(self_type);
+                    else new_type = type_result;
 
                     return NodeFactory.makeParam(NodeUtil.getSpan(that),
                                                  that.getMods(),
@@ -119,18 +110,22 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
                                                  new_type,
                                                  that.getDefaultExpr(),
                                                  that.getVarargsType());
-                } else
-                    return that;
+                } else return that;
             }
 
             // end recurrance here
-            @Override public Node forObjectDecl(ObjectDecl that) {
+            @Override
+            public Node forObjectDecl(ObjectDecl that) {
                 return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
             }
-            @Override public Node forTraitDecl(TraitDecl that) {
+
+            @Override
+            public Node forTraitDecl(TraitDecl that) {
                 return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
             }
-            @Override public Node forObjectExpr(ObjectExpr that) {
+
+            @Override
+            public Node forObjectExpr(ObjectExpr that) {
                 return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
             }
         };

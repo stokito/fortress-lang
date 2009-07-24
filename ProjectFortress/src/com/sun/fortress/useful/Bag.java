@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -26,8 +26,14 @@ public class Bag<T> extends AbstractSet<T> implements Set<T> {
 
     static class Counter {
         int i;
-        void inc() {i++;}
-        int dec() { return i--;}
+
+        void inc() {
+            i++;
+        }
+
+        int dec() {
+            return i--;
+        }
     }
 
     HashMap<T, Counter> map = new HashMap<T, Counter>();
@@ -78,8 +84,7 @@ public class Bag<T> extends AbstractSet<T> implements Set<T> {
      */
     public boolean remove(Object o) {
         Counter c = map.get(o);
-        if (c == null)
-            return false;
+        if (c == null) return false;
         if (c.dec() == 0) {
             map.remove(o);
         }

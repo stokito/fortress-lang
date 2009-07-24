@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
@@ -22,7 +22,6 @@ import com.sun.fortress.compiler.OverloadRewriter;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.iter.IterUtil;
 
 public class OverloadRewritingPhase extends Phase {
@@ -37,14 +36,14 @@ public class OverloadRewritingPhase extends Phase {
         AnalyzeResult previous = parentPhase.getResult();
 
         OverloadRewriter.ComponentResult results =
-            OverloadRewriter.rewriteComponents(previous.components(), env);
+                OverloadRewriter.rewriteComponents(previous.components(), env);
 
         if (!results.isSuccessful()) {
             throw new MultipleStaticError(results.errors());
         }
 
         return new AnalyzeResult(previous.apis(), results.components(),
-                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
+                IterUtil.<StaticError>empty(), previous.typeCheckerOutput());
     }
 
 }

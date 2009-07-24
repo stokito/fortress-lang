@@ -1,30 +1,29 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
+
+import java.util.List;
 
 /**
  * Trait methods are only partially defined.
@@ -38,22 +37,23 @@ public class TraitMethod extends MethodClosure {
     }
 
     public String toString() {
-        return (instArgs == null ?
-                s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
+        return (instArgs == null ? s(def) : (s(def) + Useful.listInOxfords(instArgs))) + def.at();
     }
 
     public TraitMethod(Environment within, Environment evaluationEnv, Applicable fndef, FType definer) {
         super(within, fndef, definer); // TODO verify that this is the proper environment
-        if (!evaluationEnv.getBlessed())
-            System.err.println("urp!");
+        if (!evaluationEnv.getBlessed()) System.err.println("urp!");
         this.evaluationEnv = evaluationEnv;
-     }
+    }
 
-    protected TraitMethod(Environment within, Environment evaluationEnv, Applicable fndef, FType definer, List<FType> args) {
+    protected TraitMethod(Environment within,
+                          Environment evaluationEnv,
+                          Applicable fndef,
+                          FType definer,
+                          List<FType> args) {
         super(within, fndef, definer, args);
         this.evaluationEnv = evaluationEnv;
-        if (!evaluationEnv.getBlessed())
-            System.err.println("urp!");
+        if (!evaluationEnv.getBlessed()) System.err.println("urp!");
 
     }
 
@@ -71,7 +71,7 @@ public class TraitMethod extends MethodClosure {
 
         @Override
         public boolean equiv(TraitMethod x, TraitMethod y) {
-            return Simple_fcn.signatureEquivalence.equiv(x,y);
+            return Simple_fcn.signatureEquivalence.equiv(x, y);
         }
 
     };
@@ -85,7 +85,7 @@ public class TraitMethod extends MethodClosure {
 
         @Override
         public boolean equiv(TraitMethod x, TraitMethod y) {
-            return Simple_fcn.nameEquivalence.equiv(x,y);
+            return Simple_fcn.nameEquivalence.equiv(x, y);
         }
 
     };

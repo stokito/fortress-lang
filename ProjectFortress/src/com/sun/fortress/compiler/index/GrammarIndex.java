@@ -1,39 +1,31 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-
-import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class GrammarIndex {
 
@@ -68,7 +60,7 @@ public class GrammarIndex {
     }
 
     public Option<NonterminalIndex> getNonterminalDecl(Id name) {
-        for (NonterminalIndex m: this.getDeclaredNonterminals()) {
+        for (NonterminalIndex m : this.getDeclaredNonterminals()) {
             if (name.getText().equals(m.getName().getText())) {
                 if (m instanceof NonterminalIndex) {
                     return Option.<NonterminalIndex>some((NonterminalIndex) m);
@@ -82,13 +74,14 @@ public class GrammarIndex {
      */
     public List<NonterminalDefIndex> getDefinitions() {
         List<NonterminalDefIndex> all = new ArrayList<NonterminalDefIndex>();
-        for (NonterminalIndex index : this.getDeclaredNonterminals()){
+        for (NonterminalIndex index : this.getDeclaredNonterminals()) {
             if (index instanceof NonterminalDefIndex) {
                 all.add((NonterminalDefIndex) index);
             }
         }
         return all;
     }
+
     public List<NonterminalDef> getDefinitionAsts() {
         List<NonterminalDef> all = new ArrayList<NonterminalDef>();
         for (NonterminalIndex index : this.getDeclaredNonterminals()) {
@@ -104,13 +97,14 @@ public class GrammarIndex {
      */
     public List<NonterminalExtendIndex> getExtensions() {
         List<NonterminalExtendIndex> all = new ArrayList<NonterminalExtendIndex>();
-        for (NonterminalIndex index : this.getDeclaredNonterminals()){
+        for (NonterminalIndex index : this.getDeclaredNonterminals()) {
             if (index instanceof NonterminalExtendIndex) {
                 all.add((NonterminalExtendIndex) index);
             }
         }
         return all;
     }
+
     public List<NonterminalExtensionDef> getExtensionAsts() {
         List<NonterminalExtensionDef> all = new ArrayList<NonterminalExtensionDef>();
         for (NonterminalIndex index : this.getDeclaredNonterminals()) {
@@ -121,7 +115,7 @@ public class GrammarIndex {
         return all;
     }
 
-    public String toString(){
+    public String toString() {
         return getName().toString();
     }
 }

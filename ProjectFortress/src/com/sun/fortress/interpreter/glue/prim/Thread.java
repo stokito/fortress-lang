@@ -1,27 +1,24 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.List;
-
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
@@ -30,15 +27,12 @@ import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.tasks.SpawnTask;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
+import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.nodes.ObjectConstructor;
+
+import java.util.List;
 
 public class Thread extends NativeConstructor {
 
@@ -46,9 +40,8 @@ public class Thread extends NativeConstructor {
         super(env, selfType, def);
     }
 
-    protected FNativeObject makeNativeObject(List<FValue> args,
-                                             NativeConstructor con) {
-        return new Thread_prim((SingleFcn)args.get(0), con);
+    protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
+        return new Thread_prim((SingleFcn) args.get(0), con);
     }
 
     private static final class Thread_prim extends FNativeObject {
@@ -67,14 +60,16 @@ public class Thread extends NativeConstructor {
             //                numThreads = Integer.parseInt(numThreadsString);
             int numThreads = 1;
             group = new FortressTaskRunnerGroup(numThreads);
-            st = new SpawnTask(sf,new Evaluator(getSelfEnv()));
+            st = new SpawnTask(sf, new Evaluator(getSelfEnv()));
             group.execute(st);
         }
 
-        public NativeConstructor getConstructor() { return con; }
+        public NativeConstructor getConstructor() {
+            return con;
+        }
 
         public boolean seqv(FValue v) {
-            return (this==v);
+            return (this == v);
         }
     }
 
@@ -82,7 +77,7 @@ public class Thread extends NativeConstructor {
         public FValue applyMethod(FObject self) {
             Thread_prim tp = (Thread_prim) self;
             FValue r = tp.st.result();
-            if (r==null) {
+            if (r == null) {
                 error(errorMsg("Access to uninitialized spawned thread result "));
             }
             return r;

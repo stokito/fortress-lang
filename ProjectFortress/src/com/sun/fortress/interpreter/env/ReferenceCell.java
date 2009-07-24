@@ -1,33 +1,31 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-******************************************************************************/
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.interpreter.env;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
-import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * What the interpreter stores mutable things (fields, variables)
@@ -62,8 +60,13 @@ public class ReferenceCell extends IndirectionCell {
         id = counter.getAndIncrement();
     }
 
-    public FType getType() { return theType;}
-    public String toString() { return "ReferenceCell" + id;}
+    public FType getType() {
+        return theType;
+    }
+
+    public String toString() {
+        return "ReferenceCell" + id;
+    }
 
     private boolean transactionIsCommitted(Transaction w) {
         if (w == null) return true;
@@ -76,7 +79,7 @@ public class ReferenceCell extends IndirectionCell {
         else if (w.isAborted()) return true;
         else if (w.isOrphaned()) return true;
         else return false;
-        }
+    }
 
     private boolean transactionIsNotActive(Transaction w) {
         if (w == null) return false;
@@ -89,13 +92,12 @@ public class ReferenceCell extends IndirectionCell {
 
     private synchronized void cleanup() {
         Transaction w = node.getWriter();
-        if (Transaction.debug)
-            FortressTaskRunner.debugPrintln("Cleanup:" + this + " start with node = " + node);
+        if (Transaction.debug) FortressTaskRunner.debugPrintln("Cleanup:" + this + " start with node = " + node);
         while (w != null && transactionIsNotActive(w)) {
             if (transactionIsAbortedOrOrphaned(w)) {
                 node = node.getOld();
             } else {
-                assert(transactionIsCommitted(w));
+                assert (transactionIsCommitted(w));
                 Transaction p = w.getParent();
                 ValueNode old = node.getOld();
                 if (p == null && old == null) {
@@ -105,7 +107,7 @@ public class ReferenceCell extends IndirectionCell {
                     // Committed to top level.  Any readers of the committed transaction
                     // must be preserved.
                     node = new ValueNode(node.getValue(), null, old.getReaders(), null);
-                } else  if (old != null) {
+                } else if (old != null) {
                     // Committed to a parent transaction, must preserve readers and
                     // old transaction.
                     node = new ValueNode(node.getValue(), p, old.getReaders(), old);
@@ -117,20 +119,18 @@ public class ReferenceCell extends IndirectionCell {
                 w = node.getWriter();
             } else {
                 node = ValueNode.nullValueNode;
-                if (Transaction.debug)
-                    FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
+                if (Transaction.debug) FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
                 return;
             }
         }
-        if (Transaction.debug)
-            FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
+        if (Transaction.debug) FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
     }
 
     public synchronized void assignValue(FValue f2) {
-        Transaction me  = FortressTaskRunner.getTransaction();
+        Transaction me = FortressTaskRunner.getTransaction();
         cleanup();
-        if (Transaction.debug)
-            FortressTaskRunner.debugPrintln(this + " assignValue start = " + node + " value = " + f2);
+        if (Transaction.debug) FortressTaskRunner.debugPrintln(
+                this + " assignValue start = " + node + " value = " + f2);
 
         if (node == ValueNode.nullValueNode) {
             node = new ValueNode(f2, me, null, null);
@@ -138,8 +138,7 @@ public class ReferenceCell extends IndirectionCell {
 
         // writer is either active, or null
         if (me == null) { // top level assignment
-            if (node == ValueNode.nullValueNode)
-                node = new ValueNode(f2, me, null, null);
+            if (node == ValueNode.nullValueNode) node = new ValueNode(f2, me, null, null);
             else {
                 ValueNode temp = node;
                 node = new ValueNode(f2, null, null, null);
@@ -150,8 +149,7 @@ public class ReferenceCell extends IndirectionCell {
         } else {
             node.resolveReadWriteConflicts();
             cleanup();
-            if (!me.isActive())
-                throw new AbortedException(me, "Somebody killed me ");
+            if (!me.isActive()) throw new AbortedException(me, "Somebody killed me ");
 
             Transaction w = node.getWriter();
             ValueNode old = node.getOld();
@@ -161,22 +159,21 @@ public class ReferenceCell extends IndirectionCell {
                 if (Transaction.debug) me.addWrite(this, f2);
 
             } else if (w.isActive()) {
-                                // Cleanup got us to a parent node with an active writer
+                // Cleanup got us to a parent node with an active writer
                 assignValue(f2);
             }
         }
-        if (Transaction.debug)
-            FortressTaskRunner.debugPrintln(this + " assignValue finish = " + node);
+        if (Transaction.debug) FortressTaskRunner.debugPrintln(this + " assignValue finish = " + node);
     }
 
     public synchronized FValue getValue() {
-        Transaction me  = FortressTaskRunner.getTransaction();
+        Transaction me = FortressTaskRunner.getTransaction();
         // Top Level transaction
         if (me == null) {
-                        while (node.getWriter() != null) {
-                                node.AbortWriter();
-                                cleanup();
-                        }
+            while (node.getWriter() != null) {
+                node.AbortWriter();
+                cleanup();
+            }
             return node.getValue();
         }
 
@@ -202,26 +199,23 @@ public class ReferenceCell extends IndirectionCell {
         if (res == null) {
             FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
             Transaction t = runner.getTransaction();
-            if (t.isAborted())
-                throw new AbortedException(t, "UhOh Someone aborted me");
-            else if (t.isOrphaned())
-                throw new OrphanedException(t, "UhOh I'm an orphan");
-            else
-                throw new RuntimeException(runner.getName() + " getValueNull is about to return a null value ReferenceCell = " + this + " node = " + node + " task = " + runner.getTask());
+            if (t.isAborted()) throw new AbortedException(t, "UhOh Someone aborted me");
+            else if (t.isOrphaned()) throw new OrphanedException(t, "UhOh I'm an orphan");
+            else throw new RuntimeException(
+                        runner.getName() + " getValueNull is about to return a null value ReferenceCell = " + this +
+                        " node = " + node + " task = " + runner.getTask());
         }
         return res;
     }
 
 
     public void storeValue(FValue f2) {
-        if (node.getValue() != null)
-            bug("Internal error, second store of indirection cell");
+        if (node.getValue() != null) bug("Internal error, second store of indirection cell");
         assignValue(f2);
     }
 
     public void storeType(FType f2) {
-        if (theType != null)
-            bug("Internal error, second store of type");
+        if (theType != null) bug("Internal error, second store of type");
         theType = f2;
     }
 

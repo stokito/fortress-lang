@@ -1,39 +1,29 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
+import com.sun.fortress.interpreter.evaluator.types.FType;
+import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
+
 import java.util.List;
 import java.util.Set;
-
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
-import com.sun.fortress.interpreter.evaluator.values.TraitMethod;
-import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.Applicable;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.Voidoid;
 
 
 public class BuildTraitEnvironment extends BuildEnvironments {
@@ -44,8 +34,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 
     FType definer;
 
-    public BuildTraitEnvironment(Environment within, Environment methodEnvironment,
-            FType definer, Set<String> fields) {
+    public BuildTraitEnvironment(Environment within, Environment methodEnvironment, FType definer, Set<String> fields) {
         super(within);
         this.definer = definer;
         this.fields = fields;
@@ -100,13 +89,22 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     public Boolean forFnDecl(FnDecl x) {
         // This is called from BuildTraitEnvironment
         switch (getPass()) {
-        case 1: forFnDecl1(x); break;
-        case 2: forFnDecl2(x); break;
-        case 3: forFnDecl3(x); break;
-        case 4: forFnDecl4(x); break;
+            case 1:
+                forFnDecl1(x);
+                break;
+            case 2:
+                forFnDecl2(x);
+                break;
+            case 3:
+                forFnDecl3(x);
+                break;
+            case 4:
+                forFnDecl4(x);
+                break;
         }
-       return null;
+        return null;
     }
+
     private void forFnDecl1(FnDecl x) {
         List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
@@ -127,25 +125,27 @@ public class BuildTraitEnvironment extends BuildEnvironments {
             bindInto.putValue(fname, cl); // was "shadow"
         }
     }
+
     private void forFnDecl2(FnDecl x) {
     }
+
     protected void forFnDecl3(FnDecl x) {
         List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
         if (!staticParams.isEmpty()) {
             // GENERIC
             // This blows up because the type is not instantiated.
-//            {
-//                // Why isn't this the right thing to do?
-//                // FGenericFunction is (currently) excluded from this treatment.
-//                FValue fcn = containing.getValue(fname);
-//
-//                if (fcn instanceof OverloadedFunction) {
-//                    OverloadedFunction og = (OverloadedFunction) fcn;
-//                    og.finishInitializing();
-//
-//                }
-//            }
+            //            {
+            //                // Why isn't this the right thing to do?
+            //                // FGenericFunction is (currently) excluded from this treatment.
+            //                FValue fcn = containing.getValue(fname);
+            //
+            //                if (fcn instanceof OverloadedFunction) {
+            //                    OverloadedFunction og = (OverloadedFunction) fcn;
+            //                    og.finishInitializing();
+            //
+            //                }
+            //            }
 
         } else {
             // NOT GENERIC
@@ -154,7 +154,8 @@ public class BuildTraitEnvironment extends BuildEnvironments {
                 fcn.finishInitializing();
             }
         }
-   }
+    }
+
     private void forFnDecl4(FnDecl x) {
     }
 

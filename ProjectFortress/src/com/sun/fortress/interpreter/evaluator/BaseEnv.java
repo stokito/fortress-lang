@@ -1,29 +1,27 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.CircularDependenceError;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.env.BetterEnvWithTopLevel;
 import com.sun.fortress.interpreter.env.IndirectionCell;
@@ -31,37 +29,20 @@ import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FObject;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.FunctionalRef;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.StringArrayIterator;
 import com.sun.fortress.useful.Visitor2;
-
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A BaseEnv supplies (enforces!) some overloadings that
@@ -72,8 +53,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan) {
         Option<APIName> oapi = ioooan.getApiName();
-        if (oapi.isNone())
-            return this;
+        if (oapi.isNone()) return this;
         return getApi(oapi.unwrap());
     }
 
@@ -135,10 +115,10 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public void visit(Visitor2<String, FType> vt,
-            Visitor2<String, Number> vn,
-            Visitor2<String, Number> vi,
-            Visitor2<String, FValue> vv,
-            Visitor2<String, Boolean> vb) {
+                      Visitor2<String, Number> vn,
+                      Visitor2<String, Number> vi,
+                      Visitor2<String, FValue> vv,
+                      Visitor2<String, Boolean> vb) {
         // TODO Auto-generated method stub
     }
 
@@ -146,7 +126,9 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         // TODO Auto-generated method stub
     }
 
-    /** Names noted for possible future overloading */
+    /**
+     * Names noted for possible future overloading
+     */
     private String[] namesPut;
     private int namesPutCount;
 
@@ -156,79 +138,78 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public boolean debug = false;
     public boolean verboseDump = false;
 
-    /** Where created */
+    /**
+     * Where created
+     */
     protected HasAt within;
 
     public void debugPrint(String debugString) {
-        if (debug)
-            System.out.println(debugString);
+        if (debug) System.out.println(debugString);
 
     }
 
-   static public String string(FValue f1) {
+    static public String string(FValue f1) {
         return ((FString) f1).getString();
     }
 
-   public void bless() {
-       blessed = true;
-   }
+    public void bless() {
+        blessed = true;
+    }
 
-   public boolean getBlessed() {
-       return blessed;
-   }
+    public boolean getBlessed() {
+        return blessed;
+    }
 
-   public void setTopLevel() {
-       topLevel = true;
-   }
+    public void setTopLevel() {
+        topLevel = true;
+    }
 
-   public boolean isTopLevel() {
-       return topLevel;
-   }
+    public boolean isTopLevel() {
+        return topLevel;
+    }
 
-   protected void augment(final Environment additions) {
-       final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
-           public void visit(String s, FType o) {
-               putTypeRaw(s, o);
-           }
-       };
-       final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
-           public void visit(String s, Number o) {
-               putNatRaw(s, o);
-           }
-       };
-       final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
-           public void visit(String s, Number o) {
-               putIntRaw(s, o);
-           }
-       };
-       final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
-           public void visit(String s, FValue o) {
+    protected void augment(final Environment additions) {
+        final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
+            public void visit(String s, FType o) {
+                putTypeRaw(s, o);
+            }
+        };
+        final Visitor2<String, Number> vn = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                putNatRaw(s, o);
+            }
+        };
+        final Visitor2<String, Number> vi = new Visitor2<String, Number>() {
+            public void visit(String s, Number o) {
+                putIntRaw(s, o);
+            }
+        };
+        final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
+            public void visit(String s, FValue o) {
 
-                   FType ft = additions.getVarTypeNull(s);
-                   if (ft != null)
-                      putValueRaw(s, o, ft);
-                   else
-                      putValueRaw(s, o);
-           }
-       };
-       final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
-           public void visit(String s, Boolean o) {
-               putBoolRaw(s, o);
-           }
-       };
+                FType ft = additions.getVarTypeNull(s);
+                if (ft != null) putValueRaw(s, o, ft);
+                else putValueRaw(s, o);
+            }
+        };
+        final Visitor2<String, Boolean> vb = new Visitor2<String, Boolean>() {
+            public void visit(String s, Boolean o) {
+                putBoolRaw(s, o);
+            }
+        };
 
-       additions.visit(vt,vn,vi,vv,vb);
+        additions.visit(vt, vn, vi, vv, vb);
 
-   }
+    }
 
-    abstract public  Appendable dump(Appendable a) throws IOException;
+    abstract public Appendable dump(Appendable a) throws IOException;
 
     protected final void putNoShadow(String index, FValue value, String what) {
         FValue fvo = getValueRaw(index);
         if (fvo == null || index.equals("outcome")) {
             putValueRaw(index, value);
-        } else  if (fvo instanceof IndirectionCell) {
-         // TODO Need to push the generic type Result into IndirectionCell, etc.
+        } else if (fvo instanceof IndirectionCell) {
+            // TODO Need to push the generic type Result into IndirectionCell, etc.
             // This yucky code is "correct" because IndirectionCell extends FValue,
             // and "it happens to be true" that this code will never be instantiated
             // above or below FValue in the type hierarchy.
@@ -245,87 +226,88 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         }
     }
 
-    protected final  void putFunction(String index, Fcn value, String what, boolean shadowIfDifferent, boolean overloadIsOK) {
+    protected final void putFunction(String index,
+                                     Fcn value,
+                                     String what,
+                                     boolean shadowIfDifferent,
+                                     boolean overloadIsOK) {
         FValue fvo = getValueRaw(index);
         if (fvo == null) {
             putValueRaw(index, value);
             noteName(index);
         } else {
-                  if (fvo instanceof IndirectionCell) {
-                    // TODO Need to push the generic type Result into IndirectionCell, etc.
-                    // This yucky code is "correct" because IndirectionCell extends FValue,
-                    // and "it happens to be true" that this code will never be instantiated
-                    // above or below FValue in the type hierarchy.
-                    // Strictly speaking, this might be wrong if it permits
-                    // = redefinition of a mutable cell (doesn't seem to).
-                    IndirectionCell ic = (IndirectionCell) fvo;
-                    if (ic instanceof ReferenceCell) {
-                        throw new RedefinitionError("Mutable variable", index, fvo, value);
-                    } else if (! ic.isInitialized()) {
-                        ic.storeValue((FValue) value);
-                        return;
-                    } else {
-                        // ic is an initialized value cell, not a true function.
-                        // do not overload.
-                        throw new RedefinitionError(what, index, fvo, value);
-                    }
-                }
-
-                /* ic is a function, do an overloading on it.
-                 * Because of wholesale symbol import via linking,
-                 * it is possible to combine a pair of overloadings.
-                 *
-                 * This is all going to get simpler in the future,
-                 * when overloading gets more complicated (allowing mixed
-                 * generic and non-generic overloading).
-                 */
-
-                if (!(fvo instanceof Fcn))
-                    System.err.println("Eek!");
-                Fcn fcn_fvo = (Fcn) fvo;
-                if (! shadowIfDifferent && // true for functional methods
-                    fcn_fvo.getWithin() != value.getWithin() &&
-                    ! (fcn_fvo.getWithin().isTopLevel() &&  value.getWithin().isTopLevel()) // for imports from another api
-                    ) {
-                    /*
-                     * If defined in a different environment, shadow
-                     * instead of overloading.
-                     */
-                    putValueRaw(index, value);
-                    noteName(index);
-                    return ;
-                }
-
-                /*
-                 * Lots of overloading combinations
-                 */
-                OverloadedFunction ovl = null;
-                if (fvo instanceof SingleFcn) {
-                    SingleFcn gm = (SingleFcn)fvo;
-                    ovl = new OverloadedFunction(gm.getFnName(), this);
-                    ovl.addOverload(gm);
-                    putValueRaw(index, ovl);
-
-                } else if (fvo instanceof OverloadedFunction) {
-                    ovl = (OverloadedFunction)fvo;
+            if (fvo instanceof IndirectionCell) {
+                // TODO Need to push the generic type Result into IndirectionCell, etc.
+                // This yucky code is "correct" because IndirectionCell extends FValue,
+                // and "it happens to be true" that this code will never be instantiated
+                // above or below FValue in the type hierarchy.
+                // Strictly speaking, this might be wrong if it permits
+                // = redefinition of a mutable cell (doesn't seem to).
+                IndirectionCell ic = (IndirectionCell) fvo;
+                if (ic instanceof ReferenceCell) {
+                    throw new RedefinitionError("Mutable variable", index, fvo, value);
+                } else if (!ic.isInitialized()) {
+                    ic.storeValue((FValue) value);
+                    return;
                 } else {
-                    throw new RedefinitionError(what, index,
-                                               fvo, value);
+                    // ic is an initialized value cell, not a true function.
+                    // do not overload.
+                    throw new RedefinitionError(what, index, fvo, value);
                 }
-                if (value instanceof SingleFcn) {
-                    ovl.addOverload((SingleFcn) value, overloadIsOK);
-                } else if (value instanceof OverloadedFunction) {
-                    ovl.addOverloads((OverloadedFunction) value);
-                } else {
-                    error(errorMsg("Overload of ", ovl,
-                                   " with inconsistent ", value));
-                }
-                /*
-                 * The overloading occurs in the original table, unless a new overload
-                 * was created (see returns of "table.add" above).
-                 */
-
             }
+
+            /* ic is a function, do an overloading on it.
+            * Because of wholesale symbol import via linking,
+            * it is possible to combine a pair of overloadings.
+            *
+            * This is all going to get simpler in the future,
+            * when overloading gets more complicated (allowing mixed
+            * generic and non-generic overloading).
+            */
+
+            if (!(fvo instanceof Fcn)) System.err.println("Eek!");
+            Fcn fcn_fvo = (Fcn) fvo;
+            if (!shadowIfDifferent && // true for functional methods
+                fcn_fvo.getWithin() != value.getWithin() &&
+                !(fcn_fvo.getWithin().isTopLevel() && value.getWithin().isTopLevel()) // for imports from another api
+                    ) {
+                /*
+                * If defined in a different environment, shadow
+                * instead of overloading.
+                */
+                putValueRaw(index, value);
+                noteName(index);
+                return;
+            }
+
+            /*
+            * Lots of overloading combinations
+            */
+            OverloadedFunction ovl = null;
+            if (fvo instanceof SingleFcn) {
+                SingleFcn gm = (SingleFcn) fvo;
+                ovl = new OverloadedFunction(gm.getFnName(), this);
+                ovl.addOverload(gm);
+                putValueRaw(index, ovl);
+
+            } else if (fvo instanceof OverloadedFunction) {
+                ovl = (OverloadedFunction) fvo;
+            } else {
+                throw new RedefinitionError(what, index, fvo, value);
+            }
+            if (value instanceof SingleFcn) {
+                ovl.addOverload((SingleFcn) value, overloadIsOK);
+            } else if (value instanceof OverloadedFunction) {
+                ovl.addOverloads((OverloadedFunction) value);
+            } else {
+                error(errorMsg("Overload of ", ovl, " with inconsistent ", value));
+            }
+            /*
+            * The overloading occurs in the original table, unless a new overload
+            * was created (see returns of "table.add" above).
+            */
+
+        }
 
     }
 
@@ -336,8 +318,15 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             FType ft = rc.getType();
             if (ft != null) {
                 if (!ft.typeMatch(value)) {
-                    String m = errorMsg("Type mismatch assigning ", value, " (type ",
-                                        value.type(), ") to ", str, " (type ", ft, ")");
+                    String m = errorMsg("Type mismatch assigning ",
+                                        value,
+                                        " (type ",
+                                        value.type(),
+                                        ") to ",
+                                        str,
+                                        " (type ",
+                                        ft,
+                                        ")");
                     error(loc, m);
                     return;
                 }
@@ -345,94 +334,79 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             rc.assignValue(value);
             return;
         }
-        if (v == null)
-            error(loc, this, "Cannot assign to unbound variable " + str);
+        if (v == null) error(loc, this, "Cannot assign to unbound variable " + str);
         error(loc, this, "Cannot assign to immutable " + str);
     }
 
     public void storeType(HasAt loc, String str, FType f2) {
         FValue v = getValueRaw(str);
         if (v instanceof ReferenceCell) {
-            ((ReferenceCell)v).storeType(f2);
+            ((ReferenceCell) v).storeType(f2);
             return;
         }
-        if (v == null)
-            error(loc, this, "Type stored to unbound variable " + str);
+        if (v == null) error(loc, this, "Type stored to unbound variable " + str);
         error(loc, this, "Type stored to immutable variable " + str);
 
     }
 
-    final public  Boolean getBool(String str)  {
+    final public Boolean getBool(String str) {
         Boolean x = getBoolNull(str);
-        if (x == null)
-            return error(errorMsg("Missing boolean ", str));
-        else
-            return x;
+        if (x == null) return error(errorMsg("Missing boolean ", str));
+        else return x;
     }
 
-    abstract public  Boolean getBoolNull(String str) ;
+    abstract public Boolean getBoolNull(String str);
 
-    final public  Number getNat(String str) {
+    final public Number getNat(String str) {
         Number x = getNatNull(str);
-        if (x == null)
-            return error(errorMsg("Missing nat ", str));
-        else
-            return x;
+        if (x == null) return error(errorMsg("Missing nat ", str));
+        else return x;
     }
 
-    abstract public  Number getNatNull(String str);
+    abstract public Number getNatNull(String str);
 
     public FunctionClosure getRunClosure() {
         return (FunctionClosure) getRootValue("run");
     }
 
-    final public  FType getType(VarType q)  {
+    final public FType getType(VarType q) {
         FType x = getTypeNull(q);
-        if (x == null)
-            {
-                // System.err.println(this.toString());
-                return error(errorMsg("Missing type ", q));
-            }
-        else
-            return x;
+        if (x == null) {
+            // System.err.println(this.toString());
+            return error(errorMsg("Missing type ", q));
+        } else return x;
     }
 
-    final public FType getType(TraitType q)  {
+    final public FType getType(TraitType q) {
         Environment e = getTopLevel();
         FType x = e.getTypeNull(q.getName());
-        if (x == null)
-            {
-                // System.err.println(this.toString());
-                return error(errorMsg("Missing type ", q));
-            }
-        else
-            return x;
+        if (x == null) {
+            // System.err.println(this.toString());
+            return error(errorMsg("Missing type ", q));
+        } else return x;
     }
 
-    final public  FType getTypeNull(VarType q)  {
+    final public FType getTypeNull(VarType q) {
         Environment e = toContainingObjectEnv(this, q.getLexicalDepth());
         FType x = e.getTypeNull(q.getName());
         return x;
     }
 
-    final public  FType getType(Id q)  {
+    final public FType getType(Id q) {
         FType x = getTypeNull(q);
-        if (x == null)
-            {
-                // System.err.println(this.toString());
-                return error(errorMsg("Missing type ", q));
-            }
-        else
-            return x;
+        if (x == null) {
+            // System.err.println(this.toString());
+            return error(errorMsg("Missing type ", q));
+        } else return x;
     }
-    final public  FType getRootType(String str)  {
+
+    final public FType getRootType(String str) {
         FType x = getTypeNull(str);
-        if (x == null)
-            return error(errorMsg("Missing type ", str));
-        else
-            return x;
+        if (x == null) return error(errorMsg("Missing type ", str));
+        else return x;
     }
-    final public  FType getLeafType(String str)  {
+
+    final public FType getLeafType(String str) {
         return getRootType(str); // temp hack
     }
 
@@ -459,43 +433,43 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         }
     }
 
-    abstract public  FType getTypeNull(String str) ;
+    abstract public FType getTypeNull(String str);
 
-//    final public  FValue getValue(FValue f1) {
-//        return getValue(string(f1));
-//    }
+    //    final public  FValue getValue(FValue f1) {
+    //        return getValue(string(f1));
+    //    }
 
-//    final public  FValue getValue(Id q)  {
-//        FValue x = getValueNull(q);
-//        if (x == null)
-//            return error(errorMsg("Missing value ", q));
-//        else
-//            return x;
-//    }
+    //    final public  FValue getValue(Id q)  {
+    //        FValue x = getValueNull(q);
+    //        if (x == null)
+    //            return error(errorMsg("Missing value ", q));
+    //        else
+    //            return x;
+    //    }
 
-    final public  FValue getLeafValue(String str) {
+    final public FValue getLeafValue(String str) {
         FValue x = getLeafValueNull(str); // leaf
         return getValueTail(str, x);
     }
 
-    final public  FValue getRootValue(String str) {
+    final public FValue getRootValue(String str) {
         FValue x = getRootValueNull(str); // root
         return getValueTail(str, x);
     }
 
-    final public  FValue getValue(VarRef vr) {
+    final public FValue getValue(VarRef vr) {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
 
-    final public  FValue getValue(FunctionalRef vr) {
+    final public FValue getValue(FunctionalRef vr) {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
 
     private FValue getValueTail(Object str, FValue x) {
         if (x == null) {
-            return error(errorMsg("Missing value: ", str," in environment:\n",this));
+            return error(errorMsg("Missing value: ", str, " in environment:\n", this));
         } else {
             return x;
         }
@@ -513,102 +487,98 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
 
-    final public  FValue getValueNull(VarRef vr) {
+    final public FValue getValueNull(VarRef vr) {
         Id name = vr.getVarId();
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }
 
-    final public  FValue getValueNull(FunctionalRef vr) {
+    final public FValue getValueNull(FunctionalRef vr) {
         IdOrOp name = vr.getNames().get(0);
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }
 
-      final public FValue getValueNull(IdOrOp name, int l)
-            throws CircularDependenceError {
+    final public FValue getValueNull(IdOrOp name, int l) throws CircularDependenceError {
         // String s = NodeUtil.nameString(name);
         String local = NodeUtil.nameSuffixString(name);
         Option<APIName> opt_api = name.getApiName();
         return getValueNullTail(name, l, local, opt_api);
 
     }
-      final public FValue getValue(Id name, int l) throws CircularDependenceError {
-          //String s = NodeUtil.nameString(name);
-          String local = NodeUtil.nameSuffixString(name);
-          Option<APIName> opt_api = name.getApiName();
-          return getValueTail(name, l, local, opt_api);
-      }
 
-        final public FValue getValue(Op name, int l)
-              throws CircularDependenceError {
-          // String s = NodeUtil.nameString(name);
-          String local = NodeUtil.nameSuffixString(name);
-          Option<APIName> opt_api = name.getApiName();
-          return getValueTail(name, l, local, opt_api);
-
-      }
-        private FValue getValueTail(IdOrOp name, int l, String local,
-              Option<APIName> opt_api) throws OptionUnwrapException,
-              CircularDependenceError {
-          FValue v = getValueNullTail(name, l, local, opt_api);
-          if (v != null)
-              return v;
-          return opt_api.isSome() ?
-                  (FValue) error(errorMsg("Missing value: ", local," in api:\n",opt_api.unwrap())) :
-                  (FValue) error(errorMsg("Missing value: ", local," in environment:\n",this));
+    final public FValue getValue(Id name, int l) throws CircularDependenceError {
+        //String s = NodeUtil.nameString(name);
+        String local = NodeUtil.nameSuffixString(name);
+        Option<APIName> opt_api = name.getApiName();
+        return getValueTail(name, l, local, opt_api);
     }
 
-      private FValue getValueNullTail(IdOrOp name, int l, String local,
-              Option<APIName> opt_api) throws OptionUnwrapException,
-              CircularDependenceError {
-          if (opt_api.isSome()) {
-              if (l != TOP_LEVEL) {
-                  bug("Non-top-level reference to imported " + name);
-              }
-              APIName api = opt_api.unwrap();
-              // Circular dependence etc will be signalled in API.
-              Environment api_e = getApi(api);
-              return api_e.getRootValueNull(local); // root
-          } else {
-              FValue v = getValueRaw(local, l);
-              return getValueNullTail(local, v);
-          }
-      }
+    final public FValue getValue(Op name, int l) throws CircularDependenceError {
+        // String s = NodeUtil.nameString(name);
+        String local = NodeUtil.nameSuffixString(name);
+        Option<APIName> opt_api = name.getApiName();
+        return getValueTail(name, l, local, opt_api);
 
-    private FValue getValueNullTail(String s, FValue v)
-        throws CircularDependenceError {
-    if (v == null)
-        return v;
-    if (v instanceof IndirectionCell) {
-        try {
-            FValue ov = v;
-            v = ((IndirectionCell) v).getValueNull();
-            if (ov instanceof LazilyEvaluatedCell) {
-                putValueRaw(s, v);
+    }
+
+    private FValue getValueTail(IdOrOp name, int l, String local, Option<APIName> opt_api) throws OptionUnwrapException,
+                                                                                                  CircularDependenceError {
+        FValue v = getValueNullTail(name, l, local, opt_api);
+        if (v != null) return v;
+        return opt_api.isSome() ?
+               (FValue) error(errorMsg("Missing value: ", local, " in api:\n", opt_api.unwrap())) :
+               (FValue) error(errorMsg("Missing value: ", local, " in environment:\n", this));
+    }
+
+    private FValue getValueNullTail(IdOrOp name, int l, String local, Option<APIName> opt_api) throws
+                                                                                               OptionUnwrapException,
+                                                                                               CircularDependenceError {
+        if (opt_api.isSome()) {
+            if (l != TOP_LEVEL) {
+                bug("Non-top-level reference to imported " + name);
             }
-        } catch (CircularDependenceError ce) {
-            ce.addParticipant(s);
-            throw ce;
+            APIName api = opt_api.unwrap();
+            // Circular dependence etc will be signalled in API.
+            Environment api_e = getApi(api);
+            return api_e.getRootValueNull(local); // root
+        } else {
+            FValue v = getValueRaw(local, l);
+            return getValueNullTail(local, v);
         }
     }
-    return v;
-}
 
-   public FType getVarTypeNull(String str) {
-       FValue v = getValueRaw(str);
-       if (v == null)
-           return null;
-       if (v instanceof ReferenceCell) {
-           return ((ReferenceCell) v).getType();
-       }
-       return null;
-   }
+    private FValue getValueNullTail(String s, FValue v) throws CircularDependenceError {
+        if (v == null) return v;
+        if (v instanceof IndirectionCell) {
+            try {
+                FValue ov = v;
+                v = ((IndirectionCell) v).getValueNull();
+                if (ov instanceof LazilyEvaluatedCell) {
+                    putValueRaw(s, v);
+                }
+            }
+            catch (CircularDependenceError ce) {
+                ce.addParticipant(s);
+                throw ce;
+            }
+        }
+        return v;
+    }
+
+    public FType getVarTypeNull(String str) {
+        FValue v = getValueRaw(str);
+        if (v == null) return null;
+        if (v instanceof ReferenceCell) {
+            return ((ReferenceCell) v).getType();
+        }
+        return null;
+    }
 
     public Environment installPrimitives() {
         Primitives.installPrimitives(this);
         return this;
-   }
+    }
 
     public void putType(Id name, FType x) {
         putType(NodeUtil.nameString(name), x);
@@ -630,15 +600,15 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     public void putVariable(String str, FValue f2) {
         putValue(str, new ReferenceCell(FTypeTop.ONLY, f2));
-     }
+    }
 
     public void putVariablePlaceholder(String str) {
         putValue(str, new ReferenceCell());
-     }
+    }
 
-     public void putValueRaw(String str, FValue f2, FType ft) {
+    public void putValueRaw(String str, FValue f2, FType ft) {
         putValueRaw(str, new ReferenceCell(ft, f2));
-     }
+    }
 
     public void putVariable(String str, FValue f2, FType ft) {
         putValue(str, new ReferenceCell(ft, f2));
@@ -655,7 +625,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public void putBool(String str, Boolean f2) {
         putBoolRaw(str, f2);
         putValueRaw(str, FBool.make(f2));
-   }
+    }
 
     public void putNat(String str, Number f2) {
         putNatRaw(str, f2);
@@ -668,45 +638,40 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public void putType(String str, FType f2) {
-    	putTypeRaw(str,f2);
+        putTypeRaw(str, f2);
     }
 
 
     public void putValue(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", false, false);
+        if (f2 instanceof Fcn) putFunction(str, (Fcn) f2, "Var/value", false, false);
         else
             // var_env = putNoShadow(var_env, str, f2, "Var/value");
             putNoShadow(str, f2, "Var/value");
 
-     }
+    }
 
     public void putValueNoShadowFn(String str, FValue f2) {
-        if (f2 instanceof Fcn)
-            putFunction(str, (Fcn) f2, "Var/value", true, false);
+        if (f2 instanceof Fcn) putFunction(str, (Fcn) f2, "Var/value", true, false);
         else
             // var_env = putNoShadow(var_env, str, f2, "Var/value");
             putNoShadow(str, f2, "Var/value");
-     }
+    }
 
     /**
-     *
      * @param str
      * @param f2
      */
     public void putFunctionalMethodInstance(String str, FValue f2) {
         if (f2 instanceof Fcn) {
             putFunction(str, (Fcn) f2, "Var/value", true, true);
-        } else
-            error(str + " must be a functional method instance ");
-     }
+        } else error(str + " must be a functional method instance ");
+    }
 
 
     public void noteName(String s) {
-        if (namesPutCount == 0)
-            namesPut = new String[2];
+        if (namesPutCount == 0) namesPut = new String[2];
         else if (namesPutCount == namesPut.length) {
-            String[] next = new String[namesPutCount*2];
+            String[] next = new String[namesPutCount * 2];
             System.arraycopy(namesPut, 0, next, 0, namesPut.length);
             namesPut = next;
         }
@@ -714,9 +679,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public Iterator<String> iterator() {
-        if (namesPutCount > 0)
-            return new StringArrayIterator(namesPut, namesPutCount);
-       return Collections.<String>emptySet().iterator();
+        if (namesPutCount > 0) return new StringArrayIterator(namesPut, namesPutCount);
+        return Collections.<String>emptySet().iterator();
     }
 
     // Slightly wrong -- returns all, not just the most recently bound.
@@ -750,7 +714,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public Environment getApiNull(String apiName) {
-    	return null;
+        return null;
     }
 
     public Iterable<String> youngestFrame() {
@@ -762,13 +726,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     /**
-         Retrieves the environment in which a name was defined,
-         if it was a surrounding object.  Currently accomplished
-         by chaining up the list of $self/$parent entries.
-         */
+     * Retrieves the environment in which a name was defined,
+     * if it was a surrounding object.  Currently accomplished
+     * by chaining up the list of $self/$parent entries.
+     */
 
-    static Environment toContainingObjectEnv(Environment e,
-            int negative_object_depth) {
+    static Environment toContainingObjectEnv(Environment e, int negative_object_depth) {
         if (-negative_object_depth > 1) {
             // -1 means "self" -- contained in "e", not here.
             // This assumes $self can be found in the current environment.

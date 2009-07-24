@@ -1,60 +1,40 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
-import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
+import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.glue.NativeApp;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.ObjectConstructor;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.GHashMap;
-import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.ReversedList;
-import com.sun.fortress.useful.Useful;
-
+import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.*;
 
 public class Constructor extends NonPrimitive {
 
@@ -65,7 +45,7 @@ public class Constructor extends NonPrimitive {
     private HasAt at;
     protected FTypeObject selfType;
 
-   @Override
+    @Override
     public HasAt getAt() {
         return at;
     }
@@ -74,7 +54,9 @@ public class Constructor extends NonPrimitive {
         return "Constructor for " + selfType;
     }
 
-    public boolean seqv(FValue v) { return false; }
+    public boolean seqv(FValue v) {
+        return false;
+    }
 
     boolean finished = false;
 
@@ -82,14 +64,11 @@ public class Constructor extends NonPrimitive {
     List<Decl> defs;
     Option<List<Param>> params;
 
-    MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
-        new MultiMap<FTraitOrObject, SingleFcn>();
+    MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets = new MultiMap<FTraitOrObject, SingleFcn>();
 
-    MultiMap<String, MethodClosure> namesToSignatureSets =
-        new MultiMap<String, MethodClosure>();
+    MultiMap<String, MethodClosure> namesToSignatureSets = new MultiMap<String, MethodClosure>();
 
-    MultiMap<FTraitOrObject, String> traitsToNamesReferenced =
-        new MultiMap<FTraitOrObject, String>();
+    MultiMap<FTraitOrObject, String> traitsToNamesReferenced = new MultiMap<FTraitOrObject, String>();
 
     // sets of strings (can't be explicit due to erasure)
     Set<?>[] traitNameReferenceArray;
@@ -103,79 +82,69 @@ public class Constructor extends NonPrimitive {
 
     Environment methodsEnv;
 
-    public Constructor(Environment env,
-                       FTypeObject selfType,
-                       ObjectConstructor def) {
+    public Constructor(Environment env, FTypeObject selfType, ObjectConstructor def) {
         this(env,
-                selfType,
-                (HasAt) def,
-                NodeFactory.makeConstructorFnName(def),
-                NodeUtil.getDecls(def),
-                NodeUtil.getParams(def)
-                );
- //       addParamsToCollection(def, parameterNames);
+             selfType,
+             (HasAt) def,
+             NodeFactory.makeConstructorFnName(def),
+             NodeUtil.getDecls(def),
+             NodeUtil.getParams(def));
+        //       addParamsToCollection(def, parameterNames);
     }
 
-    public Constructor(Environment env,
-                       FTypeObject selfType,
-                       ObjectConstructor def,
-                       Option<List<Param>> params) {
-        this(env,
-                selfType,
-                (HasAt) def,
-                NodeFactory.makeConstructorFnName(def),
-                NodeUtil.getDecls(def),
-                params
-                );
- //       addParamsToCollection(def, parameterNames);
+    public Constructor(Environment env, FTypeObject selfType, ObjectConstructor def, Option<List<Param>> params) {
+        this(env, selfType, (HasAt) def, NodeFactory.makeConstructorFnName(def), NodeUtil.getDecls(def), params);
+        //       addParamsToCollection(def, parameterNames);
     }
 
 
     /**
      * @param def
      */
-//    static public void addParamsToCollection(
-//          HasParams def, Collection<String> parameterNames) {
-//        addParamsToCollection(def.getParams(), parameterNames);
-//
-//    }
-//    static public void addParamsToCollection(
-//          Option<List<Param>> opt_params, Collection<String> parameterNames) {
-//        if (opt_params.isSome()) {
-//            addParamsToCollection(opt_params.unwrap(), parameterNames);
-//        }
-//    }
-//    static public void addParamsToCollection(
-//          List<Param> params, Collection<String> parameterNames) {
-//        for (Param p : params) {
-//                if (!NodeUtil.isTransient(p))
-//                    parameterNames.add(p.getName().getId().getText());
-//       }
-//    }
-//    static public void removeParamsFromCollection(
-//          ObjectDecl def, Collection<String> parameterNames) {
-//        removeParamsFromCollection(def.getParams(), parameterNames);
-//
-//    }
-//    static public void removeParamsFromCollection(
-//          Option<List<Param>> opt_params, Collection<String> parameterNames) {
-//        if (opt_params.isSome()) {
-//            removeParamsFromCollection(opt_params.unwrap(), parameterNames);
-//        }
-//    }
-//    static public void removeParamsFromCollection(
-//          List<Param> params,Collection<String> parameterNames) {
-//        for (Param p : params) {
-//            if (!NodeUtil.isTransient(p))
-//                parameterNames.remove(p.getName().getId().getText());
-//   }
-//}
+    //    static public void addParamsToCollection(
+    //          HasParams def, Collection<String> parameterNames) {
+    //        addParamsToCollection(def.getParams(), parameterNames);
+    //
+    //    }
+    //    static public void addParamsToCollection(
+    //          Option<List<Param>> opt_params, Collection<String> parameterNames) {
+    //        if (opt_params.isSome()) {
+    //            addParamsToCollection(opt_params.unwrap(), parameterNames);
+    //        }
+    //    }
+    //    static public void addParamsToCollection(
+    //          List<Param> params, Collection<String> parameterNames) {
+    //        for (Param p : params) {
+    //                if (!NodeUtil.isTransient(p))
+    //                    parameterNames.add(p.getName().getId().getText());
+    //       }
+    //    }
+    //    static public void removeParamsFromCollection(
+    //          ObjectDecl def, Collection<String> parameterNames) {
+    //        removeParamsFromCollection(def.getParams(), parameterNames);
+    //
+    //    }
+    //    static public void removeParamsFromCollection(
+    //          Option<List<Param>> opt_params, Collection<String> parameterNames) {
+    //        if (opt_params.isSome()) {
+    //            removeParamsFromCollection(opt_params.unwrap(), parameterNames);
+    //        }
+    //    }
+    //    static public void removeParamsFromCollection(
+    //          List<Param> params,Collection<String> parameterNames) {
+    //        for (Param p : params) {
+    //            if (!NodeUtil.isTransient(p))
+    //                parameterNames.remove(p.getName().getId().getText());
+    //   }
+    //}
 
     // TODO need to copy the field names
-
-    public Constructor(Environment env, FTypeObject selfType, HasAt def,
-                IdOrOpOrAnonymousName name, List<Decl> defs,
-                Option<List<Param>> params) {
+    public Constructor(Environment env,
+                       FTypeObject selfType,
+                       HasAt def,
+                       IdOrOpOrAnonymousName name,
+                       List<Decl> defs,
+                       Option<List<Param>> params) {
         super(env); // TODO verify that this is the proper env.
         this.selfType = selfType;
         this.at = def;
@@ -185,17 +154,16 @@ public class Constructor extends NonPrimitive {
     }
 
     /**
-      * Figure out the methods inherited from the super-traits.
-      */
+     * Figure out the methods inherited from the super-traits.
+     */
     public void finishInitializing() {
         // Next build a bogus environment to help us figure out
         // overloading, shadowing, etc.  First puts win.
         if (params.isSome()) {
-            List<Parameter> fparams = EvalType.paramsToParameters(
-                    getWithin(), params.unwrap());
+            List<Parameter> fparams = EvalType.paramsToParameters(getWithin(), params.unwrap());
             setParams(fparams);
         } else {
-            setParams(Collections.<Parameter> emptyList());
+            setParams(Collections.<Parameter>emptyList());
         }
 
         Environment bte = selfType.getMethodExecutionEnv(); // new BetterEnv(getWithin(), getAt());
@@ -216,13 +184,10 @@ public class Constructor extends NonPrimitive {
         // This should create new MethodClosures
         // visitDefs(bt);
 
-        GHashMap<SingleFcn, FTraitOrObject>
-        signaturesToTraitsContainingMethods =
-            new GHashMap<SingleFcn, FTraitOrObject>(
-                     SingleFcn.signatureEquivalence);
+        GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods =
+                new GHashMap<SingleFcn, FTraitOrObject>(SingleFcn.signatureEquivalence);
 
-        MultiMap<String, GenericMethod> generics =
-             new MultiMap<String, GenericMethod>();
+        MultiMap<String, GenericMethod> generics = new MultiMap<String, GenericMethod>();
 
         // TODO deal with ORDER and ambiguity.  TransitiveExtends returns
         // a topological sort, which is close, but not perfect.
@@ -245,50 +210,52 @@ public class Constructor extends NonPrimitive {
         // parameters so that the methods may be pseudo-instantiated
         // and plugged into the trait/object and overloading definition
         // machinery.
-        Map<String, List<FType>> genericArgs =
-            new HashMap<String, List<FType>>();
-        for (String s : generics.keySet() ) {
+        Map<String, List<FType>> genericArgs = new HashMap<String, List<FType>>();
+        for (String s : generics.keySet()) {
             // All the methods are similarly parameterized, so the
             // first generic in the set (generics is a multimap)
             // is as good as any other for this purpose.
             GenericMethod g = generics.get(s).iterator().next();
 
             Applicable ap = g.getDef();
-            List<FType> instantiationTypes =
-                SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
+            List<FType> instantiationTypes = SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
             genericArgs.put(s, instantiationTypes);
         }
 
         final Set<String> overridden = new HashSet<String>();
-//        final NodeVisitor_void overrideFinder = new NodeAbstractVisitor_void() {
-//
-//            FnDecl current;
-//
-//            public void forModifierOverride(ModifierOverride mo) {
-//                overridden.add(current.stringName());
-//                System.err.println("Override of " + current.stringName());
-//            }
-//
-//            @Override
-//            public void forFnDecl(FnDecl that) {
-//                current = that;
-//                for (Modifier m : that.getMods()) {
-//                    m.accept(this);
-//                }
-//            }
-//
-//        };
+        //        final NodeVisitor_void overrideFinder = new NodeAbstractVisitor_void() {
+        //
+        //            FnDecl current;
+        //
+        //            public void forModifierOverride(ModifierOverride mo) {
+        //                overridden.add(current.stringName());
+        //                System.err.println("Override of " + current.stringName());
+        //            }
+        //
+        //            @Override
+        //            public void forFnDecl(FnDecl that) {
+        //                current = that;
+        //                for (Modifier m : that.getMods()) {
+        //                    m.accept(this);
+        //                }
+        //            }
+        //
+        //        };
 
 
         //  Find all the methods in selfType, using the containing environment
         // to give them meaning.
-        accumulateEnvMethods(null, overridden,
-          signaturesToTraitsContainingMethods,
-          generics, genericArgs, selfType, bte);
+        accumulateEnvMethods(null,
+                             overridden,
+                             signaturesToTraitsContainingMethods,
+                             generics,
+                             genericArgs,
+                             selfType,
+                             bte);
 
-//        for (AbsDeclOrDecl d : defs ) {
-//            d.accept(overrideFinder);
-//        }
+        //        for (AbsDeclOrDecl d : defs ) {
+        //            d.accept(overrideFinder);
+        //        }
         // Accumulate all the trait methods, evaluated against their
         // trait environments.
         // TODO The signature map uses EQUALITY, and that might be wrong,
@@ -296,22 +263,19 @@ public class Constructor extends NonPrimitive {
         for (FType t : extendedTraits) {
             FTypeTrait ft = (FTypeTrait) t;
             BetterEnv e = ft.getMembers();
-            accumulateEnvMethods(overridden, null,
-             signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
+            accumulateEnvMethods(overridden, null, signaturesToTraitsContainingMethods, generics, genericArgs, ft, e);
         }
 
         // Check that all methods are defined, also check to see
         // if the object defines any of them.
         boolean objectDefinesAny = false;
-        for (Map.Entry<SingleFcn, FTraitOrObject> ent :
-                 (Set<Map.Entry<SingleFcn, FTraitOrObject>>)
-                     signaturesToTraitsContainingMethods.entrySet()) {
+        for (Map.Entry<SingleFcn, FTraitOrObject> ent : (Set<Map.Entry<SingleFcn, FTraitOrObject>>) signaturesToTraitsContainingMethods
+                .entrySet()) {
             SingleFcn sf = ent.getKey();
             FTraitOrObject too = ent.getValue();
 
-            if (too instanceof FTypeObject)
-                objectDefinesAny = true;
-            checkForDef(sf,too);
+            if (too instanceof FTypeObject) objectDefinesAny = true;
+            checkForDef(sf, too);
         }
 
         // Plan to iterate over traits at instantiation, and form closures
@@ -325,11 +289,9 @@ public class Constructor extends NonPrimitive {
         // Count traits and create an array of trait types, so that
         // the constructor can build things without thinking.
         // int traitCount = traitsToMethodSets.size() + (objectDefinesAny ? 0 : 1);
-        int traitCount =
-            traitsToNamesReferenced.size() + (objectDefinesAny ? 0 : 1);
+        int traitCount = traitsToNamesReferenced.size() + (objectDefinesAny ? 0 : 1);
 
-        HashMap<FTraitOrObject, Integer> traitToIndex =
-            new HashMap<FTraitOrObject, Integer> ();
+        HashMap<FTraitOrObject, Integer> traitToIndex = new HashMap<FTraitOrObject, Integer>();
 
         traitArray = new FTraitOrObject[traitCount];
         traitNameReferenceArray = new Set<?>[traitCount];
@@ -337,13 +299,12 @@ public class Constructor extends NonPrimitive {
         traitArray[0] = selfType;
         traitToIndex.put(selfType, Integer.valueOf(0));
         int trait_i = 1;
-        for (FTraitOrObject too : traitsToNamesReferenced.keySet() ) { // was traitsToMethodSets.keySet()
+        for (FTraitOrObject too : traitsToNamesReferenced.keySet()) { // was traitsToMethodSets.keySet()
             if (too != selfType) {
                 traitArray[trait_i] = too;
                 traitToIndex.put(too, Integer.valueOf(trait_i));
-                traitNameReferenceArray[trait_i] =
-                    traitsToNamesReferenced.get(too);
-                trait_i ++;
+                traitNameReferenceArray[trait_i] = traitsToNamesReferenced.get(too);
+                trait_i++;
             }
         }
 
@@ -354,11 +315,10 @@ public class Constructor extends NonPrimitive {
           3) then form any overloads necessary
           4) then iterate over the traits, binding names to method values.
          */
-        int signatureCount = signaturesToTraitsContainingMethods.size()+1;
+        int signatureCount = signaturesToTraitsContainingMethods.size() + 1;
         methodsArray = new MethodClosure[signatureCount];
         closuresArray = new MethodClosure[signatureCount];
-        HashMap<MethodClosure, Integer> methodsIndex =
-            new HashMap<MethodClosure, Integer> ();
+        HashMap<MethodClosure, Integer> methodsIndex = new HashMap<MethodClosure, Integer>();
 
         traitIndexForMethod = new int[signatureCount];
         overloadMembership = new int[signatureCount];
@@ -370,9 +330,8 @@ public class Constructor extends NonPrimitive {
         // and trait index.
         int sig_i = 1;
 
-        for (Map.Entry<SingleFcn, FTraitOrObject> ent :
-            (Set<Map.Entry<SingleFcn, FTraitOrObject>>)
-            signaturesToTraitsContainingMethods.entrySet()) {
+        for (Map.Entry<SingleFcn, FTraitOrObject> ent : (Set<Map.Entry<SingleFcn, FTraitOrObject>>) signaturesToTraitsContainingMethods
+                .entrySet()) {
 
             SingleFcn sf = ent.getKey();
             /*
@@ -387,16 +346,14 @@ public class Constructor extends NonPrimitive {
              * now (right here) they had better be gone.
              *
              */
-            if (! (sf instanceof MethodClosure)) {
+            if (!(sf instanceof MethodClosure)) {
                 bug(errorMsg("Internal error, non-method ", sf));
             }
             MethodClosure mc = (MethodClosure) sf;
             FTraitOrObject too = ent.getValue();
 
-            Set<MethodClosure> s =
-                namesToSignatureSets.putItem(sf.asMethodName(), mc);
-            if (s.size() == 2)
-                overloadCount++;
+            Set<MethodClosure> s = namesToSignatureSets.putItem(sf.asMethodName(), mc);
+            if (s.size() == 2) overloadCount++;
             methodsArray[sig_i] = mc;
             methodsIndex.put(mc, Integer.valueOf(sig_i));
             traitIndexForMethod[sig_i] = traitToIndex.get(too).intValue();
@@ -408,8 +365,7 @@ public class Constructor extends NonPrimitive {
         // then it is overloaded.  If a method is part of an overload,
         // record its membership in the overloadIndex array.
         int overloadIndex = 1;
-        for (Map.Entry<String, Set<MethodClosure>> ent:
-            namesToSignatureSets.entrySet()) {
+        for (Map.Entry<String, Set<MethodClosure>> ent : namesToSignatureSets.entrySet()) {
             Set<MethodClosure> s = ent.getValue();
             if (s.size() > 1) {
                 // This will pop an error if the set of defined functions is
@@ -417,8 +373,7 @@ public class Constructor extends NonPrimitive {
                 new OverloadedMethod(ent.getKey(), s, getWithin());
 
                 for (MethodClosure m : s) {
-                    overloadMembership[methodsIndex.get(m).intValue() ] =
-                        overloadIndex;
+                    overloadMembership[methodsIndex.get(m).intValue()] = overloadIndex;
                 }
                 overloadIndex++;
             }
@@ -441,11 +396,12 @@ public class Constructor extends NonPrimitive {
     }
 
     /**
-      * Checks for definition of sf from supertrait too, fails if absent.
-      * @param sf
-      * @param too
-      * @return
-      */
+     * Checks for definition of sf from supertrait too, fails if absent.
+     *
+     * @param sf
+     * @param too
+     * @return
+     */
     private void checkForDef(SingleFcn sf, FTraitOrObject too) {
         if (too instanceof FTypeObject) return;
         if (sf instanceof MethodClosure) {
@@ -453,14 +409,23 @@ public class Constructor extends NonPrimitive {
             Applicable a = pdm.getDef();
             if (a instanceof FnDecl || a instanceof NativeApp) return;
             if (a.at().equals(sf.at())) {
-                error(cfn, errorMsg("Object ",cfn.stringName(),
-                      " does not define an abstract method declared in type ",
-                      too.getName(), ":\n", sf.getString()));
+                error(cfn, errorMsg("Object ",
+                                    cfn.stringName(),
+                                    " does not define an abstract method declared in type ",
+                                    too.getName(),
+                                    ":\n",
+                                    sf.getString()));
             } else {
-                error(cfn, errorMsg("Object ",cfn.stringName(),
-                      " does not define an abstract method declared in type ",
-                      too.getName(), ":\n", sf.getString(),
-                      "\n Instead found: \n",a.at(), ": ", a));
+                error(cfn, errorMsg("Object ",
+                                    cfn.stringName(),
+                                    " does not define an abstract method declared in type ",
+                                    too.getName(),
+                                    ":\n",
+                                    sf.getString(),
+                                    "\n Instead found: \n",
+                                    a.at(),
+                                    ": ",
+                                    a));
             }
         }
         bug(errorMsg("Unexpected symbolic method binding ", sf));
@@ -474,52 +439,48 @@ public class Constructor extends NonPrimitive {
      * referenced.
      *
      * @param signaturesToTraitsContainingMethods
+     *
      * @param genericArgs
      * @param ft
      * @param e
      */
-    private void accumulateEnvMethods(
-            Set<String> alreadyOverridden,
-            Set<String> newOverrides,
-            GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods,
-            MultiMap<String, GenericMethod> generics,
-            Map<String, List<FType>> genericArgs, FTraitOrObject ft, Environment e) {
+    private void accumulateEnvMethods(Set<String> alreadyOverridden,
+                                      Set<String> newOverrides,
+                                      GHashMap<SingleFcn, FTraitOrObject> signaturesToTraitsContainingMethods,
+                                      MultiMap<String, GenericMethod> generics,
+                                      Map<String, List<FType>> genericArgs,
+                                      FTraitOrObject ft,
+                                      Environment e) {
         for (String s : e.youngestFrame()) {
             FValue fv = e.getLeafValue(s);
-            if (alreadyOverridden == null || ! alreadyOverridden.contains(s)) {
+            if (alreadyOverridden == null || !alreadyOverridden.contains(s)) {
 
-           // This has got to be wrong...
-            if (fv instanceof OverloadedFunction) {
-                // Treat the overloaded function as a bag of separate
-                // definitions.
-                List<Overload> overloads = ((OverloadedFunction) fv)
-                        .getOverloads();
-                for (Overload ov : overloads) {
-                    SingleFcn sfcn = ov.getFn();
-                    if (newOverrides != null && sfcn.isOverride())
-                        newOverrides.add(s);
-                    // extract below as method, call it here.
+                // This has got to be wrong...
+                if (fv instanceof OverloadedFunction) {
+                    // Treat the overloaded function as a bag of separate
+                    // definitions.
+                    List<Overload> overloads = ((OverloadedFunction) fv).getOverloads();
+                    for (Overload ov : overloads) {
+                        SingleFcn sfcn = ov.getFn();
+                        if (newOverrides != null && sfcn.isOverride()) newOverrides.add(s);
+                        // extract below as method, call it here.
+                        signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
+                    }
+                } else if (fv instanceof GenericMethod) {
+                    GenericMethod gfv = (GenericMethod) fv;
+                    if (newOverrides != null && gfv.isOverride()) newOverrides.add(s);
+
+                    MethodClosure sfcn = gfv.make(genericArgs.get(s), gfv.getAt());
+
                     signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
+
+                } else if (fv instanceof MethodClosure) {
+                    MethodClosure mc = (MethodClosure) fv;
+                    signaturesToTraitsContainingMethods.putIfAbsent(mc, ft);
+                    if (newOverrides != null && mc.isOverride()) newOverrides.add(s);
+                } else {
+                    bug(errorMsg("Don't handle ", fv, " yet"));
                 }
-            } else
-                if (fv instanceof GenericMethod) {
-                GenericMethod gfv = (GenericMethod) fv;
-                if (newOverrides != null && gfv.isOverride())
-                    newOverrides.add(s);
-
-                MethodClosure sfcn = gfv.make(genericArgs.get(s), gfv.getAt());
-
-                signaturesToTraitsContainingMethods.putIfAbsent(sfcn, ft);
-
-            } else if (fv instanceof MethodClosure) {
-                MethodClosure mc = (MethodClosure) fv;
-                signaturesToTraitsContainingMethods.putIfAbsent
-                    (mc, ft);
-                if (newOverrides != null && mc.isOverride())
-                    newOverrides.add(s);
-            } else {
-                bug(errorMsg("Don't handle ", fv, " yet"));
-            }
             }
             // Record the name to ensure that it is defined somewhere.
             // The name of the overloaded function goes wrong, if it is a functional method.
@@ -527,9 +488,7 @@ public class Constructor extends NonPrimitive {
         }
     }
 
-    private void accumulateGenericMethods(
-            MultiMap<String, GenericMethod> generics,
-            FTraitOrObject ft, Environment e) {
+    private void accumulateGenericMethods(MultiMap<String, GenericMethod> generics, FTraitOrObject ft, Environment e) {
         for (String s : e.youngestFrame()) {
             FValue fv = e.getLeafValue(s);
             if (fv instanceof GenericMethod) {
@@ -550,7 +509,8 @@ public class Constructor extends NonPrimitive {
         List<FType> l = null;
         try {
             l = getDomain();
-        } catch (Throwable th) {
+        }
+        catch (Throwable th) {
             ; /* do nothing */
         }
         return (s(selfType)) + (l == null ? "(DOMAIN_ERROR null)" : Useful.listInParens(l)) + cfn.at();
@@ -564,17 +524,15 @@ public class Constructor extends NonPrimitive {
     public FValue applyInnerPossiblyGeneric(List<FValue> args) {
         return applyConstructor(args);
     }
+
     /**
-     *
      * Apply a constructor.  This method allows separate specification
      * of the lexical environment; this is done to simplify implementation
      * of object expressions.
-     *
      */
     public FValue applyConstructor(List<FValue> args) {
         // Problem -- we need to detach self-env from other env.
-        if (methodsEnv == null)
-            bug("Null methods env for " + this);
+        if (methodsEnv == null) bug("Null methods env for " + this);
 
         Environment self_env = buildEnvFromEnvAndParams(methodsEnv, args);
 
@@ -587,8 +545,8 @@ public class Constructor extends NonPrimitive {
         // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
 
         self_env.bless(); // HACK we add to this later.
-                          // This should go wrong if one of the vars has closure value
-                          // or objectExpr value.
+        // This should go wrong if one of the vars has closure value
+        // or objectExpr value.
 
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
@@ -610,8 +568,7 @@ public class Constructor extends NonPrimitive {
 
         // TODO This is a problem -- the level is not determined
         FValue surroundSelf = lex_env.getLeafValueNull(WellKnownNames.secretSelfName);
-        if (surroundSelf != null)
-            self_env.putValueRaw(WellKnownNames.secretParentName, surroundSelf);
+        if (surroundSelf != null) self_env.putValueRaw(WellKnownNames.secretParentName, surroundSelf);
 
         FObject theObject = makeAnObject(lex_env, self_env);
 
@@ -621,8 +578,8 @@ public class Constructor extends NonPrimitive {
         // get evaluated against the larger (lexical) environment.  Arrrrrrrggggggh.
 
         self_env.bless(); // HACK we add to this later.
-                          // This should go wrong if one of the vars has closure value
-                          // or objectExpr value.
+        // This should go wrong if one of the vars has closure value
+        // or objectExpr value.
 
         if (defs.size() > 0) {
             // Minor optimization, avoid this if no defs to eval.
@@ -634,17 +591,18 @@ public class Constructor extends NonPrimitive {
     }
 
     private void addMethodsToEnv(Environment self_env) {
-        OverloadedMethod[] overloads = new OverloadedMethod[overloadCount+1];
+        OverloadedMethod[] overloads = new OverloadedMethod[overloadCount + 1];
 
         // First initialize an array of environments.
-//        for (int i = 1; i < trait_envs.length; i++) {
-//            trait_envs[i] = new ImmutableSpineEnv(traitArray[i].getEnv(), loc);
-//        }
+        //        for (int i = 1; i < trait_envs.length; i++) {
+        //            trait_envs[i] = new ImmutableSpineEnv(traitArray[i].getEnv(), loc);
+        //        }
 
         // For each method, attach the appropriate environment from the array
         for (int i = 1; i < methodsArray.length; i++) {
             // Closure cl = methodsArray[i].completeClosure(trait_envs[traitIndexForMethod[i]]);
-            FunctionClosure cl = closuresArray[i]; // methodsArray[i].completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
+            FunctionClosure cl =
+                    closuresArray[i]; // methodsArray[i].completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
             int j = overloadMembership[i];
             // Check to see if the new closure should be bound now or
             // placed in an overload.
@@ -681,16 +639,16 @@ public class Constructor extends NonPrimitive {
      */
     protected void visitDefs(BuildEnvironments be) {
         be.doDefs1234(defs);
-//        be.secondPass();
-//
-//        be.doDefs(defs);
-//        be.getBindingEnv().bless();
-//
-//        be.thirdPass();
-//        be.doDefs(defs);
-//
-//        be.fourthPass();
-//        be.doDefs(defs);
+        //        be.secondPass();
+        //
+        //        be.doDefs(defs);
+        //        be.getBindingEnv().bless();
+        //
+        //        be.thirdPass();
+        //        be.doDefs(defs);
+        //
+        //        be.fourthPass();
+        //        be.doDefs(defs);
 
     }
 

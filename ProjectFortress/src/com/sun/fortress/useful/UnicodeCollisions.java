@@ -1,30 +1,25 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class UnicodeCollisions {
     // 0028;LEFT PARENTHESIS;Ps;0;ON;;;;;Y;OPENING PARENTHESIS;;;;
@@ -43,15 +38,11 @@ public class UnicodeCollisions {
 
     public String toString() {
         String s = otherName();
-        return s.length() > 0 ? name() + "(" + otherName() + ")"
-                : name();
+        return s.length() > 0 ? name() + "(" + otherName() + ")" : name();
     }
 
     public boolean simpleEquals(UnicodeCollisions that) {
-        return this == that
-               || this.name().equals(that.otherName())
-               || that.name().equals(this.otherName())
-               ;
+        return this == that || this.name().equals(that.otherName()) || that.name().equals(this.otherName());
     }
 
     UnicodeCollisions(String line) {
@@ -59,8 +50,7 @@ public class UnicodeCollisions {
     }
 
     void addUnderXForm(Map<String, UnicodeCollisions> m, XForm x) {
-        if ("<control>".equals(name()))
-            return;
+        if ("<control>".equals(name())) return;
         addUnderXForm(name(), m, x);
         addUnderXForm(otherName(), m, x);
     }
@@ -81,17 +71,20 @@ public class UnicodeCollisions {
     }
 
     static void forAll(ArrayList<UnicodeCollisions> l, XForm x, Map<String, UnicodeCollisions> m) {
-        for (int i = 0; i < l.size(); i++)
+        for (int i = 0; i < l.size(); i++) {
             l.get(i).addUnderXForm(m, x);
+        }
     }
 
     static void forAllRemoving(ArrayList<UnicodeCollisions> l, final String s, Map<String, UnicodeCollisions> m) {
         XForm x = new XForm() {
             String translate(String str) {
                 return str.replace(s, "");
-           }};
-        for (int i = 0; i < l.size(); i++)
+            }
+        };
+        for (int i = 0; i < l.size(); i++) {
             l.get(i).addUnderXForm(m, x);
+        }
     }
 
     public static void main(String[] args) throws IOException {
@@ -105,12 +98,15 @@ public class UnicodeCollisions {
                 l = is.readLine();
             }
         }
-        finally { is.close(); }
+        finally {
+            is.close();
+        }
 
         forAll(chars, new XForm() {
             String translate(String x) {
-                 return x;
-            }}, h);
+                return x;
+            }
+        }, h);
 
         forAllRemoving(chars, "LETTER ", h);
         forAllRemoving(chars, "DIGIT ", h);
@@ -132,33 +128,33 @@ public class UnicodeCollisions {
                     tokens.add(tok);
                 }
             }
-//            for (int j = 10; j > 4 ; j--) {
-//                Iterator it = tokens.iterator();
-//                HashMap abbrevs = new HashMap();
-//                while (it.hasNext()) {
-//                    String s = (String) it.next();
-//                    int len = Math.min(j, s.length());
-//                    String ss = s.substring(0,len);
-//                    HashSet hs = (HashSet) abbrevs.get(ss);
-//                    if (hs == null) {
-//                        hs = new HashSet();
-//                        abbrevs.put(ss, hs);
-//                    }
-//                    hs.add(s);
-//                }
-//                it = abbrevs.entrySet().iterator();
-//                while (it.hasNext()) {
-//                    Entry e = (Entry) it.next();
-//                    Set es = (Set) e.getValue();
-//                    if (es.size() > 1) {
-//                        String ek = (String) e.getKey();
-//                        if (es.size() > 5)
-//                            System.err.println("Prefix " + ek + " has " + es.size() + " collisions.");
-//                        else
-//                            System.err.println("Prefix " + ek + " has collisions " + es);
-//                    }
-//                }
-//            }
+            //            for (int j = 10; j > 4 ; j--) {
+            //                Iterator it = tokens.iterator();
+            //                HashMap abbrevs = new HashMap();
+            //                while (it.hasNext()) {
+            //                    String s = (String) it.next();
+            //                    int len = Math.min(j, s.length());
+            //                    String ss = s.substring(0,len);
+            //                    HashSet hs = (HashSet) abbrevs.get(ss);
+            //                    if (hs == null) {
+            //                        hs = new HashSet();
+            //                        abbrevs.put(ss, hs);
+            //                    }
+            //                    hs.add(s);
+            //                }
+            //                it = abbrevs.entrySet().iterator();
+            //                while (it.hasNext()) {
+            //                    Entry e = (Entry) it.next();
+            //                    Set es = (Set) e.getValue();
+            //                    if (es.size() > 1) {
+            //                        String ek = (String) e.getKey();
+            //                        if (es.size() > 5)
+            //                            System.err.println("Prefix " + ek + " has " + es.size() + " collisions.");
+            //                        else
+            //                            System.err.println("Prefix " + ek + " has collisions " + es);
+            //                    }
+            //                }
+            //            }
 
         }
         Set<String> keys = h.keySet();
@@ -182,8 +178,8 @@ public class UnicodeCollisions {
                 break;
             }
         }
-        if (! nonHexSeen) {
-            System.err.println("String '" + s +"' looks like a hex number");
+        if (!nonHexSeen) {
+            System.err.println("String '" + s + "' looks like a hex number");
         }
         return nonHexSeen;
     }

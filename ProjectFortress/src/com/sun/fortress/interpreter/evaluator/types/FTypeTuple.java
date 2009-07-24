@@ -1,36 +1,28 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.types;
 
 import static com.sun.fortress.exceptions.FortressException.errorMsg;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
-import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDump;
+import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.exclDumpln;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -38,8 +30,9 @@ import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1C;
 import com.sun.fortress.useful.Useful;
-
 import edu.rice.cs.plt.tuple.Option;
+
+import java.util.*;
 
 // TODO need to memoize this to preserver type EQuality
 public class FTypeTuple extends FType {
@@ -59,8 +52,9 @@ public class FTypeTuple extends FType {
     static Memo1C<List<FType>, FType> memo = null;
 
     public static void reset() {
-        memo = new Memo1C<List<FType>, FType>( new Factory(), listComparer);
+        memo = new Memo1C<List<FType>, FType>(new Factory(), listComparer);
     }
+
     static public FType make(List<FType> l) {
         return l.size() == 0 ? FTypeVoid.ONLY : memo.make(l);
     }
@@ -78,8 +72,7 @@ public class FTypeTuple extends FType {
      * Returns this subtypeof other.
      */
     public boolean subtypeOf(FType other) {
-        if (commonSubtypeOf(other))
-            return true;
+        if (commonSubtypeOf(other)) return true;
         // TODO This is going to get hairy in a world of overloaded function
         // types and rest types.
         if (other instanceof FTypeTuple) {
@@ -106,9 +99,10 @@ public class FTypeTuple extends FType {
             // the minimum, the answer is false.
 
             if (thatt instanceof FTypeRest) {
-                return subtypeOf(thisl, thatl, 0, min - 1)
-                        && subtypeOf(thisl, ((FTypeRest) thatt).getType(),
-                                min - 1, thisl.size());
+                return subtypeOf(thisl, thatl, 0, min - 1) && subtypeOf(thisl,
+                                                                        ((FTypeRest) thatt).getType(),
+                                                                        min - 1,
+                                                                        thisl.size());
             } else if (min != thisl.size()) {
                 return false;
             } else {
@@ -123,12 +117,12 @@ public class FTypeTuple extends FType {
      * Returns true iff candidate is more specific than current.
      * Note that it is possible that neither one of a pair of types
      * is more specific than the other.
-     *
+     * <p/>
      * This code was simplified and moved here in order to guarantee
      * that tuple subtype checking is consistent with most-specific-
      * overloading checks.
      */
-    public static boolean  moreSpecificThan(List<FType> candidate, List<FType> current) {
+    public static boolean moreSpecificThan(List<FType> candidate, List<FType> current) {
         FType candType = make(candidate);
         FType currType = make(current);
         if (candType.subtypeOf(currType)) {
@@ -139,7 +133,7 @@ public class FTypeTuple extends FType {
                  * omitted type information in
                  * tests/overloadTest3.fss. */
                 // this is one place where we might need Dynamic
-                return (currType==FTypeTop.ONLY);
+                return (currType == FTypeTop.ONLY);
             } else {
                 return true;
             }
@@ -152,13 +146,10 @@ public class FTypeTuple extends FType {
      * Tests subtype-of for a pair of tuple sections. Returns true iff
      * thisl[start, end) subtypeof thatl[start, end).
      */
-    private static boolean subtypeOf(List<FType> thisl, List<FType> thatl,
-            int start, int end) {
-        if (thisl.size() < end || thatl.size() < end)
-            return false;
+    private static boolean subtypeOf(List<FType> thisl, List<FType> thatl, int start, int end) {
+        if (thisl.size() < end || thatl.size() < end) return false;
         for (int i = start; i < end; i++) {
-            if (!thisl.get(i).subtypeOf(thatl.get(i)))
-                return false;
+            if (!thisl.get(i).subtypeOf(thatl.get(i))) return false;
         }
         return true;
     }
@@ -167,13 +158,10 @@ public class FTypeTuple extends FType {
      * Tests subtype-of for a tuple section against a type. Returns true iff
      * thisl[start, end) subtypeof thatt.
      */
-    private static boolean subtypeOf(List<FType> thisl, FType thatt, int start,
-            int end) {
-        if (thisl.size() < end)
-            return false;
+    private static boolean subtypeOf(List<FType> thisl, FType thatt, int start, int end) {
+        if (thisl.size() < end) return false;
         for (int i = start; i < end; i++) {
-            if (!thisl.get(i).subtypeOf(thatt))
-                return false;
+            if (!thisl.get(i).subtypeOf(thatt)) return false;
         }
         return true;
     }
@@ -187,10 +175,10 @@ public class FTypeTuple extends FType {
         } else if (other instanceof FTypeTuple) {
             FTypeTuple ftt_other = (FTypeTuple) other;
             Set<List<FType>> slf = meet(l, ftt_other.l);
-            if (slf.size() == 0)
-                return Collections.<FType> emptySet();
-            for (List<FType> lt : slf)
+            if (slf.size() == 0) return Collections.<FType>emptySet();
+            for (List<FType> lt : slf) {
                 result.add(FTypeTuple.make(lt));
+            }
         }
         return result;
     }
@@ -204,10 +192,10 @@ public class FTypeTuple extends FType {
         } else if (other instanceof FTypeTuple) {
             FTypeTuple ftt_other = (FTypeTuple) other;
             Set<List<FType>> slf = join(l, ftt_other.l);
-            if (slf.size() == 0)
-                return Collections.<FType> emptySet();
-            for (List<FType> lt : slf)
+            if (slf.size() == 0) return Collections.<FType>emptySet();
+            for (List<FType> lt : slf) {
                 result.add(FTypeTuple.make(lt));
+            }
         }
         return result;
     }
@@ -218,7 +206,7 @@ public class FTypeTuple extends FType {
         // guaranteed to fail.
 
         TreeSet<List<FType>> s = new TreeSet<List<FType>>();
-        s.add(Collections.<FType> emptyList());
+        s.add(Collections.<FType>emptyList());
 
         return meet(s, pl1, pl2);
     }
@@ -242,14 +230,17 @@ public class FTypeTuple extends FType {
 
         // TODO these cases make my brain hurt.
 
-        if (s1 != s2)
-            bug(errorMsg("JOIN of type lists of unequal length: ", s1, " and ", s2));
+        if (s1 != s2) bug(errorMsg("JOIN of type lists of unequal length: ", s1, " and ", s2));
 
-        if (s1 > 0 && pl1.get(s1 - 1) instanceof FTypeRest)
-            bug(errorMsg("JOIN of lists, first has REST parameter: ", s1, " and ", s2));
+        if (s1 > 0 && pl1.get(s1 - 1) instanceof FTypeRest) bug(errorMsg("JOIN of lists, first has REST parameter: ",
+                                                                         s1,
+                                                                         " and ",
+                                                                         s2));
 
-        if (s2 > 0 && pl2.get(s2 - 1) instanceof FTypeRest)
-            bug(errorMsg("JOIN of lists, second has REST parameter: ",s1, " and ", s2));
+        if (s2 > 0 && pl2.get(s2 - 1) instanceof FTypeRest) bug(errorMsg("JOIN of lists, second has REST parameter: ",
+                                                                         s1,
+                                                                         " and ",
+                                                                         s2));
 
         // TODO today, if we can arrive at a single answer, we declare victory,
         // otherwise punt.
@@ -260,8 +251,7 @@ public class FTypeTuple extends FType {
             FType t1 = pl1.get(i);
             FType t2 = pl2.get(i);
             Set<FType> m = t1.join(t2);
-            if (m.size() != 1)
-                return Collections.<List<FType>> emptySet();
+            if (m.size() != 1) return Collections.<List<FType>>emptySet();
             // m.iterator().next() gets the singleton out.
             a.add(m.iterator().next());
         }
@@ -271,22 +261,16 @@ public class FTypeTuple extends FType {
         return s;
     }
 
-    private static Set<List<FType>> meet(Set<List<FType>> s, List<FType> pl1,
-            List<FType> pl2) {
+    private static Set<List<FType>> meet(Set<List<FType>> s, List<FType> pl1, List<FType> pl2) {
         int s1 = pl1.size();
         int s2 = pl2.size();
-        if (s1 == 0 && s2 == 0)
-            return s;
+        if (s1 == 0 && s2 == 0) return s;
         else if (s1 == 0) {
-            if (s2 == 1 && pl2.get(0) instanceof FTypeRest)
-                return s;
-            else
-                return Collections.<List<FType>> emptySet();
+            if (s2 == 1 && pl2.get(0) instanceof FTypeRest) return s;
+            else return Collections.<List<FType>>emptySet();
         } else if (s2 == 0) {
-            if (s1 == 1 && pl1.get(0) instanceof FTypeRest)
-                return s;
-            else
-                return Collections.<List<FType>> emptySet();
+            if (s1 == 1 && pl1.get(0) instanceof FTypeRest) return s;
+            else return Collections.<List<FType>>emptySet();
         } else {
             FType t1 = pl1.get(0);
             FType t2 = pl2.get(0);
@@ -296,12 +280,10 @@ public class FTypeTuple extends FType {
             List<FType> sl2 = pl2;
 
             if (r1 && !r2) {
-                if (s1 != 1)
-                    bug("Varargs parameter not last parameter");
+                if (s1 != 1) bug("Varargs parameter not last parameter");
                 sl2 = sl2.subList(1, s2);
             } else if (r2 && !r1) {
-                if (s2 != 1)
-                    bug("Varargs parameter not last parameter");
+                if (s2 != 1) bug("Varargs parameter not last parameter");
                 sl1 = sl1.subList(1, s1);
             } else {
                 // If tails have equal rest-ness, shorten them both.
@@ -313,26 +295,30 @@ public class FTypeTuple extends FType {
         }
     }
 
-    private boolean unifyElement(Environment env, Set<String> tp_set,
+    private boolean unifyElement(Environment env,
+                                 Set<String> tp_set,
                                  BoundingMap<String, FType, TypeLatticeOps> abm,
                                  boolean unifyOverloads,
-                                 FType ft, Type tr) {
+                                 FType ft,
+                                 Type tr) {
         if (ft instanceof FTypeOverloadedArrow) {
             if (!unifyOverloads) return true;
         } else {
             if (unifyOverloads) return false;
         }
-        ft.unify(env,tp_set,abm,tr);
+        ft.unify(env, tp_set, abm, tr);
         return false;
     }
 
     /**
      * Unify a tuple type with a list of Type.
-     *  Used to be used in FTypeArrow, but an FTypeTuple is used there instead.
+     * Used to be used in FTypeArrow, but an FTypeTuple is used there instead.
      */
-    private boolean unifyTuple(Environment env, Set<String> tp_set,
+    private boolean unifyTuple(Environment env,
+                               Set<String> tp_set,
                                BoundingMap<String, FType, TypeLatticeOps> abm,
-                               List<Type> vals, Option<Type> varargs) {
+                               List<Type> vals,
+                               Option<Type> varargs) {
         boolean unifyOverloads = false;
         boolean anyOverloads = true;
         while (anyOverloads) {
@@ -345,18 +331,19 @@ public class FTypeTuple extends FType {
                 while (ftIterator.hasNext() && trIterator.hasNext()) {
                     ft = ftIterator.next();
                     tr = trIterator.next();
-                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                    anyOverloads = unifyElement(env, tp_set, abm, unifyOverloads, ft, tr) || anyOverloads;
                 }
                 while (varargs.isSome() && ftIterator.hasNext()) {
                     ft = ftIterator.next();
                     tr = varargs.unwrap();
-                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                    anyOverloads = unifyElement(env, tp_set, abm, unifyOverloads, ft, tr) || anyOverloads;
                 }
                 while (ft instanceof FTypeRest && trIterator.hasNext()) {
                     tr = trIterator.next();
-                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                    anyOverloads = unifyElement(env, tp_set, abm, unifyOverloads, ft, tr) || anyOverloads;
                 }
-            } catch (UnificationError p) {
+            }
+            catch (UnificationError p) {
                 return false;
             }
             unifyOverloads = true;
@@ -369,18 +356,19 @@ public class FTypeTuple extends FType {
      *      com.sun.fortress.interpreter.nodes.Type)
      */
     @Override
-    protected boolean unifyNonVar(Environment env, Set<String> tp_set,
-            BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
-        if (FType.DUMP_UNIFY)
-            System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
+    protected boolean unifyNonVar(Environment env,
+                                  Set<String> tp_set,
+                                  BoundingMap<String, FType, TypeLatticeOps> abm,
+                                  Type val) {
+        if (FType.DUMP_UNIFY) System.out.println("unify tuple " + this + " and " + val + ", abm=" + abm);
         if (!(val instanceof TupleType)) return false;
         List<Type> elements;
         Option<Type> vargs;
         TupleType _val = (TupleType) val;
-        if ( NodeUtil.isVoidType(_val) ) {
+        if (NodeUtil.isVoidType(_val)) {
             elements = Collections.emptyList();
             vargs = Option.none();
-        } else if ( ! NodeUtil.hasVarargs(_val) ) {
+        } else if (!NodeUtil.hasVarargs(_val)) {
             elements = _val.getElements();
             vargs = Option.none();
         } else {
@@ -392,9 +380,9 @@ public class FTypeTuple extends FType {
 
     @Override
     public boolean excludesOther(FType other) {
-        exclDump(this,".excludesOther(",other,"):");
+        exclDump(this, ".excludesOther(", other, "):");
 
-        if (this==other) {
+        if (this == other) {
             exclDumpln(" No.  Equal.");
             return false;
         }
@@ -421,12 +409,11 @@ public class FTypeTuple extends FType {
 
         /* Step 3: Figure out what to do with last element of shorter
          * tuple.  Hope to fail fast by finding length mismatch w/o rest. */
-        FType last = l.get(lSize-1);
+        FType last = l.get(lSize - 1);
         if (last instanceof FTypeRest) {
-            last = ((FTypeRest)last).getType();
+            last = ((FTypeRest) last).getType();
         } else if (otherSize > lSize) {
-            if (otherSize == lSize+1 &&
-                otherTypes.get(lSize) instanceof FTypeRest) {
+            if (otherSize == lSize + 1 && otherTypes.get(lSize) instanceof FTypeRest) {
                 /* Ignore this final rest argument when doing matching. */
                 lSize = lSize - 1;
             } else {
@@ -437,18 +424,18 @@ public class FTypeTuple extends FType {
         }
 
         /* Step 4: Check the tuple components for exclusion. */
-        for (int i=0; i < otherSize; i++) {
-            FType thisElt = (i < lSize-1) ? l.get(i) : last;
+        for (int i = 0; i < otherSize; i++) {
+            FType thisElt = (i < lSize - 1) ? l.get(i) : last;
             FType otherElt = otherTypes.get(i);
             if (otherElt instanceof FTypeRest) {
-                otherElt = ((FTypeRest)otherElt).getType();
+                otherElt = ((FTypeRest) otherElt).getType();
             }
             if (thisElt.excludesOther(otherElt)) {
-                exclDumpln(" Excludes type ",i);
+                exclDumpln(" Excludes type ", i);
                 this.addExclude(other);
                 return true;
             }
-            exclDump(" ",i);
+            exclDump(" ", i);
         }
         exclDumpln(" No exclusion.");
         return false;

@@ -1,18 +1,18 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2007 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -26,7 +26,7 @@ import java.io.PrintStream;
  * output, and saves a copy for replay and/or inspection.  Can be used to
  * implement optional logging of output/error for code that uses System.{out,err}
  * (for example, junit).
- * 
+ *
  * @author chase
  */
 public class WireTappedPrintStream extends PrintStream {
@@ -35,18 +35,18 @@ public class WireTappedPrintStream extends PrintStream {
      * The stream to which writes ultimately are directed.
      */
     PrintStream tappee;
-    
+
     /**
      * Receives writes to this PrintStream.
      */
     ByteArrayOutputStream s;
-    
+
     /**
      * If true, writes to the wiretapped stream are not released to tappee
      * until flush(true) is called.
      */
     boolean postponePassthrough;
-    
+
     /**
      * If postponePassthrough, then this is the index of the first postponed
      * byte.
@@ -57,6 +57,7 @@ public class WireTappedPrintStream extends PrintStream {
 
     /**
      * Creates a wire-tapped PrintStream that does not delay printing.
+     *
      * @param tappee the PrintStream to which output should be flushed.
      */
     public static WireTappedPrintStream make(PrintStream tappee) {
@@ -67,10 +68,11 @@ public class WireTappedPrintStream extends PrintStream {
     /**
      * Creates a wire-tapped PrintStream delays printing if postponePassthrough
      * is true.
-     * @param tappee the PrintStream to which output should be flushed.
+     *
+     * @param tappee              the PrintStream to which output should be flushed.
      * @param postponePassthrough do, or don't, postpone actual printing.
      */
-   public static WireTappedPrintStream make(PrintStream tappee, boolean postponePassthrough) {
+    public static WireTappedPrintStream make(PrintStream tappee, boolean postponePassthrough) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         return new WireTappedPrintStream(bos, tappee, postponePassthrough);
     }
@@ -103,7 +105,7 @@ public class WireTappedPrintStream extends PrintStream {
     /**
      * Sets all streams to flushed state, and optionally releases postponed output
      * to the wiretapped stream before flushing.
-     * 
+     *
      * @param releasePostponed if true, released postponed output
      * @throws IOException
      */
@@ -132,8 +134,7 @@ public class WireTappedPrintStream extends PrintStream {
     @Override
     public void write(byte[] arg0, int arg1, int arg2) {
         super.write(arg0, arg1, arg2);
-        if (!postponePassthrough)
-            tappee.write(arg0, arg1, arg2);
+        if (!postponePassthrough) tappee.write(arg0, arg1, arg2);
     }
 
     /* (non-Javadoc)
@@ -142,8 +143,7 @@ public class WireTappedPrintStream extends PrintStream {
     @Override
     public void write(int arg0) {
         super.write(arg0);
-        if (!postponePassthrough)
-            tappee.write(arg0);
+        if (!postponePassthrough) tappee.write(arg0);
     }
 
     /* (non-Javadoc)
@@ -152,7 +152,6 @@ public class WireTappedPrintStream extends PrintStream {
     @Override
     public void write(byte[] arg0) throws IOException {
         super.write(arg0);
-        if (!postponePassthrough)
-            tappee.write(arg0);
+        if (!postponePassthrough) tappee.write(arg0);
     }
 }

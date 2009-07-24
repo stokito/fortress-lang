@@ -1,28 +1,26 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.repository.graph;
 
+import com.sun.fortress.nodes.APIName;
+
 import java.io.File;
 import java.io.IOException;
-
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.repository.ProjectProperties;
 
 public abstract class GraphNode {
 
@@ -40,20 +38,20 @@ public abstract class GraphNode {
     public GraphNode(APIName name, File source_file) throws IOException {
         this(name, source_file.getCanonicalPath(), source_file.lastModified());
     }
-    
-    public APIName getName(){
+
+    public APIName getName() {
         return name;
     }
 
     public long getSourceDate() {
         return sourceDate;
     }
-    
+
     public String getSourcePath() {
         return canonicalSourceName;
     }
 
-    public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
+    public abstract <T, F extends Throwable> T accept(GraphVisitor<T, F> g) throws F;
 
     public abstract String key();
 

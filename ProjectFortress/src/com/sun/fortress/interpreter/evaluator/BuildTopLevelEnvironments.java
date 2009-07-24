@@ -1,58 +1,37 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2009 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.interpreter.env.CUWrapper;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.NonApiWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes._RewriteFnOverloadDecl;
-import com.sun.fortress.nodes._RewriteObjectExprDecl;
-import com.sun.fortress.nodes._RewriteFunctionalMethodDecl;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
-
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class BuildTopLevelEnvironments extends BuildEnvironments {
 
@@ -94,7 +73,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         return null;
     }
 
-  @Override
+    @Override
     public Boolean forImportNames(ImportNames x) {
         APIName imported = x.getApiName();
         importAPIName(imported);
@@ -115,8 +94,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
     public void importAPIName(String s) {
         CUWrapper c = linker.get(s);
-        if (c != null)
-            bindInto.putApi(s, c.getEnvironment());
+        if (c != null) bindInto.putApi(s, c.getEnvironment());
         else {
             System.err.println("Reference to missing api/component " + s);
         }
@@ -134,10 +112,12 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         List<Decl> decls = x.getDecls();
 
         switch (getPass()) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: doDefs(this, decls);break;
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                doDefs(this, decls);
+                break;
         }
         return null;
 
@@ -153,45 +133,45 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
     public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
         switch (getPass()) {
-        case 1: {
-            // Define the overloaded function.
-            String s = x.getName().stringName();
-            bindInto.putValue(s,new OverloadedFunction(x.getName(), bindInto));
-        }
-        break;
+            case 1: {
+                // Define the overloaded function.
+                String s = x.getName().stringName();
+                bindInto.putValue(s, new OverloadedFunction(x.getName(), bindInto));
+            }
+            break;
 
-        case 3: {
-            String s = x.getName().stringName();
-            OverloadedFunction of = (OverloadedFunction) bindInto.getRootValue(s);
-            for (IdOrOp fn : x.getFns()) {
-                Option<APIName> oapi = fn.getApiName();
-                FValue oapi_val = null;
+            case 3: {
+                String s = x.getName().stringName();
+                OverloadedFunction of = (OverloadedFunction) bindInto.getRootValue(s);
+                for (IdOrOp fn : x.getFns()) {
+                    Option<APIName> oapi = fn.getApiName();
+                    FValue oapi_val = null;
 
-                if (fn instanceof Id) {
-                    oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
-                } else if (fn instanceof Op) {
-                    oapi_val = bindInto.getValueNull((Op) fn, Environment.TOP_LEVEL); // top-level reference
-                } else {
-                    bug("Unexpected change to AST node hierarchy");
+                    if (fn instanceof Id) {
+                        oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
+                    } else if (fn instanceof Op) {
+                        oapi_val = bindInto.getValueNull((Op) fn, Environment.TOP_LEVEL); // top-level reference
+                    } else {
+                        bug("Unexpected change to AST node hierarchy");
+                    }
+
+                    if (oapi_val == null) {
+                        bug("Failed to find overload member " + fn + " for " + x);
+                    }
+
+                    if (oapi_val instanceof SingleFcn) {
+                        of.addOverload((SingleFcn) oapi_val, true);
+                    } else if (oapi_val instanceof OverloadedFunction) {
+                        of.addOverloads((OverloadedFunction) oapi_val);
+                    } else {
+                        bug("Unexpected function binding for " + fn + " , value is " + oapi_val);
+                    }
+
                 }
 
-                if (oapi_val == null) {
-                    bug("Failed to find overload member " + fn + " for " + x);
-                }
-
-                if (oapi_val instanceof SingleFcn) {
-                    of.addOverload((SingleFcn) oapi_val, true);
-                } else if (oapi_val instanceof OverloadedFunction) {
-                    of.addOverloads((OverloadedFunction) oapi_val);
-                } else {
-                    bug("Unexpected function binding for " + fn +" , value is " + oapi_val);
-                }
+                of.finishInitializing();
 
             }
-
-            of.finishInitializing();
-
-        }
 
         }
         return null;
@@ -206,18 +186,24 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     public Boolean forComponent(Component x) {
         List<Decl> defs = x.getDecls();
         switch (getPass()) {
-        case 1: forComponent1(x); break;
+            case 1:
+                forComponent1(x);
+                break;
 
-        case 2: doDefs(this, defs);
-        break;
-        case 3: {
-            ForceTraitFinish v = new ForceTraitFinish() ;
-            for (Decl def : defs) {
-                v.visit(def);
+            case 2:
+                doDefs(this, defs);
+                break;
+            case 3: {
+                ForceTraitFinish v = new ForceTraitFinish();
+                for (Decl def : defs) {
+                    v.visit(def);
+                }
             }
-        }
-        doDefs(this, defs);break;
-        case 4: doDefs(this, defs);break;
+            doDefs(this, defs);
+            break;
+            case 4:
+                doDefs(this, defs);
+                break;
         }
         return null;
     }
@@ -264,10 +250,9 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             Id name = NodeUtil.getName(x);
 
             if (staticParams.isEmpty()) {
-                    FTypeTrait ftt = (FTypeTrait) containing
-                            .getRootType(NodeUtil.nameString(name)); // top level
-                    Environment interior = ftt.getWithin();
-                    ftt.getMembers();
+                FTypeTrait ftt = (FTypeTrait) containing.getRootType(NodeUtil.nameString(name)); // top level
+                Environment interior = ftt.getWithin();
+                ftt.getMembers();
             }
             return null;
         }

@@ -1,52 +1,28 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+ Copyright 2008 Sun Microsystems, Inc.,
+ 4150 Network Circle, Santa Clara, California 95054, U.S.A.
+ All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+ U.S. Government Rights - Commercial software.
+ Government users are subject to the Sun Microsystems, Inc. standard
+ license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+ Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+ This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.parser_util.instrumentation;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.TreeSet;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringWriter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import com.sun.fortress.useful.Useful;
-
-import xtc.parser.ParserBase;
-import xtc.parser.ParseError;
-import xtc.parser.SemanticValue;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /*
  * Parser coverage command-line tool
@@ -93,12 +69,12 @@ import xtc.parser.SemanticValue;
 
 public class Coverage {
 
-    static final String PARSER_CLASS =
-        InstrumentedParserGenerator.INSTR_PARSER;
+    static final String PARSER_CLASS = InstrumentedParserGenerator.INSTR_PARSER;
 
     private static final boolean EXCLUDE_SLOW_FILES = false;
 
     static final List<String> TEST_DIRS = new LinkedList<String>();
+
     static {
         TEST_DIRS.add("tests");
         TEST_DIRS.add("static_tests");
@@ -136,33 +112,29 @@ public class Coverage {
                 for (Field field : fields) {
                     String fieldName = field.getName();
                     if (fieldName.endsWith("MemoMisses")) {
-                        String name = 
-                            fieldName.substring(0, fieldName.length() - "MemoMisses".length());
-                        misses.put(name, (Integer)field.get(null));
+                        String name = fieldName.substring(0, fieldName.length() - "MemoMisses".length());
+                        misses.put(name, (Integer) field.get(null));
                         this.memoInfoFound = true;
                     } else if (field.getName().endsWith("MemoHits")) {
-                        String name = 
-                            fieldName.substring(0, fieldName.length() - "MemoHits".length());
-                        hits.put(name, (Integer)field.get(null));
+                        String name = fieldName.substring(0, fieldName.length() - "MemoHits".length());
+                        hits.put(name, (Integer) field.get(null));
                         this.memoInfoFound = true;
                     } else if (field.getName().endsWith("MissCost")) {
-                        String name =
-                            fieldName.substring(0, fieldName.length() - "MissCost".length());
-                        missCost.put(name, (Long)field.get(null));
+                        String name = fieldName.substring(0, fieldName.length() - "MissCost".length());
+                        missCost.put(name, (Long) field.get(null));
                         this.memoInfoFound = true;
                     } else if (field.getName().endsWith("MissLocalCost")) {
-                        String name =
-                            fieldName.substring(0, fieldName.length() - "MissLocalCost".length());
-                        missLocalCost.put(name, (Long)field.get(null));
+                        String name = fieldName.substring(0, fieldName.length() - "MissLocalCost".length());
+                        missLocalCost.put(name, (Long) field.get(null));
                         this.memoInfoFound = true;
                     } else if (field.getName().endsWith("NTName")) {
-                        String name =
-                            fieldName.substring(0, fieldName.length() - "NTName".length());
-                        names.put(name, (String)field.get(null));
+                        String name = fieldName.substring(0, fieldName.length() - "NTName".length());
+                        names.put(name, (String) field.get(null));
                         this.memoInfoFound = true;
                     }
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -181,10 +153,10 @@ public class Coverage {
         for (String dir : TEST_DIRS) {
             File f = new File(dir);
             File[] srcfiles = f.listFiles(new FileFilter() {
-                    public boolean accept(File sf) {
-                        return (sf.getName().endsWith(".fsi") || sf.getName().endsWith(".fss"));
-                    }
-                });
+                public boolean accept(File sf) {
+                    return (sf.getName().endsWith(".fsi") || sf.getName().endsWith(".fss"));
+                }
+            });
             System.out.println("Loading " + srcfiles.length + " test files from " + dir);
             for (File srcfile : srcfiles) {
                 parseFile(parser, srcfile);
@@ -195,8 +167,7 @@ public class Coverage {
 
     private static void parseFile(Parser parser, File file) {
         String filename = file.getAbsolutePath();
-        if (VERBOSE)
-            System.out.println("Parsing " + filename + " ...");
+        if (VERBOSE) System.out.println("Parsing " + filename + " ...");
 
         if (EXCLUDE_SLOW_FILES) {
             // FIXME: temp blacklist
@@ -205,12 +176,15 @@ public class Coverage {
 
         try {
             parser.parse(file);
-        } catch (RuntimeException re) {
+        }
+        catch (RuntimeException re) {
             String parent = file.getParent();
             int size = parent.length();
-            if (size < 12 || !(parent.substring(size-12,size).equals("parser_tests")))
-                System.out.println("Parse error in file: " + filename);
-            if (RETHROW_PROGRAM_ERRORS) { throw re; }
+            if (size < 12 || !(parent.substring(size - 12, size).equals("parser_tests"))) System.out.println(
+                    "Parse error in file: " + filename);
+            if (RETHROW_PROGRAM_ERRORS) {
+                throw re;
+            }
         }
     }
 
@@ -226,12 +200,11 @@ public class Coverage {
         } else {
             List<Info.ModuleInfo> moduleInfos;
             moduleInfos = new LinkedList<Info.ModuleInfo>(rawModuleInfos);
-            Collections.sort(moduleInfos,
-                             new Comparator<Info.ModuleInfo>() {
-                                 public int compare(Info.ModuleInfo a, Info.ModuleInfo b) {
-                                     return a.module.compareTo(b.module);
-                                 }
-                             });
+            Collections.sort(moduleInfos, new Comparator<Info.ModuleInfo>() {
+                public int compare(Info.ModuleInfo a, Info.ModuleInfo b) {
+                    return a.module.compareTo(b.module);
+                }
+            });
             if (SHOW_COVERAGE) {
                 System.out.println("** Coverage summary: Alternate coverage by module");
                 for (Info.ModuleInfo moduleInfo : moduleInfos) {
@@ -269,7 +242,9 @@ public class Coverage {
         double comit_coverage = ((double) committed) / ((double) all) * 100.0;
 
         System.out.println(String.format("%3d%% alternate coverage in %s (attempted %3d%%)",
-                                         (int)comit_coverage, m.module, (int)start_coverage));
+                                         (int) comit_coverage,
+                                         m.module,
+                                         (int) start_coverage));
     }
 
     private static void printDetails(Info.ModuleInfo m) {
@@ -303,7 +278,7 @@ public class Coverage {
         System.out.println("Module " + m.module);
         //System.out.println(coverage(0,"started", m_started, m_all));
         //System.out.println(coverage(0,"ended", m_ended, m_all));
-        System.out.println(coverage(0,"committed", m_committed, m_all));
+        System.out.println(coverage(0, "committed", m_committed, m_all));
         System.out.println(string_out.toString());
     }
 
@@ -313,10 +288,8 @@ public class Coverage {
            com.sun.fortress.parser.Syntax
      */
     private static void printUnused(Info.ModuleInfo m) {
-        if (SIMPLIFIED_REPORT &&
-            (m.module.equals("com.sun.fortress.parser.Unicode") ||
-             m.module.equals("com.sun.fortress.parser.Syntax")))
-            return;
+        if (SIMPLIFIED_REPORT && (m.module.equals("com.sun.fortress.parser.Unicode") || m.module.equals(
+                "com.sun.fortress.parser.Syntax"))) return;
         System.out.println("Module " + m.module);
         for (Info.ProductionInfo p : m.productions) {
             int sequenceCount = p.sequences.size();
@@ -326,9 +299,7 @@ public class Coverage {
                     int size = name.length();
                     boolean print = true;
                     if (SIMPLIFIED_REPORT) {
-                        if (size >= 15 &&
-                            name.substring(0,15).equals("ErrorProduction"))
-                            print = false;
+                        if (size >= 15 && name.substring(0, 15).equals("ErrorProduction")) print = false;
                     }
                     if (print) {
                         System.out.print(String.format("    %s case %d/%d (%s)",
@@ -374,7 +345,7 @@ public class Coverage {
             name = (name != null) ? name : ("f = " + key);
             System.out.print(coverage(0, name, hitCount, hitCount + missCount));
             if (missCount > 0) {
-                double avgMissCost = ((float)missCost) / (missCount * 1.0e6);
+                double avgMissCost = ((float) missCost) / (missCount * 1.0e6);
                 System.out.print(String.format("; avg miss cost %.3f ms", avgMissCost));
             }
             if (lowCacheBenefit(hitCount, missCount, missCost)) {
@@ -405,18 +376,13 @@ public class Coverage {
     }
 
     private static String frequency(Info.SequenceInfo s) {
-        return String.format(" [%d-%d-%d]",
-                             s.startedCount,
-                             s.endedCount,
-                             s.committedCount);
+        return String.format(" [%d-%d-%d]", s.startedCount, s.endedCount, s.committedCount);
     }
 
     private static String coverage(int indent, String label, int covered, int total) {
-        double percentage = (100.0 * covered) / (double)total;
+        double percentage = (100.0 * covered) / (double) total;
         char[] indentation = new char[indent];
         Arrays.fill(indentation, ' ');
-        return String.format("%s-- %s %3d%% (%d/%d)",
-                             new String(indentation),
-                             label, (int)percentage, covered, total);
+        return String.format("%s-- %s %3d%% (%d/%d)", new String(indentation), label, (int) percentage, covered, total);
     }
 }
