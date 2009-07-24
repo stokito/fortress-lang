@@ -40,14 +40,12 @@ public class TypeCheckPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase TypeCheck");
         AnalyzeResult previous = parentPhase.getResult();
 
-        IndexBuilder.ApiResult apiIndex =
-                IndexBuilder.buildApis(previous.apiIterator(), this.env, lastModified);
+        IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(previous.apiIterator(), this.env, lastModified);
 
-        IndexBuilder.ComponentResult componentIndex =
-                IndexBuilder.buildComponents(previous.componentIterator(), lastModified);
+        IndexBuilder.ComponentResult componentIndex = IndexBuilder.buildComponents(previous.componentIterator(),
+                                                                                   lastModified);
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(),
-                apiIndex.apis()));
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), apiIndex.apis()));
 
         StaticChecker.ApiResult apiSR = StaticChecker.checkApis(apiIndex.apis(), apiEnv);
 
@@ -55,17 +53,16 @@ public class TypeCheckPhase extends Phase {
             throw new MultipleStaticError(apiSR.errors());
         }
 
-        StaticChecker.ComponentResult componentSR =
-                StaticChecker.checkComponents(componentIndex.components(), env);
+        StaticChecker.ComponentResult componentSR = StaticChecker.checkComponents(componentIndex.components(), env);
 
         if (!componentSR.isSuccessful()) {
             throw new MultipleStaticError(componentSR.errors());
         }
 
-        return new AnalyzeResult(apiSR.apis(), componentSR.components(),
-                IterUtil.<StaticError>empty(), Option
-                        .<TypeCheckerOutput>some(componentSR
-                        .typeCheckerOutput()));
+        return new AnalyzeResult(apiSR.apis(),
+                                 componentSR.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 Option.<TypeCheckerOutput>some(componentSR.typeCheckerOutput()));
     }
 
 }

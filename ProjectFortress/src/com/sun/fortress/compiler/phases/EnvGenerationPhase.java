@@ -35,31 +35,25 @@ public class EnvGenerationPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase EnvGeneration");
         AnalyzeResult previous = parentPhase.getResult();
 
-        TopLevelEnvGen.CompilationUnitResult apiGR =
-                TopLevelEnvGen.generateApiEnvs(previous.apis());
+        TopLevelEnvGen.CompilationUnitResult apiGR = TopLevelEnvGen.generateApiEnvs(previous.apis());
 
         if (!apiGR.isSuccessful()) {
             throw new MultipleStaticError(apiGR.errors());
         }
 
         // Generate top-level byte code environments for components
-        TopLevelEnvGen.CompilationUnitResult componentGR =
-                TopLevelEnvGen.generateComponentEnvs(previous.components());
+        TopLevelEnvGen.CompilationUnitResult componentGR = TopLevelEnvGen.generateComponentEnvs(previous.components());
 
         if (!componentGR.isSuccessful()) {
             throw new MultipleStaticError(componentGR.errors());
         }
 
-        // Generate bytecodes for as much as we can.
+        Debug.debug(Debug.Type.ENVGEN, 1, "Before invoking Compile: components=", previous.components());
 
-        Debug.debug(Debug.Type.ENVGEN, 1,
-                "Before invoking Compile: components=", previous.components());
-        //Debug.debug(Debug.Type.ENVGEN, 1, "Before invoking Compile: apis      =", previous.apis());
-
-
-        return new AnalyzeResult(previous.apis(), previous.components(),
-                IterUtil.<StaticError>empty(),
-                previous.typeCheckerOutput());
+        return new AnalyzeResult(previous.apis(),
+                                 previous.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
 
     }
 
