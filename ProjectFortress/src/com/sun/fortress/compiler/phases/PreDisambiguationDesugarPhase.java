@@ -40,34 +40,25 @@ public class PreDisambiguationDesugarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Pre-Disambiguation Desugar");
         AnalyzeResult previous = parentPhase.getResult();
 
-//            GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-//                                                                     .union(repository.apis(),
-//                                                                            CollectUtil.union(env.apis(),
-//                                                                                              previous.apis())));
-
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
 
-//              System.err.println("PreDisambiguateDesugarPhase apiEnv:");
-//              apiEnv.print();
-//              System.err.println("PreDisambiguateDesugarPhase end apiEnv");
-
-
-        PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(),
-                apiEnv);
+        PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(), apiEnv);
 
         if (!apiDSR.isSuccessful()) {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        PreDisambiguationDesugarer.ComponentResult componentDSR = PreDisambiguationDesugarer.desugarComponents(
-                previous.components(), apiEnv);
+        PreDisambiguationDesugarer.ComponentResult componentDSR =
+                PreDisambiguationDesugarer.desugarComponents(previous.components(), apiEnv);
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());
         }
 
-        return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
-                IterUtil.<StaticError>empty(), previous.typeCheckerOutput());
+        return new AnalyzeResult(apiDSR.apis(),
+                                 componentDSR.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
     }
 
 }

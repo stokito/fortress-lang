@@ -53,88 +53,46 @@ public class DisambiguatePhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Disambiguate");
         AnalyzeResult previous = parentPhase.getResult();
 
-        // Build a new GlobalEnvironment consisting of all APIs in a global
-        // repository combined with all APIs that have been processed in the
-        // previous step. 
-        //        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil
-        //                                                            .union(repository.apis(),
-        //                                                                    CollectUtil.union(env.apis(),
-        //                                                                                      previous.apis())));
-
-        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(),
-                previous.apis()));
-
-        // GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(previous.apis());
-
-//          System.out.println("rawApiEnv:");
-//          rawApiEnv.print();
-//          System.out.println("end rawApiEnv");
-
+        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
 
         // Rewrite all API ASTs so they include only fully qualified names,
         // relying on the rawApiEnv constructed in the previous step. Note that,
         // after this step, the rawApiEnv is stale and needs to be rebuilt with
         // the new API ASTs.
-        // 
-        // HACK: Disambiguate *all* APIs. It should be possible to disambiguate
-        // only those APIs relevant to the current compilation, and pass along the 
-        // disambiguated ApiIndices to subsequent phases. However, it appears
-        // that a single compilation is making multiple calls to all phases, passing
-        // only some CompilationUnits on each call, and not passing along results
-        // of disambiguation from call to call. This needs to be fixed. 
-        // EricAllen 7/8/2009
-        Disambiguator.ApiResult apiDR =
-                Disambiguator.disambiguateApis(apiAsts(previous.apis()),
-                        rawApiEnv);
-
-//         for (Api api : apiDR.apis()) { 
-//             Nodes.printNode(api, "apiDR.");
-//         }
-
+        Disambiguator.ApiResult apiDR = Disambiguator.disambiguateApis(apiAsts(previous.apis()), rawApiEnv);
 
         if (!apiDR.isSuccessful()) {
             throw new MultipleStaticError(apiDR.errors());
         }
 
         // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR =
-                IndexBuilder.buildApis(apiDR.apis(), rawApiEnv, lastModified);
-
-//         for (ApiIndex api : apiIR.apis().values()) { 
-//             Nodes.printNode(api.ast(), "apiIR.");
-//         }
+        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(), rawApiEnv, lastModified);
 
         if (!apiIR.isSuccessful()) {
             throw new MultipleStaticError(apiIR.errors());
         }
 
         // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv =
-                new GlobalEnvironment.FromMap(CollectUtil.union(rawApiEnv.apis(), apiIR.apis()));
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(rawApiEnv.apis(), apiIR.apis()));
 
-//         System.err.println("DisambiguatePhase apiEnv");
-//         apiEnv.print();
-//         System.err.println("end DisambiguatePhase apiEnv");
-
-        Disambiguator.ComponentResult componentDR =
-                Disambiguator.disambiguateComponents(previous.componentIterator(),
-                        apiEnv,
-                        previous.components());
+        Disambiguator.ComponentResult componentDR = Disambiguator.disambiguateComponents(previous.componentIterator(),
+                                                                                         apiEnv,
+                                                                                         previous.components());
         if (!componentDR.isSuccessful()) {
             throw new MultipleStaticError(componentDR.errors());
         }
 
         // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentsDone =
-                IndexBuilder.buildComponents(componentDR.components(), lastModified);
+        IndexBuilder.ComponentResult componentsDone = IndexBuilder.buildComponents(componentDR.components(),
+                                                                                   lastModified);
         if (!componentsDone.isSuccessful()) {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
         return new AnalyzeResult(apiIR.apis(),
-                componentsDone.components(),
-                IterUtil.<StaticError>empty(),
-                previous.typeCheckerOutput());
+                                 componentsDone.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
 
     }
 

@@ -55,9 +55,9 @@ public class CodeGenerationPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
         AnalyzeResult previous = parentPhase.getResult();
 
-        Debug.debug(Debug.Type.CODEGEN, 1,
-                "CodeGenerationPhase: components " + previous.components() +
-                        " apis = " + previous.apis().keySet());
+        Debug.debug(Debug.Type.CODEGEN,
+                    1,
+                    "CodeGenerationPhase: components " + previous.components() + " apis = " + previous.apis().keySet());
 
         for (APIName api : previous.apis().keySet()) {
             if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
@@ -66,8 +66,7 @@ public class CodeGenerationPhase extends Phase {
 
                 Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
 
-                Set<OverloadSet> overloads =
-                        new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
+                Set<OverloadSet> overloads = new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
 
                 for (IdOrOpOrAnonymousName name : fns.firstSet()) {
                     PredicateSet<Function> defs = fns.matchFirst(name);
@@ -81,8 +80,7 @@ public class CodeGenerationPhase extends Phase {
         }
 
         for (Component component : previous.componentIterator()) {
-            Debug.debug(Debug.Type.CODEGEN, 1,
-                    "CodeGenerationPhase: Compile(" + component.getName() + ")");
+            Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
             Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
             TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, getEnv()));
@@ -96,9 +94,10 @@ public class CodeGenerationPhase extends Phase {
             component.accept(c);
         }
 
-        return new AnalyzeResult(previous.apis(), previous.components(),
-                IterUtil.<StaticError>empty(),
-                previous.typeCheckerOutput());
+        return new AnalyzeResult(previous.apis(),
+                                 previous.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
 
     }
 
@@ -109,11 +108,13 @@ public class CodeGenerationPhase extends Phase {
      * @param defs
      * @param overloads
      */
-    private void foundAnOverLoadedForeignFunction(ApiIndex ai, TypeAnalyzer ta,
-                                                  IdOrOpOrAnonymousName name, PredicateSet<Function> defs, Set<OverloadSet> overloads) {
+    private void foundAnOverLoadedForeignFunction(ApiIndex ai,
+                                                  TypeAnalyzer ta,
+                                                  IdOrOpOrAnonymousName name,
+                                                  PredicateSet<Function> defs,
+                                                  Set<OverloadSet> overloads) {
         // Woo-hoo, an overloaded function.
-        if (debugOverloading)
-            System.err.println("Found an overloaded function " + name);
+        if (debugOverloading) System.err.println("Found an overloaded function " + name);
 
         MultiMap<Integer, Function> partitionedByArgCount = new MultiMap<Integer, Function>();
 
@@ -125,8 +126,7 @@ public class CodeGenerationPhase extends Phase {
             int i = entry.getKey();
             Set<Function> fs = entry.getValue();
             if (fs.size() > 1) {
-                OverloadSet os = new OverloadSet.Local(ai.ast().getName(), name, ta, fs,
-                        i);
+                OverloadSet os = new OverloadSet.Local(ai.ast().getName(), name, ta, fs, i);
 
                 os.split(true);
                 String s = os.toString();

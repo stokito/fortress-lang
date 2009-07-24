@@ -36,27 +36,26 @@ public class PreTypeCheckDesugarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase PreTypeCheckDesugar");
         AnalyzeResult previous = parentPhase.getResult();
 
-//        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-//                .union(repository.apis(), previous.apis()));
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(previous.apis());
 
         // Desugar APIs.
-        PreTypeCheckDesugarer.ApiResult apis = PreTypeCheckDesugarer.desugarApis(previous.apis(),
-                apiEnv);
+        PreTypeCheckDesugarer.ApiResult apis = PreTypeCheckDesugarer.desugarApis(previous.apis(), apiEnv);
         if (!apis.isSuccessful()) {
             throw new MultipleStaticError(apis.errors());
         }
 
         // Desugar components.
-        PreTypeCheckDesugarer.ComponentResult components = PreTypeCheckDesugarer
-                .desugarComponents(previous.components(), apiEnv);
+        PreTypeCheckDesugarer.ComponentResult components =
+                PreTypeCheckDesugarer.desugarComponents(previous.components(), apiEnv);
 
         if (!components.isSuccessful()) {
             throw new MultipleStaticError(components.errors());
         }
 
-        return new AnalyzeResult(apis.apis(), components.components(),
-                IterUtil.<StaticError>empty(), previous.typeCheckerOutput());
+        return new AnalyzeResult(apis.apis(),
+                                 components.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
     }
 
 }

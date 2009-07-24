@@ -39,33 +39,26 @@ public class DesugarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Desugar");
         AnalyzeResult previous = parentPhase.getResult();
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(env.apis(), previous.apis()));
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
 
-        Desugarer.ApiResult apiDSR = Desugarer.desugarApis(previous.apis(),
-                apiEnv);
+        Desugarer.ApiResult apiDSR = Desugarer.desugarApis(previous.apis(), apiEnv);
 
         if (!apiDSR.isSuccessful()) {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
         Option<TypeCheckerOutput> typeEnvs = previous.typeCheckerOutput();
-        /* We only need the TypeCheckerOutput if ObjectExpressionVisitor is
-         * turned on, so signal this error later. 
-        if(typeEnvs.isNone()) {
-        	throw new DesugarerError("Expected TypeCheckerOutput from type checking phase is not found.");
-        } 
-        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(
-                previous.components(), apiEnv, typeEnvs.unwrap()); */
-        Desugarer.ComponentResult componentDSR =
-                Desugarer.desugarComponents(previous.components(), apiEnv, typeEnvs);
+
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previous.components(), apiEnv, typeEnvs);
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());
         }
 
-        return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
-                IterUtil.<StaticError>empty(), previous.typeCheckerOutput());
+        return new AnalyzeResult(apiDSR.apis(),
+                                 componentDSR.components(),
+                                 IterUtil.<StaticError>empty(),
+                                 previous.typeCheckerOutput());
     }
 
 }
