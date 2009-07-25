@@ -560,7 +560,8 @@ public class ForeignJava {
             }
             Api a = NodeFactory.makeApi(span(name), name, imports, decls);
 
-            result = IndexBuilder.buildApiIndex(a, Long.MIN_VALUE + 2);
+            result = (ApiIndex)IndexBuilder.buildCompilationUnitIndex(a, Long.MIN_VALUE + 2,
+                                                                      true);
             cachedFakeApis.put(name, result);
         }
         return result;

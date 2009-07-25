@@ -140,7 +140,9 @@ object IndexBuilder {
       } else {
         // If <code>ast</code> is a compound API, link it into a single API.
         val new_ast = new ApiLinker(apis, env).link(ast)
-        apis.put(new_ast.getName, buildApiIndex(new_ast, modifiedDate, errors))
+        apis.put(new_ast.getName,
+                 buildCompilationUnitIndex(new_ast, modifiedDate,
+                                           errors, true).asInstanceOf[ApiIndex])
         true
       }
     }
@@ -149,96 +151,16 @@ object IndexBuilder {
   /** Create a ComponentIndex and add it to the given map. */
   private def buildComponent(ast: Component, components: JavaMap[APIName, ComponentIndex],
                              modifiedDate: Long, errors: JavaList[StaticError]) =
-    components.put(ast.getName, buildComponentIndex(ast, modifiedDate, errors))
+    components.put(ast.getName, buildCompilationUnitIndex(ast, modifiedDate, errors,
+                                                          false).asInstanceOf[ComponentIndex])
 
-  def buildApiIndex(ast: Api, modifiedDate: Long): ApiIndex =
-    buildApiIndex(ast, modifiedDate, new LinkedList[StaticError]())
+  def buildCompilationUnitIndex(ast: CompilationUnit, modifiedDate: Long,
+                                isApi: Boolean): CompilationUnitIndex =
+    buildCompilationUnitIndex(ast, modifiedDate, new LinkedList[StaticError](), isApi)
 
-  def buildApiIndex(ast: Api, modifiedDate: Long,
-                    errors: JavaList[StaticError]): ApiIndex = {
-    val variables: JavaMap[Id, Variable] = new JavaHashMap[Id, Variable]()
-    val functions: Relation[IdOrOpOrAnonymousName, JavaFunction] =
-      new IndexedRelation[IdOrOpOrAnonymousName, JavaFunction](false)
-    val parametricOperators: JavaSet[ParametricOperator] =
-      new JavaHashSet[ParametricOperator]()
-    val typeConses: JavaMap[Id, TypeConsIndex] = new JavaHashMap[Id, TypeConsIndex]()
-    val dimensions: JavaMap[Id, JavaDimension] = new JavaHashMap[Id, JavaDimension]()
-    val units: JavaMap[Id, JavaUnit] = new JavaHashMap[Id, JavaUnit]()
-    val grammars: JavaMap[String, GrammarIndex] = new JavaHashMap[String, GrammarIndex]()
-
-    for (decl <- ast.getDecls) {
-      decl match {
-        case d@STraitDecl(_,_,_,_,_,_) =>
-          buildTrait(d, typeConses, functions, parametricOperators, errors)
-        case d@SObjectDecl(_,_,_,_) =>
-          buildObject(d, typeConses, functions, parametricOperators, variables, errors)
-        case d@SVarDecl(_,_,_) => buildVariables(d, variables)
-        case d@SFnDecl(_,_,_,_,_) => buildFunction(d, functions)
-        case d@SDimDecl(_,_,_,_) => buildDimension(d, dimensions)
-        case d@SUnitDecl(_,_,_,_,_) => buildUnit(d, units)
-        case d@SGrammarDecl(_,_,_,_,_,_) => // only for buildApiIndex
-          buildGrammar(d, grammars, errors)
-        case d@STypeAlias(_,_,_,_) => bug("Not yet implemented: " + d)
-        case d@STestDecl(_,_,_,_) => bug("Not yet implemented: " + d)
-        case d@SPropertyDecl(_,_,_,_) => bug("Not yet implemented: " + d)
-        case _ =>
-      }
-    }
-
-    for (decl <- ast.getDecls) {
-      decl match {
-        case d@STraitDecl(info, header, excludes, comprises, ellipses, self) =>
-          val dName = NodeUtil.getName(d)
-          val dIndex = typeConses.get(dName).asInstanceOf[ProperTraitIndex]
-          if ( d.getComprisesClause.isSome ) {
-            for ( t <- d.getComprisesClause.unwrap )
-              if ( t.isInstanceOf[NamedType] ) {
-                val typ = t match {
-                  case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-                  case _ =>
-                    NodeFactory.makeTraitType(t.asInstanceOf[NamedType].getName)
-                }
-                dIndex.addComprisesType(typ)
-              } else bug("TraitType is expected in the comprises clause of " + d +
-                         " but found " + t + " " + t.getClass + ".")
-          }
-          for (t <- d.getExcludesClause) {
-            if ( t.isInstanceOf[NamedType] ) {
-              // add t to d's excludes clause
-              val tName = t.asInstanceOf[NamedType].getName
-              var typ = t match {
-                case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-                case _ => NodeFactory.makeTraitType(tName)
-              }
-              dIndex.addExcludesType(typ)
-              // add d to t's excludes clause
-              typ = toOption(d.getSelfType) match {
-                case Some(ty) => ty.asInstanceOf[TraitType]
-                case _ =>
-                  NodeFactory.makeTraitType(dName, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(d)))
-              }
-              // If t is a parameterized type instantiated with ground types,
-              // then do not add d to t's excludes clause.
-              if ( ( t.isInstanceOf[VarType] ||
-                     t.asInstanceOf[TraitType].getArgs.isEmpty ) &&
-                   typeConses.get(tName).isInstanceOf[ProperTraitIndex] &&
-                   typeConses.get(tName).asInstanceOf[ProperTraitIndex] != null )
-                  typeConses.get(tName).asInstanceOf[ProperTraitIndex].addExcludesType(typ)
-            } else bug("TraitType is expected in the excludes clause of " + d +
-                       " but found " + t + ".")
-          }
-        case _ =>
-      }
-    }
-    new ApiIndex(ast, variables, functions, parametricOperators,
-                 typeConses, dimensions, units, grammars, modifiedDate)
-  }
-
-  def buildComponentIndex(ast: Component, modifiedDate: Long): ComponentIndex =
-    buildComponentIndex(ast, modifiedDate, new LinkedList[StaticError]())
-
-  def buildComponentIndex(ast: Component, modifiedDate: Long,
-                          errors: JavaList[StaticError]): ComponentIndex = {
+  private def buildCompilationUnitIndex(ast: CompilationUnit, modifiedDate: Long,
+                                        errors: JavaList[StaticError],
+                                        isApi: Boolean): CompilationUnitIndex = {
     val variables: JavaMap[Id, Variable] = new JavaHashMap[Id, Variable]()
     val initializers: JavaSet[VarDecl] = new JavaHashSet[VarDecl]()
     val functions: Relation[IdOrOpOrAnonymousName, JavaFunction] =
@@ -248,74 +170,37 @@ object IndexBuilder {
     val typeConses: JavaMap[Id, TypeConsIndex] = new JavaHashMap[Id, TypeConsIndex]()
     val dimensions: JavaMap[Id, JavaDimension] = new JavaHashMap[Id, JavaDimension]()
     val units: JavaMap[Id, JavaUnit] = new JavaHashMap[Id, JavaUnit]()
-
+    val grammars: JavaMap[String, GrammarIndex] = new JavaHashMap[String, GrammarIndex]()
     for (decl <- ast.getDecls) {
       decl match {
-        case d@STraitDecl(_,_,_,_,_,_) =>
+        case d@STraitDecl(_, _, excludes, comprises, _, self) =>
           buildTrait(d, typeConses, functions, parametricOperators, errors)
+          checkTraitClauses(typeConses, NodeUtil.getName(d),
+                            NodeUtil.getStaticParams(d),
+                            excludes, comprises, self)
         case d@SObjectDecl(_,_,_,_) =>
           buildObject(d, typeConses, functions, parametricOperators, variables, errors)
         case d@SVarDecl(_,_,_) =>
           buildVariables(d, variables)
-        initializers.add(d) // only for buildComponentIndex
+          if (! isApi) initializers.add(d)
         case d@SFnDecl(_,_,_,_,_) => buildFunction(d, functions)
         case d@SDimDecl(_,_,_,_) => buildDimension(d, dimensions)
         case d@SUnitDecl(_,_,_,_,_) => buildUnit(d, units)
+        case d@SGrammarDecl(_,_,_,_,_,_) =>
+          if (isApi) buildGrammar(d, grammars, errors)
         case d@STypeAlias(_,_,_,_) => bug("Not yet implemented: " + d)
         case d@STestDecl(_,_,_,_) => bug("Not yet implemented: " + d)
         case d@SPropertyDecl(_,_,_,_) => bug("Not yet implemented: " + d)
         case _ =>
       }
     }
-
-    for (decl <- ast.getDecls) {
-      decl match {
-        case d@STraitDecl(info, header, excludes, comprises, ellipses, self) =>
-          val dName = NodeUtil.getName(d)
-          val dIndex = typeConses.get(dName).asInstanceOf[ProperTraitIndex]
-          if ( d.getComprisesClause.isSome ) {
-            for ( t <- d.getComprisesClause.unwrap )
-              if ( t.isInstanceOf[NamedType] ) {
-                val typ = t match {
-                  case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-                  case _ =>
-                    NodeFactory.makeTraitType(t.asInstanceOf[NamedType].getName)
-                }
-                dIndex.addComprisesType(typ)
-              } else bug("TraitType is expected in the comprises clause of " + d +
-                         " but found " + t + " " + t.getClass + ".")
-          }
-          for (t <- d.getExcludesClause) {
-            if ( t.isInstanceOf[NamedType] ) {
-              // add t to d's excludes clause
-              val tName = t.asInstanceOf[NamedType].getName
-              var typ = t match {
-                case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-                case _ => NodeFactory.makeTraitType(tName)
-              }
-              dIndex.addExcludesType(typ)
-              // add d to t's excludes clause
-              typ = toOption(d.getSelfType) match {
-                case Some(ty) => ty.asInstanceOf[TraitType]
-                case _ =>
-                  NodeFactory.makeTraitType(dName, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(d)))
-              }
-              // If t is a parameterized type instantiated with ground types,
-              // then do not add d to t's excludes clause.
-              if ( ( t.isInstanceOf[VarType] ||
-                     t.asInstanceOf[TraitType].getArgs.isEmpty ) &&
-                   typeConses.get(tName).isInstanceOf[ProperTraitIndex] &&
-                   typeConses.get(tName).asInstanceOf[ProperTraitIndex] != null )
-                  typeConses.get(tName).asInstanceOf[ProperTraitIndex].addExcludesType(typ)
-            } else bug("TraitType is expected in the excludes clause of " + d +
-                       " but found " + t + ".")
-          }
-        case _ =>
-      }
-    }
-
-    new ComponentIndex(ast, variables, initializers, functions, parametricOperators,
-                       typeConses, dimensions, units, modifiedDate)
+    if (isApi)
+      new ApiIndex(ast.asInstanceOf[Api], variables, functions, parametricOperators,
+                   typeConses, dimensions, units, grammars, modifiedDate)
+    else
+      new ComponentIndex(ast.asInstanceOf[Component], variables, initializers,
+                         functions, parametricOperators,
+                         typeConses, dimensions, units, modifiedDate)
   }
 
   /**
@@ -340,6 +225,52 @@ object IndexBuilder {
     index_holder.get(fake_object_name).asInstanceOf[ObjectTraitIndex]
   }
 
+  private def checkTraitClauses(typeConses: JavaMap[Id, TypeConsIndex],
+                                dName: IdOrOpOrAnonymousName,
+                                staticParams: JavaList[StaticParam],
+                                excludes: List[BaseType],
+                                comprises: Option[List[BaseType]],
+                                self: Option[Type]) = {
+    val dIndex = typeConses.get(dName).asInstanceOf[ProperTraitIndex]
+    if ( comprises.isDefined ) {
+      for ( t <- comprises.get )
+        if ( t.isInstanceOf[NamedType] ) {
+          val typ = t match {
+            case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
+            case _ => NodeFactory.makeTraitType(t.asInstanceOf[NamedType].getName)
+          }
+          dIndex.addComprisesType(typ)
+        } else bug("TraitType is expected in the comprises clause of " + dName +
+                   " but found " + t + " " + t.getClass + ".")
+    }
+    for (t <- excludes) {
+      if ( t.isInstanceOf[NamedType] ) {
+        // add t to d's excludes clause
+        val tName = t.asInstanceOf[NamedType].getName
+        var typ = t match {
+          case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
+          case _ => NodeFactory.makeTraitType(tName)
+        }
+        dIndex.addExcludesType(typ)
+        // add d to t's excludes clause
+        typ = toOption(self) match {
+          case Some(ty) => ty.asInstanceOf[TraitType]
+          case _ =>
+            NodeFactory.makeTraitType(dName.asInstanceOf[Id],
+                                      TypeEnv.staticParamsToArgs(staticParams))
+        }
+        // If t is a parameterized type instantiated with ground types,
+        // then do not add d to t's excludes clause.
+        if ( ( t.isInstanceOf[VarType] ||
+               t.asInstanceOf[TraitType].getArgs.isEmpty ) &&
+             typeConses.get(tName).isInstanceOf[ProperTraitIndex] &&
+             typeConses.get(tName).asInstanceOf[ProperTraitIndex] != null )
+          typeConses.get(tName).asInstanceOf[ProperTraitIndex].addExcludesType(typ)
+      } else bug("TraitType is expected in the excludes clause of " + dName +
+                 " but found " + t + ".")
+    }
+  }
+
   /**
    * Create a ProperTraitIndex and put it in the given map; add functional methods
    * to the given relation.
@@ -357,6 +288,7 @@ object IndexBuilder {
     val functionalMethods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod] =
       new IndexedRelation[IdOrOpOrAnonymousName, JavaFunctionalMethod](false)
 
+    // FnDecls should be handled before VarDecls
     for (decl <- NodeUtil.getDecls(ast)) {
       decl match {
         case d@SFnDecl(_,_,_,_,_) =>
