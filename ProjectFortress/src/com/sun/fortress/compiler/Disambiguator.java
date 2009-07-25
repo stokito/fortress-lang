@@ -48,6 +48,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.scala_src.linker.ExportExpander;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.HasAt;
@@ -260,7 +261,7 @@ public class Disambiguator {
     public static ComponentResult disambiguateComponents(Iterable<Component> components,
                                                          GlobalEnvironment globalEnv,
                                                          Map<APIName, ComponentIndex> indices) {
-        
+
 //         System.err.println("disambiguateComponents globalEnv");
 //         globalEnv.print();
 //         System.err.println("end disambiguateComponents globalEnv");
@@ -271,7 +272,7 @@ public class Disambiguator {
         // Expand exports of compound APIs, and
         // add to exports all compound APIs whose constituents are exported.
         List<Component> expandedComps = new ArrayList<Component>();
-        for (Component comp: components) { 
+        for (Component comp: components) {
             ComponentIndex index = indices.get(comp.getName());
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
@@ -367,7 +368,7 @@ public class Disambiguator {
     /* Expand all exports of compound APIs, and
      * add to exports list all compound APIs whose constituents are exported.
      */
-    private static Component expandExports(Component component, GlobalEnvironment env) { 
+    private static Component expandExports(Component component, GlobalEnvironment env) {
         // The ExportExpander is a walker that returns a node of the same type you give it.
         return (Component)new ExportExpander(env).expand(component);
     }

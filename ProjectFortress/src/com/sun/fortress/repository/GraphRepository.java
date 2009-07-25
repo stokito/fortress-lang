@@ -32,6 +32,7 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.*;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Path;
@@ -54,11 +55,11 @@ import java.util.*;
  *
  * When only compiling a .fss file, the .fss depends on its imported
  * and exported APIs, and the transitive closure of the APIs they
- * depend on. 
+ * depend on.
  *
  * When linking a .fss file, the .fss depends on its imported and
  * exported APIs. Components that implement those APIs are added to
- * the graph. 
+ * the graph.
  */
 public class GraphRepository extends StubRepository implements FortressRepository {
 
@@ -277,7 +278,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             catch (IOException e) {
             }
 
-            /* Make this component depend on the APIs it imports. 
+            /* Make this component depend on the APIs it imports.
              * For now, calling nodeDependsOnApi when linking will
              * also make this component depend on a component with the same name as
              * the API it imports.
@@ -487,7 +488,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private class OutOfDateVisitor implements GraphVisitor<Boolean, FileNotFoundException> {
-        // Rebuilds get triggered transitively across chains of API dependence.  
+        // Rebuilds get triggered transitively across chains of API dependence.
         // "Youngest" is computed transitively.
         private Map<GraphNode, Long> youngestSourceDependedOn;
 
@@ -708,7 +709,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 CompilationUnit api = Parser.parseFileConvertExn(fdot);
                 if (api instanceof Api) {
                     // Is this a good side-effect?
-                    node.setApi(IndexBuilder.builder.buildApiIndex((Api) api, fdot.lastModified()),
+                    node.setApi(IndexBuilder.buildApiIndex((Api) api, fdot.lastModified()),
                                 fdot.lastModified());
                     return (Api) api;
                 } else {

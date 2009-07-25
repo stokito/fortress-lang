@@ -38,7 +38,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
@@ -65,6 +64,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;

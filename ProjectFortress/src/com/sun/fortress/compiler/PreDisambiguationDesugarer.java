@@ -27,6 +27,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 
 import edu.rice.cs.plt.iter.IterUtil;
 

@@ -20,7 +20,6 @@ package com.sun.fortress.scala_src.typechecker.impls
 import _root_.java.util.{List => JavaList}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
-import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
@@ -47,10 +46,10 @@ import scala.collection.mutable.{Map => MMap}
 /**
  * Provides the implementation of miscellaneous cases that aren't found in any
  * of the other implementation groups.
- * 
+ *
  * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker along with the Common helpers. This is what
  * allows this trait to implement abstract members of STypeChecker and to
@@ -135,7 +134,7 @@ trait Misc { self: STypeChecker with Common =>
   // @TODO: Look over this method.
   def handleGens(generators: List[GeneratorClause])
                  : (List[GeneratorClause], List[LValue]) = generators match {
-                   
+
     case Nil => (Nil, Nil)
     case hd::Nil =>
       val (clause, binds) = generatorClauseGetBindings(hd, false)
@@ -151,7 +150,7 @@ trait Misc { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
-  
+
   def checkMisc(node: Node): Node = node match {
 
     case id@SId(info,api,name) => {
@@ -176,7 +175,7 @@ trait Misc { self: STypeChecker with Common =>
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
-  
+
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
@@ -188,13 +187,13 @@ trait Misc { self: STypeChecker with Common =>
       val fieldType = findFieldsInTraitHierarchy(field, recvrType)
       fieldType match {
         case Some(_) => SFieldRef(SExprInfo(span, parens, fieldType), checkedObj, field)
-        case None => 
+        case None =>
           signal(expr,"%s has no field called %s".format(obj,field))
           expr
       }
     }
-      
-    //ToDo: Why isn't this a Decl?  
+
+    //ToDo: Why isn't this a Decl?
     case o@SObjectExpr(SExprInfo(span,parenthesized,_),
                      STraitTypeHeader(sparams, mods, name, where,
                                       throwsC, contract, extendsC, decls),
@@ -534,7 +533,7 @@ trait Misc { self: STypeChecker with Common =>
                      (implicit analyzer: TypeAnalyzer,
                                envCache: MMap[APIName, STypeEnv])
       extends STypeCheckerImpl(current,traits,env,errors) {
-    
+
     val message = errorMsg("A 'spawn' expression must not occur inside ",
                            enclosingExpr, ".")
     override def checkExpr(e: Expr): Expr = e match {
@@ -542,5 +541,5 @@ trait Misc { self: STypeChecker with Common =>
       case _ => super.checkExpr(e)
     }
   }
-  
+
 }

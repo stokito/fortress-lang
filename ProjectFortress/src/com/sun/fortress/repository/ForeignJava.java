@@ -17,7 +17,6 @@
 
 package com.sun.fortress.repository;
 
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
@@ -30,6 +29,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.GraphNode;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
 import org.objectweb.asm.ClassReader;
@@ -560,7 +560,7 @@ public class ForeignJava {
             }
             Api a = NodeFactory.makeApi(span(name), name, imports, decls);
 
-            result = IndexBuilder.builder.buildApiIndex(a, Long.MIN_VALUE + 2);
+            result = IndexBuilder.buildApiIndex(a, Long.MIN_VALUE + 2);
             cachedFakeApis.put(name, result);
         }
         return result;

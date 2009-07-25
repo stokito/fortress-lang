@@ -20,10 +20,10 @@ package com.sun.fortress.scala_src.linker
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ApiIndex
-import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.nodes._
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.IndexBuilder
 import com.sun.fortress.scala_src.useful.Lists._
 import _root_.java.util.{List => JList}
 import _root_.java.util.Map
@@ -33,7 +33,7 @@ class ApiLinker(env: Map[APIName, ApiIndex], globalEnv: GlobalEnvironment) {
   def link(api: Api): Api = {
     api match {
       case SApi(info, name, imports, decls, comprises) => {
-        if (comprises.isEmpty) { api } 
+        if (comprises.isEmpty) { api }
         else {
           val allDecls = new ArrayList[Decl]()
           for (cname <- comprises) {
@@ -66,4 +66,3 @@ class ApiLinker(env: Map[APIName, ApiIndex], globalEnv: GlobalEnvironment) {
     }
   }
 }
-  

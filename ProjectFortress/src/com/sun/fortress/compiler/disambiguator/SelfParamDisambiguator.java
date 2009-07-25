@@ -16,7 +16,7 @@
  ******************************************************************************/
 package com.sun.fortress.compiler.disambiguator;
 
-import static com.sun.fortress.compiler.IndexBuilder.SELF_NAME;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
@@ -101,7 +101,7 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
                 if (!NodeUtil.isVarargsParam(that)) {
                     // my type is broken I need to qualify the type name
                     Option<Type> new_type;
-                    if (name_result.equals(SELF_NAME)) new_type = Option.some(self_type);
+                    if (name_result.equals(NamingCzar.SELF_NAME)) new_type = Option.some(self_type);
                     else new_type = type_result;
 
                     return NodeFactory.makeParam(NodeUtil.getSpan(that),

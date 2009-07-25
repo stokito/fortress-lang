@@ -74,6 +74,9 @@ public class NamingCzar {
         this.fj = fj;
     }
 
+    public static final String COERCION_NAME = "coerce";
+    public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
+
     public static final String springBoard = "$SpringBoard";
     public static final String make = "make";
 
@@ -358,7 +361,7 @@ public class NamingCzar {
         return jvmTypeDesc(t, ifNone);
     }
 
-    
+
     public static String boxedImplType( com.sun.fortress.nodes.Type t, APIName ifNone ) {
         return jvmTypeDesc(t, ifNone, false);
     }
@@ -752,6 +755,6 @@ public class NamingCzar {
         initDesc = initDesc + ")V";
         return initDesc;
     }
-        
+
 
 }
