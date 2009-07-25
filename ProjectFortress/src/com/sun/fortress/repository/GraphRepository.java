@@ -709,7 +709,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 CompilationUnit api = Parser.parseFileConvertExn(fdot);
                 if (api instanceof Api) {
                     // Is this a good side-effect?
-                    node.setApi(IndexBuilder.buildApiIndex((Api) api, fdot.lastModified()),
+                    node.setApi((ApiIndex)IndexBuilder.buildCompilationUnitIndex(api,
+                                                                                 fdot.lastModified(), true),
                                 fdot.lastModified());
                     return (Api) api;
                 } else {

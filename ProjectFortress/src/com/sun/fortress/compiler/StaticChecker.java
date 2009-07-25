@@ -193,7 +193,7 @@ public class StaticChecker {
                                                          boolean isApi) {
         if (Shell.getTypeChecking() == true) {
             CompilationUnit ast = index.ast();
-            List<StaticError> errors;
+            List<StaticError> errors = new ArrayList<StaticError>();
 
             if (isApi) {
                 Api api_ast = (Api)ast;
@@ -207,14 +207,15 @@ public class StaticChecker {
                 }
                 ast = new ApiLinker(env.apis(), env).link(api_ast);
 //                 Nodes.printNode((Api)ast, "api_linked_ast.");
-                index = IndexBuilder.buildApiIndex(api_ast,
-                                                   System.currentTimeMillis());
+                index = IndexBuilder.buildCompilationUnitIndex(api_ast,
+                                                               System.currentTimeMillis(),
+                                                               isApi);
             }
 
             // Check type hierarchy to ensure acyclicity.
             TypeHierarchyChecker typeHierarchyChecker =
                 new TypeHierarchyChecker(index, env, isApi);
-            errors = typeHierarchyChecker.checkHierarchy();
+            errors.addAll(typeHierarchyChecker.checkHierarchy());
             if (! errors.isEmpty()) {
                 return new TypeCheckerResult(ast, errors);
             }
@@ -258,7 +259,7 @@ public class StaticChecker {
                     // then replace inference variables...
                     InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
                     ast = (Component)result.ast().accept(rep);
-                    index = buildIndex(ast, isApi);
+                    componentIndex = (ComponentIndex)buildIndex(ast, isApi);
                     // then typecheck again!!!
                     result = typeCheck(componentIndex, env, traitTable,
                                        component_ast, true);
@@ -280,10 +281,11 @@ public class StaticChecker {
                     STypeChecker typeChecker =
                         STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer);
                     ast = (Component)typeChecker.typeCheck(component_ast);
-                    index = buildIndex(ast, isApi);
+                    componentIndex = (ComponentIndex)buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
                     result = new TypeCheckerResult(ast, errors);
                 }
+                index = componentIndex;
             }
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
@@ -342,11 +344,13 @@ public class StaticChecker {
 
     private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {
         if (isApi)
-            return IndexBuilder.buildApiIndex((Api)ast,
-                                              System.currentTimeMillis());
+            return IndexBuilder.buildCompilationUnitIndex(ast,
+                                                          System.currentTimeMillis(),
+                                                          isApi);
         else
-            return IndexBuilder.buildComponentIndex((Component)ast,
-                                                    System.currentTimeMillis());
+            return IndexBuilder.buildCompilationUnitIndex(ast,
+                                                          System.currentTimeMillis(),
+                                                          isApi);
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,
