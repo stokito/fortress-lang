@@ -36,6 +36,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 
 import edu.rice.cs.plt.tuple.Option;
 

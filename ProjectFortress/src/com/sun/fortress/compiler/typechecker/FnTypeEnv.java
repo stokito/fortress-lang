@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
@@ -54,6 +54,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
@@ -86,7 +87,7 @@ class FnTypeEnv extends TypeEnv {
 
         Option<Type> self_type_ = Option.none();
         for( Param param : NodeUtil.getParams(fn) ) {
-            if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
+            if( param.getName().equals(NamingCzar.SELF_NAME) ) {
                     if( ! NodeUtil.isVarargsParam(param) )
                         self_type_ = param.getIdType();
                     else

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.repository;
 
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -33,6 +32,7 @@ import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.ComponentGraphNode;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.tuple.Option;
@@ -77,7 +77,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         if (candidate.isNone()) {
             throw new RepositoryError("Could not deserialize contents of repository file " + s);
         }
-        ci = IndexBuilder.builder.buildApiIndex((Api) candidate.unwrap(), f.lastModified());
+        ci = IndexBuilder.buildApiIndex((Api) candidate.unwrap(), f.lastModified());
         apis.put(name, ci);
         return ci;
     }
@@ -95,7 +95,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         if (candidate.isNone()) {
             throw new RepositoryError("Could not deserialize contents of repository file " + s);
         }
-        ci = IndexBuilder.builder.buildComponentIndex((Component) candidate.unwrap(), f.lastModified());
+        ci = IndexBuilder.buildComponentIndex((Component) candidate.unwrap(), f.lastModified());
         components.put(name, ci);
         return ci;
 

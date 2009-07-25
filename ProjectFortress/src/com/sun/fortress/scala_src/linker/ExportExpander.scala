@@ -20,11 +20,11 @@ package com.sun.fortress.scala_src.linker
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
-import com.sun.fortress.compiler.IndexBuilder
 import com.sun.fortress.nodes._
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.IndexBuilder
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -48,7 +48,7 @@ class ExportExpander(env: GlobalEnvironment) {
     for (export <- toList(comp.getExports)) {
       if (env.definesApi(export)) {
         for (constituent <- toSet(env.lookup(export).comprises)) {
-          newExports = constituent :: newExports 
+          newExports = constituent :: newExports
         }
       }
       else {
@@ -56,8 +56,8 @@ class ExportExpander(env: GlobalEnvironment) {
       }
     }
     // Add compound APIs whose constituents are all exported.
-    // Implicit additions might enable yet more implicit additions. 
-    // Continue until a fixed point is reached. 
+    // Implicit additions might enable yet more implicit additions.
+    // Continue until a fixed point is reached.
     var moreAdded = true
     while (moreAdded) {
       moreAdded = false
@@ -69,12 +69,12 @@ class ExportExpander(env: GlobalEnvironment) {
           // A compound API is added iff all of its constituents are exported
           canAdd = canAdd && (comp.getExports contains constituent)
         }
-        if (canAdd) { 
+        if (canAdd) {
           moreAdded = true
-          newExports = name :: newExports 
+          newExports = name :: newExports
         }
       }
-    } 
+    }
 
     // Build new list of exports. Note that ComponentIndices always hold Components.
     val allExports = toList(comp.getExports) ::: newExports
@@ -88,10 +88,9 @@ class ExportExpander(env: GlobalEnvironment) {
 
   class ExportReplacer(allExports: List[APIName]) extends Walker {
     override def walk(node: Any): Any = node match {
-      case SComponent(getInfo, getName, getImports, getDecls, getComprises, is_native, getExports) => 
+      case SComponent(getInfo, getName, getImports, getDecls, getComprises, is_native, getExports) =>
         SComponent(getInfo, getName, getImports, getDecls, getComprises, is_native, allExports)
       case _ => super.walk(node)
     }
   }
 }
-  

@@ -18,7 +18,6 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.MultipleStaticError;
@@ -27,6 +26,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.useful.Debug;

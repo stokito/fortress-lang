@@ -24,7 +24,6 @@ import java.util.Map;
 import javax.xml.transform.Result;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticChecker;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.ASTNode;
@@ -47,6 +46,7 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;

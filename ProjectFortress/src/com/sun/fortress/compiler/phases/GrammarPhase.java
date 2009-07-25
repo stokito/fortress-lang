@@ -19,10 +19,10 @@ package com.sun.fortress.compiler.phases;
 
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;

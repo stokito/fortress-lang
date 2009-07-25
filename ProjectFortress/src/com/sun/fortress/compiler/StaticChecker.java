@@ -54,6 +54,7 @@ import com.sun.fortress.scala_src.typechecker.ApiTypeExtractor;
 import com.sun.fortress.scala_src.typechecker.CoercionTest;
 import com.sun.fortress.scala_src.typechecker.ExclusionOracle;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
+import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.Thunker;
 import com.sun.fortress.scala_src.typechecker.Thunker$;
@@ -207,8 +208,7 @@ public class StaticChecker {
                 ast = new ApiLinker(env.apis(), env).link(api_ast);
 //                 Nodes.printNode((Api)ast, "api_linked_ast.");
                 index = IndexBuilder.buildApiIndex(api_ast,
-                                                   System.currentTimeMillis(),
-                                                   new LinkedList<StaticError>());
+                                                   System.currentTimeMillis());
             }
 
             // Check type hierarchy to ensure acyclicity.
@@ -341,15 +341,12 @@ public class StaticChecker {
     }
 
     private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {
-        List<StaticError> errors = new LinkedList<StaticError>();
         if (isApi)
             return IndexBuilder.buildApiIndex((Api)ast,
-                                              System.currentTimeMillis(),
-                                              errors);
+                                              System.currentTimeMillis());
         else
             return IndexBuilder.buildComponentIndex((Component)ast,
-                                                    System.currentTimeMillis(),
-                                                    errors);
+                                                    System.currentTimeMillis());
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,
