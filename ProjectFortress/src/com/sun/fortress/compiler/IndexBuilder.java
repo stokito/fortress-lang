@@ -82,40 +82,38 @@ public class IndexBuilder {
     /** Convert the given ASTs to ApiIndices. */
     public static ApiResult buildApis(Iterable<Api> asts, GlobalEnvironment env,
                                       long modifiedDate) {
-        IndexBuilder builder = new IndexBuilder();
-        Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        return builder.buildApis(asts, apis, env, modifiedDate);
+        return buildApis(asts, new HashMap<APIName, ApiIndex>(), env, modifiedDate,
+                         new LinkedList<StaticError>());
     }
 
-    private ApiResult buildApis(Iterable<Api> asts, Map<APIName, ApiIndex> apis,
-                                GlobalEnvironment env, long modifiedDate)
-    {
+    private static ApiResult buildApis(Iterable<Api> asts, Map<APIName, ApiIndex> apis,
+                                       GlobalEnvironment env, long modifiedDate,
+                                       List<StaticError> errors) {
         boolean apisAdded = false;
         for (Api ast : asts) {
-            apisAdded = apisAdded || this.buildApi(ast, apis, env, modifiedDate);
+            apisAdded = apisAdded || buildApi(ast, apis, env, modifiedDate, errors);
         }
-        if (apisAdded) { return  new IndexBuilder().buildApis(asts, apis, env, modifiedDate); }
-        else { return new ApiResult(apis, this.errors()); }
+        if (apisAdded)
+            return buildApis(asts, apis, env, modifiedDate,
+                             new LinkedList<StaticError>());
+        else return new ApiResult(apis, errors);
     }
 
     /** Convert the given ASTs to ComponentIndices. */
     public static ComponentResult buildComponents(Iterable<Component> asts, long modifiedDate) {
-        IndexBuilder builder = new IndexBuilder();
+        List<StaticError> errors = new LinkedList<StaticError>();
         Map<APIName, ComponentIndex> components =
             new HashMap<APIName, ComponentIndex>();
-        for (Component ast : asts) { builder.buildComponent(ast, components, modifiedDate); }
-        return new ComponentResult(components, builder.errors());
+        for (Component ast : asts) {
+            buildComponent(ast, components, modifiedDate, errors);
+        }
+        return new ComponentResult(components, errors);
     }
 
-    private List<StaticError> errors;
-
-    public IndexBuilder() { errors = new LinkedList<StaticError>(); }
-
-    private List<StaticError> errors() { return errors; }
-
     /** Create an ApiIndex and add it to the given map. */
-    private boolean buildApi(Api ast, Map<APIName, ApiIndex> apis,
-                             GlobalEnvironment env, long modifiedDate) {
+    private static boolean buildApi(Api ast, Map<APIName, ApiIndex> apis,
+                                    GlobalEnvironment env, long modifiedDate,
+                                    List<StaticError> errors) {
         if (apis.containsKey(ast.getName())) {
             return false;
         } else {
@@ -126,7 +124,7 @@ public class IndexBuilder {
             } else {
                 // If <code>ast</code> is a compound API, link it into a single API.
                 ast = new ApiLinker(apis, env).link(ast);
-                ApiIndex api = buildApiIndex(ast, modifiedDate);
+                ApiIndex api = buildApiIndex(ast, modifiedDate, errors);
                 apis.put(ast.getName(), api);
                 return true;
             }
@@ -134,14 +132,20 @@ public class IndexBuilder {
     }
 
     /** Create a ComponentIndex and add it to the given map. */
-    private void buildComponent(Component ast,
-                                Map<APIName, ComponentIndex> components,
-                                long modifiedDate) {
-        ComponentIndex comp = buildComponentIndex(ast, modifiedDate);
+    private static void buildComponent(Component ast,
+                                       Map<APIName, ComponentIndex> components,
+                                       long modifiedDate,
+                                       List<StaticError> errors) {
+        ComponentIndex comp = buildComponentIndex(ast, modifiedDate, errors);
         components.put(ast.getName(), comp);
     }
 
-    public ApiIndex buildApiIndex(Api ast, long modifiedDate) {
+    public static ApiIndex buildApiIndex(Api ast, long modifiedDate) {
+        return buildApiIndex(ast, modifiedDate, new LinkedList<StaticError>());
+    }
+
+    public static ApiIndex buildApiIndex(Api ast, long modifiedDate,
+                                         final List<StaticError> errors) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
@@ -158,7 +162,7 @@ public class IndexBuilder {
                 buildTrait(d, typeConses, functions, parametricOperators, errors);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, parametricOperators, variables);
+                buildObject(d, typeConses, functions, parametricOperators, variables, errors);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
@@ -262,11 +266,17 @@ public class IndexBuilder {
         // threaded through to here.
     	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
                             new HashSet<ParametricOperator>(),
-                            new HashMap<Id,Variable>());
+                            new HashMap<Id,Variable>(),
+                            new LinkedList<StaticError>());
     	return (ObjectTraitIndex)index_holder.get(fake_object_name);
     }
 
-    public ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
+    public static ComponentIndex buildComponentIndex(Component ast, long modifiedDate) {
+        return buildComponentIndex(ast, modifiedDate, new LinkedList<StaticError>());
+    }
+
+    public static ComponentIndex buildComponentIndex(Component ast, long modifiedDate,
+                                                     final List<StaticError> errors) {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
@@ -281,7 +291,7 @@ public class IndexBuilder {
                 buildTrait(d, typeConses, functions, parametricOperators, errors);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, parametricOperators, variables);
+                buildObject(d, typeConses, functions, parametricOperators, variables, errors);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
@@ -411,12 +421,12 @@ public class IndexBuilder {
      * to the given relation; create a constructor function or singleton variable and
      * put it in the appropriate map.
      */
-    private void buildObject(final ObjectDecl ast,
-                             final Map<Id, TypeConsIndex> typeConses,
-                             final Relation<IdOrOpOrAnonymousName, Function> functions,
-                             final Set<ParametricOperator> parametricOperators,
-                             final Map<Id, Variable> variables)
-    {
+    private static void buildObject(final ObjectDecl ast,
+                                    final Map<Id, TypeConsIndex> typeConses,
+                                    final Relation<IdOrOpOrAnonymousName, Function> functions,
+                                    final Set<ParametricOperator> parametricOperators,
+                                    final Map<Id, Variable> variables,
+                                    final List<StaticError> errors) {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
