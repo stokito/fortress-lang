@@ -22,6 +22,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -205,8 +206,9 @@ public class StaticChecker {
                 }
                 ast = new ApiLinker(env.apis(), env).link(api_ast);
 //                 Nodes.printNode((Api)ast, "api_linked_ast.");
-                index = IndexBuilder.builder.buildApiIndex(api_ast,
-                                                           System.currentTimeMillis());
+                index = IndexBuilder.buildApiIndex(api_ast,
+                                                   System.currentTimeMillis(),
+                                                   new LinkedList<StaticError>());
             }
 
             // Check type hierarchy to ensure acyclicity.
@@ -339,12 +341,15 @@ public class StaticChecker {
     }
 
     private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {
+        List<StaticError> errors = new LinkedList<StaticError>();
         if (isApi)
-            return IndexBuilder.builder.buildApiIndex((Api)ast,
-                                                      System.currentTimeMillis());
+            return IndexBuilder.buildApiIndex((Api)ast,
+                                              System.currentTimeMillis(),
+                                              errors);
         else
-            return IndexBuilder.builder.buildComponentIndex((Component)ast,
-                                                            System.currentTimeMillis());
+            return IndexBuilder.buildComponentIndex((Component)ast,
+                                                    System.currentTimeMillis(),
+                                                    errors);
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,

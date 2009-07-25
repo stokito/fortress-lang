@@ -250,9 +250,7 @@ public class IndexBuilder {
      */
     public static ObjectTraitIndex buildObjectExprIndex(ObjectExpr obj) {
         Span fake_span = NodeFactory.makeSpan("FAKE_SPAN");
-
         Id fake_object_name = NodeFactory.makeId(fake_span, "FAKE_NAME");
-    	IndexBuilder builder = new IndexBuilder();
 
     	// Make fake object
     	ObjectDecl decl = NodeFactory.makeObjectDecl(fake_span, fake_object_name,
@@ -264,10 +262,10 @@ public class IndexBuilder {
 
         // TODO: Fix this so that the global function map and parametricOperator set are
         // threaded through to here.
-    	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
-                            new HashSet<ParametricOperator>(),
-                            new HashMap<Id,Variable>(),
-                            new LinkedList<StaticError>());
+    	buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
+                    new HashSet<ParametricOperator>(),
+                    new HashMap<Id,Variable>(),
+                    new LinkedList<StaticError>());
     	return (ObjectTraitIndex)index_holder.get(fake_object_name);
     }
 
