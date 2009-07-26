@@ -25,6 +25,11 @@ import _root_.java.util.LinkedList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Map => JavaMap}
 import _root_.java.util.{Set => JavaSet}
+import edu.rice.cs.plt.tuple.{Option => JavaOption}
+import edu.rice.cs.plt.collect.IndexedRelation
+import edu.rice.cs.plt.collect.Relation
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.Set
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
@@ -75,13 +80,6 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
-
-import edu.rice.cs.plt.collect.IndexedRelation
-import edu.rice.cs.plt.collect.Relation
-import edu.rice.cs.plt.tuple.Option
-
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.Set
 
 object IndexBuilder {
   private def error(errors: JavaList[StaticError], message: String, loc: HasAt) =
@@ -312,6 +310,32 @@ object IndexBuilder {
                                               dottedMethods, functionalMethods))
   }
 
+  private def checkObject(getters: JavaMap[Id, Method],
+                          setters: JavaMap[Id, Method],
+                          dottedMethods: Relation[IdOrOpOrAnonymousName, JavaDeclaredMethod],
+                          optParams: JavaOption[JavaList[Param]],
+                          errors: JavaList[StaticError]) = {
+    for (id <- getters.keySet) {
+      if ( dottedMethods.firstSet().contains(id) )
+        error(errors, "Getter declarations should not be overloaded with method declarations.", id)
+    }
+    for (id <- setters.keySet) {
+      if ( dottedMethods.firstSet().contains(id) )
+        error(errors, "Setter declarations should not be overloaded with method declarations.", id)
+    }
+    toOption(optParams) match {
+      case Some(params) =>
+        for (p <- toList(params)) {
+          val mods = p.getMods
+          if (!mods.isHidden && NodeUtil.isVarargsParam(p) )
+              error(errors, "Varargs object parameters should not define getters.", p)
+          if ( (mods.isSettable || mods.isVar) && NodeUtil.isVarargsParam(p) )
+              error(errors, "Varargs object parameters should not define setters.", p)
+        }
+      case _ =>
+    }
+  }
+
   /**
    * Create an ObjectTraitIndex and put it in the given map; add functional methods
    * to the given relation; create a constructor function or singleton variable and
@@ -343,14 +367,6 @@ object IndexBuilder {
         case _ =>
       }
     }
-    for (id <- getters.keySet) {
-      if ( dottedMethods.firstSet().contains(id) )
-        error(errors, "Getter declarations should not be overloaded with method declarations.", id)
-    }
-    for (id <- setters.keySet) {
-      if ( dottedMethods.firstSet().contains(id) )
-        error(errors, "Setter declarations should not be overloaded with method declarations.", id)
-    }
 
     for (decl <- NodeUtil.getDecls(ast)) {
       decl match {
@@ -367,18 +383,10 @@ object IndexBuilder {
           val mods = p.getMods
           val paramName = p.getName
           fields.put(paramName, new JavaParamVariable(p))
-          if (!mods.isHidden) {
-            if ( ! NodeUtil.isVarargsParam(p) )
+          if ( !mods.isHidden && ! NodeUtil.isVarargsParam(p) )
               getters.put(paramName, new JavaFieldGetterMethod(p, name))
-            else
-              error(errors, "Varargs object parameters should not define getters.", p)
-          }
-          if (mods.isSettable || mods.isVar) {
-            if ( ! NodeUtil.isVarargsParam(p) )
+          if ( (mods.isSettable || mods.isVar) && ! NodeUtil.isVarargsParam(p) )
               setters.put(paramName, new JavaFieldSetterMethod(p, name))
-            else
-              error(errors, "Varargs object parameters should not define setters.", p)
-          }
         }
         val c = new JavaConstructor(name, NodeUtil.getStaticParams(ast),
                                     ast.getParams, NodeUtil.getThrowsClause(ast),
@@ -389,6 +397,8 @@ object IndexBuilder {
         variables.put(name, new JavaSingletonVariable(name))
         none[JavaConstructor]
     }
+
+    checkObject(getters, setters, dottedMethods, ast.getParams, errors)
 
     typeConses.put(name, new ObjectTraitIndex(ast, constructor, fields, initializers,
                                               getters, setters, coercions,
