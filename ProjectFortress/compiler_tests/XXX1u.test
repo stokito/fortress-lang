@@ -17,7 +17,7 @@ tests=Compiled1.u
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.u.fss:22:3:\n\
-\ Variable x is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled1.u.fss:21:3:\n\
+\ Getter declarations should not be overloaded with method declarations.\n\
 File Compiled1.u.fss has 1 error.\n
 compile_out_equals=
