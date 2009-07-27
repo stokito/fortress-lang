@@ -77,7 +77,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inATrait = false;
     boolean inAnObject = false;
     boolean inABlock = false;
-    int localsDepth = 0;
     final Component component;
     private final ComponentIndex ci;
     private GlobalEnvironment env;
@@ -113,7 +112,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.inATrait = c.inATrait;
         this.inAnObject = c.inAnObject;
         this.inABlock = c.inABlock;
-        this.localsDepth = c.localsDepth;
         this.ta = c.ta;
         this.pa = c.pa;
         this.ci = c.ci;
@@ -125,7 +123,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     }
 
-    private APIName thisApi() {
+    // We need to expose this because nobody else helping CodeGen can
+    // understand unqualified names (esp types) without it!
+    public APIName thisApi() {
         return ci.ast().getName();
     }
 
@@ -145,18 +145,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
         return result;
     }
 
+    // I don't know how this is supposed to work, but it clearly doesn't right now. -JWM
     private void initializeTaskLexEnv(String task, BATree<String, VarCodeGen> old) {
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
-
-        mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable(task));
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
 
         for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
-            mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
             entry.getValue().pushValue(mv);
 
             mv.visitFieldInsn(Opcodes.PUTFIELD,
                               task, entry.getKey(),
-                              NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()));
+                              NamingCzar.boxedImplDesc(entry.getValue().fortressType, thisApi()));
 
         }
     }
@@ -255,13 +254,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private void cgWithNestedScope(ASTNode n) {
         CodeGen cg = new CodeGen(this);
         n.accept(cg);
-        this.localsDepth = cg.localsDepth;
     }
 
     private void addLocalVar( VarCodeGen v ) {
         debug("addLocalVar " + v);
         lexEnv.put(v.name.getText(), v);
-        localsDepth += v.sizeOnStack;
     }
 
     private void addStaticVar( VarCodeGen v ) {
@@ -271,8 +268,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     private VarCodeGen addParam(Param p) {
         VarCodeGen v =
-            new VarCodeGen.ParamVar(p.getName(), p.getIdType().unwrap(),
-                                    localsDepth);
+            new VarCodeGen.ParamVar(p.getName(), p.getIdType().unwrap(), this);
         addLocalVar(v);
         return v;
     }
@@ -632,18 +628,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
 
         CodeGen cg = new CodeGen(this);
-        cg.localsDepth = 0;
+        boolean hasSelf = !functionalMethod && (inAnObject || inATrait);
 
-        VarCodeGen selfVar = null;
-
-        if (!functionalMethod && (inAnObject || inATrait)) {
-            // TODO: Add proper type information here based on the
-            // enclosing trait/object decl.  For now we can get away
-            // with just stashing a null as we're not using it to
-            // determine stack sizing or anything similarly crucial.
-            selfVar = new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null);
-            cg.addLocalVar(selfVar);
-        } else {
+        if (!hasSelf) {
             // Top-level function or functional method
             // DO NOT special case run() here and make it non-static (that used to happen),
             // as that's wrong.  It's addressed in the executable wrapper code instead.
@@ -661,14 +648,26 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv.visitCode();
 
         // Now inside method body.  Generate code for the method body.
+        // Start by binding the parameters and setting up the initial locals.
+        VarCodeGen selfVar = null;
+        if (hasSelf) {
+            // TODO: Add proper type information here based on the
+            // enclosing trait/object decl.  For now we can get away
+            // with just stashing a null as we're not using it to
+            // determine stack sizing or anything similarly crucial.
+            selfVar = new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null, cg);
+            cg.addLocalVar(selfVar);
+        }
         List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
         for (Param p : params) {
             VarCodeGen v = cg.addParam(p);
             paramsGen.add(v);
-            // v.pushValue(cg.mv);
         }
+        // Compile the body in the parameter environment
         body.unwrap().accept(cg);
-        for (VarCodeGen v : paramsGen) {
+        // Clean up the parameters
+        for (int i = paramsGen.size(); i > 0; ) {
+            VarCodeGen v = paramsGen.get(--i);
             v.outOfScope(cg.mv);
         }
         if (selfVar != null) selfVar.outOfScope(cg.mv);
@@ -861,18 +860,25 @@ public class CodeGen extends NodeAbstractVisitor_void {
             sayWhat(d, "Variable being bound lacks type information!");
         }
 
+        // Introduce variable
+        Type ty = v.getIdType().unwrap();
+        VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
+        vcg.prepareAssignValue(mv);
+
+        // Compute rhs
         Expr rhs = d.getRhs().unwrap();
         rhs.accept(this);
 
-        Type ty = v.getIdType().unwrap();
-        VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, localsDepth, mv);
+        // Perform binding
         vcg.assignValue(mv);
 
+        // Evaluate rest of block with binding in scope
         CodeGen cg = new CodeGen(this);
         cg.addLocalVar(vcg);
 
         cg.doStatements(d.getBody());
 
+        // Dispose of binding now that we're done
         vcg.outOfScope(mv);
     }
 
@@ -1055,7 +1061,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         // Create a new environment
         CodeGen cg = new CodeGen(this);
-        cg.localsDepth = 0;
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cg.cw.visitSource(className,null);
 
@@ -1069,10 +1074,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
         cg.mv.visitCode();
 
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
+        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
         cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask,
                               "<init>", NamingCzar.voidToVoid);
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
+        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
 
         // Arguments
 
@@ -1101,11 +1106,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         cg.mv.visitCode();
 
-        x.accept(cg);
+        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
 
-        cg.mv.visitVarInsn(Opcodes.ASTORE, cg.mv.createLocalVariable("taskResult"));
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("instance"));
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getLocalVariable("taskResult"));
+        x.accept(cg);
 
         cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
 
@@ -1131,37 +1134,48 @@ public class CodeGen extends NodeAbstractVisitor_void {
                      " of class ", x.getOp().getClass(),  " args = ", x.getArgs());
         FunctionalRef op = x.getOp();
         List<Expr> args = x.getArgs();
-        List<String> tasks = new ArrayList<String>(args.size());
-
-        mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
-        mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable("TaskArray", "java/util/ArrayList"));
 
         if (pa.worthParallelizing(x)) {
+            List<String> tasks = new ArrayList<String>(args.size());
+            List<Integer> taskVars = new ArrayList<Integer>(args.size());
+
+            mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
+            int taskArray = mv.createCompilerLocal("TaskArray", "java/util/ArrayList");
+            mv.visitVarInsn(Opcodes.ASTORE, taskArray);
             for (int i = 0; i < args.size(); i++) {
                 String task = delegate(args.get(i));
-                tasks.add(i, task);
+                tasks.add(task);
 
                 mv.visitTypeInsn(Opcodes.NEW, task);
                 mv.visitInsn(Opcodes.DUP);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);   // This is bogus too, knowing that n is in 0
                 mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>", "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)V");
-                mv.visitVarInsn(Opcodes.ASTORE, mv.createLocalVariable(task));
+                int taskVar = mv.createCompilerLocal(task, "L"+task+";");
+                taskVars.add(taskVar);
 
-                mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("TaskArray"));
-                mv.visitLdcInsn(i);
-                mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(task));
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/ArrayList", "add","(ILjava/lang/Object;)V");
+                mv.visitVarInsn(Opcodes.ASTORE, taskVar);
+
+                mv.visitVarInsn(Opcodes.ALOAD, taskArray);
+                mv.visitVarInsn(Opcodes.ALOAD, taskVar);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/ArrayList", "add","(Ljava/lang/Object;)Z");
+                mv.visitInsn(Opcodes.POP);
             }
 
-            mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("TaskArray"));
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, tasks.get(0), "invokeAll", "(Ljava/util/Collection;)V");
+            mv.visitVarInsn(Opcodes.ALOAD, taskArray);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.fortressBaseTask,
+                               "invokeAll", "(Ljava/util/Collection;)V");
 
             for (int i = 0; i < args.size(); i++) {
-                mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(tasks.get(i)));
+                mv.visitVarInsn(Opcodes.ALOAD, taskVars.get(i));
                 mv.visitFieldInsn(Opcodes.GETFIELD, tasks.get(i), "result", NamingCzar.descFortressZZ32);
             }
+            for (int i = args.size(); i > 0; ) {
+                i--;
+                mv.disposeCompilerLocal(taskVars.get(i));
+            }
+            mv.disposeCompilerLocal(taskArray);
         } else {
 
             for (Expr arg : args) {

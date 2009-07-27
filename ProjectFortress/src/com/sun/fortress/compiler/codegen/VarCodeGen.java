@@ -53,6 +53,12 @@ public abstract class VarCodeGen {
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
 
+    /** Generate code to prepare to assign the value of this variable;
+     *  this might push stuff on the stack.  The value can then be
+     *  computed to top of stack and assignValue will perform the
+     *  assignment. */
+    public abstract void prepareAssignValue(CodeGenMethodVisitor mv);
+
     /** Generate code to assign the value of this variable from the
      *  top of the Java stack. */
     public abstract void assignValue(CodeGenMethodVisitor mv);
@@ -67,18 +73,29 @@ public abstract class VarCodeGen {
     private static abstract class StackVar extends VarCodeGen {
         protected final int offset;
 
-        protected StackVar(IdOrOp name, Type fortressType,
-                           int offset) {
+        protected StackVar(IdOrOp name, Type fortressType, CodeGen cg) {
             super(name, fortressType);
-            this.offset = offset;
+            String tyDesc = null;
+            if (fortressType != null) {
+                tyDesc = NamingCzar.jvmTypeDesc(fortressType, cg.thisApi());
+            }
+            this.offset = cg.mv.createCompilerLocal(name.getText(), tyDesc);
         }
 
         public void pushValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ALOAD, offset);
         }
 
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
+            // Do nothing.
+        }
+
         public void assignValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
+        }
+
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            mv.disposeCompilerLocal(offset);
         }
     }
 
@@ -107,10 +124,11 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETFIELD, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void assignValue(CodeGenMethodVisitor mv) {
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            // TODO this will not work for 2-word immediates
-            mv.visitInsn(Opcodes.SWAP);
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
             mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
         }
 
@@ -124,7 +142,6 @@ public abstract class VarCodeGen {
 
     public static class SingletonObject extends NeedsType {
 
-
         public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType, owner, name, desc);
         }
@@ -133,9 +150,13 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void assignValue(CodeGenMethodVisitor mv) {
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
             throw new CompilerError(errorMsg("Invalid assignment to singleton object ",name,
                     ": ", fortressType));
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            prepareAssignValue(mv);
         }
 
         @Override
@@ -152,27 +173,29 @@ public abstract class VarCodeGen {
      */
     public static class ParamVar extends StackVar {
 
-        public ParamVar(IdOrOp name, Type fortressType,
-                        int offset) {
-            super(name, fortressType, offset);
+        public ParamVar(IdOrOp name, Type fortressType, CodeGen cg) {
+            super(name, fortressType, cg);
         }
 
-        public void assignValue(CodeGenMethodVisitor mv) {
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
             throw new CompilerError(errorMsg("Invalid assignment to ",name,
                                              ": ", fortressType,
                                              " param ",offset,
                                              " size ", sizeOnStack));
         }
 
-        public void outOfScope(CodeGenMethodVisitor mv) {
-            // Nothing to do?
+        public void assignValue(CodeGenMethodVisitor mv) {
+            prepareAssignValue(mv);
         }
     }
 
     /** Self parameter for dotted methods. */
     public static class SelfVar extends ParamVar {
-        public SelfVar(Span s, Type fortressType) {
-            super(NodeFactory.makeId(s,"self"), fortressType, 0);
+        public SelfVar(Span s, Type fortressType, CodeGen cg) {
+            super(NodeFactory.makeId(s,"self"), fortressType, cg);
+            if (offset != 0) {
+                throw new CompilerError(s, " self parameter got stack slot "+offset);
+            }
         }
     }
 
@@ -185,22 +208,8 @@ public abstract class VarCodeGen {
      *  structured this way in the first place.
      */
     public static class LocalVar extends StackVar {
-        final Label start;
-
-        public LocalVar(IdOrOp name, Type fortressType,
-                        int offset, CodeGenMethodVisitor mv) {
-            super(name, fortressType, offset);
-            this.start = new Label();
-            mv.visitLabel(start);
-        }
-
-        public void outOfScope(CodeGenMethodVisitor mv) {
-            Label finish = new Label();
-            mv.visitLabel(finish);
-            mv.visitLocalVariable(name.getText(),
-                                  NamingCzar.jvmTypeDesc(fortressType, null),
-                                  null, start, finish, offset);
-            // call mv.visitLocalVariable here.
+        public LocalVar(IdOrOp name, Type fortressType, CodeGen cg) {
+            super(name, fortressType, cg);
         }
     }
 }
