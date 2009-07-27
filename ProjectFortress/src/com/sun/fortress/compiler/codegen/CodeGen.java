@@ -761,31 +761,37 @@ public class CodeGen extends NodeAbstractVisitor_void {
         Debug.debug( Debug.Type.CODEGEN, 1,"forIf " + x);
         List<IfClause> clauses = x.getClauses();
         Option<Block> elseClause = x.getElseClause();
-        if (clauses.size() > 1) throw new CompilerError(NodeUtil.getSpan(x), "Don't know how to compile multiple if clauses yet");
 
-        org.objectweb.asm.Label action = new org.objectweb.asm.Label();
         org.objectweb.asm.Label done = new org.objectweb.asm.Label();
-        IfClause ifclause = clauses.get(0);
-        GeneratorClause cond = ifclause.getTestClause();
+        org.objectweb.asm.Label falseBranch = new org.objectweb.asm.Label();
+        for (IfClause ifclause : clauses) {
 
-        if (!cond.getBind().isEmpty())
-            sayWhat(x, "Undesugared generalized if expression.");
+            GeneratorClause cond = ifclause.getTestClause();
 
-        Expr testExpr = cond.getInit();
-        debug( "about to accept " + testExpr + " of class " + testExpr.getClass());
-        testExpr.accept(this);
-        addLineNumberInfo(x);
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressBoolean, "getValue",
-                           NamingCzar.makeMethodDesc("", NamingCzar.descBoolean));
+            if (!cond.getBind().isEmpty())
+                sayWhat(x, "Undesugared generalized if expression.");
 
-        mv.visitJumpInsn(Opcodes.IFNE, action);
+            // emit code for condition and to check resulting boolean
+            Expr testExpr = cond.getInit();
+            debug( "about to accept " + testExpr + " of class " + testExpr.getClass());
+            testExpr.accept(this);
+            addLineNumberInfo(x);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressBoolean, "getValue",
+                               NamingCzar.makeMethodDesc("", NamingCzar.descBoolean));
+            mv.visitJumpInsn(Opcodes.IFEQ, falseBranch);
+
+            // emit code for condition true
+            ifclause.getBody().accept(this);
+            mv.visitJumpInsn(Opcodes.GOTO, done);
+
+            // control goes to following label if condition false (and we continue tests)
+            mv.visitLabel(falseBranch);
+            falseBranch = new org.objectweb.asm.Label();
+        }
         Option<Block> maybe_else = x.getElseClause();
         if (maybe_else.isSome()) {
             maybe_else.unwrap().accept(this);
         }
-        mv.visitJumpInsn(Opcodes.GOTO, done);
-        mv.visitLabel(action);
-        ifclause.getBody().accept(this);
         mv.visitLabel(done);
     }
 
