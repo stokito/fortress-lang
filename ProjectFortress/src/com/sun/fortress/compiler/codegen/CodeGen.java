@@ -1135,6 +1135,50 @@ public class CodeGen extends NodeAbstractVisitor_void {
                            "nativePrintZZ32",  "(I)V");
     }
 
+    // Evaluate args in parallel.  (Why is profitability given at a
+    // level where we can't ask the qustion here?)
+    // Leave the results (in the order given) on the stack.
+    public void forExprsParallel(List<? extends Expr> args) {
+        final int n = args.size();
+        if (n <= 0) return;
+        String [] tasks = new String[n];
+        int [] taskVars = new int[n];
+        // TODO: fix free variable handling here to match delegate() above.
+
+        // Push arg tasks from right to left, so
+        // that local evaluation of args will proceed left to right.
+        // IMPORTANT: ALWAYS fork and join stack fashion,
+        // ie always join with the most recent fork first.
+        for (int i = n-1; i > 0; i--) {
+            String task = delegate(args.get(i));
+            tasks[i] = task;
+
+            mv.visitTypeInsn(Opcodes.NEW, task);
+            mv.visitInsn(Opcodes.DUP);
+            // Following two lines are bogus, assume only fv is 1st param / self (n for fib) : ZZ32
+            mv.visitVarInsn(Opcodes.ALOAD,0);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>",
+                               "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)V");
+            mv.visitInsn(Opcodes.DUP);
+            int taskVar = mv.createCompilerLocal(task, "L"+task+";");
+            taskVars[i] = taskVar;
+            mv.visitVarInsn(Opcodes.ASTORE, taskVar);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
+        }
+        // arg 0 gets compiled in place, rather than turned into work.
+        args.get(0).accept(this);
+        // join / perform work locally left to right.
+        for (int i = 1; i < n; i++) {
+            int taskVar = taskVars[i];
+            mv.visitVarInsn(Opcodes.ALOAD, taskVar);
+            mv.disposeCompilerLocal(taskVar);
+            mv.visitInsn(Opcodes.DUP);
+            String task = tasks[i];
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "joinOrRun", "()V");
+            mv.visitFieldInsn(Opcodes.GETFIELD, task, "result", NamingCzar.descFortressZZ32);
+        }
+    }
+
     public void forOpExpr(OpExpr x) {
         debug("forOpExpr ", x, " op = ", x.getOp(),
                      " of class ", x.getOp().getClass(),  " args = ", x.getArgs());
@@ -1142,46 +1186,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         List<Expr> args = x.getArgs();
 
         if (pa.worthParallelizing(x)) {
-            List<String> tasks = new ArrayList<String>(args.size());
-            List<Integer> taskVars = new ArrayList<Integer>(args.size());
-
-            mv.visitTypeInsn(Opcodes.NEW, "java/util/ArrayList");
-            mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V");
-            int taskArray = mv.createCompilerLocal("TaskArray", "java/util/ArrayList");
-            mv.visitVarInsn(Opcodes.ASTORE, taskArray);
-            for (int i = 0; i < args.size(); i++) {
-                String task = delegate(args.get(i));
-                tasks.add(task);
-
-                mv.visitTypeInsn(Opcodes.NEW, task);
-                mv.visitInsn(Opcodes.DUP);
-                mv.visitVarInsn(Opcodes.ALOAD, 0);   // This is bogus too, knowing that n is in 0
-                mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>", "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)V");
-                int taskVar = mv.createCompilerLocal(task, "L"+task+";");
-                taskVars.add(taskVar);
-
-                mv.visitVarInsn(Opcodes.ASTORE, taskVar);
-
-                mv.visitVarInsn(Opcodes.ALOAD, taskArray);
-                mv.visitVarInsn(Opcodes.ALOAD, taskVar);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/ArrayList", "add","(Ljava/lang/Object;)Z");
-                mv.visitInsn(Opcodes.POP);
-            }
-
-            mv.visitVarInsn(Opcodes.ALOAD, taskArray);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.fortressBaseTask,
-                               "invokeAll", "(Ljava/util/Collection;)V");
-
-            for (int i = 0; i < args.size(); i++) {
-                mv.visitVarInsn(Opcodes.ALOAD, taskVars.get(i));
-                mv.visitFieldInsn(Opcodes.GETFIELD, tasks.get(i), "result", NamingCzar.descFortressZZ32);
-            }
-            for (int i = args.size(); i > 0; ) {
-                i--;
-                mv.disposeCompilerLocal(taskVars.get(i));
-            }
-            mv.disposeCompilerLocal(taskArray);
+            forExprsParallel(args);
         } else {
 
             for (Expr arg : args) {
