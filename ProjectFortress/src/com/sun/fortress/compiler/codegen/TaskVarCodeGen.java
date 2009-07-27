@@ -57,17 +57,18 @@ public class TaskVarCodeGen extends VarCodeGen {
     }
 
     public void pushValue(CodeGenMethodVisitor mv) {
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
         mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
                           name.getText(),
                           NamingCzar.only.jvmTypeDesc(fortressType, ifNone)) ;
 
     }
 
+    public void prepareAssignValue(CodeGenMethodVisitor mv) {
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+    }
+
     public void assignValue(CodeGenMethodVisitor mv) {
-        mv.visitVarInsn(Opcodes.ASTORE, mv.getLocalVariable(name.getText()));
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable("instance"));
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getLocalVariable(name.getText()));
         mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass,
                           name.getText(),
                           NamingCzar.only.jvmTypeDesc(fortressType, ifNone)
@@ -75,8 +76,7 @@ public class TaskVarCodeGen extends VarCodeGen {
     }
 
     public void outOfScope(CodeGenMethodVisitor mv) {
-        // I dunno what this is for.
-        Label finish = new Label();
+        // We've already told asm about our type and such.
     }
 
 }

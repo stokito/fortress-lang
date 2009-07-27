@@ -28,12 +28,11 @@ import org.objectweb.asm.util.*;
 
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.exceptions.CompilerError;
 
 public class CodeGenMethodVisitor extends TraceMethodVisitor {
-
-    public HashMap<String, Integer> localVariableTable;
-    public HashMap<String, String> localVariableTypeTable;
-    public SignatureParser signatureParser;
+    // All these fields are passed to the constructor, but never
+    // used except possibly for debugging after the constructor has run.
     private int access;
     private String name;
     private String desc;
@@ -41,7 +40,16 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     private String[] exceptions;
     private List<String> argumentTypes;
     private String resultType;
+
+    // Only these fields are actually required to generate code.
     int localVariableCount;
+    boolean hasThis;
+
+    // This stuff is kept around to emit debugging information.
+    // All these lists are managed stack-fashion and indexed by handle.
+    List<String> varNames;
+    List<String> varTypes;
+    List<Label> varFirstUse;
 
     public CodeGenMethodVisitor(int access, String name, String desc,
                                 String signature, String[] exceptions,
@@ -55,25 +63,16 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.argumentTypes = NamingCzar.parseArgs(desc);
         this.resultType = NamingCzar.parseResult(desc);
 
-        this.localVariableTable = new HashMap<String, Integer>();
-        this.localVariableTypeTable = new HashMap<String, String>();
-        this.localVariableCount = 0;
+        int sz = 5 + this.localVariableCount + this.argumentTypes.size();
+        this.varNames = new ArrayList(sz);
+        this.varTypes = new ArrayList(sz);
+        this.varFirstUse = new ArrayList(sz);
 
-        if ((access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC) {
-            createLocalVariable("instance", name);
-        }
+        this.hasThis = (access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC;
 
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "MethodVisitor: name = " + name + " desc = " + desc +
-                    " argumentTypes = " + argumentTypes + " resultType " + resultType);
-
-        int i = 0;
-
-        for (String argumentType : argumentTypes) {
-            createLocalVariable("arg" + i++, argumentType);
-        }
-
-        createLocalVariable("result", resultType);
+                    "MethodVisitor: name = " , name , " desc = " , desc ,
+                    " argumentTypes = " , argumentTypes , " resultType " , resultType);
 
     }
 
@@ -86,27 +85,75 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         Debug.debug(Debug.Type.CODEGEN, 1, getText());
     }
 
-    public int createLocalVariable(String name) {
-        int result = localVariableCount++;
-        localVariableTable.put(name, new Integer(result));
-        return result;
+    /**
+     * the correct way to get a local is to call createCompilerLocal,
+     * which will give you a stack offset that acts as a handle on the
+     * local variable you requested, and then to hand that local
+     * variable back again when you're done by calling
+     * disposeCompilerLocal so that debug information can be generated
+     * where possible, and so that stack slots can be reused in a
+     * sensible way.  If you are representing a variable in Fortress
+     * source code, you should do this in the constructor for a
+     * VarCodeGen; CodeGen maintains a lexEnv that maps a Fortress
+     * variable to the corresponding VarCodeGen. */
+
+    // Non-user-accessible local variable
+    private int createCompilerLocal(String name) {
+        return createCompilerLocal(name, null);
     }
 
-    public int createLocalVariable(String name, String type) {
-        int result = localVariableCount++;
-        localVariableTable.put(name, new Integer(result));
-        localVariableTypeTable.put(name, type);
-        return result;
-    }
-
-    public int getLocalVariable(String name) {
-        if (localVariableTable.containsKey(name)) {
-            Debug.debug(Debug.Type.CODEGEN, 1,
-                        "GetLocalVariable: " + name + "=" + localVariableTable.get(name).intValue());
-            return localVariableTable.get(name).intValue();
+    // Non-user-accessible local variable
+    public int createCompilerLocal(String name, String type) {
+        if (localVariableCount != varNames.size()) {
+            throw new CompilerError("Trying to create local " + name +
+                                       " but current metadata is off\nlocalVariableCount = " +
+                                       localVariableCount +
+                                       "\nvarNames = " + varNames);
         }
-        else
-            throw new RuntimeException("Trying to retrieve a non-existent local variable " + name);
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "LOCAL create ", localVariableCount, " ", name);
+        varNames.add(name);
+        varTypes.add(type);
+        Label start = new Label();
+        visitLabel(start);
+        varFirstUse.add(start);
+
+        return localVariableCount++;
+    }
+
+    public void disposeCompilerLocal(int localId) {
+        if (localId >= localVariableCount) {
+            throw new CompilerError("Trying to dispose of local " + localId +
+                                       " but current metadata is off\nlocalVariableCount = " +
+                                       localVariableCount +
+                                       "\nvarNames = " + varNames);
+        }
+        String ty = varTypes.get(localId);
+        if (ty != null) {
+            Label finish = new Label();
+            visitLabel(finish);
+            visitLocalVariable(varNames.get(localId), ty, null, varFirstUse.get(localId), finish, localId);
+        }
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "LOCAL destroy ", localId, " ", varNames.get(localId));
+        if (localId == (localVariableCount-1)) {
+            varNames.remove(localId);
+            varTypes.remove(localId);
+            varFirstUse.remove(localId);
+            localVariableCount--;
+        } else {
+            varNames.set(localId, null);
+            varTypes.set(localId, null);
+            varFirstUse.set(localId, null);
+        }
+    }
+
+    public int getThis() {
+        if (hasThis) {
+            return 0;
+        } else {
+            throw new CompilerError("Trying to get this/self in static method.");
+        }
     }
 
 }
