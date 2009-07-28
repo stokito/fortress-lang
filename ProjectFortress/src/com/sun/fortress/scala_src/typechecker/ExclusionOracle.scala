@@ -208,7 +208,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
     var excludes: Set[TraitType] = transitivelyExcludes(tIndex)
     // [X |-> ty ...]S
     def saSubst(sa: StaticArg): StaticArg = sa match {
-      case STypeArg(i,t) => STypeArg(i, tySubst(t) )
+      case STypeArg(i,l,t) => STypeArg(i, l, tySubst(t) )
       case _ => sa
     }
     def spSubst(sp: StaticParam): StaticParam = sp match {

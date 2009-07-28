@@ -1151,7 +1151,7 @@ interface Node() extends HasAt;
             /**
              * static argument
              */
-            root abstract StaticArg();
+            root abstract StaticArg(ignoreForEquals boolean lifted = false);
                 /**
                  * type used as static argument
                  * StaticArg ::= Type

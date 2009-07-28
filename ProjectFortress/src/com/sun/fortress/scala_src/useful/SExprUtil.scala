@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.useful
 
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.NI
 
@@ -83,6 +84,15 @@ object SExprUtil {
       u,
       List[StaticArg](),
       arg)
+  }
+
+  /**
+   * Given an applicand, retrieve its static args. If not a FunctionalRef, this
+   * should return None.
+   */
+  def getStaticArgs(fn: Expr): Option[List[StaticArg]] = fn match {
+    case fn: FunctionalRef => Some(toList(fn.getStaticArgs))
+    case _ => None
   }
 
 }

@@ -1533,8 +1533,12 @@ public class NodeFactory {
         return new TypeArg(makeSpanInfo(span), t);
     }
 
+    public static TypeArg makeTypeArg(Span span, Type t, boolean lifted) {
+        return new TypeArg(makeSpanInfo(span), lifted, t);
+    }
+
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
-        return makeTypeArg(NodeUtil.getSpan(t), s);
+        return makeTypeArg(NodeUtil.getSpan(t), s, t.isLifted());
     }
 
     public static TypeArg makeTypeArg(Type ty) {
@@ -1546,7 +1550,7 @@ public class NodeFactory {
     }
 
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
-        return makeDimArg(NodeUtil.getSpan(t), s);
+        return makeDimArg(NodeUtil.getSpan(t), s, t.isLifted());
     }
 
     public static DimArg makeDimArg(DimExpr s) {
@@ -1557,12 +1561,20 @@ public class NodeFactory {
         return new DimArg(makeSpanInfo(span), d);
     }
 
+    public static DimArg makeDimArg(Span span, DimExpr d, boolean lifted) {
+        return new DimArg(makeSpanInfo(span), lifted, d);
+    }
+
     public static UnitArg makeUnitArg(UnitExpr s) {
         return makeUnitArg(NodeUtil.getSpan(s), s);
     }
 
     public static UnitArg makeUnitArg(Span span, UnitExpr u) {
         return new UnitArg(makeSpanInfo(span), u);
+    }
+
+    public static UnitArg makeUnitArg(Span span, UnitExpr u, boolean lifted) {
+        return new UnitArg(makeSpanInfo(span), lifted, u);
     }
 
     public static UnitRef makeUnitRef(Span span, String name) {
@@ -1828,6 +1840,10 @@ public class NodeFactory {
         return new BoolArg(makeSpanInfo(span), b);
     }
 
+    public static BoolArg makeBoolArg(Span span, BoolExpr b, boolean lifted) {
+        return new BoolArg(makeSpanInfo(span), lifted, b);
+    }
+
     public static BoolUnaryOp makeBoolUnaryOp(Span span, BoolExpr b, Op op) {
         return makeBoolUnaryOp(span, b.isParenthesized(), b, op);
     }
@@ -1860,12 +1876,20 @@ public class NodeFactory {
         return new IntArg(makeSpanInfo(span), i);
     }
 
+    public static IntArg makeIntArg(Span span, IntExpr i, boolean lifted) {
+        return new IntArg(makeSpanInfo(span), lifted, i);
+    }
+
     public static OpArg makeOpArg(Span span, String string) {
         return makeOpArg(span, ExprFactory.makeOpRef(makeOp(span, string)));
     }
 
     public static OpArg makeOpArg(Span span, FunctionalRef op) {
         return new OpArg(makeSpanInfo(span), op);
+    }
+
+    public static OpArg makeOpArg(Span span, FunctionalRef op, boolean lifted) {
+        return new OpArg(makeSpanInfo(span), lifted, op);
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals,

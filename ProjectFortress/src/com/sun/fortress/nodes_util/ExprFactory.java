@@ -2128,6 +2128,27 @@ public class ExprFactory {
         }
     }
 
+    public static Expr makeArgumentExpr(Span span, List<Expr> args) {
+        if ( args.size() > 1 ) {
+
+            // Construct the tuple type.
+            Lambda<Expr, Type> getType = new Lambda<Expr, Type>() {
+                public Type value(Expr expr) {
+                    return expr.getInfo().getExprType().unwrap();
+                }
+            };
+            List<Type> argTypes = CollectUtil.makeList(IterUtil.map(args, getType));
+            Type type = NodeFactory.makeTupleType(span, argTypes);
+
+            // Construct the tuple.
+            ExprInfo info = new ExprInfo(span, true, Option.some(type));
+            return new TupleExpr(info, args, Option.<Expr>none(), CollectUtil.<KeywordExpr>emptyList(), true);
+        } else if ( args.size() == 1 )
+            return args.get(0);
+        else
+            return makeVoidLiteralExpr(span);
+    }
+
 // let rec unpasting_cons (span : span)
 //                        (one : unpasting)
 //                        (sep : int)

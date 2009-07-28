@@ -17,10 +17,13 @@
 
 package com.sun.fortress.scala_src.typechecker.impls
 
+import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -41,6 +44,8 @@ import fortress.useful.NI
  * access its protected members.)
  */
 trait Functionals { self: STypeChecker with Common =>
+
+  type AppCandidate = (ArrowType, List[StaticArg], List[Expr])
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
@@ -93,17 +98,19 @@ trait Functionals { self: STypeChecker with Common =>
                                  arrow: ArrowType,
                                  sargs: List[StaticArg]): Expr = fn match {
     case fn: FunctionalRef =>
+      // Use original static args if any were given. Otherwise use those inferred.
+      val newSargs = if (fn.getStaticArgs.isEmpty) sargs else toList(fn.getStaticArgs)
 
       // Get the dynamically applicable overloadings.
       val overloadings =
         toList(fn.getNewOverloadings).
-        flatMap(o => isDynamicallyApplicable(o, arrow, sargs))
+        flatMap(o => isDynamicallyApplicable(o, arrow, newSargs))
 
       // Add in the filtered overloadings, the inferred static args,
       // and the statically most applicable arrow to the fn.
       addType(
         addStaticArgs(
-          addOverloadings(fn, overloadings), sargs), arrow)
+          addOverloadings(fn, overloadings), newSargs), arrow)
 
     case _ if !sargs.isEmpty =>
       NI.nyi("No place to put inferred static args in application.")
@@ -146,6 +153,17 @@ trait Functionals { self: STypeChecker with Common =>
       signal(application, message)
     }
 
+  /**
+   * Is this expr checkable? An expr is not checkable iff it is a FnExpr with
+   * not all of its parameters' types explicitly declared.
+   */
+  protected def isCheckable(expr: Expr): Boolean = expr match {
+    case f:FnExpr =>
+      val params = toList(f.getHeader.getParams)
+      params.forall(p => p.getIdType.isSome)
+    case _ => true
+  }
+
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
 
@@ -166,8 +184,8 @@ trait Functionals { self: STypeChecker with Common =>
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
-
-  //TODO: Should be rewritten to a method invocation since there is so much duplication
+    
+  //TODO: Should be rewritten to a method invocation since there is so much duplication  
   def checkExprFunctionals(expr: Expr,
                            expected: Option[Type]): Expr = expr match {
 
@@ -209,34 +227,83 @@ trait Functionals { self: STypeChecker with Common =>
           expr
       }
     }
+    
+//    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _) =>{
+//      val checkedObj = checkExpr(obj)
+//      val checkedArg = checkExpr(arg)
+//      val recvrType = getType(checkedObj).getOrElse(return expr)
+//      val argType = getType(checkedArg).getOrElse(return expr)
+//      val methods = findMethodsInTraitHierarchy(method, recvrType)
+//      var arrows = methods.flatMap(makeArrowFromFunctional)
+//      if(arrows.size!=methods.size){
+//        signal(expr, "The return type for %s could not be inferred".format(method))
+//        return expr
+//      }
+//      if(!sargs.isEmpty){
+//        arrows = arrows.flatMap(a =>staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
+//      }
+//      staticallyMostApplicableArrow(arrows.toList, argType, None) match {
+//        case Some((arrow, sargs)) =>
+//          SMethodInvocation(SExprInfo(span, paren, Some(arrow.getRange)),
+//                            checkedObj,
+//                            method,
+//                            sargs,
+//                            checkedArg,
+//                            Some(arrow))
+//        case None =>
+//          signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
+//                         format(recvrType, method, argType))
+//          expr
+//      }
+//    }
+
 
     case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _) =>{
       val checkedObj = checkExpr(obj)
-      val checkedArg = checkExpr(arg)
       val recvrType = getType(checkedObj).getOrElse(return expr)
-      val argType = getType(checkedArg).getOrElse(return expr)
-      val methods = findMethodsInTraitHierarchy(method, recvrType)
+      val methods = findMethodsInTraitHierarchy(method, recvrType).toList
       var arrows = methods.flatMap(makeArrowFromFunctional)
-      if(arrows.size!=methods.size){
+      if (arrows.size != methods.size){
         signal(expr, "The return type for %s could not be inferred".format(method))
         return expr
       }
-      if(!sargs.isEmpty){
-        arrows = arrows.flatMap(a =>staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
+      if (!sargs.isEmpty) {
+        arrows = arrows.flatMap(a => staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
       }
-      staticallyMostApplicableArrow(arrows.toList, argType, None) match {
-        case Some((arrow, sargs)) =>
-          SMethodInvocation(SExprInfo(span, paren, Some(arrow.getRange)),
-                            checkedObj,
-                            method,
-                            sargs,
-                            checkedArg,
-                            Some(arrow))
-        case None =>
-          signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
-                         format(recvrType, method, argType))
-          expr
+
+      // Check all the checkable args and make sure they all have types.
+      val args = getArgList(arg).getOrElse(return expr)
+
+      // Filter the overloadings that are applicable.
+      val candidates = arrows.flatMap(arrow => checkApplicable(arrow, expected, args))
+      if (candidates.isEmpty) {
+        // If any were uncheckable, check them to get the appropriate errors.
+        if (args.count(_.isRight) > 0) {
+          args.foreach(_.right.foreach(checkExpr(_)))
+          return expr
+        }
+
+        // Create the arg type for the error message.
+        val argType = getArgType(args, NU.getSpan(arg))
+        signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".
+                       format(recvrType, method, argType))
+        return expr
       }
+
+      // Sort the arrows and instantiations to find the statically most
+      // applicable.
+      val (smaArrow, infSargs, newArgs) = candidates.sort(moreSpecific).first
+      val checkedArg = EF.makeArgumentExpr(NU.getSpan(arg), toJavaList(newArgs))
+      val newSargs = if (sargs.isEmpty) infSargs else sargs
+
+      // Rewrite the applicand to include the arrow and static args
+      // and update the application.
+      SMethodInvocation(SExprInfo(span, paren, Some(smaArrow.getRange)),
+                        checkedObj,
+                        method,
+                        newSargs,
+                        checkedArg,
+                        Some(smaArrow))
     }
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _) => {
@@ -275,31 +342,43 @@ trait Functionals { self: STypeChecker with Common =>
 
     case S_RewriteFnApp(SExprInfo(span, paren, _), fn, arg) => {
       val checkedFn = checkExpr(fn)
-      val checkedArg = checkExpr(arg)
+      val fnType = getType(checkedFn).getOrElse(return expr)
+      if (!isArrows(fnType)) {
+        signal(expr, "Applicand has a type that is not an arrow: %s".format(normalize(fnType)))
+        return expr
+      }
+      val arrows = conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType])
 
-      // Check fn and arg and get their types.
-      (getType(checkedFn), getType(checkedArg)) match {
-        case (Some(fnType), Some(_)) if !isArrows(fnType) =>
-          signal(expr, errorMsg("Applicand has a type that is not an arrow: ",
-                                normalize(fnType)))
-          expr
-        case (Some(fnType), Some(argType)) =>
+      // Check all the checkable args and make sure they all have types.
+      val args = getArgList(arg).getOrElse(return expr)
 
-          staticallyMostApplicableArrow(fnType, argType, None) match {
-            case Some((smostApp, sargs)) =>
-
-              // Rewrite the applicand to include the arrow and static args
-              // and update the application.
-              val newFn = rewriteApplicand(checkedFn, smostApp, sargs)
-              S_RewriteFnApp(SExprInfo(span, paren, Some(smostApp.getRange)), newFn, checkedArg)
-
-            case None =>
-              noApplicableFunctions(expr, checkedFn, fnType, argType)
-              expr
+      // Filter the overloadings that are applicable.
+      val candidates = arrows.flatMap(arrow => checkApplicable(arrow, expected, args))
+      if (candidates.isEmpty) {
+        // If any were uncheckable, check them to get the appropriate errors.
+        if (args.count(_.isRight) > 0) {
+          args.foreach(_.right.foreach(checkExpr(_)))
+          return expr
         }
 
-        case _ => expr
+        // Create the arg type for the error message.
+        val argType = getArgType(args, NU.getSpan(arg))
+        noApplicableFunctions(expr, checkedFn, fnType, argType)
+        return expr
       }
+
+      // Sort the arrows and instantiations to find the statically most
+      // applicable.
+      val (smaArrow, sargs, newArgs) = candidates.sort(moreSpecific).first
+      val checkedArg = EF.makeArgumentExpr(NU.getSpan(arg), toJavaList(newArgs))
+
+
+
+
+      // Rewrite the applicand to include the arrow and static args
+      // and update the application.
+      val newFn = rewriteApplicand(checkedFn, smaArrow, sargs)
+      S_RewriteFnApp(SExprInfo(span, paren, Some(smaArrow.getRange)), newFn, checkedArg)
     }
 
     case SOpExpr(info, fn, args) => {
@@ -322,9 +401,9 @@ trait Functionals { self: STypeChecker with Common =>
 
     }
 
-    case SFnExpr(SExprInfo(span, paren, _), header, body) => {
+    case SFnExpr(SExprInfo(span, paren, _),
+                 SFnHeader(a, b, c, d, e, f, tempParams, retType), body) => {
       // If expecting an arrow type, use its domain to infer param types.
-      val tempParams = toList(header.getParams)
       val params = expected match {
         case Some(SArrowType(_, dom, _, _, _)) =>
           addParamTypes(dom, tempParams).getOrElse(tempParams)
@@ -332,19 +411,18 @@ trait Functionals { self: STypeChecker with Common =>
       }
 
       // Make sure all params have a type.
-      val domain = makeDomainType(params).getOrElse({
+      val domain = makeDomainType(params).getOrElse {
         signal(expr, "Could not determine all parameter types of function expression.")
         return expr
-      })
+      }
 
-      val (checkedBody, range) = toOption(header.getReturnType) match {
+      val (checkedBody, range) = retType match {
         // If there is a declared return type, use it.
         case Some(typ) =>
           (this.extend(params).checkExpr(body,
                                          typ,
                                          errorString("Function body",
-                                                     "declared return")),
-           typ)
+                                                     "declared return")), typ)
 
         case None =>
           val temp = this.extend(params).checkExpr(body)
@@ -352,9 +430,145 @@ trait Functionals { self: STypeChecker with Common =>
       }
 
       val arrow = NF.makeArrowType(span, domain, range)
-      SFnExpr(SExprInfo(span, paren, Some(arrow)), header, checkedBody)
+      val newRetType = retType.getOrElse(range)
+      val newHeader = SFnHeader(a, b, c, d, e, f, params, Some(newRetType))
+      SFnExpr(SExprInfo(span, paren, Some(arrow)), newHeader, checkedBody)
     }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
   }
+
+  /**
+   * Given a single argument expr, break it into a list of args and partition it into a list of
+   * eithers, where Left is checked and Right is unchecked.
+   */
+  def getArgList(arg: Expr): Option[List[Either[Expr,Expr]]] = {
+    val args = arg match {
+      case STupleExpr(_, exprs, _, _, _) => exprs
+      case _:VoidLiteralExpr => Nil
+      case _ => List(arg)
+    }
+    val partitioned = args.map(checkExprIfCheckable)
+    if(partitioned.exists(_.fold(getType(_).isNone,x=>false)))
+      return None
+    else
+      Some(partitioned)
+  }
+
+  /**
+   * Check the given expr if it is checkable, yielding Left for the checked expr and Right for the
+   * unchecked original expr.
+   */
+  def checkExprIfCheckable(expr: Expr): Either[Expr,Expr] = {
+    if (isCheckable(expr)) {
+      val checked = checkExpr(expr)
+      Left(checked)
+    } else {
+      Right(expr)
+    }
+  }
+
+  /**
+   * Get the full argument type from the partitioned list of args, filling in with the bottom
+   * arrow.
+   */
+  def getArgType(args: List[Either[Expr, Expr]]): Type = getArgType(args, NF.typeSpan)
+
+  /** Same as other but provides a location for the span on the new type. */
+  def getArgType(args: List[Either[Expr, Expr]], span: Span): Type = {
+    val argTypes = args.map(_.fold(getType(_).get, _ => Types.BOTTOM_ARROW))
+    NF.makeMaybeTupleType(span, toJavaList(argTypes))
+  }
+
+  /**
+   * Given an arrow type, an expected type context, and a list of partitioned args (where Left is
+   * checked and Right is an unchecked arg), determine if the arrow is applicable to these args.
+   * This method will infer static arguments on the arrow and parameter types on any FnExpr args.
+   * The result is an AppCandidate, which contains the inferred arrow type, the list of static
+   * args that were inferred, and the checked arguments.
+   */
+  def checkApplicable(arrow: ArrowType,
+                      context: Option[Type],
+                      args: List[Either[Expr, Expr]]): Option[AppCandidate] = {
+
+    // Make sure all uncheckable args correspond to arrow type params.
+    for ((Right(_), pt) <- zipWithDomain(args, arrow.getDomain)) {
+      if (!isArrows(pt)) return None
+    }
+
+    // Try to check the unchecked args, constructing a new list of
+    // (checked, unchecked) arg pairs.
+    def updateArgs(argsAndParam: (Either[Expr,Expr], Type))
+                     : Either[Expr,Expr] = argsAndParam match {
+
+      // This arg is checkable if there are no more inference vars
+      // in the param type (which must be an arrow).
+      case (Right(unchecked), paramType:ArrowType) =>
+        if (hasInferenceVars(paramType.getDomain))
+          Right(unchecked)
+        else {
+
+          // Try to check the arg given this new expected type.
+          val expectedArrow = NF.makeArrowType(NU.getSpan(paramType),
+                                               paramType.getDomain,
+                                               Types.ANY)
+          val tryChecker = STypeCheckerFactory.makeTryChecker(this)
+          tryChecker.tryCheckExpr(unchecked, expectedArrow) match {
+            // Move this arg out of unchecked and into checked.
+            case Some(checked) => Left(checked)
+            // This arg might be checkable later, so keep going.
+            case None => Right(unchecked)
+          }
+        }
+
+      // Skip args that are already checked.
+      case (Left(checked), _) =>  Left(checked)
+    }
+
+    // Update all args until we have checked as much as possible.
+    def recurOnArgs(args: List[Either[Expr,Expr]])
+                    : Option[(List[Either[Expr,Expr]],
+                              ArrowType, List[StaticArg])] = {
+
+      // Build the single type for all the args, inserting the least arrow
+      // type for any that aren't checkable.
+      val argType = getArgType(args)
+
+      // Do type inference to get the inferred static args.
+      val (resultArrow, sargs) = typeInference(arrow, argType, context).getOrElse(return None)
+
+      // Match up checked/unchecked args and param types and try to check the unchecked args,
+      // constructing a new list of (checked, unchecked) arg pairs.
+      val newArgs = zipWithDomain(args, resultArrow.getDomain).map(updateArgs)
+
+      // If progress was made, keep going. Otherwise return.
+      if (newArgs.count(_.isRight) < args.count(_.isRight))
+        recurOnArgs(newArgs)
+      else
+        Some((newArgs, resultArrow, sargs))
+    }
+
+    // Do the recursion to check the args.
+    val (newArgs, resultArrow, sargs) = recurOnArgs(args).getOrElse(return None)
+
+    // Make sure that all args are checked.
+    if (newArgs.count(_.isRight) != 0) return None
+
+    // Make sure all inference variables were inferred.
+    if (hasInferenceVars(resultArrow)) return None
+
+    Some((resultArrow, sargs, newArgs.map(_.left.get)))
+  }
+
+  // Define an ordering relation on arrows with their instantiations.
+  def moreSpecific(candidate1: AppCandidate,
+                   candidate2: AppCandidate): Boolean = {
+
+    val SArrowType(_, domain1, range1, _, _) = candidate1._1
+    val SArrowType(_, domain2, range2, _, _) = candidate2._1
+
+    if (analyzer.equivalent(domain1, domain2).isTrue) false
+    else isSubtype(domain1, domain2)
+  }
+
 }
