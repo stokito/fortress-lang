@@ -25,7 +25,9 @@ Note that this code might contain bugs; there's no way of getting it
 through the type checker and thus no way of knowing for sure.
 *)
 
-trait GeneratorZZ32
+(** Is excludes Boolean actually necessary here, or is that a bug in
+    exclusion checking? *)
+trait GeneratorZZ32 excludes Boolean
     generate(r: ReductionString, body: ZZ32->String): String
     filter(f: ZZ32 -> Boolean): GeneratorZZ32
 end
@@ -43,6 +45,8 @@ __bigOperator(o:ReductionString,
 
 __generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
     g.generate(r,f)
+__generate(p: Boolean, r: ReductionString, f:()->String): String =
+    if p then f() else r.empty() end
 
 
 object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GeneratorZZ32
