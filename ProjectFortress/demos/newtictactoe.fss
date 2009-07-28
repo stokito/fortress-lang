@@ -143,23 +143,26 @@ playGame(name: String, N: ZZ32): Boolean = label quit
         else
             try
                 println "Your turn, " name
-                yourMove = strToInt(readLine())
-                newBoard = board.move(yourMove, playerOne)
-                if newBoard.isGameOver() then
-                    announceGameEnd(newBoard)
+                line = readLine()
+                if (|line| = 0)
+                then
+                    println "Invalid response."
+                    exit quit with false
                 else
-                    myMove = smartAi(newBoard)
-                    println "I play " myMove
-                    play(newBoard.move(myMove, playerTwo))
+                    yourMove = strToInt(line)
+                    newBoard = board.move(yourMove, playerOne)
+                    if newBoard.isGameOver() then
+                        announceGameEnd(newBoard)
+                    else
+                        myMove = smartAi(newBoard)
+                        println "I play " myMove
+                        play(newBoard.move(myMove, playerTwo))
+                    end
                 end
             catch e
                 IllegalMove => do
                     println "You cannot move there. Choose again."
                     play(board)
-                end
-                IndexOutOfBounds[\ZZ32\] => do
-                    println "Invalid response."
-                    exit quit with false
                 end
             end
         end
@@ -190,14 +193,15 @@ run() = do
     println "What's your name, friend?"
     name = readLine()
     println "What size board?"
-    try
-        N = strToInt(readLine())
+    line = readLine()
+    if (|line| = 0)
+    then
+        println "Invalid response."
+    else
+        N = strToInt(line)
         while playGame(name, N) do
             println ""
         end
-    catch e
-        IndexOutOfBounds[\ZZ32\] =>
-            println "Invalid response."
     end
     println "Bye!"
 end

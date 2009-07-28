@@ -240,16 +240,19 @@ playGame(name) = do
             try
                 println board
                 println "Your turn " name
-                pos = strToInt(readLine())
-                play(smartAi(board.move(pos, 1)))
+                line = readLine()
+                if (|line| = 0)
+                then
+                    println "Invalid response."
+                    exit quit with false
+                else
+                    pos = strToInt(line)
+                    play(smartAi(board.move(pos, 1)))
+                end
             catch e
                 IllegalMove => do
                     println "You cannot move there. Choose again."
                     play(board)
-                end
-                IndexOutOfBounds[\ZZ32\] => do
-                    println "Invalid response."
-                    exit quit with false
                 end
             end
         end
