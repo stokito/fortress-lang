@@ -71,9 +71,9 @@ opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 run(): () = do
     println(__bigOperator(ReductionString,
                           fn (r, b) => (0:100).generate(r, fn(n) => b(2 n + 1))))
-    (** Comment this next line out if you aren't ready for it yet. *)
     println(BIG ||[n <- 0:100] (2 n + 1))
-    (** TODO: more, involving filters and nesting and the like. *)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m))
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m))
   end
 
 end

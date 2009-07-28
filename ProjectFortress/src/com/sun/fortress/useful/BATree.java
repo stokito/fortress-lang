@@ -104,7 +104,7 @@ public class BATree<T, U> extends AbstractMap<T, U> implements Map<T, U>, java.i
     }
 
     volatile BATreeNode<T, U> root;
-    Comparator<? super T> comp;
+    final Comparator<? super T> comp;
 
     public BATree(Comparator<? super T> c) {
         comp = c;
