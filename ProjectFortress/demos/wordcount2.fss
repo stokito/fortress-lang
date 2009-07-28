@@ -122,7 +122,8 @@ processFile(name:String):() = do
         BIG UNIONUNION [(x,y) <-database] makeInv(x.asString(),y)
     inv = nanoTime()
     time("Inverted database",acq,inv)
-    for (c,m) <- seq(invDatabase.reverse()) do
+    entries = <|[\(ZZ32, List[\String\])\] (c,m) | (c,m) <- invDatabase.reverse() |>
+    for (c,m) <- seq(entries[0#100]) do
         println(m ": " c " times")
     end
     finish = nanoTime()
