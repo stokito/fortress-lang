@@ -31,10 +31,10 @@ import fortress.useful.NI
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
- * 
+ *
  * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker along with the Common helpers. This is what
  * allows this trait to implement abstract members of STypeChecker and to
@@ -44,7 +44,7 @@ trait Functionals { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
-  
+
   /**
    * Determines if the given overloading is dynamically applicable.
    */
@@ -127,7 +127,7 @@ trait Functionals { self: STypeChecker with Common =>
     }
     val argTypeStr = normalize(argType) match {
       case tt:TupleType => tt.getElements.toString
-      case _ => "[" + argType.toString + "]"
+      case ty => ty.toString
     }
     val message = fn match {
       case fn:FunctionalRef =>
@@ -148,7 +148,7 @@ trait Functionals { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
-  
+
   def checkFunctionals(node: Node): Node = node match {
 
     case SOverloading(info, name, _) => {
@@ -162,12 +162,12 @@ trait Functionals { self: STypeChecker with Common =>
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
-  
+
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
-    
-  //TODO: Should be rewritten to a method invocation since there is so much duplication  
+
+  //TODO: Should be rewritten to a method invocation since there is so much duplication
   def checkExprFunctionals(expr: Expr,
                            expected: Option[Type]): Expr = expr match {
 
@@ -209,7 +209,7 @@ trait Functionals { self: STypeChecker with Common =>
           expr
       }
     }
-    
+
     case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _) =>{
       val checkedObj = checkExpr(obj)
       val checkedArg = checkExpr(arg)
@@ -350,11 +350,11 @@ trait Functionals { self: STypeChecker with Common =>
           val temp = this.extend(params).checkExpr(body)
           (temp, getType(temp).getOrElse(return expr))
       }
-      
+
       val arrow = NF.makeArrowType(span, domain, range)
       SFnExpr(SExprInfo(span, paren, Some(arrow)), header, checkedBody)
     }
-    
+
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
-  }  
+  }
 }
