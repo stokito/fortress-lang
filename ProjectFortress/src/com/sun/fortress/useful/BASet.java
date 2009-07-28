@@ -336,7 +336,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
 
     BASnode<T> root;
-    Comparator<T> comp;
+    final Comparator<T> comp;
 
     public BASet(Comparator<T> c) {
         comp = c;
@@ -431,11 +431,9 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             return true;
         }
         BASnode<T> old = root;
-        root = root.add(k, comp);
+        root = old.add(k, comp);
 
-        if (old.weight < root.weight) return true;
-
-        return false;
+        return (old.weight < root.weight);
 
     }
 
@@ -454,9 +452,8 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             root = old.add(k, comp);
 
             // Performance hack; if it wasn't there, then the tree got bigger.
-            if (old.weight < root.weight) return true;
+            return (old.weight < root.weight);
         }
-        return false;
     }
 
     @SuppressWarnings ("unchecked")
@@ -467,9 +464,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         BASnode<T> old = root;
         root = root.delete((T) k, comp);
 
-        if (root == null || old.weight > root.weight) return true;
-
-        return false;
+        return (root == null || old.weight > root.weight);
     }
 
     @SuppressWarnings ("unchecked")
