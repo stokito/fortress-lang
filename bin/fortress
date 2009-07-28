@@ -44,7 +44,8 @@ if [ -z "$JAVA_FLAGS" ] ; then
 fi
 
 if [ "$1" = "run" ] ; then
-    "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP${@#run}"
+    shift
+    "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" com.sun.fortress.runtimeSystem.MainWrapper "$@"
 else
     "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
 fi
