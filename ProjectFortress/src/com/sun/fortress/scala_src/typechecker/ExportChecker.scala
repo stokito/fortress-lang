@@ -566,8 +566,10 @@ object ExportChecker {
   /* Returns true if two static arguments are same. */
   private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
     (left, right) match {
-      case (STypeArg(_, typeL), STypeArg(_, typeR)) => equalTypes(typeL, typeR)
-      case (SIntArg(_, intL), SIntArg(_, intR)) => equalIntExprs(intL,intR)
+      case (STypeArg(_, liftedL, typeL), STypeArg(_, liftedR, typeR)) =>
+        equalTypes(typeL, typeR) && liftedL == liftedR
+      case (SIntArg(_, liftedL, intL), SIntArg(_, liftedR, intR)) =>
+        equalIntExprs(intL,intR) && liftedL == liftedR
       case _ => false
     }
 

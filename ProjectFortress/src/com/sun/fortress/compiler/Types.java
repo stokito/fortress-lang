@@ -58,6 +58,7 @@ public final class Types {
     public static final TraitType OBJECT = makeTraitType(span, fortressBuiltin(), "Object");
 
     public static final Type BOTTOM_DOMAIN = BOTTOM;
+    public static final ArrowType BOTTOM_ARROW = NodeFactory.makeArrowType(NodeFactory.typeSpan, ANY, BOTTOM);
 
     public static final TupleType VOID = NodeFactory.makeVoidType(span);
     public static final TraitType FLOAT_LITERAL = makeTraitType(span, fortressBuiltin(), "FloatLiteral");

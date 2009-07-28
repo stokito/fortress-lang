@@ -76,6 +76,11 @@ object STypeCheckerFactory {
                      env: STypeEnv)
                     (implicit analyzer: TypeAnalyzer): TryChecker =
     new TryChecker(current, traits, env)(analyzer, MMap.empty)
+
+  def makeTryChecker(checker: STypeChecker): TryChecker =
+    makeTryChecker(checker.current,
+                   checker.traits,
+                   checker.env)(checker.analyzer)
 }
 
 /**
@@ -497,6 +502,19 @@ class TryChecker(current: CompilationUnitIndex,
   def tryCheckExpr(expr: Expr): Option[Expr] =
     try {
       Some(super.checkExpr(expr))
+    }
+    catch {
+      case e:StaticError => None
+      case e => throw e
+    }
+
+  /**
+   * Check the given expression with the given expected type; return it if
+   * successful, None otherwise.
+   */
+  def tryCheckExpr(expr: Expr, typ: Type): Option[Expr] =
+    try {
+      Some(super.checkExpr(expr, typ, ""))
     }
     catch {
       case e:StaticError => None
