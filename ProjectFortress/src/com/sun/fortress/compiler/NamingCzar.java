@@ -578,6 +578,35 @@ public class NamingCzar {
         return makeMethodDesc(args, rangeDesc);
     }
 
+    public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
+            String rangeDesc, int spliceAt, com.sun.fortress.nodes.Type spliceType, APIName ifNone) {
+        String args = "";
+
+        if (spliceAt == 0) 
+            args += jvmTypeDesc(spliceType, ifNone);
+
+        if (domain instanceof com.sun.fortress.nodes.TupleType) {
+            TupleType tt = (TupleType) domain;
+            int i = 0;
+            for (com.sun.fortress.nodes.Type p : tt.getElements()) {
+                args += jvmTypeDesc(p, ifNone);
+                i++;
+                if (spliceAt == i)
+                    args += jvmTypeDesc(spliceType, ifNone);
+            }
+        } else {
+            if (spliceAt < 0)
+                return jvmSignatureFor(domain, rangeDesc, ifNone);
+            else {
+                args += jvmTypeDesc(domain, ifNone);
+                if (spliceAt == 1) 
+                    args += jvmTypeDesc(spliceType, ifNone);
+            }
+        }
+        
+        return makeMethodDesc(args, rangeDesc);
+    }
+
     public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
             com.sun.fortress.nodes.Type range,
             APIName ifNone) {
@@ -622,6 +651,8 @@ public class NamingCzar {
                                         "emitDesc of type failed");
             }
             public String forArrowType(ArrowType t) {
+                // THIS IS WRONG !!!!
+                // Needs to be a reference to a generic Arrow type.
                 if (NodeUtil.isVoidType(t.getDomain()))
                     return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
                 else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
@@ -662,6 +693,65 @@ public class NamingCzar {
                 APIName api = maybeApi.unwrap(ifNone);
                 result = makeInnerClassName(api.getText(), name) ;
                 if (withLSemi)
+                    result = "L" + result + ";";
+                Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
+
+                return result;
+            }
+            });
+    }
+
+    
+    /* Clone of above, to clean things out, TYPE DESCRIPTORS != METHOD DESCRIPTORS */
+    
+    public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
+            final APIName ifNone)  {
+        return type.accept(new NodeAbstractVisitor<String>() {
+            public void defaultCase(ASTNode x) {
+                throw new CompilerError(NodeUtil.getSpan(x),
+                                        "emitDesc of type failed");
+            }
+            public String forArrowType(ArrowType t) {
+                if (NodeUtil.isVoidType(t.getDomain()))
+                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
+                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
+                                           jvmTypeDesc(t.getRange(), ifNone));
+            }
+            // TODO CASES BELOW OUGHT TO JUST FAIL, WILL TEST SOON.
+            public String forTupleType(TupleType t) {
+                if ( NodeUtil.isVoidType(t) )
+                    return descFortressVoid;
+                if (t.getVarargs().isSome())
+                    throw new CompilerError(NodeUtil.getSpan(t),
+                                            "Can't compile VarArgs yet");
+                if (!t.getKeywords().isEmpty())
+                    throw new CompilerError(NodeUtil.getSpan(t),
+                                            "Can't compile Keyword args yet");
+                String res = "";
+                for (com.sun.fortress.nodes.Type ty : t.getElements()) {
+                    res += jvmTypeDesc(ty, ifNone);
+                }
+                return res;
+            }
+            public String forAnyType (AnyType t) {
+                return descFortressAny;
+            }
+            public String forTraitType(TraitType t) {
+                Id id = t.getName();
+                String name = id.getText();
+                String result = specialFortressDescriptors .get(t);
+                if (result != null) {
+                    Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
+                                " builtin ", result);
+                    return result;
+                }
+                Option<APIName> maybeApi = id.getApiName();
+                if (ifNone == null && !maybeApi.isSome()) {
+                    throw new CompilerError(NodeUtil.getSpan(id),
+                                            "no api name given for id");
+                }
+                APIName api = maybeApi.unwrap(ifNone);
+                result = makeInnerClassName(api.getText(), name) ;
                     result = "L" + result + ";";
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
