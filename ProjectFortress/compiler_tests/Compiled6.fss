@@ -33,7 +33,7 @@ orderedEnum(lo:ZZ32, hi:ZZ32, f: ZZ32->()): () =
 
 run():() = do
     (** TODO: type annotation should not be necessary! *)
-    orderedEnum(0,9, fn (n: ZZ32) => printlnZZ32(n))
+    orderedEnum(0,9, fn n => printlnZZ32(n))
     (** TODO: closing over non-generic global function *)
     (*) orderedEnum(0,9,printlnZZ32)
   end

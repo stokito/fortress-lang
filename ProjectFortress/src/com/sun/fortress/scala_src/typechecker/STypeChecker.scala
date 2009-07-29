@@ -46,6 +46,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.TryErrorLog
 import com.sun.fortress.useful.HasAt
 
 import scala.collection.mutable.{Map => MMap}
@@ -96,7 +97,17 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
     extends STypeChecker(current, traits, env, errors)(analyzer, envCache)
     with Dispatch with Common
     with Decls with Functionals with Operators
-    with Misc
+    with Misc {
+
+  override def constructor(current: CompilationUnitIndex,
+                           traits: TraitTable,
+                           env: STypeEnv,
+                           errors: ErrorLog)
+                          (implicit analyzer: TypeAnalyzer,
+                                    envCache: MMap[APIName, STypeEnv]) =
+    new STypeCheckerImpl(current, traits, env, errors)
+
+}
 
 /**
  * The abstract base class for a type checker. This class contains all the
@@ -127,20 +138,32 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
     new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
 
+  /**
+   * This method simply creates a new instance of the class in which it is defined. We need this
+   * so that subclasses will extend themselves properly. This MUST be overriden in every subclass of
+   * STypeChecker.
+   */
+  def constructor(current: CompilationUnitIndex,
+                  traits: TraitTable,
+                  env: STypeEnv,
+                  errors: ErrorLog)
+                 (implicit analyzer: TypeAnalyzer,
+                           envCache: MMap[APIName, STypeEnv]): STypeCheckerImpl
+
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
-    new STypeCheckerImpl(current, traits, newEnv, errors)(newAnalyzer, envCache)
+    constructor(current, traits, newEnv, errors)(newAnalyzer, envCache)
 
   def extend(bindings: List[Binding]) =
-    new STypeCheckerImpl(current,
-                         traits,
-                         env.extend(bindings),
-                         errors)
+    constructor(current,
+                traits,
+                env.extend(bindings),
+                errors)
 
   def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
-    new STypeCheckerImpl(current,
-                         traits,
-                         env,
-                         errors)(analyzer.extend(sparams, where), envCache)
+    constructor(current,
+                traits,
+                env,
+                errors)(analyzer.extend(sparams, where), envCache)
 
   def extend(sparams: List[StaticParam],
              params: Option[List[Param]],
@@ -149,10 +172,10 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
       case Some(ps) => env.extend(ps)
       case None => env
     }
-    new STypeCheckerImpl(current,
-                         traits,
-                         newEnv,
-                         errors)(analyzer.extend(sparams, where), envCache)
+    constructor(current,
+                traits,
+                newEnv,
+                errors)(analyzer.extend(sparams, where), envCache)
   }
 
   def extend(id: Id, typ: Type): STypeChecker =
@@ -163,22 +186,22 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         NodeFactory.makeLValue(p._1,p._2)))
 
   def extend(decl: LocalVarDecl): STypeChecker =
-    new STypeCheckerImpl(current,
-                         traits,
-                         env.extend(decl),
-                         errors)
+    constructor(current,
+                traits,
+                env.extend(decl),
+                errors)
 
   def extendWithFunctions[T <: Functional](methods: Relation[IdOrOpOrAnonymousName, T]) =
-    new STypeCheckerImpl(current,
-                         traits,
-                         env.extendWithFunctions(methods),
-                         errors)
+    constructor(current,
+                traits,
+                env.extendWithFunctions(methods),
+                errors)
 
   def extendWithout(declSite: Node, names: Set[Id]) =
-    new STypeCheckerImpl(current,
-                         traits,
-                         env.extendWithout(names),
-                         errors)
+    constructor(current,
+                traits,
+                env.extendWithout(names),
+                errors)
 
   def addSelf(self_type: Type) =
     extend(List[LValue](NodeFactory.makeLValue("self", self_type)))
@@ -193,7 +216,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     error(hasAt, msg)
 
   /**
-   * Determine if subtype <: supertype. If false, then the given error message
+   *  Determine if subtype <: supertype. If false, then the given error message
    * is signaled for the given location.
    */
   protected def isSubtype(subtype: Type,
@@ -478,15 +501,15 @@ class TryChecker(current: CompilationUnitIndex,
                  env: STypeEnv)
                 (implicit analyzer: TypeAnalyzer,
                           envCache: MMap[APIName, STypeEnv])
-    extends STypeCheckerImpl(current, traits, env, new ErrorLog) {
+    extends STypeCheckerImpl(current, traits, env, TryErrorLog) {
 
-  /** Throws the TypeError exception with the given info. */
-  override protected def signal(msg:String, hasAt:HasAt): Unit =
-    throw TypeError.make(msg,hasAt)
-
-  /** Throws the TypeError exception with the given info. */
-  override protected def signal(hasAt:HasAt, msg:String): Unit =
-    signal(msg, hasAt)
+  override def constructor(current: CompilationUnitIndex,
+                           traits: TraitTable,
+                           env: STypeEnv,
+                           errors: ErrorLog)
+                          (implicit analyzer: TypeAnalyzer,
+                                    envCache: MMap[APIName, STypeEnv]) =
+    new TryChecker(current, traits, env)
 
   /** Check the given node; return it if successful, None otherwise. */
   def tryCheck(node: Node): Option[Node] =

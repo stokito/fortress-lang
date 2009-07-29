@@ -43,3 +43,8 @@ object Errors {
     }
   }
 }
+
+/** Just throws the errors that it signals. */
+object TryErrorLog extends ErrorLog {
+  override def signal(msg: String, hasAt: HasAt) = throw TypeError.make(msg, hasAt)
+}

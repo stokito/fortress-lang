@@ -534,6 +534,14 @@ trait Misc { self: STypeChecker with Common =>
                                envCache: MMap[APIName, STypeEnv])
       extends STypeCheckerImpl(current,traits,env,errors) {
 
+    override def constructor(current: CompilationUnitIndex,
+                              traits: TraitTable,
+                              env: STypeEnv,
+                              errors: ErrorLog)
+                             (implicit analyzer: TypeAnalyzer,
+                                       envCache: MMap[APIName, STypeEnv]) =
+      new AtomicChecker(current, traits, env, errors, enclosingExpr)
+
     val message = errorMsg("A 'spawn' expression must not occur inside ",
                            enclosingExpr, ".")
     override def checkExpr(e: Expr): Expr = e match {
