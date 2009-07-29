@@ -38,17 +38,28 @@ public class MainWrapper {
         
         String whatToRun = args[0];
         
-        if (
-                whatToRun.indexOf('\\') >= 0 ||
-                whatToRun.indexOf('/') >= 0) {
-            if (whatToRun.endsWith(".class"))
+        if (whatToRun.indexOf('\\') >= 0 ||
+            whatToRun.indexOf('/') >= 0) {
+            if (whatToRun.endsWith(".class")) {
+                /* If . is on the classpath, which is common, this allows
+                 * use of filename completion to locate the file, if it is
+                 * not cached.
+                 */
                 whatToRun = Useful.substring(whatToRun, 0, -6);
-            whatToRun = whatToRun.replace('/', '.');
-            whatToRun = whatToRun.replace('\\', '.');
+            }
+            /*
+             * Graceful behavior on windows REQUIRES handling both / and \ 
+             * as pathname separators; both work at the OS level.
+             * This does inhibit use of backslashes in the names of classes
+             * on Unix machines, but such classfile names are not portable to
+             * windows, and are also very rare.
+             */
+            whatToRun = sepToDot(whatToRun);
         }
         
         
         try {
+            //Class cl = Class.forName(whatToRun, true, InstantiatingClassloader.ONLY);
             Class cl = Class.forName(whatToRun);
             Class[] arg_classes = new Class[1];
             arg_classes[0] = String[].class;
@@ -75,6 +86,16 @@ public class MainWrapper {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * @param filepath
+     * @return
+     */
+    public static String sepToDot(String filepath) {
+        filepath = filepath.replace('/', '.');
+        filepath = filepath.replace('\\', '.');
+        return filepath;
     }
 
 }

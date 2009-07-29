@@ -23,7 +23,7 @@ public class simpleIntArith {
         return Integer.toString(x);
     }
 
-    public static int parseInt(String s) {
+     public static int parseInt(String s) {
         return Integer.parseInt(s);
     }
 
