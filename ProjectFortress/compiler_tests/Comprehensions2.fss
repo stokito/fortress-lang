@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Comprehensions1
+component Comprehensions2
 export Executable
 
 (* Mock up of the kind of code we expect after desugaring of
@@ -28,35 +28,38 @@ through the type checker and thus no way of knowing for sure.
 (** Is excludes Boolean actually necessary here, or is that a bug in
     exclusion checking? *)
 trait GeneratorZZ32 excludes Boolean
-    generate(r: ReductionString, body: ZZ32->String): String
+    generate[\R\](r: Reduction[\R\], body: ZZ32->R): R
     filter(f: ZZ32 -> Boolean): GeneratorZZ32
 end
 
-object ReductionString
+trait Reduction[\R\]
+    empty(): R
+    (* If typechecking succeeds, scope checking calls bug on this: *)
+    join(a: R, b:R): R
+end
+
+object ReductionString extends Reduction[\String\]
     empty(): String = ""
     join(a: String, b: String): String = a || b
 end
 
-intToStr(i:ZZ32): String = i.asString()
+__bigOperator[\R\](o:Reduction[\R\],
+                desugaredClauses:(Reduction[\R\], R->R)->R): R =
+    desugaredClauses(o, fn (x:R):R => x)
 
-__bigOperator(o:ReductionString,
-              desugaredClauses:(ReductionString, String->String)->String): String =
-    desugaredClauses(o,fn (s:String):String => s)
-
-__generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
-    g.generate(r,f)
-__generate(p: Boolean, r: ReductionString, f:()->String): String =
+__generate[\R\](g: GeneratorZZ32, r: Reduction[\R\], f:ZZ32->R): R =
+    g.generate[\R\](r,f)
+__generate[\R\](p: Boolean, r: Reduction[\R\], f:()->R): R =
     if p then f() else r.empty() end
 
-
 object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GeneratorZZ32
-    generate(r: ReductionString, body: ZZ32->String): String = gen(lo,hi,p,r,body)
+    (* Interestingly, deleting the explicit type parameter [\R\] to gen here works *)
+    generate[\R\](r: Reduction[\R\], body: ZZ32->R): R = gen[\R\](lo,hi,p,r,body)
     filter(q: ZZ32 -> Boolean): GeneratorZZ32 =
         FilteredRange(lo, hi, fn n => p(n) AND: q(n))
 end
 
-
-gen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionString, body: ZZ32->String): String =
+gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R =
     if lo < hi then
         mid = (lo+hi) DIV 2
         r.join(gen(lo, mid, p, r, body), gen(mid+1,hi,p,r,body))
@@ -73,11 +76,13 @@ opr BIG ||(): ReductionString = ReductionString
 opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 
 run(): () = do
+    (* This one doesn't appear to type check, even though the other three do.
+       Baffling! *)
     println(__bigOperator(ReductionString,
                           fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).toString()))))
-    println(BIG ||[n <- 0:100] (2 n + 1).toString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).toString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).toString())
+    println(BIG ||[n <- 0:100] (2 n + 1).asString())
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString())
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString())
   end
 
 end
