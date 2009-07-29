@@ -769,8 +769,7 @@ public class TypeAnalyzer {
         Option<StaticParam> param = toJavaOption(_kindEnv.staticParam(s.getName()));
 
         if( param.isNone() )
-            return bug("The following type is not in scope: " +
-                       s + " @ " + NodeUtil.getSpan(s));
+            return bug(s, "Type should be in scope: " + s);
 
         StaticParam that = param.unwrap();
         ConstraintFormula result = falseFormula();
