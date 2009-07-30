@@ -31,8 +31,6 @@ import edu.rice.cs.plt.collect.Relation
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 
-import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.NamingCzar
 import com.sun.fortress.compiler.StaticPhaseResult
@@ -67,11 +65,10 @@ import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.nodes_util.Modifiers
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.scala_src.linker.ApiLinker
 import com.sun.fortress.scala_src.linker.CompoundApiChecker
 import com.sun.fortress.scala_src.nodes._
@@ -173,8 +170,8 @@ object IndexBuilder {
       decl match {
         case d@STraitDecl(_, _, excludes, comprises, _, self) =>
           buildTrait(d, typeConses, functions, parametricOperators, errors)
-          checkTraitClauses(typeConses, NodeUtil.getName(d),
-                            NodeUtil.getStaticParams(d),
+          checkTraitClauses(typeConses, NU.getName(d),
+                            NU.getStaticParams(d),
                             excludes, comprises, self)
         case d@SObjectDecl(_,_,_,_) =>
           buildObject(d, typeConses, functions, parametricOperators, variables, errors)
@@ -207,12 +204,12 @@ object IndexBuilder {
    * having an index for one can be helpful.
    */
   def buildObjectExprIndex(obj: ObjectExpr): ObjectTraitIndex = {
-    val fake_span = NodeFactory.makeSpan("FAKE_SPAN")
-    val fake_object_name = NodeFactory.makeId(fake_span, "FAKE_NAME")
+    val fake_span = NF.makeSpan("FAKE_SPAN")
+    val fake_object_name = NF.makeId(fake_span, "FAKE_NAME")
     // Make fake object
-    val decl = NodeFactory.makeObjectDecl(fake_span, fake_object_name,
-                                          NodeUtil.getExtendsClause(obj),
-                                          NodeUtil.getDecls(obj), none())
+    val decl = NF.makeObjectDecl(fake_span, fake_object_name,
+                                 NU.getExtendsClause(obj),
+                                 NU.getDecls(obj), none())
     val index_holder: JavaMap[Id,TypeConsIndex] = new JavaHashMap[Id,TypeConsIndex]()
     // TODO: Fix this so that the global function map and parametricOperator set are
     // threaded through to here.
@@ -235,7 +232,7 @@ object IndexBuilder {
         if ( t.isInstanceOf[NamedType] ) {
           val typ = t match {
             case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-            case _ => NodeFactory.makeTraitType(t.asInstanceOf[NamedType].getName)
+            case _ => NF.makeTraitType(t.asInstanceOf[NamedType].getName)
           }
           dIndex.addComprisesType(typ)
         } else bug("TraitType is expected in the comprises clause of " + dName +
@@ -247,15 +244,15 @@ object IndexBuilder {
         val tName = t.asInstanceOf[NamedType].getName
         var typ = t match {
           case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-          case _ => NodeFactory.makeTraitType(tName)
+          case _ => NF.makeTraitType(tName)
         }
         dIndex.addExcludesType(typ)
         // add d to t's excludes clause
         typ = toOption(self) match {
           case Some(ty) => ty.asInstanceOf[TraitType]
           case _ =>
-            NodeFactory.makeTraitType(dName.asInstanceOf[Id],
-                                      TypeEnv.staticParamsToArgs(staticParams))
+            NF.makeTraitType(dName.asInstanceOf[Id],
+                             TypeEnv.staticParamsToArgs(staticParams))
         }
         // If t is a parameterized type instantiated with ground types,
         // then do not add d to t's excludes clause.
@@ -277,7 +274,7 @@ object IndexBuilder {
                          functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
                          parametricOperators: JavaSet[ParametricOperator],
                          errors: JavaList[StaticError]) = {
-    val name = NodeUtil.getName(ast)
+    val name = NU.getName(ast)
     val getters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
     val setters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
     val coercions: JavaSet[Coercion] = new JavaHashSet[Coercion]()
@@ -287,10 +284,10 @@ object IndexBuilder {
       new IndexedRelation[IdOrOpOrAnonymousName, JavaFunctionalMethod](false)
 
     // FnDecls should be handled before VarDecls
-    for (decl <- NodeUtil.getDecls(ast)) {
+    for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SFnDecl(_,_,_,_,_) =>
-          buildMethod(d, name, NodeUtil.getStaticParams(ast),
+          buildMethod(d, name, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -298,7 +295,7 @@ object IndexBuilder {
       }
     }
 
-    for (decl <- NodeUtil.getDecls(ast)) {
+    for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SVarDecl(_,_,_) => buildTraitFields(d, name, getters, setters)
         case d@SPropertyDecl(_,_,_,_) => NI.nyi; ()
@@ -327,9 +324,9 @@ object IndexBuilder {
       case Some(params) =>
         for (p <- toList(params)) {
           val mods = p.getMods
-          if (!mods.isHidden && NodeUtil.isVarargsParam(p) )
+          if (!mods.isHidden && NU.isVarargsParam(p) )
               error(errors, "Varargs object parameters should not define getters.", p)
-          if ( (mods.isSettable || mods.isVar) && NodeUtil.isVarargsParam(p) )
+          if ( (mods.isSettable || mods.isVar) && NU.isVarargsParam(p) )
               error(errors, "Varargs object parameters should not define setters.", p)
         }
       case _ =>
@@ -346,7 +343,7 @@ object IndexBuilder {
                           parametricOperators: JavaSet[ParametricOperator],
                           variables: JavaMap[Id, Variable],
                           errors: JavaList[StaticError]) = {
-    val name = NodeUtil.getName(ast)
+    val name = NU.getName(ast)
     val fields: JavaMap[Id, Variable] = new JavaHashMap[Id, Variable]()
     val initializers: JavaSet[VarDecl] = new JavaHashSet[VarDecl]()
     val getters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
@@ -357,10 +354,10 @@ object IndexBuilder {
     val functionalMethods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod] =
       new IndexedRelation[IdOrOpOrAnonymousName, JavaFunctionalMethod](false)
 
-    for (decl <- NodeUtil.getDecls(ast)) {
+    for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SFnDecl(_,_,_,_,_) =>
-          buildMethod(d, name, NodeUtil.getStaticParams(ast),
+          buildMethod(d, name, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -368,7 +365,7 @@ object IndexBuilder {
       }
     }
 
-    for (decl <- NodeUtil.getDecls(ast)) {
+    for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SVarDecl(_,_,_) =>
           buildFields(d, name, fields, getters, setters)
@@ -383,14 +380,14 @@ object IndexBuilder {
           val mods = p.getMods
           val paramName = p.getName
           fields.put(paramName, new JavaParamVariable(p))
-          if ( !mods.isHidden && ! NodeUtil.isVarargsParam(p) )
+          if ( !mods.isHidden && ! NU.isVarargsParam(p) )
               getters.put(paramName, new JavaFieldGetterMethod(p, name))
-          if ( (mods.isSettable || mods.isVar) && ! NodeUtil.isVarargsParam(p) )
+          if ( (mods.isSettable || mods.isVar) && ! NU.isVarargsParam(p) )
               setters.put(paramName, new JavaFieldSetterMethod(p, name))
         }
-        val c = new JavaConstructor(name, NodeUtil.getStaticParams(ast),
-                                    ast.getParams, NodeUtil.getThrowsClause(ast),
-                                    NodeUtil.getWhereClause(ast))
+        val c = new JavaConstructor(name, NU.getStaticParams(ast),
+                                    ast.getParams, NU.getThrowsClause(ast),
+                                    NU.getWhereClause(ast))
         functions.add(name, c)
         some[JavaConstructor](c)
       case _ =>
@@ -468,8 +465,14 @@ object IndexBuilder {
   private def buildFunction(ast: FnDecl,
                             functions: Relation[IdOrOpOrAnonymousName, JavaFunction]) = {
     val df = new JavaDeclaredFunction(ast)
-    functions.add(NodeUtil.getName(ast), df)
+    functions.add(NU.getName(ast), df)
     functions.add(ast.getUnambiguousName, df)
+  }
+
+  private def fnDeclToBinding(ast: FnDecl) = {
+    val mods = NU.getMods(ast)
+    new LValue(ast.getInfo, NU.getName(ast).asInstanceOf[Id], mods,
+               NU.getReturnType(ast), mods.isMutable)
   }
 
   /**
@@ -489,34 +492,34 @@ object IndexBuilder {
                           topLevelFunctions: Relation[IdOrOpOrAnonymousName, JavaFunction],
                           parametricOperators: JavaSet[ParametricOperator],
                           errors: JavaList[StaticError]): Unit = {
-    val mods = NodeUtil.getMods(ast)
-    val name = NodeUtil.getName(ast)
+    val mods = NU.getMods(ast)
+    val name = NU.getName(ast)
     if (mods.isGetter) {
       name match {
         case id@SId(_,_,_) =>
           if ( getters.keySet.contains(id) )
               error(errors, "Getter declarations should not be overloaded.", ast)
-          else getters.put(id, new JavaDeclaredMethod(ast, declaringTrait))
+          else getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), declaringTrait))
         case _ =>
           error(errors, "Getter declared with an operator name, '" +
-                NodeUtil.nameString(name) + "'", ast)
+                NU.nameString(name) + "'", ast)
       }
     } else if (mods.isSetter) {
       name match {
         case id@SId(_,_,_) =>
           if ( setters.keySet.contains(id) )
             error(errors, "Setter declarations should not be overloaded.", ast)
-          else setters.put(id, new JavaDeclaredMethod(ast, declaringTrait))
+          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), declaringTrait))
         case _ =>
           error(errors, "Getter declared with an operator name, '" +
-                NodeUtil.nameString(name) + "'", ast)
+                NU.nameString(name) + "'", ast)
       }
     } else if (name.isInstanceOf[Id] &&
                name.asInstanceOf[Id].getText.equals(NamingCzar.COERCION_NAME)) {
         coercions.add(new Coercion(ast, declaringTrait, enclosingParams))
     } else {
       var functional = false
-      for (p <- toList(NodeUtil.getParams(ast))) {
+      for (p <- toList(NU.getParams(ast))) {
         if (p.getName.equals(NamingCzar.SELF_NAME)) {
           if (functional) {
               error(errors, "Parameter 'self' appears twice in a method declaration.", ast)
@@ -525,7 +528,7 @@ object IndexBuilder {
           functional = true
         }
       }
-      val operator = NodeUtil.isOp(ast)
+      val operator = NU.isOp(ast)
       // Determine whether:
       //   (1) this declaration has a self parameter
       //   (2) this declaration is for an operator
@@ -537,7 +540,7 @@ object IndexBuilder {
       } else if (functional && operator) {
         var parametric = false
         for (p <- enclosingParams) {
-          if (NodeUtil.getName(ast).equals(NodeUtil.getName(p)))
+          if (NU.getName(ast).equals(NU.getName(p)))
             parametric = true
         }
         if (parametric)
