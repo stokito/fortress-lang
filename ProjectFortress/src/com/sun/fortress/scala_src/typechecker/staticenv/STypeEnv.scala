@@ -258,7 +258,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
             if (oTypes.isEmpty)
               None
             else
-              Some(NF.makeIntersectionType(oTypes))
+              Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
           }
         }
         makeBinding(x, lazyTypeEvaluation, Modifiers.None, false)
