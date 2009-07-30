@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -67,6 +68,8 @@ public class Coercion extends Function {
     public FnDecl ast() {
         return _ast;
     }
+
+    public Modifiers mods() { return Modifiers.None; }
 
     @Override
     public Span getSpan() {
