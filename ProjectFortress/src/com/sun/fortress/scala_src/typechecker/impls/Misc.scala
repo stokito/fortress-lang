@@ -502,7 +502,7 @@ trait Misc { self: STypeChecker with Common =>
         case Some(t) => Set(clauseTypes:_*) + t
         case _ => Set(clauseTypes:_*)
       }
-      val unionType = NodeFactory.makeUnionType(allTypes)
+      val unionType = NodeFactory.makeUnionType(toJavaSet(allTypes))
       // TODO: A nonexhaustive typecase is an error.
       STypecase(SExprInfo(span, paren, Some(unionType)),
                 bindIds,

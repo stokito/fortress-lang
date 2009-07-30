@@ -35,6 +35,7 @@ import com.sun.fortress.scala_src.typechecker.ScalaConstraint
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil.TRUE_FORMULA
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
@@ -325,6 +326,17 @@ object STypesUtil {
   }
 
   /**
+   * Returns a list of disjuncts of the given type. If given a union
+   * type, this is the set of the constituents. If BOTTOM, this is empty. If some
+   * other type, this is the singleton set of that type.
+   */
+  def disjuncts(ty: Type): Set[Type] = ty match {
+    case _:BottomType => Set.empty[Type]
+    case SUnionType(_, elts) => Set(elts:_*).flatMap(disjuncts)
+    case _ => Set(ty)
+  }
+
+  /**
    * Returns TypeConsIndex of "typ".
    */
   def getTypes(typ:Id, globalEnv: GlobalEnvironment,
@@ -366,45 +378,61 @@ object STypesUtil {
                           sparams: List[StaticParam],
                           body: Type,
                           ignoreLifted: Boolean)
-                         (implicit analyzer: TypeAnalyzer): Option[Type] = {
+                         (implicit analyzer: TypeAnalyzer): Option[Type] = body match {
 
-    // Check that the args match.
-    if (!staticArgsMatchStaticParams(sargs, sparams, ignoreLifted)) return None
+    case t:IntersectionType =>
+      val cs = conjuncts(t)
+      val ts = cs.flatMap(staticInstantiation(sargs, sparams, _, ignoreLifted))
+      if (ts.isEmpty && !cs.isEmpty)
+        None
+      else
+        Some(NF.makeMaybeIntersectionType(toJavaSet(ts)))
+    case t:UnionType =>
+      val ds = disjuncts(t)
+      val ts = ds.flatMap(staticInstantiation(sargs, sparams, _, ignoreLifted))
+      if (ts.isEmpty && !ds.isEmpty)
+        None
+      else
+        Some(NF.makeMaybeUnionType(toJavaSet(ts)))
+    case _ =>
 
-    // Ignore lifted static parameters if these args were user supplied.
-    val sparams_ = if (ignoreLifted) sparams.filter(!_.isLifted) else sparams
+      // Check that the args match.
+      if (!staticArgsMatchStaticParams(sargs, sparams, ignoreLifted)) return None
 
-    // Create mapping from parameter names to static args.
-    val paramMap = Map(sparams_.map(_.getName).zip(sargs): _*)
+      // Ignore lifted static parameters if these args were user supplied.
+      val sparams_ = if (ignoreLifted) sparams.filter(!_.isLifted) else sparams
 
-    // Gets the actual value out of a static arg.
-    def sargToVal(sarg: StaticArg): Node = sarg match {
-      case sarg:TypeArg => sarg.getTypeArg
-      case sarg:IntArg => sarg.getIntVal
-      case sarg:BoolArg => sarg.getBoolArg
-      case sarg:OpArg => sarg.getName
-      case sarg:DimArg => sarg.getDimArg
-      case sarg:UnitArg => sarg.getUnitArg
-      case _ => bug("unexpected kind of static arg")
-    }
+      // Create mapping from parameter names to static args.
+      val paramMap = Map(sparams_.map(_.getName).zip(sargs): _*)
 
-    // Replaces all the params with args in a node.
-    object staticReplacer extends Walker {
-      override def walk(node: Any): Any = node match {
-        case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        // TODO: Check proper name for OpArgs.
-        case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
-        case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case _ => super.walk(node)
+      // Gets the actual value out of a static arg.
+      def sargToVal(sarg: StaticArg): Node = sarg match {
+        case sarg:TypeArg => sarg.getTypeArg
+        case sarg:IntArg => sarg.getIntVal
+        case sarg:BoolArg => sarg.getBoolArg
+        case sarg:OpArg => sarg.getName
+        case sarg:DimArg => sarg.getDimArg
+        case sarg:UnitArg => sarg.getUnitArg
+        case _ => bug("unexpected kind of static arg")
       }
-    }
 
-    // Get the replaced type and clear out its static params, if any.
-    Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type],
-                           ignoreLifted))
+      // Replaces all the params with args in a node.
+      object staticReplacer extends Walker {
+        override def walk(node: Any): Any = node match {
+          case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+          // TODO: Check proper name for OpArgs.
+          case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+          case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+          case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+          case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+          case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+          case _ => super.walk(node)
+        }
+      }
+
+      // Get the replaced type and clear out its static params, if any.
+      Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type],
+                             ignoreLifted))
   }
 
   /**

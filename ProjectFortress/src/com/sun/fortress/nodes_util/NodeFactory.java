@@ -39,6 +39,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.scala_src.useful.Sets;
+import com.sun.fortress.compiler.Types;
 
 
 public class NodeFactory {
@@ -968,8 +969,17 @@ public class NodeFactory {
                              CollectUtil.makeList(types));
     }
 
-    public static UnionType makeUnionType(scala.collection.immutable.Set<Type> types){
-    	return makeUnionType(Sets.toJavaSet(types));
+    /** Return either a single type or an intersection depending on the set. */
+    public static Type makeMaybeUnionType(Iterable<? extends Type> types) {
+        int size = IterUtil.sizeOf(types, 2);
+        if (size == 0) {
+            return Types.BOTTOM;
+        }
+        if (size == 1) {
+            return types.iterator().next();
+        }
+        Span span = NodeUtil.spanAll(types);
+        return makeUnionType(span, false, CollectUtil.makeList(types));
     }
 
     public static UnionType makeUnionType(Span span, boolean parenthesized,
@@ -1065,6 +1075,19 @@ public class NodeFactory {
         return makeIntersectionType(span, false, CollectUtil.makeList(types));
     }
 
+    /** Return either a single type or an intersection depending on the set. */
+    public static Type makeMaybeIntersectionType(Iterable<? extends Type> types) {
+        int size = IterUtil.sizeOf(types, 2);
+        if (size == 0) {
+            return Types.ANY;
+        }
+        if (size == 1) {
+            return types.iterator().next();
+        }
+        Span span = NodeUtil.spanAll(types);
+        return makeIntersectionType(span, false, CollectUtil.makeList(types));
+    }
+
     public static IntersectionType makeIntersectionType(List<? extends Type> types) {
         Span span;
         if ( types.isEmpty() )
@@ -1073,10 +1096,6 @@ public class NodeFactory {
             span = NodeUtil.spanAll(types);
 
         return makeIntersectionType(span, false, new ArrayList<Type>(types));
-    }
-
-    public static IntersectionType makeIntersectionType(scala.collection.immutable.Set<Type> types){
-    	return makeIntersectionType(Sets.toJavaSet(types));
     }
 
     public static IntersectionType makeIntersectionType(Span span,

@@ -76,12 +76,13 @@ trait Functionals { self: STypeChecker with Common =>
     // constituents is applicable.
     val applicableArrows = conjuncts(toOption(overloading.getType).get).
       map(_.asInstanceOf[ArrowType]).
-      flatMap(arrowTypeIsApplicable)
+      flatMap(arrowTypeIsApplicable).
+      toList
 
-    val overloadingType = applicableArrows.toList match {
+    val overloadingType = applicableArrows match {
       case Nil => return None
       case t::Nil => t
-      case _ => NF.makeIntersectionType(applicableArrows)
+      case _ => NF.makeIntersectionType(toJavaList(applicableArrows))
     }
     Some(SOverloading(overloading.getInfo,
                       overloading.getUnambiguousName,
@@ -399,7 +400,7 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedName = check(name).asInstanceOf[IdOrOp]
       getTypeFromName(checkedName) match {
         case Some(checkedType) =>
-          SOverloading(info, checkedName, Some(checkedType))
+          SOverloading(info, checkedName, Some(normalize(checkedType)))
         case None => node
       }
     }
@@ -488,9 +489,7 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
-      val intersectionType =
-        NF.makeIntersectionType(NU.getSpan(fn),
-                                toJavaList(overloadingTypes))
+      val intersectionType = NF.makeMaybeIntersectionType(toJavaList(overloadingTypes))
       addType(addOverloadings(fn, checkedOverloadings), intersectionType)
     }
 
