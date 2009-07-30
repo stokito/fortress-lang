@@ -746,6 +746,10 @@ public class NodeUtil {
         }
     };
 
+    public static Modifiers getMods(LValue f) {
+        return f.getMods();
+    }
+
     /* nameString *************************************************************/
     public static String nameString(Name n) {
         return n.accept(nameGetter);

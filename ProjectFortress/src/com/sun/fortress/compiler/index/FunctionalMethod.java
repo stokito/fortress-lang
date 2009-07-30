@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -61,6 +62,10 @@ public class FunctionalMethod extends Function {
 
     public FnDecl ast() {
         return _ast;
+    }
+
+    public Modifiers mods() {
+        return NodeUtil.getMods(ast());
     }
 
     @Override

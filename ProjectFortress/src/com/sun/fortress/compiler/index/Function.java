@@ -22,7 +22,7 @@ import com.sun.fortress.nodes.StaticParam;
 import edu.rice.cs.plt.lambda.Lambda;
 
 /**
- * Comprises Constructor, DeclaredFunction, and FunctionalMethod.
+ * Comprises Constructor, DeclaredFunction, FunctionalMethod, and Coercion.
  */
 public abstract class Function extends Functional {
 

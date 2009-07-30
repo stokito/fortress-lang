@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -35,6 +36,8 @@ public abstract class Functional extends InferredTypeIndex {
     public abstract List<Param> parameters();
 
     public abstract List<BaseType> thrownTypes();
+
+    public abstract Modifiers mods();
 
     public abstract Option<Expr> body();
 
