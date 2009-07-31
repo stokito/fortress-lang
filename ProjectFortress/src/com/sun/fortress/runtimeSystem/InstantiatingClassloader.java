@@ -112,15 +112,21 @@ public class InstantiatingClassloader extends ClassLoader {
         if (_classLoadChecker.mustUseSystemLoader(name)) {
             clazz = findSystemClass(name);
         } else {
+            byte[] classData = null;
             try {
-                // System.out.println("trying to getClass("+name+")");
-                byte[] classData = getClass(name);
+                // System.err.println("trying to getClass("+name+")");
+                classData = getClass(name);
                 clazz = defineClass(name, classData, 0, classData.length);
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();
                 throw new ClassNotFoundException(
-                        "IO Exception in reading class file: ", ioe);
+                        "IO Exception in reading class : " + name + " ", ioe);
+            } catch (ClassFormatError ioe) {
+                // output error msg if this is a real problem
+                ioe.printStackTrace();
+                throw new ClassNotFoundException(
+                        "ClassFormatError in reading class file: ", ioe);
             } catch (IOException ioe) {
                 // this incl FileNotFoundException which is used by resource
                 // loader
@@ -162,7 +168,7 @@ class ClassLoadChecker {
         // is regardless of the security manager.
         // javax. too, though this is not documented
         if (name.startsWith("java.") || name.startsWith("javax.")
-                || name.startsWith("sun.")) {
+                || name.startsWith("sun.") || name.startsWith("com.sun.")) {
             return true;
         }
 

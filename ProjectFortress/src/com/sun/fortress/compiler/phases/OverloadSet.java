@@ -908,7 +908,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public static String oMangle(String name) {
-        return /* "O$" + */ name; // no mangling after all.
+        return NamingCzar.mangleIdentifier(name); // no mangling after all.
     }
 
     public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
