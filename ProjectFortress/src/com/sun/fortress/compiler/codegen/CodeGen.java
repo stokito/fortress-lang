@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
@@ -358,7 +359,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
      * @param pkgAndClassName
      * @param methodName
      */
-    private void callStaticSingleOrOverloaded(FnRef x,
+    private void callStaticSingleOrOverloaded(FunctionalRef x,
             com.sun.fortress.nodes.Type arrow, String pkgAndClassName,
             String methodName) {
 
@@ -366,14 +367,19 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         if ( arrow instanceof ArrowType ) {
             addLineNumberInfo(x);
+            // TODO should this be non-colliding single name instead?
+            // answer depends upon how intersection types are normalized.
+            // conservative answer is "no".
+            methodName = NamingCzar.mangleIdentifier(methodName);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
                                methodName, NamingCzar.jvmTypeDesc(arrow, component.getName()));
         } else if (arrow instanceof IntersectionType) {
             addLineNumberInfo(x);
             IntersectionType it = (IntersectionType) arrow;
+            methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
+                    OverloadSet.oMangle(methodName) : NamingCzar.mangleIdentifier(methodName);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                               OverloadSet.actuallyOverloaded(it, paramCount) ?
-                               OverloadSet.oMangle(methodName) :methodName,
+                               methodName,
                                OverloadSet.getSignature(it, paramCount, ta));
         } else {
                 sayWhat( x, "Neither arrow nor intersection type: " + arrow );
@@ -812,6 +818,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
         debug("forFnRef ", x);
+        forFunctionalRef(x);
+    }
+
+    /**
+     * @param x
+     */
+    public void forFunctionalRef(FunctionalRef x) {
         String name = x.getOriginalName().getText();
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
@@ -1297,55 +1310,59 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forOpRef(OpRef x) {
-        ExprInfo info = x.getInfo();
-        Option<com.sun.fortress.nodes.Type> exprType = info.getExprType();
-        List<StaticArg> staticArgs = x.getStaticArgs();
-        int lexicalDepth = x.getLexicalDepth();
-        IdOrOp originalName = x.getOriginalName();
-        List<IdOrOp> names = x.getNames();
-        Option<List<FunctionalRef>> overloadings = x.getOverloadings();
-        Option<com.sun.fortress.nodes.Type> overloadingType = x.getOverloadingType();
-        debug("forOpRef ", x,
-                     " info = ", info, "staticArgs = ", staticArgs, " exprType = ", exprType,
-                     " lexicalDepth = ", lexicalDepth, " originalName = ", originalName,
-                     " overloadings = ", overloadings,
-                     " overloadingType = ", overloadingType, " names = ", names);
-
-        boolean canCompile =
-            x.getStaticArgs().isEmpty() &&
-            x.getOverloadings().isNone() &&
-            names.size() == 1;
-
-        if (!canCompile) {
-            debug("forOpRef can't compile; staticArgs ",
-                        x.getStaticArgs().isEmpty(), " overloadings ",
-                        x.getOverloadings().isNone());
-        }
-        if (!exprType.isSome()) {
-            sayWhat(x, "Missing type information for OpRef " + x);
-        }
-
-        String name = NamingCzar.mangleIdentifier(originalName.getText());
-        IdOrOp newName = names.get(0);
-        Option<APIName> api = newName.getApiName();
-
-        addLineNumberInfo(x);
-
-        String jvmClassName;
-        String jvmFunctionName;
-
-        if (api.isSome()) {
-            APIName apiName = api.unwrap();
-            debug("forOpRef name = ", name,
-                  " api = ", apiName);
-            jvmClassName =  NamingCzar.jvmClassForSymbol(newName);
-            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
-        } else {
-            jvmClassName = packageAndClassName;
-            jvmFunctionName = NamingCzar.mangleIdentifier(name);
-        }
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, jvmClassName, jvmFunctionName,
-                           NamingCzar.jvmMethodDesc(exprType.unwrap(), component.getName()));
+        forFunctionalRef(x);
+//        ExprInfo info = x.getInfo();
+//        Option<com.sun.fortress.nodes.Type> exprType = info.getExprType();
+//        List<StaticArg> staticArgs = x.getStaticArgs();
+//        int lexicalDepth = x.getLexicalDepth();
+//        IdOrOp originalName = x.getOriginalName();
+//        List<IdOrOp> names = x.getNames();
+//        Option<List<FunctionalRef>> overloadings = x.getOverloadings();
+//        Option<com.sun.fortress.nodes.Type> overloadingType = x.getOverloadingType();
+//        debug("forOpRef ", x,
+//                     " info = ", info, "staticArgs = ", staticArgs, " exprType = ", exprType,
+//                     " lexicalDepth = ", lexicalDepth, " originalName = ", originalName,
+//                     " overloadings = ", overloadings,
+//                     " overloadingType = ", overloadingType, " names = ", names);
+//
+//        boolean canCompile =
+//            x.getStaticArgs().isEmpty() &&
+//            x.getOverloadings().isNone() &&
+//            names.size() == 1;
+//
+//        if (!canCompile) {
+//            debug("forOpRef can't compile; staticArgs ",
+//                        x.getStaticArgs().isEmpty(), " overloadings ",
+//                        x.getOverloadings().isNone());
+//        }
+//        if (!exprType.isSome()) {
+//            sayWhat(x, "Missing type information for OpRef " + x);
+//        }
+//
+//        String name = NamingCzar.mangleIdentifier(originalName.getText());
+//        IdOrOp newName = names.get(0);
+//        Option<APIName> api = newName.getApiName();
+//
+//        addLineNumberInfo(x);
+//
+//        String jvmClassName;
+//        String jvmFunctionName;
+//
+//        if (api.isSome()) {
+//            APIName apiName = api.unwrap();
+//            debug("forOpRef name = ", name,
+//                  " api = ", apiName);
+//            jvmClassName =  NamingCzar.jvmClassForSymbol(newName);
+//            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
+//        } else {
+//            jvmClassName = packageAndClassName;
+//            // jvmFunctionName = NamingCzar.mangleIdentifier(name); // bug?
+//            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
+//
+//        }
+//        // TODO this code is not up to spec, with respect to overloading etc.
+//        mv.visitMethodInsn(Opcodes.INVOKESTATIC, jvmClassName, jvmFunctionName,
+//                           NamingCzar.jvmMethodDesc(exprType.unwrap(), component.getName()));
     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
