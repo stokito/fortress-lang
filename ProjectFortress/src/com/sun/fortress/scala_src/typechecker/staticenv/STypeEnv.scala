@@ -40,58 +40,58 @@ import scala.collection.immutable.EmptyMap
  * `extendWith` method.
  */
 abstract sealed class STypeEnv extends StaticEnv[Type] {
-  
+
   /** My type. */
   type Env = STypeEnv
-  
+
   /** My binding type. */
   type EnvBinding = TypeBinding
-  
+
   /** Extend me with the immediate bindings of the given node. */
   def extend(node: Node): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractNodeBindings(node))
-  
+
   /** Extend me with the immediate bindings of the given nodes. */
   def extend[T <: Node](nodes: Iterable[T]): STypeEnv =
     new NestedSTypeEnv(this, nodes.flatMap(STypeEnv.extractNodeBindings))
-  
+
   /** Extend me with the bindings of the given variables relation. */
   def extendWithVariables[T <: Variable](m: JMap[Id, T],
                                          api: Option[APIName]): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractVariableBindings(m, api))
-  
+
   /** Extend me with the bindings of the given typeconses relation. */
   def extendWithTypeConses[T <: TypeConsIndex](m: JMap[Id, T],
                                                api: Option[APIName]): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractTypeConsBindings(m, api))
-  
+
   /** Extend me with the bindings of the given functions relation. */
   def extendWithFunctions[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],
        api: Option[APIName]): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractFunctionBindings(r, api))
-  
+
   /** Extend me with the bindings of the given variables relation. */
   def extendWithVariables[T <: Variable](m: JMap[Id, T]): STypeEnv =
     extendWithVariables(m, None)
-  
+
   /** Extend me with the bindings of the given typeconses relation. */
   def extendWithTypeConses[T <: TypeConsIndex](m: JMap[Id, T]): STypeEnv =
     extendWithTypeConses(m, None)
-  
+
   /** Extend me with the bindings of the given functions relation. */
   def extendWithFunctions[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T]): STypeEnv =
     extendWithFunctions(r, None)
-  
+
   /** Extend me without the bindings with the given names. */
   def extendWithout[T <: Name](names: Collection[T]): STypeEnv =
     new ConcealingSTypeEnv(this, names)
-  
+
   /** Same as `lookup`. */
   def getType(x: Name): Option[Type] =
     lookup(x).flatMap(_.typeThunk.apply)
-  
+
   /** Get the modifiers for the given name, if it exists. */
   def getMods(x: Name): Option[Modifiers] = lookup(x).map(_.mods)
 }
@@ -101,14 +101,14 @@ object EmptySTypeEnv extends STypeEnv with EmptyStaticEnv[Type]
 
 /**
  * A type environment with a parent and some explicit bindings.
- * 
+ *
  * @param parent A type environment that this one extends.
  * @param _bindings A collection of all the bindings in this environment.
  */
 class NestedSTypeEnv protected (protected val parent: STypeEnv,
                                 _bindings: Iterable[TypeBinding])
     extends STypeEnv with NestedStaticEnv[Type] {
-    
+
   /** Internal representation of `bindings` is a map. */
   protected val bindings: Map[Name, TypeBinding] =
     Map(_bindings.map(b => (b.name, b)).toSeq:_*)
@@ -116,20 +116,20 @@ class NestedSTypeEnv protected (protected val parent: STypeEnv,
 
 /** Companion module for STypeEnv. */
 object STypeEnv extends StaticEnvCompanion[Type] {
-  
+
   /** My type. */
   type Env = STypeEnv
-  
+
   /** My binding type. */
   type EnvBinding = TypeBinding
-  
+
   /** Gives Java access to the empty environment. */
   def EMPTY: STypeEnv = EmptySTypeEnv
-  
+
   /**
    * Creates a new instance of the environment containing all the bindings
    * found in the given compilation unit.
-   * 
+   *
    * @param comp A compilation unit index for the program.
    * @return A new instance of Env containing these bindings.
    */
@@ -139,14 +139,14 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                  .extendWithVariables(comp.variables, api)
                  .extendWithTypeConses(comp.typeConses, api)
   }
-  
+
   /** Create a binding with the given information. */
   protected def makeBinding(name: Name,
                             typeThunk: TypeThunk,
                             mods: Modifiers,
                             mutable: Boolean): TypeBinding =
     TypeBinding(name, typeThunk, mods, mutable)
-  
+
   /**
    * Create a binding with the given information, where the type thunk simply
    * evaluates to the given type.
@@ -158,30 +158,30 @@ object STypeEnv extends StaticEnvCompanion[Type] {
     val typeThunk = new TypeThunk { def apply: Option[Type] = Some(typ) }
     TypeBinding(name, typeThunk, mods, mutable)
   }
-  
+
   /** Extract out the bindings in node. */
   protected def extractNodeBindings(node: Node): Iterable[TypeBinding] =
     node match{
       case SBinding(_, name, mods, Some(typ)) =>
         List(makeBinding(name, typ, mods, false))
-      
+
       case SParam(_, name, mods, _, _, Some(vaTyp)) =>
         List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
         List(makeBinding(name, typ, mods, false))
-      
+
       case SLValue(_, name, mods, Some(typ), mutable) =>
         List(makeBinding(name, typ, mods, mutable))
-        
+
       case SLocalVarDecl(_, _, lValues, _) =>
         lValues.flatMap(extractNodeBindings)
 
       case _ => Nil
     }
-  
+
   protected def extractTypeConsBindings[T <: TypeConsIndex]
       (m: JMap[Id, T], api: Option[APIName]): Iterable[TypeBinding] =
-    
+
     toMap(m).flatMap(xv => {
       xv match {
         // Bind object names to their types.
@@ -238,17 +238,17 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         makeBinding(x, lazyTypeEvaluation, v.modifiers, v.mutable)
       })
     }
-  
+
   protected def extractFunctionBindings[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],
        api: Option[APIName]): Iterable[TypeBinding] = {
-        
-    val fnNames = toSet(r.firstSet)     
+
+    val fnNames = toSet(r.firstSet)
     // For each name, intersect together all of its overloading types.
     fnNames.map(x => {
         val fns: Set[Functional] =
           toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])
-      
+
         // Lazily compute the type for this function binding at the time of
         // lookup.
         val lazyTypeEvaluation: TypeThunk = new TypeThunk {
@@ -261,7 +261,12 @@ object STypeEnv extends StaticEnvCompanion[Type] {
               Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
           }
         }
-        makeBinding(x, lazyTypeEvaluation, Modifiers.None, false)
+        val mods = if ( fns.isEmpty ) Modifiers.None
+                   else fns.find(_.mods != Modifiers.None) match {
+                          case Some(f) => f.mods
+                          case _ => Modifiers.None
+                        }
+        makeBinding(x, lazyTypeEvaluation, mods, false)
     })
   }
 }
@@ -270,7 +275,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
 /**
  * A binding for a type environment contains name to type pairs, along with some
  * modifiers for the binding and whether or not the binding is mutable.
- * 
+ *
  * @param name The variable name for the binding.
  * @param typeThunk A function that when evaluated yields a type for this
  *                  binding.
@@ -284,14 +289,14 @@ case class TypeBinding(name: Name,
 
 /**
  * A special type environment that conceals the given names from its children.
- * 
+ *
  * @param parent The parent environment.
  * @param concealedNames The set of names to conceal.
  */
 class ConcealingSTypeEnv(protected val parent: STypeEnv,
                          protected val concealedNames: Collection[Name])
     extends STypeEnv {
-  
+
   /** Fail when looking up any of the hidden names. */
   override def lookup(x: Name): Option[TypeBinding] = {
     val stripped = stripApi(x)
