@@ -501,7 +501,7 @@ class TryChecker(current: CompilationUnitIndex,
                  env: STypeEnv)
                 (implicit analyzer: TypeAnalyzer,
                           envCache: MMap[APIName, STypeEnv])
-    extends STypeCheckerImpl(current, traits, env, TryErrorLog) {
+    extends STypeCheckerImpl(current, traits, env, new TryErrorLog) {
 
   override def constructor(current: CompilationUnitIndex,
                            traits: TraitTable,
@@ -543,4 +543,7 @@ class TryChecker(current: CompilationUnitIndex,
       case e:StaticError => None
       case e => throw e
     }
+
+  /** Return the error that made the TryChecker fail. */
+  def getError: Option[StaticError] = errors.errors.firstOption
 }

@@ -296,7 +296,7 @@ public class Parser {
                 System.err.println(Shell.turnOnDebugMessage);
             }
             if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-            return new Result(StaticError.make(desc, f.toString()));
+            return new Result(StaticError.make(desc, f));
         } finally {
             try {
                 Files.rm( f.getCanonicalPath() + ".preparserError.log" );
@@ -426,11 +426,11 @@ public class Parser {
     private static StaticError convertExn(IOException ioe, File f) {
         String desc = "Unable to read file";
         if (ioe.getMessage() != null) { desc += " (" + ioe.getMessage() + ")"; }
-        return StaticError.make(desc, f.toString());
+        return StaticError.make(desc, f);
     }
 
     private static StaticError convertExn(FileNotFoundException fnfe, File f) {
-        return StaticError.make("Cannot find file " + f.getAbsolutePath(), f.toString());
+        return StaticError.make("Cannot find file " + f.getAbsolutePath(), f);
     }
 
 }

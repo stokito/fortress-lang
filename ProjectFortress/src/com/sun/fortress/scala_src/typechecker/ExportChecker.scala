@@ -412,9 +412,6 @@ object ExportChecker {
   private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
     errors.add(TypeError.make(msg, loc))
 
-  private def error(errors: JavaList[StaticError], loc: String, msg: String) =
-    errors.add(TypeError.make(msg, loc.toString))
-
   /* Returns true if two types are same.
    * If any of the following types are compared, returns false:
    *

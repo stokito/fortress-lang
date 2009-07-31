@@ -19,10 +19,15 @@ package com.sun.fortress.exceptions;
 
 import java.util.Comparator;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+import java.io.File;
+
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 
-public abstract class StaticError extends RuntimeException implements HasAt, Comparable<StaticError> {
+public class StaticError extends RuntimeException implements HasAt, Comparable<StaticError> {
 
     /**
      * Make Eclipse happy
@@ -33,16 +38,40 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
         return ErrorMsgMaker.errorMsg(messages);
     }
 
-    public abstract String description();
+    protected String description;
+    public String description() {
+        return description;
+    }
 
-    public abstract String at();
+    protected Option<HasAt> location;
+    public Option<HasAt> location() {
+        return location;
+    }
+
+    protected StaticError() {
+        this("StaticError");
+    }
+
+    protected StaticError(String description) {
+        this.description = description;
+        this.location = Option.<HasAt>none();
+    }
+
+    protected StaticError(String description, HasAt location) {
+        this.description = description;
+        this.location = Option.some(location);
+    }
+
+    public String at() {
+        return location.isSome() ? location.unwrap().at() : "";
+    }
 
     public String stringName() { return toString(); }
 
     public String getMessage() { return toString(); }
 
     public String toString() {
-        return at() + ":\n    " + description();
+        return String.format("%s:\n    %s", at(), description());
     }
 
     public int compareTo(StaticError that) {
@@ -96,35 +125,31 @@ public abstract class StaticError extends RuntimeException implements HasAt, Com
      * Make a simple static error with the given location.
      */
     public static StaticError make(String description, HasAt location) {
-        return make(description, location.at());
+        return new StaticError(description, location);
+    }
+
+    public static StaticError make(String description, final File f) {
+        return new StaticError(description) {
+            @Override public String at() {
+                return f.toString();
+            }
+        };
     }
 
     /**
      * Make a simple static error with type description "Error" and the given
      * location.
      */
-    public static StaticError make(final String description, final String location) {
-        return new StaticError() {
-            /**
-             * Make Eclipse happy
-             */
-            private static final long serialVersionUID = -7329719676960380409L;
-
-            public String description() { return description; }
-            public String at() { return location; }
+    public static StaticError make(final String description, final String loc) {
+        return new StaticError(description) {
+            @Override public String at() { return loc; }
         };
     }
 
     public static StaticError make(final String description) {
-        return new StaticError() {
-            /**
-             * Make Eclipse happy
-             */
-            private static final long serialVersionUID = -7329719676960380409L;
-
-            public String description() { return description; }
-            public String at() { return ""; }
-            public String toString() { return description(); }
+        return new StaticError(description) {
+            @Override public String at() { return ""; }
+            @Override public String toString() { return description(); }
         };
     }
 
