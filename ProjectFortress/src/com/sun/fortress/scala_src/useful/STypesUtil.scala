@@ -489,54 +489,6 @@ object STypesUtil {
                                  (implicit analyzer: TypeAnalyzer): Boolean
     = staticArgsMatchStaticParams(args, params, false)
 
-
-  /**
-   * Calls the other overloading with the conjuncts of the given function type.
-   */
-  def staticallyMostApplicableArrow(fnType: Type,
-                                    argType: Type,
-                                    expectedType: Option[Type])
-                                   (implicit analyzer: TypeAnalyzer)
-                                    : Option[(ArrowType, List[StaticArg])] = {
-
-    val arrows = conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType])
-    staticallyMostApplicableArrow(arrows, argType, expectedType)
-  }
-
-  /**
-   * Return the statically most applicable arrow type along with the static args
-   * that instantiated that arrow type. This method assumes that all the arrow
-   * types in fnType have already been instantiated if any static args were
-   * supplied.
-   */
-  def staticallyMostApplicableArrow(allArrows: List[ArrowType],
-                                    argType: Type,
-                                    expectedType: Option[Type])
-                                   (implicit analyzer: TypeAnalyzer)
-                                    : Option[(ArrowType, List[StaticArg])] = {
-
-    // Filter applicable arrows and their instantiated args.
-    val arrowsAndInstantiations =
-      allArrows.flatMap(ty => typeInference(ty.asInstanceOf[ArrowType],
-                                            argType,
-                                            expectedType))
-
-    // Define an ordering relation on arrows with their instantiations.
-    def lessThan(overloading1: (ArrowType, List[StaticArg]),
-                 overloading2: (ArrowType, List[StaticArg])): Boolean = {
-
-      val SArrowType(_, domain1, range1, _, _) = overloading1._1
-      val SArrowType(_, domain2, range2, _, _) = overloading2._1
-
-      if (analyzer.equivalent(domain1, domain2).isTrue) false
-      else isSubtype(domain1, domain2)
-    }
-
-    // Sort the arrows and instantiations to find the statically most
-    // applicable. Return None if none were applicable.
-    arrowsAndInstantiations.sort(lessThan).firstOption
-  }
-
   /**
    * Checks whether an arrow type is applicable to the given args. If so, then
    * the [possiblly instantiated] arrow type along with any inferred static

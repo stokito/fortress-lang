@@ -181,7 +181,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
         catch (OptionUnwrapException o) {
             throw StaticError.make("Cannot find API " + name +
-                                   " in the repository. This should not happen, please contact a developer.", "");
+                                   " in the repository. This should not happen, please contact a developer.");
         }
     }
 
@@ -195,7 +195,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
         catch (OptionUnwrapException o) {
             throw StaticError.make("Cannot find component " + name + " in the repository. " +
-                                   "This should not happen, please contact a developer.", "");
+                                   "This should not happen, please contact a developer.");
         }
     }
 
@@ -714,7 +714,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                                 fdot.lastModified());
                     return (Api) api;
                 } else {
-                    throw StaticError.make("Unexpected parse of API " + api_name, "");
+                    throw StaticError.make("Unexpected parse of API " + api_name);
                 }
             }
         }

@@ -32,6 +32,7 @@ public class ParserError extends StaticError {
     private final String _location;
 
     public ParserError(ParseError parseError, ParserBase parser) {
+        super(parseError.msg);
         _parseError = parseError;
         if (_parseError.index == -1) {
             _location = "Unspecified location";

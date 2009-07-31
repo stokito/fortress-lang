@@ -39,6 +39,7 @@ import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.MultiSpan
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
@@ -98,7 +99,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                   for ( (owner, ds) <- toCheck.get(t) ) {
                     for ( d <- ds ) {
                         if ( ! implement(d, toList(NodeUtil.getDecls(ast)), owner) )
-                            error(NodeUtil.getSpan(d).toString,
+                            error(NodeUtil.getSpan(d),
                                   "The inherited abstract method " + d +
                                   " from the trait " + t +
                                   "\n    in the object " + NodeUtil.getName(ast) +
@@ -117,7 +118,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     val getter = traitOrObject.getters.get(f)
                     // Setter declarations are guaranteed to have a single parameter.
                     val param = traitOrObject.setters.get(f).parameters.get(0)
-                    val span = getter.getSpan.toString
+                    val span = getter.getSpan
                     if ( param.getIdType.isSome &&
                          ! typeAnalyzer.equivalent(param.getIdType.unwrap,
                                                    getter.getReturnType.unwrap).isTrue )
@@ -400,14 +401,10 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     private def mergeSpan(sub_type: ((JavaList[StaticParam],Type,Type),Span),
-                          super_type: ((JavaList[StaticParam],Type,Type),Span)): String =
+                          super_type: ((JavaList[StaticParam],Type,Type),Span)): Span =
         mergeSpan(sub_type._2, super_type._2)
 
-    private def mergeSpan(first: Span, second: Span): String =
-        if (first.toString < second.toString)
-            first.toString + ":\n" + second.toString
-        else
-            second.toString + ":\n" + first.toString
+    private def mergeSpan(first: Span, second: Span): Span = new MultiSpan(first, second)
 
     private def toString(ty: ((JavaList[StaticParam],Type,Type), Span)): String =
         ty._1._2 + " -> " + ty._1._3 + " @ " + ty._2
@@ -431,14 +428,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     case Some(ty) => ty
                     case _ =>
                         val span = NodeUtil.getSpan(param)
-                        error(span.toString,
+                        error(span,
                               "Type checking couldn't infer the type of " + param)
                         NodeFactory.makeVoidType(span)
                 }
         }
 
-    private def error(loc: String, msg: String) =
-        errors = errors ::: List(TypeError.make(msg, loc.toString))
+    private def error(loc: Span, msg: String) =
+        errors = errors ::: List(TypeError.make(msg, loc))
 
     /* Returns true if any of the concrete method declarations in "decls"
        implements the abstract method declaration "d".
@@ -503,11 +500,11 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                         val ti = tci.unwrap.asInstanceOf[TraitIndex]
                         map.put(name, (ty, collectAbstractMethods(name, toList(NodeUtil.getDecls(ti.ast)))))
                         map ++= inheritedAbstractMethodsHelper(h, toList(ti.extendsTypes))
-                    } else error(NodeUtil.getSpan(trait_).toString,
+                    } else error(NodeUtil.getSpan(trait_),
                                  "Trait types are expected in an extends clause but found "
                                  + ty.toStringVerbose + "\n" + tci.getClass)
                 case SAnyType(_) =>
-                case ty => error(NodeUtil.getSpan(trait_).toString,
+                case ty => error(NodeUtil.getSpan(trait_),
                                  "Trait types are expected in an extends clause but found "
                                  + ty.toStringVerbose)
             }

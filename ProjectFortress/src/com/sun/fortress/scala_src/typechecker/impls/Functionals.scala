@@ -32,6 +32,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import exceptions.StaticError
 import fortress.useful.{HasAt, NI}
 /**
  * Provides the implementation of cases relating to functionals and functional
@@ -225,7 +226,8 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplicable(arrow: ArrowType,
                       context: Option[Type],
-                      args: List[Either[Expr, Expr]]): Option[AppCandidate] = {
+                      args: List[Either[Expr, Expr]])
+                      : Option[AppCandidate] = {
 
     // Make sure all uncheckable args correspond to arrow type params.
     for ((Right(_), pt) <- zipWithDomain(args, arrow.getDomain)) {
@@ -245,8 +247,9 @@ trait Functionals { self: STypeChecker with Common =>
         else {
 
           // Try to check the arg given this new expected type.
+          val domain = paramType.getDomain
           val expectedArrow = NF.makeArrowType(NU.getSpan(paramType),
-                                               paramType.getDomain,
+                                               domain,
                                                Types.ANY)
           val tryChecker = STypeCheckerFactory.makeTryChecker(this)
           tryChecker.tryCheckExpr(unchecked, expectedArrow) match {

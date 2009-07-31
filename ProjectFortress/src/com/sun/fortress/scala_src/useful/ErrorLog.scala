@@ -44,7 +44,14 @@ object Errors {
   }
 }
 
-/** Just throws the errors that it signals. */
-object TryErrorLog extends ErrorLog {
-  override def signal(msg: String, hasAt: HasAt) = throw TypeError.make(msg, hasAt)
+/**
+ * Stores the error and then throws it as an exception. Error messages should be printed with
+ * nested spacing so that any errors from the tryCheck that are actually reported will be nested
+ * inside an outer error from the type checker.
+ */
+class TryErrorLog extends ErrorLog {
+  override def signal(msg: String, hasAt: HasAt) = {
+    super.signal(msg, hasAt)
+    throw TypeError.make(msg, hasAt)
+  }
 }

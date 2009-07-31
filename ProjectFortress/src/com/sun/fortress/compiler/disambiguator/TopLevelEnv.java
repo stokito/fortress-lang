@@ -145,8 +145,8 @@ public class TopLevelEnv extends NameEnv {
         if (availableApis.containsKey(name)) {
             map.put(name, availableApis.get(name));
         } else if (errorIfUnavailable) {
-            _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name, NodeUtil.getSpan(
-                    name).toString()));
+            _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name,
+                                         NodeUtil.getSpan(name)));
         }
 
     }
@@ -763,7 +763,7 @@ public class TopLevelEnv extends NameEnv {
                     if (!(newFirst instanceof Id)) {
                         _errors.add(StaticError.make(
                                 "Attempt to alias variable " + oldFirst + " with invalid variable name:" + newFirst,
-                                NodeUtil.getSpan(alias).toString()));
+                                NodeUtil.getSpan(alias)));
                     }
                 }
             }
