@@ -18,6 +18,9 @@
 package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.index.{FieldGetterMethod => JavaFieldGetterMethod}
+import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -363,8 +366,11 @@ trait Functionals { self: STypeChecker with Common =>
                          name: IdOrOp,
                          sargs: List[StaticArg],
                          loc: HasAt): Option[List[ArrowType]] = {
-
-    val methods = findMethodsInTraitHierarchy(name, recvrType).toList
+    def noGetter(m: Method): Option[Method] = m match {
+      case g:JavaFieldGetterMethod => None
+      case g => Some(g)
+    }
+    val methods = findMethodsInTraitHierarchy(name, recvrType).toList.flatMap(noGetter)
     var arrows = methods.flatMap(makeArrowFromFunctional)
     // Make sure all of the functions had return types declared or inferred
     // TODO: This could be handled more gracefully
@@ -411,8 +417,8 @@ trait Functionals { self: STypeChecker with Common =>
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
-    
-  //TODO: Should be rewritten to a method invocation since there is so much duplication  
+
+  //TODO: Should be rewritten to a method invocation since there is so much duplication
   def checkExprFunctionals(expr: Expr,
                            expected: Option[Type]): Expr = expr match {
 
@@ -462,6 +468,21 @@ trait Functionals { self: STypeChecker with Common =>
     }
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _) => {
+      // Error if this is a getter
+      val thisEnv = handleAlias(name, toList(current.ast.getImports)) match {
+        case id@SIdOrOpOrAnonymousName(_, Some(api)) => getEnvFromApi(api)
+        case _ => env
+      }
+      thisEnv.getMods(name) match {
+        case Some(mods) =>
+          if (mods.isGetter) {
+            signal(expr,
+                   errorMsg("Getter " + name + " must be called with the field reference syntax."))
+            return expr
+          }
+        case _ =>
+      }
+
       // Note that ExprDisambiguator inserts the static args from a
       // FunctionalRef into each of its Overloadings.
 
