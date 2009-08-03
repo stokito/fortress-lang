@@ -323,6 +323,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "BottomType";
     }
 
+    public String forUnknownType(UnknownType node) {
+        return "_";
+    }
+
     private static final int FOUR_DIGITS = 36 * 36 * 36 * 36;
 
     public String for_InferenceVarType(_InferenceVarType node) {

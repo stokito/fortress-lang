@@ -258,10 +258,22 @@ object STypesUtil {
   }
 
   /**
+   * Is this expr checkable? An expr is not checkable iff it is a FnExpr with
+   * not all of its parameters' types explicitly declared.
+   */
+  def isCheckable(expr: Expr): Boolean = expr match {
+    case f:FnExpr =>
+      val params = toList(f.getHeader.getParams)
+      params.forall(p => p.getIdType.isSome)
+    case _ => true
+  }
+
+  /**
    * Determine if the type previously inferred by the type checker from the
    * given expression is an arrow or intersection of arrow types.
    */
-  def isArrows(expr: Expr): Boolean = isArrows(SExprUtil.getType(expr).get)
+  def isArrows(expr: Expr): Boolean =
+    !isCheckable(expr) || isArrows(SExprUtil.getType(expr).get)
 
   /**
    * Determine if the given type is an arrow or intersection of arrow types.

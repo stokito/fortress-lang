@@ -153,4 +153,34 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
         };
     }
 
+    private static String indentLines(String s, String prefix) {
+        return Pattern.compile("^", Pattern.MULTILINE).matcher(s).replaceAll(prefix);
+    }
+
+    private static String indentAllLines(String s, String prefix) {
+        return s.replaceAll("\n", "\n" + prefix);
+    }
+
+    /** Indents every line after the first line with the `prefix` string. */
+    public String toStringIndented(String prefix) {
+        return indentLines(this.toString(), prefix);
+    }
+
+    /** Indents every line in the toString with the `prefix` string. */
+    public String toStringIndentedAll(String prefix) {
+        return indentAllLines(this.toString(), prefix);
+    }
+
+    /**
+     * Indents every line after the first line in the description with the
+     * `prefix` string.
+     */
+    public String descriptionIndented(String prefix) {
+        return indentLines(this.description(), prefix);
+    }
+
+    /** Indents every line in the description with the `prefix` string. */
+    public String descriptionIndentedAll(String prefix) {
+        return indentAllLines(this.description(), prefix);
+    }
 }

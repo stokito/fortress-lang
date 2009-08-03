@@ -154,17 +154,6 @@ trait Functionals { self: STypeChecker with Common =>
       signal(application, message)
     }
 
-  /**
-   * Is this expr checkable? An expr is not checkable iff it is a FnExpr with
-   * not all of its parameters' types explicitly declared.
-   */
-  protected def isCheckable(expr: Expr): Boolean = expr match {
-    case f:FnExpr =>
-      val params = toList(f.getHeader.getParams)
-      params.forall(p => p.getIdType.isSome)
-    case _ => true
-  }
-
   /** Given a single argument expr, break it into a list of args. */
   def getArgList(arg: Expr): List[Expr] = arg match {
     case STupleExpr(_, exprs, _, _, _) => exprs
@@ -420,8 +409,6 @@ trait Functionals { self: STypeChecker with Common =>
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
-
-  //TODO: Should be rewritten to a method invocation since there is so much duplication
   def checkExprFunctionals(expr: Expr,
                            expected: Option[Type]): Expr = expr match {
 
