@@ -989,6 +989,11 @@ interface Node() extends HasAt;
                      */
                     BottomType();
                     /**
+                     * the type of a FnExpr domain that could not be inferred
+                     * internal node
+                     */
+                    UnknownType();
+                    /**
                      * named type
                      */
                     abstract NamedType(Id name);

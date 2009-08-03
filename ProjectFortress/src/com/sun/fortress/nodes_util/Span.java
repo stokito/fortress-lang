@@ -107,6 +107,14 @@ public class Span implements Serializable, HasAt {
         }
     }
 
+    public String toStringWithoutFiles() {
+        try {
+            return appendTo(new StringBuffer(), false).toString();
+        } catch (IOException ex) {
+            return NI.np();
+        }
+    }
+
     public String at() {
         return toString();
     }

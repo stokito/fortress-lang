@@ -24,15 +24,21 @@ import com.sun.fortress.useful.HasAt;
  */
 public class TypeError extends StaticError {
 
-    /**
-     * Make Eclipse happy
-     */
+    protected TypeError() {
+        // Here just so that subclasses don't need a description and location.
+    }
+
+    protected TypeError(String description, HasAt location) {
+        super(description, location);
+    }
+
+    /** Make Eclipse happy */
     private static final long serialVersionUID = -3586975274806304888L;
 
     /**
      * Make a simple static error with the given location.
      */
     public static StaticError make(String description, HasAt location) {
-        return StaticError.make(description, location);
+        return new TypeError(description, location);
     }
 }
