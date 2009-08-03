@@ -1,17 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, California 95054, U.S.A.
-All rights reserved.
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
-U.S. Government Rights - Commercial software.
-Government users are subject to the Sun Microsystems, Inc. standard
-license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
-Use is subject to license terms.
+    Use is subject to license terms.
 
-This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
-Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.typechecker.impls
@@ -39,19 +40,19 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  * Note that helpers that are generally used in _every_ case/group should go in
  * the STypeChecker class; the helpers herein each generally apply to cases
  * among only a few groups.
- * 
+ *
  * This trait must be mixed in with an STypeChecker instance to provide the
  * full type checker implementation.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker. This is what allows this trait to access its
  * protected members.)
  */
 trait Common { self: STypeChecker =>
-  
+
   // TODO: Rewrite this method!
   def inheritedMethods(extendedTraits: List[TraitTypeWhere]) = {
-    
+
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,
                                extended_traits: List[TraitTypeWhere])
@@ -102,7 +103,7 @@ trait Common { self: STypeChecker =>
     }
     inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
   }
-  
+
   protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
                                             receiverType: Type)
                                             : Set[Method] = {
@@ -124,7 +125,7 @@ trait Common { self: STypeChecker =>
     val getters = methods.flatMap(isGetter)
     getters.toList.firstOption.flatMap(g => toOption(g.getReturnType))
   }
-  
+
     /**
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
    * that this type could be used as for the purposes of calling methods and fields.
