@@ -1271,7 +1271,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>",
                                "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)V");
             mv.visitInsn(Opcodes.DUP);
-            int taskVar = mv.createCompilerLocal(task, "L"+task+";");
+            int taskVar = mv.createCompilerLocal(NamingCzar.mangleIdentifier(task), "L"+task+";");
             taskVars[i] = taskVar;
             mv.visitVarInsn(Opcodes.ASTORE, taskVar);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "forkIfProfitable", "()V");

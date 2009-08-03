@@ -59,8 +59,8 @@ public class MainWrapper {
         
         
         try {
-            // Class cl = Class.forName(whatToRun, true, InstantiatingClassloader.ONLY);
-            Class cl = Class.forName(whatToRun);
+            Class cl = Class.forName(whatToRun, true, InstantiatingClassloader.ONLY);
+            // Class cl = Class.forName(whatToRun);
             Class[] arg_classes = new Class[1];
             arg_classes[0] = String[].class;
             java.lang.reflect.Method m = cl.getDeclaredMethod("main", arg_classes);
