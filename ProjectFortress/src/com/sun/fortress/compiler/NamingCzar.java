@@ -643,6 +643,43 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true);
     }
 
+    public static String makeArrowDescriptor(ArrowType t) {
+        return "com.sun.fortress.compiler.runtimeValues.Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
+            makeArrowDescriptor(t.getRange());
+    }
+
+    public static String makeArrowDescriptor(AnyType t) {
+        return "Object_";
+    }
+
+    public static String makeArrowDescriptor(TraitType t) {
+        return t.getName().getText();
+    }
+
+    public static String makeArrowDescriptor(TupleType t) {
+        if ( NodeUtil.isVoidType(t) ) return "V";
+        if (t.getVarargs().isSome())
+            throw new CompilerError(NodeUtil.getSpan(t),
+                                    "Can't compile VarArgs yet");
+        if (!t.getKeywords().isEmpty())
+            throw new CompilerError(NodeUtil.getSpan(t),
+                                    "Can't compile Keyword args yet");
+        String res = "";
+        for (com.sun.fortress.nodes.Type ty : t.getElements()) {
+            res += makeArrowDescriptor(ty) + "_";
+        }
+        return res;
+    }
+
+    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t) {
+        if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t);
+        else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t);
+        else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t);
+        else if (t instanceof ArrowType) return makeArrowDescriptor((ArrowType) t);
+        else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " + 
+                                     t + " of class " + t.getClass());
+    }
+
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
                                      final APIName ifNone, final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
@@ -651,15 +688,11 @@ public class NamingCzar {
                                         "emitDesc of type failed");
             }
             public String forArrowType(ArrowType t) {
-                // THIS IS WRONG !!!!
-                // Needs to be a reference to a generic Arrow type.
-                String s = "Arrow_ZZ32_ZZ32_ZZ32";
-                return withLSemi ? "L" + s + ";" : s;
-//                if (NodeUtil.isVoidType(t.getDomain()))
-//                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
-//                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
-//                                           jvmTypeDesc(t.getRange(), ifNone));
+                String res = makeArrowDescriptor(t);
+                if (withLSemi) res = "L" + res + ";";
+                return res;
             }
+
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
@@ -703,6 +736,7 @@ public class NamingCzar {
             });
     }
 
+
     
     /* Clone of above, to clean things out, TYPE DESCRIPTORS != METHOD DESCRIPTORS */
     
@@ -713,12 +747,14 @@ public class NamingCzar {
                 throw new CompilerError(NodeUtil.getSpan(x),
                                         "emitDesc of type failed");
             }
+
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
                     return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
                 else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
                                            jvmTypeDesc(t.getRange(), ifNone));
-            }
+            }     
+
             // TODO CASES BELOW OUGHT TO JUST FAIL, WILL TEST SOON.
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
