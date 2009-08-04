@@ -15,36 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled14
+component Compiled160.a
 export Executable
 
-
-trait A
-  x:A
-end
-
-object N extends A end
-
-object O(x:A) extends A end
-
-object P extends A
-  x:A = O(N).x
-end
-
-anO():A = O
-anA():A = P
-
 run():() = do
-  n:ZZ32 := 0
-  while n < 10 do
-    n += 1
-  end
-
-  case n of
-    0:9 => println "FAIL"
-    10 => println "SUCCESS"
-    else => println "FAIL"
-  end
+  a:ZZ32[5] = [0 1 2 3 4 5]
+  prod1:ZZ32 := 1
+  prod2:ZZ32 := 1
+  s = spawn
+        for i <- a do
+          prod1 TIMES= i
+        end
+  t = spawn
+        for i <- a.indices do
+          prod2 TIMES= a[i]
+        end
+  println s.value
+  println t.value
 end
 
 end

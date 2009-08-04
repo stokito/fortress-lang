@@ -15,28 +15,24 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled10
+component Compiled90
 export Executable
 
-(* Dotted methods. Also, inheritance of methods (or not). *)
+(* Higher order functions. Also local functions. *)
 
-trait A 
-  m(a:A):String = a.m(self)
-end
+trait A end
+object O extends A end
+object P extends A end
 
-object O extends A 
-  m(a:A):String = "O"
-end
+f(g:A->(O->A)):O->A = g(anA())
 
-object P extends A 
-  m(a:A):String = "P"
-end
-
-anO():A = O
-anA():A = P
+anA():A = O
 
 run():() = do
-  println(anO().m(anA()))
+  typecase x = f(fn(a:A) => (fn(o:O) => a))(O) of
+    O => println("O")
+    else => println("FAIL")
+  end
 end
 
 end

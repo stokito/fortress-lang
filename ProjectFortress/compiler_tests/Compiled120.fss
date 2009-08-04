@@ -15,16 +15,30 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled15
+component Compiled120
 export Executable
 
-run():() = do
-  a:ZZ32[5] = [0 1 2 3 4 5]
-  prod:ZZ32 := 1
 
-  for i <- a do
-    prod TIMES= i
-  end
+trait A 
+  x:A
+end
+
+object N extends A end
+
+object O(x:A) extends A end
+
+object P extends A 
+  x:A = O(N).x
+end
+
+anO():A = O
+anA():A = P
+
+run():() = do
+  n:ZZ32 = 0
+  p:ZZ32 := n
+  p += 1
+  println(p)
 end
 
 end

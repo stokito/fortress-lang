@@ -15,23 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled17
+component Compiled180.a
 export Executable
 
-run():() = do
-  a:ZZ32[5] = [0 1 2 3 4 5]
-  prod:ZZ32 := 1
-  s = spawn 
-        for i <- a do
-          atomic prod TIMES= i
-        end
-  t = spawn 
-        for i <- a.indices do
-          atomic prod TIMES= a[i]
-        end
-  s.join
-  t.join
-  println prod
-end
+trait A[\T\] end
+object O extends A[\O\] end
+object P extends A[\P\] end
+
+anA():A = O
+f[\T\](o:O):() = println("O")
+f[\T\](a:A[\T\]):() = println("FAIL WITH A")
+f[\T\](p:P):() = println("FAIL WITH P")
+
+run():() = f(anA())
 
 end

@@ -15,11 +15,36 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled19
+component Compiled140
 export Executable
 
-ignore(_:Any):() = ()
 
-run():() = ignore("hello")
+trait A
+  x:A
+end
+
+object N extends A end
+
+object O(x:A) extends A end
+
+object P extends A
+  x:A = O(N).x
+end
+
+anO():A = O
+anA():A = P
+
+run():() = do
+  n:ZZ32 := 0
+  while n < 10 do
+    n += 1
+  end
+
+  case n of
+    0:9 => println "FAIL"
+    10 => println "SUCCESS"
+    else => println "FAIL"
+  end
+end
 
 end

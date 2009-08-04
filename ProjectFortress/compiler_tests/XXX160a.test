@@ -13,11 +13,13 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled18.a
+tests=Compiled160.a
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled18.a.fss:25:7:\n\
-\ Type requires static arguments: A\n\
-File Compiled18.a.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled160.a.fss:33:13-16:\n\
+\ Keyword value cannot be used as an identifier.\n\
+${STATIC_TESTS_DIR}/Compiled160.a.fss:34:13-16:\n\
+\ Keyword value cannot be used as an identifier.\n\
+File Compiled160.a.fss has 2 errors.\n
 compile_out_equals=
