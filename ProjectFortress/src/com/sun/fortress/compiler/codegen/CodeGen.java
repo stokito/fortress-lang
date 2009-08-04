@@ -80,6 +80,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inABlock = false;
     private boolean emittingFunctionalMethodWrappers = false;
     private TraitObjectDecl currentTraitObjectDecl = null;
+    
+    private boolean fnRefIsApply = false; // FnRef is either apply or closure
 
     final Component component;
     private final ComponentIndex ci;
@@ -818,7 +820,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
         debug("forFnRef ", x);
-        forFunctionalRef(x);
+        if (fnRefIsApply)
+            forFunctionalRef(x);
+        else
+            sayWhat(x, "fnref-as-closure");
     }
 
     /**
@@ -1311,59 +1316,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
     public void forOpRef(OpRef x) {
         forFunctionalRef(x);
-//        ExprInfo info = x.getInfo();
-//        Option<com.sun.fortress.nodes.Type> exprType = info.getExprType();
-//        List<StaticArg> staticArgs = x.getStaticArgs();
-//        int lexicalDepth = x.getLexicalDepth();
-//        IdOrOp originalName = x.getOriginalName();
-//        List<IdOrOp> names = x.getNames();
-//        Option<List<FunctionalRef>> overloadings = x.getOverloadings();
-//        Option<com.sun.fortress.nodes.Type> overloadingType = x.getOverloadingType();
-//        debug("forOpRef ", x,
-//                     " info = ", info, "staticArgs = ", staticArgs, " exprType = ", exprType,
-//                     " lexicalDepth = ", lexicalDepth, " originalName = ", originalName,
-//                     " overloadings = ", overloadings,
-//                     " overloadingType = ", overloadingType, " names = ", names);
-//
-//        boolean canCompile =
-//            x.getStaticArgs().isEmpty() &&
-//            x.getOverloadings().isNone() &&
-//            names.size() == 1;
-//
-//        if (!canCompile) {
-//            debug("forOpRef can't compile; staticArgs ",
-//                        x.getStaticArgs().isEmpty(), " overloadings ",
-//                        x.getOverloadings().isNone());
-//        }
-//        if (!exprType.isSome()) {
-//            sayWhat(x, "Missing type information for OpRef " + x);
-//        }
-//
-//        String name = NamingCzar.mangleIdentifier(originalName.getText());
-//        IdOrOp newName = names.get(0);
-//        Option<APIName> api = newName.getApiName();
-//
-//        addLineNumberInfo(x);
-//
-//        String jvmClassName;
-//        String jvmFunctionName;
-//
-//        if (api.isSome()) {
-//            APIName apiName = api.unwrap();
-//            debug("forOpRef name = ", name,
-//                  " api = ", apiName);
-//            jvmClassName =  NamingCzar.jvmClassForSymbol(newName);
-//            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
-//        } else {
-//            jvmClassName = packageAndClassName;
-//            // jvmFunctionName = NamingCzar.mangleIdentifier(name); // bug?
-//            jvmFunctionName = NamingCzar.mangleIdentifier(newName.getText());
-//
-//        }
-//        // TODO this code is not up to spec, with respect to overloading etc.
-//        mv.visitMethodInsn(Opcodes.INVOKESTATIC, jvmClassName, jvmFunctionName,
-//                           NamingCzar.jvmMethodDesc(exprType.unwrap(), component.getName()));
-    }
+   }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
@@ -1569,12 +1522,16 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // This is a little weird.  If a function takes no arguments the parser gives me a void literal expr
         // however I don't want to be putting a void literal on the stack because it gets in the way.
         int savedParamCount = paramCount;
+        boolean savedFnRefIsApply = fnRefIsApply;
         try {
             Expr arg = x.getArgument();
+            fnRefIsApply = false;
             evalArg(arg);
+            fnRefIsApply = true;
             x.getFunction().accept(this);
         } finally {
             paramCount = savedParamCount;
+            fnRefIsApply = savedFnRefIsApply;
         }
     }
 
