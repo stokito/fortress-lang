@@ -372,7 +372,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // conservative answer is "no".
             methodName = NamingCzar.mangleIdentifier(methodName);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                               methodName, NamingCzar.jvmTypeDesc(arrow, component.getName()));
+                               methodName, NamingCzar.jvmMethodDesc(arrow, component.getName()));
         } else if (arrow instanceof IntersectionType) {
             addLineNumberInfo(x);
             IntersectionType it = (IntersectionType) arrow;
@@ -1166,9 +1166,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         Expr function = _rewriteFnApp.getFunction();
         ExprInfo info = function.getInfo();
-        Option<Type> exprType = exprOptType(function);
+        Type exprType = exprOptType(function).unwrap();
 
-        String desc = NamingCzar.jvmTypeDesc(exprType, component.getName());
+        String desc = NamingCzar.jvmMethodDesc(exprType, component.getName());
         List<String> args = NamingCzar.parseArgs(desc);
         String result = NamingCzar.parseResult(desc);
         String initDesc = NamingCzar.jvmTypeDescForGeneratedTaskInit(exprType, component.getName());
