@@ -644,9 +644,10 @@ public class NamingCzar {
     }
 
     public static String makeArrowDescriptor(ArrowType t) {
-//        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
-//            makeArrowDescriptor(t.getRange());
-        return "Arrow{" + makeArrowDescriptor(t.getDomain()) + "," + makeArrowDescriptor(t.getRange()) + "}";
+        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
+            makeArrowDescriptor(t.getRange());
+//        return "Arrow\u27e6" + makeArrowDescriptor(t.getDomain()) + "," +
+//            makeArrowDescriptor(t.getRange()) + "\u27e7";
     }
 
     public static String makeArrowDescriptor(AnyType t) {
