@@ -653,10 +653,12 @@ public class NamingCzar {
             public String forArrowType(ArrowType t) {
                 // THIS IS WRONG !!!!
                 // Needs to be a reference to a generic Arrow type.
-                if (NodeUtil.isVoidType(t.getDomain()))
-                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
-                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
-                                           jvmTypeDesc(t.getRange(), ifNone));
+                String s = "Arrow_ZZ32_ZZ32_ZZ32";
+                return withLSemi ? "L" + s + ";" : s;
+//                if (NodeUtil.isVoidType(t.getDomain()))
+//                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
+//                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
+//                                           jvmTypeDesc(t.getRange(), ifNone));
             }
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
@@ -833,9 +835,9 @@ public class NamingCzar {
     }
 
 
-    public static String jvmTypeDescForGeneratedTaskInit(Option<com.sun.fortress.nodes.Type> otype,
+    public static String jvmTypeDescForGeneratedTaskInit(com.sun.fortress.nodes.Type type,
                                                          APIName ifNone) {
-        String desc = jvmTypeDesc(otype, ifNone);
+        String desc = jvmMethodDesc(type, ifNone);
         List<String> args = parseArgs(desc);
         String result = parseResult(desc);
         String initDesc = "(";
