@@ -15,20 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled8
+component Compiled170
 export Executable
 
-(* asif -- we may defer this, since it is hard and not widely used. *)
-
-trait A end
-object O extends A end
-object P extends A end
-
-anA():A = O
-f(o:O):() = println("FAIL WITH O")
-f(a:A):() = println("A")
-f(p:P):() = println("FAIL WITH P")
-
-run():() = f(anA() asif A)
+run():() = do
+  a:ZZ32[5] = [0 1 2 3 4 5]
+  prod:ZZ32 := 1
+  s = spawn 
+        for i <- a do
+          atomic prod TIMES= i
+        end
+  t = spawn 
+        for i <- a.indices do
+          atomic prod TIMES= a[i]
+        end
+  s.join
+  t.join
+  println prod
+end
 
 end

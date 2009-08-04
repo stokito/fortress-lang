@@ -15,30 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled12
+component Compiled70
 export Executable
 
+(* Local overloading. *)
 
-trait A 
-  x:A
-end
+trait A end
+object O extends A end
+object P extends A end
 
-object N extends A end
+anA():A = O
+f(o:O):() = println("O")
+f(a:A):() = println("FAIL WITH A")
+f(p:P):() = println("FAIL WITH P")
 
-object O(x:A) extends A end
-
-object P extends A 
-  x:A = O(N).x
-end
-
-anO():A = O
-anA():A = P
-
-run():() = do
-  n:ZZ32 = 0
-  p:ZZ32 := n
-  p += 1
-  println(p)
-end
+run():() = f(anA())
 
 end

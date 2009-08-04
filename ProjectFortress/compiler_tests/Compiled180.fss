@@ -15,19 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled7
+component Compiled180
 export Executable
 
-(* Local overloading. *)
+trait A[\T\] end
+object O extends A[\O\] end
+object P extends A[\P\] end
 
-trait A end
-object O extends A end
-object P extends A end
-
-anA():A = O
-f(o:O):() = println("O")
-f(a:A):() = println("FAIL WITH A")
-f(p:P):() = println("FAIL WITH P")
+anA():A[\O\] = O
+f[\T\](o:O):() = println("O")
+f[\T\](a:A[\T\]):() = println("FAIL WITH A")
+f[\T\](p:P):() = println("FAIL WITH P")
 
 run():() = f(anA())
 
