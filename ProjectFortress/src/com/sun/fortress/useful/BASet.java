@@ -328,6 +328,31 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             return new BASnode<T>(top, new BASnode<T>(l, ll, lr), new BASnode<T>(r, rl, rr));
         }
 
+        public <U> void toArray(U [] result, int leftMost) {
+            if (left!=null) {
+                left.toArray(result, leftMost);
+                leftMost += left.weight;
+            }
+            result[leftMost] = (U)key;
+            if (right!=null) {
+                right.toArray(result, leftMost+1);
+            }
+        }
+
+        public boolean equalsHelp(Object [] to, int leftMost) {
+            BASnode<T> self = this;
+            while (self != null) {
+                BASnode<T> l = self.left;
+                if (l!=null) {
+                    if (!l.equalsHelp(to,leftMost)) return false;
+                    leftMost += l.weight;
+                }
+                if (!self.key.equals(to[leftMost++])) return false;
+                self = self.right;
+            }
+            return true;
+        }
+
         public T getKey() {
             return key;
         }
@@ -483,17 +508,19 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     @SuppressWarnings ("unchecked")
     public boolean equals(Object o) {
-        if (o instanceof BASet) {
-            BASet bat = (BASet) o;
-            if (bat.size() != size()) {
-                return false;
+        if (this==o) return true;
+        if (o instanceof Set) {
+            Set bat = (Set) o;
+            int sz = bat.size();
+            BASnode<T> r = root;
+            if (r == null) {
+                return (sz == 0);
             }
-            BASnode a = root;
-            BASnode b = bat.root;
-            for (int i = 0; i < size(); i++) {
-                if (!(a.get(i).equals(b.get(i)))) return false;
-            }
-            return true;
+            if (sz != r.weight) return false;
+            Object [] arr = bat.toArray();
+            // Double check to guard against concurrent modifications
+            if (arr.length != r.weight) return false;
+            r.equalsHelp(arr,0);
         }
         return super.equals(o);
     }
@@ -541,6 +568,26 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     public T last() {
         return max();
+    }
+
+    public <U> U[] toArray(U[] example) {
+        BASnode<T> r = root;
+        if (r==null)
+            return Arrays.copyOf(example,0);
+        if (example.length > 0)
+            example = Arrays.copyOf(example,0);
+        U [] result = Arrays.copyOf(example,r.weight);
+        r.toArray(result, 0);
+        return result;
+    }
+
+    public Object[] toArray() {
+        BASnode<T> r = root;
+        if (r==null)
+            return new Object[0];
+        Object[] result = new Object[r.weight];
+        r.toArray(result,0);
+        return result;
     }
 
     //    public SortedSet<T> headSet(T arg0) {

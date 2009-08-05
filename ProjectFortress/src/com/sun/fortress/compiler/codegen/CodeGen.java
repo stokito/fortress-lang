@@ -80,13 +80,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
     boolean inABlock = false;
     private boolean emittingFunctionalMethodWrappers = false;
     private TraitObjectDecl currentTraitObjectDecl = null;
-    
+
     private boolean fnRefIsApply = false; // FnRef is either apply or closure
 
     final Component component;
     private final ComponentIndex ci;
     private GlobalEnvironment env;
-    
+
 
     public CodeGen(Component c, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci,
                    GlobalEnvironment env) {
@@ -279,7 +279,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         addLocalVar(v);
         return v;
     }
-    
+
     private VarCodeGen addParam(TraitObjectDecl x) {
         Id id = NodeFactory.makeId(NodeUtil.getSpan(x), "self");
         Id tid = (Id)  x.getHeader().getName();
@@ -591,17 +591,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forFnDecl(FnDecl x) {
-        
+
         /*
          * Cases for FnDecl:
-         * 
+         *
          * 1. top level
-         * 
+         *
          * 2. trait normal method.
          *    a. for trait itself, an abstract method in generated interface
          *       (this may be handled elsewhere)
          *    b. for trait defaults, a static method in SpringBoard
-         *  
+         *
          * 3. trait functional method
          *    a. for trait itself, a mangled-name abstract method with self
          *       removed from the parameter list.
@@ -611,15 +611,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
          *       dotted position.  NOTE THE POTENTIAL FOR OVERLOADING.
          *    c. for trait defaults, a mangled-name static method with self in
          *       the first parameter position (in SpringBoard).
-         * 
+         *
          * 4. object normal method
          *    a. a normal dotted method is generated
-         *    
+         *
          * 5. object functional method
          *    a. a mangled-name dotted method is generated with self removed
          *       from the parameter list.
          *    b. at top level, a functional wrapper with self in original
-         *       position, which invokes the interface method with self in 
+         *       position, which invokes the interface method with self in
          *       dotted position.  NOTE THE POTENTIAL FOR OVERLOADING.
          *       Static overload resolution can be an optimization.
          */
@@ -655,22 +655,22 @@ public class CodeGen extends NodeAbstractVisitor_void {
         if (emittingFunctionalMethodWrappers) {
             if (! functionalMethod)
                 return; // Not functional = no wrapper needed.
-            
+
             // bizarrely implemented! return; // TODO not yet implemented.
-        } 
+        }
         // else need to incorrectly emit code for functional methods.
         {
-       
+
         boolean hasSelf = !functionalMethod && (inAnObject || inATrait);
         boolean savedInAnObject = inAnObject;
         boolean savedInATrait = inATrait;
         boolean savedEmittingFunctionalMethodWrappers = emittingFunctionalMethodWrappers;
-        
+
         boolean emittingTraitDefault = inATrait;
 
         try {
             // TODO don't yet actually emit the functional method wrappers.
-                        
+
             inAnObject = false;
             inATrait = false;
 
@@ -714,7 +714,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 // as that's wrong.  It's addressed in the executable wrapper code instead.
                 modifiers += Opcodes.ACC_STATIC;
             }
-            
+
             // TODO
 
             /*
@@ -1413,11 +1413,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // Now lets dump out the functional methods at top level.
         cw = prev;
         cw.visitSource(classFile, null);
-        
+
         emittingFunctionalMethodWrappers = true;
         dumpTraitDecls(header.getDecls());
         emittingFunctionalMethodWrappers = false;
-        
+
         debug("Finished dumpDecls for parent");
         inATrait = false;
     }

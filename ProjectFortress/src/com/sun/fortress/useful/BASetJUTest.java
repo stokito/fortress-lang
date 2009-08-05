@@ -17,6 +17,7 @@
 
 package com.sun.fortress.useful;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -26,7 +27,7 @@ public class BASetJUTest extends TestCaseWrapper {
         junit.swingui.TestRunner.run(BASetJUTest.class);
     }
 
-    BASet<String> t = new BASet<String>(String.CASE_INSENSITIVE_ORDER);
+    BASet<String> t = empty();
 
     String[] animals = {
             "alpaca", "ant", "auk", "bat", "beetle", "bison", "buffalo", "camel", "cat", "cavy", "crab", "deer",
@@ -37,6 +38,10 @@ public class BASetJUTest extends TestCaseWrapper {
             "ray", "seal", "shark", "snake", "spider", "tern", "tiger", "turtle", "unicorn", "vicuna", "vole",
             "vulture", "walrus", "warthog", "worm", "xiphias", "yak", "zebra"
     };
+
+    private static BASet<String> empty() {
+        return new BASet<String>(String.CASE_INSENSITIVE_ORDER);
+    }
 
     public void testRemoveIterator() {
         t.addArray(animals);
@@ -150,5 +155,49 @@ public class BASetJUTest extends TestCaseWrapper {
         }
     }
 
+    BASet<String> randomSet(Random r) {
+        BASet<String> s = empty();
+        for (int k = 0; k < 15; k++) {
+            int j = r.nextInt(animals.length);
+            s.add(animals[j]);
+        }
+        s.ok();
+        return s;
+    }
+
+    public void testUnionRandom() {
+        Random r = new Random();
+        BASet<String> a = randomSet(r);
+        BASet<String> b = randomSet(r);
+        BASet<String> c = a.copy();
+        c.addAll(b);
+        c.ok();
+        assertTrue(c.containsAll(a));
+        assertTrue(c.containsAll(b));
+        for (String sc : c) {
+            assertTrue(a.contains(sc) || b.contains(sc));
+        }
+    }
+
+    public void testIntersectionRandom() {
+        Random r = new Random();
+        BASet<String> a = randomSet(r);
+        BASet<String> b = randomSet(r);
+        BASet<String> c = a.copy();
+        c.retainAll(b);
+        c.ok();
+        for (String sc : c) {
+            assertTrue(a.contains(sc));
+            assertTrue(b.contains(sc));
+        }
+        for (String sa : a) {
+            assertEquals(b.contains(sa), c.contains(sa));
+        }
+    }
+
+    public void testToArray() {
+        testAddsAscending();
+        assertTrue(Arrays.equals(animals, t.toArray(new String[0])));
+    }
 
 }
