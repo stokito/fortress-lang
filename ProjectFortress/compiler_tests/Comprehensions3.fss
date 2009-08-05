@@ -15,11 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Comprehensions2
+component Comprehensions3
 export Executable
 
 (* Mock up of the kind of code we expect after desugaring of
 comprehensions, in order to see whether we can typecheck it.
+
+In this case we worry things might start breaking with the advent of
+coercion; will type inference get confused by SUM?
 *)
 
 (** Is excludes Boolean actually necessary here, or is that a bug in
@@ -34,9 +37,9 @@ trait Reduction[\R\]
     join(a: R, b:R): R
 end
 
-object ReductionString extends Reduction[\String\]
-    empty(): String = ""
-    join(a: String, b: String): String = a || b
+object SumReduction extends Reduction[\ZZ32\]
+    empty(): ZZ32 = 0
+    join(a:ZZ32, b:ZZ32): ZZ32 = a + b
 end
 
 __bigOperator[\R\](o:Reduction[\R\],
@@ -68,18 +71,14 @@ gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R
 
 opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => 0=0)
 
-opr BIG ||(): ReductionString = ReductionString
+opr SUM(): SumReduction = SumReduction
 
 opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 
+length[\T\](g: Generator[\T\]): ZZ32 = SUM[_ <- g] 1
+
 run(): () = do
-    (* This one doesn't appear to type check, even though the other three do.
-       Baffling! *)
-    println(__bigOperator(ReductionString,
-                          fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString()))))
-    println(BIG ||[n <- 0:100] (2 n + 1).asString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString())
+    printlnZZ32(length(1:100))
   end
 
 end

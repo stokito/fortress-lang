@@ -20,9 +20,6 @@ export Executable
 
 (* Mock up of the kind of code we expect after desugaring of
 comprehensions, in order to see whether we can typecheck it.
-
-Note that this code might contain bugs; there's no way of getting it
-through the type checker and thus no way of knowing for sure.
 *)
 
 (** Is excludes Boolean actually necessary here, or is that a bug in
