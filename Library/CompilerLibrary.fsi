@@ -19,4 +19,18 @@ api CompilerLibrary
 
 ignore(_:Any):()
 
+opr XOR(a:Boolean, b:Boolean):Boolean
+opr OR(a:Boolean, b:Boolean):Boolean
+opr AND(a:Boolean, b:Boolean):Boolean
+(*
+opr OR(a:Boolean, b:()->Boolean):Boolean
+opr AND(a:Boolean, b:()->Boolean):Boolean
+*)
+opr NOT(a:Boolean):Boolean
+opr ->(a: Boolean, b:Boolean):Boolean
+(*
+opr ->(a: Boolean, b:()->Boolean):Boolean
+*)
+opr <->(a: Boolean, b:Boolean):Boolean
+
 end
