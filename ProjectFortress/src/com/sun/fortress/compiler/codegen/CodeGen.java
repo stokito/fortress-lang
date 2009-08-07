@@ -136,43 +136,6 @@ public class CodeGen extends NodeAbstractVisitor_void {
         return ci.ast().getName();
     }
 
-    private BATree<String, VarCodeGen> createTaskLexEnvVariables(String taskClass,
-                                                                 BATree<String, VarCodeGen> old) {
-        BATree<String, VarCodeGen> result = new BATree<String, VarCodeGen>(StringHashComparer.V);
-        for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
-
-            cw.visitField(Opcodes.ACC_PUBLIC, entry.getKey(),
-                          NamingCzar.only.boxedImplDesc(entry.getValue().fortressType, thisApi()),
-                          null, null);
-
-            TaskVarCodeGen tvcg = new TaskVarCodeGen(entry.getValue(), taskClass, thisApi());
-            result.put(entry.getKey(), tvcg);
-        }
-
-        return result;
-    }
-
-    // I don't know how this is supposed to work, but it clearly doesn't right now. -JWM
-    private void initializeTaskLexEnv(String task, BATree<String, VarCodeGen> old) {
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
-
-        for (Map.Entry<String, VarCodeGen> entry : old.entrySet()) {
-            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
-            entry.getValue().pushValue(mv);
-
-            mv.visitFieldInsn(Opcodes.PUTFIELD,
-                              task, entry.getKey(),
-                              NamingCzar.boxedImplDesc(entry.getValue().fortressType, thisApi()));
-
-        }
-    }
-
-
-    // I'm just a stub.  Someday I'll have a body that updates the changed local variables.
-    private BATree<String, VarCodeGen> restoreFromTaskLexEnv(BATree<String,VarCodeGen> old, BATree<String,VarCodeGen> task) {
-        return task;
-    }
-
     private void generateMainMethod() {
 
         // We generate two methods.  First a springboard static main()
@@ -264,12 +227,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private void addLocalVar( VarCodeGen v ) {
-        debug("addLocalVar " + v);
+        debug("addLocalVar ", v);
         lexEnv.put(v.name.getText(), v);
     }
 
     private void addStaticVar( VarCodeGen v ) {
-        debug("addStaticVar " + v);
+        debug("addStaticVar ", v);
         lexEnv.put(v.name.getText(), v);
     }
 
@@ -291,9 +254,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private VarCodeGen getLocalVar( IdOrOp nm ) {
-        debug("getLocalVar: " + nm);
+        debug("getLocalVar: ", nm);
         VarCodeGen r = lexEnv.get(nm.getText());
-        debug("getLocalVar:" + nm + " VarCodeGen = " + r + " of class " + r.getClass());
+        debug("getLocalVar:", nm, " VarCodeGen = ", r, " of class ", r.getClass());
         if (r==null) return sayWhat(nm, "Can't find lexEnv mapping for local var");
         return r;
     }
@@ -365,7 +328,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             com.sun.fortress.nodes.Type arrow, String pkgAndClassName,
             String methodName) {
 
-        debug("class = " + pkgAndClassName + " method = " + methodName );
+        debug("class = ", pkgAndClassName, " method = ", methodName );
 
         if ( arrow instanceof ArrowType ) {
             addLineNumberInfo(x);
@@ -481,23 +444,23 @@ public class CodeGen extends NodeAbstractVisitor_void {
         inABlock=oldInABlock;
     }
     public void forChainExpr(ChainExpr x) {
-        debug( "forChainExpr" + x);
+        debug( "forChainExpr", x);
         Expr first = x.getFirst();
         List<Link> links = x.getLinks();
-        debug( "forChainExpr" + x + " about to call accept on " +
-               first + " of class " + first.getClass());
+        debug( "forChainExpr", x, " about to call accept on ",
+               first, " of class ", first.getClass());
         first.accept(this);
         Iterator<Link> i = links.iterator();
         if (links.size() != 1)
             throw new CompilerError(NodeUtil.getSpan(x), x + "links.size != 1");
         Link link = i.next();
         link.getExpr().accept(this);
-        debug( "forChainExpr" + x + " about to call accept on " +
-               link.getOp() + " of class " + link.getOp().getClass());
+        debug( "forChainExpr", x, " about to call accept on ",
+               link.getOp(), " of class ", link.getOp().getClass());
         link.getOp().accept(this);
 
-        debug( "We've got a link " + link + " an op " + link.getOp() +
-               " and an expr " + link.getExpr() + " What do we do now");
+        debug( "We've got a link ", link, " an op ", link.getOp(),
+               " and an expr ", link.getExpr(), " What do we do now");
     }
 
     public void forComponent(Component x) {
@@ -873,7 +836,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forIf(If x) {
-        Debug.debug( Debug.Type.CODEGEN, 1,"forIf " + x);
+        Debug.debug( Debug.Type.CODEGEN, 1,"forIf ", x);
         List<IfClause> clauses = x.getClauses();
         Option<Block> elseClause = x.getElseClause();
 
@@ -888,7 +851,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             // emit code for condition and to check resulting boolean
             Expr testExpr = cond.getInit();
-            debug( "about to accept " + testExpr + " of class " + testExpr.getClass());
+            debug( "about to accept ", testExpr, " of class ", testExpr.getClass());
             testExpr.accept(this);
             addLineNumberInfo(x);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressBoolean, "getValue",
@@ -1156,99 +1119,114 @@ public class CodeGen extends NodeAbstractVisitor_void {
                               "nativePrintZZ32",  "(I)V");
     }
 
-
-
-    // This sets up the parallel task construct.
-    // Caveat: We create separate taskClasses for every task
-    public String delegate(ASTNode x) {
-
-        // For now we only delegate function applications.
-        if (! (x instanceof _RewriteFnApp)) {
-            sayWhat(x);
-        }
-
-        _RewriteFnApp _rewriteFnApp = (_RewriteFnApp) x;
-
-        Expr function = _rewriteFnApp.getFunction();
-        ExprInfo info = function.getInfo();
-        Type exprType = exprOptType(function).unwrap();
-
-        String desc = NamingCzar.jvmMethodDesc(exprType, component.getName());
-        List<String> args = NamingCzar.parseArgs(desc);
-        String result = NamingCzar.parseResult(desc);
-        String initDesc = NamingCzar.jvmTypeDescForGeneratedTaskInit(exprType, component.getName());
-        String className = NamingCzar.gensymTaskName(packageAndClassName);
-
-        debug("delegate creating class " + className + " node = " + x + " constructor type = " + initDesc);
-
-        // Create a new environment
-        CodeGen cg = new CodeGen(this);
-        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cg.cw.visitSource(className,null);
-
-        cg.lexEnv = cg.createTaskLexEnvVariables(className, lexEnv);
-        cg.cw.visitField(Opcodes.ACC_PUBLIC, "result", result,null, null);
-
-        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
-                    className,null, NamingCzar.fortressBaseTask, null);
-
-
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
-        cg.mv.visitCode();
-
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
-        cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask,
-                              "<init>", NamingCzar.voidToVoid);
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
-
-        // Arguments
-
-        if (! (function instanceof FnRef) )
-            sayWhat(x, "Looking for a FnRef");
-
-        FnRef fnRef = (FnRef) function;
-        IdOrOp originalName = fnRef.getOriginalName();
-
-        Function f = ci.functions().matchFirst(originalName).iterator().next();
-        List<Param> params = f.parameters();
-
-        int argsIndex = 0;
-        int varIndex = 1;
-        for (Param p : params) {
-            cg.mv.visitVarInsn(Opcodes.ALOAD, varIndex++);
-            cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, p.getName().getText(), args.get(argsIndex++));
-        }
-
-        cg.mv.visitInsn(Opcodes.RETURN);
-        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-        cg.mv.visitEnd();
-
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                                  "compute", "()V", null, null);
-
-        cg.mv.visitCode();
-
-        cg.mv.visitVarInsn(Opcodes.ALOAD, cg.mv.getThis());
-
-        x.accept(cg);
-
-        cg.mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
-
-        cg.mv.visitInsn(Opcodes.RETURN);
-        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-        cg.mv.visitEnd();
-        cg.dumpClass(className);
-
-        this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
-        return className;
-    }
-
     private void generatePrintResult(CodeGen cg) {
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, NamingCzar.internalFortressZZ32,
                            "getValue", "()I");
         mv.visitMethodInsn(Opcodes.INVOKESTATIC,"com/sun/fortress/nativeHelpers/simplePrintResult",
                            "nativePrintZZ32",  "(I)V");
+    }
+
+    // This returns a list rather than a set because the order matters;
+    // we should guarantee that we choose a consistent order every time.
+    private List<VarCodeGen> getFreeVars(Node n) {
+        // Assume all avail vars are used.  Naive!!!  Replace with analysis results.
+        return new ArrayList(lexEnv.values());
+    }
+
+    private BATree<String, VarCodeGen>
+            createTaskLexEnvVariables(String taskClass, List<VarCodeGen> freeVars) {
+
+        BATree<String, VarCodeGen> result =
+            new BATree<String, VarCodeGen>(StringHashComparer.V);
+        for (VarCodeGen v : freeVars) {
+            String name = v.name.getText();
+            cw.visitField(Opcodes.ACC_PUBLIC, name,
+                          NamingCzar.only.boxedImplDesc(v.fortressType, thisApi()),
+                          null, null);
+            result.put(name, new TaskVarCodeGen(v, taskClass, thisApi()));
+        }
+        return result;
+    }
+
+    private void generateTaskInit(String initDesc,
+                                  List<VarCodeGen> freeVars) {
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
+        mv.visitCode();
+
+        // Call superclass constructor
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask,
+                              "<init>", NamingCzar.voidToVoid);
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+
+        // Stash away free variables Warning: freeVars contains
+        // VarCodeGen objects from the parent context, we must look
+        // these up again in the child context or we'll get incorrect
+        // code (or more usually the compiler will complain).
+        int varIndex = 1;
+        for (VarCodeGen v0 : freeVars) {
+            VarCodeGen v = lexEnv.get(v0.name.getText());
+            v.prepareAssignValue(mv);
+            mv.visitVarInsn(Opcodes.ALOAD, varIndex++);
+            v.assignValue(mv);
+        }
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
+    }
+
+    private void generateTaskCompute(String className, Expr x, String result) {
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+                                  "compute", "()V", null, null);
+        mv.visitCode();
+
+        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+
+        x.accept(this);
+
+        mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
+
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
+    }
+
+    // I'm just a stub.  Someday I'll have a body that updates the changed local variables.
+    private BATree<String, VarCodeGen> restoreFromTaskLexEnv(BATree<String,VarCodeGen> old, BATree<String,VarCodeGen> task) {
+        return task;
+    }
+
+    // This sets up the parallel task construct.
+    // Caveat: We create separate taskClasses for every task
+    public String delegate(Expr x, String result, String init, List<VarCodeGen> freeVars) {
+
+        String className = NamingCzar.gensymTaskName(packageAndClassName);
+
+        debug("delegate creating class ", className, " node = ", x,
+              " constructor type = ", init, " result type = ", result);
+
+        // Create a new environment, and codegen task class in it.
+        CodeGen cg = new CodeGen(this);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw.visitSource(className,null);
+
+        cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
+        // WARNING: result may need mangling / NamingCzar-ing.
+        cg.cw.visitField(Opcodes.ACC_PUBLIC, "result", result, null, null);
+
+        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
+                    className, null, NamingCzar.fortressBaseTask, null);
+
+        cg.generateTaskInit(init, freeVars);
+
+        cg.generateTaskCompute(className, x, result);
+
+        cg.dumpClass(className);
+
+        this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
+        return className;
     }
 
     // Evaluate args in parallel.  (Why is profitability given at a
@@ -1258,6 +1236,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         final int n = args.size();
         if (n <= 0) return;
         String [] tasks = new String[n];
+        String [] results = new String[n];
         int [] taskVars = new int[n];
         // TODO: fix free variable handling here to match delegate() above.
 
@@ -1266,15 +1245,36 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // IMPORTANT: ALWAYS fork and join stack fashion,
         // ie always join with the most recent fork first.
         for (int i = n-1; i > 0; i--) {
-            String task = delegate(args.get(i));
+            Expr arg = args.get(i);
+            // Make sure arg has type info (we'll need it to generate task)
+            Option<Type> ot = NodeUtil.getExprType(arg);
+            if (!ot.isSome())
+                sayWhat(arg, "Missing type information for argument " + arg);
+            Type t = ot.unwrap();
+            String tDesc = NamingCzar.jvmTypeDesc(t, component.getName());
+            // Find free vars of arg
+            List<VarCodeGen> freeVars = getFreeVars(arg);
+            // And their types
+            List<Type> freeVarTypes = new ArrayList(freeVars.size());
+            for (VarCodeGen v : freeVars) {
+                freeVarTypes.add(v.fortressType);
+            }
+
+            // Generate descriptor for init method of task
+            String init =
+                NamingCzar.jvmTypeDescForGeneratedTaskInit(freeVarTypes, component.getName());
+
+            String task = delegate(arg, tDesc, init, freeVars);
             tasks[i] = task;
+            results[i] = tDesc;
 
             mv.visitTypeInsn(Opcodes.NEW, task);
             mv.visitInsn(Opcodes.DUP);
-            // Following two lines are bogus, assume only fv is 1st param / self (n for fib) : ZZ32
-            mv.visitVarInsn(Opcodes.ALOAD,0);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>",
-                               "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)V");
+            // Push the free variables in order.
+            for (VarCodeGen v : freeVars) {
+                v.pushValue(mv);
+            }
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>", init);
             mv.visitInsn(Opcodes.DUP);
             int taskVar = mv.createCompilerLocal(NamingCzar.mangleIdentifier(task), "L"+task+";");
             taskVars[i] = taskVar;
@@ -1283,7 +1283,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         // arg 0 gets compiled in place, rather than turned into work.
         args.get(0).accept(this);
-        // join / perform work locally left to right.
+        // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
             int taskVar = taskVars[i];
             mv.visitVarInsn(Opcodes.ALOAD, taskVar);
@@ -1291,7 +1291,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             mv.visitInsn(Opcodes.DUP);
             String task = tasks[i];
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "joinOrRun", "()V");
-            mv.visitFieldInsn(Opcodes.GETFIELD, task, "result", NamingCzar.descFortressZZ32);
+            mv.visitFieldInsn(Opcodes.GETFIELD, task, "result", results[i]);
         }
     }
 
