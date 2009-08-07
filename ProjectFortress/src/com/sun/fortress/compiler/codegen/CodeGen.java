@@ -52,6 +52,7 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.MultiMap;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
 
 // Note we have a name clash with org.objectweb.asm.Type
@@ -254,10 +255,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     private VarCodeGen getLocalVar( IdOrOp nm ) {
-        debug("getLocalVar: ", nm);
-        VarCodeGen r = lexEnv.get(nm.getText());
-        debug("getLocalVar:", nm, " VarCodeGen = ", r, " of class ", r.getClass());
+        VarCodeGen r = getLocalVarOrNull(nm);
         if (r==null) return sayWhat(nm, "Can't find lexEnv mapping for local var");
+        return r;
+    }
+    private VarCodeGen getLocalVarOrNull( IdOrOp nm ) {
+        debug("getLocalVar: " + nm);
+        VarCodeGen r = lexEnv.get(nm.getText());
+        if (r != null)
+            debug("getLocalVar:" + nm + " VarCodeGen = " + r + " of class " + r.getClass());
+        else
+            debug("getLocalVar:" + nm + " VarCodeGen = null");
         return r;
     }
 
@@ -329,26 +337,47 @@ public class CodeGen extends NodeAbstractVisitor_void {
             String methodName) {
 
         debug("class = ", pkgAndClassName, " method = ", methodName );
+        addLineNumberInfo(x);
 
+        Pair<String, String> method_and_signature = resolveMethodAndSignature(
+                x, arrow, methodName);
+        
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
+                method_and_signature.getA(), method_and_signature.getB());
+        
+    }
+
+    /**
+     * @param x
+     * @param arrow
+     * @param methodName
+     * @return
+     * @throws Error
+     */
+    private Pair<String, String> resolveMethodAndSignature(FunctionalRef x,
+            com.sun.fortress.nodes.Type arrow, String methodName) throws Error {
+        Pair<String, String> method_and_signature = null;
+        
         if ( arrow instanceof ArrowType ) {
-            addLineNumberInfo(x);
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
             // conservative answer is "no".
             methodName = NamingCzar.mangleIdentifier(methodName);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                               methodName, NamingCzar.jvmMethodDesc(arrow, component.getName()));
+            method_and_signature = new Pair<String, String>(methodName, NamingCzar.jvmMethodDesc(arrow, component.getName()));
+            
         } else if (arrow instanceof IntersectionType) {
-            addLineNumberInfo(x);
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
                     OverloadSet.oMangle(methodName) : NamingCzar.mangleIdentifier(methodName);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                               methodName,
-                               OverloadSet.getSignature(it, paramCount, ta));
+                    
+            method_and_signature = new Pair<String, String>(methodName,
+                    OverloadSet.getSignature(it, paramCount, ta));
+
         } else {
                 sayWhat( x, "Neither arrow nor intersection type: " + arrow );
+                throw new Error(); // not reached
         }
+        return method_and_signature;
     }
 
     // paramCount communicates this information from call to function reference,
@@ -785,54 +814,98 @@ public class CodeGen extends NodeAbstractVisitor_void {
         debug("forFnRef ", x);
         if (fnRefIsApply)
             forFunctionalRef(x);
-        else
-            sayWhat(x, "fnref-as-closure");
+        else {
+            // Not entirely sure about this next bit; how are function-valued parameters referenced?
+            VarCodeGen fn = getLocalVarOrNull(x.getOriginalName());
+            if (fn == null) {
+                // Get it from top level.
+                Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
+                // If it's an overloaded type, oy.
+                com.sun.fortress.nodes.Type arrow = exprType(x);
+                // Capture the overloading foo, mutilate that into the name of the thing that we want.
+                Pair<String, String> method_and_signature = resolveMethodAndSignature(
+                        x, arrow, pc_and_m.getB());
+                /* we now have package+class, method name, and signature.
+                 * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
+                 * Classloader will see this, and it will trigger demangling of the name, to figure
+                 * out the contents of the class to be loaded.
+                 */
+                String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
+                
+                String PCN = pc_and_m.getA() + "/" +
+                  NamingCzar.catMangled(
+                    method_and_signature.getA() ,
+                    "\u2709" , // "ENVELOPE"
+                    NamingCzar.mangleIdentifier(method_and_signature.getB()));
+                
+                mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_type);
+
+            } else {
+                sayWhat(x, "Haven't figured out references to local/parameter functions yet");
+            }
+            
+        }
     }
 
     /**
      * @param x
      */
     public void forFunctionalRef(FunctionalRef x) {
-        String name = x.getOriginalName().getText();
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
 
+        Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
+
+        callStaticSingleOrOverloaded(x, arrow, calleeInfo.getA(), calleeInfo.getB());
+    }
+
+    /**
+     * @param x
+     * @return
+     */
+    private Pair<String, String> functionalRefToPackageClassAndMethod(
+            FunctionalRef x) {
+        Pair<String, String> calleeInfo;
+
+        String name = x.getOriginalName().getText();
         List<IdOrOp> names = x.getNames();
 
         /* Note that after pre-processing in the overload rewriter,
          * there is only one name here; this is not an overload check.
          */
+        String calleePackageAndClass = "";
+        String method = "";
+
         if ( names.size() != 1) {
             sayWhat(x,"Non-unique overloading after rewrite " + x);
-            return;
-        }
-        IdOrOp fnName = names.get(0);
-        Option<APIName> apiName = fnName.getApiName();
-        String calleePackageAndClass;
-        String method;
-        if (!apiName.isSome()) {
-            // NOT Foreign, calls same component.
-            // Nothing special to do.
-            calleePackageAndClass = packageAndClassName;
-            method = fnName.getText();
-        } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
-            // NOT Foreign, calls other component.
-            calleePackageAndClass =
-                NamingCzar.fortressPackage + "/" + apiName.unwrap().getText();
-            method = fnName.getText();
-        } else if ( aliasTable.containsKey(name) ) {
-            // Foreign function call
-            String n = aliasTable.get(name);
-            // Cheating by assuming class is everything before the dot.
-            int lastDot = n.lastIndexOf(".");
-            calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
-            method = n.substring(lastDot+1);
         } else {
-            sayWhat(x, "Foreign function " + x + " missing from alias table");
-            return;             // Doesn't init callee... and method.
+            IdOrOp fnName = names.get(0);
+            Option<APIName> apiName = fnName.getApiName();
+
+            if (!apiName.isSome()) {
+                // NOT Foreign, calls same component.
+                // Nothing special to do.
+                calleePackageAndClass = packageAndClassName;
+                method = fnName.getText();
+            } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
+                // NOT Foreign, calls other component.
+                calleePackageAndClass =
+                    NamingCzar.fortressPackage + "/" + apiName.unwrap().getText();
+                method = fnName.getText();
+            } else if ( aliasTable.containsKey(name) ) {
+                // Foreign function call
+                String n = aliasTable.get(name);
+                // Cheating by assuming class is everything before the dot.
+                int lastDot = n.lastIndexOf(".");
+                calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
+                method = n.substring(lastDot+1);
+            } else {
+                sayWhat(x, "Foreign function " + x + " missing from alias table");
+            }
         }
-        callStaticSingleOrOverloaded(x, arrow, calleePackageAndClass, method);
+        calleeInfo = new Pair<String, String>(calleePackageAndClass, method);
+        return calleeInfo;
     }
 
     public void forIf(If x) {
