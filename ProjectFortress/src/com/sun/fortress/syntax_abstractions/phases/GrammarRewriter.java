@@ -22,6 +22,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDecl;
@@ -148,11 +149,13 @@ public class GrammarRewriter {
         for (ApiIndex a2 : moreApis) {
             for (Entry<String, GrammarIndex> e : a2.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar ", e.getKey(), " to ", e.getValue());
             }
         }
         for (ApiIndex a1 : apis) {
             for (Entry<String, GrammarIndex> e : a1.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar ", e.getKey(), " to ", e.getValue());
             }
         }
         for (ApiIndex a1 : apis) {
@@ -160,7 +163,11 @@ public class GrammarRewriter {
                 GrammarDecl og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
                 for (Id n : og.getExtendsClause()) {
-                    ls.add(grammars.get(n.getText()));
+                    GrammarIndex index = grammars.get(n.getText());
+                    if (index == null){
+                        throw new MacroError("Could not find grammar " + n + " in the extends clause of " + og);
+                    }
+                    ls.add(index);
                 }
                 Debug.debug(Debug.Type.SYNTAX, 3, "Grammar ", e.getKey(), " extends ", ls);
                 e.getValue().setExtended(ls);
