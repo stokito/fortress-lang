@@ -220,6 +220,9 @@ public final class Shell {
          "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
+         "fortress expand property\n"+
+         "  Prints the contents of the given property name from the local Fortress repository.\n"+
+         "\n"+
          "\n"+
          "More details on each flag:\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
@@ -418,6 +421,8 @@ public final class Shell {
             } else if (what.equals("help")) {
                 useCompilerLibraries();
                 printHelpMessage();
+            } else if (what.equals("expand") && tokens.length == 2) {
+                System.out.println(ProjectProperties.get(tokens[1], ""));
             } else {
                 useCompilerLibraries();
                 printUsageMessage();

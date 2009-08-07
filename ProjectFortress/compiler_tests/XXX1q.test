@@ -19,11 +19,11 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled1.q.fss:22:5:\n\
 \ Variable x is not defined.\n\
+${STATIC_TESTS_DIR}/Compiled1.q.fss:23:8:\n\
+\ Variable y is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled1.q.fss:23:15:\n\
 \ Variable z is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled1.q.fss:23:22:\n\
 \ Variable t is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.q.fss:23:8:\n\
-\ Variable y is not defined.\n\
 File Compiled1.q.fss has 4 errors.\n
 compile_out_equals=

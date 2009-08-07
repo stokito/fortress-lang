@@ -18,6 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled4.a.fss:25:24-31:\n\
-\ Call to operator ! has invalid arguments, [String]\n\
+\ Could not check call to operator !\n\
+\ - ZZ32->ZZ32 is not applicable to an argument of type String.\n\
 File Compiled4.a.fss has 1 error.\n
 compile_out_equals=

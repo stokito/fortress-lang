@@ -2589,4 +2589,9 @@ public class NodeFactory {
         else
             return bug("Unexpected member of IdOrOp hierarchy " + fn.getClass());
     }
+
+    public static UnknownType makeUnknownType() {
+        TypeInfo info = makeTypeInfo(typeSpan, false);
+        return new UnknownType(info);
+    }
 }

@@ -87,12 +87,18 @@ object SExprUtil {
   }
 
   /**
-   * Given an applicand, retrieve its static args. If not a FunctionalRef, this
-   * should return None.
+   * Finds static args explicitly provided for the given application. If this
+   * is not actually an application node, the result is None.
    */
-  def getStaticArgs(fn: Expr): Option[List[StaticArg]] = fn match {
-    case fn: FunctionalRef => Some(toList(fn.getStaticArgs))
-    case _ => None
-  }
+  def getStaticArgsFromApp(app: Expr): Option[List[StaticArg]] =
+    app match {
+      case t:_RewriteFnApp => t.getFunction match {
+        case f:FunctionalRef => Some(toList(f.getStaticArgs))
+        case _ => None
+      }
+      case t:OpExpr => Some(toList(t.getOp.getStaticArgs))
+      case t:MethodInvocation => Some(toList(t.getStaticArgs))
+      case _ => None
+    }
 
 }

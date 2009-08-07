@@ -21,6 +21,7 @@ import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.{FieldGetterMethod => JavaFieldGetterMethod}
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
+import com.sun.fortress.exceptions._
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -166,10 +167,10 @@ trait Functionals { self: STypeChecker with Common =>
    * Given a list of arguments, partition it into a list of eithers, where Left is checked and Right
    * is unchecked.
    */
-  def partitionArgs(args: List[Expr]): Option[List[Either[Expr,Expr]]] = {
+  def partitionArgs(args: List[Expr]): Option[List[Either[Expr, FnExpr]]] = {
     val partitioned = args.map(checkExprIfCheckable)
-    if(partitioned.exists(_.fold(getType(_).isNone,x=>false)))
-      return None
+    if (partitioned.exists(_.fold(getType(_).isNone, x => false)))
+      None
     else
       Some(partitioned)
   }
@@ -178,12 +179,12 @@ trait Functionals { self: STypeChecker with Common =>
    * Check the given expr if it is checkable, yielding Left for the checked expr and Right for the
    * unchecked original expr.
    */
-  def checkExprIfCheckable(expr: Expr): Either[Expr,Expr] = {
+  def checkExprIfCheckable(expr: Expr): Either[Expr, FnExpr] = {
     if (isCheckable(expr)) {
       val checked = checkExpr(expr)
       Left(checked)
     } else {
-      Right(expr)
+      Right(expr.asInstanceOf[FnExpr])
     }
   }
 
@@ -191,18 +192,11 @@ trait Functionals { self: STypeChecker with Common =>
    * Get the full argument type from the partitioned list of args, filling in with the bottom
    * arrow.
    */
-  def getArgType(args: List[Either[Expr, Expr]]): Type = getArgType(args, NF.typeSpan)
+  def getArgType(args: List[Either[Expr, FnExpr]]): Type = getArgType(args, NF.typeSpan)
 
   /** Same as other but provides a location for the span on the new type. */
-  def getArgType(args: List[Either[Expr, Expr]], span: Span): Type = {
-    val argTypes = args.map(_.fold(e => {
-      val t = getType(e)
-      if (t.isNone) {
-        signal(e, "!!!")
-        return null
-      }
-      t.get
-    }, _ => Types.BOTTOM_ARROW))
+  def getArgType(args: List[Either[Expr, FnExpr]], span: Span): Type = {
+    val argTypes = args.map(_.fold(e => getType(e).get, _ => Types.BOTTOM_ARROW))
     NF.makeMaybeTupleType(span, toJavaList(argTypes))
   }
 
@@ -215,24 +209,27 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplicable(arrow: ArrowType,
                       context: Option[Type],
-                      args: List[Either[Expr, Expr]])
-                      : Option[AppCandidate] = {
+                      args: List[Either[Expr, FnExpr]])
+                     (implicit errorFactory: ApplicationErrorFactory)
+                      : Either[AppCandidate, OverloadingError] = {
 
     // Make sure all uncheckable args correspond to arrow type params.
-    for ((Right(_), pt) <- zipWithDomain(args, arrow.getDomain)) {
-      if (!isArrows(pt)) return None
+    zipWithDomain(args, arrow.getDomain).foreach {
+      case (Right(_), pt) if !possiblyArrows(pt, getStaticParams(arrow)) =>
+        return Right(errorFactory.makeNotApplicableError(arrow, args))
+      case _ =>
     }
 
     // Try to check the unchecked args, constructing a new list of
     // (checked, unchecked) arg pairs.
-    def updateArgs(argsAndParam: (Either[Expr,Expr], Type))
-                     : Either[Expr,Expr] = argsAndParam match {
+    def updateArgs(argsAndParam: (Either[Expr, FnExpr], Type))
+                     : (Either[Expr, FnExpr], Option[BodyError]) = argsAndParam match {
 
       // This arg is checkable if there are no more inference vars
       // in the param type (which must be an arrow).
       case (Right(unchecked), paramType:ArrowType) =>
         if (hasInferenceVars(paramType.getDomain))
-          Right(unchecked)
+          (Right(unchecked), None)
         else {
 
           // Try to check the arg given this new expected type.
@@ -243,49 +240,82 @@ trait Functionals { self: STypeChecker with Common =>
           val tryChecker = STypeCheckerFactory.makeTryChecker(this)
           tryChecker.tryCheckExpr(unchecked, expectedArrow) match {
             // Move this arg out of unchecked and into checked.
-            case Some(checked) => Left(checked)
+            case Some(checked) => (Left(checked), None)
+
             // This arg might be checkable later, so keep going.
-            case None => Right(unchecked)
+            case None =>
+              val bodyError =
+                errorFactory.makeBodyError(unchecked,
+                                           domain,
+                                           tryChecker.getError.get)
+              (Right(unchecked), Some(bodyError))
           }
         }
 
+      // If the parameter type is not an arrow, skip it.
+      case (Right(unchecked), _) => (Right(unchecked), None)
+
       // Skip args that are already checked.
-      case (Left(checked), _) =>  Left(checked)
+      case (Left(checked), _) => (Left(checked), None)
     }
 
     // Update all args until we have checked as much as possible.
-    def recurOnArgs(args: List[Either[Expr,Expr]])
-                    : Option[(List[Either[Expr,Expr]],
-                              ArrowType, List[StaticArg])] = {
+    def recurOnArgs(args: List[Either[Expr, FnExpr]])
+                    : Either[AppCandidate, OverloadingError] = {
 
       // Build the single type for all the args, inserting the least arrow
       // type for any that aren't checkable.
       val argType = getArgType(args)
 
       // Do type inference to get the inferred static args.
-      val (resultArrow, sargs) = typeInference(arrow, argType, context).getOrElse(return None)
+      val (resultArrow, sargs) =
+        typeInference(arrow, argType, context).getOrElse {
+          return Right(errorFactory.makeNotApplicableError(arrow, args))
+        }
 
       // Match up checked/unchecked args and param types and try to check the unchecked args,
       // constructing a new list of (checked, unchecked) arg pairs.
-      val newArgs = zipWithDomain(args, resultArrow.getDomain).map(updateArgs)
+      val newArgsAndErrors = zipWithDomain(args, resultArrow.getDomain).
+                               map(updateArgs)
+      val (newArgs, maybeErrors) = List.unzip(newArgsAndErrors)
 
       // If progress was made, keep going. Otherwise return.
       if (newArgs.count(_.isRight) < args.count(_.isRight))
         recurOnArgs(newArgs)
-      else
-        Some((newArgs, resultArrow, sargs))
+      else {
+
+        // If not all args were checked, gather the errors.
+        if (newArgs.count(_.isRight) != 0) {
+
+          // For each unchecked arg, get its body error if it had one. If it did
+          // not but the parameter type was an arrow, it is a parameter
+          // inference error. Otherwise it is a not applicable error.
+          val argsErrorsParams = zipWithDomain(newArgsAndErrors,
+                                               resultArrow.getDomain)
+          val fnErrors = argsErrorsParams flatMap {
+            case ((Right(_), Some(bodyError)), _) => Some(bodyError)
+            case ((Right(unchecked), None), _:ArrowType) =>
+              Some(errorFactory.makeParameterError(unchecked))
+            case ((Right(_), None), _) =>
+              return Right(errorFactory.makeNotApplicableError(arrow, newArgs))
+            case ((Left(_), _), _) => None
+          }
+          return Right(errorFactory.makeFnInferenceError(arrow, fnErrors))
+        }
+
+        // If there are inference variables left, inform the user that there
+        // wasn't enough context.
+        if (hasInferenceVars(resultArrow)) {
+          return Right(errorFactory.makeNoContextError(arrow, sargs))
+        }
+
+        // We've reached a fixed point and all args are checked!
+        Left((resultArrow, sargs, newArgs.map(_.left.get)))
+      }
     }
 
     // Do the recursion to check the args.
-    val (newArgs, resultArrow, sargs) = recurOnArgs(args).getOrElse(return None)
-
-    // Make sure that all args are checked.
-    if (newArgs.count(_.isRight) != 0) return None
-
-    // Make sure all inference variables were inferred.
-    if (hasInferenceVars(resultArrow)) return None
-
-    Some((resultArrow, sargs, newArgs.map(_.left.get)))
+    recurOnArgs(args)
   }
 
   // Define an ordering relation on arrows with their instantiations.
@@ -305,13 +335,13 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplication(arrows: List[ArrowType],
                        arg: Expr,
-                       context: Option[Type],
-                       signalError: Type => Unit)
+                       context: Option[Type])
+                      (implicit errorFactory: ApplicationErrorFactory)
                        : Option[(ArrowType, List[StaticArg], Expr)] = {
 
     // Check the application using the args extrapolated from arg.
     val args = getArgList(arg)
-    val (smaArrow, infSargs, newArgs) = checkApplication(arrows, args, context, signalError).
+    val (smaArrow, infSargs, newArgs) = checkApplication(arrows, args, context).
                                           getOrElse(return None)
 
     // Combine the separate args back into a single one.
@@ -325,24 +355,20 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplication(arrows: List[ArrowType],
                        iargs: List[Expr],
-                       context: Option[Type],
-                       signalError: Type => Unit)
-                       : Option[(ArrowType, List[StaticArg], List[Expr])] = {
+                       context: Option[Type])
+                      (implicit errorFactory: ApplicationErrorFactory)
+                       : Option[AppCandidate] = {
 
     // Check all the checkable args and make sure they all have types.
     val args = partitionArgs(iargs).getOrElse(return None)
 
     // Filter the overloadings that are applicable.
-    val candidates = arrows.flatMap(arrow => checkApplicable(arrow, context, args))
-    if (candidates.isEmpty) {
-      // If any were uncheckable, check them to get the appropriate errors.
-      if (args.count(_.isRight) > 0) {
-        args.foreach(_.right.foreach(checkExpr(_)))
-        return None
-      }
+    val (candidates, overloadingErrors) =
+      List.separate(arrows.map(arrow => checkApplicable(arrow, context, args)))
 
-      // Create the arg type for the error message.
-      signalError(getArgType(args))
+    // If there were no candidates, report errors.
+    if (candidates.isEmpty) {
+      errors.signal(errorFactory.makeApplicationError(overloadingErrors))
       return None
     }
 
@@ -414,16 +440,17 @@ trait Functionals { self: STypeChecker with Common =>
 
     case SSubscriptExpr(SExprInfo(span, paren, _), obj, subs, Some(op), sargs) => {
       val checkedObj = checkExpr(obj)
-      val objType = getType(checkedObj).getOrElse(return expr)
-      val arrows = getArrowsForMethod(objType, op, sargs, expr).getOrElse(return expr)
-
-      // Function that signals an error for this invocation when given the argument type.
-      def signalError(argType: Type) =
-        signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".format(objType, op, argType))
+      val recvrType = getType(checkedObj).getOrElse(return expr)
+      val arrows = getArrowsForMethod(recvrType, op, sargs, expr).getOrElse(return expr)
+      if (arrows.isEmpty) {
+        signal(new NoSuchMethod(expr, recvrType))
+        return expr
+      }
+      implicit val errorFactory = new ApplicationErrorFactory(expr, Some(recvrType))
 
       // Type check the application.
       val (smaArrow, infSargs, checkedSubs) =
-        checkApplication(arrows, subs, expected, signalError _).getOrElse(return expr)
+        checkApplication(arrows, subs, expected).getOrElse(return expr)
       val newSargs = if (sargs.isEmpty) infSargs else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -438,14 +465,15 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedObj = checkExpr(obj)
       val recvrType = getType(checkedObj).getOrElse(return expr)
       val arrows = getArrowsForMethod(recvrType, method, sargs, expr).getOrElse(return expr)
-
-      // Function that signals an error for this invocation when given the argument type.
-      def signalError(argType: Type) =
-        signal(expr, "Receiver type %s does not have applicable overloading of %s for argument type %s.".format(recvrType, method, argType))
+      if (arrows.isEmpty) {
+        signal(new NoSuchMethod(expr, recvrType))
+        return expr
+      }
+      implicit val errorFactory = new ApplicationErrorFactory(expr, Some(recvrType))
 
       // Type check the application.
       val (smaArrow, infSargs, checkedArg) =
-        checkApplication(arrows, arg, expected, signalError _).getOrElse(return expr)
+        checkApplication(arrows, arg, expected).getOrElse(return expr)
       val newSargs = if (sargs.isEmpty) infSargs else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -508,14 +536,11 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedFn = checkExpr(fn)
       val fnType = getType(checkedFn).getOrElse(return expr)
       val arrows = getArrowsForFunction(fnType, expr).getOrElse(return expr)
-
-      // Function that signals an error for this invocation when given the argument type.
-      def signalError(argType: Type) =
-        noApplicableFunctions(expr, checkedFn, fnType, argType)
+      implicit val errorFactory = new ApplicationErrorFactory(expr, None)
 
       // Type check the application.
       val (smaArrow, infSargs, checkedArg) =
-        checkApplication(arrows, arg, expected, signalError _).getOrElse(return expr)
+        checkApplication(arrows, arg, expected).getOrElse(return expr)
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.
@@ -527,13 +552,11 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedOp = checkExpr(op)
       val opType = getType(checkedOp).getOrElse(return expr)
       val arrows = getArrowsForFunction(opType, expr).getOrElse(return expr)
-
-      // Function that signals an error for this invocation when given the argument type.
-      def signalError(argType: Type) = noApplicableFunctions(expr, checkedOp, opType, argType)
+      implicit val errorFactory = new ApplicationErrorFactory(expr, None)
 
       // Type check the application.
       val (smaArrow, infSargs, checkedArgs) =
-        checkApplication(arrows, args, expected, signalError _).getOrElse(return expr)
+        checkApplication(arrows, args, expected).getOrElse(return expr)
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.

@@ -19,11 +19,11 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled1.f.fss:18:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
+${STATIC_TESTS_DIR}/Compiled1.f.fss:22:9-25:2:\n\
+\ Unmatched delimiters \"(\" and \"end\".\n\
 ${STATIC_TESTS_DIR}/Compiled1.f.fss:22:23-24:\n\
 \ Unmatched delimiters \"\\\"\" and \")\".\n\
 ${STATIC_TESTS_DIR}/Compiled1.f.fss:22:25:\n\
 \ Invalid string literal content: \n\
-${STATIC_TESTS_DIR}/Compiled1.f.fss:22:9-25:2:\n\
-\ Unmatched delimiters \"(\" and \"end\".\n\
 File Compiled1.f.fss has 4 errors.\n
 compile_out_equals=

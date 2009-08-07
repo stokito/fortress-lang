@@ -15,15 +15,12 @@
 
 tests=Compiled3.w.fsi
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
-
 compile
-
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled3.w.fsi:24:1-17:\n\
 ${STATIC_TESTS_DIR}/Compiled3.w.fsi:25:1-27:1:\n\
 \ Invalid overloading of f:\n\
-\      (Compiled3.w.O, Compiled3.w.T) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:24:1-17\n\
-\  and (Compiled3.w.T, Compiled3.w.O) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:25:1-27:1\n\
-File Compiled3.w.fsi has 1 error.\n\
-
+\ (Compiled3.w.O, Compiled3.w.T) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:24:1-17\n\
+\ and (Compiled3.w.T, Compiled3.w.O) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:25:1-27:1\n\
+File Compiled3.w.fsi has 1 error.\n
 compile_out_equals=

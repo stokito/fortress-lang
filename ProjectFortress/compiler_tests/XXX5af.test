@@ -18,6 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.af.fss:28:22-26:\n\
-\ Call to function foo has invalid arguments, A\n\
+\ Could not check call to function foo\n\
+\ - [\\T\\]T->T is not applicable to an argument of type A.\n\
 File Compiled5.af.fss has 1 error.\n
 compile_out_equals=

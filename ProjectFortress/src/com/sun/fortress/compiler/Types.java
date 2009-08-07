@@ -57,6 +57,8 @@ public final class Types {
     public static final BottomType BOTTOM = NodeFactory.makeBottomType(span);
     public static final TraitType OBJECT = makeTraitType(span, fortressBuiltin(), "Object");
 
+    public static final UnknownType UNKNOWN = NodeFactory.makeUnknownType();
+
     public static final Type BOTTOM_DOMAIN = BOTTOM;
     public static final ArrowType BOTTOM_ARROW = NodeFactory.makeArrowType(NodeFactory.typeSpan, ANY, BOTTOM);
 

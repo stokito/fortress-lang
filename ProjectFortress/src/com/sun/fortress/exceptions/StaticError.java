@@ -19,7 +19,9 @@ package com.sun.fortress.exceptions;
 
 import java.util.Comparator;
 import java.util.StringTokenizer;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.io.File;
 
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
@@ -71,46 +73,38 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
     public String getMessage() { return toString(); }
 
     public String toString() {
+        // TODO: Use the indented description and remove ALL (!) explicit indentations from error messages.
         return String.format("%s:\n    %s", at(), description());
     }
 
     public int compareTo(StaticError that) {
-        return this.getMessage().compareTo(that.getMessage());
-        /*
-        StringTokenizer thisTokenizer = new StringTokenizer(this.getMessage(), ":-\n\t\f\r ");
-        StringTokenizer thatTokenizer = new StringTokenizer(that.getMessage(), ":-\n\t\f\r ");
+        Pattern numMatcher = Pattern.compile("(.+\\.fs[si]:)(\\d+)(?::(\\d+)(?:-(\\d+))?)?");
+        Matcher m1 = numMatcher.matcher(this.toString());
+        Matcher m2 = numMatcher.matcher(that.toString());
 
-        int fileComparison = thisTokenizer.nextToken().compareTo(thatTokenizer.nextToken());
-        if (fileComparison != 0) { return fileComparison; }
+        // If either does not have the span, just do string comparison.
+        if (m1.lookingAt() && m2.lookingAt()) {
 
-        // Unless there is a bug in the compiler, there will be at least one token in each tokenizer,
-        // indicating line information.
-        String thisLineString = thisTokenizer.nextToken();
-        String thatLineString = thatTokenizer.nextToken();
+            // Check that they both have the same prefix before numbers.
+            int cmp = m1.group(1).compareTo(m2.group(1));
+            if (cmp != 0) return cmp;
 
-        // System.err.println(thisLineString + " vs " + thatLineString);
+            // Compare each number.
+            for (int i=2; i<=4; ++i) {
+                Integer num1 = null;
+                Integer num2 = null;
+                try { num1 = Integer.parseInt(m1.group(i)); }
+                catch (Exception e) {}
+                try { num2 = Integer.parseInt(m2.group(i)); }
+                catch (Exception e) {}
 
-        if (thisLineString.equals("no line information")) {
-            if (thatLineString.equals("no line information")) { return 0; }
-            else { return -1; }
-        } else if (thatLineString.equals("no line information")) { return 1; }
-
-        int thisLine = Integer.parseInt(thisLineString);
-        int thatLine = Integer.parseInt(thatLineString);
-
-
-        // If there is line information, there should be column information as well.
-        int thisColumn = Integer.parseInt(thisTokenizer.nextToken());
-        int thatColumn = Integer.parseInt(thatTokenizer.nextToken());
-
-        // System.err.println(thisLine + ":" + thisColumn + " vs " + thatLine + ":" + thatColumn);
-
-        if (thisLine < thatLine) { return -1; }
-        else if (thisLine == thatLine && thisColumn < thatColumn) { return -1; }
-        else if (thisLine == thatLine && thisColumn == thatColumn) { return 0; }
-        else if (thisLine == thatLine && thisColumn > thatColumn) { return 1; }
-        else { return 1; } // thisLine > thatLine
-        */
+                if (num1 == num2) { continue; }
+                if (num1 == null) { return -1; }
+                if (num2 == null) { return 1; }
+                if (num1 != num2) { return num1.compareTo(num2); }
+            }
+        }
+        return this.toString().compareTo(that.toString());
     }
 
     private static class StaticErrorComparator implements Comparator<StaticError> {
@@ -153,11 +147,11 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
         };
     }
 
-    private static String indentLines(String s, String prefix) {
+    protected static String indentAllLines(String s, String prefix) {
         return Pattern.compile("^", Pattern.MULTILINE).matcher(s).replaceAll(prefix);
     }
 
-    private static String indentAllLines(String s, String prefix) {
+    protected static String indentLines(String s, String prefix) {
         return s.replaceAll("\n", "\n" + prefix);
     }
 

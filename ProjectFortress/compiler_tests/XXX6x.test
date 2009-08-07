@@ -22,12 +22,12 @@ ${STATIC_TESTS_DIR}/Compiled6.x.fss:27:17:\n\
 ${STATIC_TESTS_DIR}/Compiled6.x.fss:28:17:\n\
 \ Getter z must be called with the field reference syntax.\n\
 ${STATIC_TESTS_DIR}/Compiled6.x.fss:30:17-23:\n\
-\ Receiver type O does not have applicable overloading of z for argument type ().\n\
+\ No such method O.z.\n\
 ${STATIC_TESTS_DIR}/Compiled6.x.fss:35:13:\n\
 \ Variable 'y' not found.\n\
 ${STATIC_TESTS_DIR}/Compiled6.x.fss:36:13:\n\
 \ Variable 'y' not found.\n\
 ${STATIC_TESTS_DIR}/Compiled6.x.fss:38:13-19:\n\
-\ Receiver type O does not have applicable overloading of y for argument type ().\n\
+\ No such method O.y.\n\
 File Compiled6.x.fss has 6 errors.\n
 compile_out_equals=

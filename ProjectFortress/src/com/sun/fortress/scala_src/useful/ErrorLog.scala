@@ -24,8 +24,11 @@ import com.sun.fortress.exceptions.TypeError
 class ErrorLog() {
   var errors = List[StaticError]()
 
-  def signal(msg: String, hasAt: HasAt) = {
-    errors = errors ::: List(TypeError.make(msg, hasAt))
+  def signal(msg: String, hasAt: HasAt): Unit =
+    signal(TypeError.make(msg, hasAt))
+
+  def signal(error: StaticError) = {
+    errors = error :: errors
   }
 
   def asList() = {Errors.removeDuplicates(errors)}
@@ -50,8 +53,8 @@ object Errors {
  * inside an outer error from the type checker.
  */
 class TryErrorLog extends ErrorLog {
-  override def signal(msg: String, hasAt: HasAt) = {
-    super.signal(msg, hasAt)
-    throw TypeError.make(msg, hasAt)
+  override def signal(error: StaticError) = {
+    super.signal(error)
+    throw error
   }
 }

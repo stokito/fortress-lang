@@ -316,7 +316,18 @@ trait Misc { self: STypeChecker with Common =>
                               "not yet implemented."))
         expr
       } else {
-        val newEs = es.map(checkExpr)
+
+        // If there is an expected tuple type, check the elements with their
+        // corresponding expected type.
+        val newEs = expected match {
+          case Some(typ) =>
+            val eltsTypes = zipWithDomain(es, typ)
+            if (eltsTypes.length != es.length)
+              es.map(checkExpr)
+            else
+              eltsTypes.map(et => checkExpr(et._1, Some(et._2)))
+          case None => es.map(checkExpr)
+        }
         val types = newEs.map((e:Expr) =>
                               if (getType(e).isDefined) getType(e).get
                               else { Types.VOID })

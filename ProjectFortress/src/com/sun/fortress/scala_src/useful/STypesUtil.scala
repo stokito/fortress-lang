@@ -282,7 +282,22 @@ object STypesUtil {
     TypesUtil.isArrows(ty).asInstanceOf[Boolean]
 
   /**
-   * Performs the given substitution on the body type.
+   * Determine if the given type could possibly be an arrow or multiple arrows.
+   * It could possibly be an arrow if it is a type variable whose bound is Any.
+   * Otherwise, it is multiple arrows if it is the intersection of arrows.
+   */
+  def possiblyArrows(ty: Type, sparams: List[StaticParam]): Boolean =
+    ty match {
+      case SVarType(_, typ, _) => sparams.exists {
+        case SStaticParam(_, sp, List(_:AnyType), _, _, _, _) => typ == sp
+        case _ => false
+      }
+      case _ => isArrows(ty)
+    }
+  
+  /**
+   * Performs the given substitution on the body type. Does not replace any
+   * inference variables that appear in body but not in the substitution.
    */
   def substituteTypesForInferenceVars(substitution: Map[_InferenceVarType, Type],
                                       body: Type): Type = {
@@ -303,7 +318,10 @@ object STypesUtil {
    */
   def staticParamBoundType(sparam: StaticParam): Option[Type] =
     sparam.getKind match {
-      case SKindType(_) => Some(NF.makeIntersectionType(sparam.getExtendsClause))
+      case _:KindType if sparam.getExtendsClause.isEmpty =>
+        Some(Types.ANY)
+      case _:KindType =>
+        Some(NF.makeIntersectionType(sparam.getExtendsClause))
       case _ => None
     }
 
@@ -546,7 +564,9 @@ object STypesUtil {
     val subst = constraint.scalaSolve(boundsMap).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
-    val resultArrow = substituteTypesForInferenceVars(subst, infArrow).asInstanceOf[ArrowType]
+    val resultArrow =
+      analyzer.normalize(substituteTypesForInferenceVars(subst, infArrow)).
+               asInstanceOf[ArrowType]
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
@@ -564,11 +584,24 @@ object STypesUtil {
     object infChecker extends Walker {
       var found = false
       override def walk(node: Any): Any = node match {
-        case _:_InferenceVarType => found = true
+        case _:_InferenceVarType => found = true; node
         case _ => super.walk(node)
       }
     }
     infChecker(typ); infChecker.found
+  }
+
+  /** Does the type contain any nested occurrences of UnknownType? */
+  def hasUnknownType(typ: Type): Boolean = {
+    // Walker that looks for an unknown type.
+    object unknownChecker extends Walker {
+      var found = false
+      override def walk(node: Any): Any = node match {
+        case _:UnknownType => found = true; node
+        case _ => super.walk(node)
+      }
+    }
+    unknownChecker(typ); unknownChecker.found
   }
 
   /**
