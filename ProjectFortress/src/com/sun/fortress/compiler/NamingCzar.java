@@ -582,7 +582,7 @@ public class NamingCzar {
             String rangeDesc, int spliceAt, com.sun.fortress.nodes.Type spliceType, APIName ifNone) {
         String args = "";
 
-        if (spliceAt == 0) 
+        if (spliceAt == 0)
             args += jvmTypeDesc(spliceType, ifNone);
 
         if (domain instanceof com.sun.fortress.nodes.TupleType) {
@@ -599,11 +599,11 @@ public class NamingCzar {
                 return jvmSignatureFor(domain, rangeDesc, ifNone);
             else {
                 args += jvmTypeDesc(domain, ifNone);
-                if (spliceAt == 1) 
+                if (spliceAt == 1)
                     args += jvmTypeDesc(spliceType, ifNone);
             }
         }
-        
+
         return makeMethodDesc(args, rangeDesc);
     }
 
@@ -644,7 +644,7 @@ public class NamingCzar {
     }
 
     public static String makeArrowDescriptor(ArrowType t) {
-        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
+        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" +
             makeArrowDescriptor(t.getRange());
 //        return "Arrow\u27e6" + makeArrowDescriptor(t.getDomain()) + "," +
 //            makeArrowDescriptor(t.getRange()) + "\u27e7";
@@ -678,8 +678,17 @@ public class NamingCzar {
         else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t);
         else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t);
         else if (t instanceof ArrowType) return makeArrowDescriptor((ArrowType) t);
-        else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " + 
+        else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " +
                                      t + " of class " + t.getClass());
+    }
+
+    public static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
+                                      final APIName ifNone) {
+        String r = "";
+        for (com.sun.fortress.nodes.Type t : types) {
+            r += jvmTypeDesc(t, ifNone);
+        }
+        return r;
     }
 
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
@@ -704,11 +713,7 @@ public class NamingCzar {
                 if (!t.getKeywords().isEmpty())
                     throw new CompilerError(NodeUtil.getSpan(t),
                                             "Can't compile Keyword args yet");
-                String res = "";
-                for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-                    res += jvmTypeDesc(ty, ifNone);
-                }
-                return res;
+                return jvmTypeDescs(t.getElements(), ifNone);
             }
             public String forAnyType (AnyType t) {
                 return descFortressAny;
@@ -739,9 +744,9 @@ public class NamingCzar {
     }
 
 
-    
+
     /* Clone of above, to clean things out, TYPE DESCRIPTORS != METHOD DESCRIPTORS */
-    
+
     public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone)  {
         return type.accept(new NodeAbstractVisitor<String>() {
@@ -755,7 +760,7 @@ public class NamingCzar {
                     return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
                 else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
                                            jvmTypeDesc(t.getRange(), ifNone));
-            }     
+            }
 
             // TODO CASES BELOW OUGHT TO JUST FAIL, WILL TEST SOON.
             public String forTupleType(TupleType t) {
@@ -872,18 +877,10 @@ public class NamingCzar {
         }
     }
 
-
-    public static String jvmTypeDescForGeneratedTaskInit(com.sun.fortress.nodes.Type type,
-                                                         APIName ifNone) {
-        String desc = jvmMethodDesc(type, ifNone);
-        List<String> args = parseArgs(desc);
-        String result = parseResult(desc);
-        String initDesc = "(";
-                for (String arg : args) {
-            initDesc = initDesc + arg;
-        }
-        initDesc = initDesc + ")V";
-        return initDesc;
+    public static String
+            jvmTypeDescForGeneratedTaskInit(List<com.sun.fortress.nodes.Type> fvtypes,
+                                            APIName ifNone) {
+        return "(" + jvmTypeDescs(fvtypes, ifNone) + ")V";
     }
 
 
