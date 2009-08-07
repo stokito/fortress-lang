@@ -104,9 +104,10 @@ trait Operators { self: STypeChecker with Common =>
     case SJuxt(SExprInfo(span,paren,optType),
                multi, infix, exprs, isApp, false) => {
       // Check subexpressions
+      //val checkedExprs = exprs.map(checkExprIfCheckable).map(_.fold(x=>x,x=>x))
+      //if (!haveTypesOrUncheckable(checkedExprs)) { return expr }
       val checkedExprs = exprs.map(checkExpr)
-      if (!haveTypes(checkedExprs)) { return expr }
-
+      if(!haveTypes(checkedExprs)) {return expr}
       // Break the list of expressions into chunks.
       // First the loose juxtaposition is broken into nonempty chunks;
       // wherever there is a non-function element followed
@@ -118,10 +119,10 @@ trait Operators { self: STypeChecker with Common =>
         case first::rest =>
           if ( isArrows(first) ) {
             val (arrows,temp) = (first::rest).span(isArrows)
-            val (nonArrows,remainingChunks) = temp.span((e:Expr) => ! isArrows(e))
+            val (nonArrows,remainingChunks) = temp.span((e:Expr) => !isArrows(e))
             chunker(remainingChunks, (arrows,nonArrows)::results)
           } else {
-            val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => ! isArrows(e))
+            val (nonArrows,remainingChunks) = (first::rest).span((e:Expr) => !isArrows(e))
             chunker(remainingChunks, (List(),nonArrows)::results)
           }
       }

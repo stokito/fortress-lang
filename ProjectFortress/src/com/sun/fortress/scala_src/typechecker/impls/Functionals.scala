@@ -176,19 +176,6 @@ trait Functionals { self: STypeChecker with Common =>
   }
 
   /**
-   * Check the given expr if it is checkable, yielding Left for the checked expr and Right for the
-   * unchecked original expr.
-   */
-  def checkExprIfCheckable(expr: Expr): Either[Expr, FnExpr] = {
-    if (isCheckable(expr)) {
-      val checked = checkExpr(expr)
-      Left(checked)
-    } else {
-      Right(expr.asInstanceOf[FnExpr])
-    }
-  }
-
-  /**
    * Get the full argument type from the partitioned list of args, filling in with the bottom
    * arrow.
    */

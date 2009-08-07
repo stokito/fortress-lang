@@ -22,6 +22,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.NI
+import com.sun.fortress.scala_src.useful.STypesUtil._
 
 object SExprUtil {
 
@@ -32,12 +33,34 @@ object SExprUtil {
   def getType(expr: Expr): Option[Type] = toOption(expr.getInfo.getExprType)
 
   /**
+   * Is this expr checkable? An expr is not checkable iff it is a FnExpr with
+   * not all of its parameters' types explicitly declared.
+   */
+  
+  def isCheckable(expr: Expr): Boolean = expr match {
+//    case t:TupleExpr => toList(t.getExprs).forall(isCheckable)
+    case f:FnExpr => fnExprHasParams(f)
+    case _ => true   
+  }
+  
+  def fnExprHasParams(f: FnExpr): Boolean = 
+    toList(f.getHeader.getParams).forall(p => p.getIdType.isSome)
+  
+  def isFnExpr(e: Expr) = e match {
+    case f:FnExpr => true
+    case _ => false
+  }
+  
+  /**
    * Determine if all of the given expressions have types previously inferred
    * by the typechecker.
    */
   def haveTypes(exprs: List[Expr]): Boolean =
     exprs.forall((e: Expr) => getType(e).isDefined)
 
+  def haveTypesOrUncheckable(exprs: List[Expr]):Boolean =
+    exprs.forall((e:Expr) => (getType(e).isDefined || !isCheckable(e)) )
+  
   /**
    * Given an expression, return an identical expression with the given type
    * inserted into its ExprInfo.
