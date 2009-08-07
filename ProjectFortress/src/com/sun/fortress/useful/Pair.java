@@ -37,6 +37,10 @@ public class Pair<T, U> {
     final public U getB() {
         return b;
     }
+    
+    public String toString() {
+        return "(" + a + "," + b + ")";
+    }
 
     final public boolean equals(Object o) {
         if (o instanceof Pair) {

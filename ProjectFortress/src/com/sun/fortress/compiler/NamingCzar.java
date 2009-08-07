@@ -27,6 +27,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.optimization.Unbox.Contains;
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.ASTNode;
@@ -74,6 +75,8 @@ public class NamingCzar {
         this.fj = fj;
     }
 
+    private final static boolean transitionArrowNaming = true;
+    
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
@@ -151,6 +154,8 @@ public class NamingCzar {
     public static final String descFortressAny        = internalToDesc(fortressAny);
 
     public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
+    
+    public static final String closureFieldName = "closure";
 
     private static final List<String> extendsObject =
         Collections.singletonList(internalObject);
@@ -445,6 +450,7 @@ public class NamingCzar {
     }
 
     public static String mangleClassIdentifier(String identifier) {
+        // Is this adequate, given naming freedom?
         String mangledString = identifier.replaceAll("\\.", "\\$");
         return mangledString+deCase(mangledString);
     }
@@ -495,6 +501,108 @@ public class NamingCzar {
     }
 
     /**
+     * (Symbolic Freedom) Dangerous characters should not appear in JVM identifiers
+     */
+    private static final String SF_DANGEROUS = "/.;$<>][:";
+    /**
+     * (Symbolic Freedom) Escape characters have a translation if they appear following
+     * a backslash.
+     * Note omitted special case -- leading \= is empty string.
+     * Note note \ by itself is not escaped unless it is followed by
+     * one of the escape characters.
+     */
+    private static final String    SF_ESCAPES = "|,?%^_}{!-";
+    /**
+     * (Symbolic Freedom) Translations of escapes, in corresponding order.
+     */
+    private static final String SF_TRANSLATES = "/.;$<>][:\\";
+
+    private static final String NF_DANGEROUS = "/.;$<>][:";
+    private static final String NF_ESCAPES =   "|,?%^_}{!-";
+    private static final String NF_FIRST_ESCAPES = "=" + NF_ESCAPES;
+
+    public static boolean likelyMangled(String s) {
+        if (s.length() < 2) return false;
+        if (s.charAt(0) != '\\') return false;
+        // if (-1 == NF_FIRST_ESCAPES.indexOf(s.charAt(1))) return false;
+        return true;
+    }
+    
+    public static boolean isMangled(String s) {
+        int l = s.length();
+        if (l < 2) return false;
+        if (s.charAt(0) != '\\') return false;
+        if (s.charAt(1) == '=') return true;
+        for (int i = 0; i < l-1; i++) {
+            char ch = s.charAt(i);
+            if (ch == '\\' && -1 != NF_ESCAPES.indexOf(s.charAt(i+1)))
+                return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Concatenates s1 and s2, preserving valid-mangling property.
+     * 
+     * @param s1 Validly mangled ("naming freedom") JVM identifier
+     * @param s2 Validly mangled ("naming freedom") JVM identifier
+     * @return concatenation of s1 and s2, validly mangled if s1 and s2 were validly mangled.
+     */
+    public static String catMangled(String s1, String s2) {
+        if (s1.length() == 0) return s2;
+        if (s2.length() == 0) return s1;
+        
+        boolean ms1 = likelyMangled(s1);
+        boolean ms2 = likelyMangled(s2);
+        
+        if (ms1) {
+            if (ms2) {
+                // ms2 begins with \, hence no accidental escapes
+                if (s2.startsWith("\\=")) {
+                    // remove embedded \=
+                    return "\\=" + s1 + s2.substring(2);
+                } else {
+                  return s1 + s2;
+                }
+            } else {
+                return catMangledCheckingJoint(s1, s2);
+            }
+        } else if (ms2) {
+            // If s2 is truly mangled, then prepend \= to concatenation.
+                if (s2.startsWith("\\=")) {
+                    // definitely mangled, but embedded \=
+                    return "\\=" + s1 + s2.substring(2);
+                } else if (isMangled(s2)) {
+                    // mangled for some other reason.
+                    return "\\=" + s1 + s2;
+                } else {
+                    return s1 + s2;
+                }
+        } else {
+            return catMangledCheckingJoint(s1, s2);
+        }
+    }
+
+    /**
+     * @param s1
+     * @param s2
+     * @return
+     */
+    private static String catMangledCheckingJoint(String s1, String s2) {
+        if (s1.endsWith("\\") &&
+                -1 != (s1.length() == 1 ? NF_FIRST_ESCAPES : NF_ESCAPES).indexOf(s2.charAt(0))) {
+            // must escape trailing \
+            return s1 + "-" + s2;
+        } else {
+            return s1 + s2;
+        }
+    }
+    
+    public static String catMangled(String s1, String s2, String s3) {
+        return catMangled(catMangled(s1,s2), s3);
+    }
+    
+    /**
      * Convert a string identifier into something that will be legal in a
      * JVM.
      *
@@ -508,8 +616,16 @@ public class NamingCzar {
      */
     public static String mangleIdentifier(String identifier) {
 
+        /* This is not quite right; accidental escapes are those
+         * where the backslash is followed by one of |,?%^_{}!
+         */
+        
         // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-        String mangledString = identifier.replaceAll("\\\\", "\\\\-");
+        String mangledString = identifier.replaceAll("\\\\([|,?%^_{}!]|-)",
+                "\\\\-\\1");
+        if (mangledString.startsWith("\\=")) {
+            mangledString = "\\-=" + mangledString.substring(2);
+        }
 
         // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
 
@@ -523,8 +639,9 @@ public class NamingCzar {
         mangledString = mangledString.replaceAll("\\]", "\\\\}");
         mangledString = mangledString.replaceAll(":", "\\\\!");
 
-        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
-        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
+        // Actually, this is NOT ALLOWED.
+//        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
+//        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
 
         // 3. If the first two steps introduced any change, <em>and</em> if the
         // string does not already begin with a backslash, prepend a null prefix (\=)
@@ -644,10 +761,14 @@ public class NamingCzar {
     }
 
     public static String makeArrowDescriptor(ArrowType t) {
-        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" +
+        if (transitionArrowNaming) {
+        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
+
             makeArrowDescriptor(t.getRange());
-//        return "Arrow\u27e6" + makeArrowDescriptor(t.getDomain()) + "," +
-//            makeArrowDescriptor(t.getRange()) + "\u27e7";
+        } else {
+        return "Arrow\u27e6" + makeArrowDescriptor(t.getDomain()) + "," +
+            makeArrowDescriptor(t.getRange()) + "\u27e7";
+        }
     }
 
     public static String makeArrowDescriptor(AnyType t) {
@@ -668,7 +789,7 @@ public class NamingCzar {
                                     "Can't compile Keyword args yet");
         String res = "";
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            res += makeArrowDescriptor(ty) + "_";
+            res += makeArrowDescriptor(ty) + (transitionArrowNaming ? "_" : ',');
         }
         return res;
     }
