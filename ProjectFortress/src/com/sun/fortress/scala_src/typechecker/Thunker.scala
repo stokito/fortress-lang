@@ -44,7 +44,7 @@ class Thunker(var typeChecker: STypeChecker)
 
     case v@SVarDecl(info, lhs, rhs) => {
       // Create a TryChecker and prime the indices for this decl.
-      val tryChecker = Thunker.makeTryChecker(typeChecker)
+      val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
       val ids = lhs.map(lv => lv.getName)
       val variables = ids.map(id =>
         typeChecker.current.variables.get(id).asInstanceOf[DeclaredVariable])
@@ -80,7 +80,7 @@ class Thunker(var typeChecker: STypeChecker)
             case _ =>
           }
           //Create a tryChecker
-          val tryChecker = Thunker.makeTryChecker(typeChecker)
+          val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
           //Prime all the dotted and functional method indices)
           Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
           Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
@@ -116,7 +116,7 @@ class Thunker(var typeChecker: STypeChecker)
             case _ =>
           }
           //Create a TryChecker
-          val tryChecker = Thunker.makeTryChecker(typeChecker)
+          val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
           //Prime all the dotted and functional method indices
           Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
           Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
@@ -131,11 +131,6 @@ class Thunker(var typeChecker: STypeChecker)
 object Thunker {
 
   type TypeThunk = Thunk[JOption[Type]]
-  
-  def makeTryChecker(typeChecker: STypeChecker): TryChecker =
-    new TryChecker(typeChecker.current,
-                   typeChecker.traits,
-                   typeChecker.env)(typeChecker.analyzer, typeChecker.envCache)
 
   /** For each index in the set, construct and insert its thunk. */
   def primeFunctionals[T<:Functional]

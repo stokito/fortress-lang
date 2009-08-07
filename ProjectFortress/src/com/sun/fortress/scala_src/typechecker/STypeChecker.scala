@@ -76,7 +76,7 @@ object STypeCheckerFactory {
                      traits: TraitTable,
                      env: STypeEnv)
                     (implicit analyzer: TypeAnalyzer): TryChecker =
-    new TryChecker(current, traits, env)(analyzer, MMap.empty)
+    new TryChecker(current, traits, env, new TryErrorLog)(analyzer, MMap.empty)
 
   def makeTryChecker(checker: STypeChecker): TryChecker =
     makeTryChecker(checker.current,
@@ -211,6 +211,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
 
   protected def signal(hasAt:HasAt, msg:String) =
     errors.signal(msg, hasAt)
+
+  protected def signal(error: StaticError) =
+    errors.signal(error)
 
   protected def syntaxError(hasAt:HasAt, msg:String) =
     error(hasAt, msg)
@@ -498,10 +501,11 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
  */
 class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
-                 env: STypeEnv)
+                 env: STypeEnv,
+                 errors: ErrorLog)
                 (implicit analyzer: TypeAnalyzer,
                           envCache: MMap[APIName, STypeEnv])
-    extends STypeCheckerImpl(current, traits, env, new TryErrorLog) {
+    extends STypeCheckerImpl(current, traits, env, errors) {
 
   override def constructor(current: CompilationUnitIndex,
                            traits: TraitTable,
@@ -509,7 +513,7 @@ class TryChecker(current: CompilationUnitIndex,
                            errors: ErrorLog)
                           (implicit analyzer: TypeAnalyzer,
                                     envCache: MMap[APIName, STypeEnv]) =
-    new TryChecker(current, traits, env)
+    new TryChecker(current, traits, env, errors)
 
   /** Check the given node; return it if successful, None otherwise. */
   def tryCheck(node: Node): Option[Node] =

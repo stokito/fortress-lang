@@ -18,8 +18,8 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.bb.fss:26:1-28:2:\n\
-\ Unmatched delimiter "end".\n\
+\ Unmatched delimiter \"end\".\n\
 ${STATIC_TESTS_DIR}/Compiled5.bb.fss:33:1-3:\n\
-\ Unmatched delimiter "end".\n\
+\ Unmatched delimiter \"end\".\n\
 File Compiled5.bb.fss has 2 errors.\n
 compile_out_equals=

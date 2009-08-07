@@ -18,6 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.bd.fss:29:22-28:\n\
-\ Receiver type C does not have applicable overloading of foo for argument type A.\n\
+\ Could not check method invocation C.foo\n\
+\ - [\\T\\]T->T is not applicable to an argument of type A.\n\
 File Compiled5.bd.fss has 1 error.\n
 compile_out_equals=

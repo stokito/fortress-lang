@@ -16,10 +16,9 @@
 tests=Compiled3.u
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
-
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled3.u.fss:21:46-52:\n\
-\ Call to operator + has invalid arguments, [String, String]\n\
-File Compiled3.u.fss has 1 error.\n\
-
+\ Could not check call to operator +\n\
+\ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, String).\n\
+File Compiled3.u.fss has 1 error.\n
 compile_out_equals=

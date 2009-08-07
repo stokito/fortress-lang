@@ -18,6 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.bl.fss:27:10-38:\n\
-\ Expression of type ZZ32->String is not applicable to argument type Foo.\n\
+\ Could not check function application\n\
+\ - ZZ32->String is not applicable to an argument of type Foo.\n\
 File Compiled5.bl.fss has 1 error.\n
 compile_out_equals=

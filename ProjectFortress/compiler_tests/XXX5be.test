@@ -18,6 +18,6 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.be.fss:21:5-24:\n\
-\ Receiver type (IntLiteral, IntLiteral, IntLiteral, IntLiteral) does not have applicable overloading of something for argument type ().\n\
+\ No such method (IntLiteral, IntLiteral, IntLiteral, IntLiteral).something.\n\
 File Compiled5.be.fss has 1 error.\n
 compile_out_equals=

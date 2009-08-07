@@ -268,7 +268,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
       val bound  = bounds(ivar)
       val newBound=STypesUtil.substituteTypesForInferenceVars(substitutions, bound)
       substitutions.get(ivar) match {
-        case None => subtype(ANY,newBound)
+        case None => subtype(BOTTOM,newBound)
         case Some(substitution) => subtype(substitution,newBound)
       }
     }

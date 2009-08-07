@@ -18,8 +18,10 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.ad.fss:21:16-20:\n\
-\ Call to operator < has invalid arguments, [String, ZZ32]\n\
+\ Could not check call to operator <\n\
+\ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 ${STATIC_TESTS_DIR}/Compiled5.ad.fss:22:6-10:\n\
-\ Call to operator = has invalid arguments, [ZZ32, String]\n\
+\ Could not check call to operator =\n\
+\ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 File Compiled5.ad.fss has 2 errors.\n
 compile_out_equals=
