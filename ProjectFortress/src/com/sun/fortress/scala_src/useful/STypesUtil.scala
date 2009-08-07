@@ -36,8 +36,10 @@ import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil.TRUE_FORMULA
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
+
 
 object STypesUtil {
   
@@ -258,29 +260,19 @@ object STypesUtil {
   }
 
   /**
-   * Is this expr checkable? An expr is not checkable iff it is a FnExpr with
-   * not all of its parameters' types explicitly declared.
+   * Determine if the given type is an arrow or intersection of arrow types.
    */
-  def isCheckable(expr: Expr): Boolean = expr match {
-    case f:FnExpr =>
-      val params = toList(f.getHeader.getParams)
-      params.forall(p => p.getIdType.isSome)
-    case _ => true
-  }
+  def isArrows(ty: Type): Boolean =
+    TypesUtil.isArrows(ty).asInstanceOf[Boolean]
 
   /**
    * Determine if the type previously inferred by the type checker from the
    * given expression is an arrow or intersection of arrow types.
    */
   def isArrows(expr: Expr): Boolean =
-    !isCheckable(expr) || isArrows(SExprUtil.getType(expr).get)
-
-  /**
-   * Determine if the given type is an arrow or intersection of arrow types.
-   */
-  def isArrows(ty: Type): Boolean =
-    TypesUtil.isArrows(ty).asInstanceOf[Boolean]
-
+    isFnExpr(expr) || isArrows(SExprUtil.getType(expr).get)
+  
+  
   /**
    * Determine if the given type could possibly be an arrow or multiple arrows.
    * It could possibly be an arrow if it is a type variable whose bound is Any.

@@ -374,7 +374,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   protected def errorString(first: String, second: String): String =
     first + " has type %s, but " + second + " type is %s."
-
   
 
   // ---------------------------------------------------------------------------
@@ -424,11 +423,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         errors.signal(e.getOriginalMessage, e.getLoc.unwrap)
         node
     }
-
-//  def typeCheck(node: Node, tenv: STypeEnv, kenv: KindEnv): Node = {
-//    val checker = new STypeChecker(current, traits, tenv, kenv, errors)
-//    checker.typeCheck(node)
-//  }
   
   /**
    * Type check an expression and guarantee that its type is substitutable for
@@ -489,6 +483,19 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * @return The rewritten expression node.
    */
   def checkExpr(expr: Expr): Expr = checkExpr(expr, None)
+  
+  /**
+   * Check the given expr if it is checkable, yielding Left for the checked expr and Right for the
+   * unchecked original expr.
+   */
+  def checkExprIfCheckable(expr: Expr): Either[Expr, FnExpr] = {
+    if (isCheckable(expr)) {
+      val checked = checkExpr(expr)
+      Left(checked)
+    } else {
+      Right(expr.asInstanceOf[FnExpr])
+    }
+  }
 
 }
 
