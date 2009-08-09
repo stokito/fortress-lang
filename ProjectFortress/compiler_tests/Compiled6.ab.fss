@@ -15,22 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Typecase
 export Executable
 
-(* Simple typecase (no generics).  Also traits, and singleton objects. *)
+trait A[\T\] end
+object O extends A[\O\] end
+object P extends A[\P\] end
 
-trait A end
-object O extends A end
-object P extends A end
+anA():A = O
+f[\T\](o:O):() = println("O")
+f[\T\](a:A[\T\]):() = println("FAIL WITH A")
+f[\T\](p:P):() = println("FAIL WITH P")
 
-anA(): A = O
-
-run():() = do
-  typecase x = anA() of
-    O => println("O")
-    else => println("FAIL")
-  end
-end
-
-end
+run():() = f(anA())

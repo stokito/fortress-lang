@@ -13,11 +13,11 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled180.a
+tests=Compiled6.ab
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled180.a.fss:25:7:\n\
+${STATIC_TESTS_DIR}/Compiled6.ab.fss:24:7:\n\
 \ Type requires static arguments: A\n\
-File Compiled180.a.fss has 1 error.\n
+File Compiled6.ab.fss has 1 error.\n
 compile_out_equals=
