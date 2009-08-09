@@ -43,4 +43,16 @@ public class NamingCzarJUTest extends TestCaseWrapper {
                 nc.boxedImplDesc(nc.fortressTypeForForeignJavaType("Ljava/lang/String;"), null));
     }
     
+    public void testNameMangling() {
+        String input = "/.;$<>[]:\\%\\%\\";
+        String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-%\\-%\\";
+        String s = NamingCzar.mangleIdentifier(input);
+        assertEquals(s, mangledInput);
+        input = "hello" + input;
+        mangledInput = "\\=" + "hello" + mangledInput;
+        s = NamingCzar.mangleIdentifier(input);
+        assertEquals(s, mangledInput);
+    }
+
+    
 }

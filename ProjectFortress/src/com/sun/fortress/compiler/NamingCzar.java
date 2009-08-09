@@ -517,9 +517,7 @@ public class NamingCzar {
      */
     private static final String SF_TRANSLATES = "/.;$<>][:\\";
 
-    private static final String NF_DANGEROUS = "/.;$<>][:";
-    private static final String NF_ESCAPES =   "|,?%^_}{!-";
-    private static final String NF_FIRST_ESCAPES = "=" + NF_ESCAPES;
+    private static final String SF_FIRST_ESCAPES = SF_ESCAPES + "=";
 
     public static boolean likelyMangled(String s) {
         if (s.length() < 2) return false;
@@ -535,7 +533,7 @@ public class NamingCzar {
         if (s.charAt(1) == '=') return true;
         for (int i = 0; i < l-1; i++) {
             char ch = s.charAt(i);
-            if (ch == '\\' && -1 != NF_ESCAPES.indexOf(s.charAt(i+1)))
+            if (ch == '\\' && -1 != SF_ESCAPES.indexOf(s.charAt(i+1)))
                 return true;
         }
         return false;
@@ -590,7 +588,7 @@ public class NamingCzar {
      */
     private static String catMangledCheckingJoint(String s1, String s2) {
         if (s1.endsWith("\\") &&
-                -1 != (s1.length() == 1 ? NF_FIRST_ESCAPES : NF_ESCAPES).indexOf(s2.charAt(0))) {
+                -1 != (s1.length() == 1 ? SF_FIRST_ESCAPES : SF_ESCAPES).indexOf(s2.charAt(0))) {
             // must escape trailing \
             return s1 + "-" + s2;
         } else {
@@ -621,13 +619,42 @@ public class NamingCzar {
          */
         
         // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-        String mangledString = identifier.replaceAll("\\\\([|,?^_{}!]|-)",
-                "\\\\-\\1");
-        // Including a % in the [ ] in the RE above led to peculiar results.
-        mangledString = mangledString.replaceAll("\\\\\\%", "\\\\-%");
-        if (mangledString.startsWith("\\=")) {
-            mangledString = "\\-=" + mangledString.substring(2);
+        StringBuffer mangledStringBuffer = null;
+        String mangledString = identifier;
+        
+        int l = identifier.length();
+        
+        for (int j = 0; j < l-1; j++) {
+            char ch = identifier.charAt(j);
+            if (ch == '\\') {
+                ch = identifier.charAt(j+1);
+                if (-1 != SF_ESCAPES.indexOf(ch) || j == 0 && ch == '=') {
+                    // found one, do the translation.
+                    mangledStringBuffer = new StringBuffer(mangledString.substring(0, j+1));
+                    mangledStringBuffer.append('-');
+                    mangledStringBuffer.append(ch);
+                    for (int i = j+2; i < l-1; i++) {
+                        ch = identifier.charAt(i);
+                        mangledStringBuffer.append(ch);
+                        if (ch == '\\') {
+                            ch = identifier.charAt(i+1);
+                            if (-1 != SF_ESCAPES.indexOf(ch)) {
+                                // found one, do the translation.
+                                mangledStringBuffer.append('-');
+                            }
+                        }
+                        
+                    }
+                    mangledStringBuffer.append(identifier.charAt(l-1));
+                    mangledString = mangledStringBuffer.toString();
+                    break;
+                }
+            }
         }
+        
+//        if (mangledString.startsWith("\\=")) {
+//            mangledString = "\\-=" + mangledString.substring(2);
+//        }
 
         // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
 
