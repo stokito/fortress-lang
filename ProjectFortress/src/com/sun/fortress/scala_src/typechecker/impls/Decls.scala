@@ -25,8 +25,8 @@ import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
-import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -165,7 +165,7 @@ trait Decls { self: STypeChecker with Common =>
                    unambiguousName, None, implementsUnambiguousName) => {
       returnType match {
         case Some(ty) =>
-          if ( NodeUtil.isSetter(f) )
+          if ( NU.isSetter(f) )
             isSubtype(ty, Types.VOID, f, "Setter declarations must return void.")
         case _ =>
       }
@@ -182,7 +182,7 @@ trait Decls { self: STypeChecker with Common =>
 
       // If setter decl and no return type given, make it void.
       val returnType =
-        if (rType.isEmpty && NodeUtil.isSetter(f))
+        if (rType.isEmpty && NU.isSetter(f))
           Some(Types.VOID)
         else
           rType
@@ -193,7 +193,7 @@ trait Decls { self: STypeChecker with Common =>
         // If there is a declared return type, check the body, expecting this
         // type. If this is a setter, check that the return type is a void too.
         case Some(rt) =>
-          if (NodeUtil.isSetter(f))
+          if (NU.isSetter(f))
             isSubtype(rt, Types.VOID, f, "Setter declarations must return void.")
           (Some(rt), newChecker.checkExpr(body, rt, errorString("Function body",
                                                                 "declared return")))
@@ -219,7 +219,7 @@ trait Decls { self: STypeChecker with Common =>
 //              case _ => // Eventually, this case will involve type inference
 //                signal(v, errorMsg("All inferrred types should at least be inference ",
 //                                   "variables by typechecking: ", v))
-//                NodeFactory.makeVoidType(NodeUtil.getSpan(l))
+//                NF.makeVoidType(NU.getSpan(l))
 //            }
 //          case _ =>
 //            def handleBinding(binding: LValue) =
@@ -227,9 +227,9 @@ trait Decls { self: STypeChecker with Common =>
 //                case Some(typ) => typ
 //                case _ =>
 //                  signal(binding, errorMsg("Missing type for ", binding, "."))
-//                  NodeFactory.makeVoidType(NodeUtil.getSpan(binding))
+//                  NF.makeVoidType(NU.getSpan(binding))
 //              }
-//            NodeFactory.makeTupleType(NodeUtil.getSpan(v),
+//            NF.makeTupleType(NU.getSpan(v),
 //                                      toJavaList(lhs.map(handleBinding)))
 //        }
 //        val newInit = checkExpr(init, ty)
@@ -293,7 +293,16 @@ trait Decls { self: STypeChecker with Common =>
   def checkExprDecls(expr: Expr, expected: Option[Type]): Expr = expr match {
 
     case d@SLocalVarDecl(SExprInfo(span,paren,_), body, lhs, rhs) => {
-      val newRhs = rhs.map(checkExpr)
+      // Gather declared types of LHS as a big tuple type.
+      val declaredTypes = lhs.flatMap(lv => toOption(lv.getIdType))
+      val declaredType =
+        if (declaredTypes.length == lhs.length)
+          Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))
+        else
+          None
+      
+      // Type check the RHS, expecting the declared type.
+      val newRhs = rhs.map(checkExpr(_, declaredType))
       val newLhs = newRhs match {
         case Some(e) => getType(e) match {
           case Some(typ@STupleType(_,elts,_,_)) =>
