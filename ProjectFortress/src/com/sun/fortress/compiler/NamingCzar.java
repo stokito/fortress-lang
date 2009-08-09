@@ -621,8 +621,10 @@ public class NamingCzar {
          */
         
         // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-        String mangledString = identifier.replaceAll("\\\\([|,?%^_{}!]|-)",
+        String mangledString = identifier.replaceAll("\\\\([|,?^_{}!]|-)",
                 "\\\\-\\1");
+        // Including a % in the [ ] in the RE above led to peculiar results.
+        mangledString = mangledString.replaceAll("\\\\\\%", "\\\\-%");
         if (mangledString.startsWith("\\=")) {
             mangledString = "\\-=" + mangledString.substring(2);
         }

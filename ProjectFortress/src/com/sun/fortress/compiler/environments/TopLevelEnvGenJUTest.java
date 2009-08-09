@@ -77,12 +77,14 @@ public class TopLevelEnvGenJUTest extends TestCase {
     }
 
     public void testNameMangling() {
-        String input = "/.;$<>[]:\\";
-        String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
-        assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
+        String input = "/.;$<>[]:\\%\\";
+        String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-%\\";
+        String s = NamingCzar.mangleIdentifier(input);
+        assertEquals(s, mangledInput);
         input = "hello" + input;
         mangledInput = "\\=" + "hello" + mangledInput;
-        assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
+        s = NamingCzar.mangleIdentifier(input);
+        assertEquals(s, mangledInput);
     }
 
     public void testRemoveMethods() {
