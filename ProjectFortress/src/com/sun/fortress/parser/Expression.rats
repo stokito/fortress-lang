@@ -40,7 +40,8 @@ import Spacing;
    | OpExpr
    | DelimitedExpr
    | FlowExpr
-   | fn w ValParam (w IsType)? (w Throws)? w => w Expr
+   | fn w BindId (w Throws)? w => w Expr
+   | fn w ( (w Params)? w ) (w IsType)? (w Throws)? w => w Expr
    | Expr w typed w Type
    | Expr w asif w Type
  */
@@ -52,12 +53,24 @@ Expr ExprFront =
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
-   / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
-     { yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1,
+   / <Fn1> fn w a1:BindId a2:(w Throws)? w match w a3:Expr
+     { yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount),
+                                        Useful.list(NodeFactory.makeParam(a1)),
+                                        Option.<Type>none(),
+                                        Option.<List<BaseType>>wrap(a2), a3);
+     }
+   / <Fn2> fn w openparen a1:(w Params)? w closeparen a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
+     { if (a1 == null) a1 = Collections.<Param>emptyList();
+       yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1,
                                         Option.<Type>wrap(a2),
                                         Option.<List<BaseType>>wrap(a3), a4);
      }
-   / <ErrorProduction> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w a4:Expr
+   / <ErrorProduction1> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Parentheses are required around the parameter of an anonymous function expression.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+     }
+   / <ErrorProduction2> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w a4:Expr
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Anonymous function expression is missing \"=>\".");
        yyValue = ExprFactory.makeVoidLiteralExpr(span);
