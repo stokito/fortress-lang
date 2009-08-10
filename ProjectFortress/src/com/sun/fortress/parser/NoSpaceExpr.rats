@@ -30,7 +30,7 @@ import Spacing;
    | NoSpaceOpExpr
    | DelimitedExpr
  */
-Expr ExprFront -= <Flow> , <Fn> ;
+Expr ExprFront -= <Flow> , <Fn1> , <Fn2> ;
 Expr NoSpaceExpr = ExprFront ;
 
 /* NoSpaceOpExpr ::=

@@ -45,7 +45,7 @@ Expr ExprFront +=
      ExprGap
    / LooseJuxtGap
    / FnExprGap
-   / <Fn> ... ;
+   / <Fn1> ... ;
 
 Action<Expr> ExprTail += EllipsesExpr / <As> ...;
 
