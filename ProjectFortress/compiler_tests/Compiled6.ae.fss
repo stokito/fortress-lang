@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component FieldTestGeneric
   export Executable
   trait Foo[\T\]
     blah():T
@@ -23,4 +22,3 @@ component FieldTestGeneric
   end
 
   run():() = ()
-end
