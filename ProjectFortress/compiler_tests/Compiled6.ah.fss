@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component InSimple
   export Executable
 
   object Blank[\T\](t:T)
@@ -30,4 +29,3 @@ component InSimple
   end
 
   run():() = ()
-end
