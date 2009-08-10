@@ -64,7 +64,7 @@ run() = do
  *)
   n (n + 1) sin 3 n x log log x
   aa: ZZ32[3] = [1 2 3]
-  reduce(_:(ZZ32,ZZ32)->ZZ32) = fn xx:ZZ32[3] => 1
+  reduce(_:(ZZ32,ZZ32)->ZZ32) = fn (xx:ZZ32[3]) => 1
   f(_:ZZ32,_:ZZ32):ZZ32 = 0
   reduce(f)(aa)(x + 1)atan(x + 2)
   println d
