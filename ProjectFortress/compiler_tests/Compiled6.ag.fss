@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component InOp
   export Executable
 
   object Blank[\T\](t:T)
@@ -30,4 +29,3 @@ component InOp
   end
 
   run():() = ()
-end
