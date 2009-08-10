@@ -26,7 +26,7 @@ import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.syntax_abstractions.phases.GrammarRewriter;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;
-
+import edu.rice.cs.plt.collect.CollectUtil;
 import java.util.Collection;
 
 public class GrammarPhase extends Phase {
@@ -40,11 +40,11 @@ public class GrammarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase GrammarPhase");
         AnalyzeResult previous = parentPhase.getResult();
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(previous.apis());
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
 
         Collection<Api> apis = GrammarRewriter.rewriteApis(previous.apis(), apiEnv);
 
-        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apis, env, lastModified);
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apis, apiEnv, lastModified);
         if (!apiDone.isSuccessful()) {
             throw new MultipleStaticError(apiDone.errors());
         }
