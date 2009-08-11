@@ -360,14 +360,15 @@ trait Operators { self: STypeChecker with Common =>
             // Treat the sequence that remains as a multifix application of
             // the juxtaposition operator.
             // The rules for multifix operators then apply.
-            val multi_op_expr = checkExpr( ExprFactory.makeOpExpr(span, multi,
-                                                                  toJavaList(head::newTail)) )
-            getType(multi_op_expr) match {
-              case Some(_) => multi_op_expr
-              case None =>
-                newTail.foldLeft(head){ (r:Expr, e:Expr) =>
-                                        ExprFactory.makeOpExpr(NodeUtil.spanTwo(r, e),
-                                                               infix, r, e) }
+            val multi_op_expr =
+              STypeCheckerFactory.makeTryChecker(this).
+                tryCheckExpr(ExprFactory.makeOpExpr(span,
+                                                    multi,
+                                                    toJavaList(head::newTail)))
+            multi_op_expr.getOrElse {
+              newTail.foldLeft(head) { (r:Expr, e:Expr) =>
+                ExprFactory.makeOpExpr(NodeUtil.spanTwo(r, e), infix, r, e)
+              }
             }
           }
       }
