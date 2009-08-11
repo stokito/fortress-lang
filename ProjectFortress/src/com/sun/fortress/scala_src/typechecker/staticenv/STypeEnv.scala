@@ -26,13 +26,12 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
-import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Maps._
+import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.scala_src.useful.STypesUtil.TypeThunk
 import edu.rice.cs.plt.collect.Relation
-import scala.collection.immutable.EmptyMap
 
 /**
  * Represents a list of variable name to type bindings for some context. All
@@ -243,9 +242,9 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       (r: Relation[IdOrOpOrAnonymousName, T],
        api: Option[APIName]): Iterable[TypeBinding] = {
 
-    val fnNames = toSet(r.firstSet)
+    val fns = toSet(r.firstSet)
     // For each name, intersect together all of its overloading types.
-    fnNames.map(x => {
+    fns.map(x => {
         val fns: Set[Functional] =
           toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])
 

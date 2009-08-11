@@ -72,7 +72,6 @@ class Thunker(var typeChecker: STypeChecker)
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           typeChecker = typeChecker.extendWithFunctions(methods)
-          typeChecker = typeChecker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -108,7 +107,6 @@ class Thunker(var typeChecker: STypeChecker)
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           typeChecker = typeChecker.extendWithFunctions(methods)
-          typeChecker = typeChecker.extendWithFunctions(to.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
