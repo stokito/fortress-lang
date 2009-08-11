@@ -81,7 +81,6 @@ trait Decls { self: STypeChecker with Common =>
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           method_checker = method_checker.extendWithFunctions(methods)
-          method_checker = method_checker.extendWithFunctions(ti.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -134,7 +133,6 @@ trait Decls { self: STypeChecker with Common =>
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           method_checker = method_checker.extendWithFunctions(methods)
-          method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[TraitIndex].functionalMethods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
