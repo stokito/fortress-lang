@@ -15,10 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TightJuxt
   export Executable
 
   foo(a:ZZ32,b:ZZ32):ZZ32 = (a)(b)
 
   run():() = ()
-end
