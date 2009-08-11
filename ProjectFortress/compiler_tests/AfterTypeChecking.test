@@ -22,5 +22,6 @@ Compiled6 Compiled6.o Compiled6.r Compiled6.ad Compiled6.ae Compiled6.af Compile
 Compiled70 \
 Compiled80 \
 Comprehensions1 \
-Comprehensions3
+Comprehensions3 \
+TightJuxt
 typecheck
