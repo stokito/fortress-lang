@@ -139,39 +139,63 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     /* Checks the validity of the overloaded function declarations. */
     private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: Set[JavaFunctional]) = {
+                                 set: Set[JavaFunctional]): Unit = set.size match {
+      case 0 =>
+        error(NodeUtil.getSpan(name), "Empty function declarations for " + name)
+      case 1 =>
+      case _ =>
         var signatures = List[((JavaList[StaticParam],Type,Type),Span)]()
         for ( f <- set ; if isDeclaredFunctional(f) ) {
-            val result = f.getReturnType.unwrap
-            val param = paramsToType(f.parameters, f.getSpan)
-            val sparams = f.staticParameters
-            signatures.find(p => p._1 == (sparams,param,result)) match {
-                case Some((_,span)) =>
-                    error(mergeSpan(span, f.getSpan),
-                          "There are multiple declarations of " +
-                          name + " with the same type: " +
-                          param + " -> " + result)
-                case _ =>
-                    signatures = ((sparams, param, result), f.getSpan) :: signatures
-            }
+          val span = f.getSpan
+          val result = f.getReturnType.unwrap
+          val param = paramsToType(f.parameters, span)
+          val sparams = f.staticParameters
+          signatures.find(p => p._1 == (sparams,param,result)) match {
+            case Some((_,sp)) =>
+              error(mergeSpan(sp, span),
+                    "There are multiple declarations of " +
+                    name + " with the same type: " +
+                    param + " -> " + result)
+            case _ =>
+              // A functional which takes a single parameter of a parametric type
+              // bound by Any cannot be overloaded.
+              if ( checkBoundAny(param, toList(sparams)) ) {
+                error(span, "A functional which takes a single parameter " +
+                      "of a parametric type bound by Any\n    cannot be overloaded.")
+                return
+              }
+              signatures = ((sparams, param, result), span) :: signatures
+          }
         }
         var index = 1
         for ( first <- signatures ) {
-            signatures.slice(index, signatures.length)
-            .foreach(second => if (! validOverloading(first, second, signatures) ) {
-                                   val firstO = toString(first)
-                                   val secondO = toString(second)
-                                   val mismatch = if (firstO < secondO)
-                                                      firstO + "\n and " + secondO
-                                                  else
-                                                      secondO + "\n and " + firstO
-                                   error(mergeSpan(first, second),
-                                         "Invalid overloading of " + name +
-                                         ":\n     " + mismatch)
-                               })
-            index += 1
+          signatures.slice(index, signatures.length)
+          .foreach(second => if (! validOverloading(first, second, signatures) ) {
+                               val firstO = toString(first)
+                               val secondO = toString(second)
+                               val mismatch = if (firstO < secondO)
+                                                firstO + "\n and " + secondO
+                                              else
+                                                secondO + "\n and " + firstO
+                               error(mergeSpan(first, second),
+                                     "Invalid overloading of " + name +
+                                     ":\n     " + mismatch)
+                           })
+          index += 1
         }
     }
+
+    /* A functional which takes a single parameter of a parametric type
+     * bound by Any cannot be overloaded.
+     */
+    private def checkBoundAny(param: Type, sparams: List[StaticParam]) =
+      if (param.isInstanceOf[VarType]) {
+        val tyName = param.asInstanceOf[VarType].getName.getText
+        sparams.exists(sp =>
+                       sp.getName.getText.equals(tyName) &&
+                       sp.getExtendsClause.size == 1 &&
+                       sp.getExtendsClause.get(0).isInstanceOf[AnyType])
+      } else false
 
     /* Checks the overloading rules: subtype / exclusion / meet */
     private def validOverloading(first: ((JavaList[StaticParam],Type,Type),Span),
