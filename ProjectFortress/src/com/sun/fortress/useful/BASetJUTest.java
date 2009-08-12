@@ -157,7 +157,8 @@ public class BASetJUTest extends TestCaseWrapper {
 
     BASet<String> randomSet(Random r) {
         BASet<String> s = empty();
-        for (int k = 0; k < 15; k++) {
+        int sz = r.nextInt(animals.length + 2);
+        for (int k = sz; k > 0; k--) {
             int j = r.nextInt(animals.length);
             s.add(animals[j]);
         }
@@ -170,12 +171,19 @@ public class BASetJUTest extends TestCaseWrapper {
         BASet<String> a = randomSet(r);
         BASet<String> b = randomSet(r);
         BASet<String> c = a.copy();
-        c.addAll(b);
-        c.ok();
-        assertTrue(c.containsAll(a));
-        assertTrue(c.containsAll(b));
-        for (String sc : c) {
-            assertTrue(a.contains(sc) || b.contains(sc));
+        try {
+            c.addAll(b);
+            c.ok();
+            assertTrue(c.containsAll(a));
+            assertTrue(c.containsAll(b));
+            for (String sc : c) {
+                assertTrue(a.contains(sc) || b.contains(sc));
+            }
+        } catch (Error e) {
+            System.err.println(  "a = " + a +
+                               "\nb = " + b +
+                               "\nc = " + c );
+            throw e;
         }
     }
 
@@ -184,14 +192,44 @@ public class BASetJUTest extends TestCaseWrapper {
         BASet<String> a = randomSet(r);
         BASet<String> b = randomSet(r);
         BASet<String> c = a.copy();
-        c.retainAll(b);
-        c.ok();
-        for (String sc : c) {
-            assertTrue(a.contains(sc));
-            assertTrue(b.contains(sc));
+        try {
+            c.retainAll(b);
+            c.ok();
+            for (String sc : c) {
+                assertTrue(a.contains(sc));
+                assertTrue(b.contains(sc));
+            }
+            for (String sa : a) {
+                assertEquals(b.contains(sa), c.contains(sa));
+            }
+        } catch (Error e) {
+            System.err.println(  "a = " + a +
+                               "\nb = " + b +
+                               "\nc = " + c );
+            throw e;
         }
-        for (String sa : a) {
-            assertEquals(b.contains(sa), c.contains(sa));
+    }
+
+    public void testDifferenceRandom() {
+        Random r = new Random();
+        BASet<String> a = randomSet(r);
+        BASet<String> b = randomSet(r);
+        BASet<String> c = a.copy();
+        try {
+            c.removeAll(b);
+            c.ok();
+            for (String sc : c) {
+                assertTrue(a.contains(sc));
+                assertFalse(b.contains(sc));
+            }
+            for (String sa : a) {
+                assertEquals(!b.contains(sa), c.contains(sa));
+            }
+        } catch (Error e) {
+            System.err.println(  "a = " + a +
+                               "\nb = " + b +
+                               "\nc = " + c );
+            throw e;
         }
     }
 
