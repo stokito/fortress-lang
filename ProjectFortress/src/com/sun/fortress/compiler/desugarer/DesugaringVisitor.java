@@ -371,31 +371,37 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }.recurOnListOfDecl(decls);
     }
 
-    private Expr mangleLhs(final Assignment that, final Span span,
-                           final Expr rhs_result, final Option<Type> voidType,
+    private Expr mangleLhs(final Assignment that,
+                           final Expr rhs_result,
+                           final Option<Type> voidType,
                            final Lhs lhs) {
         assert(that.getLhs().size() == 1);
+        final Span span = NodeUtil.getSpan(that);
+        final boolean paren = NodeUtil.isParenthesized(that);
         return (Expr)lhs.accept(new NodeUpdateVisitor() {
                     public Node forVarRef(VarRef lhs_that) {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
-                        return ExprFactory.makeAssignment(span, voidType, left,
-                                                          that.getAssignOp(), rhs_result);
+                        return ExprFactory.makeAssignment(span, paren, voidType, left,
+                                                          that.getAssignOp(), rhs_result, that.getOpsForLhs());
                     }
                     public Node forSubscriptExpr(SubscriptExpr lhs_that) {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
-                        return ExprFactory.makeAssignment(span, voidType, left,
-                                                          that.getAssignOp(), rhs_result);
+                        return ExprFactory.makeAssignment(span, paren, voidType, left,
+                                                          that.getAssignOp(), rhs_result, that.getOpsForLhs());
                     }
                     public Node forFieldRef(FieldRef lhs_that) {
                         Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
                         Expr rhs = rhs_result;
                         if ( that.getAssignOp().isSome() ) {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
-                            rhs = ExprFactory.makeOpExpr(span, NodeUtil.isParenthesized(lhs_that),
-                                                         NodeUtil.getExprType(lhs_that),
-                                                         that.getAssignOp().unwrap(),
+                            OpRef op = (OpRef) that.getOpsForLhs().unwrap().get(0);
+                            Type type = ((ArrowType) NodeUtil.getExprType(op).unwrap()).getRange();
+                            rhs = ExprFactory.makeOpExpr(span,
+                                                         NodeUtil.isParenthesized(lhs_that),
+                                                         Option.some(type),
+                                                         op,
                                                          Arrays.asList(_lhs, rhs));
                         }
                         return ExprFactory.makeMethodInvocation(span, NodeUtil.isParenthesized(that),
@@ -409,12 +415,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     @Override
     public Node forAssignment(final Assignment that) {
         final Span span = NodeUtil.getSpan(that);
+        final boolean paren = NodeUtil.isParenthesized(that);
         List<Lhs> lhs = that.getLhs();
         int size = lhs.size();
         final Expr rhs_result = (Expr) that.getRhs().accept(this);
         final Option<Type> voidType = Option.<Type>some(NodeFactory.makeVoidType(span));
         if ( size == 1 ) {
-            return mangleLhs(that, span, rhs_result, voidType, lhs.get(0));
+            return mangleLhs(that, rhs_result, voidType, lhs.get(0));
         } else {
             /* Desugars
                  (x, y.f, z) := e
@@ -423,10 +430,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                  (tuple_0, tuple_1, tuple_2) = tuple_3
                  (x := tuple0, y.f(tuple1), z := tuple2)
             */
-            boolean paren = NodeUtil.isParenthesized(that);
             Option<FunctionalRef> opr = that.getAssignOp();
             List<Expr>   assigns   = new ArrayList<Expr>();
             List<LValue> secondLhs = new ArrayList<LValue>();
+            Option<List<FunctionalRef>> checkedOprs = that.getOpsForLhs();
             // Possible shadowing!
             for (int i = size-1; i >= 0; i--) {
                 Id id = NodeFactory.makeId(span, "tuple_"+i);
@@ -434,10 +441,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 Lhs _lhs = lhs.get(i);
                 left.add(_lhs);
                 Expr right = ExprFactory.makeVarRef(span, id);
-                Assignment assign = ExprFactory.makeAssignment(span, voidType,
+                Option<List<FunctionalRef>> checkedOpr = Option.<List<FunctionalRef>>none();
+                if (checkedOprs.isSome())
+                    checkedOpr = Option.some(Collections.singletonList(checkedOprs.unwrap().get(0)));
+                Assignment assign = ExprFactory.makeAssignment(span, paren,
+                                                               voidType,
                                                                left, opr,
-                                                               right);
-                assigns.add(0, mangleLhs(assign, span, right, voidType, _lhs));
+                                                               right, checkedOpr);
+                assigns.add(0, mangleLhs(assign, right, voidType, _lhs));
                 secondLhs.add(0, NodeFactory.makeLValue(id));
             }
             Id id = NodeFactory.makeId(span, "tuple_"+size);
