@@ -13,12 +13,17 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled6.m
+tests=Compiled6.an
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.m.fss:26:1-28:2:\n\
-\ The inherited abstract method g():String from the trait T\n\
-\ in the object O is not defined in the component Compiled6.m.\n\
-File Compiled6.m.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled6.an.fss:25:1-21:\n\
+\ The inherited abstract method m(self:T):() from the trait T\n\
+\ in the object O is not defined in the component Compiled6.an.\n\
+${STATIC_TESTS_DIR}/Compiled6.an.fss:28:5-31:6:\n\
+\ Object expressions should not define any new functional methods.\n\
+${STATIC_TESTS_DIR}/Compiled6.an.fss:28:5-31:6:\n\
+\ The inherited abstract method m(self:T):() from the trait T\n\
+\ in the object _ is not defined in the component Compiled6.an.\n\
+File Compiled6.an.fss has 3 errors.\n
 compile_out_equals=
