@@ -396,19 +396,19 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         Expr rhs = rhs_result;
                         if ( that.getAssignOp().isSome() ) {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
-                            /*
-                            OpRef op = (OpRef) that.getOpsForLhs().unwrap().get(0);
-                            Type type = ((ArrowType) NodeUtil.getExprType(op).unwrap()).getRange();
+                            FunctionalRef op;
+                            Option<Type> type;
+                            if (that.getOpsForLhs().isSome()) {
+                                op = that.getOpsForLhs().unwrap().get(0);
+                                type = Option.some(((ArrowType) NodeUtil.getExprType(op).unwrap()).getRange());
+                            } else {
+                                op = that.getAssignOp().unwrap();
+                                type = NodeUtil.getExprType(lhs_that);
+                            }
                             rhs = ExprFactory.makeOpExpr(span,
                                                          NodeUtil.isParenthesized(lhs_that),
-                                                         Option.some(type),
+                                                         type,
                                                          op,
-                                                         Arrays.asList(_lhs, rhs));
-                            */
-                            rhs = ExprFactory.makeOpExpr(span,
-                                                         NodeUtil.isParenthesized(lhs_that),
-                                                         NodeUtil.getExprType(lhs_that),
-                                                         that.getAssignOp().unwrap(),
                                                          Arrays.asList(_lhs, rhs));
                         }
                         return ExprFactory.makeMethodInvocation(span, NodeUtil.isParenthesized(that),

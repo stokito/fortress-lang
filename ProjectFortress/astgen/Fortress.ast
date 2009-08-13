@@ -442,6 +442,11 @@ interface Node() extends HasAt;
              */
             root abstract Expr(ExprInfo info);
                 /**
+                 * a dummy expression that just carries a type around, used
+                 * during type checking
+                 */
+                DummyExpr();
+                /**
                  * expression annotated with a type
                  */
                 abstract TypeAnnotatedExpr(Expr expr, Type annType);

@@ -97,7 +97,8 @@ trait Dispatch { self: STypeChecker =>
     case e:MathPrimary => checkExprOperators(e, expected)
     case e:AmbiguousMultifixOpExpr => checkExprOperators(e, expected)
     case e:ChainExpr => checkExprOperators(e, expected)
-    
+
+    case e:DummyExpr => checkExprMisc(e, expected)
     case _ => checkExprMisc(expr, expected)
   }
 }
