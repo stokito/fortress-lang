@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Compiled7fo
+export Executable
+
+(* First-order version of Compiled7 *)
+
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
+reps : ZZ32 = 10
+expect = 1.391570583 10.0^12
+
+RR64ToString(x:RR64): String = x.toString()
+
+f(x: RR64): RR64 = x (x x + 1)
+
+(* Actually test more HOFs *)
+integrate(l: RR64, h:RR64, tol: RR64): RR64 =
+    integrate'(l,h,f(l),f(h),0,tol)
+
+integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = f(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR w <= tol then
+        alh
+    else
+        integrate'(l,m,fl,fm,al,tol) + integrate'(m,h,fm,fh,ah,tol)
+    end
+  end
+
+elapsedSec(init:ZZ64, final:ZZ64): RR64 =
+    (final - init) / (10.0^9)
+
+run(): () = do
+    println("Time(s)\tArea")
+    for _ <- 0#reps do
+        startTime = nanoTime()
+        a = integrate(start,finish,errorTolerance)
+        endTime = nanoTime()
+        if |a - expect| > errorTolerance a then
+            println("FAIL: Bad error tolerance!")
+        end
+        println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a))
+    end
+  end
+
+end
