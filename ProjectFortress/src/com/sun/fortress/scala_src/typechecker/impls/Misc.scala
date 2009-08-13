@@ -532,6 +532,8 @@ trait Misc { self: STypeChecker with Common =>
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
+    case expr:DummyExpr => expr
+
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
   }
 

@@ -21,8 +21,8 @@ import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.ExprFactory
-import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.{ExprFactory => EF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.nodes._
@@ -79,12 +79,12 @@ trait Operators { self: STypeChecker with Common =>
     // For a tight juxt, create a MathPrimary
     case SJuxt(info, multi, infix, front::rest, false, true) => {
       def toMathItem(exp: Expr): MathItem = {
-        val span = NodeUtil.getSpan(exp)
+        val span = NU.getSpan(exp)
         if ( exp.isInstanceOf[TupleExpr] ||
              exp.isInstanceOf[VoidLiteralExpr] ||
-             NodeUtil.isParenthesized(exp) )
-          ExprFactory.makeParenthesisDelimitedMI(span, exp)
-        else ExprFactory.makeNonParenthesisDelimitedMI(span, exp)
+             NU.isParenthesized(exp) )
+          EF.makeParenthesisDelimitedMI(span, exp)
+        else EF.makeNonParenthesisDelimitedMI(span, exp)
       }
       checkExpr(SMathPrimary(info, multi, infix, front, rest.map(toMathItem)))
     }
@@ -133,7 +133,7 @@ trait Operators { self: STypeChecker with Common =>
           case Nil => None
           case head::tail =>
             Some(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
-                                      ExprFactory.makeOpExpr(infix,e1,e2) })
+                                      EF.makeOpExpr(infix,e1,e2) })
         }
       // Right associate everything in a chunk as a _RewriteFnApp
       def associateArrows(fs: List[Expr], oe: Option[Expr]) = oe match {
@@ -143,10 +143,10 @@ trait Operators { self: STypeChecker with Common =>
             expr
           case _ =>
             fs.take(fs.size-1).foldRight(fs.last){ (f: Expr, e: Expr) =>
-                                                   ExprFactory.make_RewriteFnApp(f,e) }
+                                                   EF.make_RewriteFnApp(f,e) }
         }
         case Some(e) =>
-          fs.foldRight(e){ (f: Expr, e: Expr) => ExprFactory.make_RewriteFnApp(f,e) }
+          fs.foldRight(e){ (f: Expr, e: Expr) => EF.make_RewriteFnApp(f,e) }
       }
       // Associate a chunk
       def associateChunk(chunk: (List[Expr],List[Expr])): Expr = {
@@ -176,7 +176,7 @@ trait Operators { self: STypeChecker with Common =>
       //     The rules for multifix operators then apply.
       val multiOpExpr =
         STypeCheckerFactory.makeTryChecker(this).
-          tryCheckExpr(ExprFactory.makeOpExpr(span,
+          tryCheckExpr(EF.makeOpExpr(span,
                                               paren,
                                               toJavaOption(optType),
                                               multi,
@@ -189,7 +189,7 @@ trait Operators { self: STypeChecker with Common =>
             expr
           case head::tail =>
             checkExpr(tail.foldLeft(head){ (e1: Expr, e2: Expr) =>
-                                           ExprFactory.makeOpExpr(infix,e1,e2) })
+                                           EF.makeOpExpr(infix,e1,e2) })
         }
       }
     }
@@ -274,7 +274,7 @@ trait Operators { self: STypeChecker with Common =>
               // (which is one element shorter)
               val fnApp =
                 new NonParenthesisDelimitedMI(i,
-                                              ExprFactory.make_RewriteFnApp(fn.asInstanceOf[ExprMI].getExpr,
+                                              EF.make_RewriteFnApp(fn.asInstanceOf[ExprMI].getExpr,
                                                                             arg.asInstanceOf[ExprMI].getExpr))
               associateMathItems( first, prefix++(fnApp::suffix) )
             }
@@ -307,9 +307,9 @@ trait Operators { self: STypeChecker with Common =>
           case item::suffix => {
             val newExpr = item match {
               case SExponentiationMI(_,op,expr) =>
-                ExprFactory.makeOpExpr(op, head, toJavaOption(expr))
+                EF.makeOpExpr(op, head, toJavaOption(expr))
               case SSubscriptingMI(_,op,exprs,sargs) =>
-                ExprFactory.makeSubscriptExpr(span, head,
+                EF.makeSubscriptExpr(span, head,
                                               toJavaList(exprs), some(op),
                                               toJavaList(sargs))
               case _ =>
@@ -344,7 +344,7 @@ trait Operators { self: STypeChecker with Common =>
             }
             // Otherwise, make a new MathPrimary that is one element shorter,
             // and recur.
-            val fn = ExprFactory.make_RewriteFnApp(front,
+            val fn = EF.make_RewriteFnApp(front,
                                                    second.asInstanceOf[ExprMI].getExpr)
             checkExpr(SMathPrimary(info, multi, infix, fn, remained))
           // THE FRONT ITEM WAS NOT A FN FOLLOWED BY AN EXPR, REASSOCIATE REST
@@ -355,19 +355,19 @@ trait Operators { self: STypeChecker with Common =>
             val newTail = tail.map( (e:MathItem) =>
                                     if ( ! isExprMI(e) ) {
                                       syntaxError(e, "An expression is expected.")
-                                      ExprFactory.makeVoidLiteralExpr(span)
+                                      EF.makeVoidLiteralExpr(span)
                                     } else e.asInstanceOf[ExprMI].getExpr )
             // Treat the sequence that remains as a multifix application of
             // the juxtaposition operator.
             // The rules for multifix operators then apply.
             val multi_op_expr =
               STypeCheckerFactory.makeTryChecker(this).
-                tryCheckExpr(ExprFactory.makeOpExpr(span,
+                tryCheckExpr(EF.makeOpExpr(span,
                                                     multi,
                                                     toJavaList(head::newTail)))
             multi_op_expr.getOrElse {
               newTail.foldLeft(head) { (r:Expr, e:Expr) =>
-                ExprFactory.makeOpExpr(NodeUtil.spanTwo(r, e), infix, r, e)
+                EF.makeOpExpr(NU.spanTwo(r, e), infix, r, e)
               }
             }
           }
@@ -391,7 +391,7 @@ trait Operators { self: STypeChecker with Common =>
         val (prev, result) = prevAndResult
         val next = nextLink.getExpr()
         val op = nextLink.getOp()
-        val newExpr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(prev, next),
+        val newExpr = EF.makeOpExpr(NU.spanTwo(prev, next),
                                              op,
                                              prev,
                                              next)
@@ -413,13 +413,79 @@ trait Operators { self: STypeChecker with Common =>
       if (!conjuncts.forall(checkBoolean)) return expr
 
       // Reduce the OpExprs with an AND operation.
-
-
       SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), checkExpr(first),
                  links.map(t => check(t).asInstanceOf[Link]))
     }
+//
+//    // A singleton ordinary assignment. e.g. x := e
+//    case SAssignment(SExprInfo(span, paren, _), lhs :: Nil, None, rhs, _) => {
+//
+//      null
+//    }
+//
+//    // A singleton compound assignment. e.g. x += e
+//    case SAssignment(info @ SExprInfo(span, paren, _), lhs :: Nil, Some(op), rhs, _) => {
+//      // 1. Desugar x += y into x := x + y
+//      // 2. Check that desguaring using the other case
+//      // 3. Get out the op ref and lhs
+//      // 4. Stuff them together into an Assignment
+//
+//      val opExpr = EF.makeOpExpr(span, op, lhs, rhs)
+//      val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, None))
+//      if (getType(checkedAssn).isNone) return expr
+//
+//      // Pull out the checked LHS and checked OpExpr.
+//      val SAssignment(_, checkedLhs :: Nil, _, checkedOpExpr) = checkedAssn
+//
+//      // The checked OpExpr will have two args: the checked LHS and the checked RHS.
+//      val SOpExpr(_, checkedOp, _ :: List(checkedRhs)) = checkedOpExpr
+//
+//      SAssignment(SExprInfo(span, paren, Types.VOID),
+//                  List(checkedLhs),
+//                  Some(op),
+//                  checkedRhs,
+//                  Some(List(checkedOp)))
+//    }
+//
+//    case SAssignment(info @ SExprInfo(span, paren, _), lhses, maybeOp, rhs, _) => {
+//      val checkedRhs = checkExpr(rhs)
+//      val rhsType = getType(checkedRhs).getOrElse(return expr)
+//      if (!enoughElementsForType(lhses, rhsType)) return expr
+//
+//      // Create dummy expressions for each constituent type on the RHS.
+//      val tempRhses = typeIterator(rhsType).toList().map(typ =>
+//        SDummyExpr(SExprInfo(NU.getSpan(typ), false, Some(typ))))
+//
+//      // Create a list of singleton assignments.
+//      val checkedAssignments = List.map2(lhses, tempRhses) { (lhs, tempRhs) =>
+//        checkExpr(SAssignment(info, List(lhs), maybeOp, tempRhs, None))
+//      }
+//      if (!haveTypes(checkedAssignments)) return expr
+//
+//      // Pull out the checked LHS and checked OpRef for each assignment.
+//      val (checkedLhses, maybeOps) = maybeOp match {
+//        case Some(_) =>
+//          val (lhses, ops) = List.unzip(checkedAssignments.map {
+//            case SAssignment(_, lhs :: Nil, _, _, Some(op :: Nil)) => (lhs, op)
+//          })
+//          (lhses, Some(ops))
+//
+//        case None =>
+//          val lhses = checkedAssignments.map {
+//            case SAssignment(_, lhs :: Nil, _, _, None) => lhs
+//          }
+//          (lhses, None)
+//      }
+//
+//      // Put the assignment back together.
+//      SAssignment(SExprInfo(span, paren, Types.VOID),
+//                  checkedLhses,
+//                  maybeOp,
+//                  checkedRhs,
+//                  maybeOps)
+//    }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
   }
-  
+
 }
