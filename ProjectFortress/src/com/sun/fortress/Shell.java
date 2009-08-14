@@ -25,7 +25,6 @@ import java.io.*;
 import java.util.*;
 
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.compiler.*;
@@ -867,21 +866,21 @@ public final class Shell {
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
         APIName name = null;
         try {
-            bcr = specificRepository( path );
+            bcr = specificRepository(path);
             name = cuName(file);
 
-            if ( isApi(file) ) {
+            if (isApi(file)) {
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
                     ASTIO.writeJavaAst(a, // defaultRepository.getApi(name).ast(),
                             out.unwrap());
             } else if (isComponent(file)) {
                 Component c;
-                if ( link )
+                if (link)
                     c = (Component) bcr.getLinkedComponent(name).ast();
                 else
                     c = (Component) bcr.getComponent(name).ast();
-                if ( out.isSome() ) {
+                if (out.isSome()) {
                     ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
                                        out.unwrap());
                     bcr.deleteComponent( name, true );
