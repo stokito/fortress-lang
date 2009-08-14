@@ -422,7 +422,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
-        return collectComponentImportsExports(nodeToComponent(node));
+        return collectComponentDependencies(nodeToComponent(node));
     }
 
     private boolean inApiList(APIName name, List<ApiGraphNode> nodes) {
@@ -942,7 +942,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private List<APIName> collectComponentExports(Component comp) {
         List<APIName> all = new ArrayList<APIName>();
 
-        // System.err.println("collectComponentImportsExports for " + comp);
+        // System.err.println("collectComponentDependencies for " + comp);
         // System.err.println("with exports " + comp.getExports());
         for (APIName api : comp.getExports()) {
             // System.err.println("Collecting dependency " + api);
@@ -951,9 +951,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return all;
     }
 
-    private List<APIName> collectComponentImportsExports(Component comp) {
+    private List<APIName> collectComponentComprises(Component comp) {
+        List<APIName> all = new ArrayList<APIName>();
+        for (APIName constituent : comp.getComprises()) {
+            all.add(constituent);
+        }
+        return all;
+    }
+
+    private List<APIName> collectComponentDependencies(Component comp) {
         List<APIName> all = collectComponentImports(comp);
         all.addAll(collectComponentExports(comp));
+        all.addAll(collectComponentComprises(comp));
 
         return all;
     }
