@@ -21,5 +21,5 @@ package com.sun.fortress.compiler.runtimeValues;
 // likely to change
 
 public abstract class AbstractArrow_ZZ32_V extends FValue implements Arrow_ZZ32_V {
-    public abstract void apply(FZZ32 arg);
+    public abstract FVoid apply(FZZ32 arg);
 }

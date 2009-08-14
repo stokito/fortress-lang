@@ -261,6 +261,7 @@ public class NamingCzar {
         desc += ")" + result;
         return desc;
     }
+
     public static String makeArrayDesc(String element) {
         return "[" + element;
     }
@@ -514,6 +515,10 @@ public class NamingCzar {
     public static String gensymTaskName(String packageAndClassName) {
         return packageAndClassName + "$" + "task" + taskCount++;
     }
+    private static int implementationCount = 0;
+    public static String gensymArrowClassName(String desc) {
+        return desc + "$" + "implementation" + implementationCount++;
+    }
 
     public static String makeInnerClassName(Id id) {
         return makeInnerClassName(jvmClassForSymbol(id), id.getText());
@@ -614,15 +619,29 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true);
     }
 
+    public static String applyMethodName() { return "apply";}
+
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
         if (transitionArrowNaming) {
-        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain(), ifNone) + "_" + 
-
-            makeArrowDescriptor(t.getRange(), ifNone);
+            return "com/sun/fortress/compiler/runtimeValues/AbstractArrow_" + 
+                makeArrowDescriptor(t.getDomain(), ifNone) + "_" + 
+                makeArrowDescriptor(t.getRange(), ifNone);
         } else {
-        return "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
-            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
+            return "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
+                makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
         }
+    }
+
+    public static String makeArrowDescriptor(List<com.sun.fortress.nodes.Param> params, 
+                                             com.sun.fortress.nodes.Type rt,
+                                             APIName ifNone) {
+        String result = "com/sun/fortress/compiler/runtimeValues/AbstractArrow_";
+        for (Param p : params) {
+            result = result + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + "_";
+        }
+
+        result = result + makeArrowDescriptor(rt, ifNone);
+        return result;
     }
 
     public static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
@@ -635,15 +654,17 @@ public class NamingCzar {
         String tag = "";
         if (transitionArrowNaming)
             return id.getText();
-        if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
-            tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
-        } else if (only.fj.definesApi(apiName)) {
-            tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
-        } else {
-            tag = Naming.NORMAL_TAG; // smiley face == normal case.
-        }
+        else {
+            if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
+                tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
+            } else if (only.fj.definesApi(apiName)) {
+                tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
+            } else {
+                tag = Naming.NORMAL_TAG; // smiley face == normal case.
+            }
             
-        return tag + apiName + "." + id.getText();
+            return tag + apiName + "." + id.getText();
+        }
     }
 
     public static String makeArrowDescriptor(TupleType t, final APIName ifNone) {

@@ -121,6 +121,11 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         return localVariableCount++;
     }
 
+    // I need to reserve slot 0.  
+    public int reserveSlot0() {
+        return createCompilerLocal("this", null);
+    }
+
     public void disposeCompilerLocal(int localId) {
         if (localId >= localVariableCount) {
             throw new CompilerError("Trying to dispose of local " + localId +

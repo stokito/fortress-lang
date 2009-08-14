@@ -49,6 +49,10 @@ public abstract class VarCodeGen {
         this.sizeOnStack = 1;
     }
 
+    public String toString() {
+        return "VarCodeGen:" + name + "," + fortressType;
+    }
+
     /** Generate code to push the value of this variable onto the Java stack.
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);

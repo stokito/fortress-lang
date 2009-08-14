@@ -21,5 +21,5 @@ package com.sun.fortress.compiler.runtimeValues;
 // likely to change
 
 public interface Arrow_ZZ32_V  {
-    public void apply(FZZ32 arg);
+    public FVoid apply(FZZ32 arg);
 }
