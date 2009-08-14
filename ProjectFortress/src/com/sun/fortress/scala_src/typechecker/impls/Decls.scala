@@ -208,46 +208,6 @@ trait Decls { self: STypeChecker with Common =>
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
-//    case v@SVarDecl(info, lhs, body) => body match {
-//      case Some(init) =>
-//        val ty = lhs match {
-//          case l::Nil => // We have a single variable binding, not a tuple binding
-//            toOption(l.getIdType).asInstanceOf[Option[Type]] match {
-//              case Some(typ) => typ
-//              case _ => // Eventually, this case will involve type inference
-//                signal(v, errorMsg("All inferrred types should at least be inference ",
-//                                   "variables by typechecking: ", v))
-//                NF.makeVoidType(NU.getSpan(l))
-//            }
-//          case _ =>
-//            def handleBinding(binding: LValue) =
-//              toOption(binding.getIdType).asInstanceOf[Option[Type]] match {
-//                case Some(typ) => typ
-//                case _ =>
-//                  signal(binding, errorMsg("Missing type for ", binding, "."))
-//                  NF.makeVoidType(NU.getSpan(binding))
-//              }
-//            NF.makeTupleType(NU.getSpan(v),
-//                                      toJavaList(lhs.map(handleBinding)))
-//        }
-//        val newInit = checkExpr(init, ty)
-//        getType(newInit) match {
-//          case Some(typ) =>
-//            val left = lhs match {
-//              case hd::Nil => hd
-//              case _ => lhs
-//            }
-//            isSubtype(typ, ty, v,
-//                         errorMsg("Attempt to define variable ", left,
-//                                  " with an expression of type ", normalize(typ)))
-//          case _ =>
-//            signal(v, errorMsg("The right-hand side of ", v, " could not be typed."))
-//        }
-//        SVarDecl(info, lhs, Some(newInit))
-//      case _ => v
-//    }
-
-
     case v@SVarDecl(info, lhs, rhsOpt) => {
       val rhs = rhsOpt.getOrElse(return node)
       makeLhsType(lhs) match {
@@ -290,65 +250,68 @@ trait Decls { self: STypeChecker with Common =>
 
   def checkExprDecls(expr: Expr, expected: Option[Type]): Expr = expr match {
 
-    case d@SLocalVarDecl(SExprInfo(span,paren,_), body, lhs, rhs) => {
+    case d@SLocalVarDecl(SExprInfo(span, paren,_), body, lhses, maybeRhs) => {
       // Gather declared types of LHS as a big tuple type.
-      val declaredTypes = lhs.flatMap(lv => toOption(lv.getIdType))
+      val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType))
       val declaredType =
-        if (declaredTypes.length == lhs.length)
+        if (declaredTypes.length == lhses.length)
           Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))
         else
           None
       
       // Type check the RHS, expecting the declared type.
-      val newRhs = rhs.map(checkExpr(_, declaredType))
-      val newLhs = newRhs match {
-        case Some(e) => getType(e) match {
-          case Some(typ@STupleType(_,elts,_,_)) =>
-            if ( lhs.size != elts.size ) {
-              signal(expr, errorMsg("The size of right-hand side, ", typ,
-                                    ", does not match with the size of left-hand side."))
-              return expr
-            }
-            lhs.zip(elts).map( (p:(LValue,Type)) => p._1 match {
-                               case SLValue(i,n,m,None,mt) =>
-                                 SLValue(i,n,m,Some(p._2),mt)
-                               case SLValue(i,n,m,Some(t),mt) =>
-                                 isSubtype(p._2, t, p._1,
-                                           errorMsg("Right-hand side, ", p._2,
-                                                    ", must be a subtype of left-hand side, ",
-                                                    t, "."))
-                                 p._1 } )
-          case Some(typ) => lhs match {
-            case List(SLValue(i,name,mods,Some(idType),mutable)) =>
-              isSubtype(typ, idType, expr,
-                        errorMsg("Right-hand side, ", typ,
-                                 ", must be a subtype of left-hand side, ", idType, "."))
-              lhs
-            case List(SLValue(i,name,mods,None,mutable)) =>
-              List(SLValue(i,name,mods,Some(typ),mutable))
+      val newMaybeRhs = maybeRhs.map(checkExpr(_, declaredType))
+
+      // Create a new LHS based on the checked RHS.
+      val newLhses = newMaybeRhs match {
+        case Some(newRhs) =>
+          val rhsType = getType(newRhs).getOrElse(return expr)
+
+          // Get all the LHSes and their corresponding RHS type.
+          val lhsAndRhsTypes = lhses match {
+            case lhs :: Nil => List((lhs, rhsType))
             case _ =>
-              signal(expr, errorMsg("Right-hand side, ", typ,
-                                    ", is not a tuple type but left-hand side ",
-                                    "declares multiple variables."))
-              return expr
+              if (!enoughElementsForType(lhses, rhsType)) {
+                signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                return expr
+              }
+              zipWithDomain(lhses, rhsType)
           }
-          case _ => return expr
-        }
-        case _ => lhs
+
+          // Map over the LHS/RHS pairs to create the new list of LHSes.
+          lhsAndRhsTypes.map {
+            // No type on LHS -- just insert it.
+            case (SLValue(info, name, mods, None, mut), rhsType) =>
+              SLValue(info, name, mods, Some(rhsType), mut)
+
+            // Type on LHS -- check that RHS <: LHS.
+            case (lhs @ SLValue(info, name, mods, Some(lhsType), mut), rhsType) =>
+              isSubtype(rhsType,
+                        lhsType,
+                        lhs,
+                        "Right-hand side, %s, must be a subtype of left-hand side, %s.".format(rhsType, lhsType))
+              lhs
+          }
+
+        // If there's no RHS, just use the existing lhs.
+        case None => lhses
       }
 
       // Extend typechecker with new bindings from the RHS types
-      val newChecker = this.extend(newLhs)
-      // A LocalVarDecl is like a let. It has a body, and its type is the type of the body
+      val newChecker = this.extend(newLhses)
+
+      // Check the body exprs and make sure all but the last have type ().
       val newBody = body.map(newChecker.checkExpr)
-      if (!haveTypes(newBody)) { return expr }
-      newBody.dropRight(1).foreach(e => isSubtype(getType(e).get, Types.VOID, e,
-                                                  errorString("Non-last expression in a block")))
+      if (!haveTypes(newBody)) return expr
+      newBody.dropRight(1).foreach(e =>
+        isSubtype(getType(e).get, Types.VOID, e, errorString("Non-last expression in a block")))
+
+      // The type of the body is either () or the type of the last element.
       val newType = body.size match {
         case 0 => Some(Types.VOID)
         case _ => getType(newBody.last)
       }
-      SLocalVarDecl(SExprInfo(span,paren,newType), newBody, newLhs, newRhs)
+      SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, newMaybeRhs)
     }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))

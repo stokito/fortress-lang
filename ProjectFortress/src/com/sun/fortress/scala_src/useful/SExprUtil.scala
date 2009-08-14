@@ -23,6 +23,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import nodes_util.{Span, NodeUtil => NU}
 
 object SExprUtil {
 
@@ -124,4 +125,10 @@ object SExprUtil {
       case _ => None
     }
 
+  /** Make a dummy expression for the given type. */
+  def makeDummyFor(typ: Type, span: Span): Expr =
+    SDummyExpr(SExprInfo(span, false, Some(typ)))
+
+  /** Make a dummy expression that copies the given expression info. */
+  def makeDummyFor(expr: Expr): Expr = SDummyExpr(expr.getInfo)
 }

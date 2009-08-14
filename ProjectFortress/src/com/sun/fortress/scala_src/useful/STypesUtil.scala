@@ -627,9 +627,10 @@ object STypesUtil {
    * Determine if there are enough of the given elements to cover all
    * constituent types of the given type.
    */
-  def enoughElementsForType[T](elts: List[T], typ: Type): Boolean = typ match {
-    case STupleType(_, typs, None, _) => typs.size == elts.size
-    case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size
-    case _ => elts.size == 1
-  }
+  def enoughElementsForType[T](elts: List[T], typ: Type): Boolean =
+    elts.size == 1 || (typ match {
+      case STupleType(_, typs, None, _) => typs.size == elts.size
+      case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size
+      case _ => false
+    })
 }
