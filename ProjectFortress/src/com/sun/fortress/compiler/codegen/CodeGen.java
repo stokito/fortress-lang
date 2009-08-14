@@ -365,7 +365,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // conservative answer is "no".
             methodName = Naming.mangleIdentifier(methodName);
             method_and_signature = new Pair<String, String>(methodName, NamingCzar.jvmMethodDesc(arrow, component.getName()));
-            
+
         } else if (arrow instanceof IntersectionType) {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
@@ -731,8 +731,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // TODO different collision rules for top-level and for methods.
             String mname = nonCollidingSingleName(name, sig);
 
-            cg.mv = cw.visitMethod(modifiers, mname, sig,
-                    null, null);
+            cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
             cg.mv.visitCode();
 
             // Now inside method body.  Generate code for the method body.
@@ -756,6 +755,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 paramsGen.add(v);
             }
             // Compile the body in the parameter environment
+
             body.unwrap().accept(cg);
             // Clean up the parameters
             for (int i = paramsGen.size(); i > 0; ) {
@@ -791,6 +791,67 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
         }
     }
+
+    public void forFnExpr(FnExpr x) {
+        debug("forFnExpr " + x);
+        FnHeader header = x.getHeader();
+        Expr body = x.getBody();
+        List<Param> params = header.getParams();
+        Option<Type> returnType = header.getReturnType();
+        if (!returnType.isSome())
+            throw new CompilerError(NodeUtil.getSpan(x), "No return type");
+        Type rt = returnType.unwrap();
+
+
+        //      Create the Class
+        String desc = NamingCzar.only.makeArrowDescriptor(params, rt, thisApi());
+        CodeGen cg = new CodeGen(this);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        String className = NamingCzar.only.gensymArrowClassName(desc); 
+
+        debug("forFnExpr className = " + className + " desc = " + desc);
+        cg.cw.visitSource(className, null);
+        List<VarCodeGen> freeVars = getFreeVars(body);
+        cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
+        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, 
+                    className, null, desc, null);
+
+        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", NamingCzar.voidToVoid, null, null);
+        cg.mv.visitCode();
+
+        cg.mv.visitVarInsn(Opcodes.ALOAD, 0);
+        cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, desc,
+                              "<init>", NamingCzar.voidToVoid);
+        cg.mv.visitInsn(Opcodes.RETURN);
+        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        cg.mv.visitEnd();
+
+        String applyDesc = NamingCzar.jvmSignatureFor(params, NamingCzar.jvmTypeDesc(rt, thisApi()),
+                                                      thisApi());
+
+        // Generate the apply method
+        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC , NamingCzar.applyMethodName() , applyDesc, null, null);
+        cg.mv.visitCode();
+
+        // Since we call this virtually we need a slot for the arrow implementation this object.
+        cg.mv.reserveSlot0();
+        for (Param p : params) {
+            cg.addParam(p);
+        }
+
+        body.accept(cg);
+
+        cg.mv.visitInsn(Opcodes.ARETURN);
+        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        cg.mv.visitEnd();
+        cg.dumpClass(className);
+
+        this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
+        mv.visitTypeInsn(Opcodes.NEW, className);
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", NamingCzar.voidToVoid);
+    }        
+        
 
     /**
      * Creates a name that will not collide with any overloaded functions
@@ -858,9 +919,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
      * @param x
      */
     public void forFunctionalRef(FunctionalRef x) {
+        debug("forFunctionalRef " + x);
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
+
+        debug("forFunctionalRef " + x + " arrow = " + arrow);
 
         Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
 
@@ -1508,7 +1572,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
             sayWhat(v,"varRef with static args!  That requires non-local VarRefs");
         }
         VarCodeGen vcg = getLocalVar(v.getVarId());
-        vcg.pushValue(mv);
+        debug("forVarRef ", v , " Value = " + vcg);
+            vcg.pushValue(mv);
     }
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
@@ -1596,19 +1661,43 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 
+    private void generateCall(VarRef v) {
+        VarCodeGen vcg = getLocalVar(v.getVarId());
+        if (!(vcg.fortressType instanceof ArrowType))
+            throw new CompilerError(NodeUtil.getSpan(v), 
+                                    "Only know how to generate calls to lambda vars");
+
+        ArrowType at = (ArrowType) vcg.fortressType;
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+                           NamingCzar.only.makeArrowDescriptor(vcg.fortressType, thisApi()),
+                           NamingCzar.only.applyMethodName(),
+                           NamingCzar.only.jvmSignatureFor(at.getDomain(),
+                                                           at.getRange(),
+                                                           thisApi()));
+    }
+
     public void for_RewriteFnApp(_RewriteFnApp x) {
         debug("for_RewriteFnApp ", x,
-                     " args = ", x.getArgument(), " function = ", x.getFunction());
+                     " args = ", x.getArgument(), " function = ", x.getFunction() +
+              " function class = " + x.getFunction());
         // This is a little weird.  If a function takes no arguments the parser gives me a void literal expr
         // however I don't want to be putting a void literal on the stack because it gets in the way.
         int savedParamCount = paramCount;
         boolean savedFnRefIsApply = fnRefIsApply;
         try {
             Expr arg = x.getArgument();
-            fnRefIsApply = false;
-            evalArg(arg);
-            fnRefIsApply = true;
-            x.getFunction().accept(this);
+            if (x.getFunction() instanceof VarRef) {
+                x.getFunction().accept(this); // Puts the VarRef function on the stack.
+                fnRefIsApply = false;
+                evalArg(arg);
+                fnRefIsApply = true;
+                generateCall((VarRef)x.getFunction());
+            } else {
+                fnRefIsApply = false;
+                evalArg(arg);
+                fnRefIsApply = true;
+                x.getFunction().accept(this);
+            }
         } finally {
             paramCount = savedParamCount;
             fnRefIsApply = savedFnRefIsApply;
