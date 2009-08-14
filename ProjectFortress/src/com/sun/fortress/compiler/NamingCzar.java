@@ -17,7 +17,6 @@
 
 package com.sun.fortress.compiler;
 
-import java.lang.StringBuffer;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +53,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
@@ -307,7 +307,7 @@ public class NamingCzar {
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
     }
 
-    static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
+    static final String runtimeValues = com.sun.fortress.runtimeSystem.Naming.runtimeValues;
 
     static final String FValueType = runtimeValues + "FValue";
     static final String FValueDesc = "L" + FValueType + ";";
@@ -340,6 +340,10 @@ public class NamingCzar {
     }
 
     static {
+        /*
+         * This code is duplicated, mostly, in runtime Naming.java,
+         * except that it deals only in strings.
+         */
         bl(fortLib, "Boolean", "FBoolean");
         bl(fortLib, "Char", "FChar");
         bl(fortLib, "RR32", "FRR32");
@@ -500,186 +504,7 @@ public class NamingCzar {
         return parent;
     }
 
-    /**
-     * (Symbolic Freedom) Dangerous characters should not appear in JVM identifiers
-     */
-    private static final String SF_DANGEROUS = "/.;$<>][:";
-    /**
-     * (Symbolic Freedom) Escape characters have a translation if they appear following
-     * a backslash.
-     * Note omitted special case -- leading \= is empty string.
-     * Note note \ by itself is not escaped unless it is followed by
-     * one of the escape characters.
-     */
-    private static final String    SF_ESCAPES = "|,?%^_}{!-";
-    /**
-     * (Symbolic Freedom) Translations of escapes, in corresponding order.
-     */
-    private static final String SF_TRANSLATES = "/.;$<>][:\\";
-
-    private static final String SF_FIRST_ESCAPES = SF_ESCAPES + "=";
-
-    public static boolean likelyMangled(String s) {
-        if (s.length() < 2) return false;
-        if (s.charAt(0) != '\\') return false;
-        // if (-1 == NF_FIRST_ESCAPES.indexOf(s.charAt(1))) return false;
-        return true;
-    }
-    
-    public static boolean isMangled(String s) {
-        int l = s.length();
-        if (l < 2) return false;
-        if (s.charAt(0) != '\\') return false;
-        if (s.charAt(1) == '=') return true;
-        for (int i = 0; i < l-1; i++) {
-            char ch = s.charAt(i);
-            if (ch == '\\' && -1 != SF_ESCAPES.indexOf(s.charAt(i+1)))
-                return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Concatenates s1 and s2, preserving valid-mangling property.
-     * 
-     * @param s1 Validly mangled ("naming freedom") JVM identifier
-     * @param s2 Validly mangled ("naming freedom") JVM identifier
-     * @return concatenation of s1 and s2, validly mangled if s1 and s2 were validly mangled.
-     */
-    public static String catMangled(String s1, String s2) {
-        if (s1.length() == 0) return s2;
-        if (s2.length() == 0) return s1;
-        
-        boolean ms1 = likelyMangled(s1);
-        boolean ms2 = likelyMangled(s2);
-        
-        if (ms1) {
-            if (ms2) {
-                // ms2 begins with \, hence no accidental escapes
-                if (s2.startsWith("\\=")) {
-                    // remove embedded \=
-                    return "\\=" + s1 + s2.substring(2);
-                } else {
-                  return s1 + s2;
-                }
-            } else {
-                return catMangledCheckingJoint(s1, s2);
-            }
-        } else if (ms2) {
-            // If s2 is truly mangled, then prepend \= to concatenation.
-                if (s2.startsWith("\\=")) {
-                    // definitely mangled, but embedded \=
-                    return "\\=" + s1 + s2.substring(2);
-                } else if (isMangled(s2)) {
-                    // mangled for some other reason.
-                    return "\\=" + s1 + s2;
-                } else {
-                    return s1 + s2;
-                }
-        } else {
-            return catMangledCheckingJoint(s1, s2);
-        }
-    }
-
-    /**
-     * @param s1
-     * @param s2
-     * @return
-     */
-    private static String catMangledCheckingJoint(String s1, String s2) {
-        if (s1.endsWith("\\") &&
-                -1 != (s1.length() == 1 ? SF_FIRST_ESCAPES : SF_ESCAPES).indexOf(s2.charAt(0))) {
-            // must escape trailing \
-            return s1 + "-" + s2;
-        } else {
-            return s1 + s2;
-        }
-    }
-    
-    public static String catMangled(String s1, String s2, String s3) {
-        return catMangled(catMangled(s1,s2), s3);
-    }
-    
-    /**
-     * Convert a string identifier into something that will be legal in a
-     * JVM.
-     *
-     * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
-     * Dangerous characters are the union of all characters forbidden
-     * or otherwise restricted by the JVM specification, plus their mates,
-     * if they are brackets.
-
-     * @param identifier
-     * @return
-     */
-    public static String mangleIdentifier(String identifier) {
-
-        /* This is not quite right; accidental escapes are those
-         * where the backslash is followed by one of |,?%^_{}!
-         */
-        
-        // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-        StringBuffer mangledStringBuffer = null;
-        String mangledString = identifier;
-        
-        int l = identifier.length();
-        
-        for (int j = 0; j < l-1; j++) {
-            char ch = identifier.charAt(j);
-            if (ch == '\\') {
-                ch = identifier.charAt(j+1);
-                if (-1 != SF_ESCAPES.indexOf(ch) || j == 0 && ch == '=') {
-                    // found one, do the translation.
-                    mangledStringBuffer = new StringBuffer(mangledString.substring(0, j+1));
-                    mangledStringBuffer.append('-');
-                    mangledStringBuffer.append(ch);
-                    for (int i = j+2; i < l-1; i++) {
-                        ch = identifier.charAt(i);
-                        mangledStringBuffer.append(ch);
-                        if (ch == '\\') {
-                            ch = identifier.charAt(i+1);
-                            if (-1 != SF_ESCAPES.indexOf(ch)) {
-                                // found one, do the translation.
-                                mangledStringBuffer.append('-');
-                            }
-                        }
-                        
-                    }
-                    mangledStringBuffer.append(identifier.charAt(l-1));
-                    mangledString = mangledStringBuffer.toString();
-                    break;
-                }
-            }
-        }
-        
-//        if (mangledString.startsWith("\\=")) {
-//            mangledString = "\\-=" + mangledString.substring(2);
-//        }
-
-        // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
-
-        mangledString = mangledString.replaceAll("/", "\\\\|");
-        mangledString = mangledString.replaceAll("\\.", "\\\\,");
-        mangledString = mangledString.replaceAll(";", "\\\\?");
-        mangledString = mangledString.replaceAll("\\$", "\\\\%");
-        mangledString = mangledString.replaceAll("<", "\\\\^");
-        mangledString = mangledString.replaceAll(">", "\\\\_");
-        mangledString = mangledString.replaceAll("\\[", "\\\\{");
-        mangledString = mangledString.replaceAll("\\]", "\\\\}");
-        mangledString = mangledString.replaceAll(":", "\\\\!");
-
-        // Actually, this is NOT ALLOWED.
-//        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
-//        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
-
-        // 3. If the first two steps introduced any change, <em>and</em> if the
-        // string does not already begin with a backslash, prepend a null prefix (\=)
-        if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {
-            mangledString = "\\=" + mangledString;
-        }
-        return mangledString;
-    }
-
+ 
     public String mangleAwayFromOverload(String mname) {
             mname += "$SINGLE";
         return mname;
@@ -789,26 +614,37 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true);
     }
 
-    public static String makeArrowDescriptor(ArrowType t) {
+    public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
         if (transitionArrowNaming) {
-        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain()) + "_" + 
+        return "com/sun/fortress/compiler/runtimeValues/Arrow_" + makeArrowDescriptor(t.getDomain(), ifNone) + "_" + 
 
-            makeArrowDescriptor(t.getRange());
+            makeArrowDescriptor(t.getRange(), ifNone);
         } else {
-        return "Arrow\u27e6" + makeArrowDescriptor(t.getDomain()) + "," +
-            makeArrowDescriptor(t.getRange()) + "\u27e7";
+        return "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
+            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
         }
     }
 
-    public static String makeArrowDescriptor(AnyType t) {
+    public static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
         return "Object_";
     }
 
-    public static String makeArrowDescriptor(TraitType t) {
-        return t.getName().getText();
+    public static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
+        Id id = t.getName();
+        APIName apiName = id.getApiName().unwrap(ifNone);
+        String tag = "";
+        if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
+            tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
+        } else if (only.fj.definesApi(apiName)) {
+            tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
+        } else {
+            tag = Naming.NORMAL_TAG; // smiley face == normal case.
+        }
+            
+        return tag + apiName + "." + id.getText();
     }
 
-    public static String makeArrowDescriptor(TupleType t) {
+    public static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) ) return "V";
         if (t.getVarargs().isSome())
             throw new CompilerError(NodeUtil.getSpan(t),
@@ -818,16 +654,16 @@ public class NamingCzar {
                                     "Can't compile Keyword args yet");
         String res = "";
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            res += makeArrowDescriptor(ty) + (transitionArrowNaming ? "_" : ',');
+            res += makeArrowDescriptor(ty, ifNone) + (transitionArrowNaming ? "_" : ';');
         }
         return res;
     }
 
-    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t) {
-        if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t);
-        else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t);
-        else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t);
-        else if (t instanceof ArrowType) return makeArrowDescriptor((ArrowType) t);
+    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
+        if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t, ifNone);
+        else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
+        else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
+        else if (t instanceof ArrowType) return makeArrowDescriptor((ArrowType) t, ifNone);
         else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }
@@ -849,7 +685,9 @@ public class NamingCzar {
                                         "emitDesc of type failed");
             }
             public String forArrowType(ArrowType t) {
-                String res = makeArrowDescriptor(t);
+                String res = makeArrowDescriptor(t, ifNone);
+                // not 100% sure this is right.
+                res = Naming.mangleIdentifier(res);
                 if (withLSemi) res = "L" + res + ";";
                 return res;
             }
@@ -869,6 +707,9 @@ public class NamingCzar {
                 return descFortressAny;
             }
             public String forTraitType(TraitType t) {
+                // I think this is wrong!  What about API names?
+                // What about foreign-implemented types?
+                // - DRC 2009-08-10
                 Id id = t.getName();
                 String name = id.getText();
                 String result = (withLSemi ? specialFortressDescriptors : specialFortressTypes).get(t);

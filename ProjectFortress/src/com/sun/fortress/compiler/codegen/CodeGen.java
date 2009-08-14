@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
 import com.sun.fortress.useful.BASet;
@@ -362,13 +363,13 @@ public class CodeGen extends NodeAbstractVisitor_void {
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
             // conservative answer is "no".
-            methodName = NamingCzar.mangleIdentifier(methodName);
+            methodName = Naming.mangleIdentifier(methodName);
             method_and_signature = new Pair<String, String>(methodName, NamingCzar.jvmMethodDesc(arrow, component.getName()));
             
         } else if (arrow instanceof IntersectionType) {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
-                    OverloadSet.oMangle(methodName) : NamingCzar.mangleIdentifier(methodName);
+                    OverloadSet.oMangle(methodName) : Naming.mangleIdentifier(methodName);
                     
             method_and_signature = new Pair<String, String>(methodName,
                     OverloadSet.getSignature(it, paramCount, ta));
@@ -801,7 +802,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
      */
     private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig) {
         String nameString = ((IdOrOp)name).getText();
-        String mname = NamingCzar.mangleIdentifier(nameString);
+        String mname = Naming.mangleIdentifier(nameString);
         if (overloadedNamesAndSigs.contains(mname+sig)) {
             mname = NamingCzar.only.mangleAwayFromOverload(mname);
         }
@@ -830,15 +831,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
                  * Classloader will see this, and it will trigger demangling of the name, to figure
                  * out the contents of the class to be loaded.
                  */
-                String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
-                
+                String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
+                String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
                 String PCN = pc_and_m.getA() + "/" +
-                  NamingCzar.catMangled(
+                  Naming.catMangled(
                     method_and_signature.getA() ,
-                    "\u2709" , // "ENVELOPE"
-                    NamingCzar.mangleIdentifier(method_and_signature.getB()));
-                
-                mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_type);
+                    Naming.ENVELOPE , // "ENVELOPE"
+                    arrow_type);
+                /* The suffix will be
+                 * (potentially mangled)
+                 * functionName<ENVELOPE>closureType (which is an arrow)
+                 * 
+                 * must generate code for the class with a method apply, that
+                 * INVOKE_STATICs prefix.functionName .
+                 */
+                mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
 
             } else {
                 sayWhat(x, "Haven't figured out references to local/parameter functions yet");
@@ -1349,7 +1356,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             }
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>", init);
             mv.visitInsn(Opcodes.DUP);
-            int taskVar = mv.createCompilerLocal(NamingCzar.mangleIdentifier(task), "L"+task+";");
+            int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task), "L"+task+";");
             taskVars[i] = taskVar;
             mv.visitVarInsn(Opcodes.ASTORE, taskVar);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
@@ -1431,7 +1438,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         addLineNumberInfo(x);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
-                           NamingCzar.mangleIdentifier(op.getText()),
+                           Naming.mangleIdentifier(op.getText()),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 
@@ -1752,7 +1759,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             debug("about to call visitMethod with", name.getText(),
                   " and desc ", desc);
             mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
-                                NamingCzar.mangleIdentifier(name.getText()), desc, null, null);
+                                Naming.mangleIdentifier(name.getText()), desc, null, null);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
         }

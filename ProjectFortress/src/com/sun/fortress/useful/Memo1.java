@@ -41,6 +41,10 @@ public class Memo1<Index1, Value> implements Factory1<Index1, Value> {
         }
         return result;
     }
+    
+    public boolean known(Index1 probe) {
+        return map.containsKey(probe);
+    }
 
     public synchronized Iterable<Value> values() {
         return map.values();

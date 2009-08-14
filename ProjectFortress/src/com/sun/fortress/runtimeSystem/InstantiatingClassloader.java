@@ -18,15 +18,22 @@ package com.sun.fortress.runtimeSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * This code steals willy-nilly from the Nextgen class loader.
  * 
  * @author dr2chase
  */
-public class InstantiatingClassloader extends ClassLoader {
+public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
 
     public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
             Thread.currentThread().getContextClassLoader());
@@ -101,7 +108,7 @@ public class InstantiatingClassloader extends ClassLoader {
         // separator
         // with '.', to handle differences in package specifications. eallen
         // 10/1/2002
-        name = MainWrapper.sepToDot(name);
+        //name = MainWrapper.sepToDot(name);
         
         /*
          * We want to actually load the class ourselves, if security allows us
@@ -114,9 +121,29 @@ public class InstantiatingClassloader extends ClassLoader {
         } else {
             byte[] classData = null;
             try {
+                if (name.contains(Naming.ENVELOPE)) {
+                   
+                    classData = instantiateClosure(name);
+                } else if (isExpanded(name)) {
+                    String dename = Naming.deMangle(name);
+                    int left = dename.indexOf(Naming.LEFT_OXFORD);
+                    int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
+                    String stem = dename.substring(0,left);
+                    ArrayList<String> parameters = extractStringParameters(
+                            dename, left, right);
+                    if (stem.equals("Arrow")) {
+                        classData = instantiateArrow(name, parameters);
+                    } else if (stem.equals("AbstractArrow")) {
+                        classData = instantiateAbstractArrow(dename, parameters);
+                    } else {
+                        throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
+                    }
+                } else {
+                    classData = getClass(name);
+                }
                 // System.err.println("trying to getClass("+name+")");
-                classData = getClass(name);
                 clazz = defineClass(name, classData, 0, classData.length);
+                System.err.println(clazz.getName());
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();
@@ -151,6 +178,210 @@ public class InstantiatingClassloader extends ClassLoader {
         }
 
         return clazz;
+    }
+
+    private byte[] instantiateClosure(String name) {
+        int last_dot = name.lastIndexOf('.');
+        String api = name.substring(0,last_dot);
+        String suffix = Naming.deMangle(name.substring(last_dot+1));
+        int env_loc = suffix.indexOf(Naming.ENVELOPE);
+        String fn = suffix.substring(0,env_loc);
+        String ft = suffix.substring(env_loc+1);
+        
+        int left = ft.indexOf(Naming.LEFT_OXFORD);
+        int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
+        String stem = ft.substring(0,left);
+        ArrayList<String> parameters = extractStringParameters(
+                ft, left, right);
+        
+        /*
+         * Recipe:
+         * need to emit class "name".
+         * It needs to extend AbstractArrow[\parameters\]
+         * It needs to contain
+         *   RT apply (params_except_last) {
+         *     return api.fn(params_except_last);
+         *   }
+         */
+        
+        
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+        String superClass = Naming.mangleIdentifier("Abstract"+ft);
+        name = name.replaceAll("[.]", "/");
+        String desc = "L" + name + ";";
+        String field_desc = "L" + Naming.mangleIdentifier(ft) + ";";
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
+
+        {
+            fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
+            fv.visitEnd();
+            
+        }
+
+        {
+            mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+            mv.visitCode();
+            mv.visitTypeInsn(NEW, name);
+            mv.visitInsn(DUP);
+            mv.visitMethodInsn(INVOKESPECIAL, name, "<init>", "()V");
+            mv.visitFieldInsn(PUTSTATIC, name, "closure", field_desc);
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(2, 0);
+            mv.visitEnd();
+            }
+        
+        
+        {
+            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(ALOAD, 0);
+            // Supertype is mangle("Abstract"+ft)
+            mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", "()V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
+        {
+            String sig = arrowParamsToJVMsig(parameters);
+            // What if staticClass is compiler builtin?  How do we know?
+            String staticClass = api.replaceAll("[.]", "/");
+            
+            mv = cw.visitMethod(ACC_PUBLIC, "apply", sig, null, null);
+            mv.visitCode();
+            for (int i = 1; i < parameters.size();i++) {
+                String param = parameters.get(i-1);
+                mv.visitVarInsn(ALOAD, i);
+                
+            }
+            mv.visitMethodInsn(INVOKESTATIC, staticClass, fn, sig);
+            // ARETURN if not void...
+            mv.visitInsn(ARETURN);
+            
+            mv.visitMaxs(2, 3);
+            mv.visitEnd();
+        }
+        cw.visitEnd();
+        
+        return cw.toByteArray();
+        
+    }
+
+    /**
+     * @param s
+     * @param leftBracket
+     * @param rightBracket
+     * @return
+     */
+    private ArrayList<String> extractStringParameters(String s,
+            int leftBracket, int rightBracket) {
+        ArrayList<String> parameters = new ArrayList<String>();
+        int depth = 1;
+        int pbegin = leftBracket+1;
+        for (int i = leftBracket+1; i <= rightBracket; i++) {
+            char ch = s.charAt(i);
+            
+            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+                String parameter = s.substring(pbegin,i);
+                parameters.add(parameter);
+                pbegin = i+1;
+            } else {
+                if (ch == Naming.LEFT_OXFORD_CHAR) {
+                    depth++;
+                } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                    depth--;
+                } else {
+
+                }
+            }
+        }
+        return parameters;
+    }
+    
+    private byte[] instantiateArrow(String name, ArrayList<String> parameters) {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+
+        cw.visit(Opcodes.V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
+                name, null, "java/lang/Object", null);
+
+        String sig = arrowParamsToJVMsig(parameters);
+        
+        {
+        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
+                sig,
+                null, null);
+        mv.visitEnd();
+        }
+        cw.visitEnd();
+
+        return cw.toByteArray();
+    }
+
+    private byte[] instantiateAbstractArrow(String dename, ArrayList<String> parameters) {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+        
+        String name = Naming.mangleIdentifier(dename);
+        String if_name =
+            Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
+        
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
+                "java/lang/Object", new String[] { if_name });
+
+        
+        {
+            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
+        
+        String sig = arrowParamsToJVMsig(parameters);
+        
+        {
+        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
+                sig,
+                null, null);
+        mv.visitEnd();
+        }
+        cw.visitEnd();
+
+        return cw.toByteArray();
+    }
+
+    /**
+     * @param parameters
+     * @return
+     */
+    private String arrowParamsToJVMsig(ArrayList<String> parameters) {
+        String sig = "(";
+        
+        int l = parameters.size();
+        
+        for (int i = 0; i < l-1; i++) {
+            sig += Naming.javaDescForTaggedFortressType(parameters.get(i));
+        }
+        sig += ")";
+        // nothing special here, yet, but AbstractArrow will be different.
+        String rt = parameters.get(l-1);
+        sig += Naming.javaDescForTaggedFortressType(rt);
+        return sig;
+    }
+
+    static boolean isExpanded(String className) {
+        int left = className.indexOf(Naming.LEFT_OXFORD);
+        int right = className.indexOf(Naming.RIGHT_OXFORD);
+        return (left != -1 && right != -1 && left < right);
     }
 }
 

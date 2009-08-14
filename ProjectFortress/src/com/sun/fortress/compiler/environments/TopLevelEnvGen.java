@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Pair;
 import edu.rice.cs.plt.collect.PredicateSet;
@@ -315,7 +316,7 @@ public class TopLevelEnvGen {
     private static void nameToField(EnvironmentClass nameSpace, ClassWriter cw, EnvSymbolNames symbolNames, String idString) {
         symbolNames.add(nameSpace, idString);
         idString = idString + nameSpace.namespace();
-        cw.visitField(Opcodes.ACC_PUBLIC, NamingCzar.mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
+        cw.visitField(Opcodes.ACC_PUBLIC, Naming.mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
         return;
     }
 
@@ -411,7 +412,7 @@ public class TopLevelEnvGen {
             }
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = testString + environmentClass.namespace();
-            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, Naming.mangleIdentifier(idString), environmentClass.descriptor());
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitLabel(afterReturn);
         }
@@ -490,7 +491,7 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             String idString = testString + environmentClass.namespace();
-            mv.visitFieldInsn(Opcodes.PUTFIELD, className, NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitFieldInsn(Opcodes.PUTFIELD, className, Naming.mangleIdentifier(idString), environmentClass.descriptor());
             mv.visitInsn(Opcodes.RETURN);
             mv.visitLabel(afterSetValue);
         }
@@ -631,14 +632,14 @@ public class TopLevelEnvGen {
             mv.visitLabel(l7);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = fieldName + eClass.namespace();
-            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), eClass.descriptor());
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, Naming.mangleIdentifier(idString), eClass.descriptor());
             Label l8 = new Label();
             mv.visitJumpInsn(Opcodes.IFNULL, l8);
             Label l9 = new Label();
             mv.visitLabel(l9);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitFieldInsn(Opcodes.GETFIELD, className, NamingCzar.mangleIdentifier(idString), eClass.descriptor());
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, Naming.mangleIdentifier(idString), eClass.descriptor());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, eClass.internalName(), "toString", "()Ljava/lang/String;");
             mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable", "append", "(Ljava/lang/CharSequence;)Ljava/lang/Appendable;");
             mv.visitInsn(Opcodes.POP);
