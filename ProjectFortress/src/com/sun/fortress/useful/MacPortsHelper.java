@@ -24,14 +24,18 @@ import java.util.*;
 
 public class MacPortsHelper {
 
-    static Memo1<String, TopSortItemImpl<String>> table =
-            new Memo1<String, TopSortItemImpl<String>>(new Factory1<String, TopSortItemImpl<String>>() {
+    static  Memo1<String, TopSortItemImpl<String>> aTable() {
+        return 
+        new Memo1<String, TopSortItemImpl<String>>(new Factory1<String, TopSortItemImpl<String>>() {
 
-                public TopSortItemImpl<String> make(String part1) {
-                    return new TopSortItemImpl<String>(part1);
-                }
+            public TopSortItemImpl<String> make(String part1) {
+                return new TopSortItemImpl<String>(part1);
+            }
 
-            });
+        });
+    }
+    
+    static Memo1<String, TopSortItemImpl<String>> table = aTable();
 
     /**
      * @param args
@@ -72,40 +76,85 @@ public class MacPortsHelper {
                 }
             }
 
-            final HashSet<String> preferred = new HashSet<String>();
-
+            // Handle rooted subsets.
             if (args.length > 1) {
+                int argl = 1;
                 String s = args[1];
-                BufferedReader br = Useful.utf8BufferedFileReader(s);
-                String b = br.readLine();
-                while (b != null) {
-                    b = b.trim();
-                    preferred.add(new StringTokenizer(b).nextToken());
-                    b = br.readLine();
+                boolean rebuild = false;
+                if ("-rebuild".equals(s)) {
+                    rebuild = true;
+                    argl = 2;
+                } else if ("-rooted".equals(s)) {
+                    argl = 2;
                 }
+                
+                //BufferedReader br = Useful.utf8BufferedFileReader(s);
+                
+
+                Memo1<String, TopSortItemImpl<String>> newTable = aTable();
+                Memo1<String, TopSortItemImpl<String>> rtable = reverse(table);
+                
+                if (rebuild) {
+                    for (int argi = argl; argi < args.length; argi++) {
+                        String root = args[argi].trim();
+                        if (! newTable.known(root))
+                            copyRooted(table, newTable, root);
+                    }
+
+                    Memo1<String, TopSortItemImpl<String>> buildTable = aTable();
+                    for (TopSortItemImpl<String> dep : newTable.values()) {
+                        String sdep = dep.x;
+                        if (! buildTable.known(sdep)) 
+                            copyRooted(rtable, buildTable, sdep);
+                    }
+                    table = reverse(buildTable);
+                } else {
+                    for (int argi = argl; argi < args.length; argi++) {
+                        String root = args[argi].trim();
+                        if (! newTable.known(root))
+                            copyRooted(rtable, newTable, root);
+                    }
+
+                    table = reverse(newTable);
+                }            
             }
 
-            Comparator<TopSortItemImpl<String>> order =
-                    new ComposedComparator<TopSortItemImpl<String>>(new PredicateComparator<TopSortItemImpl<String>>(new F<TopSortItemImpl<String>, Boolean>() {
-
-                        @Override
-                        public Boolean apply(TopSortItemImpl<String> x) {
-                            return preferred.contains(x.x);
-                        }
-
-                    }), new Comparator<TopSortItemImpl<String>>() {
-
-                        public int compare(TopSortItemImpl<String> o1, TopSortItemImpl<String> o2) {
-                            return o1.x.compareTo(o2.x);
-                        }
-
-                    });
-
-            List<TopSortItemImpl<String>> ordered = TopSort.prioritized(table.values(), order);
+            List<TopSortItemImpl<String>> ordered = TopSort.depthFirst(table.values());
             for (TopSortItemImpl i : ordered) {
                 System.out.println(i.x);
             }
         }
+    }
+
+    private static void copyRooted(
+            Memo1<String, TopSortItemImpl<String>> table,
+            Memo1<String, TopSortItemImpl<String>> newTable, String root) {
+            
+            TopSortItemImpl<String> new_root = newTable.make(root);
+            TopSortItemImpl<String> node = table.make(root);
+            
+            for (TopSortItemImpl<String> succ : node.succs ) {
+                String s = succ.x;
+                if (newTable.known(s))
+                    continue;
+                TopSortItemImpl<String> new_succ = newTable.make(s);
+                new_root.edgeTo(new_succ);
+                copyRooted(table, newTable, s);
+            }
+        
+    }
+    
+    private static Memo1<String, TopSortItemImpl<String>> reverse
+        (Memo1<String, TopSortItemImpl<String>> table) {
+        Memo1<String, TopSortItemImpl<String>> newTable = aTable();
+        for (TopSortItemImpl<String> node : table.values()) {
+            TopSortItemImpl<String> new_node = newTable.make(node.x);
+            for (TopSortItemImpl<String> succ : node.succs) {
+                TopSortItemImpl<String> new_succ = newTable.make(succ.x);
+                new_succ.edgeTo(new_node);
+            }
+        }
+        return newTable;
     }
 
 }

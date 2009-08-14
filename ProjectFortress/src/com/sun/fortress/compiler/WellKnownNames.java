@@ -39,7 +39,7 @@ public class WellKnownNames {
     }
 
     private static String _compilerLibrary = "CompilerLibrary";
-    private static String _compilerBuiltin = "CompilerBuiltin";
+    private static String _compilerBuiltin = com.sun.fortress.runtimeSystem.Naming.COMPILER_BUILTIN;
     private static String _fortressLibrary = "FortressLibrary";
     private static String _fortressBuiltin = "FortressBuiltin";
     private static String _anyTypeLibrary = "AnyType";

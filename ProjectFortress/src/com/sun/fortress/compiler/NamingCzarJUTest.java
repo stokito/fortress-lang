@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.sun.fortress.compiler;
 
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.TestCaseWrapper;
 import com.sun.fortress.useful.UsefulJUTest;
 
@@ -46,11 +47,11 @@ public class NamingCzarJUTest extends TestCaseWrapper {
     public void testNameMangling() {
         String input = "/.;$<>[]:\\%\\%\\";
         String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-%\\-%\\";
-        String s = NamingCzar.mangleIdentifier(input);
+        String s = Naming.mangleIdentifier(input);
         assertEquals(s, mangledInput);
         input = "hello" + input;
         mangledInput = "\\=" + "hello" + mangledInput;
-        s = NamingCzar.mangleIdentifier(input);
+        s = Naming.mangleIdentifier(input);
         assertEquals(s, mangledInput);
     }
 

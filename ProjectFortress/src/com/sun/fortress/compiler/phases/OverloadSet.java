@@ -24,6 +24,7 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
 import org.objectweb.asm.ClassVisitor;
@@ -908,7 +909,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public static String oMangle(String name) {
-        return NamingCzar.mangleIdentifier(name); // no mangling after all.
+        return Naming.mangleIdentifier(name); // no mangling after all.
     }
 
     public void generateAnOverloadDefinition(String name, ClassVisitor cv) {

@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.environments;
 
 import com.sun.fortress.Shell;
-import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
@@ -28,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Path;
 import junit.framework.TestCase;
 
@@ -79,11 +79,11 @@ public class TopLevelEnvGenJUTest extends TestCase {
     public void testNameMangling() {
         String input = "/.;$<>[]:\\%\\";
         String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-%\\";
-        String s = NamingCzar.mangleIdentifier(input);
+        String s = Naming.mangleIdentifier(input);
         assertEquals(s, mangledInput);
         input = "hello" + input;
         mangledInput = "\\=" + "hello" + mangledInput;
-        s = NamingCzar.mangleIdentifier(input);
+        s = Naming.mangleIdentifier(input);
         assertEquals(s, mangledInput);
     }
 
