@@ -43,7 +43,7 @@ public class MacPortsHelper {
      */
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
-            System.err.println("java ... MacPortsHelper <portdepsdir> [<outdated>]");
+            System.err.println("java ... MacPortsHelper <portdepsdir> [-use/-dep/-rebuild] [<roots> ...]");
             System.err.println("MacPortsHelper takes a directory expected to contain files named <portname>.");
             System.err.println("Each file contains the output of 'port deps <portname>");
             System.err.println("Such a directory could be produced by executing the (bash) commands: ");
@@ -52,7 +52,14 @@ public class MacPortsHelper {
             System.err.println("    port deps $i > portdeps/$i");
             System.err.println("  done");
             System.err.println("The result is a topologically sorted list of ports, most dependent first.");
-            System.err.println("The list may be uninstalled in order, or installed in reverse order.");
+            System.err.println("The list may be uninstalled in order (mostly).");
+            System.err.println("The options -uses/-needs/-rebuild affect how subsets are chosen.");
+            System.err.println("  -use root1 ... rootN = roots, and everything that uses roots (transitively)");
+            System.err.println("  -dep root1 ... rootN = roots, and everything that roots depend on (transitively)");
+            System.err.println("  -rebuild root1 ... rootN = roots, everything that they depend on, and everything else that uses what they need");
+            System.err.println("Examples:");
+            System.err.println("  java MacPortsHelper portdeps -use python26");
+            System.err.println("  java MacPortsHelper portdeps -dep python26");
         } else {
             String dirname = args[0];
             File[] fileArray = Files.ls(dirname);
@@ -81,15 +88,16 @@ public class MacPortsHelper {
                 int argl = 1;
                 String s = args[1];
                 boolean rebuild = false;
+                boolean depends = false;
                 if ("-rebuild".equals(s)) {
                     rebuild = true;
                     argl = 2;
-                } else if ("-rooted".equals(s)) {
+                } else if (s.startsWith("-use")) {
                     argl = 2;
-                }
-                
-                //BufferedReader br = Useful.utf8BufferedFileReader(s);
-                
+                } else if (s.startsWith("-dep")) {
+                    depends = true;
+                    argl = 2;
+                }                
 
                 Memo1<String, TopSortItemImpl<String>> newTable = aTable();
                 Memo1<String, TopSortItemImpl<String>> rtable = reverse(table);
@@ -109,13 +117,14 @@ public class MacPortsHelper {
                     }
                     table = reverse(buildTable);
                 } else {
+                    Memo1<String, TopSortItemImpl<String>>  tab = depends ? table : rtable;
                     for (int argi = argl; argi < args.length; argi++) {
                         String root = args[argi].trim();
                         if (! newTable.known(root))
-                            copyRooted(rtable, newTable, root);
+                            copyRooted(tab, newTable, root);
                     }
 
-                    table = reverse(newTable);
+                    table = depends ? newTable : reverse(newTable);
                 }            
             }
 
