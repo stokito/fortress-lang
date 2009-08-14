@@ -633,6 +633,8 @@ public class NamingCzar {
         Id id = t.getName();
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
+        if (transitionArrowNaming)
+            return id.getText();
         if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
             tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
         } else if (only.fj.definesApi(apiName)) {
@@ -687,7 +689,8 @@ public class NamingCzar {
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
                 // not 100% sure this is right.
-                res = Naming.mangleIdentifier(res);
+                if (!transitionArrowNaming)
+                    res = Naming.mangleIdentifier(res);
                 if (withLSemi) res = "L" + res + ";";
                 return res;
             }
