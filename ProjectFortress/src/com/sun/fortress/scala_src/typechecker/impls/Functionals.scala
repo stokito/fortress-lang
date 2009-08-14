@@ -18,9 +18,7 @@
 package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.compiler.Types
-import com.sun.fortress.compiler.index.Method
-import com.sun.fortress.compiler.index.{FieldGetterMethod => JavaFieldGetterMethod}
-import com.sun.fortress.compiler.index.{Method => JavaMethod}
+import com.sun.fortress.compiler.index._
 import com.sun.fortress.exceptions._
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
@@ -365,17 +363,18 @@ trait Functionals { self: STypeChecker with Common =>
 
   /**
    * Given a receiver type and a method name, return the list of all the arrow types for each
-   * method overloading.
+   * method overloading. Ignores any arrows that were for getters or setters.
    */
   def getArrowsForMethod(recvrType: Type,
                          name: IdOrOp,
                          sargs: List[StaticArg],
                          loc: HasAt): Option[List[ArrowType]] = {
-    def noGetter(m: Method): Option[Method] = m match {
-      case g:JavaFieldGetterMethod => None
-      case g => Some(g)
+    def noGetterSetter(m: Method): Option[Method] = m match {
+      case g:FieldGetterMethod => None
+      case s:FieldSetterMethod => None
+      case m => Some(m)
     }
-    val methods = findMethodsInTraitHierarchy(name, recvrType).toList.flatMap(noGetter)
+    val methods = findMethodsInTraitHierarchy(name, recvrType).toList.flatMap(noGetterSetter)
     var arrows = methods.flatMap(makeArrowFromFunctional)
     // Make sure all of the functions had return types declared or inferred
     // TODO: This could be handled more gracefully

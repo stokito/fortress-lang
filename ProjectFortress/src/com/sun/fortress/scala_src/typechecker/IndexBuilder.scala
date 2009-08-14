@@ -509,7 +509,7 @@ object IndexBuilder {
         case id@SId(_,_,_) =>
           if ( setters.keySet.contains(id) )
             error(errors, "Setter declarations should not be overloaded.", ast)
-          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), declaringTrait))
+          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), declaringTrait))
         case _ =>
           error(errors, "Getter declared with an operator name, '" +
                 NU.nameString(name) + "'", ast)

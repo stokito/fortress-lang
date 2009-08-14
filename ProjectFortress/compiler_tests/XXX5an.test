@@ -19,9 +19,9 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.an.fss:21:7:\n\
 \ Right-hand side, IntLiteral, must be a subtype of left-hand side, String.\n\
-${STATIC_TESTS_DIR}/Compiled5.an.fss:22:3-23:2:\n\
+${STATIC_TESTS_DIR}/Compiled5.an.fss:22:3-12:\n\
 \ Right-hand side, IntLiteral, must be a subtype of left-hand side, String.\n\
 ${STATIC_TESTS_DIR}/Compiled5.an.fss:23:3-28:\n\
-\ Right-hand side, IntLiteral, is not a tuple type but left-hand side declares multiple variables.\n\
+\ Right-hand side has type IntLiteral, but left-hand side declares 2 variables.\n\
 File Compiled5.an.fss has 3 errors.\n
 compile_out_equals=

@@ -535,7 +535,10 @@ class TryChecker(current: CompilationUnitIndex,
   /** Check the given expression; return it if successful, None otherwise. */
   def tryCheckExpr(expr: Expr): Option[Expr] =
     try {
-      Some(super.checkExpr(expr))
+      val checkedExpr = super.checkExpr(expr)
+      if (getType(checkedExpr).isNone)
+        bug("TryChecker returned an untyped expr!")
+      Some(checkedExpr)
     }
     catch {
       case e:StaticError => None
@@ -548,7 +551,10 @@ class TryChecker(current: CompilationUnitIndex,
    */
   def tryCheckExpr(expr: Expr, typ: Type): Option[Expr] =
     try {
-      Some(super.checkExpr(expr, typ, ""))
+      val checkedExpr = super.checkExpr(expr, typ, "")
+      if (getType(checkedExpr).isNone)
+        bug("TryChecker returned an untyped expr!")
+      Some(checkedExpr)
     }
     catch {
       case e:StaticError => None

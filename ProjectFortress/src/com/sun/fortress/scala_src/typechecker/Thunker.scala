@@ -89,7 +89,7 @@ class Thunker(var typeChecker: STypeChecker)
     case o@SObjectDecl(info,
                        STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, decls),
                        params, selfType) => {
-      typeChecker = typeChecker.extend(sparams, where)
+      typeChecker = typeChecker.extend(sparams, params, where)
       // Add field declarations (getters/setters?) to method_checker
       typeChecker = decls.foldRight(typeChecker)
                                       {(d:Decl, c:STypeChecker) => d match {

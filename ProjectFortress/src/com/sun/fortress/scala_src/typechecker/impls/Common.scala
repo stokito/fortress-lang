@@ -115,15 +115,28 @@ trait Common { self: STypeChecker =>
     toSet(allMethods.matchFirst(methodName))
   }
 
-  def findFieldsInTraitHierarchy(fieldName: IdOrOpOrAnonymousName, recieverType: Type): Option[Type] = {
-    //We can just assume there is a getter for every field
-    val methods = findMethodsInTraitHierarchy(fieldName, recieverType)
+  def getGetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+    // We can just assume there is a getter index for every field
+    val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
     def isGetter(m: Method): Option[FieldGetterMethod] = m match {
       case g:FieldGetterMethod => Some(g)
       case _ => None
     }
-    val getters = methods.flatMap(isGetter)
-    getters.toList.firstOption.flatMap(g => toOption(g.getReturnType))
+    val getters = methods.flatMap(isGetter).toList
+    // TODO: Figure out what the type should be if there are overridden getters.
+    getters.firstOption.flatMap(g => toOption(g.getReturnType))
+  }
+
+  def getSetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+    //We can just assume there is a getter for every field
+    val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
+    def isSetter(m: Method): Option[FieldSetterMethod] = m match {
+      case s:FieldSetterMethod => Some(s)
+      case _ => None
+    }
+    val setters = methods.flatMap(isSetter).toList
+    // TODO: Figure out what the type should be if there are overridden setters.
+    setters.firstOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
   }
 
     /**

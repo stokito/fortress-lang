@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.typechecker.impls
 
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -416,74 +417,161 @@ trait Operators { self: STypeChecker with Common =>
       SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), checkExpr(first),
                  links.map(t => check(t).asInstanceOf[Link]))
     }
-//
-//    // A singleton ordinary assignment. e.g. x := e
-//    case SAssignment(SExprInfo(span, paren, _), lhs :: Nil, None, rhs, _) => {
-//
-//      null
-//    }
-//
-//    // A singleton compound assignment. e.g. x += e
-//    case SAssignment(info @ SExprInfo(span, paren, _), lhs :: Nil, Some(op), rhs, _) => {
-//      // 1. Desugar x += y into x := x + y
-//      // 2. Check that desguaring using the other case
-//      // 3. Get out the op ref and lhs
-//      // 4. Stuff them together into an Assignment
-//
-//      val opExpr = EF.makeOpExpr(span, op, lhs, rhs)
-//      val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, None))
-//      if (getType(checkedAssn).isNone) return expr
-//
-//      // Pull out the checked LHS and checked OpExpr.
-//      val SAssignment(_, checkedLhs :: Nil, _, checkedOpExpr) = checkedAssn
-//
-//      // The checked OpExpr will have two args: the checked LHS and the checked RHS.
-//      val SOpExpr(_, checkedOp, _ :: List(checkedRhs)) = checkedOpExpr
-//
-//      SAssignment(SExprInfo(span, paren, Types.VOID),
-//                  List(checkedLhs),
-//                  Some(op),
-//                  checkedRhs,
-//                  Some(List(checkedOp)))
-//    }
-//
-//    case SAssignment(info @ SExprInfo(span, paren, _), lhses, maybeOp, rhs, _) => {
-//      val checkedRhs = checkExpr(rhs)
-//      val rhsType = getType(checkedRhs).getOrElse(return expr)
-//      if (!enoughElementsForType(lhses, rhsType)) return expr
-//
-//      // Create dummy expressions for each constituent type on the RHS.
-//      val tempRhses = typeIterator(rhsType).toList().map(typ =>
-//        SDummyExpr(SExprInfo(NU.getSpan(typ), false, Some(typ))))
-//
-//      // Create a list of singleton assignments.
-//      val checkedAssignments = List.map2(lhses, tempRhses) { (lhs, tempRhs) =>
-//        checkExpr(SAssignment(info, List(lhs), maybeOp, tempRhs, None))
-//      }
-//      if (!haveTypes(checkedAssignments)) return expr
-//
-//      // Pull out the checked LHS and checked OpRef for each assignment.
-//      val (checkedLhses, maybeOps) = maybeOp match {
-//        case Some(_) =>
-//          val (lhses, ops) = List.unzip(checkedAssignments.map {
-//            case SAssignment(_, lhs :: Nil, _, _, Some(op :: Nil)) => (lhs, op)
-//          })
-//          (lhses, Some(ops))
-//
-//        case None =>
-//          val lhses = checkedAssignments.map {
-//            case SAssignment(_, lhs :: Nil, _, _, None) => lhs
-//          }
-//          (lhses, None)
-//      }
-//
-//      // Put the assignment back together.
-//      SAssignment(SExprInfo(span, paren, Types.VOID),
-//                  checkedLhses,
-//                  maybeOp,
-//                  checkedRhs,
-//                  maybeOps)
-//    }
+
+    // A singleton ordinary assignment. e.g. x := e
+    case SAssignment(SExprInfo(span, paren, _), lhs :: Nil, None, rhs, _) => {
+      // Cast is safe since grammar dictates the LHS can only be an expression.
+
+      val (checkedLhs: Lhs, checkedRhs: Expr) = lhs match {
+        case lhs @ SVarRef(info, id, _, _) =>
+          // Check the var ref and make sure it is mutable.
+          val checkedLhs = checkExpr(lhs).asInstanceOf[VarRef]
+          val lhsType = getType(checkedLhs).getOrElse(return expr)
+          if (!env.getMods(id).get.isMutable) {
+            signal(expr, "Cannot assign to immutable variable: %s".format(id))
+            return expr
+          }
+
+          // Check the RHS with the expected type of the var ref's type.
+          val checkedRhs = checkExpr(rhs, lhsType, "Could not assign an expression of type %s to variable "+id+" of type %s.")
+          if (getType(checkedRhs).isNone) return expr
+          (checkedLhs, checkedRhs)
+
+        case SFieldRef(SExprInfo(span, paren, _), obj, field) =>
+          // Check the receiver and lookup the setter with this name.
+          val checkedObj = checkExpr(obj)
+          val receiverType = getType(checkedObj).getOrElse(return expr)
+          val fieldType = getSetterType(field, receiverType)
+          val checkedLhs = fieldType match {
+            case Some(_) => SFieldRef(SExprInfo(span, paren, fieldType), checkedObj, field)
+            case None =>
+              signal(expr, "%s has no setter called %s".format(receiverType, field))
+              return expr
+          }
+
+          // Check the RHS with the expected type of the field ref's type.
+          val checkedRhs = checkExpr(rhs, fieldType.get, "Could not assign an expression of type %s to field "+receiverType+"."+field+" of type %s.")
+          if (getType(checkedRhs).isNone) return expr
+          (checkedLhs, checkedRhs)
+
+        case SSubscriptExpr(info @ SExprInfo(span, paren, _), obj, subs, Some(op), sargs) =>
+          // Check obj and subs ahead of time to make sure they all get typed.
+          val checkedObj = checkExpr(obj)
+          val checkedSubs = subs.map(checkExpr)
+          val checkedRhs = checkExpr(rhs)
+          if (!haveTypes(checkedObj :: checkedRhs :: checkedSubs)) return expr
+          val rhsType = getType(checkedRhs).get
+
+          // Check this as a normal subscript expr but with the additional RHS arg.
+          // NOTE! Subscript assignment operators have the RHS as the first param
+          //   and the indexing subs as the remaining parameters.
+          val newExpr = SSubscriptExpr(info,
+                                       makeDummyFor(checkedObj),
+                                       (checkedRhs :: checkedSubs).map(makeDummyFor),
+                                       Some(op),
+                                       sargs)
+          val maybeCheckedExpr =
+            STypeCheckerFactory.makeTryChecker(this).tryCheckExpr(newExpr)
+
+          // Signal the error if this did not apply.
+          if (maybeCheckedExpr.isNone) {
+            val subsStr = checkedSubs.map(getType(_).get).mkString(", ")
+            val subscriptStr = op.getText.replace(" ", subsStr)
+            val exprStr = "%s.%s".format(getType(checkedObj).get, subscriptStr)
+            signal(expr, "Could not assign an expression of type %s with subscript operator %s.".format(rhsType, exprStr))
+            return expr
+          }
+
+          // Rebuild the subscript expression.
+          // TODO: Take care of coercions!
+          val SSubscriptExpr(_, _, _, checkedOp, infSargs) = maybeCheckedExpr.get
+          val checkedSubscriptExpr =
+            SSubscriptExpr(SExprInfo(span, paren, Some(Types.VOID)),
+                           checkedObj,
+                           checkedSubs,
+                           checkedOp,
+                           infSargs)
+          (checkedSubscriptExpr, checkedRhs)
+
+        case _ => bug("unexpected LHS for assignment")
+      }
+
+      // Rebuild the assignment with the checked info.
+      SAssignment(SExprInfo(span, paren, Some(Types.VOID)),
+                  List(checkedLhs),
+                  None,
+                  checkedRhs,
+                  None)
+    }
+
+    // A singleton compound assignment. e.g. x += e
+    case SAssignment(info @ SExprInfo(span, paren, _), lhs :: Nil, Some(op), rhs, _) => {
+      // 1. Desugar x += y into x := x + y
+      // 2. Check that desguaring using the other case
+      // 3. Get out the op ref and lhs
+      // 4. Stuff them together into an Assignment
+      val opExpr = EF.makeOpExpr(span, op, lhs.asInstanceOf[Expr], rhs)
+      val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, None))
+      if (getType(checkedAssn).isNone) return expr
+
+      // Pull out the checked LHS and checked OpExpr.
+      val SAssignment(_, checkedLhs :: Nil, _, checkedOpExpr, _) = checkedAssn
+
+      // The checked OpExpr will have two args: the checked LHS and the checked RHS.
+      // TODO: Make sure to peek inside a Coercion node.
+      val SOpExpr(_, checkedOp, _ :: List(checkedRhs)) = checkedOpExpr
+
+      SAssignment(SExprInfo(span, paren, Some(Types.VOID)),
+                  List(checkedLhs),
+                  Some(op),
+                  checkedRhs,
+                  Some(List(checkedOp)))
+    }
+
+    // Any arbitrary assignment.
+    case SAssignment(info @ SExprInfo(span, paren, _), lhses, maybeOp, rhs, _) => {
+      val checkedRhs = checkExpr(rhs)
+      val rhsType = getType(checkedRhs).getOrElse(return expr)
+      if (!enoughElementsForType(lhses, rhsType)) return expr
+
+      // Create dummy expressions for each constituent type on the RHS.
+      val rhsTypes = typeIterator(rhsType).toList
+
+      // Create a list of singleton assignments.
+      val checkedAssignments = List.map2(lhses, rhsTypes) { (lhs, rhsType) => {
+        val span = NU.getSpan(lhs.asInstanceOf[Expr])
+        checkExpr(SAssignment(SExprInfo(span, false, None),
+                              List(lhs),
+                              maybeOp,
+                              makeDummyFor(rhsType, span),
+                              None))
+      }}
+      if (!haveTypes(checkedAssignments)) return expr
+
+      // Pull out the checked LHS and checked OpRef for each assignment.
+      val (checkedLhses, maybeOps) = maybeOp match {
+        case Some(_) =>
+          val (lhses, ops) = List.unzip(checkedAssignments.map {
+            case SAssignment(_, lhs :: Nil, _, _, Some(op :: Nil)) => (lhs, op)
+            case _ => bug("impossible result of checking")
+          })
+          (lhses, Some(ops))
+
+        case None =>
+          val lhses = checkedAssignments.map {
+            case SAssignment(_, lhs :: Nil, _, _, None) => lhs
+            case _ => bug("impossible result of checking")
+          }
+          (lhses, None)
+      }
+
+      // Put the assignment back together.
+      SAssignment(SExprInfo(span, paren, Some(Types.VOID)),
+                  checkedLhses,
+                  maybeOp,
+                  checkedRhs,
+                  maybeOps)
+    }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
   }

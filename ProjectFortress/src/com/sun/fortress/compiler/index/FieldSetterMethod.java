@@ -34,10 +34,21 @@ import java.util.List;
 public class FieldSetterMethod extends Method {
 
     private final Binding _ast;
+    private final Param _param;
     private final Id _declaringTrait;
 
     public FieldSetterMethod(Binding ast, Id declaringTrait) {
+        this(ast,
+             NodeFactory.makeParam(NodeUtil.getSpan(ast),
+                                   Modifiers.None,
+                                   NodeFactory.makeId(NodeUtil.getSpan(ast), "fakeParamForImplicitSetter"),
+                                   ast.getIdType()),
+             declaringTrait);
+    }
+
+    public FieldSetterMethod(Binding ast, Param param, Id declaringTrait) {
         _ast = ast;
+        _param = param;
         _declaringTrait = declaringTrait;
         _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
@@ -47,6 +58,7 @@ public class FieldSetterMethod extends Method {
      */
     public FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
         _ast = (Binding) that._ast.accept(visitor);
+        _param = that._param;
         _declaringTrait = that._declaringTrait;
 
         _thunk = that._thunk;
@@ -70,9 +82,7 @@ public class FieldSetterMethod extends Method {
 
     @Override
     public List<Param> parameters() {
-        // return the implicit parameter
-        Param p = NodeFactory.makeParam(NodeUtil.getSpan(_ast), Modifiers.None, NodeFactory.makeId(NodeUtil.getSpan(_ast), "fakeParamForImplicitSetter"), _ast.getIdType());
-        return Collections.singletonList(p);
+        return Collections.singletonList(_param);
     }
 
     @Override

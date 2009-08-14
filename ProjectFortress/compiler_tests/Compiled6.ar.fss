@@ -15,47 +15,21 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component AssignmentTest
+(*) Test working field ref assignments.
+
   export Executable
 
-  object Foo
-
+  object O(var s: String)
+    setter foo(x: String) = s := x
+    opr [i:ZZ32]: String = s
+    opr [i:ZZ32] := (x: String) = s := x
   end
 
-  trait Quux
+  run() = do
+    o = O("RLY")
+    o.foo := "hi"
+    o.s ||= "huh?"
 
+    var x: String = "hello"
+    ((O(x))[5], x, (O(x)).s) ||= (x, " world", x)
   end
-
-  object Bar extends Quux
-
-  end
-
-  typeTest():() = do
-    var a:Foo
-    b:() = (a:=Foo)
-  end
-
-
-  run():() = do
-    (* Currently fails because IntLiteral <!: ZZ32
-    var a : ZZ32
-    a := 1
-    *)
-
-    var a:Foo
-    a := Foo
-
-    (a) := Foo
-    (a) := (Foo)
-    a := (Foo)
-
-    (* Tuples *)
-
-    var b : Bar
-    var c : Quux
-    (a,b) := (Foo,Bar)
-    (a,c) := (Foo,Bar)
-
-    (* Other operators *)
-  end
-end

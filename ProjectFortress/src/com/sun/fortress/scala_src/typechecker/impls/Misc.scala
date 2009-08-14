@@ -184,11 +184,11 @@ trait Misc { self: STypeChecker with Common =>
     case fr@SFieldRef(SExprInfo(span, parens, _),obj,field) => {
       val checkedObj = checkExpr(obj)
       val recvrType = getType(checkedObj).getOrElse(return expr)
-      val fieldType = findFieldsInTraitHierarchy(field, recvrType)
+      val fieldType = getGetterType(field, recvrType)
       fieldType match {
         case Some(_) => SFieldRef(SExprInfo(span, parens, fieldType), checkedObj, field)
         case None =>
-          signal(expr,"%s has no field called %s".format(obj,field))
+          signal(expr,"%s has no getter called %s".format(recvrType, field))
           expr
       }
     }
