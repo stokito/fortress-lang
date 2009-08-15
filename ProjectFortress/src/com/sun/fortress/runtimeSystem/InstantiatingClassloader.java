@@ -28,6 +28,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.sun.fortress.repository.ProjectProperties;
+
 /**
  * This code steals willy-nilly from the Nextgen class loader.
  * 
@@ -35,6 +37,8 @@ import org.objectweb.asm.Opcodes;
  */
 public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
 
+    private final boolean log_loads = false;
+    
     public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
             Thread.currentThread().getContextClassLoader());
 
@@ -143,7 +147,8 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
                 }
                 // System.err.println("trying to getClass("+name+")");
                 clazz = defineClass(name, classData, 0, classData.length);
-                System.err.println(clazz.getName());
+                if (log_loads)
+                   System.err.println("Loaded " + clazz.getName());
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();

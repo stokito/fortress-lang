@@ -30,6 +30,7 @@ public class Naming {
     public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only
     
     public final static String ENVELOPE = "\u2709";
+    public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
@@ -72,7 +73,7 @@ public class Naming {
         bl(COMPILER_BUILTIN, ".ZZ32", "FZZ32");
         bl(COMPILER_BUILTIN, ".ZZ64", "FZZ64");
         bl(COMPILER_BUILTIN, ".String", "FString");
-        bl("", "()", "FVoid");
+        bl("", SNOWMAN, "FVoid");
     }
 
     
@@ -104,14 +105,18 @@ public class Naming {
         if (tx != null)
             return tx;
         if (ch == NORMAL_TAG_CHAR) {
-            return "L" + ft.replace(".", "/") + ";";
+            return "L" + deDot(ft) + ";";
         } else if (ch == INTERNAL_TAG_CHAR) {
-            return "Lfortress/" + ft.replace(".", "/") + ";";
+            return "Lfortress/" + deDot(ft) + ";";
         } else if (ch == FOREIGN_TAG_CHAR) {
             throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
-        throw new Error("Bad tag (unicode " + Integer.toHexString(ch) +
+        throw new Error("Bad fortress naming scheme tag (unicode " + Integer.toHexString(ch) +
                     ") on fortress type " + ft);
+    }
+    
+    public static String deDot(String s) {
+        return s.replace(".", "/");
     }
     
     public static String deMangle(String s) {
