@@ -74,8 +74,10 @@ public class NamingCzar {
     private NamingCzar(ForeignJava fj) {
         this.fj = fj;
     }
+    
+    private final static boolean logLoads = ProjectProperties.getBoolean("fortress.log.classloads", false);
 
-    private final static boolean transitionArrowNaming = true;
+    private final static boolean transitionArrowNaming = false;
     
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
@@ -627,20 +629,24 @@ public class NamingCzar {
                 makeArrowDescriptor(t.getDomain(), ifNone) + "_" + 
                 makeArrowDescriptor(t.getRange(), ifNone);
         } else {
-            return "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
+            String res = 
+             "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
                 makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
+            res = Naming.mangleIdentifier(res);
+            return res;
         }
     }
 
-    public static String makeArrowDescriptor(List<com.sun.fortress.nodes.Param> params, 
+    public static String makeAbstractArrowDescriptor(List<com.sun.fortress.nodes.Param> params, 
                                              com.sun.fortress.nodes.Type rt,
                                              APIName ifNone) {
-        String result = "com/sun/fortress/compiler/runtimeValues/AbstractArrow_";
+        String result = "AbstractArrow" + Naming.LEFT_OXFORD;
         for (Param p : params) {
-            result = result + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + "_";
+            result = result + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + ";";
         }
 
-        result = result + makeArrowDescriptor(rt, ifNone);
+        result = result + makeArrowDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
+        result = Naming.mangleIdentifier(result);
         return result;
     }
 
@@ -668,7 +674,8 @@ public class NamingCzar {
     }
 
     public static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
-        if ( NodeUtil.isVoidType(t) ) return "V";
+        if ( NodeUtil.isVoidType(t) )
+            return Naming.INTERNAL_TAG + Naming.SNOWMAN;
         if (t.getVarargs().isSome())
             throw new CompilerError(NodeUtil.getSpan(t),
                                     "Can't compile VarArgs yet");
@@ -709,9 +716,7 @@ public class NamingCzar {
             }
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
-                // not 100% sure this is right.
-                if (!transitionArrowNaming)
-                    res = Naming.mangleIdentifier(res);
+                
                 if (withLSemi) res = "L" + res + ";";
                 return res;
             }
@@ -862,7 +867,7 @@ public class NamingCzar {
     }
 
     public static String parseResult(String desc) {
-        int i = desc.indexOf(')') + 1;
+        int i = desc.lastIndexOf(')') + 1;
         int ch = desc.charAt(i);
         int start;
         switch(ch) {

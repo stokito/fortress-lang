@@ -804,10 +804,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
 
         //      Create the Class
-        String desc = NamingCzar.only.makeArrowDescriptor(params, rt, thisApi());
+        String desc = NamingCzar.only.makeAbstractArrowDescriptor(params, rt, thisApi());
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        String className = NamingCzar.only.gensymArrowClassName(desc); 
+        
+        String className = NamingCzar.only.gensymArrowClassName(Naming.deDot(thisApi().getText())); 
 
         debug("forFnExpr className = " + className + " desc = " + desc);
         cg.cw.visitSource(className, null);
@@ -1668,7 +1669,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                                     "Only know how to generate calls to lambda vars");
 
         ArrowType at = (ArrowType) vcg.fortressType;
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, 
                            NamingCzar.only.makeArrowDescriptor(vcg.fortressType, thisApi()),
                            NamingCzar.only.applyMethodName(),
                            NamingCzar.only.jvmSignatureFor(at.getDomain(),
