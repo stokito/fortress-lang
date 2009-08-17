@@ -255,7 +255,7 @@ trait Misc { self: STypeChecker with Common =>
                 loc, false, withinDo, exprs) => {
       val newLoc = loc match {
         case Some(l) =>
-          Some(checkExpr(l, Some(Types.REGION), errorString("Location of the block")))
+          Some(checkExpr(l, Types.REGION, errorString("Location of the block")))
         case None => loc
       }
       exprs.reverse match {
@@ -263,7 +263,7 @@ trait Misc { self: STypeChecker with Common =>
           SBlock(SExprInfo(span,parenthesized,Some(Types.VOID)),
                  newLoc, false, withinDo, exprs)
         case last::rest =>
-          val allButLast = rest.map((e: Expr) => checkExpr(e, Some(Types.VOID),
+          val allButLast = rest.map((e: Expr) => checkExpr(e, Types.VOID,
                                                            errorString("Non-last expression in a block")))
           val lastExpr = checkExpr(last)
           val newExprs = (lastExpr::allButLast).reverse
@@ -523,12 +523,12 @@ trait Misc { self: STypeChecker with Common =>
     }
 
     case SAsExpr(SExprInfo(span, paren, _), sub, typ) => {
-      val checkedSub = checkExpr(sub, Some(typ), errorString("Expression", "ascripted"))
+      val checkedSub = checkExpr(sub, typ, errorString("Expression", "ascripted"))
       SAsExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
     case SAsIfExpr(SExprInfo(span, paren, _), sub, typ) => {
-      val checkedSub = checkExpr(sub, Some(typ), errorString("Expression", "assumed"))
+      val checkedSub = checkExpr(sub, typ, errorString("Expression", "assumed"))
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 

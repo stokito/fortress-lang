@@ -99,10 +99,10 @@ class ApplicationErrorFactory(val app: Expr, val recvrType: Option[Type]) {
       case Right(unchecked) =>
 
         // Replace the domain (and range if not given too) with unknown types.
-        val SArrowType(info, _, _, effect, io) = arrow
+        val SArrowType(info, _, _, effect, io, methodInfo) = arrow
         val domain = Types.UNKNOWN
         val range = toOption(NU.getReturnType(unchecked)).getOrElse(Types.UNKNOWN)
-        SArrowType(info, domain, range, effect, io)
+        SArrowType(info, domain, range, effect, io, methodInfo)
     }
     val sargs = getStaticArgsFromApp(app).getOrElse(Nil)
     NotApplicableError(arrow, sargs, argTypes)

@@ -133,10 +133,10 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
                           s, NodeUtil.getSpan(s))
             false
         }
-      case (SArrowType(_,_,_,_,_), SArrowType(_,_,_,_,_)) => false
-      case (SArrowType(_,_,_,_,_), _) => true
-      case (_, SArrowType(_,_,_,_,_)) => true
-      case (f@STupleType(_,_,_,_), s@STupleType(_,_,_,_)) =>
+      case (_:ArrowType, _:ArrowType) => false
+      case (_:ArrowType, _) => true
+      case (_, _:ArrowType) => true
+      case (f:TupleType, s:TupleType) =>
         NodeUtil.differentArity(f, s) || {
           f.getVarargs.isNone && s.getVarargs.isNone &&
           f.getKeywords.isEmpty && s.getKeywords.isEmpty &&
@@ -144,9 +144,9 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           toList(f.getElements).zip(toList(s.getElements)).exists((e:(Type,Type)) =>
                                                                   excludes(e._1,e._2))
         }
-      case (STupleType(_,_,_,_) ,_) => true
-      case (_, STupleType(_,_,_,_)) => true
-      case (f@STraitType(_,_,_,_), s@STraitType(_,_,_,_)) =>
+      case (_:TupleType ,_) => true
+      case (_, _:TupleType) => true
+      case (f:TraitType, s:TraitType) =>
         ( toOption(typeAnalyzer.traitTable.typeCons(f.getName)),
           toOption(typeAnalyzer.traitTable.typeCons(s.getName)) ) match {
           case (Some(fi), Some(si)) =>
@@ -224,8 +224,11 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
         }
       case STraitType(i,n,a,p) => STraitType(i, n, a.map(saSubst), p.map(spSubst))
       case STupleType(i,e,v,k) => STupleType(i, e.map(tySubst), v, k)
-      case SArrowType(i,d,r,e,b) => SArrowType(i, tySubst(d), tySubst(r), e, b)
+      case SArrowType(i,d,r,e,b,m) => SArrowType(i, tySubst(d), tySubst(r), e, b, m.map(miSubst))
       case _ => tau
+    }
+    def miSubst(mi: MethodInfo): MethodInfo = mi match {
+      case SMethodInfo(t,p) => SMethodInfo(tySubst(t), p)
     }
     excludes = excludes.map( tySubst ).asInstanceOf[Set[TraitType]]
     var result = false

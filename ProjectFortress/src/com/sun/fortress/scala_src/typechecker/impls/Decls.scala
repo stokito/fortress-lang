@@ -260,41 +260,43 @@ trait Decls { self: STypeChecker with Common =>
           None
       
       // Type check the RHS, expecting the declared type.
-      val newMaybeRhs = maybeRhs.map(checkExpr(_, declaredType))
+      val (newLhses, newMaybeRhs) = declaredType match {
 
-      // Create a new LHS based on the checked RHS.
-      val newLhses = newMaybeRhs match {
-        case Some(newRhs) =>
-          val rhsType = getType(newRhs).getOrElse(return expr)
+        // If there is a declared type, just check the RHS expecting that.
+        case Some(typ) =>
+          (lhses, maybeRhs.map(checkExpr(_, typ, errorString("Right-hand side", "declared"))))
 
-          // Get all the LHSes and their corresponding RHS type.
-          val lhsAndRhsTypes = lhses match {
-            case lhs :: Nil => List((lhs, rhsType))
-            case _ =>
-              if (!enoughElementsForType(lhses, rhsType)) {
-                signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
-                return expr
-              }
-              zipWithDomain(lhses, rhsType)
-          }
+        // If there is not a declared type, check the RHS and assign LHS types
+        // from that.
+        case None => maybeRhs match {
+          case Some(rhs) =>
+            // Check the RHS.
+            val newRhs = checkExpr(rhs, None)
+            if (getType(newRhs).isNone) return expr
+            val rhsType = getType(newRhs).getOrElse(return expr)
 
-          // Map over the LHS/RHS pairs to create the new list of LHSes.
-          lhsAndRhsTypes.map {
-            // No type on LHS -- just insert it.
-            case (SLValue(info, name, mods, None, mut), rhsType) =>
-              SLValue(info, name, mods, Some(rhsType), mut)
+            // Get all the LHSes and their corresponding RHS type.
+            val lhsAndRhsTypes = lhses match {
+              case lhs :: Nil => List((lhs, rhsType))
+              case _ =>
+                if (!enoughElementsForType(lhses, rhsType)) {
+                  signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                  return expr
+                }
+                zipWithDomain(lhses, rhsType)
+            }
 
-            // Type on LHS -- check that RHS <: LHS.
-            case (lhs @ SLValue(info, name, mods, Some(lhsType), mut), rhsType) =>
-              isSubtype(rhsType,
-                        lhsType,
-                        lhs,
-                        "Right-hand side, %s, must be a subtype of left-hand side, %s.".format(rhsType, lhsType))
-              lhs
-          }
+            // Map over the LHS/RHS pairs to create the new list of LHSes.
+            val newLhses = lhsAndRhsTypes.map {
+              // No type on LHS -- just insert it.
+              case (SLValue(info, name, mods, None, mut), rhsType) =>
+                SLValue(info, name, mods, Some(rhsType), mut)
+              case (lhs, _) => lhs
+            }
+            (newLhses, Some(newRhs))
 
-        // If there's no RHS, just use the existing lhs.
-        case None => lhses
+          case None => return expr
+        }
       }
 
       // Extend typechecker with new bindings from the RHS types

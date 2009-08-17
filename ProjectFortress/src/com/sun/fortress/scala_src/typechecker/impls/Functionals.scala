@@ -223,7 +223,8 @@ trait Functionals { self: STypeChecker with Common =>
                                                domain,
                                                Types.ANY)
           val tryChecker = STypeCheckerFactory.makeTryChecker(this)
-          tryChecker.tryCheckExpr(unchecked, expectedArrow) match {
+          // (Called with Some(arrow) so that no coercion is performed.)
+          tryChecker.tryCheckExpr(unchecked, Some(expectedArrow)) match {
             // Move this arg out of unchecked and into checked.
             case Some(checked) => (Left(checked), None)
 
@@ -299,6 +300,8 @@ trait Functionals { self: STypeChecker with Common =>
       }
     }
 
+
+
     // Do the recursion to check the args.
     recurOnArgs(args)
   }
@@ -307,8 +310,8 @@ trait Functionals { self: STypeChecker with Common =>
   def moreSpecific(candidate1: AppCandidate,
                    candidate2: AppCandidate): Boolean = {
 
-    val SArrowType(_, domain1, range1, _, _) = candidate1._1
-    val SArrowType(_, domain2, range2, _, _) = candidate2._1
+    val SArrowType(_, domain1, range1, _, _, _) = candidate1._1
+    val SArrowType(_, domain2, range2, _, _, _) = candidate2._1
 
     if (analyzer.equivalent(domain1, domain2).isTrue) false
     else isSubtype(domain1, domain2)
@@ -554,8 +557,8 @@ trait Functionals { self: STypeChecker with Common =>
                  SFnHeader(a, b, c, d, e, f, tempParams, retType), body) => {
       // If expecting an arrow type, use its domain to infer param types.
       val params = expected match {
-        case Some(SArrowType(_, dom, _, _, _)) =>
-          addParamTypes(dom, tempParams).getOrElse(tempParams)
+        case Some(arrow:ArrowType) =>
+          addParamTypes(arrow.getDomain, tempParams).getOrElse(tempParams)
         case _ => tempParams
       }
 

@@ -24,6 +24,7 @@ import _root_.java.util.{LinkedList => JLinkedList}
 import edu.rice.cs.plt.tuple.{Option => JOption}
 import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
+import _root_.java.lang.{Integer => JInteger}
 import scala.collection.jcl.Conversions
 
 object ASTGenHelper {
@@ -59,6 +60,8 @@ object ASTGenHelper {
       accum
     }
 
+    case i: JInteger => i.intValue
+
     case _ => typ
   }
 
@@ -90,6 +93,8 @@ object ASTGenHelper {
       }
       accum
     }
+
+    case i: Int => new JInteger(i)
 
     case _ => typ.asInstanceOf[Object]
   }

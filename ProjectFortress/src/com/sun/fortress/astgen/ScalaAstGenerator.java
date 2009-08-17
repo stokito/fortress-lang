@@ -204,6 +204,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                     name.append("com.sun.fortress.nodes_util." + t.className());
                 } else if (t.className().equals("Modifiers")) {
                     name.append("com.sun.fortress.nodes_util." + t.className());
+                } else if (t.className().equals("Integer")) {
+                    name.append("_root_.java.lang." + t.className());
                 } else {
                     name.append("com.sun.fortress.nodes." + t.className());
                 }
@@ -222,6 +224,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                     }
                     if (arg.name().equals("String")) {
                         name.append(arg.name());
+                    } else if (arg.name().equals("Integer")) {
+                        name.append("_root_.java.lang.Integer");
                     } else {
                         name.append("com.sun.fortress.nodes." + arg.name());
                     }
@@ -308,6 +312,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                     name.append("com.sun.fortress.nodes_util." + t.className());
                 } else if (t.className().equals("Modifiers")) {
                     name.append("com.sun.fortress.nodes_util." + t.className());
+                } else if (t.className().equals("Integer")) {
+                    name.append("Int");
                 } else {
                     name.append("com.sun.fortress.nodes." + t.className());
                 }
@@ -326,6 +332,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                     }
                     if (arg.name().equals("String")) {
                         name.append(arg.name());
+                    } else if (arg.name().equals("Integer")) {
+                        name.append("Int");
                     } else {
                         name.append("com.sun.fortress.nodes." + arg.name());
                     }
