@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component VarParam
 export Executable
 
 object O(var v:ZZ32)
@@ -23,5 +22,3 @@ object O(var v:ZZ32)
 end
 
 run():() = ()
-
-end

@@ -14,41 +14,14 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component Typecase
+
   export Executable
-
-  foo(a:Any):() = do
-    var b:String
-
-    b := typecase a of
-      String => a
-      else => "Nothin"
-    end
-
-    ()
+  object Foo
+    var a:String = "asdas"
+    var b:String = "adsa"
   end
 
-  trait Ty1 end
-  trait Ty2 end
-
-  bar(t:Ty1) : () = do
-    typecase t of
-      Ty2 => do
-          var t1 : Ty1
-          var t2 : Ty2
-          t1 := t
-          t2 := t
-      end
-    end
+  run():()= do
+    var some_string:String
+    some_string := Foo.a
   end
-
-  quux(tup:(Any,Any)) : () = do
-    var s : String
-
-    s := typecase (a,b) = tup of
-      (String,String) => a
-    end
-  end
-
-  run() : () = ()
-end

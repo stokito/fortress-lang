@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component PlusEq
   export Executable
 
   foo(a:ZZ32):ZZ32 = do
@@ -26,4 +25,3 @@ component PlusEq
   end
 
   run():() = ()
-end
