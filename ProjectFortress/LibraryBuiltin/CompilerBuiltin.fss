@@ -27,9 +27,24 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intLT => jIntLT,
                                             simpleIntArith.intLE => jIntLE,
                                             simpleIntArith.intGT => jIntGT,
+                                            simpleIntArith.intGE => jIntGE,
                                             simpleIntArith.intEQ => jIntEQ,
                                             simpleIntArith.intNeg => jIntNeg,
-                                            simpleIntArith.parseInt => jParseInt}
+                                            simpleIntArith.parseInt => jParseInt,
+                                            simpleIntArith.intAbs => jIntAbs}
+import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => jDoubleToString,
+                                            simpleDoubleArith.doubleAdd => jDoubleAdd,
+                                            simpleDoubleArith.doubleSub => jDoubleSub,
+                                            simpleDoubleArith.doubleMul => jDoubleMul,
+                                            simpleDoubleArith.doubleDiv => jDoubleDiv,
+                                            simpleDoubleArith.doubleLT => jDoubleLT,
+                                            simpleDoubleArith.doubleLE => jDoubleLE,
+                                            simpleDoubleArith.doubleGT => jDoubleGT,
+                                            simpleDoubleArith.doubleGE => jDoubleGE,
+                                            simpleDoubleArith.doubleEQ => jDoubleEQ,
+                                            simpleDoubleArith.doubleNeg => jDoubleNeg,
+                                            simpleDoubleArith.parseDouble => jParseDouble,
+                                            simpleDoubleArith.doubleAbs => jDoubleAbs}
 import AnyType.{Any}
 export CompilerBuiltin
 
@@ -37,14 +52,16 @@ trait Object extends Any
 end Object
 
 trait String
+    asString(): String = self
     opr ||(self, b:String): String =  jConcatenate(self, b)
+    opr juxtaposition(self, b:String): String = jConcatenate(self, b)
 end
 
 object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-printlnZZ32(x:ZZ32):() = jPrintlnZZ32(x)
+printlnZZ32(x:ZZ32):() = jPrintln(x.asString())
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 
@@ -56,13 +73,14 @@ end
 
 trait ZZ32 extends ZZ64 comprises { IntLiteral }
     asString(): String = jIntToString(self)
-    opr STR(self): String = jIntToString(self)
+    opr |self| : ZZ32 = jIntAbs(self)
     opr -(self): ZZ32 = jIntNeg(self)
     opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
     opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
     opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
     opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
     opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
+    opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
     opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
@@ -73,6 +91,19 @@ object IntLiteral extends ZZ32
 end
 
 trait RR64 extends Number
+    asString(): String = jDoubleToString(self)
+    opr |self| : RR64 = jDoubleAbs(self)
+    opr -(self): RR64 = jDoubleNeg(self)
+    opr +(self, other:RR64): RR64 = jDoubleAdd(self,other)
+    opr -(self, other:RR64): RR64 = jDoubleSub(self,other)
+    opr <(self, other:RR64): Boolean = jDoubleLT(self,other)
+    opr <=(self, other:RR64): Boolean = jDoubleLE(self,other)
+    opr >(self, other:RR64): Boolean = jDoubleGT(self,other)
+    opr >=(self, other:RR64): Boolean = jDoubleGE(self,other)
+    opr =(self, other:RR64): Boolean = jDoubleEQ(self,other)
+    opr juxtaposition(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
 end
 
 trait RR32 extends RR64

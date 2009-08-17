@@ -236,12 +236,6 @@ public class ForeignJava {
         String pkg_name_string = pkg_name.getText();
         List<AliasedSimpleName> names = ins.getAliasedNames();
         for (AliasedSimpleName name : names) {
-            Option<IdOrOpOrAnonymousName> opt_alias = name.getAlias();
-            if (opt_alias.isSome()) {
-                //                throw StaticError.make(
-                //                "Import aliasing not yet implemented for foreign imports ", i);
-            }
-
             IdOrOpOrAnonymousName imported = name.getName();
             Option<APIName> dotted_prefix = imported.getApiName();
             String suffix = NodeUtil.nameString(imported);
@@ -287,12 +281,17 @@ public class ForeignJava {
              * "classiest" answer.
              */
             ClassNode imported_class = null;
+            Debug.debug(Debug.Type.REPOSITORY, 1,
+                        "Hunting for java match for ", pkg_name_string, ".", suffix);
             while (last_dot > 0) {
                 String candidate_class = suffix.substring(0, last_dot);
-                candidate_class = pkg_name_string + "." + Useful.replace(candidate_class, ".", "$");
+                candidate_class = pkg_name_string + "." +
+                                  Useful.replace(candidate_class, ".", "$");
+                Debug.debug(Debug.Type.REPOSITORY, 1,
+                            "Looking for java class ", candidate_class);
                 try {
                     imported_class = findClass(candidate_class);
-                    break;
+                    if (imported_class != null) break;
                     // exit with imported_class and last_dot
                 }
                 catch (IOException e) {
@@ -302,8 +301,8 @@ public class ForeignJava {
             }
             if (imported_class == null) {
                 // Could not match a class to any prefix
-                throw StaticError.make(
-                        "Could not find any Java package.class prefix of  " + pkg_name_string + "." + suffix, i);
+                throw StaticError.make("Could not find Java entity to match " +
+                                       pkg_name_string + "." + suffix, i);
             }
             /* imported_class specifies the class,
              * the item is the unused portion of the suffix.
