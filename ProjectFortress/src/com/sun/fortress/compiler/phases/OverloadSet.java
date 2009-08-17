@@ -994,8 +994,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             String ownerName = NamingCzar.only.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.only.apiAndMethodToMethod(f.tagA, f.tagF);
 
-            if (getOverloadSubsets().containsKey(sig))
+            if (getOverloadSubsets().containsKey(sig)) {
+                mname = Naming.mangleIdentifier(mname);
                 mname = NamingCzar.only.mangleAwayFromOverload(mname);
+            } else {
+                mname = Naming.mangleIdentifier(mname);
+            }
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }

@@ -17,61 +17,57 @@
 
 package com.sun.fortress.nativeHelpers;
 
-public class simpleIntArith {
+public class simpleDoubleArith {
 
-    public static String intToString(int x) {
-        return Integer.toString(x);
+    public static String doubleToString(double x) {
+        return Double.toString(x);
     }
 
-     public static int parseInt(String s) {
-        return Integer.parseInt(s);
+     public static double parseDouble(String s) {
+        return Double.parseDouble(s);
     }
 
-    public static int intAdd(int a, int b) {
+    public static double doubleAdd(double a, double b) {
         return a + b;
     }
 
-    public static int intSub(int a, int b) {
+    public static double doubleSub(double a, double b) {
         return a - b;
     }
 
-    public static int intMul(int a, int b) {
+    public static double doubleMul(double a, double b) {
         return a * b;
     }
 
-    public static int intDiv(int a, int b) {
+    public static double doubleDiv(double a, double b) {
         return a / b;
     }
 
-    public static int intNeg(int a) {
+    public static double doubleNeg(double a) {
         return -a;
     }
 
-    public static boolean intLT(int a, int b) {
+    public static boolean doubleLT(double a, double b) {
         return a < b;
     }
 
-    public static boolean intLE(int a, int b) {
+    public static boolean doubleLE(double a, double b) {
         return a <= b;
     }
 
-    public static boolean intGT(int a, int b) {
+    public static boolean doubleGT(double a, double b) {
         return a > b;
     }
 
-    public static boolean intGE(int a, int b) {
+    public static boolean doubleGE(double a, double b) {
         return a > b;
     }
 
-    public static boolean intEQ(int a, int b) {
+    public static boolean doubleEQ(double a, double b) {
         return a == b;
     }
 
-    public static long iMulL(int a, int b) {
-        return (long) a * (long) b;
-    }
-
-    public static int intAbs(int a) {
+    public static double doubleAbs(double a) {
         return Math.abs(a);
-}
+    }
 }

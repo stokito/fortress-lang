@@ -491,7 +491,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
         link.getExpr().accept(this);
         debug( "forChainExpr", x, " about to call accept on ",
                link.getOp(), " of class ", link.getOp().getClass());
-        link.getOp().accept(this);
+        int savedParamCount = paramCount;
+        try {
+            // TODO is this the general formula?
+            paramCount = links.size() + 1;
+            link.getOp().accept(this);
+        } finally {
+            paramCount = savedParamCount;
+        }
 
         debug( "We've got a link ", link, " an op ", link.getOp(),
                " and an expr ", link.getExpr(), " What do we do now");

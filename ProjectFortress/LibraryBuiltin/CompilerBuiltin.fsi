@@ -22,7 +22,9 @@ trait Object extends Any
 end Object
 
 trait String
+    asString(): String
 opr || (self, b:String):String
+    opr juxtaposition(self, b:String): String
 end
 
 object FlatString extends String
@@ -41,13 +43,14 @@ end
 
 trait ZZ32 extends ZZ64 comprises { IntLiteral }
     asString(): String
-    opr STR(self): String
+    opr |self| : ZZ32
     opr -(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
     opr -(self, other:ZZ32): ZZ32
     opr <(self, other:ZZ32) : Boolean
     opr <=(self, other:ZZ32): Boolean
     opr >(self, other:ZZ32): Boolean
+    opr >=(self, other:ZZ32): Boolean
     opr =(self, other:ZZ32): Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
@@ -58,6 +61,19 @@ object IntLiteral extends ZZ32
 end
 
 trait RR64 extends Number
+    asString(): String
+    opr |self| : RR64
+    opr -(self): RR64
+    opr +(self, other:RR64): RR64
+    opr -(self, other:RR64): RR64
+    opr <(self, other:RR64): Boolean
+    opr <=(self, other:RR64): Boolean
+    opr >(self, other:RR64): Boolean
+    opr >=(self, other:RR64): Boolean
+    opr =(self, other:RR64): Boolean
+    opr juxtaposition(self, other:RR64): RR64
+    opr DOT(self, other:RR64): RR64
+    opr /(self, other:RR64): RR64
 end
 
 trait RR32 extends RR64
