@@ -244,6 +244,7 @@ transient void pound = "#":singleOp / "\u0023":singleOp;
 transient void star = !("**") "*":singleOp;
 
 transient void comma = ",";
+transient void commaOrNot = "," / w ;
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */

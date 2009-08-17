@@ -56,8 +56,16 @@ transient List<Param> AbsValParam =
  */
 transient Param Parameter = Keyword / Varargs / Param ;
 transient List<Param> Params =
-     a1:Parameter a2s:(w comma w Parameter)*
+     a1:Parameter a2s:(w comma w Parameter)+
      { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:Parameter a2s:(w commaOrNot w Parameter)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:Parameter
+     { yyValue = Useful.list(a1);
        NodeUtil.checkParams(writer, yyValue);
      };
 
@@ -68,8 +76,17 @@ transient List<Param> Params =
  */
 transient Param AbsParameter = Keyword / Varargs / AbsParam ;
 transient List<Param> AbsParams =
-     a1:AbsParameter a2s:(w comma w AbsParameter)*
+     a1:AbsParameter a2s:(w comma w AbsParameter)+
      { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:AbsParameter a2s:(w commaOrNot w AbsParameter)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:AbsParameter
+     { yyValue = Useful.list(a1);
        NodeUtil.checkParams(writer, yyValue);
      };
 

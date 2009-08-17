@@ -362,6 +362,13 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
      { List<Expr> exprs = Useful.list(a1);
        for (Expr i : a2) exprs.add(i);
        yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
+     }
+   / openparen w a1:IdOrInt w a2:IdOrIntList w closeparen w mapsto w
+     a3:Expr
+     { log(NodeUtil.getSpan(a1), "Missing comma.");
+       List<Expr> exprs = Useful.list(a1);
+       for (Expr i : a2) exprs.add(i);
+       yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
      };
 
 /* IdOrInt ::= Id | IntLiteralExpr */
@@ -370,8 +377,15 @@ Expr IdOrInt =
    / IntLiteralExpr ;
 
 /* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
-List<Expr> IdOrIntList = a1:IdOrInt a2s:(w comma w IdOrInt)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+List<Expr> IdOrIntList =
+     a1:IdOrInt a2s:(w comma w IdOrInt)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:IdOrInt a2s:(w commaOrNot w IdOrInt)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:IdOrInt
+     { yyValue = Useful.list(a1); };
 
 /* ExprList ::= Expr (w , w Expr)* */
 List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*

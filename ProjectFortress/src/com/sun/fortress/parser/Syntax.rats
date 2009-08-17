@@ -75,8 +75,14 @@ List<Id> GrammarExtends = extends w QualifiedNames ;
 /* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
 List<Id> QualifiedNames =
      a1:QualifiedName { yyValue = Useful.list(a1); }
-   / opencurly w a1:QualifiedName a2s:(w comma w QualifiedName)* w closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+   / opencurly w a1:QualifiedName a2s:(w comma w QualifiedName)+ w closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / opencurly w a1:QualifiedName a2s:(w commaOrNot w QualifiedName)+ w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / opencurly w a1:QualifiedName w closecurly
+     { yyValue = Useful.list(a1); };
 
 /* NonterminalDef ::=
      Id w | w := w SyntaxExtensionDef (w SyntaxExtensionDefOr)*
@@ -129,8 +135,14 @@ private NonterminalHeader NonterminalHeader =
 
 /* Params ::= ( w Param (w , w Param)* w ) */
 private List<NonterminalParameter> Params =
-     openparen w a1:Param a2s:(w comma w Param)* w closeparen
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     openparen w a1:Param a2s:(w comma w Param)+ w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen w a1:Param a2s:(w commaOrNot w Param)+ w closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / openparen w a1:Param w closeparen
+     { yyValue = Useful.list(a1); };
 
 /* Param ::= Id : TraitType */
 private NonterminalParameter Param =

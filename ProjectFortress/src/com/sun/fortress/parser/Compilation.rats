@@ -55,7 +55,7 @@ CompilationUnit Program =
                "\n    File name: " + file +
                "\n    Component/API name: " + cuname);
      }
-   / a1:ImportOrExports (w semicolon)? w w a2:Decls (w semicolon)?
+   / a1:ImportOrExports (w semicolon)? w a2:Decls (w semicolon)?
      { Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
@@ -246,6 +246,11 @@ private List<Import> ImportedNames =
                                                           Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
+   / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
+     }
    / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
      a4:(w comma w ellipses)? w closecurly
      { Option<String> f = ( a1 == null ) ? Option.<String>none()
@@ -256,6 +261,11 @@ private List<Import> ImportedNames =
            imports.add((Import)NodeFactory.makeImportStar(span, f, a2,
                                                           Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
+     }
+   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
      }
    / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w match w Id)?
      { Option<String> f = ( a1 == null ) ? Option.<String>none()
@@ -285,8 +295,14 @@ private List<Import> ImportedNames =
 /* SimpleNameList ::= SimpleName (w , w SimpleName)* */
 private List<IdOrOpOrAnonymousName> SimpleNames =
      a1:SimpleName { yyValue = Useful.list(a1); }
-   / void:opencurly w a1:SimpleName a2s:(w comma w SimpleName)* w void:closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+   / void:opencurly w a1:SimpleName a2s:(w comma w SimpleName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:SimpleName a2s:(w commaOrNot w SimpleName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:SimpleName w void:closecurly
+     { yyValue = Useful.list(a1); };
 
 /* AliasedSimpleName ::=
      Id (w => w Id)?
@@ -325,8 +341,14 @@ private AliasedSimpleName AliasedSimpleName =
 
 /* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
 private List<AliasedSimpleName> AliasedSimpleNameList =
-     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedSimpleName a2s:(w commaOrNot w AliasedSimpleName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedSimpleName
+     { yyValue = Useful.list(a1); };
 
 /* AliasedQualifiedName ::= QualifiedName (w => w QualifiedName)? */
 private AliasedSimpleName AliasedQualifiedName =
@@ -342,8 +364,14 @@ private AliasedSimpleName AliasedQualifiedName =
 
 /* AliasedQualifiedNameList ::= AliasedQualifiedName (w , w AliasedQualifiedName)* */
 private List<AliasedSimpleName> AliasedQualifiedNameList =
-     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedQualifiedName a2s:(w commaOrNot w AliasedQualifiedName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedQualifiedName
+     { yyValue = Useful.list(a1); };
 
 /* AliasedAPINames ::=
      AliasedAPIName
@@ -353,9 +381,16 @@ private List<AliasedSimpleName> AliasedQualifiedNameList =
 private List<AliasedAPIName> AliasedAPINames =
      a1:AliasedAPIName
      { yyValue = Useful.list(a1); }
-   / void:opencurly w a1:AliasedAPIName a2s:(w comma w AliasedAPIName)* w
+   / void:opencurly w a1:AliasedAPIName a2s:(w comma w AliasedAPIName)+ w
      void:closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:AliasedAPIName a2s:(w commaOrNot w AliasedAPIName)+ w
+     void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:AliasedAPIName w void:closecurly
+     { yyValue = Useful.list(a1); };
 
 /* AliasedAPIName ::= APIName (w => w Id)? */
 private AliasedAPIName AliasedAPIName =
@@ -376,5 +411,11 @@ private List<APIName> Export = export w APINames ;
  */
 List<APIName> APINames =
      a1:APIName { yyValue = Useful.list(a1); }
-   / void:opencurly w a1:APIName a2s:(w comma w APIName)* w void:closecurly
-     { yyValue = Useful.cons(a1, a2s.list()); };
+   / void:opencurly w a1:APIName a2s:(w comma w APIName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:APIName a2s:(w commaOrNot w APIName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:APIName w void:closecurly
+     { yyValue = Useful.list(a1); };

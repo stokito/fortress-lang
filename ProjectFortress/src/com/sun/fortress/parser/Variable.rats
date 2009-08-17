@@ -78,7 +78,11 @@ List<LValue> VarMayTypes =
      a1:VarMayType
      { yyValue = Useful.list(a1); }
    / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen w a1:VarMayType a2s:(w commaOrNot w VarMayType)+ w closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     };
 
 /* VarMayType ::= BindId (w IsType)? */
 LValue VarMayType = a1:BindId a2:(w IsType)?

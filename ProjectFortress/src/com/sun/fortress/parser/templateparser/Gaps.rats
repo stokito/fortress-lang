@@ -25,8 +25,14 @@ import Spacing;
 import Identifier;
 
 List<Id> ParamList =
-     openparen a1:Id a2s:(w comma w Id)* closeparen
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     openparen a1:Id a2s:(w comma w Id)+ closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen a1:Id a2s:(w commaOrNot w Id)+ closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / openparen a1:Id closeparen
+     { yyValue = Useful.list(a1); };
 
 String prefix = "<!@#$%^&*<";
 String suffix = ">*&^%$#@!>";

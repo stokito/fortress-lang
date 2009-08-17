@@ -220,6 +220,7 @@ transient void star = !("**") "*":singleOp;
 transient void underscore = "_";
 
 transient void comma = ",";
+transient void commaOrNot = "," / w ;
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
