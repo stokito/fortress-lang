@@ -59,3 +59,9 @@ ProjectFortress/testFile.txt
 testFile.txt
 junk
 trash
+.scala_dependencies
+CommunityMetrics/ExternalContributors.numbers
+CommunityMetrics/ExternalContributors.xls
+Fortify/example/example.aux
+Fortify/example/example.pdf
+Fortify/example/example.tex
