@@ -162,11 +162,12 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         else domainResult = (Type) domain.accept(this);
         Type rangeResult = (Type) that.getRange().accept(this);
         Effect effectResult = (Effect) that.getEffect().accept(this);
+        Option<MethodInfo> methodInfo = that.getMethodInfo();
         TypeInfo infoResult = NodeFactory.makeTypeInfo(NodeUtil.getSpan(that),
                                                        NodeUtil.isParenthesized(that),
                                                        NodeUtil.getStaticParams(that),
                                                        NodeUtil.getWhereClause(that));
-        return forArrowTypeOnly(that, infoResult, domainResult, rangeResult, effectResult);
+        return forArrowTypeOnly(that, infoResult, domainResult, rangeResult, effectResult, methodInfo);
     }
 
     @Override

@@ -2192,7 +2192,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                    String info,
                                    String domain_result,
                                    String range_result,
-                                   String effect_result) {
+                                   String effect_result,
+                                   Option<String> methodInfo_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(domain_result);

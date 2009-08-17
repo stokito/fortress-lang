@@ -442,12 +442,13 @@ object ExportChecker {
         equalListTypes(elmsL, elmsR) &&
         equalOptTypes(varargsL, varargsR) &&
         equalListKeywordTypes(kwdL, kwdR)
-      case (SArrowType(_, domL, ranL, effL, ioL),
-            SArrowType(_, domR, ranR, effR, ioR)) =>
+      case (SArrowType(_, domL, ranL, effL, ioL, miL),
+            SArrowType(_, domR, ranR, effR, ioR, miR)) =>
         equalTypes(domL, domR) &&
         equalTypes(ranL, ranR) &&
         equalEffects(effL, effR) &&
-        ioL == ioR
+        ioL == ioR &&
+        equalOptMethodInfos(miL, miR)
       case _ => false
   }
 
@@ -510,6 +511,16 @@ object ExportChecker {
     (left, right) match {
       case (SId(_, apiL, textL), SId(_, apiR, textR)) =>
         equalOptAPINames(apiL, apiR) && textL == textR
+    }
+
+  /* Returns true if two optional method infos are the same. */
+  private def equalOptMethodInfos(left: Option[MethodInfo],
+                                  right: Option[MethodInfo]): Boolean =
+    (left, right) match {
+      case (None, None) => true
+      case (Some(SMethodInfo(typL, posL)), Some(SMethodInfo(typR, posR))) =>
+        equalTypes(typL, typR) && (posL == posR)
+      case _ => false
     }
 
   /* Returns true if two optional APINames are same. */

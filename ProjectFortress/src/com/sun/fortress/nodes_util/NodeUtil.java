@@ -399,6 +399,18 @@ public class NodeUtil {
         return a.getHeader().getReturnType();
     }
 
+    public static Option<Type> getSelfType(ArrowType a) {
+        Option<MethodInfo> mi = a.getMethodInfo();
+        if (mi.isNone()) return Option.<Type>none();
+        return Option.some(mi.unwrap().getSelfType());
+    }
+
+    public static Option<Integer> getSelfPosition(ArrowType a) {
+        Option<MethodInfo> mi = a.getMethodInfo();
+        if (mi.isNone()) return Option.<Integer>none();
+        return Option.some(mi.unwrap().getSelfPosition());
+    }
+
     public static Option<WhereClause> getWhereClause(Applicable a) {
         return a.getHeader().getWhereClause();
     }

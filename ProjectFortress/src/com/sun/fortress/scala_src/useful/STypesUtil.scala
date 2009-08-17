@@ -210,7 +210,21 @@ object STypesUtil {
   }
 
   /**
-   * Get all the static parameters out of the given type.
+   * Does the given type have any static parameters declared?
+   */
+  def hasStaticParams(typ: Type): Boolean = !typ.getInfo.getStaticParams.isEmpty
+
+  /**
+   * Does the given type have any static parameters declared? If `ignoreLifted`
+   * is true, then ignore lifted static parameters.
+   */
+  def hasStaticParams(typ: Type, ignoreLifted: Boolean): Boolean = {
+    val params = getStaticParams(typ)
+    if (ignoreLifted) params.exists(!_.isLifted) else !params.isEmpty
+  }
+
+  /**
+   *  Get all the static parameters out of the given type.
    */
   def getStaticParams(typ: Type): List[StaticParam] =
     toList(typ.getInfo.getStaticParams)
@@ -569,6 +583,8 @@ object STypesUtil {
 
     Some((resultArrow, resultArgs))
   }
+
+  //inferLiftedTypes(fnType)
 
   /** Does the type contain any nested inference variables? */
   def hasInferenceVars(typ: Type): Boolean = {

@@ -65,37 +65,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeAliasIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
-import com.sun.fortress.nodes.ASTNodeInfo;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.BoolArg;
-import com.sun.fortress.nodes.BottomType;
-import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.Effect;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IntArg;
-import com.sun.fortress.nodes.IntersectionType;
-import com.sun.fortress.nodes.KeywordType;
-import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.OpArg;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeInfo;
-import com.sun.fortress.nodes.UnionType;
-import com.sun.fortress.nodes.UnitArg;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
@@ -384,10 +354,11 @@ public class TypeAnalyzer {
                 return makeUnion(map(cross(elementDisjuncts), handleDisjunct));
             }
 
-            @Override public Type forArrowTypeOnly(ArrowType t,
+            @Override public Type forArrowTypeOnly(final ArrowType t,
                                                    TypeInfo i,
                                                    Type normalDomain, Type normalRange,
-                                                   final Effect normalEffect) {
+                                                   final Effect normalEffect,
+                                                   final Option<MethodInfo> methodInfo) {
                 Type domainArg = stripKeywords(normalDomain);
                 final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
                 Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
@@ -405,7 +376,7 @@ public class TypeAnalyzer {
                 Iterable<Type> ranges = liftConjuncts(normalRange, history);
                 Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Type, Type, Type>() {
                     public Type value(Type d, Type r) {
-                        return NodeFactory.makeArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect);
+                        return NodeFactory.makeArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect, methodInfo);
                     }
                 });
                 // don't meet, because the arrows here aren't subtypes of each other

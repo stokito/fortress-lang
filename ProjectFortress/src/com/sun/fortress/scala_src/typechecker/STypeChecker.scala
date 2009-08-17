@@ -451,7 +451,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         makeCoercion(typ, expected, checkedExpr)
       case Some(typ) =>
         signal(location, message.format(normalize(typ), normalize(expected)))
-        checkedExpr
+        expr
       case None => expr
     }
   }
@@ -461,19 +461,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   def checkExpr(expr: Expr, expected: Type, message: String): Expr =
     checkExpr(expr, expected, message, expr)
-
-
-  /**
-   * This overloading is identical to the one above, except that the expected
-   * type is optional. If defined, it calls the overloading above. If undefined,
-   * it calls the checkExpr that does not perform any subtype checks.
-   */
-  def checkExpr(expr: Expr,
-                expected: Option[Type],
-                message: String): Expr = expected match {
-    case Some(t) => checkExpr(expr, t, message)
-    case _ => checkExpr(expr)
-  }
 
   /**
    * Type check an expression, returning the rewritten node. This overloading
@@ -536,6 +523,19 @@ class TryChecker(current: CompilationUnitIndex,
   def tryCheckExpr(expr: Expr): Option[Expr] =
     try {
       val checkedExpr = super.checkExpr(expr)
+      if (getType(checkedExpr).isNone)
+        bug("TryChecker returned an untyped expr!")
+      Some(checkedExpr)
+    }
+    catch {
+      case e:StaticError => None
+      case e => throw e
+    }
+
+  /** Check the given expression; return it if successful, None otherwise. */
+  def tryCheckExpr(expr: Expr, expected: Option[Type]): Option[Expr] =
+    try {
+      val checkedExpr = super.checkExpr(expr, expected)
       if (getType(checkedExpr).isNone)
         bug("TryChecker returned an untyped expr!")
       Some(checkedExpr)

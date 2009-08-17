@@ -128,7 +128,7 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
           case _ =>
         }
       // Effects are not yet supported...
-      case SArrowType(_, domain, range, effect, io) => walk(domain); walk(range)
+      case SArrowType(_, domain, range, effect, io, _) => walk(domain); walk(range)
       case SIntersectionType(_, elements) => elements.foreach((t:Type) => walk(t))
       case SUnionType(_, elements) => elements.foreach((t:Type) => walk(t))
       case SLabelType(_) => // OK

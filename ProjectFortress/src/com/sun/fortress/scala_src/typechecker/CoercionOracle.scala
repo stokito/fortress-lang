@@ -121,7 +121,7 @@ class CoercionOracle(traits: TraitTable,
       rules.forall(identity)
     }
 
-    case (SArrowType(_, a, b, teff, _), SArrowType(_, d, e, ueff, _)) => {
+    case (SArrowType(_, a, b, teff, _, _), SArrowType(_, d, e, ueff, _, _)) => {
       // Get throws types.
       val c = toOption(teff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())
       val f = toOption(ueff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())

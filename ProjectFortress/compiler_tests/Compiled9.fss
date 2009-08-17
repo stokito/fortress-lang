@@ -23,11 +23,11 @@
  object D extends B end
  
  trait A
-  coercion(x: D) = C
+  coerce(x: D) = C
  end
  
  trait B
-  coercion(x: C) = D
+  coerce(x: C) = D
  end
  
  f(x: A): A = x

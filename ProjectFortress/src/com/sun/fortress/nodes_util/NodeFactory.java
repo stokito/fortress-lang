@@ -727,6 +727,14 @@ public class NodeFactory {
     }
 
     public static ArrowType makeArrowType(Span span, Type domain, Type range,
+                                          Effect effect,
+                                          Option<MethodInfo> methodInfo) {
+        return makeArrowType(span, false, domain, range, effect,
+                             Collections.<StaticParam>emptyList(),
+                             Option.<WhereClause>none(), methodInfo);
+    }
+
+    public static ArrowType makeArrowType(Span span, Type domain, Type range,
                                           Effect effect) {
         return makeArrowType(span, false, domain, range, effect,
                              Collections.<StaticParam>emptyList(),
@@ -743,7 +751,16 @@ public class NodeFactory {
                                           List<StaticParam> sparams,
                                           Option<WhereClause> where) {
         TypeInfo info = makeTypeInfo(span, parenthesized, sparams, where);
-        return new ArrowType(info, domain, range, effect, false);
+        return new ArrowType(info, domain, range, effect, false, Option.<MethodInfo>none());
+    }
+
+    public static ArrowType makeArrowType(Span span, boolean parenthesized,
+                                          Type domain, Type range, Effect effect,
+                                          List<StaticParam> sparams,
+                                          Option<WhereClause> where,
+                                          Option<MethodInfo> methodInfo) {
+        TypeInfo info = makeTypeInfo(span, parenthesized, sparams, where);
+        return new ArrowType(info, domain, range, effect, false, methodInfo);
     }
 
     public static Type makeMaybeTupleType(Span span, List<Type> elements) {

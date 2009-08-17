@@ -1085,7 +1085,11 @@ interface Node() extends HasAt;
                  * <whereClause>
                  * type of a generic function, used during static checking
                  */
-                ArrowType(Type domain, Type range, Effect effect, boolean io);
+                ArrowType(Type domain,
+                          Type range,
+                          Effect effect,
+                          boolean io,
+                          Option<MethodInfo> methodInfo = Option.<MethodInfo>none());
                 /**
                  * inferred type
                  * Used internally for type analysis
@@ -1905,6 +1909,11 @@ interface Node() extends HasAt;
                          */
                         TypeInfo(List<StaticParam> staticParams,
                                  Option<WhereClause> whereClause);
+                /*
+                 * Contains info about the self parameter in an arrow type for
+                 * a method.
+                 */
+                MethodInfo(Type selfType, int selfPosition);
             /*
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.
