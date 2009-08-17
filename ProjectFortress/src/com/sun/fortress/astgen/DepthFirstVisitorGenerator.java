@@ -35,8 +35,8 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         // Class header
         writer.startLine("/** A parametric abstract implementation of a visitor over " + root.name());
         writer.print(" that returns a value.");
-        writer.startLine(" ** This visitor implements the visitor interface with methods that ");
-        writer.startLine(" ** first visit children, and then call forCASEOnly(), passing in ");
+        writer.startLine(" ** This visitor implements the visitor interface with methods that");
+        writer.startLine(" ** first visit children, and then call forCASEOnly(), passing in");
         writer.startLine(" ** the values of the visits of the children. (CASE is replaced by the case name.)");
         writer.startLine(" ** By default, each of forCASEOnly delegates to a more general case; at the");
         writer.startLine(" ** top of this delegation tree is defaultCase(), which (unless overridden)");

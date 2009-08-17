@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.phases;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.ParallelismAnalyzer;
+import com.sun.fortress.compiler.codegen.FreeVariables;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
@@ -90,7 +91,12 @@ public class CodeGenerationPhase extends Phase {
             component.accept(pa);
             pa.printTable();
 
-            CodeGen c = new CodeGen(component, ta, pa, ci, env);
+            // Compute locally bound variables, necessary for closure conversion and
+            // task creation.
+            FreeVariables lbv = new FreeVariables();
+            component.accept(lbv);
+
+            CodeGen c = new CodeGen(component, ta, pa, lbv, ci, env);
             component.accept(c);
         }
 

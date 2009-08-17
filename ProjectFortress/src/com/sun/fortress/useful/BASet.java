@@ -257,11 +257,14 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
         private BASnode<T> leftHeavy(BASnode<T> l, BASnode<T> r) {
             // Worst-case balance is nothing left, everything r!
-            int rw = weight(r);
+            // But r may be empty.
+            if (r==null)
+                return join(l, new BASnode<T>(key));
+            int rw = r.weight;
             int lw = weight(l);
             if (lw >> 2 > rw) {
                 // Way out of balance; put root in r and join.
-                return join(l, join(new BASnode<T>(key), r));
+                return join(l, r.insertMin(new BASnode<T>(key)));
             } else {
                 return leftWeightIncreased(l,r);
             }
@@ -291,12 +294,15 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         }
 
         private BASnode<T> rightHeavy(BASnode<T> l, BASnode<T> r) {
-            // Worst-case balance is nothing left, everything r!
+            // Worst-case balance is nothing right, everything l!
+            // But l may be empty
+            if (l==null)
+                return join(new BASnode<T>(key), r);
             int rw = weight(r);
-            int lw = weight(l);
+            int lw = l.weight;
             if (rw >> 2 > lw) {
                 // Way out of balance; put root in l and join.
-                return join(join(l, new BASnode<T>(key)), r);
+                return join(l.insertMax(new BASnode<T>(key)), r);
             } else {
                 return rightWeightIncreased(l,r);
             }
@@ -391,6 +397,22 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                 return r.leftWeightIncreased(join(l,r.left), r.right);
             } else {
                 return l.rightWeightIncreased(l.left, join(l.right, r));
+            }
+        }
+
+        public BASnode<T> insertMin(BASnode<T> min) {
+            if (left == null) {
+                return new BASnode<T>(key, weight+1, min, right);
+            } else {
+                return leftWeightIncreased(left.insertMin(min),right);
+            }
+        }
+
+        public BASnode<T> insertMax(BASnode<T> max) {
+            if (right == null) {
+                return new BASnode<T>(key, weight+1, left, max);
+            } else {
+                return rightWeightIncreased(left, right.insertMax(max));
             }
         }
 

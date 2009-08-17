@@ -37,6 +37,7 @@ customClassPath ../build;
 /* order matters here */
 customGenerator com.sun.fortress.astgen.ScalaAstGenerator;
 customGenerator com.sun.fortress.astgen.DepthFirstVisitorGenerator;
+customGenerator com.sun.fortress.astgen.CollectingVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVisitorGenerator;
 
 customGenerator com.sun.fortress.astgen.DepthFirstVoidVisitorGenerator;

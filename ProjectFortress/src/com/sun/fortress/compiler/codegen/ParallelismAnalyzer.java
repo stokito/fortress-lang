@@ -73,6 +73,6 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
         if (arg instanceof TupleExpr) {
             TupleExpr targ = (TupleExpr) arg;
             if (tallyArgs(targ.getExprs())) worthy.add(x);
-        } 
+        }
     }
 }
