@@ -15,17 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXPlusEq2
   export Executable
 
   trait Foo
-    getter s() : String
-    setter s(new_s:String):()
+    setter m(new_m:ZZ32):()
   end
 
-  foo(a:String,f:Foo):() = do
-    f.s += a
+  foo(a:ZZ32,f:Foo):ZZ32 = do
+    f.m += a
+    a
   end
 
   run():() = ()
-end

@@ -13,7 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Arrow0 Arrow1
-link
-run
-run_out_WImatches=Ok!
+tests=Compiled6.bi
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.bi.fss:26:5-12:\n\
+\ Could not check call to operator +\n\
+\ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, String).\n\
+File Compiled6.bi.fss has 1 error.\n
+compile_out_equals=
