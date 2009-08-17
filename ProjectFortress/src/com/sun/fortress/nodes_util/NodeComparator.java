@@ -147,9 +147,9 @@ public class NodeComparator {
         public int compare(APIName o1, APIName o2) {
             return NodeComparator.compare(o1, o2);
         }
-        
+
     };
-    
+
     /* compare methods ***************************************************/
     public static int compare(APIName left, APIName right) {
         return ListComparer.stringListComparer.compare(NodeUtil.toStrings(left),
@@ -190,7 +190,7 @@ public class NodeComparator {
 
     public final static FnDeclComparer fnAbsDeclOrDeclComparer = new FnDeclComparer();
 
-     public static int compare(IdOrOpOrAnonymousName left, IdOrOpOrAnonymousName right) {
+    public static int compare(IdOrOpOrAnonymousName left, IdOrOpOrAnonymousName right) {
         Class<? extends IdOrOpOrAnonymousName> leftClass = left.getClass();
         Class<? extends IdOrOpOrAnonymousName> rightClass = right.getClass();
 

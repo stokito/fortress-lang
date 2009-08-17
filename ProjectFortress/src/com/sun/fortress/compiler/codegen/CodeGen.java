@@ -69,6 +69,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
     private final ParallelismAnalyzer pa;
+    private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
     private HashSet<String> overloadedNamesAndSigs;
     private final List<ObjectDecl> singletonObjects;
@@ -90,13 +91,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private GlobalEnvironment env;
 
 
-    public CodeGen(Component c, TypeAnalyzer ta, ParallelismAnalyzer pa, ComponentIndex ci,
-                   GlobalEnvironment env) {
+    public CodeGen(Component c,
+                   TypeAnalyzer ta, ParallelismAnalyzer pa, FreeVariables fv,
+                   ComponentIndex ci, GlobalEnvironment env) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName().getText(), "/").toString();
         aliasTable = new HashMap<String, String>();
         this.ta = ta;
         this.pa = pa;
+        this.fv = fv;
         this.ci = ci;
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
@@ -123,6 +126,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         this.inABlock = c.inABlock;
         this.ta = c.ta;
         this.pa = c.pa;
+        this.fv = c.fv;
         this.ci = c.ci;
         this.env = c.env;
         this.topLevelOverloads = c.topLevelOverloads;
@@ -342,10 +346,10 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         Pair<String, String> method_and_signature = resolveMethodAndSignature(
                 x, arrow, methodName);
-        
+
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
                 method_and_signature.getA(), method_and_signature.getB());
-        
+
     }
 
     /**
@@ -358,7 +362,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private Pair<String, String> resolveMethodAndSignature(FunctionalRef x,
             com.sun.fortress.nodes.Type arrow, String methodName) throws Error {
         Pair<String, String> method_and_signature = null;
-        
+
         if ( arrow instanceof ArrowType ) {
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
@@ -370,7 +374,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
                     OverloadSet.oMangle(methodName) : Naming.mangleIdentifier(methodName);
-                    
+
             method_and_signature = new Pair<String, String>(methodName,
                     OverloadSet.getSignature(it, paramCount, ta));
 
@@ -807,14 +811,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String desc = NamingCzar.only.makeAbstractArrowDescriptor(params, rt, thisApi());
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        
-        String className = NamingCzar.only.gensymArrowClassName(Naming.deDot(thisApi().getText())); 
+
+        String className = NamingCzar.only.gensymArrowClassName(Naming.deDot(thisApi().getText()));
 
         debug("forFnExpr className = " + className + " desc = " + desc);
         cg.cw.visitSource(className, null);
         List<VarCodeGen> freeVars = getFreeVars(body);
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
-        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, 
+        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                     className, null, desc, null);
 
         cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", NamingCzar.voidToVoid, null, null);
@@ -851,8 +855,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
         mv.visitTypeInsn(Opcodes.NEW, className);
         mv.visitInsn(Opcodes.DUP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", NamingCzar.voidToVoid);
-    }        
-        
+    }
+
 
     /**
      * Creates a name that will not collide with any overloaded functions
@@ -903,7 +907,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 /* The suffix will be
                  * (potentially mangled)
                  * functionName<ENVELOPE>closureType (which is an arrow)
-                 * 
+                 *
                  * must generate code for the class with a method apply, that
                  * INVOKE_STATICs prefix.functionName .
                  */
@@ -912,7 +916,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             } else {
                 sayWhat(x, "Haven't figured out references to local/parameter functions yet");
             }
-            
+
         }
     }
 
@@ -1275,8 +1279,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
     // This returns a list rather than a set because the order matters;
     // we should guarantee that we choose a consistent order every time.
     private List<VarCodeGen> getFreeVars(Node n) {
-        // Assume all avail vars are used.  Naive!!!  Replace with analysis results.
-        return new ArrayList(lexEnv.values());
+        BASet<IdOrOp> allFvs = fv.freeVars(n);
+        List<VarCodeGen> vcgs = new ArrayList<VarCodeGen>();
+        if (allFvs == null) sayWhat((ASTNode)n," null free variable information!");
+        for (IdOrOp v : allFvs) {
+            VarCodeGen vcg = getLocalVarOrNull(v);
+            if (vcg != null) vcgs.add(vcg);
+        }
+        return vcgs;
     }
 
     private BATree<String, VarCodeGen>
@@ -1665,11 +1675,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private void generateCall(VarRef v) {
         VarCodeGen vcg = getLocalVar(v.getVarId());
         if (!(vcg.fortressType instanceof ArrowType))
-            throw new CompilerError(NodeUtil.getSpan(v), 
+            throw new CompilerError(NodeUtil.getSpan(v),
                                     "Only know how to generate calls to lambda vars");
 
         ArrowType at = (ArrowType) vcg.fortressType;
-        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, 
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
                            NamingCzar.only.makeArrowDescriptor(vcg.fortressType, thisApi()),
                            NamingCzar.only.applyMethodName(),
                            NamingCzar.only.jvmSignatureFor(at.getDomain(),
