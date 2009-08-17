@@ -15,15 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component FnExpr
   export Executable
 
-  foo():() = do
-    var s:String
-    s := (fn (arg:String)=>arg)("MyString")
+  trait Foo
+    getter size():ZZ32
+  end
+  trait Bar extends Foo end
 
-    s := (fn (arg:String):String=>arg)("MyString")
+  foo(b:Bar):() = do
+    var i:ZZ32
+    i := b.size
   end
 
-  run():()=()
-end
+  run():() =()

@@ -15,11 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TryAtomic
-    export Executable
-    object foo end
-    run():() = do
-        var a:foo
-        a:= tryatomic foo
-    end
-end
+ export Executable
+ object Foo
+   var z:String = "blah"
+   setter z(newz:String):()=z:=newz
+ end
+ run():() = do
+   Foo.z := "bar"
+ end

@@ -15,18 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component FieldFromSuper
-  export Executable
-
-  trait Foo
-    getter size():ZZ32
-  end
-  trait Bar extends Foo end
-
-  foo(b:Bar):() = do
-    var i:ZZ32
-    i := b.size
-  end
-
-  run():() =()
-end
+    export Executable
+    object foo end
+    run():() = do
+        var a:foo
+        a:= tryatomic foo
+    end

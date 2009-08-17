@@ -14,19 +14,39 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-
-component SimpleFunctionCall
   export Executable
 
-  f(s:String):String = s
-  g[\T extends Any\](x:T):T = x
+  foo(a:Any):() = do
+    var b:String
 
-run():() = do
-  var s:String
+    b := typecase a of
+      String => a
+      else => "Nothin"
+    end
 
-  s := f("asdad")
-  s := g[\String\]("asdad")
-  ()
-end
+    ()
+  end
 
-end
+  trait Ty1 end
+  trait Ty2 end
+
+  bar(t:Ty1) : () = do
+    typecase t of
+      Ty2 => do
+          var t1 : Ty1
+          var t2 : Ty2
+          t1 := t
+          t2 := t
+      end
+    end
+  end
+
+  quux(tup:(Any,Any)) : () = do
+    var s : String
+
+    s := typecase (a,b) = tup of
+      (String,String) => a
+    end
+  end
+
+  run() : () = ()

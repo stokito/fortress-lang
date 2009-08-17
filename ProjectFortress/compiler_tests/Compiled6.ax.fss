@@ -15,18 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component MethodInvocationStaticInfer1
   export Executable
 
-  trait Foo
-    doIt[\T\](t1:T, t2:T):T
-  end
+  f(s:String):String = s
+  g[\T extends Any\](x:T):T = x
 
-  foo(a:ZZ32, f:Foo) : () = do
-    var a2 : ZZ32
+run():() = do
+  var s:String
 
-    a2 := f.doIt(a,a)
-  end
-
-  run():() = ()
+  s := f("asdad")
+  s := g[\String\]("asdad")
+  ()
 end
