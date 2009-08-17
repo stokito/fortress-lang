@@ -71,8 +71,15 @@ Id BindId =
    / a1:"_" { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
 
 /* BindIdList ::= BindId (w , w BindId)* */
-List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+List<Id> BindIdList =
+     a1:BindId a2s:(w comma w BindId)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:BindId a2s:(w commaOrNot w BindId)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:BindId
+     { yyValue = Useful.list(a1); };
 
 /* BindIdOrBindIdTuple ::=
      BindId
@@ -82,7 +89,13 @@ List<Id> BindIdOrBindIdTuple =
      <FIRST> a1:BindId
      { yyValue = Useful.list(a1); }
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
-     { yyValue = Useful.cons(a1, a2s); };
+     { yyValue = Useful.cons(a1, a2s); }
+   / openparen w a1:BindId w commaOrNot w a2s:BindIdList w closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s);
+     };
+
+private transient void commaOrNot = "," / w ;
 
 /* SimpleName ::=
      Id

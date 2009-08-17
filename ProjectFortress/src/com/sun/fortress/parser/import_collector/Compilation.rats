@@ -28,15 +28,15 @@ import Spacing;
 
 /* File ::=
      w CompilationUnit w EndOfFile
-   | (w Imports w ;?)? w Exports w ;? (w Decls w ;?)? w EndOfFile
-   | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
-   | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
+   | w ImportOrExports (w ;)? w (w Decls (w ;)?)? w EndOfFile
+   | w Imports (w ;)? (w AbsDecls (w ;)?)? w EndOfFile
+   | w (Imports (w ;)? w)? AbsDecls (w ;)? w EndOfFile
  */
 public CompilationUnit File = w yyValue:Program w EndOfFile ;
 
 CompilationUnit Program =
      yyValue:CompilationUnit
-   / a1:ImportOrExports (w semicolon)? w (_)+
+   / a1:ImportOrExports (w semicolon)? w DeclHeader (_)+
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
@@ -48,7 +48,7 @@ CompilationUnit Program =
        } else
            yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
      }
-   / _*
+   / DeclHeader _*
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
@@ -62,6 +62,11 @@ CompilationUnit Program =
                                                Collections.<APIName>emptyList());
      };
 
+private void DeclHeader =
+     trait / object / Id / opr / dim / unit / type / test / property / grammar
+   / comprises / native / abstract / atomic / getter / hidden / io / override
+   / private / settable / setter / test / value / var / wrapped / openparen / end ;
+
 /* CompilationUnit ::=
      Component
    | Api
@@ -71,8 +76,8 @@ private CompilationUnit CompilationUnit =
    / Api ;
 
 /* Component ::=
-     (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
-     (w Decls w ;?)? w end ((s component)? s APIName)?
+     (native w)? component w APIName w ImportOrExports (w ;)?
+     (w Decls (w ;)?)? w end ((s component)? s APIName)?
  */
 private Component Component =
      a1:(native w)? component w a2:APIName w comprises w a3:APINames
@@ -89,7 +94,7 @@ private Component Component =
            yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, true, exports);
      }
    / a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)?
-     w (_)*
+     w DeclHeader (_)*
      { Span span = createSpan(yyStart,yyCount);
        List<Import>  imports = ( a3 == null ) ? Collections.<Import>emptyList()
                                               : a3.getA();
@@ -119,7 +124,8 @@ private Api Api =
        yyValue = NodeFactory.makeApi(span, a1, Collections.<Import>emptyList(),
                                      Collections.<Decl>emptyList(), a2);
      }
-   / a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
+   / a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)?
+     w DeclHeader (_)*
      { Span span = createSpan(yyStart,yyCount);
        List<Import> imports = (a2 == null) ? Collections.<Import>emptyList()
                                            : a2.getA();
@@ -156,11 +162,10 @@ private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExport 
  */
 private List<Import> Import =
      import a1:(w ForeignLang)? w api w a2:AliasedAPINames
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
-       Import imp = NodeFactory.makeImportApi(createSpan(yyStart, yyCount), fl, a2);
-       yyValue = Useful.list(imp);
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
+       yyValue = Useful.list((Import)NodeFactory.makeImportApi(createSpan(yyStart,yyCount),
+                                                               f, a2));
      }
    / import w ImportedNames;
 
@@ -228,41 +233,46 @@ private String EscapeSequence =
 private List<Import> ImportedNames =
      a1:(ForeignLang w)? a2:APIName dot w opencurly w ellipses w closecurly
      a3:(w except w SimpleNames)?
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
        if (a3 == null) a3 = Collections.<IdOrOpOrAnonymousName>emptyList();
-       yyValue = Useful.list((Import)NodeFactory.makeImportStar(
-                                             createSpan(yyStart,yyCount),fl,a2,a3));
+       yyValue = Useful.list((Import)NodeFactory.makeImportStar(createSpan(yyStart,yyCount),
+                                                                f, a2, a3));
      }
    / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
      a4:(w comma w ellipses)? w closecurly
-     { Option<String> fl = Option.<String>some(a1);
+     { Option<String> f = Option.<String>some(a1);
        Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span,fl,
-                                                                         a2,a3));
+       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span, f, a2, a3));
        if (a4 != null)
-           imports.add((Import)NodeFactory.makeImportStar(span, fl,a2,
-                               Collections.<IdOrOpOrAnonymousName>emptyList()));
+           imports.add((Import)NodeFactory.makeImportStar(span, f, a2,
+                                                          Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
+     }
+   / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
      }
    / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
      a4:(w comma w ellipses)? w closecurly
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
        Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span,fl,
-                                                                         a2,a3));
+       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span, f, a2,a3));
        if (a4 != null)
-           imports.add((Import)NodeFactory.makeImportStar(span, fl,a2,
-                               Collections.<IdOrOpOrAnonymousName>emptyList()));
+           imports.add((Import)NodeFactory.makeImportStar(span, f, a2,
+                                                          Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
+   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
+     }
    / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w match w Id)?
-     { Option<String> fl;
-       if ( a1 == null ) fl = Option.<String>none();
-       else              fl = Option.<String>some(a1);
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
        APIName api;
        Id id;
        if (a3.getApiName().isNone()) {
@@ -272,27 +282,29 @@ private List<Import> ImportedNames =
            api = NodeFactory.makeAPINameSkipLast(a2, a3);
            id  = NodeFactory.makeIdFromLast(a3);
        }
-       AliasedSimpleName an;
-       if (a4 == null) an = NodeFactory.makeAliasedSimpleName(id);
-       else            an = NodeFactory.makeAliasedSimpleName(id, a4);
-       Import imp = NodeFactory.makeImportNames(createSpan(yyStart,yyCount), fl, api,
-                                                Useful.list(an));
+       AliasedSimpleName an = (a4 == null) ? NodeFactory.makeAliasedSimpleName(id)
+                                           : NodeFactory.makeAliasedSimpleName(id, a4);
+       Import imp = NodeFactory.makeImportNames(createSpan(yyStart,yyCount), f,
+                                                api, Useful.list(an));
        yyValue = Useful.list(imp);
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
+/* SimpleNameList ::= SimpleName (w , w SimpleName)* */
 private List<IdOrOpOrAnonymousName> SimpleNames =
      a1:SimpleName { yyValue = Useful.list(a1); }
-   / void:opencurly w SimpleNameList w void:closecurly ;
-
-/* SimpleNameList ::= SimpleName (w , w SimpleName)* */
-private List<IdOrOpOrAnonymousName> SimpleNameList =
-     a1:SimpleName a2s:(w comma w SimpleName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+   / void:opencurly w a1:SimpleName a2s:(w comma w SimpleName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:SimpleName a2s:(w commaOrNot w SimpleName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:SimpleName w void:closecurly
+     { yyValue = Useful.list(a1); };
 
 /* AliasedSimpleName ::=
      Id (w => w Id)?
-   | opr (w BIG)? w (Encloser / Op) (w => w (Encloser / Op))?
+   | opr (w BIG)? w (Encloser | Op) (w => w (Encloser | Op))?
    | opr (w BIG)? w EncloserPair (w => w EncloserPair)?
  */
 private AliasedSimpleName AliasedSimpleName =
@@ -303,29 +315,23 @@ private AliasedSimpleName AliasedSimpleName =
            yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
      }
    / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w match w (Encloser / Op))?
-     { if (big != null) {
-           a1 = NodeFactory.makeBig(a1);
-       }
+     { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else {
            if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(a1,
-                                                           NodeFactory.makeBig(a2));
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, NodeFactory.makeBig(a2));
            else
                yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
      }
    / opr big:(w BIG)? w a1:EncloserPair a2:(w match w EncloserPair)?
-     { if (big != null) {
-           a1 = NodeFactory.makeBig(a1);
-       }
+     { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else {
            if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(a1,
-                                                           NodeFactory.makeBig(a2));
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, NodeFactory.makeBig(a2));
            else
                yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
@@ -333,8 +339,14 @@ private AliasedSimpleName AliasedSimpleName =
 
 /* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
 private List<AliasedSimpleName> AliasedSimpleNameList =
-     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedSimpleName a2s:(w commaOrNot w AliasedSimpleName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedSimpleName
+     { yyValue = Useful.list(a1); };
 
 /* AliasedQualifiedName ::= QualifiedName (w => w QualifiedName)? */
 private AliasedSimpleName AliasedQualifiedName =
@@ -350,16 +362,33 @@ private AliasedSimpleName AliasedQualifiedName =
 
 /* AliasedQualifiedNameList ::= AliasedQualifiedName (w , w AliasedQualifiedName)* */
 private List<AliasedSimpleName> AliasedQualifiedNameList =
-     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedQualifiedName a2s:(w commaOrNot w AliasedQualifiedName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedQualifiedName
+     { yyValue = Useful.list(a1); };
 
 /* AliasedAPINames ::=
      AliasedAPIName
    | { w AliasedAPINameList w }
+   AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)*
  */
 private List<AliasedAPIName> AliasedAPINames =
-     a1:AliasedAPIName { yyValue = Useful.list(a1); }
-   / void:opencurly w AliasedAPINameList w void:closecurly ;
+     a1:AliasedAPIName
+     { yyValue = Useful.list(a1); }
+   / void:opencurly w a1:AliasedAPIName a2s:(w comma w AliasedAPIName)+ w
+     void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:AliasedAPIName a2s:(w commaOrNot w AliasedAPIName)+ w
+     void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:AliasedAPIName w void:closecurly
+     { yyValue = Useful.list(a1); };
 
 /* AliasedAPIName ::= APIName (w => w Id)? */
 private AliasedAPIName AliasedAPIName =
@@ -370,22 +399,21 @@ private AliasedAPIName AliasedAPIName =
            yyValue = NodeFactory.makeAliasedAPIName(a1, a2);
      };
 
-/* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
-private List<AliasedAPIName> AliasedAPINameList =
-     a1:AliasedAPIName a2s:(w comma w AliasedAPIName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* Export ::= export w APINames */
 private List<APIName> Export = export w APINames ;
 
 /* APINames ::=
      APIName
    | { w APINameList w }
+   APINameList ::= APIName (w , w APIName)*
  */
 List<APIName> APINames =
      a1:APIName { yyValue = Useful.list(a1); }
-   / void:opencurly w APINameList w void:closecurly ;
-
-/* APINameList ::= APIName (w , w APIName)* */
-private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+   / void:opencurly w a1:APIName a2s:(w comma w APIName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:APIName a2s:(w commaOrNot w APIName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:APIName w void:closecurly
+     { yyValue = Useful.list(a1); };

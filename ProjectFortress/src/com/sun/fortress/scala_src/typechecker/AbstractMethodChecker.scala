@@ -67,9 +67,6 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-      /*
-        val inherited = toSet(inheritedMethods(extendsC).firstSet).map(_.getText)
-      */
         val inherited = inheritedMethods(extendsC)
         for ( d <- decls ; if d.isInstanceOf[FnDecl] ) {
           if ( NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl])) &&

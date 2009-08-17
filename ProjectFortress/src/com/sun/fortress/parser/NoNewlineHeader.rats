@@ -211,7 +211,7 @@ transient Modifiers Mods = a1s:(Mod w)+
      };
 
 /* Mod ::=
-     abstract atomic | getter | hidden | io | override | private | settable
+     abstract | atomic | getter | hidden | io | override | private | settable
    | setter | test | value | var | wrapped
  */
 transient Modifiers Mod =
