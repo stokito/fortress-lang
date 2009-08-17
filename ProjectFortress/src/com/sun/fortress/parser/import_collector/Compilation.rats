@@ -63,9 +63,10 @@ CompilationUnit Program =
      };
 
 private void DeclHeader =
-     trait / object / Id / opr / dim / unit / type / test / property / grammar
-   / comprises / native / abstract / atomic / getter / hidden / io / override
-   / private / settable / setter / test / value / var / wrapped / openparen / end ;
+     trait / object / Id / underscore / opr / dim / unit / type / test / property
+   / grammar / comprises / native / abstract / atomic / getter / hidden / io
+   / override / private / settable / setter / test / value / var / wrapped
+   / openparen / end ;
 
 /* CompilationUnit ::=
      Component
