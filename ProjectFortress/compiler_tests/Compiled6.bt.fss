@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXMethodInvocationSimple2
   export Executable
 
   (* Check that some method call does in fact exist.
@@ -31,5 +30,3 @@ component DXXMethodInvocationSimple2
   end
 
   run():() = ()
-
-end

@@ -15,13 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXFnExpr
   export Executable
 
-  foo():() = do
-    var s:String
-    s := (fn (arg:String):ZZ32=>arg)("MyString")
+  trait Foo end
+  trait Bar extends Foo end
+
+  foo(b:Bar):() = do
+    var i:ZZ32
+    i := b.size
   end
 
-  run():()=()
-end
+  run():() =()

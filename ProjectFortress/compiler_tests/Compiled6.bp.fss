@@ -15,18 +15,22 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXMethodInvocationStaticInfer1
   export Executable
 
-  trait Foo
-    doIt[\T\](t1:T, t2:T):T
+  object Foo
+
   end
 
-  foo(a:ZZ32, f:Foo) : () = do
-    var a2 : String
+  trait Quux
 
-    a2 := f.doIt(a,a)
   end
 
-  run():() = ()
-end
+  object Bar extends Quux
+
+  end
+
+  run():() = do
+    (* Make sure we cannot assign to non-assignable things *)
+    a:Bar = Bar
+    a:= Bar
+  end

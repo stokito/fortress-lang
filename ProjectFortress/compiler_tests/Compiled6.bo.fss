@@ -14,20 +14,35 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component DXXTypecaseMutable
+
   export Executable
 
-  foo():() = do
-    var b:String
-    var a:Any
+  object Foo
 
-    b := typecase a of
-      String => a
-      else => "Nothin"
-    end
-
-    ()
   end
 
-  run() : () = ()
-end
+  trait Quux
+
+  end
+
+  object Bar extends Quux
+
+  end
+
+  run():() = do
+    (* Currently fails because IntLiteral <!: ZZ32
+    var a : ZZ32
+    a := 1
+    *)
+
+    var a : Foo
+    a := Bar
+
+    (* Tuples *)
+    var b : Bar
+    var c : Quux
+    (a,b) := Bar
+    c := (Quux, Bar)
+
+    (* Other operators *)
+  end

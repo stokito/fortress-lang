@@ -15,14 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXNoTypeDecl
-  export Executable
-
-  foo() : () = do
-    var a : String
-    b = 1
-    a := b
-  end
-
-  run() : () = ()
-end
+ export Executable
+ object Foo
+   z:String = "blah" (* Should be no setter, since z is not mutable
+                      *)
+ end
+ run():() = do
+   Foo.z := "bar"
+ end
