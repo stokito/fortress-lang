@@ -40,9 +40,9 @@ public class Coercion extends Function {
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
 
-    public Coercion(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
+    public Coercion(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
         _ast = ast;
-        _declaringTrait = declaringTrait;
+        _declaringTrait = NodeUtil.getName(traitDecl);
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {

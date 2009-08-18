@@ -96,7 +96,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeaderWithDecls(that.getHeader(), decls_result );
 
-        return super.forObjectDeclOnly(that, that.getInfo(), header, that.getParams(), that.getSelfType());
+        return super.forObjectDeclOnly(that, that.getInfo(), header, that.getSelfType(), that.getParams());
     }
 
     @Override

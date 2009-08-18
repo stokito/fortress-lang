@@ -607,9 +607,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return forTraitDeclOnly(that,
                                 that.getInfo(),
                                 header,
+                                that.getSelfType(),
                                 v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
-                                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)),
-                                that.getSelfType());
+                                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
 
     /**
@@ -698,8 +698,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return forObjectDeclOnly(that,
                                  that.getInfo(),
                                  header,
-                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
-                                 that.getSelfType());
+                                 that.getSelfType(),
+                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
     }
 
     /**

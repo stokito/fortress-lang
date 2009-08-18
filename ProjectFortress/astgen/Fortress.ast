@@ -172,7 +172,7 @@ interface Node() extends HasAt;
                  * trait or object declaration in components or APIs
                  * Name must be unqualified.
                  */
-                abstract TraitObjectDecl(TraitTypeHeader header) implements Generic;
+                abstract TraitObjectDecl(TraitTypeHeader header, Option<Type> selfType) implements Generic;
                     /**
                      * trait declaration in components or APIs
                      *
@@ -218,7 +218,7 @@ interface Node() extends HasAt;
                      */
                     TraitDecl(List<BaseType> excludesClause,
                               Option<List<BaseType>> comprisesClause,
-                              boolean comprisesEllipses, Option<Type> selfType);
+                              boolean comprisesEllipses);
                     /**
                      * object declaration in components or APIs
                      *
@@ -258,7 +258,7 @@ interface Node() extends HasAt;
                      *         length() = 0
                      *       end
                      */
-                    ObjectDecl(Option<List<Param>> params, Option<Type> selfType)
+                    ObjectDecl(Option<List<Param>> params)
                               implements ObjectConstructor;
                 /**
                  * variable declaration in components or APIs
@@ -1911,7 +1911,8 @@ interface Node() extends HasAt;
                                  Option<WhereClause> whereClause);
                 /*
                  * Contains info about the self parameter in an arrow type for
-                 * a method.
+                 * a method. `selfPosition` is -1 for dotted methods, and a
+                 * 0-based index into the params for functional methods.
                  */
                 MethodInfo(Type selfType, int selfPosition);
             /*

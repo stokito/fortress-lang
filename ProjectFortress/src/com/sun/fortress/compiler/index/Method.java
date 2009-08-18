@@ -31,10 +31,8 @@ import java.util.List;
 /**
  * Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod.
  */
-public abstract class Method extends Functional {
+public abstract class Method extends Functional implements HasSelfType {
     public abstract Node ast();
-
-    public abstract Id getDeclaringTrait();
 
     /**
      * Returns a version of this Functional, with params replaced with args.
@@ -55,6 +53,10 @@ public abstract class Method extends Functional {
 
     @Override
     public String toString() {
-        return String.format("%s.%s", getDeclaringTrait().getText(), super.toString());
+        return String.format("%s.%s", declaringTrait().getText(), super.toString());
+    }
+
+    public int selfPosition() {
+        return -1;
     }
 }

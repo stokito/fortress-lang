@@ -83,7 +83,7 @@ class CoercionOracle(traits: TraitTable,
     // Get the domain from an instantiated coercion arrow.
     def getDomain(c: Coercion): Option[Type] = {
       makeArrowFromFunctional(c).flatMap(arrow =>
-        staticInstantiation(sargs, arrow).map(instArrow =>
+        instantiateLiftedStaticParams(sargs, arrow).map(instArrow =>
           instArrow.asInstanceOf[ArrowType].getDomain))
     }
 

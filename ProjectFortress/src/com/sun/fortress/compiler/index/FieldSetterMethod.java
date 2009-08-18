@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -36,20 +37,23 @@ public class FieldSetterMethod extends Method {
     private final Binding _ast;
     private final Param _param;
     private final Id _declaringTrait;
+    private final Option<Type> _selfType;
 
-    public FieldSetterMethod(Binding ast, Id declaringTrait) {
+    public FieldSetterMethod(Binding ast, TraitObjectDecl traitDecl) {
         this(ast,
              NodeFactory.makeParam(NodeUtil.getSpan(ast),
                                    Modifiers.None,
                                    NodeFactory.makeId(NodeUtil.getSpan(ast), "fakeParamForImplicitSetter"),
                                    ast.getIdType()),
-             declaringTrait);
+             traitDecl);
     }
 
-    public FieldSetterMethod(Binding ast, Param param, Id declaringTrait) {
+    public FieldSetterMethod(Binding ast, Param param, TraitObjectDecl traitDecl) {
         _ast = ast;
         _param = param;
-        _declaringTrait = declaringTrait;
+        _declaringTrait = NodeUtil.getName(traitDecl);
+        _selfType = traitDecl.getSelfType();
+
         _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
 
@@ -60,6 +64,7 @@ public class FieldSetterMethod extends Method {
         _ast = (Binding) that._ast.accept(visitor);
         _param = that._param;
         _declaringTrait = that._declaringTrait;
+        _selfType = visitor.recurOnOptionOfType(that._selfType);
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
@@ -101,9 +106,12 @@ public class FieldSetterMethod extends Method {
         return new FieldSetterMethod(this, replacer);
     }
 
-    @Override
-    public Id getDeclaringTrait() {
+    public Id declaringTrait() {
         return this._declaringTrait;
+    }
+
+    public Option<Type> selfType() {
+        return _selfType;
     }
 
     @Override

@@ -139,7 +139,7 @@ class HygienicRenamer(constituent: APIName,
          case SLValue(getInfo, getName, getMods, getIdType, isMutable) =>
              SLValue(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getMods).asInstanceOf[com.sun.fortress.nodes_util.Modifiers], walk(getIdType).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(isMutable).asInstanceOf[Boolean])
          case SObjectDecl(getInfo, getHeader, getParams, getSelfType) =>
-             SObjectDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getParams).asInstanceOf[Option[List[com.sun.fortress.nodes.Param]]], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.Type]])
+             SObjectDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(getParams).asInstanceOf[Option[List[com.sun.fortress.nodes.Param]]])
          case SObjectExpr(getInfo, getHeader, getSelfType) =>
              SObjectExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.Type]])
          case SOp(getInfo, getApiName, getText, getFixity, isEnclosing) =>
@@ -201,7 +201,7 @@ class HygienicRenamer(constituent: APIName,
          case STokenSymbol(getInfo, getToken) =>
              STokenSymbol(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getToken).asInstanceOf[String])
          case STraitDecl(getInfo, getHeader, getExcludesClause, getComprisesClause, isComprisesEllipses, getSelfType) =>
-             STraitDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getExcludesClause).asInstanceOf[List[com.sun.fortress.nodes.BaseType]], walk(getComprisesClause).asInstanceOf[Option[List[com.sun.fortress.nodes.BaseType]]], walk(isComprisesEllipses).asInstanceOf[Boolean], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.Type]])
+             STraitDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(getExcludesClause).asInstanceOf[List[com.sun.fortress.nodes.BaseType]], walk(getComprisesClause).asInstanceOf[Option[List[com.sun.fortress.nodes.BaseType]]], walk(isComprisesEllipses).asInstanceOf[Boolean])
          case STraitType(getInfo, getName, getArgs, getStaticParams) =>
              STraitType(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.TypeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getArgs).asInstanceOf[List[com.sun.fortress.nodes.StaticArg]], walk(getStaticParams).asInstanceOf[List[com.sun.fortress.nodes.StaticParam]])
          case STraitTypeHeader(getStaticParams, getMods, getName, getWhereClause, getThrowsClause, getContract, getExtendsClause, getDecls) =>

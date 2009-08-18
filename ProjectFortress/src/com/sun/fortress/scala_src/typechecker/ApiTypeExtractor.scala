@@ -194,18 +194,18 @@ class ApiTypeExtractor(component: ComponentIndex,
       case t@STraitDecl(info,
                         STraitTypeHeader(sparams, mods, name, where,
                                          throwsC, contract, extendsC, decls),
-                        excludes, comprises, ellipses, self) =>
+                        self, excludes, comprises, ellipses) =>
         inTraitOrObject = Some(name)
         val newHeader = STraitTypeHeader(sparams, mods, name, where,
                                          throwsC, contract, extendsC,
                                          walk(decls).asInstanceOf[List[Decl]])
         inTraitOrObject = None
-        STraitDecl(info, newHeader, excludes, comprises, ellipses, self)
+        STraitDecl(info, newHeader, self, excludes, comprises, ellipses)
 
       case o@SObjectDecl(info,
                          STraitTypeHeader(sparams, mods, name, where,
                                           throwsC, contract, extendsC, decls),
-                         params, self) =>
+                         self, params) =>
         inTraitOrObject = Some(name)
         val newHeader = STraitTypeHeader(sparams, mods, name, where,
                                          throwsC, contract, extendsC,
@@ -215,11 +215,11 @@ class ApiTypeExtractor(component: ComponentIndex,
           isExported(o) match {
             // If this object o is exported by an API api
             case Some((api, paramTypeInAPI)) =>
-              SObjectDecl(info, newHeader,
-                          Some(forParams(params.unwrap, paramTypeInAPI)), self)
-            case _ => SObjectDecl(info, newHeader, params, self)
+              SObjectDecl(info, newHeader, self,
+                          Some(forParams(params.unwrap, paramTypeInAPI)))
+            case _ => SObjectDecl(info, newHeader, self, params)
           }
-        else SObjectDecl(info, newHeader, params, self)
+        else SObjectDecl(info, newHeader, self, params)
 
       case f@SFnDecl(info,
                      SFnHeader(sparams, mods, name, where,
