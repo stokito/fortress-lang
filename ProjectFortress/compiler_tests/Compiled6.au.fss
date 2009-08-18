@@ -24,6 +24,4 @@ export Executable
 
 f(x y) = ()
 
-run() = do
-  for (x y) <- (3, 4) do end
-end
+run() = ()
