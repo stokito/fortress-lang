@@ -770,27 +770,27 @@ object DeclaredFunction {
 object FunctionalMethod {
   def unapply(function:JavaFunctionalMethod) =
     Some((function.ast, function.declaringTrait))
-  def apply(fndecl:FnDecl, id:Id, traitParams:JavaList[StaticParam]) =
-    new JavaFunctionalMethod(fndecl, id, traitParams)
+  def apply(fndecl:FnDecl, tdecl:TraitObjectDecl, traitParams:JavaList[StaticParam]) =
+    new JavaFunctionalMethod(fndecl, tdecl, traitParams)
 }
 
 object DeclaredMethod {
   def unapply(method:JavaDeclaredMethod) =
-    Some((method.ast, method.getDeclaringTrait))
-  def apply(fndecl:FnDecl, id:Id) =
-    new JavaDeclaredMethod(fndecl, id)
+    Some((method.ast, method.declaringTrait))
+  def apply(fndecl:FnDecl, tdecl:TraitObjectDecl) =
+    new JavaDeclaredMethod(fndecl, tdecl)
 }
 
 object FieldGetterMethod {
   def unapply(method:JavaFieldGetterMethod) =
-    Some((method.ast, method.getDeclaringTrait))
-  def apply(binding:Binding, id:Id) =
-    new JavaFieldGetterMethod(binding, id)
+    Some((method.ast, method.declaringTrait))
+  def apply(binding:Binding, tdecl:TraitObjectDecl) =
+    new JavaFieldGetterMethod(binding, tdecl)
 }
 
 object FieldSetterMethod {
   def unapply(method:JavaFieldSetterMethod) =
-    Some((method.ast, method.getDeclaringTrait))
-  def apply(binding:Binding, id:Id) =
-    new JavaFieldSetterMethod(binding, id)
+    Some((method.ast, method.declaringTrait))
+  def apply(binding:Binding, tdecl:TraitObjectDecl) =
+    new JavaFieldSetterMethod(binding, tdecl)
 }

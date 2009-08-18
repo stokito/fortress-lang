@@ -61,7 +61,7 @@ trait Decls { self: STypeChecker with Common =>
     case t@STraitDecl(info,
                       STraitTypeHeader(sparams, mods, name, where,
                                        throwsC, contract, extendsC, decls),
-                      excludes, comprises, hasEllipses, selfType) => {
+                      selfType, excludes, comprises, hasEllipses) => {
       val checkerWSparams:STypeChecker = this.extend(sparams, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
@@ -99,7 +99,7 @@ trait Decls { self: STypeChecker with Common =>
               STraitDecl(info,
                          STraitTypeHeader(sparams, mods, name, where,
                                           throwsC, contract, extendsC, newDecls),
-                         excludes, comprises, hasEllipses, selfType)
+                         selfType, excludes, comprises, hasEllipses)
             case _ => signal(t, errorMsg("Self type is not inferred for ", t)); t
           }
       }
@@ -108,7 +108,7 @@ trait Decls { self: STypeChecker with Common =>
     case o@SObjectDecl(info,
                        STraitTypeHeader(sparams, mods, name, where,
                                         throwsC, contract, extendsC, decls),
-                       params, selfType) => {
+                       selfType, params) => {
       val checkerWSparams: STypeChecker = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
@@ -151,7 +151,7 @@ trait Decls { self: STypeChecker with Common =>
               SObjectDecl(info,
                           STraitTypeHeader(sparams, mods, name, where,
                                            throwsC, newContract, extendsC, newDecls),
-                          params, selfType)
+                          selfType, params)
             case _ => signal(o, errorMsg("Self type is not inferred for ", o)); o
           }
       }

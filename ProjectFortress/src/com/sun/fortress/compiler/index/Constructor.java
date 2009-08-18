@@ -77,6 +77,10 @@ public class Constructor extends Function {
         return _declaringTrait;
     }
 
+    public List<StaticParam> traitStaticParameters() {
+        return _staticParams;
+    }
+
     public IdOrOpOrAnonymousName toUndecoratedName() {
         // This choice is not tested yet, it could well be the wrong one.
         return declaringTrait();

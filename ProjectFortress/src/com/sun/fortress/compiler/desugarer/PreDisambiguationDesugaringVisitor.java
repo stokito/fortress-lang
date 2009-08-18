@@ -92,9 +92,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         }
 
         return super.forTraitDeclOnly(that, that.getInfo(), header_result,
+                                      that.getSelfType(),
                                       excludesClause_result,
-                                      comprisesClause_result,
-                                      that.getSelfType());
+                                      comprisesClause_result);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         header_result = NodeFactory.makeTraitTypeHeader(header_result,
                                                         rewriteExtendsClause(that, header_result.getExtendsClause()));
         return super.forObjectDeclOnly(that, that.getInfo(),
-                                       header_result, params_result, that.getSelfType());
+                                       header_result, that.getSelfType(), params_result);
     }
 
     @Override

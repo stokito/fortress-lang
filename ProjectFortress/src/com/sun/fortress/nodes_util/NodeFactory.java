@@ -323,7 +323,7 @@ public class NodeFactory {
                                           Option<List<BaseType>> comprisesC,
                                           boolean comprisesEllipses,
                                           Option<Type> selfType) {
-        return new TraitDecl(info, header, excludesC, comprisesC, comprisesEllipses, selfType);
+        return new TraitDecl(info, header, selfType, excludesC, comprisesC, comprisesEllipses);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
@@ -378,7 +378,7 @@ public class NodeFactory {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
                                                      decls);
-        return new ObjectDecl(makeSpanInfo(span), header, params, selfType);
+        return new ObjectDecl(makeSpanInfo(span), header, selfType, params);
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,

@@ -66,7 +66,7 @@ trait Functionals { self: STypeChecker with Common =>
         if (inferredStaticArgs.isEmpty)
           overloadingType
         else
-          staticInstantiation(inferredStaticArgs, overloadingType).
+          instantiateStaticParams(inferredStaticArgs, overloadingType).
             getOrElse(return None).asInstanceOf[ArrowType]
 
       if (isSubtype(typ.getDomain, smaArrow.getDomain))
@@ -388,7 +388,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Instantiate the arrows if you were given static args
     if (!sargs.isEmpty) {
-      arrows = arrows.flatMap(a => staticInstantiation(sargs, a).map(_.asInstanceOf[ArrowType]))
+      arrows = arrows.flatMap(a => instantiateStaticParams(sargs, a).map(_.asInstanceOf[ArrowType]))
     }
     Some(arrows)
   }
@@ -499,7 +499,7 @@ trait Functionals { self: STypeChecker with Common =>
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
         case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
         case SOverloading(info, name, Some(ty)) =>
-          staticInstantiation(sargs, getStaticParams(ty), ty, true).
+          instantiateStaticParams(sargs, ty).
             map(t => SOverloading(info, name, Some(t)))
         case _ => hadNoType = true; None
       }

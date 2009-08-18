@@ -48,8 +48,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         ObjectDecl temp = (ObjectDecl) this.replaceSelfParamsWithType(that, self_type);
         ObjectDecl that_new = new ObjectDecl(temp.getInfo(),
                                              temp.getHeader(),
-                                             temp.getParams(),
-                                             Option.some(self_type));
+                                             Option.some(self_type),
+                                             temp.getParams());
         return super.forObjectDecl(that_new);
     }
 
@@ -62,10 +62,10 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         TraitDecl temp = (TraitDecl) this.replaceSelfParamsWithType(that, self_type);
         TraitDecl that_new = new TraitDecl(temp.getInfo(),
                                            temp.getHeader(),
+                                           Option.some(self_type),
                                            temp.getExcludesClause(),
                                            temp.getComprisesClause(),
-                                           temp.isComprisesEllipses(),
-                                           Option.some(self_type));
+                                           temp.isComprisesEllipses());
         return super.forTraitDecl(that_new);
     }
 

@@ -18,9 +18,11 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
@@ -32,10 +34,13 @@ public class DeclaredMethod extends Method {
 
     private final FnDecl _ast;
     private final Id _declaringTrait;
+    private final Option<Type> _selfType;
 
-    public DeclaredMethod(FnDecl ast, Id declaringTrait) {
+    public DeclaredMethod(FnDecl ast, TraitObjectDecl traitDecl) {
         _ast = ast;
-        _declaringTrait = declaringTrait;
+        _declaringTrait = NodeUtil.getName(traitDecl);
+        _selfType = traitDecl.getSelfType();
+
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
@@ -46,6 +51,7 @@ public class DeclaredMethod extends Method {
     public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
+        _selfType = visitor.recurOnOptionOfType(that._selfType);
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
@@ -98,9 +104,12 @@ public class DeclaredMethod extends Method {
         return new DeclaredMethod(this, replacer);
     }
 
-    @Override
-    public Id getDeclaringTrait() {
+    public Id declaringTrait() {
         return this._declaringTrait;
+    }
+
+    public Option<Type> selfType() {
+        return _selfType;
     }
 
     @Override

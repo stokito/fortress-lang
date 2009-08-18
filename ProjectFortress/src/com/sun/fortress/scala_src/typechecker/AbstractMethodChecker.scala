@@ -47,7 +47,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                             globalEnv: GlobalEnvironment)
     extends Walker {
   val traits = new TraitTable(component, globalEnv)
-  var typeAnalyzer = TypeAnalyzer.make(traits)
+  implicit var typeAnalyzer = TypeAnalyzer.make(traits)
   var errors = List[StaticError]()
   val componentName = component.ast.getName
   private def error(loc: Span, msg: String) =
@@ -206,19 +206,16 @@ class AbstractMethodChecker(component: ComponentIndex,
     val sargs = toList(t.getArgs)
 
     // Extend the type analyzer with the collected static parameters
-    def subst(ty: Type)(implicit analyzer: TypeAnalyzer) =
-      staticInstantiation(sargs, sparams, ty, true) match {
-        case Some(t) => t
-        case _ => ty
-      }
+    def subst(ty: Type) =
+      staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
     val result =
       NU.getName(d).asInstanceOf[IdOrOp].getText.equals(NU.getName(decl).asInstanceOf[IdOrOp].getText) &&
       NU.getMods(d).containsAll(NU.getMods(decl)) &&
-      ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type])(typeAnalyzer),
-                                subst(NU.getParamType(decl))(typeAnalyzer)).isTrue ||
+      ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type]),
+                                subst(NU.getParamType(decl))).isTrue ||
         implement(toList(NU.getParams(d)), toList(NU.getParams(decl))) ) &&
-      typeAnalyzer.equivalent(subst(NU.getReturnType(d).unwrap)(typeAnalyzer),
-                              subst(NU.getReturnType(decl).unwrap)(typeAnalyzer)).isTrue
+      typeAnalyzer.equivalent(subst(NU.getReturnType(d).unwrap),
+                              subst(NU.getReturnType(decl).unwrap)).isTrue
     result
   }
 

@@ -21,6 +21,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.SimpleBox;
@@ -34,15 +36,25 @@ import java.util.List;
  * Note that this is a {@link Function}, not a {@link Method}, despite the name
  * (methods have distinct receivers).
  */
-public class FunctionalMethod extends Function {
+public class FunctionalMethod extends Function implements HasSelfType {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
+    protected final Option<Type> _selfType;
+    protected final int _selfPosition;
 
-    public FunctionalMethod(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
+    public FunctionalMethod(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
         _ast = ast;
-        _declaringTrait = declaringTrait;
+        _declaringTrait = NodeUtil.getName(traitDecl);
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
+        _selfType = traitDecl.getSelfType();
+        int i = 0;
+        for (Param p : NodeUtil.getParams(ast)) {
+            if (p.getName().equals("self")) break;
+            ++i;
+        }
+        _selfPosition = i;
+
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
@@ -54,6 +66,8 @@ public class FunctionalMethod extends Function {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _traitParams = visitor.recurOnListOfStaticParam(that._traitParams);
+        _selfType = visitor.recurOnOptionOfType(that._selfType);
+        _selfPosition = that._selfPosition;
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
@@ -85,6 +99,10 @@ public class FunctionalMethod extends Function {
 
     public Id declaringTrait() {
         return _declaringTrait;
+    }
+
+    public List<StaticParam> traitStaticParameters() {
+        return _traitParams;
     }
 
     @Override
@@ -143,5 +161,13 @@ public class FunctionalMethod extends Function {
     @Override
     public String toString() {
         return String.format("%s.%s", _declaringTrait.getText(), super.toString());
+    }
+
+    public Option<Type> selfType() {
+        return _selfType;
+    }
+
+    public int selfPosition() {
+        return _selfPosition;
     }
 }

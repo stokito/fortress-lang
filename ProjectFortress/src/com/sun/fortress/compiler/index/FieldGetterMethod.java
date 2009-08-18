@@ -18,9 +18,11 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
@@ -32,10 +34,13 @@ public class FieldGetterMethod extends Method {
 
     private final Binding _ast;
     private final Id _declaringTrait;
+    private final Option<Type> _selfType;
 
-    public FieldGetterMethod(Binding ast, Id declaringTrait) {
+    public FieldGetterMethod(Binding ast, TraitObjectDecl traitDecl) {
         _ast = ast;
-        _declaringTrait = declaringTrait;
+        _declaringTrait = NodeUtil.getName(traitDecl);
+        _selfType = traitDecl.getSelfType();
+
         if (_ast.getIdType().isSome()) _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(_ast.getIdType()));
     }
 
@@ -45,6 +50,7 @@ public class FieldGetterMethod extends Method {
     public FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
         _ast = (Binding) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
+        _selfType = visitor.recurOnOptionOfType(that._selfType);
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
@@ -86,9 +92,12 @@ public class FieldGetterMethod extends Method {
         return new FieldGetterMethod(this, replacer);
     }
 
-    @Override
-    public Id getDeclaringTrait() {
+    public Id declaringTrait() {
         return this._declaringTrait;
+    }
+
+    public Option<Type> selfType() {
+        return _selfType;
     }
 
     @Override

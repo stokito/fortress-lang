@@ -30,10 +30,14 @@ import java.util.List;
 public class ParametricOperator extends FunctionalMethod {
     Op _name;
 
-    public ParametricOperator(FnDecl ast, Id declaringTrait, List<StaticParam> traitParams) {
-        super(ast, declaringTrait, traitParams);
+    public ParametricOperator(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
+        super(ast, traitDecl, traitParams);
         _name = (Op) NodeUtil.getName(ast);
         putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+    }
+
+    public ParametricOperator(ParametricOperator that, NodeUpdateVisitor visitor) {
+        super(that, visitor);
     }
 
     @Override
@@ -43,6 +47,6 @@ public class ParametricOperator extends FunctionalMethod {
 
     @Override
     public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new ParametricOperator((FnDecl) this.ast().accept(visitor), this._declaringTrait, this._traitParams);
+        return new ParametricOperator(this, visitor);
     }
 }

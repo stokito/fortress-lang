@@ -168,7 +168,7 @@ object IndexBuilder {
     val grammars: JavaMap[String, GrammarIndex] = new JavaHashMap[String, GrammarIndex]()
     for (decl <- ast.getDecls) {
       decl match {
-        case d@STraitDecl(_, _, excludes, comprises, _, self) =>
+        case d@STraitDecl(_, _, self, excludes, comprises, _) =>
           buildTrait(d, typeConses, functions, parametricOperators, errors)
           checkTraitClauses(typeConses, NU.getName(d),
                             NU.getStaticParams(d),
@@ -209,7 +209,7 @@ object IndexBuilder {
     // Make fake object
     val decl = NF.makeObjectDecl(fake_span, fake_object_name,
                                  NU.getExtendsClause(obj),
-                                 NU.getDecls(obj), none())
+                                 NU.getDecls(obj), obj.getSelfType)
     val index_holder: JavaMap[Id,TypeConsIndex] = new JavaHashMap[Id,TypeConsIndex]()
     // TODO: Fix this so that the global function map and parametricOperator set are
     // threaded through to here.
@@ -287,7 +287,7 @@ object IndexBuilder {
     for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SFnDecl(_,_,_,_,_) =>
-          buildMethod(d, name, NU.getStaticParams(ast),
+          buildMethod(d, ast, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -297,7 +297,7 @@ object IndexBuilder {
 
     for (decl <- NU.getDecls(ast)) {
       decl match {
-        case d@SVarDecl(_,_,_) => buildTraitFields(d, name, getters, setters)
+        case d@SVarDecl(_,_,_) => buildTraitFields(d, ast, getters, setters)
         case d@SPropertyDecl(_,_,_,_) => NI.nyi; ()
         case _ =>
       }
@@ -357,7 +357,7 @@ object IndexBuilder {
     for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SFnDecl(_,_,_,_,_) =>
-          buildMethod(d, name, NU.getStaticParams(ast),
+          buildMethod(d, ast, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -368,7 +368,7 @@ object IndexBuilder {
     for (decl <- NU.getDecls(ast)) {
       decl match {
         case d@SVarDecl(_,_,_) =>
-          buildFields(d, name, fields, getters, setters)
+          buildFields(d, ast, fields, getters, setters)
           if (d.getInit.isSome) initializers.add(d)
         case d@SPropertyDecl(_,_,_,_) => NI.nyi; ()
         case _ =>
@@ -381,9 +381,9 @@ object IndexBuilder {
           val paramName = p.getName
           fields.put(paramName, new JavaParamVariable(p))
           if ( !mods.isHidden && ! NU.isVarargsParam(p) )
-              getters.put(paramName, new JavaFieldGetterMethod(p, name))
+              getters.put(paramName, new JavaFieldGetterMethod(p, ast))
           if ( (mods.isSettable || mods.isVar) && ! NU.isVarargsParam(p) )
-              setters.put(paramName, new JavaFieldSetterMethod(p, name))
+              setters.put(paramName, new JavaFieldSetterMethod(p, ast))
         }
         val c = new JavaConstructor(name, NU.getStaticParams(ast),
                                     ast.getParams, NU.getThrowsClause(ast),
@@ -414,23 +414,23 @@ object IndexBuilder {
    * Create and add to the given maps implicit getters and setters for a trait's
    * abstract fields.
    */
-  private def buildTraitFields(ast: VarDecl, declaringTrait: Id,
+  private def buildTraitFields(ast: VarDecl, traitDecl: TraitObjectDecl,
                                getters: JavaMap[Id, Method],
                                setters: JavaMap[Id, Method]) =
     for (b <- ast.getLhs) {
       val mods = b.getMods
       val name = b.getName
       if (!mods.isHidden)
-        getters.put(name, new JavaFieldGetterMethod(b, declaringTrait))
+        getters.put(name, new JavaFieldGetterMethod(b, traitDecl))
       if (mods.isMutable)
-        setters.put(name, new JavaFieldSetterMethod(b, declaringTrait))
+        setters.put(name, new JavaFieldSetterMethod(b, traitDecl))
     }
 
   /**
    * Create field variables and add them to the given map; also create implicit
    * getters and setters.
    */
-  private def buildFields(ast: VarDecl, declaringTrait: Id,
+  private def buildFields(ast: VarDecl, traitDecl: TraitObjectDecl,
                           fields: JavaMap[Id, Variable],
                           getters: JavaMap[Id, Method],
                           setters: JavaMap[Id, Method]) =
@@ -439,9 +439,9 @@ object IndexBuilder {
       val name = b.getName
       fields.put(name, new JavaDeclaredVariable(b, ast))
       if (!mods.isHidden)
-        getters.put(name, new JavaFieldGetterMethod(b, declaringTrait))
+        getters.put(name, new JavaFieldGetterMethod(b, traitDecl))
       if (mods.isSettable || mods.isVar)
-        setters.put(name, new JavaFieldSetterMethod(b, declaringTrait))
+        setters.put(name, new JavaFieldSetterMethod(b, traitDecl))
     }
 
   /**
@@ -482,7 +482,7 @@ object IndexBuilder {
    * are also propagated to top-level, with their parametric names. These names
    * must be substituted with particular instantiations during lookup.
    */
-  private def buildMethod(ast: FnDecl, declaringTrait: Id,
+  private def buildMethod(ast: FnDecl, traitDecl: TraitObjectDecl,
                           enclosingParams: JavaList[StaticParam],
                           getters: JavaMap[Id, Method],
                           setters: JavaMap[Id, Method],
@@ -499,7 +499,7 @@ object IndexBuilder {
         case id@SId(_,_,_) =>
           if ( getters.keySet.contains(id) )
               error(errors, "Getter declarations should not be overloaded.", ast)
-          else getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), declaringTrait))
+          else getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), traitDecl))
         case _ =>
           error(errors, "Getter declared with an operator name, '" +
                 NU.nameString(name) + "'", ast)
@@ -509,14 +509,14 @@ object IndexBuilder {
         case id@SId(_,_,_) =>
           if ( setters.keySet.contains(id) )
             error(errors, "Setter declarations should not be overloaded.", ast)
-          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), declaringTrait))
+          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), traitDecl))
         case _ =>
           error(errors, "Getter declared with an operator name, '" +
                 NU.nameString(name) + "'", ast)
       }
     } else if (name.isInstanceOf[Id] &&
                name.asInstanceOf[Id].getText.equals(NamingCzar.COERCION_NAME)) {
-        coercions.add(new Coercion(ast, declaringTrait, enclosingParams))
+        coercions.add(new Coercion(ast, traitDecl, enclosingParams))
     } else {
       var functional = false
       for (p <- toList(NU.getParams(ast))) {
@@ -534,7 +534,7 @@ object IndexBuilder {
       //   (2) this declaration is for an operator
       // Place the declaration in the appropriate bins according to the answer.
       if (functional && ! operator) {
-        val m = new JavaFunctionalMethod(ast, declaringTrait, enclosingParams)
+        val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
         functionalMethods.add(name, m)
         topLevelFunctions.add(name, m)
       } else if (functional && operator) {
@@ -544,9 +544,9 @@ object IndexBuilder {
             parametric = true
         }
         if (parametric)
-            parametricOperators.add(new ParametricOperator(ast, declaringTrait, enclosingParams))
+            parametricOperators.add(new ParametricOperator(ast, traitDecl, enclosingParams))
         else {
-          val m = new JavaFunctionalMethod(ast, declaringTrait, enclosingParams)
+          val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
           functionalMethods.add(name, m)
           topLevelFunctions.add(name, m)
         }
@@ -554,9 +554,9 @@ object IndexBuilder {
         // In this case, we must have a subscripting operator method declaration
         // or a subscripted assignment operator method declaration. See F 1.0 beta Section 34.
         // TODO: Check that we are handling this case correctly!
-        dottedMethods.add(name, new JavaDeclaredMethod(ast, declaringTrait))
+        dottedMethods.add(name, new JavaDeclaredMethod(ast, traitDecl))
       } else { // ! functional && ! operator
-        dottedMethods.add(name, new JavaDeclaredMethod(ast, declaringTrait))
+        dottedMethods.add(name, new JavaDeclaredMethod(ast, traitDecl))
       }
     }
   }
