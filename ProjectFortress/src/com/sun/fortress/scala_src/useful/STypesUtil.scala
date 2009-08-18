@@ -690,14 +690,4 @@ object STypesUtil {
     // Do the inference.
     inferStaticParamsHelper(fnType, sparams, _ => constraint).map(_._1)
   }
-
-  def typeInference(fnType: ArrowType,
-                        argType: Type,
-                        context: Option[Type])
-                       (implicit analyzer: TypeAnalyzer)
-                        : Option[(ArrowType, List[StaticArg])] = {
-
-    inferLiftedStaticParams(fnType, argType).flatMap(arrow =>
-      inferStaticParams(arrow, argType, context))
-  }
 }

@@ -205,6 +205,31 @@ trait Functionals { self: STypeChecker with Common =>
       case _ =>
     }
 
+    // Infer lifted static params.
+    val argType = getArgType(args)
+    val liftedArrow = inferLiftedStaticParams(arrow, argType).getOrElse {
+      return Right(errorFactory.makeNotApplicableError(arrow, args))
+    }
+
+    // Are there static params? i.e., do we need more inference?
+    if (hasStaticParams(liftedArrow))
+      checkApplicableWithInference(liftedArrow, arrow, context, args)
+    else
+      checkApplicableWithoutInference(liftedArrow, arrow, args)
+  }
+
+  /**
+   * Check that the arrow type is applicable to these args with static argument
+   * inference and no coercion.
+   */
+  def checkApplicableWithInference(
+          arrow: ArrowType,
+          originalArrow: ArrowType,
+          context: Option[Type],
+          args: List[Either[Expr, FnExpr]])
+          (implicit errorFactory: ApplicationErrorFactory)
+           : Either[AppCandidate, OverloadingError] = {
+
     // Try to check the unchecked args, constructing a new list of
     // (checked, unchecked) arg pairs.
     def updateArgs(argsAndParam: (Either[Expr, FnExpr], Type))
@@ -218,24 +243,13 @@ trait Functionals { self: STypeChecker with Common =>
         else {
 
           // Try to check the arg given this new expected type.
-          val domain = paramType.getDomain
-          val expectedArrow = NF.makeArrowType(NU.getSpan(paramType),
-                                               domain,
-                                               Types.ANY)
-          val tryChecker = STypeCheckerFactory.makeTryChecker(this)
-          // (Called with Some(arrow) so that no coercion is performed.)
-          tryChecker.tryCheckExpr(unchecked, Some(expectedArrow)) match {
+          inferFnExprParams(unchecked, paramType, false) match {
             // Move this arg out of unchecked and into checked.
-            case Some(checked) => (Left(checked), None)
-
+            case Left(checked) => (Left(checked), None)
             // This arg might be checkable later, so keep going.
-            case None =>
-              val bodyError =
-                errorFactory.makeBodyError(unchecked,
-                                           domain,
-                                           tryChecker.getError.get)
-              (Right(unchecked), Some(bodyError))
+            case Right(bodyError) => (Right(unchecked), Some(bodyError))
           }
+
         }
 
       // If the parameter type is not an arrow, skip it.
@@ -255,8 +269,8 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Do type inference to get the inferred static args.
       val (resultArrow, sargs) =
-        typeInference(arrow, argType, context).getOrElse {
-          return Right(errorFactory.makeNotApplicableError(arrow, args))
+        inferStaticParams(arrow, argType, context).getOrElse {
+          return Right(errorFactory.makeNotApplicableError(originalArrow, args))
         }
 
       // Match up checked/unchecked args and param types and try to check the unchecked args,
@@ -272,27 +286,15 @@ trait Functionals { self: STypeChecker with Common =>
 
         // If not all args were checked, gather the errors.
         if (newArgs.count(_.isRight) != 0) {
-
-          // For each unchecked arg, get its body error if it had one. If it did
-          // not but the parameter type was an arrow, it is a parameter
-          // inference error. Otherwise it is a not applicable error.
-          val argsErrorsParams = zipWithDomain(newArgsAndErrors,
-                                               resultArrow.getDomain)
-          val fnErrors = argsErrorsParams flatMap {
-            case ((Right(_), Some(bodyError)), _) => Some(bodyError)
-            case ((Right(unchecked), None), _:ArrowType) =>
-              Some(errorFactory.makeParameterError(unchecked))
-            case ((Right(_), None), _) =>
-              return Right(errorFactory.makeNotApplicableError(arrow, newArgs))
-            case ((Left(_), _), _) => None
-          }
-          return Right(errorFactory.makeFnInferenceError(arrow, fnErrors))
+          return Right(makeOverloadingError(originalArrow,
+                                            resultArrow.getDomain,
+                                            newArgsAndErrors))
         }
 
         // If there are inference variables left, inform the user that there
         // wasn't enough context.
         if (hasInferenceVars(resultArrow)) {
-          return Right(errorFactory.makeNoContextError(arrow, sargs))
+          return Right(errorFactory.makeNoContextError(originalArrow, sargs))
         }
 
         // We've reached a fixed point and all args are checked!
@@ -300,27 +302,174 @@ trait Functionals { self: STypeChecker with Common =>
       }
     }
 
-
-
     // Do the recursion to check the args.
     recurOnArgs(args)
   }
 
-  // Define an ordering relation on arrows with their instantiations.
-  def moreSpecific(candidate1: AppCandidate,
-                   candidate2: AppCandidate): Boolean = {
+  /**
+   * Check that the arrow type is applicable to these args without any static
+   * argument inference. The resulting args may have coercions.
+   */
+  def checkApplicableWithoutInference(
+          arrow: ArrowType,
+          originalArrow: ArrowType,
+          args: List[Either[Expr, FnExpr]])
+          (implicit errorFactory: ApplicationErrorFactory)
+           : Either[AppCandidate, OverloadingError] = {
 
-    val SArrowType(_, domain1, range1, _, _, _) = candidate1._1
-    val SArrowType(_, domain2, range2, _, _, _) = candidate2._1
+    // Gather up either-args and option-errors.
+    val newArgsAndErrors = zipWithDomain(args, arrow.getDomain).map {
+      
+      // For each checked arg, make sure it's a subtype of the corresponding
+      // parameter, possibly performing a coercion.
+      case (Left(checked), paramType) =>
+        getType(checked).get match {
+          case typ if isSubtype(typ, paramType) => (Left(checked), None)
+          case typ if coercesTo(typ, paramType) =>
+            (Left(makeCoercion(typ, paramType, checked)), None)
+          case typ =>
+            return Right(errorFactory.makeNotApplicableError(originalArrow, args))
+        }
 
-    if (analyzer.equivalent(domain1, domain2).isTrue) false
-    else isSubtype(domain1, domain2)
+      // For each unchecked FnExpr arg, try to infer its parameter type and
+      // check it.
+      case (Right(unchecked), paramType:ArrowType) =>
+        inferFnExprParams(unchecked, paramType, true).
+          fold(checked => (Left(checked), None),
+               err => (Right(unchecked), Some(err)))
+
+      // Unchecked FnExpr arg with a non-arrow parameter type -- error.
+      case (Right(unchecked), _) =>
+        return Right(errorFactory.makeNotApplicableError(originalArrow, args))
+    }
+
+    // Make sure that all the args were checked. If any remain unchecked, gather
+    // up all the inference errors into an overloading error.
+    val (newArgs, maybeErrors) = List.unzip(newArgsAndErrors)
+    if (newArgs.count(_.isRight) != 0) {
+      Right(makeOverloadingError(originalArrow,
+                                 arrow.getDomain,
+                                 newArgsAndErrors))
+    } else {
+
+      // We need to make sure there are the right number of args for the domain.
+      // Now that coercions are in place, we can simply check if the new arg
+      // type is a subtype of the domain type.
+      val argType = getArgType(newArgs)
+      if (isSubtype(argType, arrow.getDomain))
+        Left((arrow, Nil, newArgs.map(_.left.get)))
+      else
+        Right(errorFactory.makeNotApplicableError(originalArrow, newArgs))
+    }
   }
 
   /**
-   * Type check the application of the given arrows to the given arg. This returns the statically
-   * most specific arrow, inferred static args, and the new, checked argument expression.
+   * Try to infer the parameter type on the given unchecked FnExpr. This will
+   * check the expression, then return either the checked expression (possibly
+   * applying a coercion) or a BodyError on failure.  
    */
+  def inferFnExprParams(unchecked: FnExpr,
+                        paramType: ArrowType,
+                        doCoercion: Boolean)
+                       (implicit errorFactory: ApplicationErrorFactory)
+                        : Either[Expr, BodyError] = {
+
+    // Try to check the arg given this new expected type.
+    val domain = paramType.getDomain
+    val expectedArrow = NF.makeArrowType(NU.getSpan(paramType),
+                                         domain,
+                                         Types.ANY)
+    val tryChecker = STypeCheckerFactory.makeTryChecker(this)
+    val result =
+      if (doCoercion)
+        // Coercion is applied since we are passing in a type.
+        tryChecker.tryCheckExpr(unchecked, expectedArrow)
+      else
+        // Coercion is NOT applied since we are passing in an option type.
+        tryChecker.tryCheckExpr(unchecked, Some(expectedArrow))
+
+    result match {
+      case Some(checked) => Left(checked)
+      case None =>
+        Right(errorFactory.makeBodyError(unchecked,
+                                         domain,
+                                         tryChecker.getError.get))
+    }
+  }
+
+  /**
+   * Make an overloading error that collects up errors from uncheckable
+   * arguments, or makes a NotApplicableError.
+   */
+  def makeOverloadingError(originalArrow: ArrowType,
+                           infDomain: Type,
+                           newArgsAndErrors: List[(Either[Expr, FnExpr], Option[BodyError])])
+                          (implicit errorFactory: ApplicationErrorFactory)
+                           : OverloadingError = {
+    // For each unchecked arg, get its body error if it had one. If it did
+    // not but the parameter type was an arrow, it is a parameter
+    // inference error. Otherwise it is a not applicable error.
+    val argsErrorsParams = zipWithDomain(newArgsAndErrors, infDomain)
+    val fnErrors = argsErrorsParams flatMap {
+      case ((Right(_), Some(bodyError)), _) => Some(bodyError)
+
+      // If the parameter type is an inference variable or an arrow, then a
+      // parameter could have been inferred but wasn't.
+      case ((Right(unchecked), None), _:_InferenceVarType) =>
+        Some(errorFactory.makeParameterError(unchecked))
+      case ((Right(unchecked), None), _:ArrowType) =>
+        Some(errorFactory.makeParameterError(unchecked))
+
+      // If the parameter type was not one of those, then there is no FnExpr
+      // parameter that could have made this applicable.
+      case ((Right(_), None), _) =>
+        return errorFactory.makeNotApplicableError(originalArrow, newArgsAndErrors.map(_._1))
+
+      case ((Left(_), _), _) => None
+    }
+    errorFactory.makeFnInferenceError(originalArrow, fnErrors)
+  }
+
+
+  /**
+   * Define an ordering relation on arrows with their instantiations. That is,
+   * is candidate1 more specific than candidate2?
+   */
+  def moreSpecific(candidate1: AppCandidate,
+                   candidate2: AppCandidate): Boolean = {
+
+    val (SArrowType(_, domain1, range1, _, _, mi1), _, args1) = candidate1
+    val (SArrowType(_, domain2, range2, _, _, mi2), _, args2) = candidate2
+
+    // If these are dotted methods, add in the self type as an implicit first
+    // parameter. The new domains will be a tuple of the form
+    // `(selfType, domainType)`.
+    val (newDomain1, newDomain2) = (mi1, mi2) match {
+      case (Some(SMethodInfo(selfType1, -1)),
+            Some(SMethodInfo(selfType2, -1))) =>
+        (STupleType(domain1.getInfo, List(selfType1, domain1), None, Nil),
+         STupleType(domain2.getInfo, List(selfType2, domain2), None, Nil))
+      case _ => (domain1, domain2)
+    }
+
+    // Determine if a coercion occurred.
+    val coercion1 = args1.exists(_.isInstanceOf[CoercionInvocation])
+    val coercion2 = args2.exists(_.isInstanceOf[CoercionInvocation])
+
+    // If one did not use coercions and the other did, the one without coercions
+    // is more specific.
+    (coercion1, coercion2) match {
+      case (true, false) => false
+      case (false, true) => true
+      case _ if analyzer.equivalent(newDomain1, newDomain2).isTrue => false
+      case _ => isSubtype(newDomain1, newDomain2)
+    }
+  }
+
+    /**
+     * Type check the application of the given arrows to the given arg. This returns the statically
+     * most specific arrow, inferred static args, and the new, checked argument expression.
+     */
   def checkApplication(arrows: List[ArrowType],
                        arg: Expr,
                        context: Option[Type])
