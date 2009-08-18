@@ -15,17 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXObjectExpr
   export Executable
 
-  foo() : () = do
-    var o : ZZ32
+  foo(a:String):() = do
+    var b:String
 
-    o := (object extends { ZZ32 }
-            foo() : ZZ32 = self + self
-          end).foo() (* Should fail. o has ZZ32 type, not anonymous  *)
+    b := typecase (c,d,f) = a of
+      (String,String,String) => c
+      else => "Nothin"
+    end
 
+    ()
   end
 
-  run():() = ()
-end
+  run() : () = ()

@@ -15,16 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXField
   export Executable
 
-  trait Foo end
-  trait Bar extends Foo end
-
-  foo(b:Bar):() = do
-    var i:ZZ32
-    i := b.size
+  (* This trait can be read but not assigned to with [] *)
+  trait Sub
+    opr [i:ZZ32] : String = "Can't assign me!"
   end
 
-  run():() =()
-end
+  foo(i:ZZ32,s:Sub) : () = s[i] := "Failure!"
+
+  run():() = ()

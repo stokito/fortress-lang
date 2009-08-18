@@ -15,25 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXAssignmentTest2
   export Executable
 
-  object Foo
+  foo():() = do
+    var b:String
+    var a:Any
 
+    b := typecase a of
+      String => a
+      else => "Nothin"
+    end
+
+    ()
   end
 
-  trait Quux
-
-  end
-
-  object Bar extends Quux
-
-  end
-
-  run():() = do
-    (* Make sure we cannot assign to non-assignable things *)
-    a:Bar = Bar
-    a:= Bar
-  end
-
-end
+  run() : () = ()

@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXMethodInvocationStaticInfer2
   export Executable
 
   trait Foo
@@ -29,4 +28,3 @@ component DXXMethodInvocationStaticInfer2
   end
 
   run():() = ()
-end

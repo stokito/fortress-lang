@@ -14,19 +14,13 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component DXXTypecaseTuple
+
   export Executable
 
-  foo(a:String):() = do
-    var b:String
-
-    b := typecase (c,d,f) = a of
-      (String,String,String) => c
-      else => "Nothin"
-    end
-
-    ()
+  foo() : () = do
+    var a : String
+    b = 1
+    a := b
   end
 
   run() : () = ()
-end

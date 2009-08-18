@@ -15,15 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXSubscriptAssign
   export Executable
 
-  (* This trait can be read but not assigned to with [] *)
-  trait Sub
-    opr [i:ZZ32] : String = "Can't assign me!"
+  foo() : () = do
+    var o : ZZ32
+
+    o := (object extends { ZZ32 }
+            foo() : ZZ32 = self + self
+          end).foo() (* Should fail. o has ZZ32 type, not anonymous  *)
+
   end
 
-  foo(i:ZZ32,s:Sub) : () = s[i] := "Failure!"
-
   run():() = ()
-end

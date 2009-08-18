@@ -15,13 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXSetterTest
- export Executable
- object Foo
-   z:String = "blah" (* Should be no setter, since z is not mutable
-                      *)
- end
- run():() = do
-   Foo.z := "bar"
- end
-end
+  export Executable
+
+  foo():() = do
+    var s:String
+    s := (fn (arg:String):ZZ32=>arg)("MyString")
+  end
+
+  run():()=()

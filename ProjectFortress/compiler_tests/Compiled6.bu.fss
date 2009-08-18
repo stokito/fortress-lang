@@ -15,37 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXAssignmentTest
   export Executable
 
-  object Foo
-
+  trait Foo
+    doIt[\T\](t1:T, t2:T):T
   end
 
-  trait Quux
+  foo(a:ZZ32, f:Foo) : () = do
+    var a2 : String
 
+    a2 := f.doIt(a,a)
   end
 
-  object Bar extends Quux
-
-  end
-
-  run():() = do
-    (* Currently fails because IntLiteral <!: ZZ32
-    var a : ZZ32
-    a := 1
-    *)
-
-    var a : Foo
-    a := Bar
-
-    (* Tuples *)
-    var b : Bar
-    var c : Quux
-    (a,b) := Bar
-    c := (Quux, Bar)
-
-    (* Other operators *)
-  end
-
-end
+  run():() = ()
