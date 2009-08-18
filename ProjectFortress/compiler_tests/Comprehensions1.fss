@@ -24,9 +24,9 @@ comprehensions, in order to see whether we can typecheck it.
 
 (** Is excludes Boolean actually necessary here, or is that a bug in
     exclusion checking? *)
-trait GeneratorZZ32 excludes Boolean
+trait GenZZ32 excludes Boolean
     generate(r: ReductionString, body: ZZ32->String): String
-    filter(f: ZZ32 -> Boolean): GeneratorZZ32
+    filter(f: ZZ32 -> Boolean): GenZZ32
 end
 
 object ReductionString
@@ -40,15 +40,15 @@ __bigOperator(o:ReductionString,
               desugaredClauses:(ReductionString, String->String)->String): String =
     desugaredClauses(o,fn (s:String):String => s)
 
-__generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
+__generate(g: GenZZ32, r: ReductionString, f:ZZ32->String): String =
     g.generate(r,f)
 __generate(p: Boolean, r: ReductionString, f:()->String): String =
     if p then f() else r.empty() end
 
 
-object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GeneratorZZ32
+object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GenZZ32
     generate(r: ReductionString, body: ZZ32->String): String = gen(lo,hi,p,r,body)
-    filter(q: ZZ32 -> Boolean): GeneratorZZ32 =
+    filter(q: ZZ32 -> Boolean): GenZZ32 =
         FilteredRange(lo, hi, fn n => p(n) AND: q(n))
 end
 
