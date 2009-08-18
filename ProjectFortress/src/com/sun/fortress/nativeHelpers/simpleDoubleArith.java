@@ -70,4 +70,12 @@ public class simpleDoubleArith {
     public static double doubleAbs(double a) {
         return Math.abs(a);
     }
+
+    public static double doublePow(double a, double b) {
+        return Math.pow(a,b);
+    }
+
+    public static double doubleNanoTime() {
+        return (double)System.nanoTime();
+    }
 }

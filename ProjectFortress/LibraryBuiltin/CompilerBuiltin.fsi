@@ -21,6 +21,8 @@ import AnyType.{Any}
 trait Object extends Any
 end Object
 
+nanoTime(): RR64
+
 trait String
     asString(): String
 opr || (self, b:String):String
@@ -39,9 +41,11 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number
+    asZZ32(): ZZ32
 end
 
 trait ZZ32 extends ZZ64 comprises { IntLiteral }
+    asZZ32(): ZZ32
     asString(): String
     opr |self| : ZZ32
     opr -(self): ZZ32
@@ -74,6 +78,7 @@ trait RR64 extends Number
     opr juxtaposition(self, other:RR64): RR64
     opr DOT(self, other:RR64): RR64
     opr /(self, other:RR64): RR64
+    opr ^(self, other:RR64): RR64
 end
 
 trait RR32 extends RR64

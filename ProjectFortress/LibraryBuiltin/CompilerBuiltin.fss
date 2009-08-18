@@ -17,7 +17,6 @@
 
 component CompilerBuiltin
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
-import java com.sun.fortress.nativeHelpers.{simplePrintZZ32.nativePrintZZ32 => jPrintlnZZ32}
 import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate}
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
                                             simpleIntArith.intAdd => jIntAdd,
@@ -31,7 +30,8 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intEQ => jIntEQ,
                                             simpleIntArith.intNeg => jIntNeg,
                                             simpleIntArith.parseInt => jParseInt,
-                                            simpleIntArith.intAbs => jIntAbs}
+                                            simpleIntArith.intAbs => jIntAbs,
+                                            simpleIntArith.longToInt => jLongToInt}
 import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => jDoubleToString,
                                             simpleDoubleArith.doubleAdd => jDoubleAdd,
                                             simpleDoubleArith.doubleSub => jDoubleSub,
@@ -44,9 +44,13 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => 
                                             simpleDoubleArith.doubleEQ => jDoubleEQ,
                                             simpleDoubleArith.doubleNeg => jDoubleNeg,
                                             simpleDoubleArith.parseDouble => jParseDouble,
-                                            simpleDoubleArith.doubleAbs => jDoubleAbs}
+                                            simpleDoubleArith.doubleAbs => jDoubleAbs,
+                                            simpleDoubleArith.doublePow => jDoublePow,
+                                            simpleDoubleArith.doubleNanoTime => jNanoTime}
 import AnyType.{Any}
 export CompilerBuiltin
+
+nanoTime(): RR64 = jNanoTime()
 
 trait Object extends Any
 end Object
@@ -69,9 +73,11 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number
+    asZZ32(): ZZ32 = jLongToInt(self)
 end
 
 trait ZZ32 extends ZZ64 comprises { IntLiteral }
+    asZZ32(): ZZ32 = self
     asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntAbs(self)
     opr -(self): ZZ32 = jIntNeg(self)
@@ -104,6 +110,7 @@ trait RR64 extends Number
     opr juxtaposition(self, other:RR64): RR64 = jDoubleMul(self,other)
     opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
     opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
+    opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
 end
 
 trait RR32 extends RR64

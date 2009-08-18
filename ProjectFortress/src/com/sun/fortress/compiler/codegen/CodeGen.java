@@ -579,7 +579,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forDecl(Decl x) {
-        sayWhat(x, "forDecl");
+        sayWhat(x, "Can't handle decls");
     }
 
 

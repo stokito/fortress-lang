@@ -73,5 +73,9 @@ public class simpleIntArith {
 
     public static int intAbs(int a) {
         return Math.abs(a);
-}
+    }
+
+    public static int longToInt(long l) {
+        return (int)l;
+    }
 }
