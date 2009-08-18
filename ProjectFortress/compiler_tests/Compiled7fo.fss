@@ -26,11 +26,10 @@ errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 expect = 1.391570583 10.0^12
 
-RR64ToString(x:RR64): String = x.toString()
+RR64AsString(x:RR64): String = x.asString()
 
 f(x: RR64): RR64 = x (x x + 1)
 
-(* Actually test more HOFs *)
 integrate(l: RR64, h:RR64, tol: RR64): RR64 =
     integrate'(l,h,f(l),f(h),0,tol)
 
@@ -61,7 +60,7 @@ run(): () = do
         if |a - expect| > errorTolerance a then
             println("FAIL: Bad error tolerance!")
         end
-        println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a))
+        println(RR64AsString(elapsedSec(startTime,endTime)) "\t" RR64AsString(a))
     end
   end
 
