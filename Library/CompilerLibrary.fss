@@ -20,6 +20,17 @@ component CompilerLibrary
 export CompilerLibrary
 
 (************************************************************
+ * Value bindings
+ ************************************************************)
+
+(* Placed up front to work around bug #357 *)
+
+(*
+true : Boolean = (0=0)
+false : Boolean = (0=1)
+*)
+
+(************************************************************
  * Simple Combinators
  ************************************************************)
 
@@ -221,11 +232,53 @@ opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else a end
 opr NOT(a:Boolean):Boolean = if a then (0=1) else (0=0) end
 opr ->(a: Boolean, b:Boolean):Boolean = if a then b else (0=0) end
 (*
-opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else (0=0) end
+opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
 *)
 opr <->(a: Boolean, b:Boolean):Boolean = if a then b else NOT b end
 
-(*) true : Boolean = () SEQV ()
-(*) false : Boolean = true SEQV ()
+(************************************************************
+ * Simple Range support
+ ************************************************************)
+
+(* Just enough for counted loops for now. *)
+
+__loop(g: GeneratorZZ32, body: ZZ32->()): () = g.loop(body)
+
+trait GeneratorZZ32
+    seq(self): GeneratorZZ32 = self
+    loop(body:ZZ32->()): () = ()
+end
+
+object SimpleRange(lo:ZZ32, hi:ZZ32) extends GeneratorZZ32
+    seq(self): SimpleSeqRange = SimpleSeqRange(lo,hi)
+    loop(body:ZZ32->()): () = if lo > hi then () else parloop(body,lo,hi) end
+end
+
+object SimpleSeqRange(lo:ZZ32, hi:ZZ32) extends GeneratorZZ32
+    seq(self): SimpleSeqRange = self
+    loop(body:ZZ32->()): () = if lo > hi then () else seqloop(body,lo,hi) end
+end
+
+opr PAR(a:(), b:()): () = ()
+
+parloop(body:ZZ32->(), lo:ZZ32, hi:ZZ32): () =
+    if lo=hi then body(lo)
+    else
+        mid = (lo+hi) DIV 2
+        parloop(body, lo, mid) PAR parloop(body, mid+1, hi)
+    end
+
+seqloop(body:ZZ32->(), lo:ZZ32, hi:ZZ32): () =
+    if lo=hi then body(lo)
+    else
+        mid = (lo+hi) DIV 2
+        parloop(body, lo, mid)
+        parloop(body, mid+1, hi)
+    end
+
+(*
+opr :(lo:ZZ32, hi:ZZ32): SimpleRange = SimpleRange(lo,hi)
+*)
+opr #(lo:ZZ32, sz:ZZ32): SimpleRange = SimpleRange(lo,lo+sz-1)
 
 end

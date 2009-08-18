@@ -17,9 +17,7 @@ tests=Compiled1.ac
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.ac.fss:22:15:\n\
-\ Operator # is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled1.ac.fss:23:9-10:\n\
 \ Variable huh is not defined.\n\
-File Compiled1.ac.fss has 2 errors.\n
+File Compiled1.ac.fss has 1 error.\n
 compile_out_equals=

@@ -17,6 +17,21 @@
 
 api CompilerLibrary
 
+(************************************************************
+ * Value bindings
+ ************************************************************)
+
+(* Placed up front to work around bug #357 *)
+
+(*
+true : Boolean
+false : Boolean
+*)
+
+(************************************************************
+ * Simple Combinators
+ ************************************************************)
+
 ignore(_:Any):()
 
 opr XOR(a:Boolean, b:Boolean):Boolean
@@ -32,5 +47,25 @@ opr ->(a: Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:()->Boolean):Boolean
 *)
 opr <->(a: Boolean, b:Boolean):Boolean
+
+
+(************************************************************
+ * Simple Range support
+ ************************************************************)
+
+(* Just enough for counted loops for now. *)
+
+__loop(g: GeneratorZZ32, body: ZZ32->()): ()
+
+trait GeneratorZZ32
+    seq(self): GeneratorZZ32
+    loop(body:ZZ32->()): ()
+end
+
+(*
+opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32
+*)
+opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
+
 
 end
