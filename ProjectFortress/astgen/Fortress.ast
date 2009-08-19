@@ -475,13 +475,15 @@ interface Node() extends HasAt;
                  * AssignOp ::= := | Op=
                  * e.g.) x += 1
                  *
-                 * <opsForLhs>
-                 * An assignment that has passed typechecking, and uses an operator.
-                 * Because different static args can be inferred for each Lhs assignment
-                 * opr, this node gives a separate FunctionalRef for each Lhs.
+                 * If this is a compound assignment, there should an assignment
+                 * info for every constituent assignment (or 1 if there is only
+                 * a single assignment). If this is not a compound assignment,
+                 * then there are no assignment infos.
                  */
-                Assignment(List<Lhs> lhs, Option<FunctionalRef> assignOp, Expr rhs,
-                           Option<List<FunctionalRef>> opsForLhs);
+                Assignment(List<Lhs> lhs,
+                           Option<FunctionalRef> assignOp,
+                           Expr rhs,
+                           List<CompoundAssignmentInfo> assignmentInfos);
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
@@ -1915,6 +1917,17 @@ interface Node() extends HasAt;
                  * 0-based index into the params for functional methods.
                  */
                 MethodInfo(Type selfType, int selfPosition);
+                /**
+                 * Metadata for each constituent assignment in an assignment
+                 * expression. `opForLhs` contains the FunctionalRef representing
+                 * the actual checked operator for this compound assignment.
+                 * `compoundCoercionOuter` holds the coercion for the outer
+                 * compound OpExpr. `compoundCoercionInner` holds the coercion
+                 * for the occurence of the LHS within the OpExpr.
+                 */
+                CompoundAssignmentInfo(FunctionalRef opForLhs,
+                                       Option<CoercionInvocation> compoundCoercionOuter,
+                                       Option<CoercionInvocation> compoundCoercionInner);
             /*
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.

@@ -1150,7 +1150,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                     List<String> lhs_result,
                                     Option<String> opr_result,
                                     String rhs_result,
-                                    Option<List<String>> opsForLhs_result) {
+                                    List<String> assignmentInfos) {
         StringBuilder s = new StringBuilder();
 
         s.append(inParentheses(lhs_result)).append(" ");

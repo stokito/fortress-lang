@@ -35,6 +35,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static com.sun.fortress.compiler.WellKnownNames.*;
+import com.sun.fortress.Shell;
 
 /**
  * General-purpose type constants and constructors/destructors for types.

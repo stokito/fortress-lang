@@ -383,13 +383,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
                         return ExprFactory.makeAssignment(span, paren, voidType, left,
-                                                          that.getAssignOp(), rhs_result, that.getOpsForLhs());
+                                                          that.getAssignOp(), rhs_result, that.getAssignmentInfos());
                     }
                     public Node forSubscriptExpr(SubscriptExpr lhs_that) {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
                         return ExprFactory.makeAssignment(span, paren, voidType, left,
-                                                          that.getAssignOp(), rhs_result, that.getOpsForLhs());
+                                                          that.getAssignOp(), rhs_result, that.getAssignmentInfos());
                     }
                     public Node forFieldRef(FieldRef lhs_that) {
                         Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
@@ -398,8 +398,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
                             FunctionalRef op;
                             Option<Type> type;
-                            if (that.getOpsForLhs().isSome()) {
-                                op = that.getOpsForLhs().unwrap().get(0);
+                            if (!that.getAssignmentInfos().isEmpty()) {
+                                op = that.getAssignmentInfos().get(0).getOpForLhs();
                                 type = Option.some(((ArrowType) NodeUtil.getExprType(op).unwrap()).getRange());
                             } else {
                                 op = that.getAssignOp().unwrap();
@@ -440,7 +440,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             Option<FunctionalRef> opr = that.getAssignOp();
             List<Expr>   assigns   = new ArrayList<Expr>();
             List<LValue> secondLhs = new ArrayList<LValue>();
-            Option<List<FunctionalRef>> checkedOprs = that.getOpsForLhs();
+            List<CompoundAssignmentInfo> allAssignmentInfos = that.getAssignmentInfos();
             // Possible shadowing!
             for (int i = size-1; i >= 0; i--) {
                 Id id = NodeFactory.makeId(span, "tuple_"+i);
@@ -448,13 +448,17 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 Lhs _lhs = lhs.get(i);
                 left.add(_lhs);
                 Expr right = ExprFactory.makeVarRef(span, id);
-                Option<List<FunctionalRef>> checkedOpr = Option.<List<FunctionalRef>>none();
-                if (checkedOprs.isSome())
-                    checkedOpr = Option.some(Collections.singletonList(checkedOprs.unwrap().get(0)));
+
+                // This is the ith constituent assignment, so extract out the
+                // ith assignment info.
+                List<CompoundAssignmentInfo> assignmentInfo = Collections.emptyList();
+                if (!allAssignmentInfos.isEmpty())
+                    assignmentInfo = Collections.singletonList(allAssignmentInfos.get(i));
+                
                 Assignment assign = ExprFactory.makeAssignment(span, paren,
                                                                voidType,
                                                                left, opr,
-                                                               right, checkedOpr);
+                                                               right, assignmentInfo);
                 assigns.add(0, mangleLhs(assign, right, voidType, _lhs));
                 secondLhs.add(0, NodeFactory.makeLValue(id));
             }
