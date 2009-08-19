@@ -356,10 +356,10 @@ trait Functionals { self: STypeChecker with Common =>
       // Now that coercions are in place, we can simply check if the new arg
       // type is a subtype of the domain type.
       val argType = getArgType(newArgs)
-      if (isSubtype(argType,arrow.getDomain))
+      if (isSubtype(argType,arrow.getDomain) && (newArgs.size == args.size))
         Left((arrow, Nil, newArgs.map(_.left.get)))
       else
-        Right(errorFactory.makeNotApplicableError(originalArrow, newArgs))
+        Right(errorFactory.makeNotApplicableError(originalArrow, args))
     }
   }
 
