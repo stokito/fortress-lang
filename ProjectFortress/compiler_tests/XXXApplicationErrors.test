@@ -32,8 +32,8 @@ ${STATIC_TESTS_DIR}/ApplicationErrors.fss:28:13-52:\n\
 \ - Could not infer parameter type for function expression @ 28:38-52.\n\
 ${STATIC_TESTS_DIR}/ApplicationErrors.fss:32:14-22:\n\
 \ Could not check call to operator *\n\
-\ - (Object->String, ZZ32)->String is not applicable to an argument of type (Object->Object, IntLiteral).\n\
-\ - (ZZ32->String, ZZ32)->String is not applicable to an argument of type (ZZ32->ZZ32, IntLiteral).\n\
+\ - (Object->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
+\ - (ZZ32->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
 ${STATIC_TESTS_DIR}/ApplicationErrors.fss:38:13-32:\n\
 \ Could not check call to function baz\n\
 \ - [\\T\\]T->T is not applicable to any type of the form _->ZZ32.\n\
