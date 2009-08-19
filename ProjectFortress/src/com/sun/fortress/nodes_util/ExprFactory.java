@@ -1026,16 +1026,16 @@ public class ExprFactory {
                                             List<Lhs> lhs, Option<FunctionalRef> op,
                                             Expr rhs) {
         return makeAssignment(span, false, type, lhs, op, rhs,
-                              Option.<List<FunctionalRef>>none());
+                              Collections.<CompoundAssignmentInfo>emptyList());
     }
 
     public static Assignment makeAssignment(Span span,
                                             List<Lhs> lhs,
                                             Option<FunctionalRef> assignOp,
                                             Expr rhs,
-                                            Option<List<FunctionalRef>> opsForLhs) {
+                                            List<CompoundAssignmentInfo> assignmentInfos) {
         return makeAssignment(span, false, Option.<Type>none(), lhs, assignOp,
-                              rhs, opsForLhs);
+                              rhs, assignmentInfos);
     }
 
     public static Assignment makeAssignment(Span span,
@@ -1044,9 +1044,34 @@ public class ExprFactory {
                                             List<Lhs> lhs,
                                             Option<FunctionalRef> assignOp,
                                             Expr rhs,
-                                            Option<List<FunctionalRef>> opsForLhs) {
+                                            List<CompoundAssignmentInfo> assignmentInfos) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
-        return new Assignment(info, lhs, assignOp, rhs, opsForLhs);
+        return new Assignment(info, lhs, assignOp, rhs, assignmentInfos);
+    }
+
+    public static Assignment makeAssignmentOld(Span span,
+                                            boolean parenthesized,
+                                            Option<Type> ty,
+                                            List<Lhs> lhs,
+                                            Option<FunctionalRef> assignOp,
+                                            Expr rhs,
+                                            List<FunctionalRef> opsForLhs) {
+        ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
+
+        // Make an assignment info from a functional ref.
+        Lambda<FunctionalRef, CompoundAssignmentInfo> makeInfo =
+                new Lambda<FunctionalRef, CompoundAssignmentInfo>() {
+            public CompoundAssignmentInfo value(FunctionalRef arg) {
+                return new CompoundAssignmentInfo(arg,
+                                                  Option.<CoercionInvocation>none(),
+                                                  Option.<CoercionInvocation>none());
+            }
+        };
+
+        List<CompoundAssignmentInfo> assignmentInfos =
+                CollectUtil.makeList(IterUtil.map(opsForLhs, makeInfo));
+
+        return new Assignment(info, lhs, assignOp, rhs, assignmentInfos);
     }
 
     public static Block makeBlock(Expr e) {
@@ -1605,7 +1630,7 @@ public class ExprFactory {
         public Expr forAssignment(Assignment e) {
             return makeAssignment(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),
                                   e.getLhs(), e.getAssignOp(), e.getRhs(),
-                                  e.getOpsForLhs());
+                                  e.getAssignmentInfos());
         }
         public Expr forBlock(Block e) {
             return makeBlock(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e), e.getLoc(),

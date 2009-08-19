@@ -1299,7 +1299,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forAssignment(Assignment that) {
-            if ( that.getOpsForLhs().isSome() ) // postInference pass
+            if ( postInference ) // postInference pass
                 return for_Assignment( that );
 
         Pair<List<Type>, TypeCheckerResult> tuple_types_ = requireTupleType(that.getRhs(), that.getLhs().size());
@@ -1330,13 +1330,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Assignment new_node;
         if( that.getAssignOp().isSome() ) {
             // Create a new Assignment, with an FunctionalRef for each LHS
-            new_node = ExprFactory.makeAssignment(NodeUtil.getSpan(that),
+            new_node = ExprFactory.makeAssignmentOld(NodeUtil.getSpan(that),
                                                   NodeUtil.isParenthesized(that),
                                                   Option.<Type>some(Types.VOID),
                                                   (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
                                                   that.getAssignOp(),
                                                   (Expr)rhs_result.ast(),
-                                                  Option.<List<FunctionalRef>>some(op_refs));
+                                                  op_refs);
         }
         else {
             // Create a new Assignment
@@ -1346,7 +1346,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
                     that.getAssignOp(),
                     (Expr)rhs_result.ast(),
-                                        Option.<List<FunctionalRef>>none());
+                    Collections.<CompoundAssignmentInfo>emptyList());
         }
         // This case could not result in open constraints: If there is an FunctionalRef, this must not be
         // the postInference pass, because AssignmentNodes should exist instead. If there is
@@ -1382,13 +1382,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         };
 
         // Create a Assignment, with an FunctionalRef for each LHS
-        Assignment new_node = ExprFactory.makeAssignment(NodeUtil.getSpan(that),
+        Assignment new_node = ExprFactory.makeAssignmentOld(NodeUtil.getSpan(that),
                                                      NodeUtil.isParenthesized(that),
                                                      Option.<Type>some(Types.VOID),
                                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
                                                      that.getAssignOp(),
                                                      (Expr)rhs_result.ast(),
-                                                     Option.<List<FunctionalRef>>some(op_refs));
+                                                     op_refs);
 
         TypeCheckerResult result = TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, rhs_result,
                 TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));

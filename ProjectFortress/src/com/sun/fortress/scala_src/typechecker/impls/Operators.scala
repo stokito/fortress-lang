@@ -501,7 +501,7 @@ trait Operators { self: STypeChecker with Common =>
                   List(checkedLhs),
                   None,
                   checkedRhs,
-                  None)
+                  Nil)
     }
 
     // A singleton compound assignment. e.g. x += e
@@ -511,21 +511,39 @@ trait Operators { self: STypeChecker with Common =>
       // 3. Get out the op ref and lhs
       // 4. Stuff them together into an Assignment
       val opExpr = EF.makeOpExpr(span, op, lhs.asInstanceOf[Expr], rhs)
-      val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, None))
+      val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, Nil))
       if (getType(checkedAssn).isNone) return expr
 
       // Pull out the checked LHS and checked OpExpr.
       val SAssignment(_, checkedLhs :: Nil, _, checkedOpExpr, _) = checkedAssn
 
+      // Check for coercions. There can be one on the OpExpr itself, and there
+      // can be one on each of the two args to the OpExpr.
+
+      // See if there was a coercion on the entire operator expression.
+      val (realCheckedOpExpr, maybeOuterCoercion) = checkedOpExpr match {
+        case c @ SCoercionInvocation(_, _, _, arg) => (arg, Some(c))
+        case _ => (checkedOpExpr, None)
+      }
+
       // The checked OpExpr will have two args: the checked LHS and the checked RHS.
-      // TODO: Make sure to peek inside a Coercion node.
-      val SOpExpr(_, checkedOp, _ :: List(checkedRhs)) = checkedOpExpr
+      val SOpExpr(_, checkedOp, List(argL, checkedRhs)) = realCheckedOpExpr
+
+      // See if there was a coercion on the LHS arg.
+      val maybeInnerCoercion = argL match {
+        case c @ SCoercionInvocation(_, _, _, arg) => Some(c)
+        case _ => None
+      }
+
+      // Create the info for the compound assignment's op and coercions.
+      val assnInfo =
+        SCompoundAssignmentInfo(checkedOp, maybeOuterCoercion, maybeInnerCoercion)
 
       SAssignment(SExprInfo(span, paren, Some(Types.VOID)),
                   List(checkedLhs),
                   Some(op),
                   checkedRhs,
-                  Some(List(checkedOp)))
+                  List(assnInfo))
     }
 
     // Any arbitrary assignment.
@@ -544,33 +562,22 @@ trait Operators { self: STypeChecker with Common =>
                               List(lhs),
                               maybeOp,
                               makeDummyFor(rhsType, span),
-                              None))
+                              Nil))
       }}
       if (!haveTypes(checkedAssignments)) return expr
 
       // Pull out the checked LHS and checked OpRef for each assignment.
-      val (checkedLhses, maybeOps) = maybeOp match {
-        case Some(_) =>
-          val (lhses, ops) = List.unzip(checkedAssignments.map {
-            case SAssignment(_, lhs :: Nil, _, _, Some(op :: Nil)) => (lhs, op)
-            case _ => bug("impossible result of checking")
-          })
-          (lhses, Some(ops))
-
-        case None =>
-          val lhses = checkedAssignments.map {
-            case SAssignment(_, lhs :: Nil, _, _, None) => lhs
-            case _ => bug("impossible result of checking")
-          }
-          (lhses, None)
-      }
+      val (checkedLhses, infos) = List.unzip(checkedAssignments.map {
+        case SAssignment(_, lhs :: Nil, _, _, info) => (lhs, info)
+        case _ => bug("impossible result of checking")
+      })
 
       // Put the assignment back together.
       SAssignment(SExprInfo(span, paren, Some(Types.VOID)),
                   checkedLhses,
                   maybeOp,
                   checkedRhs,
-                  maybeOps)
+                  infos.flatMap(x => x))
     }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
