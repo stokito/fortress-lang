@@ -694,6 +694,7 @@ public class FileTests {
          * @throws Throwable
          */
         protected int justTheTest() throws FileNotFoundException, IOException, Throwable {
+            Shell.setScala(false);
             String s = f.replaceFirst(".*/", "");
             APIName apiname = NodeFactory.makeAPIName(NodeFactory.testSpan, s);
             GraphRepository repository =

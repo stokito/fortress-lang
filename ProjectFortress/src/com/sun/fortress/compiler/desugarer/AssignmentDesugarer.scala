@@ -49,7 +49,12 @@ class AssignmentDesugarer extends Walker {
 
   /** Does the walking. */
   override def walk(node: Any) = node match {
-    case assn:Assignment => desugarAssignment(assn)
+    // Make sure to recursively desugar assignments in any subexpressions.
+    case assn@SAssignment(v1, lhses, v3, rhs, v5) =>
+      val recurredLhses = lhses.map(this.walk(_).asInstanceOf[Lhs])
+      val recurredRhs = this.walk(rhs).asInstanceOf[Expr]
+      val recurredAssn = SAssignment(v1, recurredLhses, v3, recurredRhs, v5)
+      desugarAssignment(assn)
     case _ => super.walk(node)
   }
 
