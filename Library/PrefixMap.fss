@@ -34,7 +34,7 @@
 
 component PrefixMap
 import List.{...}
-import Map.{...}
+import Map.{...} except { opr BIG UNION, opr BIG UPLUS }
 import PrefixSet.{...}
 import CovariantCollection.{...}
 export PrefixMap
@@ -421,8 +421,7 @@ opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] /}:Com
 
 
 
-(*) These clash with Map
-(**
+
 opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comprehension[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\] =
       embiggen[\ PrefixMap[\E,F,V\] \](fn (a,b) => a UNION b, emptyPrefixMap[\E,F,V\]())
 
@@ -434,7 +433,7 @@ opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comp
 
 opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g: Generator[\PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] =
     __bigOperatorSugar[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\](BIG UPLUS[\E,F,V\](), g)
- **)
+
 
 
 object SeqPrefixMapGenerator[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](o:PrefixMap[\E,F,V\])
