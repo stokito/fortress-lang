@@ -26,7 +26,10 @@ export Relation
  * - have version with explicit domain/codomain sets?
  *)
 
+(* backed off from r4101
 object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relation[\T\]\]
+*)
+object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
 
   getter asString(): String = "Relation " || rel.asString()
   dom(self): Set[\T\] = dom(rel)
@@ -69,7 +72,7 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relati
     if values <- rel.member(k) then v IN values else false end
   end
 
-  (* Relation predicates; Containment.fss provides the others automatically *)
+  (* Relation predicates *)
 
   opr SUBSETEQ(self, other:Relation[\T\]): Boolean =
     BIG AND[(key,values1) <- rel]
@@ -78,6 +81,15 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relati
       else
         false
       end
+
+  opr SUBSET(self, other:Relation[\T\]): Boolean =
+    (self SUBSETEQ other) AND: NOT(self = other)
+
+  opr SUPSET(self, other:Relation[\T\]): Boolean =
+    other SUBSET self
+
+  opr SUPSETEQ(self, other:Relation[\T\]): Boolean =
+    other SUBSETEQ self
 
   (* Closure predicates *)
 

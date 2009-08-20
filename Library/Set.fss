@@ -29,7 +29,10 @@ weight:ZZ32 = 4
 (** The natural order of the set, and indexing on the set, yields set
     elements in ascending order. **)
 trait Set[\E extends StandardTotalOrder[\E\]\]
+(* backed off from r4101
         extends { ZeroIndexed[\E\], ContainmentGenerator[\E,Set[\E\]\] }
+*)
+        extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
         comprises {NodeSet[\E\], EmptySet[\E\]}
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
@@ -66,7 +69,12 @@ trait Set[\E extends StandardTotalOrder[\E\]\]
     splitIndex(x:ZZ32):(Set[\E\],Set[\E\])
     splitAt(x:E):(Set[\E\],Boolean,Set[\E\])
     concat3(v:E, t2:Set[\E\]):Set[\E\]
+    opr SUBSET(self, other:Set[\E\]): Boolean = (self SETCMP other) = LessThan
+    opr SUBSETEQ(self, other:Set[\E\]): Boolean
+    opr SUPSET(self, other:Set[\E\]): Boolean = other SUBSET self
+    opr SUPSETEQ(self, other:Set[\E\]): Boolean = other SUBSETEQ self
     opr =(self, other:Set[\E\]): Boolean
+    opr SETCMP(self, other:Set[\E\]): Comparison
 end
 
 singleton[\E\](x:E): Set[\E\] = do
