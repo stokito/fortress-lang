@@ -46,7 +46,10 @@ export PrefixSet
 
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
+(* backed off from r4101
         extends ContainmentGenerator[\F,PrefixSet[\E,F\]\]
+*)
+        extends { Generator[\F\], Equality[\PrefixSet[\E, F\]\] }
 
     getter indexValuePairs():ZeroIndexed[\(ZZ32,F)\] =
         IndexValuePrefixSetGenerator[\E,F\](self)
@@ -316,6 +319,26 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             (emptyPrefixSet[\E,F\](), isMember(), fastPrefixSet(false, children()))
         end
     end
+
+
+    opr SUBSETEQ(self, other:PrefixSet[\E,F\]): Boolean = (other.isMember() OR NOT isMember()) AND (BIG AND[(k,v) <- children()] (k IN other.children()) AND (children()[k] SUBSETEQ (other.children())[k]))
+    opr SUBSET(self, other:PrefixSet[\E,F\]): Boolean = (NOT (self = other)) AND (self SUBSETEQ other)
+
+    opr SUPSETEQ(self, other:PrefixSet[\E,F\]): Boolean = other SUBSETEQ self
+    opr SUPSET(self, other:PrefixSet[\E,F\]): Boolean = other SUBSET self
+
+    opr SETCMP(self, other:PrefixSet[\E,F\]): Comparison = do
+        if (self = other) then
+            EqualTo
+        elif (self SUBSETEQ other) then
+            LessThan
+        elif (other SUBSETEQ self) then
+            GreaterThan
+        else
+            Unordered
+        end
+    end
+
 
     opr |self|:ZZ32 = size()
 

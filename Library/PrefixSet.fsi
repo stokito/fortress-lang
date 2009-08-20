@@ -41,7 +41,10 @@ import List.{...}
 import Map.{...} except { opr BIG UNION, opr BIG INTERSECTION, opr BIG SYMDIFF }
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
+(* backed off from r4101
     extends ContainmentGenerator[\F,PrefixSet[\E,F\]\]
+*)
+    extends { Generator[\F\], Equality[\PrefixSet[\E, F\]\] }
     getter indexValuePairs(): ZeroIndexed[\(ZZ32, F)\]
 
     abstract isMember(): Boolean
@@ -75,6 +78,11 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     concat(s2: PrefixSet[\E, F\]): PrefixSet[\E, F\]
     concat3(v: F, s2: PrefixSet[\E, F\]): PrefixSet[\E, F\]
     splitAt(x: F): (PrefixSet[\E, F\], Boolean, PrefixSet[\E, F\])
+    opr ⊆(self, other: PrefixSet[\E, F\]): Boolean
+    opr SUBSET(self, other: PrefixSet[\E, F\]): Boolean
+    opr ⊇(self, other: PrefixSet[\E, F\]): Boolean
+    opr SUPSET(self, other: PrefixSet[\E, F\]): Boolean
+    opr SETCMP(self, other: PrefixSet[\E, F\]): Comparison
     opr | self |: ZZ32
     opr CUP(self, s2: PrefixSet[\E, F\]): PrefixSet[\E, F\]
     opr CAP(self, s2: PrefixSet[\E, F\]): PrefixSet[\E, F\]
