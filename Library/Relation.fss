@@ -26,10 +26,7 @@ export Relation
  * - have version with explicit domain/codomain sets?
  *)
 
-(* backed off from r4101
 object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relation[\T\]\]
-*)
-object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
 
   getter asString(): String = "Relation " || rel.asString()
   dom(self): Set[\T\] = dom(rel)

@@ -41,10 +41,7 @@ import List.{...}
 import Map.{...} except { opr BIG UNION, opr BIG INTERSECTION, opr BIG SYMDIFF }
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
-(* backed off from r4101
     extends ContainmentGenerator[\F,PrefixSet[\E,F\]\]
-*)
-    extends { Generator[\F\], Equality[\PrefixSet[\E, F\]\] }
     getter indexValuePairs(): ZeroIndexed[\(ZZ32, F)\]
 
     abstract isMember(): Boolean

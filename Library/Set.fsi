@@ -28,10 +28,7 @@ object EmptyIntersection extends UncheckedException end
  * produce their elements in sorted order.
  **)
 trait Set[\E\]
-(* backed off from r4101
-        extends { ZeroIndexed[\E\], ContainmentGenerator[\E,Set[\E\]\] }
-*)
-      extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
+      extends { ZeroIndexed[\E\], ContainmentGenerator[\E,Set[\E\]\] }
       comprises { ... }
    printTree():()
    minimum():Maybe[\E\]
