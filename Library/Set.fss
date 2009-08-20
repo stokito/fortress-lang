@@ -29,10 +29,7 @@ weight:ZZ32 = 4
 (** The natural order of the set, and indexing on the set, yields set
     elements in ascending order. **)
 trait Set[\E extends StandardTotalOrder[\E\]\]
-(* backed off from r4101
         extends { ZeroIndexed[\E\], ContainmentGenerator[\E,Set[\E\]\] }
-*)
-        extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
         comprises {NodeSet[\E\], EmptySet[\E\]}
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)

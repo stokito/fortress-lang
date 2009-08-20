@@ -20,10 +20,7 @@ import Containment.{...}
 import Map.{...} except { opr BIG UNION }
 import Set.{...}
 
-(* backed off from r4101
 trait Relation[\T\] extends ContainmentBySubset[\Relation[\T\]\] comprises {...}
-*)
-trait Relation[\T\] extends Equality[\Relation[\T\]\] comprises {...}
   dom(self): Set[\T\]
   range(self): Set[\T\]
   pairs(): Generator[\(T,T)\]
