@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.phases;
 
 import com.sun.fortress.compiler.AnalyzeResult;
+import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.ParallelismAnalyzer;
 import com.sun.fortress.compiler.codegen.FreeVariables;
@@ -35,6 +36,8 @@ import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.MultiMap;
+
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -60,10 +63,13 @@ public class CodeGenerationPhase extends Phase {
                     1,
                     "CodeGenerationPhase: components " + previous.components() + " apis = " + previous.apis().keySet());
 
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
+        
+        
         for (APIName api : previous.apis().keySet()) {
             if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                 ApiIndex ai = previous.apis().get(api);
-                TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, getEnv()));
+                TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, apiEnv));
 
                 Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
 
@@ -84,7 +90,7 @@ public class CodeGenerationPhase extends Phase {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
             Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
-            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, getEnv()));
+            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
 
             // Temporary code
             ParallelismAnalyzer pa = new ParallelismAnalyzer();
@@ -96,7 +102,7 @@ public class CodeGenerationPhase extends Phase {
             FreeVariables lbv = new FreeVariables();
             component.accept(lbv);
 
-            CodeGen c = new CodeGen(component, ta, pa, lbv, ci, env);
+            CodeGen c = new CodeGen(component, ta, pa, lbv, ci, apiEnv);
             component.accept(c);
         }
 
