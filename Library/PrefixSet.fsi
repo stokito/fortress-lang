@@ -38,7 +38,7 @@ api PrefixSet
 import Containment.{...}
 import CovariantCollection.{AnyCovColl}
 import List.{...}
-import Map.{...}
+import Map.{...} except { opr BIG UNION, opr BIG INTERSECTION, opr BIG SYMDIFF }
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     extends ContainmentGenerator[\F,PrefixSet[\E,F\]\]
@@ -114,9 +114,9 @@ object Union[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     join(a: PrefixSet[\E, F\], b: PrefixSet[\E, F\]): PrefixSet[\E, F\]
 end
 
-opr BIG PS_UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
 
-opr BIG PS_UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
 
 object Intersection[\E extends StandardTotalOrder[\E\],
         F extends List[\E\]\]
@@ -127,9 +127,9 @@ object Intersection[\E extends StandardTotalOrder[\E\],
     join(a: PrefixSet[\E, F\], b: PrefixSet[\E, F\]): PrefixSet[\E, F\]
 end
 
-opr BIG PS_INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
+opr BIG INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
 
-opr BIG PS_INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
+opr BIG INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
 
 object SymmetricDifference[\E extends StandardTotalOrder[\E\],
         F extends List[\E\]\]
@@ -140,9 +140,9 @@ object SymmetricDifference[\E extends StandardTotalOrder[\E\],
     join(a: PrefixSet[\E, F\], b: PrefixSet[\E, F\]): PrefixSet[\E, F\]
 end
 
-opr BIG PS_SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
+opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E, F\], PrefixSet[\E, F\]\]
 
-opr BIG PS_SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
+opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E, F\]\]): PrefixSet[\E, F\]
 
 value object SeqPrefixSetGenerator[\E extends StandardTotalOrder[\E\],
         F extends List[\E\]\](s: PrefixSet[\E, F\])

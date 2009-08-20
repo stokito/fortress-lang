@@ -34,7 +34,7 @@
 
 api PrefixMap
 import List.{...}
-import Map.{...}
+import Map.{...} except { opr BIG UNION, opr BIG UPLUS }
 import PrefixSet.{...}
 import CovariantCollection.{...}
 trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],
@@ -116,6 +116,14 @@ opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],
 opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],
         V\]  /}: Comprehension[\(F, V), PrefixMap[\E, F, V\], AnyCovColl,
         AnyCovColl\]
+
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comprehension[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\]
+
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g: Generator[\PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\]
+
+opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comprehension[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\]
+
+opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g: Generator[\PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\]
 
 object SeqPrefixMapGenerator[\E extends StandardTotalOrder[\E\],
         F extends List[\E\],
