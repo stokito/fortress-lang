@@ -15,17 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Funmet1
-
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
-export Funmet1
+api Funmet1
 
 trait T
-  me(self, x:ZZ32):ZZ32 = x + 1
+  me(self, x:ZZ32):ZZ32
 end
 
-object O extends T
-  me(self, x:ZZ32):ZZ32 = x + 2
-end
+f1() : T
 
-f1() : T = O
+end

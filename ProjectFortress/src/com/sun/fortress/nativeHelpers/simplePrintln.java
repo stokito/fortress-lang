@@ -22,4 +22,8 @@ public class simplePrintln {
     public static void nativePrintln(String s) {
         System.out.println(s);
     }
+    
+    public static void nativePrintln(int i) {
+        System.out.println(String.valueOf(i));
+    }
 }

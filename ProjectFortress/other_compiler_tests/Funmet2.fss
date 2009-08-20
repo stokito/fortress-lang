@@ -26,3 +26,5 @@ object P extends T
 end
 
 f2() : T = P
+
+end
