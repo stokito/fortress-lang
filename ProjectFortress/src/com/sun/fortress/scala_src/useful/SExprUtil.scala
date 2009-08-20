@@ -110,6 +110,12 @@ object SExprUtil {
                         arg)
   }
 
+  /** Create an identical coercion but wrapped around `onto`. */
+  def copyCoercion(c: CoercionInvocation, onto: Expr): CoercionInvocation = {
+    val SCoercionInvocation(v1, v2, v3, _) = c
+    SCoercionInvocation(v1, v2, v3, onto)
+  }
+
   /**
    * Finds static args explicitly provided for the given application. If this
    * is not actually an application node, the result is None.

@@ -147,10 +147,15 @@ public class Desugarer {
             boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
 
+        // Assignment desugarer goes here
+
         if( Shell.getGetterSetterDesugaring() ) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);
         }
+
+        // Coercion desugarer goes here
+
         return comp;
     }
 

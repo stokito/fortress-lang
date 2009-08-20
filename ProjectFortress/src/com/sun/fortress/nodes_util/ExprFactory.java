@@ -891,6 +891,15 @@ public class ExprFactory {
                              Collections.<KeywordExpr>emptyList(), false);
     }
 
+    public static Expr makeMaybeTupleExpr(Span span, List<Expr> elements) {
+        if ( elements.size() > 1 )
+            return makeTupleExpr(span, elements);
+        else if ( elements.size() == 1 )
+            return elements.get(0);
+        else
+            return makeVoidLiteralExpr(span);
+    }
+
     public static TupleExpr makeTupleExpr(Span span, Expr... exprs) {
         return makeTupleExpr(span, Arrays.asList(exprs));
     }

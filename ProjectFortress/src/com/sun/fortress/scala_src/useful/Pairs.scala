@@ -24,6 +24,8 @@ object Pairs {
 
   def toJavaPair[S, T](pair: (S, T)): JPair[S, T] = JPair.make(pair._1, pair._2)
 
+  def mapSome[A,B](pair: (A, B)): (Option[A], Option[B]) =
+    (Some(pair._1), Some(pair._2))
 }
 
 
