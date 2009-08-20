@@ -16,10 +16,11 @@
  ******************************************************************************)
 
 api Relation
+import Containment.{...}
 import Map.{...} except { opr BIG UNION }
 import Set.{...}
 
-trait Relation[\T\] extends Equality[\Relation[\T\]\] comprises {...}
+trait Relation[\T\] extends ContainmentBySubset[\Relation[\T\]\] comprises {...}
   dom(self): Set[\T\]
   range(self): Set[\T\]
   pairs(): Generator[\(T,T)\]
@@ -32,12 +33,6 @@ trait Relation[\T\] extends Equality[\Relation[\T\]\] comprises {...}
   opr DIFFERENCE(self, other:Relation[\T\]): Relation[\T\]
   opr =(self, other: Relation[\T\]): Boolean
   opr IN(p:(T,T), self): Boolean
-
-  (* Relation predicates *)
-  opr SUBSETEQ(self, other:Relation[\T\]): Boolean
-  opr SUBSET(self, other:Relation[\T\]): Boolean
-  opr SUPSET(self, other:Relation[\T\]): Boolean
-  opr SUPSETEQ(self, other:Relation[\T\]): Boolean
 
   (* Closure predicates *)
   isSymmetric(): Boolean

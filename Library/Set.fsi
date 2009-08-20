@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api Set
+import Containment.{...}
 import CovariantCollection.{...}
 
 (** Thrown when taking big intersection of no sets. **)
@@ -27,7 +28,7 @@ object EmptyIntersection extends UncheckedException end
  * produce their elements in sorted order.
  **)
 trait Set[\E\]
-      extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
+        extends { ZeroIndexed[\E\], ContainmentGenerator[\E,Set[\E\]\] }
       comprises { ... }
    printTree():()
    minimum():Maybe[\E\]
@@ -44,11 +45,6 @@ trait Set[\E\]
    (** Symmetric difference: all elements in exactly one of the two sets. *)
    opr SYMDIFF(self,t2:Set[\E\]):Set[\E\]
    splitAt(e:E):(Set[\E\],Boolean,Set[\E\])
-   opr SUBSET(self, other:Set[\E\]): Boolean
-   opr SUBSETEQ(self, other:Set[\E\]): Boolean
-   opr SUPSET(self, other:Set[\E\]): Boolean
-   opr SUPSETEQ(self, other:Set[\E\]): Boolean
-   opr SETCMP(self, other:Set[\E\]): Comparison
    (** Ordered concatenation; use only if you know what you are doing. **)
    concat(t2:Set[\E\]):Set[\E\]
    concat3(v:E, t2:Set[\E\]):Set[\E\]
