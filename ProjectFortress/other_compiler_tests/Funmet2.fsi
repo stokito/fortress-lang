@@ -20,3 +20,5 @@ api Funmet2
 import Funmet1.{T}
 
 f2() : T
+
+end

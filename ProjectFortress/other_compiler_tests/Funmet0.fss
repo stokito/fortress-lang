@@ -17,15 +17,16 @@
 
 component Funmet0
 
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintZZ32 => jPrintZZ32}
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
-import Funmet1.{T,f1}
+import Funmet1.{T,f1,me}
 import Funmet2.{f2}
 export Executable
 
-run():() = 
-   jPrintZZ32(me(f1(), 0)
+run():() = do
+   jPrintln(me(f1(), 0))
    jPrintln(" ");
-   jPrintZZ32(me(f2(), 0)
+   jPrintln(me(f2(), 0))
    jPrintln(" ");
+end
+
 end

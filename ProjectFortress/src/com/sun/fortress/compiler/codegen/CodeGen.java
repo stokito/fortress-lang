@@ -973,8 +973,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 method = fnName.getText();
             } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
                 // NOT Foreign, calls other component.
-                calleePackageAndClass =
-                    NamingCzar.fortressPackage + "/" + apiName.unwrap().getText();
+                calleePackageAndClass = 
+                    NamingCzar.javaPackageClassForApi(apiName.unwrap().getText(), "/").toString();
+                    
                 method = fnName.getText();
             } else if ( aliasTable.containsKey(name) ) {
                 // Foreign function call

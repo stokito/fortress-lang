@@ -29,3 +29,5 @@ object O extends T
 end
 
 f1() : T = O
+
+end
