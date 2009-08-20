@@ -147,9 +147,13 @@ public class Desugarer {
             boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
 
-        // Assignment desugarer goes here
+        // Desugar [compound] assignments into multiple ordinary assignments.
+        if (Shell.getAssignmentDesugaring()) {
+            AssignmentDesugarer assnDesugarer = new AssignmentDesugarer();
+            comp = (Component) assnDesugarer.walk(comp);
+        }
 
-        if( Shell.getGetterSetterDesugaring() ) {
+        if (Shell.getGetterSetterDesugaring()) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);
         }
