@@ -49,6 +49,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
+        Shell.setScala(false);
         fssFiles = new String[4];
         fsiFiles = new String[3];
 
@@ -235,7 +236,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
         }
 
         // HACK: We need to compile these test programs using the old Fortress
-        // libraries instead of the new compiler libraries. 
+        // libraries instead of the new compiler libraries.
         // Shell.useFortressLibraries();
 
         Iterable<? extends StaticError> errors = Shell.compilerPhases(path, s);
