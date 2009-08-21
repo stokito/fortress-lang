@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 
@@ -127,6 +128,7 @@ public class Desugarer {
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
+        TraitTable traitTable = new TraitTable(component, env);
 
         /**
          * When Shell.getObjExprDesugaring is true,
@@ -140,7 +142,6 @@ public class Desugarer {
             }
             TypeCheckerOutput typeCheckerOutput = typeCheckerOutputOp.unwrap();
 
-            TraitTable traitTable = new TraitTable(component, env);
             ObjectExpressionVisitor objExprVisitor =
                 new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
             comp = (Component) comp.accept(objExprVisitor);
@@ -151,6 +152,12 @@ public class Desugarer {
         if (Shell.getAssignmentDesugaring()) {
             AssignmentDesugarer assnDesugarer = new AssignmentDesugarer();
             comp = (Component) assnDesugarer.walk(comp);
+        }
+
+        // Desugar coercion invocation nodes into function applications.
+        if (Shell.getCoercionDesugaring()) {
+            CoercionDesugarer coercionDesugarer = new CoercionDesugarer(traitTable);
+            comp = (Component) coercionDesugarer.walk(comp);
         }
 
         if (Shell.getGetterSetterDesugaring()) {

@@ -570,6 +570,23 @@ object STypesUtil {
   }
 
   /**
+   * Creates an iterator over the given domain type. If this is a tuple, it
+   * first iterates over the plain types; if varargs are present, it then
+   * iterates over them indefinitely. If this is any other type, including a
+   * void type, it is the singleton iterator.
+   */
+  def typeIteratorVoid(dom: Type): Iterator[Type] = dom match {
+    case STupleType(_, Nil, None, _) => Iterator.single(dom) 
+    case STupleType(_, elts, None, _) => elts.elements
+    case STupleType(_, elts, Some(varargs), _) =>
+      elts.elements ++ new Iterator[Type] {
+        def hasNext = true
+        def next() = varargs
+      }
+    case _ => Iterator.single(dom)
+  }
+
+  /**
    * Zip the given iterator of elements with the type iterator for the given
    * domain type.
    */
@@ -579,6 +596,17 @@ object STypesUtil {
   /** Same as the other zipWithDomain but uses lists. */
   def zipWithDomain[T](elts: List[T], dom: Type): List[(T, Type)] =
     List.fromIterator(zipWithDomain(elts.elements, dom))
+
+  /**
+   * Zip the given iterator of elements with the type iterator for the given
+   * domain type, considering void as a single type.
+   */
+  def zipWithRhsType[T](elts: Iterator[T], dom: Type): Iterator[(T, Type)] =
+    elts zip typeIteratorVoid(dom)
+
+  /** Same as the other zipWithRhsType but uses lists. */
+  def zipWithRhsType[T](elts: List[T], dom: Type): List[(T, Type)] =
+    List.fromIterator(zipWithRhsType(elts.elements, dom))
 
   /**
    * Determine if there are enough of the given elements to cover all

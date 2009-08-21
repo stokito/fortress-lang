@@ -326,7 +326,7 @@ trait Functionals { self: STypeChecker with Common =>
         getType(checked).get match {
           case typ if isSubtype(typ, paramType) => (Left(checked), None)
           case typ if coercesTo(typ, paramType) =>
-            (Left(makeCoercion(typ, paramType, checked)), None)
+            (Left(makeCoercion(paramType, checked)), None)
           case typ =>
             return Right(errorFactory.makeNotApplicableError(originalArrow, args))
         }

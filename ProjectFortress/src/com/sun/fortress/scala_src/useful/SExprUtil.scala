@@ -102,7 +102,7 @@ object SExprUtil {
   }
 
   /** Create a coercion invocation from t to u. */
-  def makeCoercion(t: Type, u: Type, arg: Expr): CoercionInvocation = {
+  def makeCoercion(u: Type, arg: Expr): CoercionInvocation = {
     val SExprInfo(span, paren, _) = arg.getInfo
     SCoercionInvocation(SExprInfo(span, paren, Some(u)),
                         u,
