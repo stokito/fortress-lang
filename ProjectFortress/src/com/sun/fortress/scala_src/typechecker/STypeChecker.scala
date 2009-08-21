@@ -260,7 +260,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                           u: Type,
                           arg: Expr): Option[CoercionInvocation] = {
     if (coercions.coercesTo(t, u))
-      Some(makeCoercion(t, u, arg))
+      Some(makeCoercion(u, arg))
     else
       None
   }
@@ -448,7 +448,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     getType(checkedExpr) match {
       case Some(typ) if isSubtype(typ, expected) => checkedExpr
       case Some(typ) if coercesTo(typ, expected) =>
-        makeCoercion(typ, expected, checkedExpr)
+        makeCoercion(expected, checkedExpr)
       case Some(typ) =>
         signal(location, message.format(normalize(typ), normalize(expected)))
         expr
