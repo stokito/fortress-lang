@@ -96,7 +96,7 @@ end
 object IntLiteral extends ZZ32
 end
 
-trait RR64 extends Number
+trait RR64 extends Number comprises { RR32 }
     asString(): String = jDoubleToString(self)
     opr |self| : RR64 = jDoubleAbs(self)
     opr -(self): RR64 = jDoubleNeg(self)
@@ -111,9 +111,20 @@ trait RR64 extends Number
     opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
     opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
     opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
+    opr ^(self, other:ZZ32): RR64 =
+        if other > 0 then
+            mid = other DIV 2
+            if (mid + mid) = other then
+                (self self)^mid
+            else
+                self (self^(mid-1))
+            end
+        elif other = 0 then 1.0
+        else 1.0 / (self^(-other))
+        end
 end
 
-trait RR32 extends RR64
+trait RR32 extends RR64 comprises {FloatLiteral}
 end
 
 object FloatLiteral extends RR32

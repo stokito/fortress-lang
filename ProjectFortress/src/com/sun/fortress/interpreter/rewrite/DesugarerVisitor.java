@@ -1007,54 +1007,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
         return n;
     }
 
-    /**
-     * Given generalized if expression, desugar into __cond calls (binding)
-     * where required.
-     */
-    @Override
-    public Node forIf(If i) {
-        Expr result = null;
-        if (i.getElseClause().isSome()) {
-            result = i.getElseClause().unwrap();
-        }
-        List<IfClause> clauses = i.getClauses();
-        int n = clauses.size();
-        if (n <= 0) bug(i, "if with no clauses!");
-        // Traverse each clause and desugar it into an if or a __cond as appropriate.
-        for (--n; n >= 0; --n) {
-            result = addIfClause(clauses.get(n), result);
-        }
-        return visitNode(result);
-    }
-
-    /**
-     * Desugar a generalized While clause.
-     */
-    @Override
-    public Node forWhile(While w) {
-        GeneratorClause g = w.getTestExpr();
-        if (g.getBind().size() > 0) {
-            // while binds <- expr  do body end
-            // desugars to
-            // while __whileCond(expr, fn (binds) => body) do end
-            ArrayList<Expr> args = new ArrayList<Expr>(2);
-            args.add(g.getInit());
-            args.add(bindsAndBody(g, w.getBody()));
-            Expr cond = ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), Q_WHILECOND_NAME, ExprFactory.makeTupleExpr(
-                    NodeUtil.getSpan(w),
-                    args));
-            w = ExprFactory.makeWhile(NodeUtil.getSpan(w), cond);
-        }
-        return (Expr) visitNode(w);
-    }
-
-    @Override
-    public Node forFor(For f) {
-        Block df = f.getBody();
-        Do doBlock = ExprFactory.makeDo(NodeUtil.getSpan(df), Useful.list(df));
-        return visitLoop(NodeUtil.getSpan(f), f.getGens(), doBlock);
-    }
-
     @Override
     public Node forSpawn(Spawn s) {
         Expr body = s.getBody();
@@ -1064,15 +1016,19 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
         Node rewrittenExpr = visit(body);
 
-        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(sp,
-                                                                   WellKnownNames.fortressBuiltin(),
-                                                                   WellKnownNames.thread));
+        Expr in_fn =
+            ExprFactory.makeVarRef(sp,
+                NodeFactory.makeId(sp,
+                                   WellKnownNames.fortressBuiltin(),
+                                   WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(NodeFactory.makeTypeArg(sp, NodeFactory.makeVarType(sp,
-                                                                     NodeFactory.makeId(sp,
-                                                                                        WellKnownNames.anyTypeLibrary(),
-                                                                                        WellKnownNames.anyTypeName),
-                                                                     Environment.TOP_LEVEL)));
+        args.add(
+            NodeFactory.makeTypeArg(sp,
+                NodeFactory.makeVarType(sp,
+                    NodeFactory.makeId(sp,
+                                       WellKnownNames.anyTypeLibrary(),
+                                       WellKnownNames.anyTypeName),
+                    Environment.TOP_LEVEL)));
 
         _RewriteFnRef fn = ExprFactory.make_RewriteFnRef(NodeUtil.getSpan(s), false, Option.<Type>none(), in_fn, args);
 
@@ -1132,51 +1088,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
         return ExprFactory.makeTupleExpr(new Span(NodeUtil.getSpan(binds.get(0)), NodeUtil.getSpan(binds.get(
                 binds.size() - 1))), refs);
-    }
-
-    /**
-     * Add an if clause to a (potentially) pre-existing else clause.
-     * The else clase can be null, or can be an if expression.
-     */
-    private Expr addIfClause(IfClause c, Expr elsePart) {
-        GeneratorClause g = c.getTestClause();
-        if (g.getBind().size() > 0) {
-            // if binds <- expr then body else elsePart end desugars to
-            // __cond(expr, fn (binds) => body, elsePart)
-            ArrayList<Expr> args = new ArrayList<Expr>(3);
-            args.add(g.getInit());
-            args.add(bindsAndBody(g, c.getBody()));
-            if (elsePart != null) args.add(thunk(elsePart));
-            return ExprFactory.makeTightJuxt(NodeUtil.getSpan(c),
-                                             Q_COND_NAME,
-                                             ExprFactory.makeTupleExpr(NodeUtil.getSpan(c), args));
-        }
-        // if expr then body else elsePart end is preserved
-        // (but we replace elif chains by nesting).
-        if (elsePart == null) {
-            return ExprFactory.makeIf(NodeUtil.getSpan(c), c);
-        } else {
-            return ExprFactory.makeIf(NodeUtil.getSpan(c), c, ExprFactory.makeBlock(elsePart));
-        }
-    }
-
-    /**
-     * @param loc  Containing context
-     * @param gens Generators in generator list
-     * @return single generator equivalent to the generator list
-     *         Desugars as follows:
-     *         body, empty  =>  body
-     *         body, x <- exp, gs  => exp.loop(fn x => body, gs)
-     */
-    Expr visitLoop(Span span, List<GeneratorClause> gens, Expr body) {
-        for (int i = gens.size() - 1; i >= 0; i--) {
-            GeneratorClause g = gens.get(i);
-            Expr loopBody = bindsAndBody(g, body);
-            Expr loopSel = ExprFactory.makeFieldRef(NodeUtil.getSpan(g), g.getInit(), LOOP_NAME);
-            body = ExprFactory.makeTightJuxt(span, loopSel, loopBody);
-        }
-        // System.out.println("Desugared to "+body.toStringVerbose());
-        return (Expr) visitNode(body);
     }
 
     /**

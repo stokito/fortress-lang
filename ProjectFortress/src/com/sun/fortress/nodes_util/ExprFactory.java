@@ -1235,6 +1235,12 @@ public class ExprFactory {
                                  Option.<Type>none(), e_1, e_2);
     }
 
+    // For desugaring, marked as parenthesized.
+    public static _RewriteFnApp make_RewriteFnApp(Span span, Expr e_1, Expr e_2) {
+        return make_RewriteFnApp(span, true,
+                                 Option.<Type>none(), e_1, e_2);
+    }
+
     public static _RewriteFnApp make_RewriteFnApp(Span span,
                                                   boolean parenthesized,
                                                   Option<Type> ty,

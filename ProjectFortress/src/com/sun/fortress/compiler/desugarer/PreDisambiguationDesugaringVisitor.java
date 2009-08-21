@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.desugarer;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -173,9 +174,11 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                     if ( ! (name instanceof Op) ) return null;
                     Expr opexpO = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),(Op)name,ref.getStaticArgs());
                     Expr gg = tuple.getExprs().get(1);
-                    Expr res = ExprFactory.makeTightJuxt(NodeUtil.getSpan(that), false,
-                                                         Useful.list(BIGOP2_NAME,
-                                                                     ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), opexpO,opexpI,gg, innerBody)));
+                    Expr res =
+                        ExprFactory.make_RewriteFnApp(NodeUtil.getSpan(that),
+                            BIGOP2_NAME,
+                            ExprFactory.makeTupleExpr(NodeUtil.getSpan(body),
+                                                      opexpO, opexpI, gg, innerBody));
                     return (Expr)recur(res);
                 }
             }
@@ -237,6 +240,112 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         return res;
     }
 
+    /**
+     * Given generalized if expression, desugar into __cond calls (binding)
+     * where required.
+     */
+    @Override
+    public Node forIf(If i) {
+        List<IfClause> clauses = i.getClauses();
+        int n = clauses.size();
+        if (n <= 0) bug(i, "if with no clauses!");
+        for (IfClause c : clauses) {
+            if (c.getTestClause().getBind().size() == 0) continue;
+            // If we get here we have a generalized if.
+            // Desugar it into nested ifs and calls.
+            // Then return the desugared result.
+            Expr result = null;
+            if (i.getElseClause().isSome()) {
+                result = i.getElseClause().unwrap();
+            }
+            // Traverse each clause and desugar it into an if or a __cond as appropriate.
+            for (--n; n >= 0; --n) {
+                result = addIfClause(clauses.get(n), result);
+            }
+            return result;
+        }
+        // If we get here, it's not a generalized if.  Just recur.
+        return super.forIf(i);
+    }
+
+    /**
+     * Add an if clause to a (potentially) pre-existing else clause.
+     * The else clase can be null, or can be an if expression.
+     */
+    private Expr addIfClause(IfClause c, Expr elsePart) {
+        GeneratorClause g = c.getTestClause();
+        if (g.getBind().size() > 0) {
+            // if binds <- expr then body else elsePart end desugars to
+            // __cond(expr, fn (binds) => body, elsePart)
+            ArrayList<Expr> args = new ArrayList<Expr>(3);
+            args.add(g.getInit());
+            args.add(bindsAndBody(g, c.getBody()));
+            if (elsePart != null) args.add(thunk(elsePart));
+            return (Expr)recur(ExprFactory.make_RewriteFnApp(
+                                   NodeUtil.getSpan(c),
+                                   COND_NAME,
+                                   ExprFactory.makeTupleExpr(NodeUtil.getSpan(c), args)));
+        }
+        // if expr then body else elsePart end is preserved
+        // (but we replace elif chains by nesting).
+        if (elsePart == null) {
+            return (Expr)super.forIf(ExprFactory.makeIf(NodeUtil.getSpan(c), c));
+        } else {
+            return (Expr)super.forIf(ExprFactory.makeIf(NodeUtil.getSpan(c), c,
+                                                        ExprFactory.makeBlock(elsePart)));
+        }
+    }
+
+    /**
+     * Desugar a generalized While clause.
+     */
+    @Override
+    public Node forWhile(While w) {
+        GeneratorClause g = w.getTestExpr();
+        if (g.getBind().size() > 0) {
+            // while binds <- expr  do body end
+            // desugars to
+            // while __whileCond(expr, fn (binds) => body) do end
+            ArrayList<Expr> args = new ArrayList<Expr>(2);
+            args.add(g.getInit());
+            args.add(bindsAndBody(g, w.getBody()));
+            Expr cond =
+                ExprFactory.make_RewriteFnApp(NodeUtil.getSpan(g),
+                    WHILECOND_NAME,
+                    ExprFactory.makeTupleExpr(NodeUtil.getSpan(w), args));
+            w = ExprFactory.makeWhile(NodeUtil.getSpan(w), cond);
+        }
+        return (Expr)super.forWhile(w);
+    }
+
+    @Override
+    public Node forFor(For f) {
+        Block df = f.getBody();
+        Do doBlock = ExprFactory.makeDo(NodeUtil.getSpan(df), Useful.list(df));
+        return visitLoop(NodeUtil.getSpan(f), f.getGens(), doBlock);
+    }
+
+    /**
+     * @param loc  Containing context
+     * @param gens Generators in generator list
+     * @return single generator equivalent to the generator list
+     *         Desugars as follows:
+     *         body, empty  =>  body
+     *         body, x <- exp, gs  => exp.loop(fn x => body, gs)
+     */
+    Expr visitLoop(Span span, List<GeneratorClause> gens, Expr body) {
+        for (int i = gens.size() - 1; i >= 0; i--) {
+            GeneratorClause g = gens.get(i);
+            Expr loopBody = bindsAndBody(g, body);
+            body = ExprFactory.makeMethodInvocation(NodeUtil.getSpan(g),
+                                                    g.getInit(),
+                                                    LOOP_NAME,
+                                                    loopBody);
+        }
+        // System.out.println("Desugared to "+body.toStringVerbose());
+        return (Expr)recur(body);
+    }
+
     @Override
     public Node forAccumulator(Accumulator that) {
         return visitAccumulator(NodeUtil.getSpan(that), that.getGens(),
@@ -257,9 +366,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         Expr res = null;
         if (body instanceof FnExpr) {
             Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
-            res = ExprFactory.makeTightJuxt(span,
-                                            BIGOP_NAME,
-                                            ExprFactory.makeTupleExpr(span,opexp,body));
+            res = ExprFactory.make_RewriteFnApp(span,
+                      BIGOP_NAME,
+                      ExprFactory.makeTupleExpr(span,opexp,body));
         } else if (body instanceof TupleExpr){
             /***
              * For  BIG OP [ys <- gg] BIG OT <| f y | y <- ys |>
@@ -278,9 +387,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             Expr opexpO = ExprFactory.makeOpExpr(span,op,staticArgs);
             Expr gg = tuple.getExprs().get(1);
 
-            res = ExprFactory.makeTightJuxt(span,
-                                            BIGOP2_NAME,
-                                            ExprFactory.makeTupleExpr(span,opexpO,opexpI,gg, innerBody));
+            res = ExprFactory.make_RewriteFnApp(span,
+                      BIGOP2_NAME,
+                      ExprFactory.makeTupleExpr(span,opexpO,opexpI,gg, innerBody));
         }
         if ( isParen ) res = ExprFactory.makeInParentheses(res);
         return (Expr)recur(res);

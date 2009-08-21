@@ -64,7 +64,7 @@ end
 object IntLiteral extends ZZ32
 end
 
-trait RR64 extends Number
+trait RR64 extends Number comprises { RR32 }
     asString(): String
     opr |self| : RR64
     opr -(self): RR64
@@ -79,9 +79,10 @@ trait RR64 extends Number
     opr DOT(self, other:RR64): RR64
     opr /(self, other:RR64): RR64
     opr ^(self, other:RR64): RR64
+    opr ^(self, other:ZZ32): RR64
 end
 
-trait RR32 extends RR64
+trait RR32 extends RR64 comprises { FloatLiteral }
 end
 
 object FloatLiteral extends RR32

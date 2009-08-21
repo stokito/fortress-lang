@@ -594,6 +594,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
         }
     }
 
+    // TODO: arbitrary-precision version of FloatLiteralExpr, correct
+    // handling of types other than double (float should probably just
+    // truncate, but we want to warn if we lose bits I expect).
+    public void forFloatLiteralExpr(FloatLiteralExpr x) {
+        debug("forFloatLiteral ", x);
+        double val = x.getIntPart().doubleValue() +
+            (x.getNumerator().doubleValue() /
+             Math.pow(x.getDenomBase(), x.getDenomPower()));
+        mv.visitLdcInsn(val);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           NamingCzar.internalFortressRR64, NamingCzar.make,
+                           NamingCzar.makeMethodDesc(NamingCzar.descDouble,
+                                                     NamingCzar.descFortressRR64));
+    }
+
     public void forFnDecl(FnDecl x) {
 
         /*
@@ -973,9 +988,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 method = fnName.getText();
             } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
                 // NOT Foreign, calls other component.
-                calleePackageAndClass = 
+                calleePackageAndClass =
                     NamingCzar.javaPackageClassForApi(apiName.unwrap().getText(), "/").toString();
-                    
+
                 method = fnName.getText();
             } else if ( aliasTable.containsKey(name) ) {
                 // Foreign function call
