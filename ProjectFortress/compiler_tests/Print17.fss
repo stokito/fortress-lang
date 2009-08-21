@@ -1,4 +1,4 @@
-/*******************************************************************************
+(*******************************************************************************
     Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,16 +13,18 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+ ******************************************************************************)
 
-package com.sun.fortress.compiler.runtimeValues;
+component Print17
+export Executable
 
-public class FRR64  extends FValue {
-    final double val;
+(* First-order version of Compiled7 *)
 
-    FRR64(double x) { val = x; }
-    public String toString() { return String.valueOf(val); }
-    public FString asString() { return new FString(String.valueOf(val)); }
-    public double getValue() {return val;}
-    public static FRR64 make(double x) {return new FRR64(x);}
-}
+run(): () = do
+(* Next line fails due to hosure either in primitive types or in
+   dotted method invocation. *)
+(*    println((17.0).asString()) *)
+    println((23.0 - 6.0).asString())
+  end
+
+end

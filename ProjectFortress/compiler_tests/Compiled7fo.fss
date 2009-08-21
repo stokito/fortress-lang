@@ -20,18 +20,12 @@ export Executable
 
 (* First-order version of Compiled7 *)
 
-start : RR64 = 0.0
-finish : RR64 = 1536.0
-errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
-reps : ZZ32 = 10
-expect = 1.391570583 10.0^12
-
 RR64AsString(x:RR64): String = x.asString()
 
-f(x: RR64): RR64 = x (x x + 1)
+f(x: RR64): RR64 = x (x x + 1.0)
 
 integrate(l: RR64, h:RR64, tol: RR64): RR64 =
-    integrate'(l,h,f(l),f(h),0,tol)
+    integrate'(l,h,f(l),f(h),0.0,tol)
 
 integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
     w = 0.5 (h-l)
@@ -48,10 +42,18 @@ integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
     end
   end
 
-elapsedSec(init:ZZ64, final:ZZ64): RR64 =
+elapsedSec(init:RR64, final:RR64): RR64 =
     (final - init) / (10.0^9)
 
 run(): () = do
+
+(* TODO: hoist to top level *)
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
+reps : ZZ32 = 10
+expect = 1.391570583 10.0^12
+
     println("Time(s)\tArea")
     for _ <- 0#reps do
         startTime = nanoTime()

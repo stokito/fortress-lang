@@ -186,10 +186,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         public Node forTraitDecl(TraitDecl that) {
         scopeStack.push(that);
         enclosingTraitDecl = that;
-    	Node returnValue = super.forTraitDecl(that);
-    	enclosingTraitDecl = null;
+        Node returnValue = super.forTraitDecl(that);
+        enclosingTraitDecl = null;
         scopeStack.pop();
-    	return returnValue;
+        return returnValue;
     }
 
     @Override
@@ -244,12 +244,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         mutableVarRefContainerMap = new HashMap<VarRef, VarRefContainer>();
 
         enclosingObjectDecl = null;
-     	scopeStack.pop();
-    	return returnValue;
+         scopeStack.pop();
+        return returnValue;
     }
 
     @Override
-	public Node forFnExpr(FnExpr that) {
+    public Node forFnExpr(FnExpr that) {
         scopeStack.push(that);
         Node returnValue = super.forFnExpr(that);
         scopeStack.pop();
@@ -257,7 +257,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forFnDecl(FnDecl that) {
+    public Node forFnDecl(FnDecl that) {
         scopeStack.push(that);
         Node returnValue = super.forFnDecl(that);
         scopeStack.pop();
@@ -265,7 +265,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forIfClause(IfClause that) {
+    public Node forIfClause(IfClause that) {
         scopeStack.push(that);
         Node returnValue = super.forIfClause(that);
         scopeStack.pop();
@@ -273,7 +273,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forFor(For that) {
+    public Node forFor(For that) {
         scopeStack.push(that);
         Node returnValue = super.forFor(that);
         scopeStack.pop();
@@ -281,7 +281,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forLetFn(LetFn that) {
+    public Node forLetFn(LetFn that) {
         scopeStack.push(that);
         Node returnValue = super.forLetFn(that);
         scopeStack.pop();
@@ -339,7 +339,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forLabel(Label that) {
+    public Node forLabel(Label that) {
         scopeStack.push(that);
         Node returnValue = super.forLabel(that);
         scopeStack.pop();
@@ -347,7 +347,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forCatch(Catch that) {
+    public Node forCatch(Catch that) {
         scopeStack.push(that);
         Node returnValue = super.forCatch(that);
         scopeStack.pop();
@@ -355,7 +355,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forTypecase(Typecase that) {
+    public Node forTypecase(Typecase that) {
         scopeStack.push(that);
         Node returnValue = super.forTypecase(that);
         scopeStack.pop();
@@ -363,17 +363,17 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forWhile(While that) {
-		scopeStack.push(that);
-		Node returnValue = super.forWhile(that);
-		scopeStack.pop();
-		return returnValue;
-	}
+    public Node forWhile(While that) {
+        scopeStack.push(that);
+        Node returnValue = super.forWhile(that);
+        scopeStack.pop();
+        return returnValue;
+    }
 
-	@Override
+    @Override
     public Node forObjectExpr(ObjectExpr that) {
-	    objExprNestingLevel++;
-		scopeStack.push(that);
+        objExprNestingLevel++;
+        scopeStack.push(that);
 
         FreeNameCollection freeNames = objExprToFreeNames.get(NodeUtil.getSpan(that));
 

@@ -127,7 +127,7 @@ public class Desugarer {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
-     	Component comp = (Component) component.ast();
+Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
 
         /**
