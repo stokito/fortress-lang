@@ -20,6 +20,7 @@ package com.sun.fortress.scala_src.typechecker
 import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
+import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
@@ -65,14 +66,18 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
+    private def getFunctions(functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
+                             f: IdOrOpOrAnonymousName) =
+      toSet(functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]
+
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
      *       and com.sun.fortress.compiler.StaticChecker.checkApi
      */
     def checkOverloading(): JavaList[StaticError] = {
         val fnsInComp = compilation_unit.functions
         val ast = compilation_unit.ast
-        val importStars = toList(ast.getImports).filter(_.isInstanceOf[ImportStar])
-        val importNames = toList(ast.getImports).filter(_.isInstanceOf[ImportNames])
+        val importStars = toList(ast.getImports).filter(_.isInstanceOf[ImportStar]).map(_.asInstanceOf[ImportStar])
+        val importNames = toList(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
         /*
                 abstract ImportedNames(APIName apiName);
                      * e.g.) import Set.{...} except {opr UNION, union}
@@ -82,7 +87,21 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         */
 
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
-          var set = toSet(fnsInComp.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]
+          val name = f.asInstanceOf[IdOrOp].getText
+          var set = getFunctions(fnsInComp, f)
+          for ( i <- importNames ) {
+            for ( n <- toList(i.getAliasedNames) ) {
+              if ( n.getAlias.isSome &&
+                   n.getAlias.unwrap.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                set ++= getFunctions(globalEnv.lookup(i.getApiName).functions, n.getName)
+              } else if ( n.getAlias.isNone &&
+                          n.getName.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                set ++= getFunctions(globalEnv.lookup(i.getApiName).functions, f)
+              }
+            }
+          }
           /*
           for ( i <- importStars ; ) {
           }

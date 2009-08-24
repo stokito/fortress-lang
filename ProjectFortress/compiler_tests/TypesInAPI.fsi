@@ -31,5 +31,6 @@ bar: String -> String
 
 baz: String -> ()
 
+fur(_: String): ()
 
 x: ZZ32

@@ -15,28 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-export TypesInAPI
+export Executable
 
-trait T
-  y: String
-  m(s: String): ()
-  n(u) = ()
-end
+import TypesInAPI.{fur => g, foo => h}
 
-object O(s, t)
-  x = "field"
-  m(u) = ()
-end
+foo(x: String) = ()
 
-foo(s) = ()
-bar(s) = s
+g(x: String) = ()
+g() = ()
 
-baz = fn s => ()
-baz2: (ZZ32, String) -> String = fn (y, s) => s
-baz3: (ZZ32, String) -> String = fn (y: Number, s) => s
-baz4: (ZZ32, String) -> Object = fn (y: Number, s: String) => y
-baz5 = fn (y: ZZ32) => y
+h(x: String) = ()
+h() = ()
 
-fur(_: String) = ()
-
-x = 0
+run() = ()
