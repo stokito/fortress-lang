@@ -78,14 +78,6 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val ast = compilation_unit.ast
         val importStars = toList(ast.getImports).filter(_.isInstanceOf[ImportStar]).map(_.asInstanceOf[ImportStar])
         val importNames = toList(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
-        /*
-                abstract ImportedNames(APIName apiName);
-                     * e.g.) import Set.{...} except {opr UNION, union}
-                    ImportStar(List<IdOrOpOrAnonymousName> exceptNames);
-                     * e.g.) import Set.{empty, union}
-                    ImportNames(List<AliasedSimpleName> aliasedNames);
-        */
-
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
           var set = getFunctions(fnsInComp, f)
@@ -102,11 +94,18 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
-          /*
-          for ( i <- importStars ; ) {
+          for ( i <- importStars ) {
+            val functions = globalEnv.lookup(i.getApiName).functions
+            val excepts = toList(i.getExceptNames).asInstanceOf[List[IdOrOp]]
+            for ( n <- toSet(functions.firstSet) ) {
+              val text = n.asInstanceOf[IdOrOp].getText
+              if ( text.equals(name) &&
+                   ! excepts.contains((m:IdOrOp) => m.getText.equals(text)) ) {
+                // get the JavaFunctionals from the api and add them to set
+                set ++= getFunctions(functions, f)
+              }
+            }
           }
-          set ++=
-          */
           checkOverloading(f, set)
         }
         /* All inherited abstract methods in object expressions should be defined,
