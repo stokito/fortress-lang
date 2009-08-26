@@ -13,15 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled7.a
+tests=Compiled7.d
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled7.a.fss:24:1-17:\n\
-${STATIC_TESTS_DIR}/TypesInAPI.fsi:34:1-19:\n\
-\ There are multiple declarations of g with the same type: String -> ()\n\
-${STATIC_TESTS_DIR}/Compiled7.a.fss:27:1-17:\n\
+${STATIC_TESTS_DIR}/Compiled7.d.fss:22:1-20:\n\
 ${STATIC_TESTS_DIR}/TypesInAPI.fsi:29:1-30:3:\n\
-\ There are multiple declarations of h with the same type: String -> ()\n\
-File Compiled7.a.fss has 2 errors.\n
+\ There are multiple declarations of foo with the same type: String -> ()\n\
+File Compiled7.d.fss has 1 error.\n
 compile_out_equals=

@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
+import com.sun.fortress.compiler.index.{Variable => JavaVariable}
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
@@ -66,9 +67,30 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
-    private def getFunctions(functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
-                             f: IdOrOpOrAnonymousName) =
-      toSet(functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]
+    private def getFunctions(index: CompilationUnitIndex,
+                             f: IdOrOpOrAnonymousName)
+                            : Set[((JavaList[StaticParam],Type,Type), Span)] = {
+      val fns = toSig(toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
+      if ( index.variables.keySet.contains(f) )
+        index.variables.get(f) match {
+          case DeclaredVariable(lvalue)
+               if lvalue.getIdType.unwrap.isInstanceOf[ArrowType] =>
+            val ty = lvalue.getIdType.unwrap.asInstanceOf[ArrowType]
+            fns.+(((new ArrayList[StaticParam](), ty.getDomain, ty.getRange),
+                   NodeUtil.getSpan(lvalue)))
+          case _ => fns
+        }
+      else fns
+    }
+
+    private def toSig(set: Set[JavaFunctional])
+                     : Set[((JavaList[StaticParam],Type,Type), Span)] =
+      set.filter(isDeclaredFunctional(_))
+         .map((f: JavaFunctional) =>
+              ((f.staticParameters,
+                paramsToType(f.parameters, f.getSpan),
+                f.getReturnType.unwrap),
+               f.getSpan))
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
      *       and com.sun.fortress.compiler.StaticChecker.checkApi
@@ -80,29 +102,29 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val importNames = toList(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
-          var set = getFunctions(fnsInComp, f)
+          var set = getFunctions(compilation_unit, f)
           for ( i <- importNames ) {
             for ( n <- toList(i.getAliasedNames) ) {
               if ( n.getAlias.isSome &&
                    n.getAlias.unwrap.asInstanceOf[IdOrOp].getText.equals(name) ) {
                 // get the JavaFunctionals from the api and add them to set
-                set ++= getFunctions(globalEnv.lookup(i.getApiName).functions, n.getName)
+                set ++= getFunctions(globalEnv.lookup(i.getApiName), n.getName)
               } else if ( n.getAlias.isNone &&
                           n.getName.asInstanceOf[IdOrOp].getText.equals(name) ) {
                 // get the JavaFunctionals from the api and add them to set
-                set ++= getFunctions(globalEnv.lookup(i.getApiName).functions, f)
+                set ++= getFunctions(globalEnv.lookup(i.getApiName), f)
               }
             }
           }
           for ( i <- importStars ) {
-            val functions = globalEnv.lookup(i.getApiName).functions
+            val index = globalEnv.lookup(i.getApiName)
             val excepts = toList(i.getExceptNames).asInstanceOf[List[IdOrOp]]
-            for ( n <- toSet(functions.firstSet) ) {
+            for ( n <- toSet(index.functions.firstSet).++(toSet(index.variables.keySet)) ) {
               val text = n.asInstanceOf[IdOrOp].getText
               if ( text.equals(name) &&
                    ! excepts.contains((m:IdOrOp) => m.getText.equals(text)) ) {
                 // get the JavaFunctionals from the api and add them to set
-                set ++= getFunctions(functions, f)
+                set ++= getFunctions(index, f)
               }
             }
           }
@@ -145,7 +167,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             }
             val methods = traitOrObject.dottedMethods
             for ( f <- toSet(methods.firstSet) ; if isDeclaredName(f) ) {
-                checkOverloading(f, toSet(methods.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
+              checkOverloading(f, toSig(toSet(methods.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]))
             }
             typeAnalyzer = oldTypeAnalyzer
         }
@@ -154,18 +176,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     /* Checks the validity of the overloaded function declarations. */
     private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: Set[JavaFunctional]): Unit = set.size match {
+                                 set: Set[((JavaList[StaticParam],Type,Type), Span)])
+                                : Unit = set.size match {
       case 0 =>
-        error(NodeUtil.getSpan(name), "Empty function declarations for " + name)
       case 1 =>
       case _ =>
         var signatures = List[((JavaList[StaticParam],Type,Type),Span)]()
-        for ( f <- set ; if isDeclaredFunctional(f) ) {
-          val span = f.getSpan
-          val result = f.getReturnType.unwrap
-          val param = paramsToType(f.parameters, span)
-          val sparams = f.staticParameters
-          signatures.find(p => p._1 == (sparams,param,result)) match {
+        for ( sig@((sparams,param,result), span) <- set ) {
+          signatures.find(p => p._1 == sig._1) match {
             case Some((_,sp)) =>
               error(mergeSpan(sp, span),
                     "There are multiple declarations of " +
@@ -179,7 +197,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                       "of a parametric type bound by Any\n    cannot be overloaded.")
                 return
               }
-              signatures = ((sparams, param, result), span) :: signatures
+              signatures = sig :: signatures
           }
         }
         var index = 1
@@ -220,11 +238,6 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         exclusion(first, second) || meet(first, second, set)
 
     /* Checks the overloading rule: subtype */
-    private def subtype(f: JavaFunction, g: JavaFunction): Boolean =
-        subtype(paramsToType(g.parameters, g.getSpan),
-                paramsToType(f.parameters, f.getSpan)) &&
-        subtype(f.getReturnType.unwrap, g.getReturnType.unwrap)
-
     private def subtype(sub_type: Type, super_type: Type): Boolean =
         typeAnalyzer.subtype(sub_type, super_type).isTrue
 
@@ -422,7 +435,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         // Whether "g"'s parameter type is a subtype of "f"'s parameter type
         // and "f"'s return type is a subtype of "g"'s return type
         typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
-        val result = subtype(f, g)
+        val result = subtype(paramsToType(g.parameters, g.getSpan),
+                             paramsToType(f.parameters, f.getSpan)) &&
+                     subtype(f.getReturnType.unwrap, g.getReturnType.unwrap)
         typeAnalyzer = oldTypeAnalyzer
         result
     }
@@ -434,8 +449,13 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     def isDeclaredFunctional(f: JavaFunctional) = f match {
-        case DeclaredFunction(fd) => true
+        case DeclaredFunction(_) => true
         case DeclaredMethod(_,_) => true
+        case _ => false
+    }
+
+    def isDeclaredVariable(v: JavaVariable) = v match {
+        case DeclaredVariable(_) => true
         case _ => false
     }
 
