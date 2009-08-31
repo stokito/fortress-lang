@@ -22,7 +22,7 @@ import Funmet1.{T}
 export Funmet2
 
 object P extends T
-  me(self, x:ZZ32):ZZ32 = x + 2
+  me(self, x:ZZ32):ZZ32 = x + 3
 end
 
 f2() : T = P

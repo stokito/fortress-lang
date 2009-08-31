@@ -82,7 +82,7 @@ public class NamingCzar {
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
-    public static final String springBoard = "$SpringBoard";
+    public static final String springBoard = "$DefaultTraitMethods";
     public static final String make = "make";
 
     public static final String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
@@ -271,6 +271,7 @@ public class NamingCzar {
     // fortress runtime types: internal names
     public static String makeFortressInternal(String type) {
         return "com/sun/fortress/compiler/runtimeValues/F" + type;
+        // return "fortress/CompilerBuiltin/" + type;
     }
 
 
@@ -312,7 +313,7 @@ public class NamingCzar {
 
     static final String runtimeValues = com.sun.fortress.runtimeSystem.Naming.runtimeValues;
 
-    static final String FValueType = runtimeValues + "FValue";
+    public static final String FValueType = runtimeValues + "FValue";
     static final String FValueDesc = "L" + FValueType + ";";
 
     /**
@@ -380,7 +381,7 @@ public class NamingCzar {
 
     public String apiNameToPackageName(APIName name) {
         if (fj.definesApi(name)) {
-            return name.getText();
+            return Naming.NATIVE_PREFIX_DOT + name.getText();
         } else {
             return javaPackageClassForApi(name.getText(), ".").toString();
         }
@@ -390,7 +391,7 @@ public class NamingCzar {
         String p;
         String m = method.toUndecoratedName().toString();
         if (fj.definesApi(name)) {
-             p = name.getText();
+             p = Naming.NATIVE_PREFIX_DOT + name.getText();
              int idot = m.lastIndexOf(".");
              if (idot != -1) {
                  p = p + "/" + m.substring(0,idot);
@@ -405,6 +406,15 @@ public class NamingCzar {
 
     public String apiAndMethodToMethod(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
+        return apiAndMethodToMethod(name, m);
+    }
+
+    /**
+     * @param name
+     * @param m
+     * @return
+     */
+    public String apiAndMethodToMethod(APIName name, String m) {
         if (fj.definesApi(name)) {
             int idot = m.lastIndexOf(".");
             if (idot != -1) {
@@ -708,7 +718,8 @@ public class NamingCzar {
     }
 
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
-                                     final APIName ifNone, final boolean withLSemi) {
+                                     final APIName ifNone,
+                                     final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
             public void defaultCase(ASTNode x) {
                 throw new CompilerError(NodeUtil.getSpan(x),

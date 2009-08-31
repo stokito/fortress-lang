@@ -924,7 +924,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    public void generateAnOverloadDefinitionInner(String name, ClassVisitor cv) {
+    private void generateAnOverloadDefinitionInner(String name, ClassVisitor cv) {
 
         // "(" anOverloadedArg^N ")" returnType
         // Not sure what to do with return type.

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FChar  extends FValue {
+public class FChar  extends fortress.CompilerBuiltin.Char.DefaultTraitMethods implements fortress.CompilerBuiltin.Char {
     final char val;
 
     FChar(char x) { val = x; }

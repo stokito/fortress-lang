@@ -103,4 +103,15 @@ public class NamingJUTest extends TestCaseWrapper {
             }
         }
     }
+        
+        public void testRemoveNthSigParameter() {
+            String sig = "(LA;LB;LC;)LD;";
+            String bcd = Naming.removeNthSigParameter(sig, 0);
+            String acd = Naming.removeNthSigParameter(sig, 1);
+            String abd = Naming.removeNthSigParameter(sig, 2);
+            
+            assertEquals("(LB;LC;)LD;", bcd);
+            assertEquals("(LA;LC;)LD;", acd);
+            assertEquals("(LA;LB;)LD;", abd);
+        }
 }

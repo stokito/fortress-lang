@@ -72,7 +72,8 @@ public class CodeGenerationPhase extends Phase {
                 TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, apiEnv));
 
                 Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
-
+                Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+                size_partitioned_overloads = CodeGen.sizePartitionedOverloads(fns);
                 Set<OverloadSet> overloads = new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
 
                 for (IdOrOpOrAnonymousName name : fns.firstSet()) {
@@ -81,7 +82,7 @@ public class CodeGenerationPhase extends Phase {
                         foundAnOverLoadedForeignFunction(ai, ta, name, defs, overloads);
                     }
                 }
-                ForeignJava.only.generateWrappersForApi(api, overloads);
+                ForeignJava.only.generateWrappersForApi(api, overloads, size_partitioned_overloads, ta);
                 // Need to generate overloaded functions -- where?
             }
         }

@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public final class FBoolean extends FValue {
+public final class FBoolean extends fortress.CompilerBuiltin.Boolean.DefaultTraitMethods implements fortress.CompilerBuiltin.Boolean  {
     public static final FBoolean TRUE = new FBoolean(true);
     public static final FBoolean FALSE = new FBoolean(false);
 

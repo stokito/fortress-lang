@@ -25,12 +25,15 @@ import com.sun.fortress.nodes_util.NodeFactory;
 
 public class Naming {
 
+    // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.
-    public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only
+    public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
     
-    public final static String ENVELOPE = "\u2709";
+    public final static String ENVELOPE = "\u2709"; // Signals necessary closure
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
+    public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
+    public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
     
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
@@ -42,6 +45,7 @@ public class Naming {
     public final static String RIGHT_OXFORD = "\u27e7";
     
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
+    public final static String NATIVE_PREFIX_DOT = "native.";
     
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
     
@@ -378,4 +382,34 @@ public class Naming {
             
             return mangledString;
         }
+
+        /**
+         * Need to generalize to include BCDFIJS, too.
+         * @param sig
+         * @param selfIndex
+         * @return
+         */
+    public static String removeNthSigParameter(String sig, int selfIndex) {
+        // start, end, are inclusive bounds of nth parameter in sig.
+        int start = 1;
+        int end = sig.indexOf(';');
+        for (int i = 0; i < selfIndex; i++) {
+            start = end+1;
+            end = sig.indexOf(';', start);
+        }
+        
+        return sig.substring(0,start) + sig.substring(end+1);
+    }
+    
+    public static String nthSigParameter(String sig, int selfIndex) {
+        // start, end, are inclusive bounds of nth parameter in sig.
+        int start = 1;
+        int end = sig.indexOf(';');
+        for (int i = 0; i < selfIndex; i++) {
+            start = end+1;
+            end = sig.indexOf(';', start);
+        }
+        
+        return sig.substring(start,end+1);
+    }
 }
