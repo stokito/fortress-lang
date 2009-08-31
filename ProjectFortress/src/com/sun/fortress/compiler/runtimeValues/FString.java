@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FString  extends FValue {
+public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethods implements fortress.CompilerBuiltin.String {
     final String val;
 
     FString(String x) { val = x; }

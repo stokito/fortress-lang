@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FZZ64  extends FValue {
+public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods implements fortress.CompilerBuiltin.ZZ64  {
     final long val;
 
     FZZ64(long x) { val = x; }

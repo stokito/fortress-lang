@@ -22,9 +22,11 @@ import java.util.Set;
 
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.EmptyVisitor;
 
 import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.useful.Debug;
@@ -33,11 +35,15 @@ public class FortressForeignAdapter extends ClassAdapter {
     private final Set<OverloadSet> overloads;
     HashSet<String> overloadsDone = new HashSet<String>();
     String className;
+    ClassWriter cw;
 
-    public FortressForeignAdapter(ClassVisitor cv,
+    public FortressForeignAdapter(ClassWriter cv,
             String outputClassName,
-            Set<OverloadSet> overloads) {
+            Set<OverloadSet> overloads
+            
+        ) {
         super(cv);
+        this.cw = cv; // same as parent, avoid cast later.
         this.overloads = overloads;
         className = outputClassName.replace('.','/');
     }
@@ -47,6 +53,11 @@ public class FortressForeignAdapter extends ClassAdapter {
         Debug.debug( Debug.Type.COMPILER, 1,
                      "visit:" + name + " generate " + className);
         cv.visit(version, access, className, signature, superName, interfaces);
+        
+        // Emit all overloads.
+        
+        
+        
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc,

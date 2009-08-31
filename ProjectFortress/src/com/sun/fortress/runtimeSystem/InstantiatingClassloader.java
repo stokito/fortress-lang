@@ -404,7 +404,7 @@ class ClassLoadChecker {
         // is regardless of the security manager.
         // javax. too, though this is not documented
         if (name.startsWith("java.") || name.startsWith("javax.")
-                || name.startsWith("sun.") || name.startsWith("com.sun.")) {
+                || name.startsWith("sun.") || (name.startsWith("com.sun.") && ! name.startsWith("com.sun.fortress."))) {
             return true;
         }
 

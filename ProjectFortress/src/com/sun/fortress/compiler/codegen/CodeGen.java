@@ -55,15 +55,19 @@ import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
+import com.sun.fortress.useful.Useful;
 
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
 // solution than writing out their entire types, please
 // shout out.
-public class CodeGen extends NodeAbstractVisitor_void {
+public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
+    private String traitOrObjectName; // set to name of current trait or object, as necessary.
+    private String springBoardClass; // set to name of trait default methods class, if we are emitting it.
+    
     private final Map<String, ClassWriter> traitsAndObjects =
         new BATree<String, ClassWriter>(DefaultComparator.normal());
     private final HashMap<String, String> aliasTable;
@@ -71,7 +75,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
-    private HashSet<String> overloadedNamesAndSigs;
+    private Set<String> overloadedNamesAndSigs;
     private final List<ObjectDecl> singletonObjects;
 
     // lexEnv does not include the top level or object right now, just
@@ -266,7 +270,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
     private VarCodeGen getLocalVarOrNull( IdOrOp nm ) {
         debug("getLocalVar: " + nm);
-        VarCodeGen r = lexEnv.get(nm.getText());
+        VarCodeGen r = lexEnv.get(idOrOpToString(nm));
         if (r != null)
             debug("getLocalVar:" + nm + " VarCodeGen = " + r + " of class " + r.getClass());
         else
@@ -541,7 +545,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
-        generateTopLevelOverloads();
+        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw);
 
         /*
          * Must process these first to put them into scope.
@@ -613,72 +617,49 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         /*
          * Cases for FnDecl:
-         *
+         * 
          * 1. top level
-         *
-         * 2. trait normal method.
-         *    a. for trait itself, an abstract method in generated interface
-         *       (this may be handled elsewhere)
-         *    b. for trait defaults, a static method in SpringBoard
-         *
-         * 3. trait functional method
-         *    a. for trait itself, a mangled-name abstract method with self
-         *       removed from the parameter list.
-         *       (this may be handled elsewhere)
-         *    b. at top level, a functional wrapper with self in original
-         *       position, which invokes the interface method with self in
-         *       dotted position.  NOTE THE POTENTIAL FOR OVERLOADING.
-         *    c. for trait defaults, a mangled-name static method with self in
-         *       the first parameter position (in SpringBoard).
-         *
-         * 4. object normal method
-         *    a. a normal dotted method is generated
-         *
-         * 5. object functional method
-         *    a. a mangled-name dotted method is generated with self removed
-         *       from the parameter list.
-         *    b. at top level, a functional wrapper with self in original
-         *       position, which invokes the interface method with self in
-         *       dotted position.  NOTE THE POTENTIAL FOR OVERLOADING.
-         *       Static overload resolution can be an optimization.
+         * 
+         * 2. trait normal method. a. for trait itself, an abstract method in
+         * generated interface (this may be handled elsewhere) b. for trait
+         * defaults, a static method in SpringBoard
+         * 
+         * 3. trait functional method a. for trait itself, a mangled-name
+         * abstract method with self removed from the parameter list. (this may
+         * be handled elsewhere) b. at top level, a functional wrapper with self
+         * in original position, which invokes the interface method with self in
+         * dotted position. NOTE THE POTENTIAL FOR OVERLOADING. c. for trait
+         * defaults, a mangled-name static method with self in the first
+         * parameter position (in SpringBoard).
+         * 
+         * 4. object normal method a. a normal dotted method is generated
+         * 
+         * 5. object functional method a. a mangled-name dotted method is
+         * generated with self removed from the parameter list. b. at top level,
+         * a functional wrapper with self in original position, which invokes
+         * the interface method with self in dotted position. NOTE THE POTENTIAL
+         * FOR OVERLOADING. Static overload resolution can be an optimization.
          */
 
-
-        debug("forFnDecl ", x );
+        debug("forFnDecl ", x);
         FnHeader header = x.getHeader();
-        boolean canCompile =
-            header.getStaticParams().isEmpty() && // no static parameter
-            header.getWhereClause().isNone() &&   // no where clause
-            header.getThrowsClause().isNone() &&  // no throws clause
-            header.getContract().isNone() &&      // no contract
-            header.getMods().isEmpty() &&         // no modifiers
-            !inABlock;                            // no local functions
+        boolean canCompile = header.getStaticParams().isEmpty() && // no static
+                // parameter
+                header.getWhereClause().isNone() && // no where clause
+                header.getThrowsClause().isNone() && // no throws clause
+                header.getContract().isNone() && // no contract
+                header.getMods().isEmpty() && // no modifiers
+                !inABlock; // no local functions
 
-        if ( !canCompile ) sayWhat(x);
+        if (!canCompile)
+            sayWhat(x);
+
+        List<Param> params = header.getParams();
+        int selfIndex = selfParameterIndex(params);
+        boolean functionalMethod = selfIndex != -1;
 
         Option<Expr> body = x.getBody();
         IdOrOpOrAnonymousName name = header.getName();
-        List<Param> params = header.getParams();
-        boolean functionalMethod = false;
-        boolean emitUnambiguous = false;
-
-        int selfIndex = 0;
-        for (Param p : params) {
-            debug("iterating params looking for self : param = ", p);
-            if (p.getName().getText() == "self") {
-                functionalMethod = true;
-                break;
-            }
-            selfIndex++;
-        }
-        if (emittingFunctionalMethodWrappers) {
-            if (! functionalMethod)
-                return; // Not functional = no wrapper needed.
-
-            // bizarrely implemented! return; // TODO not yet implemented.
-        }
-        // else need to incorrectly emit code for functional methods.
-        {
 
         boolean hasSelf = !functionalMethod && (inAnObject || inATrait);
         boolean savedInAnObject = inAnObject;
@@ -687,135 +668,351 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         boolean emittingTraitDefault = inATrait;
 
-        try {
-            // TODO don't yet actually emit the functional method wrappers.
+        if (emittingFunctionalMethodWrappers) {
+            if (!functionalMethod)
+                return; // Not functional = no wrapper needed.
+        }
 
+        Option<com.sun.fortress.nodes.Type> returnType = header.getReturnType();
+
+        if (body.isNone())
+            sayWhat(x, "Abstract function declarations are not supported.");
+        if (returnType.isNone())
+            sayWhat(x, "Return type is not inferred.");
+        if (!(name instanceof IdOrOp))
+            sayWhat(x, "Unhandled function name.");
+
+        if (name instanceof Id) {
+            Id id = (Id) name;
+            debug("forId ", id, " class = ", NamingCzar.jvmClassForSymbol(id));
+        } else if (name instanceof Op) {
+            Op op = (Op) name;
+            Fixity fixity = op.getFixity();
+            boolean isEnclosing = op.isEnclosing();
+            Option<APIName> maybe_apiName = op.getApiName();
+            debug("forOp ", op, " fixity = ", fixity, " isEnclosing = ",
+                    isEnclosing, " class = ", NamingCzar.jvmClassForSymbol(op));
+        } else {
+            sayWhat(x);
+        }
+
+        try {
             inAnObject = false;
             inATrait = false;
 
-            Option<com.sun.fortress.nodes.Type> returnType = header.getReturnType();
-
             // For now every Fortress entity is made public, with
-            // namespace management happening in Fortress-land.  Right?
+            // namespace management happening in Fortress-land. Right?
             // [JWM:] we'll want to clamp down on this long-term, but
-            // we have to get nesting right---we generate a pile of class files for
+            // we have to get nesting right---we generate a pile of class files
+            // for
             // one Fortress component
-            int modifiers = Opcodes.ACC_PUBLIC;
 
-            if ( body.isNone() )
-                sayWhat(x, "Abstract function declarations are not supported.");
-            if ( returnType.isNone() )
-                sayWhat(x, "Return type is not inferred.");
-            if ( !( name instanceof IdOrOp ))
-                sayWhat(x, "Unhandled function name.");
-
-            if ( name instanceof Id ) {
-                Id id = (Id) name;
-                debug("forId ", id,
-                        " class = ", NamingCzar.jvmClassForSymbol(id));
-            } else if ( name instanceof Op ) {
-                Op op = (Op) name;
-                Fixity fixity = op.getFixity();
-                boolean isEnclosing = op.isEnclosing();
-                Option<APIName> maybe_apiName = op.getApiName();
-                debug("forOp ", op, " fixity = ", fixity,
-                        " isEnclosing = ", isEnclosing,
-                        " class = ", NamingCzar.jvmClassForSymbol(op));
+            if (emittingFunctionalMethodWrappers) {
+                functionalMethodWrapper(x, params, selfIndex, name,
+                        savedInATrait, returnType);
             } else {
-                sayWhat(x);
-            }
 
-            CodeGen cg = new CodeGen(this);
-
-            if (!hasSelf || emittingTraitDefault) {
-                // Top-level function or functional method
-                // DO NOT special case run() here and make it non-static (that used to happen),
-                // as that's wrong.  It's addressed in the executable wrapper code instead.
-                modifiers += Opcodes.ACC_STATIC;
-            }
-
-            // TODO
-
-            /*
-             * Need to modify the signature, depending on circumstances.
-             */
-            String sig;
-
-            if (emittingTraitDefault &&
-                    ! emittingFunctionalMethodWrappers // temporary hack to keep things "working"; ought to use a completely separate code path.
-                    ) {
-                Type traitType = NodeFactory.makeTraitType((Id) currentTraitObjectDecl.getHeader().getName());
-                sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
-                        NamingCzar.jvmTypeDesc(returnType.unwrap(), component.getName()),
-                        0, traitType, component.getName());
-            } else {
-                sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
-                        returnType.unwrap(),
-                        component.getName());
-            }
-
-            // TODO different collision rules for top-level and for methods.
-            String mname = nonCollidingSingleName(name, sig);
-
-            cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
-            cg.mv.visitCode();
-
-            // Now inside method body.  Generate code for the method body.
-            // Start by binding the parameters and setting up the initial locals.
-            VarCodeGen selfVar = null;
-            if (hasSelf) {
-                // TODO: Add proper type information here based on the
-                // enclosing trait/object decl.  For now we can get away
-                // with just stashing a null as we're not using it to
-                // determine stack sizing or anything similarly crucial.
                 if (emittingTraitDefault) {
-                    selfVar = cg.addParam(currentTraitObjectDecl);
+                    
+                    int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC;
+
+                    CodeGen cg = new CodeGen(this); /*
+                                                     * Need to modify the
+                                                     * signature, depending on
+                                                     * circumstances.
+                                                     */
+
+                    Type traitType = NodeFactory
+                            .makeTraitType((Id) currentTraitObjectDecl
+                                    .getHeader().getName());
+                    
+                    /* Signature includes explicit leading self
+                       First version of sig includes duplicate self for
+                       functional methods, which is then cut out.
+                     */
+                    String sig = NamingCzar.jvmSignatureFor(
+                            NodeUtil.getParamType(x),
+                            NamingCzar.jvmTypeDesc(returnType.unwrap(),
+                                    component.getName()),
+                            0,
+                            traitType,
+                            component.getName());
+
+                    if (functionalMethod) {
+                        sig = Naming.removeNthSigParameter(sig, selfIndex+1);
+                    }
+                    
+                    // TODO different collision rules for top-level and for
+                    // methods.
+                    String mname = functionalMethod ? fmDottedName(
+                            singleName(name), selfIndex)
+                            : nonCollidingSingleName(name, sig);
+
+                    // trait default OR top level.
+
+                    cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+                    cg.mv.visitCode();
+
+                    // Now inside method body. Generate code for the method
+                    // body.
+                    // Start by binding the parameters and setting up the
+                    // initial
+                    // locals.
+                    VarCodeGen selfVar = null;
+                    // TODO savedInAnObject || savedInATrait ?
+                    if (hasSelf || functionalMethod) {
+                        // TODO: Add proper type information here based on the
+                        // enclosing trait/object decl. For now we can get away
+                        // with just stashing a null as we're not using it to
+                        // determine stack sizing or anything similarly crucial.
+                        selfVar = cg.addParam(currentTraitObjectDecl);
+                    }
+                    List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(
+                            params.size());
+                    int index = 0;
+                    for (Param p : params) {
+                        if (index != selfIndex) {
+                            VarCodeGen v = cg.addParam(p);
+                            paramsGen.add(v);
+                        }
+                        index++;
+                    }
+                    // Compile the body in the parameter environment
+
+                    body.unwrap().accept(cg);
+                    // Clean up the parameters
+                    exitMethodScope(selfIndex, cg, selfVar, paramsGen);
+                    methodReturnAndFinish(cg);
+                    
+                    /* 
+                     * Next emit an abstract redirecter, this makes life better
+                     * for our primitive type story.
+                     */
+                    
+                    modifiers = Opcodes.ACC_PUBLIC;
+
+                    cg = new CodeGen(this); 
+                   
+                    String osig = sig;
+                    
+                    String selfSig =  Naming.nthSigParameter(osig,0);
+                    selfSig = Useful.substring(selfSig, 1, -1);
+                    // Get rid of explicit self parameter.
+                    sig = Naming.removeNthSigParameter(sig, 0);
+                    
+                    // TODO different collision rules for top-level and for
+                    // methods.
+                    // SAME MNAME
+
+                    // trait default OR top level.
+
+                    cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+                    cg.mv.visitCode();
+                    
+                    // We received "self" in parameter 0
+                    cg.mv.visitVarInsn(ALOAD, 0);
+                    // Need to downcast, maybe. this may only matter for weird primitive types.
+                    cg.mv.visitTypeInsn(Opcodes.CHECKCAST, selfSig);//NamingCzar.jvmTypeDesc(ty, ifNone, false));
+
+                    for (int i = 0; i < params.size(); i++) {
+                        // 0 1 2
+                        // a self b
+                        // self a b
+                        if (i < selfIndex) {
+                            cg.mv.visitVarInsn(ALOAD, i+1);
+                        } else if (i > selfIndex) {
+                            cg.mv.visitVarInsn(ALOAD, i);
+                        }
+
+                    }
+                    cg.mv.visitMethodInsn(INVOKESTATIC,
+                                          springBoardClass,
+                                          mname,
+                                          osig);
+                    
+                    
+                    methodReturnAndFinish(cg);
+
+                    
                 } else {
-                    selfVar = new VarCodeGen.SelfVar(NodeUtil.getSpan(name), null, cg);
-                    cg.addLocalVar(selfVar);
+                    int modifiers = Opcodes.ACC_PUBLIC;
+
+                    CodeGen cg = new CodeGen(this); /*
+                                                     * Need to modify the
+                                                     * signature, depending on
+                                                     * circumstances.
+                                                     */
+                    String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                            returnType.unwrap(), component.getName());
+                    
+                    if (functionalMethod) {
+                        sig = Naming.removeNthSigParameter(sig, selfIndex);
+                    }
+
+                    // TODO different collision rules for top-level and for
+                    // methods.
+                    String mname = functionalMethod ? fmDottedName(
+                            singleName(name), selfIndex)
+                            : nonCollidingSingleName(name, sig);
+
+                    if (!savedInAnObject) {
+                        // trait default OR top level.
+                        // DO NOT special case run() here and make it non-static
+                        // (that used to happen), as that's wrong. It's
+                        // addressed
+                        // in the executable wrapper code instead.
+                        modifiers |= Opcodes.ACC_STATIC;
+                    }
+
+                    cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+                    cg.mv.visitCode();
+
+                    // Now inside method body. Generate code for the method
+                    // body.
+                    // Start by binding the parameters and setting up the
+                    // initial
+                    // locals.
+                    VarCodeGen selfVar = null;
+                    if (hasSelf || functionalMethod) {
+                        // TODO: Add proper type information here based on the
+                        // enclosing trait/object decl. For now we can get away
+                        // with just stashing a null as we're not using it to
+                        // determine stack sizing or anything similarly crucial.
+
+                        selfVar = new VarCodeGen.SelfVar(
+                                NodeUtil.getSpan(name), null, cg);
+                        cg.addLocalVar(selfVar);
+
+                    }
+                    List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(
+                            params.size());
+                    int index = 0;
+                    for (Param p : params) {
+                        if (index != selfIndex) {
+                            VarCodeGen v = cg.addParam(p);
+                            paramsGen.add(v);
+                        }
+                        index++;
+                    }
+                    // Compile the body in the parameter environment
+
+                    body.unwrap().accept(cg);
+                    exitMethodScope(selfIndex, cg, selfVar, paramsGen);
+
+                    methodReturnAndFinish(cg);
                 }
-            }
-            List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
-            for (Param p : params) {
-                VarCodeGen v = cg.addParam(p);
-                paramsGen.add(v);
-            }
-            // Compile the body in the parameter environment
 
-            body.unwrap().accept(cg);
-            // Clean up the parameters
-            for (int i = paramsGen.size(); i > 0; ) {
-                VarCodeGen v = paramsGen.get(--i);
-                v.outOfScope(cg.mv);
-            }
-            if (selfVar != null) selfVar.outOfScope(cg.mv);
-
-            // Method body is complete except for returning final result if any.
-            // TODO: Fancy footwork here later on if we need to return a non-pointer;
-            // for now every fortress functional returns a single pointer result.
-            cg.mv.visitInsn(Opcodes.ARETURN);
-
-            cg.mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
-            cg.mv.visitEnd();
-            // Method body complete, cg now invalid.
-
-            // TODO need to emit wrappers for unambiguous names
-            // Check to see if a wrapper is needed.
-            if (topLevelOverloads.containsKey(name)) {
-                // Looks like maybe we don't need this after all.
             }
 
-            Option<IdOrOp> iun = x.getImplementsUnambiguousName();
-
-            if (iun.isSome()) {
-                // Looks like maybe we don't need this after all.
-            }
         } finally {
             inAnObject = savedInAnObject;
             inATrait = savedInATrait;
             emittingFunctionalMethodWrappers = savedEmittingFunctionalMethodWrappers;
         }
+
+    }
+
+    /**
+     * @param selfIndex
+     * @param cg
+     * @param selfVar
+     * @param paramsGen
+     */
+    private void exitMethodScope(int selfIndex, CodeGen cg, VarCodeGen selfVar,
+            List<VarCodeGen> paramsGen) {
+        for (int i = paramsGen.size() - 1; i >= 0; i--) {
+            if (i != selfIndex) {
+                VarCodeGen v = paramsGen.get(i);
+                v.outOfScope(cg.mv);
+            }
         }
+        if (selfVar != null)
+            selfVar.outOfScope(cg.mv);
+    }
+
+    /**
+     * @param x
+     * @param params
+     * @param selfIndex
+     * @param name
+     * @param savedInATrait
+     * @param returnType
+     */
+    private void functionalMethodWrapper(FnDecl x, List<Param> params,
+            int selfIndex, IdOrOpOrAnonymousName name, boolean savedInATrait,
+            Option<com.sun.fortress.nodes.Type> returnType) {
+        int modifiers = Opcodes.ACC_PUBLIC;
+
+        CodeGen cg = new CodeGen(this);
+        // Just a wrapper around the body itself
+        modifiers |= Opcodes.ACC_STATIC;
+        String sig = NamingCzar.jvmSignatureFor(NodeUtil
+                .getParamType(x), returnType.unwrap(), component
+                .getName());
+
+        String dottedSig = Naming.removeNthSigParameter(sig, selfIndex);
+
+        // TODO different collision rules for top-level and for methods.
+        String mname = nonCollidingSingleName(name, sig);
+        String dottedName = fmDottedName(singleName(name), selfIndex);
+
+        cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+        cg.mv.visitCode();
+
+        // Now inside method body. Generate code for the method body.
+        // Start by binding the parameters and setting up the initial
+        // locals.
+        VarCodeGen selfVar = null;
+        List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params
+                .size());
+
+        // Invoke the dotted method, thank you very much.
+        // -----------
+
+        // TODO will have to get smarter with unboxing
+        cg.mv.visitVarInsn(ALOAD, selfIndex);
+        for (int i = 0; i < params.size(); i++) {
+            if (i != selfIndex)
+                cg.mv.visitVarInsn(ALOAD, i);
+
+        }
+        cg.mv.visitMethodInsn(savedInATrait ? INVOKEINTERFACE
+                : INVOKEVIRTUAL, traitOrObjectName, dottedName,
+                dottedSig);
+        
+        // -----------
+        // Method body is complete except for returning final result if any.
+        // TODO: Fancy footwork here later on if we need to return a
+        // non-pointer; for now every fortress functional returns a single 
+        // pointer result.
+        methodReturnAndFinish(cg);
+        // Method body complete, cg now invalid.
+    }
+
+    /**
+     * @param cg
+     */
+    private void methodReturnAndFinish(CodeGen cg) {
+        cg.mv.visitInsn(Opcodes.ARETURN);
+        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        cg.mv.visitEnd();
+    }
+
+    /**
+     * @param params
+     * @return
+     */
+    private int selfParameterIndex(List<Param> params) {
+        int selfIndex = -1;
+        int i = 0;
+        for (Param p : params) {
+            if (p.getName().getText() == "self") {
+                selfIndex = i;
+                break;
+            }
+            i++;
+        }
+        return selfIndex;
     }
 
     public void forFnExpr(FnExpr x) {
@@ -868,9 +1065,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         body.accept(cg);
 
-        cg.mv.visitInsn(Opcodes.ARETURN);
-        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-        cg.mv.visitEnd();
+        methodReturnAndFinish(cg);
         cg.dumpClass(className);
 
         this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
@@ -889,14 +1084,63 @@ public class CodeGen extends NodeAbstractVisitor_void {
      * @return
      */
     private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig) {
-        String nameString = ((IdOrOp)name).getText();
-        String mname = Naming.mangleIdentifier(nameString);
+        String mname = singleName(name);
         if (overloadedNamesAndSigs.contains(mname+sig)) {
             mname = NamingCzar.only.mangleAwayFromOverload(mname);
         }
         return mname;
     }
 
+    /**
+     * Method name, with symbolic-freedom-mangling applied
+     * 
+     * @param name
+     * @return
+     */
+    private String singleName(IdOrOpOrAnonymousName name) {
+        String nameString = idOrOpToString((IdOrOp)name);
+        String mname = Naming.mangleIdentifier(nameString);
+        return mname;
+    }
+    
+    // belongs in Naming perhaps
+    private static String fmDottedName(String name, int selfIndex) {
+        // HACK.  Need to be able to express some fmDotteds in Java source code
+        // thus, must transmogrify everything that is not A-Z to something else.
+        
+//        if (!isBoring(name)) {
+//            name = makeBoring(name);
+//        } 
+        //
+        name = name + Naming.INDEX + selfIndex;
+        return name;
+    }
+
+
+    private static boolean isBoring(String name) {
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (i == 0 ? Character.isJavaIdentifierStart(ch) : Character.isJavaIdentifierPart(ch))
+                continue;
+            return false;
+        }
+        return true;
+    }
+    
+    private static String makeBoring(String name) {
+        StringBuffer b = new StringBuffer();
+        
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (i == 0 ? Character.isJavaIdentifierStart(ch) : Character.isJavaIdentifierPart(ch)) {
+                b.append(ch);
+            } else {
+                b.append('x');
+                b.append(Integer.toHexString(ch));
+            }
+        }
+        return b.toString();
+    }
 
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
@@ -966,7 +1210,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
             FunctionalRef x) {
         Pair<String, String> calleeInfo;
 
-        String name = x.getOriginalName().getText();
+        String name = idOrOpToString(x.getOriginalName());
         List<IdOrOp> names = x.getNames();
 
         /* Note that after pre-processing in the overload rewriter,
@@ -985,16 +1229,17 @@ public class CodeGen extends NodeAbstractVisitor_void {
                 // NOT Foreign, calls same component.
                 // Nothing special to do.
                 calleePackageAndClass = packageAndClassName;
-                method = fnName.getText();
+                method = idOrOpToString(fnName);
             } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
                 // NOT Foreign, calls other component.
                 calleePackageAndClass =
                     NamingCzar.javaPackageClassForApi(apiName.unwrap().getText(), "/").toString();
 
-                method = fnName.getText();
+                method = idOrOpToString(fnName);
             } else if ( aliasTable.containsKey(name) ) {
                 // Foreign function call
-                String n = aliasTable.get(name);
+                // TODO this prefix op belongs in naming czar.
+                String n = Naming.NATIVE_PREFIX_DOT + aliasTable.get(name);
                 // Cheating by assuming class is everything before the dot.
                 int lastDot = n.lastIndexOf(".");
                 calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
@@ -1139,6 +1384,14 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
     public void forObjectDecl(ObjectDecl x) {
+        TraitTypeHeader header = x.getHeader();
+        emittingFunctionalMethodWrappers = true;
+        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+                NodeUtil.getName(x).getText());
+        traitOrObjectName = classFile;
+        dumpTraitDecls(header.getDecls());
+        emittingFunctionalMethodWrappers = false;
+        traitOrObjectName = null;
     }
 
     public void forObjectDeclPrePass(ObjectDecl x) {
@@ -1164,7 +1417,9 @@ public class CodeGen extends NodeAbstractVisitor_void {
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                NodeUtil.getName(x).getText());
+                idToString(NodeUtil.getName(x)));
+        traitOrObjectName = classFile;
+
 
         List<Param> params;
         if (x.getParams().isSome()) {
@@ -1247,6 +1502,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         dumpClass( classFile );
         cw = prev;
         inAnObject = savedInAnObject;
+        traitOrObjectName = null;
     }
 
     /**
@@ -1255,7 +1511,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
      */
     private void singletonObjectFieldAndInit(ObjectDecl x) {
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                NodeUtil.getName(x).getText());
+                idToString(NodeUtil.getName(x)));
 
         String objectFieldName = x.getHeader().getName().stringName();
 
@@ -1521,12 +1777,11 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         debug("ForSubscriptExpr  ", x, "obj = ", obj,
               " subs = ", subs, " op = ", op, " static args = ", staticArgs,
-              " varRef = ", id.getText());
+              " varRef = ", idToString(id));
 
         addLineNumberInfo(x);
         mv.visitFieldInsn(Opcodes.GETSTATIC, NamingCzar.jvmClassForSymbol(id) ,
-                          // "default_" + // NO, not necessary.
-                          id.getText(),
+                          idToString(id),
                           "L" + NamingCzar.makeInnerClassName(id) + ";");
 
         for (Expr e : subs) {
@@ -1536,7 +1791,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         addLineNumberInfo(x);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
-                           Naming.mangleIdentifier(op.getText()),
+                           Naming.mangleIdentifier(opToString(op)),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 
@@ -1564,6 +1819,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
         // First let's do the interface class
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
                                                          NodeUtil.getName(x).getText());
+        traitOrObjectName = classFile;
         if (classFile.equals("fortress/AnyType$Any")) {
             superInterfaces = new String[0];
         }
@@ -1571,19 +1827,21 @@ public class CodeGen extends NodeAbstractVisitor_void {
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(classFile, null);
         cw.visit( Opcodes.V1_5,
-                  Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
+                  Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
         dumpClass( classFile );
+        
         // Now lets do the springboard inner class that implements this interface.
-        String springBoardClass = classFile + NamingCzar.springBoard;
+        springBoardClass = classFile + NamingCzar.springBoard;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(springBoardClass, null);
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, springBoardClass,
-                 null, NamingCzar.internalObject, new String[0] );
+        // I think springboard can be abstract.
+        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
+                 null, NamingCzar.FValueType, new String[0] );
         debug("Start writing springboard class ",
               springBoardClass);
-        generateFieldsAndInitMethod(springBoardClass, NamingCzar.internalObject, Collections.<Param>emptyList());
+        generateFieldsAndInitMethod(springBoardClass, NamingCzar.FValueType, Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
         dumpTraitDecls(header.getDecls());
         debug("Finished dumpDecls ", springBoardClass);
@@ -1598,6 +1856,8 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
         debug("Finished dumpDecls for parent");
         inATrait = false;
+        traitOrObjectName = null;
+        springBoardClass = null;
     }
 
     public void forVarRef(VarRef v) {
@@ -1649,7 +1909,7 @@ public class CodeGen extends NodeAbstractVisitor_void {
                     range_type,
                     thisApi()
                     );
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodClass, method.getText(), sig);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodClass, idToString(method), sig);
 
         } finally {
             paramCount = savedParamCount;
@@ -1804,9 +2064,15 @@ public class CodeGen extends NodeAbstractVisitor_void {
      * Reference overloads are rewritten into _RewriteFnOverloadDecl nodes
      * and generated in the normal visits.
      */
-    private void generateTopLevelOverloads() {
+    public static Set<String> generateTopLevelOverloads(APIName api_name,
+            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
+            TypeAnalyzer ta,
+            ClassWriter cw
+            ) {
 
-        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 : topLevelOverloads.entrySet()) {
+        Set<String> overloaded_names_and_sigs = new HashSet<String>();
+        
+        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 : size_partitioned_overloads.entrySet()) {
             IdOrOpOrAnonymousName  name = entry1.getKey();
             MultiMap<Integer, Function> partitionedByArgCount = entry1.getValue();
 
@@ -1816,25 +2082,27 @@ public class CodeGen extends NodeAbstractVisitor_void {
                Set<Function> fs = entry.getValue();
 
                OverloadSet os =
-                   new OverloadSet.Local(thisApi(), name,
+                   new OverloadSet.Local(api_name, name,
                                          ta, fs, i);
 
                os.split(true);
 
                String s = name.stringName();
+               String s2 = NamingCzar.only.apiAndMethodToMethod(api_name, s);
 
-               os.generateAnOverloadDefinition(s, cw);
+               os.generateAnOverloadDefinition(s2, cw);
 
                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                    String ss = o_entry.getKey();
                    ss = s + ss;
-                   overloadedNamesAndSigs.add(ss);
+                   overloaded_names_and_sigs.add(ss);
                }
            }
         }
+        return overloaded_names_and_sigs;
     }
 
-    Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+    public static Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
        sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, Function> fns) {
 
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> result =
@@ -1864,7 +2132,12 @@ public class CodeGen extends NodeAbstractVisitor_void {
     }
 
 
-
+    /**
+     * Traits compile to interfaces.  These are all the abstract methods that
+     * the interface will require.
+     * 
+     * @param decls
+     */
     private void dumpSigs(List<Decl> decls) {
         debug("dumpSigs", decls);
         for (Decl d : decls) {
@@ -1876,15 +2149,68 @@ public class CodeGen extends NodeAbstractVisitor_void {
 
             FnDecl f = (FnDecl) d;
             FnHeader h = f.getHeader();
+            
+            List<Param> params = h.getParams();
+            int selfIndex = selfParameterIndex(params);
+            boolean  functionalMethod = selfIndex != -1;
+
             IdOrOpOrAnonymousName xname = h.getName();
             IdOrOp name = (IdOrOp) xname;
+            
             String desc = NamingCzar.jvmSignatureFor(f,component.getName());
-            debug("about to call visitMethod with", name.getText(),
-                  " and desc ", desc);
+            if (functionalMethod) {
+                desc = Naming.removeNthSigParameter(desc, selfIndex);
+            }
+            
+            // TODO what about overloading collisions in an interface?
+            // it seems wrong to publicly mangle.
+            String mname = functionalMethod ? fmDottedName(
+                            singleName(name), selfIndex) : nonCollidingSingleName(
+                                    name, desc);
+                        
             mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
-                                Naming.mangleIdentifier(name.getText()), desc, null, null);
+                                mname, desc, null, null);
+            
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
         }
     }
+    
+    /**
+     * @param fnName
+     * @return
+     */
+    private String idOrOpToString(IdOrOp fnName) {
+        if (fnName instanceof Op)
+            return opToString((Op) fnName);
+        else if (fnName instanceof Id)
+            return idToString((Id) fnName);
+        else
+            return fnName.getText();
+
+    }
+
+    /**
+     * @param op
+     * @return
+     */
+    private String opToString(Op op) {
+        Fixity fixity = op.getFixity();
+        if (fixity instanceof PreFixity) {
+            return op.getText() + Naming.BOX;
+        } else if (fixity instanceof PostFixity) {
+            return Naming.BOX + op.getText();
+        } else {
+          return op.getText();
+        }
+    }
+
+    /**
+     * @param method
+     * @return
+     */
+    private String idToString(Id id) {
+        return id.getText();
+    }
+
 }

@@ -20,10 +20,17 @@ package com.sun.fortress.compiler.nativeInterface;
 import java.util.*;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.commons.EmptyVisitor;
 
+import com.sun.fortress.compiler.codegen.CodeGen;
+import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.nativeHelpers.*;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.MultiMap;
 
 class fortressConverter {
     String shortName;
@@ -53,10 +60,17 @@ class fortressConverter {
 
 public class FortressMethodAdapter extends ClassAdapter {
 
-    String className = "temp";
+    String inputClassName;
+    String outputClassName;
     private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
     private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
+    
+    private APIName apiName;
+    private Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> sizePartitionedOverloads;
+    private TypeAnalyzer ta;
+    private ClassWriter cw;
+    private Set<String> overloadedNamesAndSigs;
 
     private void initializeEntry(String fortressRuntimeType,
                                  String toJavaTypeMethod,
@@ -97,19 +111,29 @@ public class FortressMethodAdapter extends ClassAdapter {
         return "L" + prefix + s + ";" ;
     }
 
-    public FortressMethodAdapter(ClassVisitor cv,
+    public FortressMethodAdapter(ClassWriter cv,
+            String inputClassName,
             String outputClassName,
-            Set<OverloadSet> overloads) {
+            APIName api_name,
+            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
+            TypeAnalyzer ta) {
         super(cv);
-        className = outputClassName.replace('.','/');
+        this.cw = cv;
+        this.inputClassName = inputClassName.replace('.','/');
+        this.outputClassName = outputClassName.replace('.','/');
+        this.apiName = api_name;
+        this.sizePartitionedOverloads = size_partitioned_overloads;
+        this.ta = ta;
         initializeTables();
     }
 
     public void visit(int version, int access, String name, String signature,
                       String superName, String[] interfaces) {
         Debug.debug( Debug.Type.COMPILER, 1,
-                     "visit:" + name + " generate " + className);
-        cv.visit(version, access, className, signature, superName, interfaces);
+                     "visit:" + name + " generate " + inputClassName);
+        cv.visit(version, access, outputClassName, signature, superName, interfaces);
+        
+        overloadedNamesAndSigs = CodeGen.generateTopLevelOverloads(apiName, sizePartitionedOverloads, ta, cw);
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc,
@@ -126,45 +150,10 @@ public class FortressMethodAdapter extends ClassAdapter {
  
         }
 
-        return super.visitMethod(access, name, desc, signature, exceptions);
+        return new EmptyVisitor();// super.visitMethod(access, name, desc, signature, exceptions);
     }
 
-    private static void generateAnOverload(String name, ClassVisitor cv,
-            OverloadSet o) {
-
-        // "(" anOverloadedArg^N ")" returnType
-        // Not sure what to do with return type.
-        String signature = o.getSignature();
-        String[] exceptions = o.getExceptions();
-        MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
-                + Opcodes.ACC_STATIC, // access,
-                name, // name,
-                signature, // sp.getFortressifiedSignature(),
-                null, // signature, // depends on generics, I think
-                exceptions); // exceptions);
-
-        mv.visitCode();
-        Label fail = new Label();
-
-        o.generateCall(mv, 0, fail); // Guts of overloaded method
-
-        // Emit failure case
-        mv.visitLabel(fail);
-        // Boilerplate for throwing an error.
-        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitLdcInsn("Should not happen");
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>",
-                "(Ljava/lang/String;)V");
-        mv.visitInsn(Opcodes.ATHROW);
-
-        mv.visitMaxs(o.getParamCount(), o.getParamCount()); // autocomputed
-        mv.visitEnd();
-
-    }
-
-    private void generateNewBody(int access, String desc, String signature,
+    private MethodVisitor generateNewBody(int access, String desc, String signature,
             String[] exceptions, String name, String newName) {
 
         Debug.debug(Debug.Type.COMPILER, 1, "generateNewBody: ", name,
@@ -191,10 +180,10 @@ public class FortressMethodAdapter extends ClassAdapter {
                     converter.toJavaTypeMethod, converter.toJavaTypeMethodDesc);
         }
 
-        Debug.debug(Debug.Type.COMPILER, 1, "className = ", className,
+        Debug.debug(Debug.Type.COMPILER, 1, "className = ", inputClassName,
                     " name = ", name, " access = ", access);
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, name, sp
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, inputClassName, name, sp
                 .getSignature());
 
         String result = sp.getFortressResult();
@@ -212,6 +201,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         mv.visitInsn(Opcodes.ARETURN);
         mv.visitMaxs(2, 1);
         mv.visitEnd();
+        return mv;
     }
 
     public void visitEnd() {

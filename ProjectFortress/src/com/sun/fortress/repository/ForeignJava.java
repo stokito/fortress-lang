@@ -19,8 +19,10 @@ package com.sun.fortress.repository;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
 import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -31,6 +33,7 @@ import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.GraphNode;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.*;
+
 import edu.rice.cs.plt.tuple.Option;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -710,11 +713,29 @@ public class ForeignJava {
      * @param name
      * @param overloads
      */
-    public void generateWrappersForApi(APIName name, Set<OverloadSet> overloads) {
+    public void generateWrappersForApi(APIName name,
+            Set<OverloadSet> overloads, Map<IdOrOpOrAnonymousName,
+            MultiMap<Integer, Function>> size_partitioned_overloads,
+            TypeAnalyzer ta) {
         foreignApisNeedingCompilation.remove(name);
 
         Set<Type> classes = classesIncludedInForeignAPI.get(name);
 
+        MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+            class_size_partitioned_overloads =
+                new MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
+        
+       for(Map.Entry<IdOrOpOrAnonymousName,
+            MultiMap<Integer, Function>> entry : size_partitioned_overloads.entrySet()) {
+           String n = entry.getKey().stringName();
+           int i = n.indexOf('.');
+           if (i == -1)
+               throw new Error("Cannot happen; all foreign names should contain a dot: " + n);
+           String pfx = n.substring(0,i+1);
+           
+           class_size_partitioned_overloads.putItem(pfx, entry.getKey(), entry.getValue());
+       }
+       
         // Need to generate wrappers for all these classes,
         // if they do not already exist.
         for (Type t : classes) {
@@ -725,20 +746,24 @@ public class ForeignJava {
             } else {
                 s = Useful.substring(s, i + 1, Integer.MAX_VALUE);
             }
-            final String startswith = s + ".";
-
-            Set<OverloadSet> some_overloads = Useful.matchingSubset(overloads,
-                                                                    new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
-
-                                                                        @Override
-                                                                        public Boolean apply(OverloadSet x) {
-                                                                            String name = x.getName().stringName();
-                                                                            return name.startsWith(startswith);
-                                                                        }
-
-                                                                    });
-
-            FortressTransformer.transform(t.getClassName(), some_overloads);
+            final String starts_with = s + ".";
+//
+//            Set<OverloadSet> some_overloads = Useful.matchingSubset(overloads,
+//                                                                    new com.sun.fortress.useful.F<OverloadSet, Boolean>() {
+//
+//                                                                        @Override
+//                                                                        public Boolean apply(OverloadSet x) {
+//                                                                            String name = x.getName().stringName();
+//                                                                            return name.startsWith(startswith);
+//                                                                        }
+//
+//                                                                    });
+            
+  
+            size_partitioned_overloads = class_size_partitioned_overloads.get(starts_with);
+            if (size_partitioned_overloads == null)
+                size_partitioned_overloads = Collections.emptyMap();
+            FortressTransformer.transform(t.getClassName(), name, size_partitioned_overloads, ta);
         }
     }
 

@@ -17,9 +17,14 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FRR64  extends FValue {
+public class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMethods implements fortress.CompilerBuiltin.RR64 {
     final double val;
 
+    static {
+        FRR64 tmp = new FRR64(1.0);
+        System.err.println("Loaded FRR64");
+    }
+    
     FRR64(double x) { val = x; }
     public String toString() { return String.valueOf(val); }
     public FString asString() { return new FString(String.valueOf(val)); }
