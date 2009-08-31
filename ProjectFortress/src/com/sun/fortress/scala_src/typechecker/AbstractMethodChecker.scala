@@ -125,8 +125,9 @@ class AbstractMethodChecker(component: ComponentIndex,
                     val trait_params = ti.staticParameters
                     val trait_args = ty.getArgs
                     // Instantiate methods with static args
-                    val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => t.first)
-                    for ( pair <- dotted ; if pair.isInstanceOf[IdOrOp] ) {
+                    var collected = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => t.first)
+                    collected ++= toSet(ti.asInstanceOf[TraitIndex].functionalMethods).map(t => t.first)
+                    for ( pair <- collected ; if pair.isInstanceOf[IdOrOp] ) {
                       methods += pair.asInstanceOf[IdOrOp].getText
                     }
                     val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
