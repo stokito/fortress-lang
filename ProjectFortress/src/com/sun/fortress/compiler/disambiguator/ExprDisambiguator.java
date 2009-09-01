@@ -109,10 +109,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * Check that the local function corresponding to the given Id does not shadow any variables
      * or non-overloading functions in scope.
      */
-    private void checkForShadowingLocalFunction(Id var, Set<Id> allowedShadowings) {
-        if ((!_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty() ||
-             !_env.explicitTypeConsNames(var).isEmpty()) && !allowedShadowings.contains(var)) {
-            error("Variable " + var + " is already declared.", var);
+    private void checkForShadowingLocalFunction(Id fn) {
+        if ((!_env.explicitVariableNames(fn).isEmpty() || !_env.explicitFunctionNames(fn).isEmpty() ||
+             !_env.explicitTypeConsNames(fn).isEmpty())) {
+            error("Local function " + fn + " is already declared.", fn);
         }
     }
 
@@ -152,16 +152,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private void checkForShadowingLocalFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames) {
         for (IdOrOpOrAnonymousName name : definedNames) {
             if (name instanceof Id) {
-                checkForShadowingLocalFunction((Id) name, Collections.<Id>emptySet());
-            }
-        }
-    }
-
-    private void checkForShadowingLocalFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames,
-                                                 Set<Id> allowedShadowings) {
-        for (IdOrOpOrAnonymousName name : definedNames) {
-            if (name instanceof Id) {
-                checkForShadowingLocalFunction((Id) name, allowedShadowings);
+                checkForShadowingLocalFunction((Id) name);
             }
         }
     }
@@ -214,11 +205,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls) {
-        return extendWithLocalFns(definedDecls, CollectUtil.<Id>emptySet());
-    }
-
-    private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls, Set<Id> allowedShadowings) {
-        checkForShadowingLocalFunctions(extractDefinedFnNames(definedDecls), allowedShadowings);
+        checkForShadowingLocalFunctions(extractDefinedFnNames(definedDecls));
         return extendWithFnsNoCheck(definedDecls);
     }
 
