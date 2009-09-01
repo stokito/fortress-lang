@@ -112,10 +112,12 @@ private Component Component =
        if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
            log(span, "A component declaration of " + a2 +
                " has the different name " + a6 + " at the end.");
-       if (a4 != null || a5 != null)
+       if ( a5 != null)
            log(span, "Compound component " + a2 + " should not include new declarations.");
-       List<Import>  imports = Collections.<Import>emptyList();
-       List<APIName> exports = Collections.<APIName>emptyList();
+       List<Import>  imports = ( a4 == null ) ? Collections.<Import>emptyList()
+                                              : a4.getA();
+       List<APIName> exports = ( a4 == null ) ? Collections.<APIName>emptyList()
+                                              : a4.getB();
        List<Decl>    decls   = Collections.<Decl>emptyList();
        if (a1 == null)
            yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, false, exports);

@@ -215,8 +215,8 @@ class AbstractMethodChecker(component: ComponentIndex,
       ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type]),
                                 subst(NU.getParamType(decl))).isTrue ||
         implement(toList(NU.getParams(d)), toList(NU.getParams(decl))) ) &&
-      typeAnalyzer.equivalent(subst(NU.getReturnType(d).unwrap),
-                              subst(NU.getReturnType(decl).unwrap)).isTrue
+      typeAnalyzer.subtype(subst(NU.getReturnType(decl).unwrap),
+                           subst(NU.getReturnType(d).unwrap)).isTrue
     result
   }
 
