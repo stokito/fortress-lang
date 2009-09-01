@@ -197,6 +197,12 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                 env.extendWithFunctions(methods),
                 errors)
 
+  def extendWithListOfFunctions(fns:List[FnDecl]) =
+    constructor(current,
+                traits,
+                env.extendWithListOfFunctions(fns),
+                errors)
+
   def extendWithout(declSite: Node, names: Set[Id]) =
     constructor(current,
                 traits,

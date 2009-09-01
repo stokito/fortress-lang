@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.typechecker.staticenv
 
 import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
+import collection.jcl.Hashtable
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Modifiers
@@ -64,6 +65,9 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
                                                api: Option[APIName]): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractTypeConsBindings(m, api))
 
+  def extendBindingsFromFnList(fns:List[Decl]) =
+    throw new Error("Not yet implemented: extendBindingsFromFnList")
+
   /** Extend me with the bindings of the given functions relation. */
   def extendWithFunctions[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],
@@ -82,6 +86,9 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
   def extendWithFunctions[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T]): STypeEnv =
     extendWithFunctions(r, None)
+
+  def extendWithListOfFunctions(fns:List[FnDecl]): STypeEnv =
+    new NestedSTypeEnv(this, extendBindingsFromFnList(fns))
 
   /** Extend me without the bindings with the given names. */
   def extendWithout[T <: Name](names: Collection[T]): STypeEnv =
@@ -237,6 +244,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         makeBinding(x, lazyTypeEvaluation, v.modifiers, v.mutable)
       })
     }
+
 
   protected def extractFunctionBindings[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],
