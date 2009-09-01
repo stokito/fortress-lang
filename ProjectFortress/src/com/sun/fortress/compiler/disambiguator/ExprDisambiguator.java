@@ -68,26 +68,26 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private NameEnv _env;
     private Set<Id> _uninitializedNames;
     private List<StaticError> _errors;
-    private Option<Id> _innerMostLabel;
+    private List<Id> _labels;
     private boolean inComponent = false;
 
     public ExprDisambiguator(NameEnv env, List<StaticError> errors) {
         _env = env;
         _uninitializedNames = Collections.emptySet();
         _errors = errors;
-        _innerMostLabel = Option.<Id>none();
+        _labels = new ArrayList<Id>();
     }
 
-    private ExprDisambiguator(NameEnv env, List<StaticError> errors, Option<Id> innerMostLabel) {
+    private ExprDisambiguator(NameEnv env, List<StaticError> errors, List<Id> labels) {
         this(env, errors);
-        _innerMostLabel = innerMostLabel;
+        _labels = labels;
     }
 
     private ExprDisambiguator(NameEnv env,
                               Set<Id> uninitializedNames,
                               List<StaticError> errors,
-                              Option<Id> innerMostLabel) {
-        this(env, errors, innerMostLabel);
+                              List<Id> labels) {
+        this(env, errors, labels);
         _uninitializedNames = uninitializedNames;
     }
 
@@ -195,13 +195,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars, Set<Id> uninitializedNames) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         uninitializedNames.addAll(_uninitializedNames);
-        return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls) {
@@ -230,12 +230,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator extendWithFnsNoCheck(Set<FnDecl> definedFunctions) {
         NameEnv newEnv = new LocalFnEnv(_env, definedFunctions);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithGetterSetterNoCheck(Set<Id> getterSetter) {
         NameEnv newEnv = new LocalGetterSetterEnv(_env, getterSetter);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithSelf(Span span) {
@@ -1194,7 +1194,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> labels = Useful.set(that.getName());
         checkForShadowingVars(labels);
         NameEnv newEnv = new LocalVarEnv(_env, labels);
-        ExprDisambiguator v = new ExprDisambiguator(newEnv, _uninitializedNames, _errors, Option.wrap(that.getName()));
+        _labels.add(that.getName());
+        ExprDisambiguator v = new ExprDisambiguator(newEnv, _uninitializedNames,
+                                                    _errors, _labels);
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), type_result);
         return forLabelOnly(that, info, (Id) that.getName().accept(v), (Block) that.getBody().accept(v));
@@ -1202,14 +1204,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forExitOnly(Exit that, ExprInfo info, Option<Id> target_result, Option<Expr> returnExpr_result) {
-        Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
+        if (target_result.isNone() && _labels.isEmpty()) {
+            error("Exit occurs outside of a label", that);
+        }
+        Option<Id> target;
+        if ( target_result.isSome() ) target = target_result;
+        else if ( _labels.isEmpty() ) target = Option.<Id>none();
+        else target = Option.<Id>some(_labels.get(0));
         Option<Expr> with = returnExpr_result.isSome() ?
                             returnExpr_result :
                             wrap((Expr) ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(that)));
-
-        if (target.isNone() || _innerMostLabel.isNone()) {
-            error("Exit occurs outside of a label", that);
-        }
         Exit newExit = ExprFactory.makeExit(NodeUtil.getSpan(that),
                                             info.isParenthesized(),
                                             info.getExprType(),
