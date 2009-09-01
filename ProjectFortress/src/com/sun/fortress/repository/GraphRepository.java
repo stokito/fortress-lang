@@ -327,6 +327,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
+    private void addComponentComprisesDependencies(ComponentGraphNode node) throws FileNotFoundException, IOException {
+        for (APIName name : node.getComponent().unwrap().comprises()) {
+            addComponentGraph(name);
+        }
+    }
+
     private long getCacheDate(ApiGraphNode node) {
         try {
             return cache.getModifiedDateForApi(node);

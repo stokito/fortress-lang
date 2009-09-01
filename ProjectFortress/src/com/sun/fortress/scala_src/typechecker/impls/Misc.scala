@@ -532,6 +532,19 @@ trait Misc { self: STypeChecker with Common =>
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
+    case SLetFn(getInfo, getBody, getFns) => {
+      val newChecker = this.extendWithListOfFunctions(getFns)
+      SLetFn(getInfo, getBody.map((e:Expr) => newChecker.checkExpr(e)),
+                      getFns.map((f:FnDecl) =>
+                                  f match {
+                                    case SFnDecl(i,h,n,Some(e),m) =>
+                                      new FnDecl(i,h,n,Some(newChecker.checkExpr(e)),m)
+                                    case _ => f
+                                  }))
+    }
+
+
+
     case expr:DummyExpr => expr
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))

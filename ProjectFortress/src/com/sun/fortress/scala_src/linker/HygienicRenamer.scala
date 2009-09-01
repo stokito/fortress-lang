@@ -287,5 +287,6 @@ class HygienicRenamer(constituent: APIName,
          case xs:List[_] => xs.map(walk _)
          case xs:Option[_] => xs.map(walk _)
          case _ => node
+      
     }
 }
