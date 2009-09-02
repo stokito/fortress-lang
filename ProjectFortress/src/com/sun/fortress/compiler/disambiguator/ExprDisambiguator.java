@@ -67,6 +67,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private NameEnv _env;
     private Set<Id> _uninitializedNames;
+    private Set<Id> _types;
     private List<StaticError> _errors;
     private List<Id> _labels;
     private boolean inComponent = false;
@@ -74,6 +75,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     public ExprDisambiguator(NameEnv env, List<StaticError> errors) {
         _env = env;
         _uninitializedNames = Collections.emptySet();
+        _types = new HashSet<Id>();
         _errors = errors;
         _labels = new ArrayList<Id>();
     }
@@ -85,10 +87,32 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator(NameEnv env,
                               Set<Id> uninitializedNames,
+                              Set<Id> types,
                               List<StaticError> errors,
                               List<Id> labels) {
         this(env, errors, labels);
         _uninitializedNames = uninitializedNames;
+        _types = types;
+    }
+
+    /**
+     * Check that the type corresponding to the give Id does not shadow any types
+     * in scope.
+     */
+    private void checkForShadowingType(Id type) {
+        if (_types.contains(type)) {
+            error("Type " + type + " is already declared.", type);
+        }
+    }
+
+    /**
+     * Check that the label corresponding to the give Id does not shadow any labels
+     * in scope.
+     */
+    private void checkForShadowingLabel(Id label) {
+        if (_labels.contains(label)) {
+            error("Label " + label + " is already declared.", label);
+        }
     }
 
     /**
@@ -182,7 +206,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     }
 
-
     private ExprDisambiguator extendWithVars(Set<Id> vars) {
         checkForShadowingVars(vars);
         return extendWithVarsNoCheck(vars);
@@ -195,13 +218,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars, Set<Id> uninitializedNames) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         uninitializedNames.addAll(_uninitializedNames);
-        return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._labels);
+        return new ExprDisambiguator(newEnv, uninitializedNames, _types, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithLocalFns(Set<FnDecl> definedDecls) {
@@ -230,12 +253,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private ExprDisambiguator extendWithFnsNoCheck(Set<FnDecl> definedFunctions) {
         NameEnv newEnv = new LocalFnEnv(_env, definedFunctions);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithGetterSetterNoCheck(Set<Id> getterSetter) {
         NameEnv newEnv = new LocalGetterSetterEnv(_env, getterSetter);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._labels);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, this._labels);
     }
 
     private ExprDisambiguator extendWithSelf(Span span) {
@@ -525,8 +548,21 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forComponent(final Component that) {
-        inComponent = true;
-        return super.forComponent(that);
+        if (!that.getComprises().isEmpty())
+            return that;
+        else {
+            inComponent = true;
+            return super.forComponent(that);
+        }
+    }
+
+    @Override
+    public Node forApi(final Api that) {
+        if (!that.getComprises().isEmpty())
+            return that;
+        else {
+            return super.forApi(that);
+        }
     }
 
     /**
@@ -538,7 +574,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
     public Node forTraitDecl(final TraitDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that)));
+        Id name = NodeUtil.getName(that);
+        checkForShadowingType(name);
+        _types.add(name);
+        ExprDisambiguator v = new ExprDisambiguator(_env, _uninitializedNames, _types, _errors, _labels);
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
@@ -608,12 +647,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
     public Node forObjectDecl(final ObjectDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that)));
+        Id name = NodeUtil.getName(that);
+        checkForShadowingType(name);
+        _types.add(name);
+        Set<Id> vars = extractStaticExprVars(NodeUtil.getStaticParams(that));
+        checkForShadowingVars(vars);
+        NameEnv newEnv = new LocalVarEnv(_env, vars);
+        ExprDisambiguator v = new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, _labels);
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
         Triple<Set<Id>, Set<Id>, Set<FnDecl>> declNames = partitionDecls(NodeUtil.getDecls(that));
-        Set<Id> vars = declNames.first();
+        vars = declNames.first();
         Set<Id> gettersAndSetters = declNames.second();
         // fns does not contain getters and setters
         Set<FnDecl> fns = declNames.third();
@@ -1191,15 +1236,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forLabel(Label that) {
-        Set<Id> labels = Useful.set(that.getName());
-        checkForShadowingVars(labels);
-        NameEnv newEnv = new LocalVarEnv(_env, labels);
-        _labels.add(that.getName());
-        ExprDisambiguator v = new ExprDisambiguator(newEnv, _uninitializedNames,
-                                                    _errors, _labels);
+        Id name = that.getName();
+        checkForShadowingLabel(name);
+        _labels.add(name);
+        ExprDisambiguator v = new ExprDisambiguator(_env, _uninitializedNames,
+                                                    _types, _errors, _labels);
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), type_result);
-        return forLabelOnly(that, info, (Id) that.getName().accept(v), (Block) that.getBody().accept(v));
+        Node label = forLabelOnly(that, info, (Id) name.accept(v), (Block) that.getBody().accept(v));
+        _labels.remove(name);
+        return label;
     }
 
     @Override
