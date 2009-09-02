@@ -180,19 +180,19 @@ run():() = do
     v6:ZZ32 = exitUnnamedLabel(0)
     assert(0, v6, "exitUnnamedLabel(0) failed.");
 
-    assert(11, exitMultipleLabels(1), "exitMultipleLables(1) failed.");
-    assert(12, exitMultipleLabels(2), "exitMultipleLables(2) failed.");
-    assert(13, exitMultipleLabels(3), "exitMultipleLables(3) failed.");
+    assert(11, exitMultipleLabels(1), "exitMultipleLabels(1) failed.");
+    assert(12, exitMultipleLabels(2), "exitMultipleLabels(2) failed.");
+    assert(13, exitMultipleLabels(3), "exitMultipleLabels(3) failed.");
 
     var v7:ZZ32 = 0
     _ = try exitNestedUnnamedLabel(1)
         catch e
             LabelException => v7 := 1
         end
-    assert(1, v7, "exitNestedUnnamedLable(1) failed.");
+    assert(1, v7, "exitNestedUnnamedLabel(1) failed.");
 
     v8:ZZ32 = exitNestedUnnamedLabel(0)
-    assert(3, v8, "exitNestedUnnamedLable(0) failed.");
+    assert(3, v8, "exitNestedUnnamedLabel(0) failed.");
 
     o1:O1 = O1(0)
     x1 = o1.foo()
