@@ -1238,13 +1238,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     public Node forLabel(Label that) {
         Id name = that.getName();
         checkForShadowingLabel(name);
-        _labels.add(name);
+        _labels.add(0, name);
         ExprDisambiguator v = new ExprDisambiguator(_env, _uninitializedNames,
                                                     _types, _errors, _labels);
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), type_result);
         Node label = forLabelOnly(that, info, (Id) name.accept(v), (Block) that.getBody().accept(v));
-        _labels.remove(name);
+        _labels.remove(0);
         return label;
     }
 
