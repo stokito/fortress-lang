@@ -17,11 +17,16 @@
 
 export Executable
 
+(* Test the interaction between generic reduction and coercion. *)
+
 (* Mock up of the kind of code we expect after desugaring of
 comprehensions, in order to see whether we can typecheck it.
 
-In this case we worry things might start breaking with the advent of
-coercion; will type inference get confused by SUM?
+TODO: This file crashes type inference.  My hypothesis is that this
+has to do with the fact that SumReduction.join should fail type
+inference with the present library (since IntLiteral <: ZZ32 has + that
+returns ZZ32 not IntLiteral).  This should turn into a graceful failure
+and be added to the test suite.
 *)
 
 (** Is excludes Boolean actually necessary here, or is that a bug in
@@ -36,9 +41,9 @@ trait Reduction[\R\]
     join(a: R, b:R): R
 end
 
-object SumReduction extends Reduction[\ZZ32\]
-    empty(): ZZ32 = 0
-    join(a:ZZ32, b:ZZ32): ZZ32 = a + b
+object SumReduction[\N extends ZZ32\] extends Reduction[\N\]
+    empty(): N = 0
+    join(a:N, b:N): N = a + b
 end
 
 __bigOperator[\R\](o:Reduction[\R\],
@@ -70,11 +75,11 @@ gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R
 
 opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => 0=0)
 
-opr SUM(): SumReduction = SumReduction
+opr SUM[\N extends ZZ32\](): SumReduction[\N\] = SumReduction[\N\]
 
 opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 
-length[\T\](g: Generator[\T\]): ZZ32 = SUM[_ <- g] 1
+length[\T, N extends ZZ32\](g: Generator[\T\]): N = SUM[_ <- g] 1
 
 run(): () = do
     printlnZZ32(length(1:100))
