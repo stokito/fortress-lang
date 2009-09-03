@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Comprehensions4
 export Executable
 
 (* Mock up of the kind of code we expect after desugaring of
@@ -83,5 +82,3 @@ length[\T, N extends ZZ32\](g: Generator[\T\]): N = SUM[_ <- g] 1
 run(): () = do
     printlnZZ32(length(1:100))
   end
-
-end

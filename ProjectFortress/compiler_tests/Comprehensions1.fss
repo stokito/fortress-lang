@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Comprehensions1
 export Executable
 
 (* Mock up of the kind of code we expect after desugaring of
@@ -76,5 +75,3 @@ run(): () = do
     println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString())
     println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString())
   end
-
-end
