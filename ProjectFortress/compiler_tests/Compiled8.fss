@@ -39,7 +39,7 @@ opr OR(a:Boolean, b:()->Boolean): Boolean =
     if a then a else b() end
 *)
 
-RR64ToString(x:RR64): String = x.toString()
+RR64AsString(x:RR64): String = x.asString()
 
 (* Actually test more HOFs *)
 integrate(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
@@ -65,16 +65,18 @@ integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64)
 elapsedSec(init:ZZ64, final:ZZ64): RR64 =
     (final - init) / (10.0^9)
 
+f(x: RR64): RR64 = x (x x + 1.0)
+
 run(): () = do
     println("Time(s)\tArea")
     for _ <- 0#reps do
         startTime = nanoTime()
-        a = integrate(start,finish,fn x => x (x x + 1),errorTolerance)
+        a = integrate(start,finish,f,errorTolerance)
         endTime = nanoTime()
         if |a - expect| > errorTolerance a then
             println("FAIL: Bad error tolerance!")
         end
-        println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a))
+        println(RR64AsString(elapsedSec(startTime,endTime)) "\t" RR64AsString(a))
     end
   end
 
