@@ -1298,6 +1298,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<Block> maybe_else = x.getElseClause();
         if (maybe_else.isSome()) {
             maybe_else.unwrap().accept(this);
+        } else {
+            pushVoid();
         }
         mv.visitLabel(done);
     }
@@ -1873,12 +1875,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             vcg.pushValue(mv);
     }
 
+    private void pushVoid() {
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+                           NamingCzar.makeMethodDesc("", NamingCzar.descFortressVoid));
+    }
+
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
         debug("forVoidLiteral ", x);
         addLineNumberInfo(x);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                           NamingCzar.makeMethodDesc("", NamingCzar.descFortressVoid));
-
+        pushVoid();
     }
 
     public void forMethodInvocation(MethodInvocation x) {
