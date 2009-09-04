@@ -112,15 +112,18 @@ trait RR64 extends Number comprises {FloatLiteral}
     opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
     opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
     opr ^(self, other:ZZ32): RR64 =
-        if other > 0 then
+        if other > 2 then
             mid = other DIV 2
             if (mid + mid) = other then
-                (self self)^mid
+                self2 = self self
+                (self2)^mid
             else
-                self (self^(mid-1))
+                self (self^(other-1))
             end
+        elif other = 2 then self self
+        elif other = 1 then self
         elif other = 0 then 1.0
-        else 1.0 / (self^(-other))
+        else (* other < 0 then *) 1.0 / (self^(-other))
         end
 end
 

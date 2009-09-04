@@ -74,11 +74,11 @@ public class NamingCzar {
     private NamingCzar(ForeignJava fj) {
         this.fj = fj;
     }
-    
+
     private final static boolean logLoads = ProjectProperties.getBoolean("fortress.log.classloads", false);
 
     private final static boolean transitionArrowNaming = false;
-    
+
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
@@ -156,7 +156,7 @@ public class NamingCzar {
     public static final String descFortressAny        = internalToDesc(fortressAny);
 
     public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
-    
+
     public static final String closureFieldName = "closure";
 
     private static final List<String> extendsObject =
@@ -358,6 +358,10 @@ public class NamingCzar {
         bl(NodeFactory.makeVoidType(span), "FVoid");
     }
 
+    /** Determine whether given TraitType is special. */
+    public static boolean fortressTypeIsSpecial(com.sun.fortress.nodes.Type t) {
+        return specialFortressDescriptors.containsKey(t);
+    }
 
     /**
      * If a type occurs in a parameter list or return type, it
@@ -383,7 +387,7 @@ public class NamingCzar {
         if (fj.definesApi(name)) {
             return Naming.NATIVE_PREFIX_DOT + name.getText();
         } else {
-            return javaPackageClassForApi(name.getText(), ".").toString();
+            return javaPackageClassForApi(name, ".");
         }
     }
 
@@ -398,7 +402,7 @@ public class NamingCzar {
              }
 
         } else {
-             p = javaPackageClassForApi(name.getText(), ".").toString();
+             p = javaPackageClassForApi(name, ".");
         }
         p = Useful.replace(p, ".", "/") ;
         return p;
@@ -493,33 +497,37 @@ public class NamingCzar {
             }
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
-            String api = apiName.unwrap(ifMissing).getText();
+            APIName api = apiName.unwrap(ifMissing);
 
-            StringBuilder parent = javaPackageClassForApi(api, "/");  parent.append("$");  parent.append(name.getText());
-            result[i] = parent.toString();
+            result[i] = makeInnerClassName(api,name);
         }
         return result;
+    }
+
+    public static String javaPackageClassForApi(APIName api) {
+        return javaPackageClassForApi(api, "/");
+    }
+
+    public static String javaPackageClassForApi(APIName api, String sep) {
+        return javaPackageClassForApi(api.getText(), sep);
     }
 
     /**
      * @param api
      * @return
      */
-    public static StringBuilder javaPackageClassForApi(String api, String sep) {
-        StringBuilder parent = new StringBuilder();
-        if ( WellKnownNames.exportsDefaultLibrary( api ) ) {
-            parent.append(fortressPackage);  parent.append(sep);
-        }
+    public static String javaPackageClassForApi(String api, String sep) {
+        boolean defaultLib = WellKnownNames.exportsDefaultLibrary( api );
         if (!(sep.equals("."))) {
             api = Useful.replace(api, ".", sep);
         }
-        parent.append(api);
-        return parent;
+        if (!defaultLib) return api;
+        return fortressPackage + sep + api;
     }
 
- 
-    public String mangleAwayFromOverload(String mname) {
-            mname += "$SINGLE";
+
+    public static String mangleAwayFromOverload(String mname) {
+        mname += "$SINGLE";
         return mname;
     }
 
@@ -532,12 +540,20 @@ public class NamingCzar {
         return desc + "$" + "implementation" + implementationCount++;
     }
 
+    public static String makeInnerClassName(APIName api, Id id) {
+        return makeInnerClassName(javaPackageClassForApi(api), id.getText());
+    }
+
     public static String makeInnerClassName(Id id) {
         return makeInnerClassName(jvmClassForSymbol(id), id.getText());
     }
 
     public static String makeInnerClassName(String packageAndClassName, String t) {
         return packageAndClassName + "$" + t;
+    }
+
+    public static String jvmSignatureFor(ArrowType arrow, APIName ifNone) {
+        return jvmSignatureFor(arrow.getDomain(), arrow.getRange(), ifNone);
     }
 
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
@@ -611,18 +627,19 @@ public class NamingCzar {
     }
 
     public static String jvmClassForSymbol(IdOrOp fnName) {
+        return jvmClassForSymbol(fnName, "");
+    }
+
+    public static String jvmClassForSymbol(IdOrOp fnName, String ifNone) {
         Option<APIName> maybe_api = fnName.getApiName();
-        String result = "";
+        String result = ifNone;
         if (maybe_api.isSome()) {
             APIName apiName = maybe_api.unwrap();
-            if (WellKnownNames.exportsDefaultLibrary(apiName.getText()))
-                result = result + "fortress/";
-            result = result + apiName.getText();
+            result = javaPackageClassForApi(apiName);
         }
-        //        result = result + fnName.getText();
 
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "jvmClassForSymbol(" + fnName +")=" + result);
+                    "jvmClassForSymbol(", fnName, ")=", result);
         return result;
     }
 
@@ -635,11 +652,11 @@ public class NamingCzar {
 
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
         if (transitionArrowNaming) {
-            return "com/sun/fortress/compiler/runtimeValues/AbstractArrow_" + 
-                makeArrowDescriptor(t.getDomain(), ifNone) + "_" + 
+            return "com/sun/fortress/compiler/runtimeValues/AbstractArrow_" +
+                makeArrowDescriptor(t.getDomain(), ifNone) + "_" +
                 makeArrowDescriptor(t.getRange(), ifNone);
         } else {
-            String res = 
+            String res =
              "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
                 makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
             res = Naming.mangleIdentifier(res);
@@ -647,7 +664,7 @@ public class NamingCzar {
         }
     }
 
-    public static String makeAbstractArrowDescriptor(List<com.sun.fortress.nodes.Param> params, 
+    public static String makeAbstractArrowDescriptor(List<com.sun.fortress.nodes.Param> params,
                                              com.sun.fortress.nodes.Type rt,
                                              APIName ifNone) {
         String result = "AbstractArrow" + Naming.LEFT_OXFORD;
@@ -678,7 +695,7 @@ public class NamingCzar {
             } else {
                 tag = Naming.NORMAL_TAG; // smiley face == normal case.
             }
-            
+
             return tag + apiName + "." + id.getText();
         }
     }
@@ -727,7 +744,7 @@ public class NamingCzar {
             }
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
-                
+
                 if (withLSemi) res = "L" + res + ";";
                 return res;
             }
@@ -750,21 +767,19 @@ public class NamingCzar {
                 // I think this is wrong!  What about API names?
                 // What about foreign-implemented types?
                 // - DRC 2009-08-10
-                Id id = t.getName();
-                String name = id.getText();
                 String result = (withLSemi ? specialFortressDescriptors : specialFortressTypes).get(t);
                 if (result != null) {
                     Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
                                 " builtin ", result);
                     return result;
                 }
-                Option<APIName> maybeApi = id.getApiName();
-                if (ifNone == null && !maybeApi.isSome()) {
+                Id id = t.getName();
+                APIName api = id.getApiName().unwrap(ifNone);
+                if (api == null) {
                     throw new CompilerError(NodeUtil.getSpan(id),
                                             "no api name given for id");
                 }
-                APIName api = maybeApi.unwrap(ifNone);
-                result = makeInnerClassName(api.getText(), name) ;
+                result = makeInnerClassName(api,id);
                 if (withLSemi)
                     result = "L" + result + ";";
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
@@ -813,22 +828,21 @@ public class NamingCzar {
                 return descFortressAny;
             }
             public String forTraitType(TraitType t) {
-                Id id = t.getName();
-                String name = id.getText();
-                String result = specialFortressDescriptors .get(t);
+                String result = specialFortressDescriptors.get(t);
                 if (result != null) {
                     Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
                                 " builtin ", result);
                     return result;
                 }
+                Id id = t.getName();
                 Option<APIName> maybeApi = id.getApiName();
-                if (ifNone == null && !maybeApi.isSome()) {
+                APIName api = id.getApiName().unwrap(ifNone);
+                if (api == null) {
                     throw new CompilerError(NodeUtil.getSpan(id),
                                             "no api name given for id");
                 }
-                APIName api = maybeApi.unwrap(ifNone);
-                result = makeInnerClassName(api.getText(), name) ;
-                    result = "L" + result + ";";
+                result = makeInnerClassName(api,id);
+                result = "L" + result + ";";
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;

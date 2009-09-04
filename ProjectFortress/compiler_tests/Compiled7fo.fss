@@ -55,15 +55,21 @@ reps : ZZ32 = 10
 expect = 1.391570583 10.0^12
 
     println("Time(s)\tArea")
-    for _ <- 0#reps do
+    r = 0#10
+    println("Mumble")
+    s = r.asString()
+    println("Mutter r = " s)
+    r.loop(fn _ => do
+    (* for _ <- 0#10 do *)
         startTime = nanoTime()
         a = integrate(start,finish,errorTolerance)
         endTime = nanoTime()
         if |a - expect| > errorTolerance a then
             println("FAIL: Bad error tolerance!")
+        else ()
         end
         println(RR64AsString(elapsedSec(startTime,endTime)) "\t" RR64AsString(a))
-    end
+    end)
   end
 
 end

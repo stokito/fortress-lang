@@ -340,7 +340,7 @@ public class ForeignJava {
                                                            org.objectweb.asm.Type imported_type) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
-        com.sun.fortress.nodes.Type t = NamingCzar.only.fortressTypeForForeignJavaType(imported_type);
+        com.sun.fortress.nodes.Type t = NamingCzar.fortressTypeForForeignJavaType(imported_type);
         if (t != null) return t;
 
         String internal_name = imported_type.getInternalName();

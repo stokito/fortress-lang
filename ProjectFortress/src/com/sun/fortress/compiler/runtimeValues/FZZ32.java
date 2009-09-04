@@ -17,7 +17,8 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMethods implements fortress.CompilerBuiltin.ZZ32 {
+public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMethods
+        implements fortress.CompilerBuiltin.ZZ32 {
     final int val;
 
     FZZ32(int x) { val = x; }
@@ -26,8 +27,6 @@ public class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMethods imp
     public int getValue() {return val;}
     public static FZZ32 make(int x) {
         return new FZZ32(x);
-        }
+    }
     public static FZZ32 plus(FZZ32 a, FZZ32 b) {return make(a.getValue() + b.getValue());}
- 
-   
 }

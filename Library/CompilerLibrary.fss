@@ -245,11 +245,13 @@ opr <->(a: Boolean, b:Boolean):Boolean = if a then b else NOT b end
 __loop(g: GeneratorZZ32, body: ZZ32->()): () = g.loop(body)
 
 trait GeneratorZZ32
+    asString(): String = ""
     seq(self): GeneratorZZ32 = self
     loop(body:ZZ32->()): () = ()
 end
 
 object SimpleRange(lo:ZZ32, hi:ZZ32) extends GeneratorZZ32
+    asString(): String = lo.asString() "#" hi.asString()
     seq(self): SimpleSeqRange = SimpleSeqRange(lo,hi)
     loop(body:ZZ32->()): () = if lo > hi then () else parloop(body,lo,hi) end
 end
@@ -277,8 +279,8 @@ seqloop(body:ZZ32->(), lo:ZZ32, hi:ZZ32): () =
     end
 
 (*
-opr :(lo:ZZ32, hi:ZZ32): SimpleRange = SimpleRange(lo,hi)
+opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32 = SimpleRange(lo,hi)
 *)
-opr #(lo:ZZ32, sz:ZZ32): SimpleRange = SimpleRange(lo,lo+sz-1)
+opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32 = SimpleRange(lo,lo+sz-1)
 
 end

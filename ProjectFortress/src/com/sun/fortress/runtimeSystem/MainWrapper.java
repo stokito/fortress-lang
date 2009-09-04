@@ -24,7 +24,7 @@ public class MainWrapper {
 
     /**
      * @param args
-     * @throws ClassNotFoundException 
+     * @throws ClassNotFoundException
      */
     public static void main(String[] args) {
         int l = args.length;
@@ -32,12 +32,12 @@ public class MainWrapper {
             System.err.println("The wrapper class needs the name of a class to run.");
             return;
         }
-        
+
         String[] subargs = new String[l-1];
         System.arraycopy(args, 1, subargs, 0, l-1);
-        
+
         String whatToRun = args[0];
-        
+
         if (whatToRun.indexOf('\\') >= 0 ||
             whatToRun.indexOf('/') >= 0) {
             if (whatToRun.endsWith(".class")) {
@@ -48,7 +48,7 @@ public class MainWrapper {
                 whatToRun = Useful.substring(whatToRun, 0, -6);
             }
             /*
-             * Graceful behavior on windows REQUIRES handling both / and \ 
+             * Graceful behavior on windows REQUIRES handling both / and \
              * as pathname separators; both work at the OS level.
              * This does inhibit use of backslashes in the names of classes
              * on Unix machines, but such classfile names are not portable to
@@ -56,8 +56,8 @@ public class MainWrapper {
              */
             whatToRun = sepToDot(whatToRun);
         }
-        
-        
+
+
         try {
             ClassLoader icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
@@ -73,24 +73,31 @@ public class MainWrapper {
             // TODO Auto-generated catch block
             System.err.println("Could not load " + whatToRun);
             e.printStackTrace();
+            System.exit(1);
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
 //        } catch (NoSuchFieldException e) {
 //            // TODO Auto-generated catch block
 //            e.printStackTrace();
+//            System.exit(1);
         }
 
     }
