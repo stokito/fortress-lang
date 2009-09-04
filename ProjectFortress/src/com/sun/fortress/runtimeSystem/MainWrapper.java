@@ -92,7 +92,7 @@ public class MainWrapper {
             System.exit(1);
         } catch (InvocationTargetException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            e.getCause().printStackTrace();
             System.exit(1);
 //        } catch (NoSuchFieldException e) {
 //            // TODO Auto-generated catch block
