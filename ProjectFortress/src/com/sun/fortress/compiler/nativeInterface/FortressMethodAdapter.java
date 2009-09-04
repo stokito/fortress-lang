@@ -65,7 +65,7 @@ public class FortressMethodAdapter extends ClassAdapter {
     private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
     private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
-    
+
     private APIName apiName;
     private Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> sizePartitionedOverloads;
     private TypeAnalyzer ta;
@@ -132,7 +132,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         Debug.debug( Debug.Type.COMPILER, 1,
                      "visit:" + name + " generate " + inputClassName);
         cv.visit(version, access, outputClassName, signature, superName, interfaces);
-        
+
         overloadedNamesAndSigs = CodeGen.generateTopLevelOverloads(apiName, sizePartitionedOverloads, ta, cw);
     }
 
@@ -145,9 +145,9 @@ public class FortressMethodAdapter extends ClassAdapter {
             Debug.debug(Debug.Type.COMPILER, 1,
                     "Don't visit Method with unsayable desc", name);
         else {
-            
+
             generateNewBody(access, desc, signature, exceptions, name, name);
- 
+
         }
 
         return new EmptyVisitor();// super.visitMethod(access, name, desc, signature, exceptions);

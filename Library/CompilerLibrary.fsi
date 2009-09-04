@@ -58,6 +58,7 @@ opr <->(a: Boolean, b:Boolean):Boolean
 __loop(g: GeneratorZZ32, body: ZZ32->()): ()
 
 trait GeneratorZZ32
+    asString(): String
     seq(self): GeneratorZZ32
     loop(body:ZZ32->()): ()
 end

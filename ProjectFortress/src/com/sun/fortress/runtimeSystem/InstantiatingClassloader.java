@@ -32,13 +32,13 @@ import com.sun.fortress.repository.ProjectProperties;
 
 /**
  * This code steals willy-nilly from the Nextgen class loader.
- * 
+ *
  * @author dr2chase
  */
 public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
 
     private final boolean log_loads = false;
-    
+
     public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
             Thread.currentThread().getContextClassLoader());
 
@@ -60,9 +60,9 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
     /**
      * Gets the bytes for a "resource". Resources can includes classfiles on the
      * classpath, which is handy.
-     * 
+     *
      * (adapted from Nextgen)
-     * 
+     *
      * @param className
      * @return
      * @throws IOException
@@ -77,12 +77,12 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         // ourselves.
         String fileName = dotToSlash(className) + ".class";
 
-        InputStream stream = new java.io.BufferedInputStream(
-                getResourceAsStream(fileName));
-
-        if (stream == null) {
+        InputStream origStream = getResourceAsStream(fileName);
+        if (origStream == null) {
             throw new IOException("Resource not found: " + fileName);
         }
+
+        InputStream stream = new java.io.BufferedInputStream(origStream);
 
         byte[] data = new byte[stream.available()];
         stream.read(data);
@@ -113,7 +113,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         // with '.', to handle differences in package specifications. eallen
         // 10/1/2002
         //name = MainWrapper.sepToDot(name);
-        
+
         /*
          * We want to actually load the class ourselves, if security allows us
          * to. This is so that the classloader associated with the class is
@@ -126,7 +126,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
             byte[] classData = null;
             try {
                 if (name.contains(Naming.ENVELOPE)) {
-                   
+
                     classData = instantiateClosure(name);
                 } else if (isExpanded(name)) {
                     String dename = Naming.deMangle(name);
@@ -192,13 +192,13 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         int env_loc = suffix.indexOf(Naming.ENVELOPE);
         String fn = suffix.substring(0,env_loc);
         String ft = suffix.substring(env_loc+1);
-        
+
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         String stem = ft.substring(0,left);
         ArrayList<String> parameters = extractStringParameters(
                 ft, left, right);
-        
+
         /*
          * Recipe:
          * need to emit class "name".
@@ -208,8 +208,8 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
          *     return api.fn(params_except_last);
          *   }
          */
-        
-        
+
+
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
@@ -223,7 +223,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         {
             fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
             fv.visitEnd();
-            
+
         }
 
         {
@@ -237,8 +237,8 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
             mv.visitMaxs(2, 0);
             mv.visitEnd();
             }
-        
-        
+
+
         {
             mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
             mv.visitCode();
@@ -253,25 +253,25 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
             String sig = arrowParamsToJVMsig(parameters);
             // What if staticClass is compiler builtin?  How do we know?
             String staticClass = api.replaceAll("[.]", "/");
-            
+
             mv = cw.visitMethod(ACC_PUBLIC, "apply", sig, null, null);
             mv.visitCode();
             for (int i = 1; i < parameters.size();i++) {
                 String param = parameters.get(i-1);
                 mv.visitVarInsn(ALOAD, i);
-                
+
             }
             mv.visitMethodInsn(INVOKESTATIC, staticClass, fn, sig);
             // ARETURN if not void...
             mv.visitInsn(ARETURN);
-            
+
             mv.visitMaxs(2, 3);
             mv.visitEnd();
         }
         cw.visitEnd();
-        
+
         return cw.toByteArray();
-        
+
     }
 
     /**
@@ -287,7 +287,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         int pbegin = leftBracket+1;
         for (int i = leftBracket+1; i <= rightBracket; i++) {
             char ch = s.charAt(i);
-            
+
             if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
                 String parameter = s.substring(pbegin,i);
                 parameters.add(parameter);
@@ -304,7 +304,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         }
         return parameters;
     }
-    
+
     private byte[] instantiateArrow(String name, ArrayList<String> parameters) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
@@ -315,7 +315,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
                 name, null, "java/lang/Object", null);
 
         String sig = arrowParamsToJVMsig(parameters);
-        
+
         {
         mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
                 sig,
@@ -332,15 +332,15 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
-        
+
         String name = Naming.mangleIdentifier(dename);
         String if_name =
             Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
-        
+
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
                 "java/lang/Object", new String[] { if_name });
 
-        
+
         {
             mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
             mv.visitCode();
@@ -350,9 +350,9 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
             mv.visitMaxs(1, 1);
             mv.visitEnd();
         }
-        
+
         String sig = arrowParamsToJVMsig(parameters);
-        
+
         {
         mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
                 sig,
@@ -370,9 +370,9 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
      */
     private String arrowParamsToJVMsig(ArrayList<String> parameters) {
         String sig = "(";
-        
+
         int l = parameters.size();
-        
+
         for (int i = 0; i < l-1; i++) {
             sig += Naming.javaDescForTaggedFortressType(parameters.get(i));
         }

@@ -112,9 +112,21 @@ public class TypeAnalyzer {
 
     public KindEnv kindEnv() { return _kindEnv; }
 
+
+    /** Support the common backend query to retrieve info about a particular trait type. */
+    public Option<TypeConsIndex> typeCons(Id name) {
+        return traitTable().typeCons(name);
+    }
+
+    public Option<TypeConsIndex> typeCons(TraitType t) {
+        return typeCons(t.getName());
+    }
+
+    /** 
+
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
-    	assertTraitIndex(OBJECT.getName());
+        assertTraitIndex(OBJECT.getName());
     }
 
     /** Verify that the given name is defined and is a TraitIndex. */
@@ -640,54 +652,54 @@ public class TypeAnalyzer {
      */
 
     private ConstraintFormula traitSubTrait(TraitType s, TraitType t, SubtypeHistory h) {
-    	ConstraintFormula result = falseFormula();
-    	if (s.getName().equals(t.getName())) {
-    		ConstraintFormula f = trueFormula();
-    		for (Pair<StaticArg, StaticArg> p : zip(s.getArgs(), t.getArgs())) {
-    			f = f.and(equiv(p.first(), p.second(), h), h);
-    			if (f.isFalse()) { break; }
-    		}
-    		result = result.or(f, h);
-    	}
-    	if (!result.isTrue()) {
-    		Option<TypeConsIndex> ind = _table.typeCons(s.getName());
-    		if(ind.isNone()){
-    			throw new IllegalArgumentException(s.getName() +" is undefined");
-    		}
-    		TraitIndex index = (TraitIndex) ind.unwrap();
-    		List<Id> hidden = index.hiddenParameters();
-    		Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
-    				s.getArgs(),
-    				hidden);
-    		for (TraitTypeWhere sup : index.extendsTypes()) {
-    			ConstraintFormula f = trueFormula();
-    			for (Pair<Type, Type> c : index.typeConstraints()) {
-    				// TODO: optimize substitution/normalization?
-    				SubtypeHistory newH = h;
-    				if (containsVariable(c.first(), hidden) ||
-    						containsVariable(c.second(), hidden)) {
-    					newH = h.expand();
-    				}
-    				Type lower = norm(subst.value(c.first()), newH);
-    				Type upper = norm(subst.value(c.second()), newH);
-    				f = f.and(sub(lower, upper, newH), h);
-    				if (f.isFalse()) { break; }
-    			}
-    			if (!f.isFalse()) {
-    				// TODO: optimize substitution/normalization?
-    				Type supT = sup.getBaseType();
-    				SubtypeHistory newH = containsVariable(supT, hidden) ? h.expand() : h;
-    				Type supInstance = norm(subst.value(supT), newH);
-    				f = f.and(sub(supInstance, t, newH), h);
-    			}
-    			result = result.or(f, h);
-    			if (result.isTrue()) { break; }
-    		}
-    		if (!s.equals(OBJECT)) {
-    			result = result.or(sub(OBJECT, t, h), h);
-    		}
-    	}
-    	return result;
+        ConstraintFormula result = falseFormula();
+        if (s.getName().equals(t.getName())) {
+            ConstraintFormula f = trueFormula();
+            for (Pair<StaticArg, StaticArg> p : zip(s.getArgs(), t.getArgs())) {
+                f = f.and(equiv(p.first(), p.second(), h), h);
+                if (f.isFalse()) { break; }
+            }
+            result = result.or(f, h);
+        }
+        if (!result.isTrue()) {
+            Option<TypeConsIndex> ind = _table.typeCons(s.getName());
+            if(ind.isNone()){
+                throw new IllegalArgumentException(s.getName() +" is undefined");
+            }
+            TraitIndex index = (TraitIndex) ind.unwrap();
+            List<Id> hidden = index.hiddenParameters();
+            Lambda<Type, Type> subst = makeSubstitution(index.staticParameters(),
+                                                        s.getArgs(),
+                                                        hidden);
+            for (TraitTypeWhere sup : index.extendsTypes()) {
+                ConstraintFormula f = trueFormula();
+                for (Pair<Type, Type> c : index.typeConstraints()) {
+                    // TODO: optimize substitution/normalization?
+                    SubtypeHistory newH = h;
+                    if (containsVariable(c.first(), hidden) ||
+                        containsVariable(c.second(), hidden)) {
+                        newH = h.expand();
+                    }
+                    Type lower = norm(subst.value(c.first()), newH);
+                    Type upper = norm(subst.value(c.second()), newH);
+                    f = f.and(sub(lower, upper, newH), h);
+                    if (f.isFalse()) { break; }
+                }
+                if (!f.isFalse()) {
+                    // TODO: optimize substitution/normalization?
+                    Type supT = sup.getBaseType();
+                    SubtypeHistory newH = containsVariable(supT, hidden) ? h.expand() : h;
+                    Type supInstance = norm(subst.value(supT), newH);
+                    f = f.and(sub(supInstance, t, newH), h);
+                }
+                result = result.or(f, h);
+                if (result.isTrue()) { break; }
+            }
+            if (!s.equals(OBJECT)) {
+                result = result.or(sub(OBJECT, t, h), h);
+            }
+        }
+        return result;
     }
 
     private ConstraintFormula arrowSubArrow(ArrowType s, ArrowType t, SubtypeHistory h) {
@@ -823,9 +835,9 @@ public class TypeAnalyzer {
      * <pre>
      * S \notin {Any, Bottom}
      * \forall i, \Gamma \turnstile S <: Ti
-	 * ------------------ [?-\and]
-	 * \Gamma \turnstile S <: \and{T1..Tn}
-	 * </pre>
+     * ------------------ [?-\and]
+     * \Gamma \turnstile S <: \and{T1..Tn}
+     * </pre>
      */
     private ConstraintFormula subIntersection(Type s, IntersectionType t, SubtypeHistory h) {
         ConstraintFormula f = trueFormula();
@@ -836,15 +848,15 @@ public class TypeAnalyzer {
         return f;
     }
 
-	/**
-	 * <pre>
-	 * S \notin {Any, Bottom}
+    /**
+     * <pre>
+     * S \notin {Any, Bottom}
      * {T'1..T'm} = expand_and(\and{T1..Tn})
      * \exists i, \Gamma \turnstile T'i <: S
      * ------------------------------------- [\and-?]
      * \Gamma \turnstile \and{T1..Tn} <: S
      * </pre>
-	 */
+     */
     private ConstraintFormula intersectionSub(IntersectionType s, Type t, SubtypeHistory h) {
         ConstraintFormula result = falseFormula();
         for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
@@ -875,14 +887,14 @@ public class TypeAnalyzer {
         return result;
     }
 
-	/**
-	 * <pre>
-	 * S \notin {Any, Bottom}
+    /**
+     * <pre>
+     * S \notin {Any, Bottom}
      * \forall i, \Gamma \turnstile Ti <: S
      * -------------------------- [\or-?]
      * \Gamma \turnstile \or{T1..Tn} <: S
      * </pre>
-	 */
+     */
     private ConstraintFormula unionSub(UnionType s, Type t, SubtypeHistory h) {
         ConstraintFormula f = trueFormula();
         for (Type elt : s.getElements()) {
@@ -972,7 +984,7 @@ public class TypeAnalyzer {
      * </pre>
      */
     private ConstraintFormula unionSubUnion(UnionType s, UnionType t, SubtypeHistory h) {
-    	ConstraintFormula result = trueFormula();
+        ConstraintFormula result = trueFormula();
         for (Type sElt : s.getElements()) {
             ConstraintFormula r = falseFormula();
             for (Pair<Type, ConstraintFormula> tElt : expandUnion(t, h)) {
