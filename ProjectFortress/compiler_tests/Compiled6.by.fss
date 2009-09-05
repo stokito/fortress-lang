@@ -15,35 +15,35 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component TransactionalArrayShakedown
 export Executable
 
-job1(a:Array[\ZZ32,ZZ32\]):() = atomic do
-    for i <- seq(1#999) do
-        a[1000-i] -= a[999-i]
-    end
-    for i <- seq(0#999) do
-        a[i+1] := 2 a[i+1] + a[i]
-    end
-  end
-
-job2(a:Array[\ZZ32,ZZ32\]):() = do
-    body(i:ZZ32,v:ZZ32):ZZ32 =
-        if v=i then
-            1
-        elif v = 2 i then
-            0
-        else
-            fail(i " !!! " v)
-        end
-    pre = SUM [(i,v)<-a.indexValuePairs] body(i,v)
-    println(pre " pre and " (1000-pre) " post")
-  end
-
-run():() = do
-    a = toArray(0#1000)
-    (job2(a),job1(a),job2(a))
-    ()
+trait T
+  getter z(): ZZ32 = 0
 end
 
+object O(x:ZZ32) extends T
+  getter y(): String = "y"
+  m() = do
+(*  printlnZZ32 z               (* 27 No *)
+    printlnZZ32 z()             (* 28 No *) *)
+    printlnZZ32 self.z          (* 29 Ok *)
+    printlnZZ32 self.z()        (* 30 No *)
+
+    printlnZZ32 x               (* 32 Ok *)
+    printlnZZ32 self.x          (* 33 Ok *)
+
+(*  println y                   (* 35 No *)
+    println y()                 (* 36 No *) *)
+    println self.y              (* 37 Ok *)
+    println self.y()            (* 38 No *)
+  end
+end
+
+run(): () = do
+  o = O(3)
+  printlnZZ32 o.x               (* 44 Ok *)
+  printlnZZ32 o.z               (* 45 Ok *)
+  printlnZZ32 o.z()             (* 46 No *)
+  println o.y                   (* 47 Ok *)
+  println o.y()                 (* 48 No *)
 end

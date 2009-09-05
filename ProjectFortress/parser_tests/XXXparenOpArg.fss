@@ -19,7 +19,7 @@ component XXXparenOpArg
 export Executable
 
 object O[\opr OPLUS\]
-  asString() = "O"
+  getter asString() = "O"
 end
 
 run() = println O[\(+)\]

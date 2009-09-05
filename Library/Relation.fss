@@ -133,7 +133,7 @@ relation[\T\](domain: Set[\T\], f: T -> Set[\T\]): Relation[\T\] =
   Relation[\T\] {[\T,Set[\T\]\] key |-> f(key) | key <- domain }
 
 relation[\T\](rel: Map[\T,Set[\T\]\]): Relation[\T\] =
-  Relation[\T\] {[\T,Set[\T\]\] key |-> vals | (key, vals) <- rel, NOT vals.isEmpty() }
+  Relation[\T\] {[\T,Set[\T\]\] key |-> vals | (key, vals) <- rel, NOT vals.isEmpty }
 
 relation[\T\](pairs: Generator[\(T,T)\]): Relation[\T\] =
   BIG RELATION[\T\][p <- pairs] p
@@ -157,7 +157,7 @@ end
 (* Helpers *)
 
 transitiveLoop[\T\](accum:Map[\T,Set[\T\]\], working:Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
-  if working.isEmpty() then accum else
+  if working.isEmpty then accum else
     generated = relationCompose[\T\](working, accum)
     newAccum = relationUnion[\T\](accum, generated)
     newWorking = relationDifference[\T\](newAccum, accum)
@@ -171,7 +171,7 @@ relationCompose[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[\T\]\
   {[\T,Set[\T\]\] key |-> vals
    | (key, valuesA) <- a,
      vals <- Just(BIG UNION[\T\][x <- valuesA] relationImage[\T\](b, x)),
-     NOT vals.isEmpty()}
+     NOT vals.isEmpty}
 
 relationImage[\T\](a:Map[\T,Set[\T\]\], x:T): Map[\T,Set[\T\]\] =
   a.member(x, set[\T\]())
@@ -181,14 +181,14 @@ relationDifference[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]):Map[\T,Set[\T\
    | (key, valsA) <- a,
      valsB <- Just(b.member(key, set[\T\]())),
      vals <- Just(valsA DIFFERENCE valsB),
-     NOT vals.isEmpty()}
+     NOT vals.isEmpty}
 
 relationIntersection[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[\T\]\] =
   {[\T,Set[\T\]\] key |-> vals
    | (key, valsA) <- a,
      valsB <- Just(b.member(key, set[\T\]())),
      vals <- Just(valsA INTERSECTION valsB),
-     NOT vals.isEmpty()}
+     NOT vals.isEmpty}
 
 (* Tests *)
 

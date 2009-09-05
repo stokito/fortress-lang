@@ -21,17 +21,17 @@ export Executable
 
 assertStr[\T\](a:ZZ32, b:ZZ32, s:String, l: List[\T\]) =
   if a=/=b then
-    fail(a "=/=" b ": " s l.asString())
+    fail(a "=/=" b ": " s l.asString)
   end
 
 assertStr[\T\](a:Boolean, s:String, l: List[\T\]) =
   if NOT a then
-    fail("Failed assertion: " s l.asString())
+    fail("Failed assertion: " s l.asString)
   end
 
 assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
   if NOT a then
-    fail("Failed assertion: " s l.asString() " and " r.asString())
+    fail("Failed assertion: " s l.asString " and " r.asString)
   end
 
 chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
@@ -63,20 +63,20 @@ chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPopZ(l,0,sz,1)
 chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
   ll : List[\ZZ32\] := l
   for i <- seq(0#sz) do
-      (e,ll0) = ll.extractLeft().get()
+      (e,ll0) = ll.extractLeft.get
       assertStr(e,i,"extractLeft wrong in ",ll)
-      assertStr(ll.left().get(),i,"left wrong in ",ll)
+      assertStr(ll.left.get,i,"left wrong in ",ll)
       ll := ll0
   end
-  assertStr(ll.isEmpty()," not empty after extractLeft(); it's ",ll)
+  assertStr(ll.isEmpty," not empty after extractLeft; it's ",ll)
   ll := l
   for i <- seq(1#sz) do
-      (ll0,e) = ll.extractRight().get()
+      (ll0,e) = ll.extractRight.get
       assertStr(e,sz-i,"extractRight wrong in ",ll)
-      assertStr(ll.right().get(),sz-i,"right wrong in ",ll)
+      assertStr(ll.right.get,sz-i,"right wrong in ",ll)
       ll := ll0
   end
-  assertStr(ll.isEmpty()," not empty after extractRight(); it's ",ll)
+  assertStr(ll.isEmpty," not empty after extractRight; it's ",ll)
 end
 
 run():() = do
@@ -124,7 +124,7 @@ run():() = do
       ivli = li.ivmap[\ZZ32\](fn (x,y) => x+y)
       chkPop(ivli,0,i,2)
       print(".")
-      rli=li.reverse()
+      rli=li.reverse
       for j <- 0#i do
           print(".")
           assertStr(li[j],j,"indexing wrong for ",li)

@@ -46,7 +46,7 @@ object ClassTable(defs: Map[\String, Class\])
     fields_v: List[\Decl\] = fields(v.tag)
 
     label find
-      for i <- fields_v.indices() do
+      for i <- fields_v.indices do
         if n = fields_v[i].name then
           exit find with v.args[i]
         end
@@ -89,45 +89,45 @@ end
 
 (* Exprs *)
 trait Expr
+  getter asString(): String
   isVal(): Boolean = false
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr
     ensures { outcome.isVal() }
-  asString(): String
 end
 
 object Var(x: String) extends Expr
+  getter asString(): String = x
   opr =(self, other: Var) = (x = other.x)
-  asString(): String = x
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = theta[x]
 end
 
 object New(tag: Type, args: List[\Expr\]) extends Expr
+  getter asString() = "new " tag.asString <|[\String\] a.asString | a <- args|>
+
   isVal() = BIG AND[arg <- args] arg.isVal()
 
   opr =(self, other: New) =
-    (tag = other.tag) AND (BIG AND[i <- args.indices()] args[i] = other.args[i])
-
-  asString() = "new " tag.asString() <|[\String\] a.asString() | a <- args|>
+    (tag = other.tag) AND (BIG AND[i <- args.indices] args[i] = other.args[i])
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
     New(tag, <|[\Expr\] arg.eval(CT_, theta) | arg <- args |>)
 end
 
 object Proj(receiver: Expr, field: String) extends Expr
+  getter asString() = (receiver.asString "." field)
+
   opr =(self, other: Proj) =
     (receiver = other.receiver) AND (field = other.field)
-
-  asString() = (receiver.asString() "." field)
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
     CT_.field(cast[\New\](receiver.eval(CT_, theta)), field)
 end
 
 object Invk(receiver: Expr, m_name: String, args: List[\Expr\]) extends Expr
+  getter asString() = (receiver.asString "." m_name args)
+
   opr =(self, other: Invk) =
     (receiver = other.receiver) AND (m_name = other.m_name) AND (args = other.args)
-
-  asString() = (receiver.asString "." m_name args)
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     rec_v = cast[\New\](receiver.eval(CT_, theta))
@@ -141,9 +141,9 @@ object Invk(receiver: Expr, m_name: String, args: List[\Expr\]) extends Expr
 end
 
 object Cast(typ: Type, term: Expr) extends Expr
-  opr =(self, other: Cast) = (typ = other.typ) AND (term = other.term)
+  getter asString() = ("(" typ.asString ")" term.asString)
 
-  asString() = ("(" typ.asString() ")" term.asString())
+  opr =(self, other: Cast) = (typ = other.typ) AND (term = other.term)
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     cast_v = cast[\New\](term.eval(CT_, theta))
@@ -155,14 +155,14 @@ end
 
 (* Types *)
 object Type(name: String)
-  asString() = name
+  getter asString() = name
   opr =(self, other:Type) = (name = other.name)
 end
 
 
 (* Syntactic Subcomponents *)
 object Decl(typ: Type, name: String)
-  asString() = typ " " name ";"
+  getter asString() = typ " " name ";"
 end
 object Cons(tag: Type, params: List[\Decl\],
             super: List[\Var\], this: List[\Init\])

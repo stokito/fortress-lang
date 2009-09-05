@@ -20,7 +20,7 @@ component whileTest
 export Executable
 
 neqOrMaybe(a: ReadableArray[\ZZ32,ZZ32\], i:ZZ32): Maybe[\(ZZ32,ZZ32)\] =
-    if i NOTIN a.bounds() OR: a[i] =/= i+7 then
+    if i NOTIN a.bounds OR: a[i] =/= i+7 then
         Nothing[\(ZZ32,ZZ32)\]
     else
         Just[\(ZZ32,ZZ32)\](a[i],i+7)

@@ -18,20 +18,12 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:27:17:\n\
-\ Getter z must be called with the field reference syntax.\n\
+\ Variable z is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:28:17:\n\
-\ Getter z must be called with the field reference syntax.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:30:17-23:\n\
-\ No such method O.z.\n\
+\ Variable z is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:35:13:\n\
-\ Variable 'y' not found.\n\
+\ Variable y is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:36:13:\n\
-\ Variable 'y' not found.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:38:13-19:\n\
-\ No such method O.y.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:46:15-18:\n\
-\ No such method O.z.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:48:11-14:\n\
-\ No such method O.y.\n\
-File Compiled6.z.fss has 8 errors.\n
+\ Variable y is not defined.\n\
+File Compiled6.z.fss has 4 errors.\n
 compile_out_equals=

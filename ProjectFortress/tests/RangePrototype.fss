@@ -322,7 +322,7 @@ run():() =
         rr = pairOpen.every(r.stride).truncL(l1,l2).truncR(r1,r2)
         assert(dumpShow(r),dumpShow(rr))
     end
-    for r <- pairFulls, (i1,i2) <- r.bounds() do
+    for r <- pairFulls, (i1,i2) <- r.bounds do
         assert(r[i1,i2] IN r, true, r,"[",i1,",",i2,"] = ",r[i1,i2]," not in")
     end
 
@@ -454,13 +454,13 @@ run():() =
         assert(t,t, "Reflexivity of equality, ",t)
     end
     print("\nunlike ne")
-    for (i,rs) <- testScalarRangess.indexValuePairs(), ss <- testScalarRangess[0#i], r <- rs, s <- ss do
+    for (i,rs) <- testScalarRangess.indexValuePairs, ss <- testScalarRangess[0#i], r <- rs, s <- ss do
         assert(r=s, false, r, "=", s)
         assert(s=r, false, s, "=", r)
         assert(s.toString=r.toString,false, s, " ", r, " toString equals.")
     end
     print("\ncommutativity of equality")
-    for rs <- testScalarRangess, (i,t) <- rs.indexValuePairs(), u <- rs[#i] do
+    for rs <- testScalarRangess, (i,t) <- rs.indexValuePairs, u <- rs[#i] do
         eq = (t=u)
         if eq =/= (u=t) then
             fail("Commutativity of equality:\n" dumpShow(t) "\n" dumpShow(u))
@@ -501,7 +501,7 @@ run():() =
     end
     print("\nempty indexed")
     compactScalarRanges = <| c | r <- fullScalarRanges,
-                        c <- if r.stride()=1 then <|r,r.bounds()|> else <|r.bounds()|> end |>
+                        c <- if r.stride=1 then <|r,r.bounds|> else <|r.bounds|> end |>
     for i <- compactScalarRanges, i.isEmpty, j <- testScalarRanges do
         s = i.narrowToRange(j)
         assert(s.isEmpty, true, "nonEmpty ",i,".narrowToRange(",j,") = ",s)

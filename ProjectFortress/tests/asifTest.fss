@@ -37,7 +37,7 @@ trait Foo extends { Quux, Equality[\Foo\] }
 end
 
 object Bar extends Foo
-    asString(): String = "Bar"
+    getter asString(): String = "Bar"
     passFoo(): Boolean = false
     passBar(): Boolean = true
     passQuux(): Boolean = false
@@ -45,7 +45,7 @@ object Bar extends Foo
 end
 
 object Baz extends Foo
-    asString(): String = "Baz"
+    getter asString(): String = "Baz"
     passFoo(): Boolean = false
     passQuux(): Boolean = false
     opr =(self, x:Baz): Boolean = true

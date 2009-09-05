@@ -274,16 +274,16 @@ end
     Parameterized by branching factor k. *)
 trait Tree[\ E, nat k \]
     comprises { Node[\E,k\], Leaf[\E,k\] }
-  asString():String
+  getter asString():String
   map[\F\](f:E->F):Tree[\F,k\]
 end
 
 object Node[\ E, nat k \](val : E, children : Tree[\E,k\][k])
            extends { Tree[\E,k\] }
-  asString():String = do
-    s : String := "(" val.asString() ";" children[0].asString()
+  getter asString():String = do
+    s : String := "(" val.asString ";" children[0].asString
     for i <- seq(1#k-1) do
-      s := s "|" children[i].asString()
+      s := s "|" children[i].asString
     end
     (s ")")
   end
@@ -304,14 +304,14 @@ end
 
 object Leaf[\ E, nat k \]() extends { Tree[\E,k\] }
     (* where { E, nat k } singleton only *)
-    asString():String = "."
+    getter asString():String = "."
     map[\F\](f:E->F):Leaf[\F,k\] = Leaf[\F,k\]()
 end
 
 (** And Leaf trees, which are used to represent the uncompressed function *)
 trait LeafTree[\ E, nat k \]
   comprises { LNode[\E,k\], LLeaf[\E,k\]}
-    asString():String
+    getter asString():String
     mapReduce[\R\](join : (R,R)->R, f : E->R) : R
     mapReduce2[\R,S\](join : (R,S,R,S)->(R,S), f : E->(R,S)) : (R,S)
     map[\F\](f:E -> F) : LeafTree[\F,k\]
@@ -319,10 +319,10 @@ end
 
 object LNode[\ E, nat k \](children : LeafTree[\E,k\][k])
     extends { LeafTree[\E,k\] }
-  asString():String = do
-    s : String := "(" children[0].asString()
+  getter asString():String = do
+    s : String := "(" children[0].asString
     for i <- seq(1#k-1) do
-      s := s "|" children[i].asString()
+      s := s "|" children[i].asString
     end
     (s ")")
   end
@@ -367,7 +367,7 @@ end
 
 object LLeaf[\ E, nat k \](val : E)
     extends { LeafTree[\E,k\] }
-  asString():String = val.asString()
+  getter asString():String = val.asString
   mapReduce[\R\](join : (R,R)->R, f: E->R) : R = f(val)
   mapReduce2[\R,S\](join : (R,S,R,S)->(R,S), f : E->(R,S)) : (R,S) = f(val)
   map[\F\](f:E -> F) : LLeaf[\F,k\] = LLeaf[\F,k\](f(val))
@@ -413,12 +413,12 @@ object Function[\nat k\]
   s : LeafTree[\RR64[k],2\] := s_
   d : Tree[\RR64[k],2\] := d_
 
-  asString():String =
+  getter asString():String =
     ("thresh = " thresh //
      "initial_level = " initial_level //
      "compressed = " compressed //
-     "s = " s.asString() //
-     "d = " d.asString())
+     "s = " s.asString //
+     "d = " d.asString)
 
   copy():Function[\k\] =
     Function[\k\](thresh, initial_level, max_level, compressed, s, d, c)
@@ -726,32 +726,32 @@ testMe():() = do
   f_test(x:RR64):RR64 = 1.0 / (1.0 + x)
   f : Function[\ 3 \] = function[\ 3 \](0.01,f_test,0,20)
   println("f is computed")
-  println(f.c.hg.asString())
-  println(f.c.hgT.asString())
-  println(f.c.quad_x.asString())
-  println(f.c.quad_w.asString())
-  println(f.c.quad_phiT.asString())
-  println(f.c.quad_phi.asString())
-  println(f.c.quad_phiWT.asString())
-  println(f.c.r0.asString())
-  println(f.c.rm.asString())
-  println(f.c.rp.asString())
+  println(f.c.hg.asString)
+  println(f.c.hgT.asString)
+  println(f.c.quad_x.asString)
+  println(f.c.quad_w.asString)
+  println(f.c.quad_phiT.asString)
+  println(f.c.quad_phi.asString)
+  println(f.c.quad_phiWT.asString)
+  println(f.c.r0.asString)
+  println(f.c.rm.asString)
+  println(f.c.rp.asString)
   f.reconstruct()
-  println(f.copy().asString())
+  println(f.copy().asString)
   rt2 = SQRT 2.0
   ftv = f_test(rt2-1)
   println(f.apply(rt2-1) " ~" // ftv " =" // (1.0/rt2))
   println( ||f|| ) (* Should also match the above. *)
   f.compress()
-  println(f.asString())
+  println(f.asString)
   f.reconstruct()
-  println(f.asString())
+  println(f.asString)
   println(f.apply(rt2-1) " ~" // ftv)
   g_test(x:RR64):RR64 = 2^(-x)
   g : Function[\3\] = function[\3\](0.00001,g_test,0,20)
   gtv = g_test(rt2-1)
   println("Here is G")
-  println(g.asString())
+  println(g.asString)
   println(g.apply(rt2-1) " ~" // gtv)
   println( ||g|| )
   println("f^2")

@@ -180,7 +180,7 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
 
   getter child():ChildType
   getter size():ZZ32 = |self.child|
-  getter height():ZZ32 = self.child.height() + 1
+  getter height():ZZ32 = self.child.height + 1
   getter asString():String = "{ [], [" self.child.asString "] }"
 
   opr |self| : ZZ32 = |self.child|
@@ -188,7 +188,7 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
   search(k:Key):Maybe[\Val\] = self.child.search(k)
 
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
-    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - height())
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - self.height)
     (newNode, newKey) = tail.add_helper(leaf, level)
     newNode
   end
@@ -207,7 +207,9 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
 
   getter size():ZZ32 = |self|
 
-  getter height():ZZ32 = self.children[0].height() + 1
+  getter height():ZZ32 = self.children[0].height + 1
+
+  getter asString():String = "{" self.keys.asString ", " self.children.asString "}"
 
   opr |self| : ZZ32 = SUM [node <- self.children] |node|
 
@@ -228,10 +230,8 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     self.children[index].search(k)
   end
 
-  asString():String = "{" self.keys.asString() ", " self.children.asString() "}"
-
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
-    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - height())
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - self.height)
     (newNode, newKey) = tail.add_helper(leaf, level)
     newNode
   end
@@ -271,7 +271,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     smaller:Node[\Key,Val\] = self.children[0]
     keys':Array[\Key,ZZ32\] = self.keys[0 # (|self.keys| - 1)]
     children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|self.keys| - 2)
-    for i <- children'.indices() do
+    for i <- children'.indices do
       children'[i] := generate_tail[\Key,Val\](self.children[i + 1], 1)
     end
     rkeys:Array[\Key,ZZ32\] = array[\Key\](1)
@@ -303,7 +303,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     (* make the center child *)
     keys':Array[\Key,ZZ32\] = self.keys[lsize # quantity]
     children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity - 1)
-    for i <- children'.indices() do
+    for i <- children'.indices do
       children'[i] := generate_tail[\Key,Val\](self.children[i + lsize + 1], 1)
     end
     (left, right, keys', children')
@@ -415,7 +415,7 @@ object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\])
 
   add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
     (child':Node[\Key,Val\], newKey:Boolean) = child.add_helper(leaf,level)
-    if level < height() OR newKey = false then
+    if level < self.height OR newKey = false then
       (WhiteLevelN[\Key,Val\](child'), newKey)
     else
       (split(0, 1, child'), newKey)
@@ -545,7 +545,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
   add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\],Boolean) = do
     index:ZZ32 = find_index(leaf.getKey())
     (child':Node[\Key,Val\], newKey:Boolean) = children[index].add_helper(leaf, level)
-    if level < height() OR newKey = false then
+    if level < self.height OR newKey = false then
       children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
       children'[0 # |children|] := children[#]
       children'[index] := child'
@@ -623,8 +623,8 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
     end
     keys':Array[\Key,ZZ32\] = keys.copy()
     children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
-    for index <- children.indices() do
-      if destinations[index].isEmpty() then
+    for index <- children.indices do
+      if destinations[index].isEmpty then
         children'[index] := children[index]
       else
         children'[index] := children[index].merge(destinations[index])
@@ -656,7 +656,7 @@ object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
 
   (* helper function for heightn_merge on InternalNodes *)
   merge_destination_insert(node:InternalNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
-    for index <- node.children.indices() do
+    for index <- node.children.indices do
       merge_destination_insert_helper(node, index, destinations)
     end
   end
@@ -755,9 +755,9 @@ object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\])
 
   getter size():ZZ32 = |values|
   getter asString():String = "<<" key ">>"
+  getter height():ZZ32 = 0
   getKey():Key = key
   getValues():Array[\Val,ZZ32\] = values
-  height():ZZ32 = 0
 
   opr |self| : ZZ32 = |values|
 

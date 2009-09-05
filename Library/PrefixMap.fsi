@@ -40,11 +40,11 @@ import CovariantCollection.{...}
 trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],
         V\]
     extends { Generator[\(F, V)\], Equality[\PrefixMap[\E, F, V\]\] }
+    getter isEmpty(): Boolean
+    abstract getter size(): ZZ32
     abstract content(): Maybe[\V\]
     abstract children(): Map[\E, PrefixMap[\E, F, V\]\]
     isMember(): Boolean
-    isEmpty(): Boolean
-    abstract size(): ZZ32
     opr | self |: ZZ32
     asString(): String
     prefixGenerate[\R\](prefix: F, r: Reduction[\R\], body: (F, V) -> R): R
@@ -90,9 +90,9 @@ object fastPrefixMap[\E extends StandardTotalOrder[\E\],
         V\](v: Maybe[\V\], c: Map[\E, PrefixMap[\E, F, V\]\])
     extends PrefixMap[\E, F, V\]
     fixedsize: ZZ32
+    getter size(): ZZ32
     content(): Maybe[\V\]
     children(): Map[\E, PrefixMap[\E, F, V\]\]
-    size(): ZZ32
 end
 
 prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],

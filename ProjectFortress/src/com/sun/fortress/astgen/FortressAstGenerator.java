@@ -353,7 +353,7 @@ public class FortressAstGenerator extends CodeGenerator {
             } else {
                 String asString;
                 if (isApi) {
-                    asString = "asString():String";
+                    asString = "getter asString():String";
                 } else {
                     asString = sub("asString():String = \"@name\"", "@name", c.name());
                 }

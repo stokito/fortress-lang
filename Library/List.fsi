@@ -81,6 +81,7 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
   getter right():Maybe[\E\]
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
+  getter reverse(): List[\E\]
   (** the operator %||% returns a list containing the elements of %self% followed
       by the elements of %f% *)
   opr ||(self, other:List[\E\]): List[\E\]
@@ -101,7 +102,6 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
   (** %split% splits the list into two smaller lists.  If %|l| > 1%
       both lists will be non-empty. *)
   split(): (List[\E\], List[\E\])
-  reverse(): List[\E\]
   zip[\F\](other: List[\F\]): Generator[\(E,F)\]
   filter(p: E -> Boolean): List[\E\]
   (** %concatMap% is an in-place version of the %nest% method from

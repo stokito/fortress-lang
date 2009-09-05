@@ -64,7 +64,7 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
             Just[\(K,V)\](k,v)
         else
             Nothing[\(K,V)\]
-        end    
+        end
     (** Check the invariants on the heap. **)
     check(): Heap[\K,V\]
     (** Given an instance of Heap[\K,V\], generate a singleton Heap[\K,V\] **)
@@ -86,14 +86,14 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
         parallelism. **)
     generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = do
         go(n:ZZ32, h: Heap[\K,V\]): R =
-            if h.isEmpty() then
-                r.empty()
+            if h.isEmpty then
+                r.empty
             else
                 kvs = array[\(K,V)\](n)
                 hh : Heap[\K,V\] := h
                 i : ZZ32 := 0
-                while NOT hh.isEmpty() AND i < n do
-                    (k,v,hhh) = hh.extractMinimum().get()
+                while NOT hh.isEmpty AND i < n do
+                    (k,v,hhh) = hh.extractMinimum().get
                     kvs.init(i,(k,v))
                     i += 1
                     hh := hhh
@@ -107,7 +107,7 @@ end
 object HeapMerge[\K,V\](boiler: Heap[\K,V\])
         extends CommutativeMonoidReduction[\Heap[\K,V\]\]
     getter asString():String = "Heap merge reduction"
-    empty(): Heap[\K,V\] = boiler.empty()
+    getter empty(): Heap[\K,V\] = boiler.empty
     join(a:Heap[\K,V\], b:Heap[\K,V\]): Heap[\K,V\] = a.merge(b)
 end
 
@@ -118,7 +118,7 @@ trait Pairing[\K,V\] extends Heap[\K,V\]
     getter empty(): Pairing[\K,V\] = EmptyP[\K,V\]
     getter asDebugString(): String
     singleton(k:K, v:V): Pairing[\K,V\] = do
-        e = empty()
+        e = self.empty
         NodeP[\K,V\](k,v,e,e)
       end
     (* emk merges a node and all its siblings. *)
@@ -140,7 +140,7 @@ object EmptyP[\K,V\] extends Pairing[\K,V\]
     extractMinimum(): Nothing[\(K,V,Pairing[\K,V\])\] = Nothing[\(K,V,Pairing[\K,V\])\]
     emk(e: EmptyP[\K,V\]): Pairing[\K,V\] = self
     ems(_: EmptyP[\K,V\], leftSib: NodeP[\K,V\]): NodeP[\K,V\] = leftSib
-    generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
+    generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty
 end
 
 object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
@@ -149,7 +149,7 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
     getter asDebugString():String = "N(" k "," v "," sibs.asDebugString "," kids.asDebugString ")"
     check():Heap[\K,V\] = do
-        if NOT sibs.isEmpty() then
+        if NOT sibs.isEmpty then
             println( //"FAIL: Non-empty sibs in:" // self.asDebugString// )
             fail("dying")
         end
@@ -163,7 +163,7 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
     merge(_:Pairing[\K,V\]): Pairing[\K,V\] =
         fail("Pairing but not NodeP/EmptyP")
     merge(_:EmptyP[\K,V\]): Pairing[\K,V\] = self
-    merge(h:NodeP[\K,V\]): Pairing[\K,V\] = merge(empty(),h)
+    merge(h:NodeP[\K,V\]): Pairing[\K,V\] = merge(self.empty,h)
     merge(e:EmptyP[\K,V\], _:EmptyP[\K,V\]): Pairing[\K,V\] = self
     merge(e:EmptyP[\K,V\], h:NodeP[\K,V\]): Pairing[\K,V\] =
         if h.k <= k then
@@ -173,19 +173,19 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
         end
     insert(k':K, v':V): Pairing[\K,V\] =
         if k' <= k then (* ' *)
-            NodeP[\K,V\](k',v',empty(),self)
+            NodeP[\K,V\](k',v',self.empty,self)
         else
-            e = empty()
+            e = self.empty
             NodeP[\K,V\](k,v,e,NodeP[\K,V\](k',v',kids,e))
         end
     extractMinimum(): Just[\(K,V,Pairing[\K,V\])\] =
-        Just[\(K,V,Pairing[\K,V\])\](k,v,kids.emk(empty()))
+        Just[\(K,V,Pairing[\K,V\])\](k,v,kids.emk(self.empty))
 (*
     emk(e: EmptyP[\K,V\]): Pairing[\K,V\] = do
         res : Pairing[\K,V\] = e
         todo : Pairing[\K,V\] := self
-        while NOT todo.isEmpty() do
-            (m,td) = if todo.sibs.isEmpty() then
+        while NOT todo.isEmpty do
+            (m,td) = if todo.sibs.isEmpty then
                          (todo,e)
                      else
                          (todo.merge(e,todo.sibs),todo.sibs.sibs)
@@ -222,7 +222,7 @@ trait LazyPairing[\K,V\] extends Heap[\K,V\]
     getter empty(): LazyPairing[\K,V\] = EmptyLP[\K,V\]
     getter asDebugString(): String
     singleton(k:K, v:V): LazyPairing[\K,V\] = do
-        e = empty()
+        e = self.empty
         NodeLP[\K,V\](k,v,e,e)
       end
     (** link the min over the max, with the current node pending. **)
@@ -241,7 +241,7 @@ object EmptyLP[\K,V\] extends LazyPairing[\K,V\]
     extractMinimum(): Nothing[\(K,V,LazyPairing[\K,V\])\] = Nothing[\(K,V,LazyPairing[\K,V\])\]
     plink(e:EmptyLP[\K,V\],mn:NodeLP[\K,V\],mx:NodeLP[\K,V\]):NodeLP[\K,V\] =
         NodeLP[\K,V\](mn.k,mn.v,mx,mn.kids)
-    generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty()
+    generate[\R\](r: Reduction[\R\], body: (K,V)->R): R = r.empty
 end
 
 object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K,V\])
@@ -260,7 +260,7 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
     merge(_:LazyPairing[\K,V\]): LazyPairing[\K,V\] =
         fail("LazyPairing but not NodeLP/EmptyLP")
     merge(_:EmptyLP[\K,V\]): LazyPairing[\K,V\] = self
-    merge(h:NodeLP[\K,V\]): LazyPairing[\K,V\] = merge(empty(),h)
+    merge(h:NodeLP[\K,V\]): LazyPairing[\K,V\] = merge(self.empty,h)
     merge(e:EmptyLP[\K,V\], _:EmptyLP[\K,V\]): LazyPairing[\K,V\] = self
     merge(e:EmptyLP[\K,V\], h:NodeLP[\K,V\]): LazyPairing[\K,V\] =
         if h.k <= k then
@@ -270,9 +270,9 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
         end
     insert(k':K, v':V): LazyPairing[\K,V\] =
         if k' <= k then (* ' *)
-            NodeLP[\K,V\](k',v',self,empty())
+            NodeLP[\K,V\](k',v',self,self.empty)
         else
-            e = empty()
+            e = self.empty
             link(e,NodeLP[\K,V\](k',v',e,e))
         end
     extractMinimum(): Just[\(K,V,LazyPairing[\K,V\])\] =

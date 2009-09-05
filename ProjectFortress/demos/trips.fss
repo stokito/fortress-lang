@@ -55,9 +55,9 @@ tAssert  (dat:Boolean):Boolean = trueDat(assert dat)
 
 object trip (a:ZZ32, b:ZZ32, c:ZZ32)
     extends StandardTotalOrder[\trip\]
+    getter asString():String = "[trip " a " " b  " " c "]"
     opr CMP(self, other:trip):TotalComparison =
         (a CMP other.a) LEXICO (b CMP other.b) LEXICO (c CMP other.c)
-    asString():String = "[trip " a " " b  " " c "]"
 end trip
 
 (* When I did this exercise, using an object was a much faster way to
@@ -102,8 +102,8 @@ max value as the argument, and the generator function. *)
 
 object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
     extends StandardTotalOrder[\trip\]
+    getter asString():String = "[generator " doc " max: " max "]"
     opr CMP(self, other:generator):TotalComparison = doc CMP other.doc
-    asString():String = "[generator " doc " max: " max "]"
 end generator
 
 generators = <|

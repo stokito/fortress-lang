@@ -159,10 +159,10 @@ trait ScalarRange[\I extends Integral[\I\]\] extends { Range[\I\] }
     intersectWithExtent(e:ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     check(): ScalarRange[\I\] = do
         str = self.stride
-        if str = 0 then fail(self.asDebugString() ": Zero stride") end
+        if str = 0 then fail(self.asDebugString ": Zero stride") end
         for l <- self.left, r <- self.right do
             if (l-r) MOD str =/= 0 AND NOT self.isEmpty then
-                fail(self.asDebugString() ": Bounds don't match stride.")
+                fail(self.asDebugString ": Bounds don't match stride.")
             end
         end
         self
@@ -798,7 +798,7 @@ trait FullScalarRange[\I extends Integral[\I\]\]
         extends { ScalarRangeWithLeft[\I\], ScalarRangeWithRight[\I\],
                   ScalarRangeWithExtent[\I\], FullRange[\I\] }
     getter extent(): Just[\I\] = Just[\I\](self.size)
-    getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,size()-1)
+    getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,self.size-1)
     getter asString(): String =
         if self.isEmpty then
             "[]"

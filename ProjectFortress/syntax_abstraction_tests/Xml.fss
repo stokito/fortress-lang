@@ -23,11 +23,13 @@ component Xml
   export Xml
 
   trait Content
+    getter asString():String
     hasElements():Boolean = false
-    asString():String
   end
 
   object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
+    getter asString():String = toXml()
+
     toXml():String =
       do
         if info.startTag =/= endTag then
@@ -37,19 +39,17 @@ component Xml
         for x <- seq(content_) do
           s := s (typecase x of
                    Element => // x.toXml()
-                   else => x.asString()
+                   else => x.asString
                   end)
         end
         s := s "</" endTag ">"
         s
       end
 
-    asString():String = toXml()
-
     children():List[\Element\] =
         content_.map[\Element\](fn x => cast[\Element\](x))
 
-    hasElements():Boolean = content_.isEmpty() OR: (isElement(content_[0]))
+    hasElements():Boolean = content_.isEmpty OR: (isElement(content_[0]))
     content():CData = cast[\CData\](content_[0])
     (*
     hasElements():Boolean = false
@@ -74,11 +74,11 @@ component Xml
   object Attribute(key:String, val:String)
     getter getKey():String = key
     getter getValue():String = val
-    getter asString():String = " " getKey() "= '" ||  getValue() || "'"
+    getter asString():String = " " self.getKey "= '" ||  self.getValue || "'"
   end
 
   object CData(v:String) extends Content
-    asString():String = v
+    getter asString():String = v
   end
 
 end

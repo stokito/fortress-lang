@@ -121,7 +121,7 @@ trait Map[\Key,Val\]
         We call doThis on keys present in self but not in that;
         We call doThat on keys present in that but not in self.
         When any of these functions returns r=Just[\Result\], the key is mapped
-            to r.get() in the result.
+            to r.get in the result.
         When any of these functions returns Nothing[\Result\] there is no
             mapping for the key in the result.
 
@@ -272,7 +272,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
       mapThat(that)
     mapFilter[\Result\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] =
       EmptyMap[\Key,Result\]
-    opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty()
+    opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty
 end
 
 object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,Val\])
@@ -281,7 +281,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getter isEmpty():Boolean = false
     getter size():ZZ32 = sz
     getter asDebugString():String =
-      "[" left.asDebugString() " (" key "," val ") " right.asDebugString() "]"
+      "[" left.asDebugString " (" key "," val ") " right.asDebugString "]"
     getter asString():String = "{" || ", ".join[\String\](self.map[\String\](fn(k:Key,v:Val):String => k "|->" v)) || "}"
 
     opr |self| : ZZ32 = sz
@@ -391,7 +391,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     union(f:(Key,Val,Val)->Val, other: Map[\Key,Val\]): Map[\Key,Val\] = do
         (newl, mv, newr) = other.splitAt(key)
         val' = if v <- mv
-               then f(key,val,mv.get())
+               then f(key,val,mv.get)
                else val end
         left.union(f,newl).concat3(key,val',right.union(f,newr))
       end
@@ -430,7 +430,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
                            mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\] =
-        if that.isEmpty() then mapThis(self)
+        if that.isEmpty then mapThis(self)
         else
             (l,mv,r) = that.splitAt(key)
             (lc,mc,rc) = (left.combine[\That,Result\](f,doThis,doThat,mapThis,mapThat,l),
@@ -452,7 +452,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
 
     opr =(self,other:Map[\Key,Val\]): Boolean =
         if self SEQV other then true
-        elif other.isEmpty() then false
+        elif other.isEmpty then false
         else
             (l,m,r) = other.splitAt(key)
             if v <- m
@@ -514,7 +514,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
      end
 
     double_R(k:Key,v:Val, l:NodeMap[\Key,Val\], r:Map[\Key,Val\]):NodeMap[\Key,Val\] = do
-        (* println("double_R " NodeMap[\Key,Val\](c,l,r).asDebugString()) *)
+        (* println("double_R " NodeMap[\Key,Val\](c,l,r).asDebugString) *)
         (ak,av) = l.getPair()
         x = l.getLeftChild()
         (bk,bv) = l.getRightChild().getPair()

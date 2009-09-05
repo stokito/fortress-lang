@@ -24,7 +24,7 @@ initSyntax(): ()
 (* abstract syntax tree *)
 trait Ast
   getId(): ZZ32
-  toString(): String
+  asString(): String
   toSource(): String
 end
 

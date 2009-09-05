@@ -127,6 +127,8 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
     getter asString():String = "<|" || ", ".join[\E\](self) || "|>"
+    getter reverse(): List[\E\] =
+        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     (** the operator %||% returns a list containing the elements of %self% followed
         by the elements of %f% *)
     opr ||(self, other:List[\E\]): List[\E\]
@@ -161,8 +163,6 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     (** %split% splits the list into two smaller lists.  If %|l| > 1%
         both lists will be non-empty. *)
     split(): (List[\E\], List[\E\])
-    reverse(): List[\E\] =
-        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
                                              else <|[\E\] |> end)
@@ -296,6 +296,13 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
         else
             0
         end
+    getter reverse(): ArrayList[\E\] = do
+        firstUnused1 = firstUnused-1
+        sz = |self|
+        under = primitiveImmutableArray[\E\](sz)
+        under.init0(i,underlying.get(firstUnused1-i)), i <- 0#sz
+        fromImmutableArray[\E\](under)
+      end
 
     opr |self| : ZZ32 = firstUnused - firstUsed
 
@@ -451,13 +458,6 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
         else
             fail("ArrayList[" n "] index outside 0#" |self|)
         end
-      end
-    reverse(): ArrayList[\E\] = do
-        firstUnused1 = firstUnused-1
-        sz = |self|
-        under = primitiveImmutableArray[\E\](sz)
-        under.init0(i,underlying.get(firstUnused1-i)), i <- 0#sz
-        fromImmutableArray[\E\](under)
       end
     mapArr[\G\](f:E->G):ImmutableArray[\G,ZZ32\] =
         primitiveImmutableArray[\G\](|self|).fill(

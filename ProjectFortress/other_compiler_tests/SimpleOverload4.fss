@@ -39,18 +39,17 @@ local(x:ZZ32, y:ZZ32):String = "11"
 
 run(): () = do
   print2("PA","SS")
-  
+
   (* Sorta-bug:
         Set breakpoint in com.sun.fortress.compiler.OverloadRewriteVisitor
-        forFnRefOnly, if fns.size() > 1
+        forFnRefOnly, if fns.size > 1
         Problem is that overload disambiguate identifies a single function,
         but the inferred type is insufficiently precise.
   *)
-        
+
   jPrintln(local("b", "az"))
   jPrintln(local(5,6))
-  
-end
 
 end
 
+end

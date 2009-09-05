@@ -402,14 +402,14 @@ doit(p: Program) = do
   (* print the result **********************************************************)
   println "Test Program:"
   if debug
-  then println (p.asString())//
+  then println (p.asString)//
   else println (p.toSource())//
   end
 
   println "Evaluated value:"
   result = (VDASH p).getValue()
   if debug
-  then println (indent result.asString())//
+  then println (indent result.asString)//
   else println (indent result.toSource())//
   end
 

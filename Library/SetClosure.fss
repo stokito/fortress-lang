@@ -41,11 +41,11 @@ object ArraysFrom[\T\](set:Set[\T\], sub: Generator[\Array[\T\]\]) extends Gener
 end
 
 arrayCons[\T\](x:T, xs:Array[\T\]) = do
-  a = array[\T\](xs.size() + 1)
-  for (i,ix) <- xs.indexValuePairs() do
+  a = array[\T\](xs.size + 1)
+  for (i,ix) <- xs.indexValuePairs do
     a[i] := ix
   end
-  a[xs.size()] := x
+  a[xs.size] := x
   a
 end
 *)
@@ -54,7 +54,7 @@ end
 
 closure[\T\](start: Set[\T\], f: T->Set[\T\]): Set[\T\] = do
   closureLoop(accResult: Set[\T\], working: Set[\T\]) =
-    if working.isEmpty() then accResult else
+    if working.isEmpty then accResult else
       newResult = accResult UNION working
       newOnes = BIG UNION[\T\][x <- working] f(x)
       closureLoop(newResult, newOnes DIFFERENCE newResult)
@@ -64,7 +64,7 @@ end
 
 closure2[\T\](start: Set[\T\], f: (T,T)->Set[\T\]): Set[\T\] = do
   closure2Loop(accResult: Set[\T\], working: Set[\T\]) =
-    if working.isEmpty() then accResult else
+    if working.isEmpty then accResult else
       newResult = accResult UNION working
       newOnes = ((BIG UNION[\T\][x <- working, y <- accResult THEN working] f(x,y))
                  UNION (BIG UNION[\T\][x <- accResult, y <- working] f(x,y)))

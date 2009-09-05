@@ -26,15 +26,15 @@ unary[\T\](x:T):T
 end
 
 object true extends Boolean
+getter asString():String = "true"
 apply[\T\](x:T, y:T):T = x
 unary[\T\](x:T):T = x
-asString():String = "true"
 end
 
 object false extends Boolean
+getter asString():String = "false"
 apply[\T\](x:T, y:T):T = y
 unary[\T\](x:T):T = x
-asString():String = "false"
 end
 
 run():() = do

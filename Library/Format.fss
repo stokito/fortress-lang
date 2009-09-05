@@ -242,7 +242,7 @@ end
 
 getDelimiter(params:Parameters,arg):String = do
     if i <- params.chars then
-        digitSeparator(arg,i,params.charType.get())
+        digitSeparator(arg,i,params.charType.get)
     else
         arg
     end

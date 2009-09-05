@@ -29,10 +29,10 @@ end
 
 run() : () = do
     r = object end
-    println(r.asString())
-    println(Foo(17,"Hello there").asString())
-    println(Fue[\ZZ32\](17,"Hello there").asString())
-    println(Bar(17,"Hello there").asString())
+    println(r.asString)
+    println(Foo(17,"Hello there").asString)
+    println(Fue[\ZZ32\](17,"Hello there").asString)
+    println(Bar(17,"Hello there").asString)
   end
 
 end

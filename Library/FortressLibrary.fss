@@ -3315,7 +3315,7 @@ end
 trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
-    getter asString(): String = self.g ".filter(p)"
+    getter asString(): String = self.g ".filter(self.p)"
     getter reverse(): FilterGenerator[\E\] = SimpleFilterGenerator[\E\](self.g.reverse, self.p)
     generate[\R\](r:Reduction[\R\], m: E->R): R =
         self.g.generate[\R\](r, fn(e:E):R => if (self.p)(e).holds then m(e) else r.empty() end)
@@ -3346,7 +3346,7 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     getter asString(): String
     getter reverse(): NestedGenerator[\E,F\] =
         SimpleNestedGenerator[\E,F\](self.g.reverse,
-            fn(e:E):Generator[\F\] => f(e).reverse)
+            fn(e:E):Generator[\F\] => self.f(e).reverse)
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r,fn (e:E):R => (self.f)(e).generate[\R\](r,m))
     mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
@@ -3414,7 +3414,7 @@ object SimplePairSeqGenerator[\E,F\]
         extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
     getter e() = e0
     getter f() = f0
-    getter asString()=("seq(" e ".cross(" f "))" )
+    getter asString()=("seq(" self.e ".cross(" self.f "))" )
 end
 
 (** Helpers for reversing generators and indexed objects. *)
@@ -4256,13 +4256,13 @@ end
 trait FilterGenerator2[\ E \]
   extends { Generator2[\ E \], FilterGenerator[\ Generator[\ E \] \] }
   filter(p': Generator[\ E \] -> Condition[\()\]): SimpleFilterGenerator2[\E\] =
-  SimpleFilterGenerator2[\E\](g(), p() ANDCOND p')
-  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = g().__generate2filtered[\ R, L1, L2 \](q,r,p(),f)
-  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p' : Generator[\E\] -> Condition[\()\], f : E -> R) : R = g().__generate2filtered[\R, L1, L2\](q,r,p() ANDCOND p',f)
+  SimpleFilterGenerator2[\E\](self.g, self.p ANDCOND p')
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = self.g.__generate2filtered[\ R, L1, L2 \](q,r,self.p,f)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p' : Generator[\E\] -> Condition[\()\], f : E -> R) : R = self.g.__generate2filtered[\R, L1, L2\](q,r,self.p ANDCOND p',f)
 
-  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = g().theoremsFiltered[\R, L1, L2\]()
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = self.g.theoremsFiltered[\R, L1, L2\]()
 
-  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = g().theorems[\R\]()
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = self.g.theorems[\R\]()
 end
 
 (* object to hold predicates *)
@@ -4270,7 +4270,7 @@ object SimpleFilterGenerator2[\E\](g0:Generator2[\E\], p0: Generator[\E\]->Condi
         extends FilterGenerator2[\E\]
     getter g(): Generator2[\E\]       = g0
     getter p(): Generator[\E\] -> Condition[\()\]  = p0
-    getter seed() : Generator[\ E \] = g().seed()
+    getter seed() : Generator[\ E \] = self.g.seed()
 end
 
 (*---------------------------Relational Predicates -------------------------*)
@@ -4281,10 +4281,10 @@ trait RelationalPredicateCondition[\E\] extends { Condition[\()\] } excludes Con
   cond[\G\](t: () -> G, e: () -> G) : G = do
     (* println("condition is evaluated...") *)
     x = target()
-    if x.size()<=1 then
+    if x.size<=1 then
       t()
     else
-      sz = x.size() - 1
+      sz = x.size - 1
       res = (0#sz).generate[\Boolean\](AndReduction, fn i => relation()(x[i],x[i+1]))
       if res then t() else e() end
     end
