@@ -42,7 +42,7 @@ run():() = do
     db00 : Map[\String,ZZ32\] = { "Nathi" asif String |-> 3 asif ZZ32 }
     perm : ZZ32[5] = [ 3 4 1 0 2 ]
     expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
-    for (v,k) <- seq(expect.indexValuePairs()) do
+    for (v,k) <- seq(expect.indexValuePairs) do
         init(k,v)
     end
     check(database)
@@ -53,21 +53,21 @@ run():() = do
     check(database)
     db''={("" "David") asif String|->3 asif ZZ32, "Elias"|->4, "Peter"|->1, "Nathi"|->0, "Emily"|->2}
     check(db'')
-    db' = {[\String,ZZ32\] k|->v | (v,k) <- expect.indexValuePairs() }
+    db' = {[\String,ZZ32\] k|->v | (v,k) <- expect.indexValuePairs }
     check(db')
     db : Map[\String,ZZ32\] = {[\String,ZZ32\] expect[i]|->i  |  i <- perm }
     check(db)
     db0 = db UNION db' (*'*)
     check(db0)
-    db1 = BIG UNION [(v,k) <- expect.indexValuePairs()] { k asif String|-> v asif ZZ32 }
+    db1 = BIG UNION [(v,k) <- expect.indexValuePairs] { k asif String|-> v asif ZZ32 }
     check(db1)
-    db2 = BIG UPLUS [(v,k) <- expect.indexValuePairs()] { k asif String |-> v asif ZZ32 }
+    db2 = BIG UPLUS [(v,k) <- expect.indexValuePairs] { k asif String |-> v asif ZZ32 }
     check(db2)
-    db3 = BIG UNION [i <- expect.indices()] { expect[v] asif String |-> v asif ZZ32 | v <- 0:i }
+    db3 = BIG UNION [i <- expect.indices] { expect[v] asif String |-> v asif ZZ32 | v <- 0:i }
     check(db3)
     assert(db.member("Empty"),Nothing[\ZZ32\],"absent member")
     assert(db.member("Empty",77),77,"absent member with default 77")
-    for (v,k) <- expect.indexValuePairs() do
+    for (v,k) <- expect.indexValuePairs do
         assert(db.member(k),Just[\ZZ32\](v),"present member")
         assert(db[k],v,"present member")
     end

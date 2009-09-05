@@ -21,13 +21,13 @@ import RecB.{...}
 export Executable
 
 object MyOdd extends Odd
+  getter asString():String = "MyOdd"
   anEven():Even = MyEven
-  asString():String = "MyOdd"
 end
 
 object MyEven extends Even
+  getter asString():String = "MyEven"
   anOdd():Odd = MyOdd
-  asString():String = "MyEven"
 end
 
 run():() = do
@@ -37,10 +37,10 @@ run():() = do
     assert(odd(5),"odd(5)")
     assert(even(-8),"even(-8)")
     assert(NOT odd(-8),"odd(-8)")
-    assert(MyOdd.asString(),"MyOdd", "MyOdd")
-    assert(MyEven.asString(),"MyEven", "MyEven")
-    assert(MyEven.anOdd().asString(),"MyOdd", "MyEven.anOdd")
-    assert(MyEven.anOdd().anEven().asString(),"MyEven", "MyEven.anOdd.anEven")
+    assert(MyOdd.asString,"MyOdd", "MyOdd")
+    assert(MyEven.asString,"MyEven", "MyEven")
+    assert(MyEven.anOdd().asString,"MyOdd", "MyEven.anOdd")
+    assert(MyEven.anOdd().anEven().asString,"MyEven", "MyEven.anOdd.anEven")
   end
 
 end

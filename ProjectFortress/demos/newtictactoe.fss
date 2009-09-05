@@ -30,7 +30,7 @@ playerOne = Just[\String\] "X"
 playerTwo = Just[\String\] "O"
 
 object IllegalMove(n) extends Exception
-    asString() = "Illegal move at " n
+    getter asString() = "Illegal move at " n
 end
 
 (* Returns a string copied x times *)
@@ -42,6 +42,8 @@ update(z:List[\Maybe[\String\]\], position: ZZ32, val: Maybe[\String\]) =
 
 (* Represents the tic-tac-toe board *)
 object Board(N: ZZ32, locs: List[\Maybe[\String\]\])
+
+    getter asString() = BIG || [i <- 0#N] ((if i=0 then "" else (("+---")^N)[1:] "\n" end) || renderRow(i))
 
     (*) A board may be indexed by a move number from 1 to `N^2`.
     opr [i: ZZ32]: Maybe[\String\] = locs[i-1]
@@ -60,8 +62,6 @@ object Board(N: ZZ32, locs: List[\Maybe[\String\]\])
     end
 
     renderRow(i: ZZ32) = BIG || [j <- 0#N] (squareLabel(i, j) || (if j=N-1 then "\n" else "|"))
-
-    asString() = BIG || [i <- 0#N] ((if i=0 then "" else (("+---")^N)[1:] "\n" end) || renderRow(i))
 
     (*) `BIG SQCUP`: if there is one winner, you get `Just` that winner.
     (*) Two winners produces `NotUnique`; zero winners produces `Nothing`.

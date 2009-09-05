@@ -23,13 +23,13 @@ opr OTIMES(x:ZZ32,y:ZZ32):ZZ32 = x y
 
 object rat[\T\](i:ZZ32, j:ZZ32)
 
+  getter asString():String = "(" i ", " j ")"
   (* Not sure why, but "self.i" fails below *)
   opr OPLUS(self, other:rat[\T\]):rat[\T\] = rat[\T\](i OPLUS other.i, j OPLUS other.j)
   opr OTIMES(self, other:rat[\T\]):rat[\T\] = rat[\T\](i OTIMES other.i, j OTIMES other.j)
   opr OTIMES(self, other:ZZ32):rat[\T\] = rat[\T\](i OTIMES other, j OTIMES other)
   (* this next is not called, but it makes for a tricky overloading *)
   opr OTIMES(other:ZZ32, self):rat[\T\] = rat[\T\](self.i OTIMES other, self.j OTIMES other)
-  asString():String = "(" i ", " j ")"
   area():ZZ32 = i OTIMES j
 end
 
@@ -37,16 +37,16 @@ object S end
 
 run():()=do
   a:rat[\S\] = rat[\S\](1,0)
-  println a.asString()
+  println a.asString
 
   b:rat[\S\] = rat[\S\](0,1)
-  println b.asString()
+  println b.asString
 
   c = a OPLUS b
-  println c.asString()
+  println c.asString
 
   d = c OTIMES (2 OTIMES 2)
-  println d.asString()
+  println d.asString
 
 end
 

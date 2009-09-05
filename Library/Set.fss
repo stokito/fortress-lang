@@ -142,13 +142,13 @@ object Intersection[\E extends StandardTotalOrder[\E\]\]
                   ReductionWithZeroes[\Set[\E\],Maybe[\Set[\E\]\]\] }
     getter asString(): String = "Intersection reduction"
     simpleJoin(a:Set[\E\], b:Set[\E\]):Set[\E\] = a INTERSECTION b
-    isZero(s:Set[\E\]): Boolean = s.isEmpty()
+    isZero(s:Set[\E\]): Boolean = s.isEmpty
 end
 
 value object SeqSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[\E\])
        extends SequentialGenerator[\E\]
     getter size(): ZZ32 = |s|
-    getter isEmpty(): Boolean = s.isEmpty()
+    getter isEmpty(): Boolean = s.isEmpty
     opr |self| : ZZ32 = |s|
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         s.seqgen[\R\](r,body)
@@ -158,12 +158,12 @@ value object IndexValueSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[
         extends ZeroIndexed[\(ZZ32,E)\]
     getter size(): ZZ32 = |s|
     getter indices(): Generator[\ZZ32\] = s.indices()
-    getter isEmpty(): Boolean = s.isEmpty()
+    getter isEmpty(): Boolean = s.isEmpty
     opr |self| : ZZ32 = |s|
     generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
        s.ivgen[\R\](0,r,body)
     opr[ x: ZZ32 ]: (ZZ32,E) = (x,s[x])
-    opr[ r: Range[\ZZ32\] ]: ZeroIndexed[\(ZZ32,E)\] = s[r].indexValuePairs()
+    opr[ r: Range[\ZZ32\] ]: ZeroIndexed[\(ZZ32,E)\] = s[r].indexValuePairs
     indexOf(i:ZZ32,v:E): Maybe[\ZZ32\] = if s[i]=v then Just[\ZZ32\](i) else Nothing[\ZZ32\] end
 end
 
@@ -203,11 +203,11 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     splitAt(x:E):(Set[\E\],Boolean,Set[\E\]) = (self, false, self)
     splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) = (self,self)
     concat3(v:E, t2:Set[\E\]):Set[\E\] = t2.add(v)
-    opr =(self, other:Set[\E\]): Boolean = other.isEmpty()
+    opr =(self, other:Set[\E\]): Boolean = other.isEmpty
     opr SUBSETEQ(self, other:Set[\E\]): Boolean = true
-    opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty())
+    opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty)
     opr SETCMP(self, other:Set[\E\]): Comparison =
-        if other.isEmpty() then EqualTo else LessThan end
+        if other.isEmpty then EqualTo else LessThan end
 end
 
 object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right:Set[\E\])
@@ -224,7 +224,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
                     else fail(self "[" i "] is out of bounds.") end
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
         r' = self.bounds.narrowToRange(r)
-        (lside,rside) = splitIndex( r'.lower() )
+        (lside,rside) = splitIndex( r'.lower )
         (lside',rside') = rside.splitIndex( |r'| )
         lside'
       end
@@ -356,21 +356,21 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
 
     opr =(self, other:Set[\E\]): Boolean =
         if self SEQV other then true
-        elif other.isEmpty() then false
+        elif other.isEmpty then false
         else
             (l,m,r) = other.splitAt(val)
             m AND: left=l AND: right=r
         end
     opr SUBSETEQ(self, other:Set[\E\]): Boolean =
         if self SEQV other then true
-        elif other.isEmpty() then false
+        elif other.isEmpty then false
         else
             (l,m,r) = other.splitAt(val)
             m AND: left SUBSETEQ l AND right SUBSETEQ r
         end
     opr SETCMP(self, other:Set[\E\]): Comparison =
         if self SEQV other then EqualTo
-        elif other.isEmpty() then GreaterThan
+        elif other.isEmpty then GreaterThan
         else
             (l,m,r) = other.splitAt(val)
             typecase _ = left SETCMP l of

@@ -128,7 +128,7 @@ export String
 
     verify():() = do
         assert(self.depth, (left.depth MAX right.depth) + 1, self)
-        assert(self.size(), |left| + |right|, self)
+        assert(self.size, |left| + |right|, self)
     end
 
     asDebugStringIndented(indent: ZZ32): String =

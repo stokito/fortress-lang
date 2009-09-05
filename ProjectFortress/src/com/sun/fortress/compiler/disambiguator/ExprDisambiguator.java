@@ -437,12 +437,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 extendWithVarsNoCheck(vars).
                 extendWithFns(inheritedMethods).
                 extendWithSelf(NodeUtil.getSpan(that)).
-                extendWithFns(fns).
-                // TODO The following two extensions are problematic; getters and setters should
-                        // not be referred to without explicit receivers in most (all?) cases. But the
-                        // libraries break horribly if we leave them off.
-                        extendWithGetterSetter(inheritedGettersAndSetters, vars).
-                extendWithGetterSetter(gettersAndSetters, vars);
+                extendWithFns(fns);
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeUtil.getSpan(that),
                                                                  extendsClause,
@@ -612,12 +607,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 extendWithFns(inheritedMethods).
                 extendWithSelf(NodeUtil.getSpan(that)).
                 extendWithVars(vars).
-                extendWithFns(fns).
-                // TODO The following two extensions are problematic; getters and setters should
-                        // not be referred to without explicit receivers in most (all?) cases. But the
-                        // libraries break horribly if we leave them off.
-                        extendWithGetterSetter(inheritedGettersAndSetters).
-                extendWithGetterSetter(gettersAndSetters);
+                extendWithFns(fns);
 
         TraitTypeHeader header = (TraitTypeHeader) forTraitTypeHeaderOnly(that.getHeader(),
                                                                           v.recurOnListOfStaticParam(NodeUtil.getStaticParams(
@@ -707,12 +697,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 extendWithSelf(NodeUtil.getSpan(that)).
                 extendWithVarsNoCheck(extractParamNames(NodeUtil.getParams(that))).
                 extendWithVarsNoCheck(vars).extendWithFns(fns).
-                extendWithFns(inheritedMethods).
-                // TODO The following two extensions are problematic; getters and setters should
-                        // not be referred to without explicit receivers in most (all?) cases. But the
-                        // libraries break horribly if we leave them off.
-                        extendWithGetterSetter(inheritedGettersAndSetters, fields).
-                extendWithGetterSetter(gettersAndSetters, fields);
+                extendWithFns(inheritedMethods);
 
         TraitTypeHeader header = (TraitTypeHeader) forTraitTypeHeaderOnly(that.getHeader(),
                                                                           v.recurOnListOfStaticParam(NodeUtil.getStaticParams(

@@ -19,31 +19,31 @@ component atomicList
 export Executable
 
 trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
+   getter isEmpty():Boolean
+   getter asString():()
    car():E
    cdr():List[\E\]
    cons(x:E):List[\E\]
-   isEmpty():Boolean
-   asString():()
    count():ZZ32
 end
 
 object ListError(msg:String) extends Exception end
 
 object Empty[\E\] extends List[\E\]
+   getter asString() = " Empty"
+   getter isEmpty() = true
    car():E = throw ListError("Empty List has no car")
    cdr():List[\E\] = throw ListError(" Empty List has no cdr")
    cons(z:E) =  Elem[\E\](z, self)
-   asString() = " Empty"
-   isEmpty() = true
    count() = 0
 end
 
 object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
+   getter asString() = " " val ", " rest.asString
+   getter isEmpty() = false
    car():E = val
    cdr():List[\E\] = rest
    cons(z:E) = Elem[\E\](z,self)
-   asString() = " " val ", " rest.asString()
-   isEmpty() = false
    count() = 1 + cdr().count()
 end
 

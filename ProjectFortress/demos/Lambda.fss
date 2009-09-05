@@ -244,7 +244,7 @@ object Parser(f:FileReadStream)
             char(0) => fail ("unexpected eof in arg list, last arg " id)
             ')'  => fail ("unexpected ')' in arg list, last arg " id)
             else => if isDigit(curr) then
-                        fail ("unexpected digit " curr.asString() " in arg list")
+                        fail ("unexpected digit " curr.asString " in arg list")
                     else
                         mkLambda(id,parseLambdaF(newlineOK))
                     end
@@ -258,7 +258,7 @@ object Parser(f:FileReadStream)
     parseParens(newlineOK:Boolean): Term = do
         r = parseReqTerm(true)
         if curr=/=')' then
-            fail("unexpected terminator " curr.asString() ", expected ')'")
+            fail("unexpected terminator " curr.asString ", expected ')'")
         end
         skip(newlineOK)
         r

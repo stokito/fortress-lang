@@ -22,13 +22,13 @@ run():() = do
   a = Nothing[\ZZ32\]
   b = Just[\Boolean\](true)
   println(b)
-  assert(NOT a.holds(), "Nothing holds()")
-  assert(b.holds(),"NOT b.holds()")
-  if a then fail("Nothing holds() in if") end
+  assert(NOT a.holds, "Nothing holds")
+  assert(b.holds,"NOT b.holds")
+  if a then fail("Nothing holds in if") end
   if b then () else fail("b holds in if") end
   if r <- b then assert(r,"NOT r <- b (single clause)") end
   if r <- b then assert(r,"NOT r <- b") else fail("r<-b does not hold") end
-  assert(b.get(),"NOT b.get()")
+  assert(b.get,"NOT b.get")
   assert(a, Nothing[\ZZ32\], "nothing =/= nothing")
   deny(a, b, "nothing = just")
   deny(a, Just[\ZZ32\](0), "nothing = just'")
@@ -49,8 +49,8 @@ run():() = do
     atomic times += 1
   end
   assert(times,1," WRONG number of times.")
-  assert(a.asString(),"Nothing","Nothing.asString()")
-  assert(b.asString(),"Just(true)", "Just(true).asString()")
+  assert(a.asString,"Nothing","Nothing.asString")
+  assert(b.asString,"Just(true)", "Just(true).asString")
 end
 
 end

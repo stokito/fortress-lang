@@ -52,9 +52,9 @@ export Generator22D
 
 rowsImpl[\E\](g) =
 do
-  bs = g.bounds()
-  (il, jl) = bs.lower()
-  (iu, ju) = bs.upper()
+  bs = g.bounds
+  (il, jl) = bs.lower
+  (iu, ju) = bs.upper
   array[\Generator[\E\]\](iu-il+1).fill(fn i =>g[(i,jl)#(1,ju-jl+1)])
 end
 
@@ -82,7 +82,7 @@ theorems[\R, L1, L2\]() =
     (* println("Abide!") *)
 
     (* we assume that two operators have the same lifting, i.e., L1 = L2 *)
-    r.unlift(GeneratorATWrapper(seed()).generateAT[\L1\](q, r, fn a => r.lift(f(a))))
+    r.unlift(GeneratorATWrapper(self.seed).generateAT[\L1\](q, r, fn a => r.lift(f(a))))
   end
 
 end
@@ -95,9 +95,9 @@ rows[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : R
 
 colsImpl[\E\](g) =
 do
-  bs = g.bounds()
-  (il, jl) = bs.lower()
-  (iu, ju) = bs.upper()
+  bs = g.bounds
+  (il, jl) = bs.lower
+  (iu, ju) = bs.upper
   array[\Generator[\E\]\](ju-jl+1).fill(fn j =>g[(il,j)#(iu-il+1,1)])
 end
 
@@ -125,7 +125,7 @@ theorems[\R, L1, L2\]() =
     (* println("Abide!") *)
 
     (* we assume that two operators have the same lifting, i.e., L1 = L2 *)
-    r.unlift(GeneratorATWrapper(seed()).generateAT[\L1\](r, q, fn a => r.lift(f(a))))
+    r.unlift(GeneratorATWrapper(self.seed).generateAT[\L1\](r, q, fn a => r.lift(f(a))))
   end
 
 end
@@ -136,9 +136,9 @@ cols[\ E, nat b0, nat s0, nat b1, nat s1 \](g : Array2[\E, b0, s0, b1, s1\]) : C
 
 rectsImpl[\E\](g) =
 do
-  bs = g.bounds()
-  (il, jl) = bs.lower()
-  (iu, ju) = bs.upper()
+  bs = g.bounds
+  (il, jl) = bs.lower
+  (iu, ju) = bs.upper
   s0 = iu - il + 1
   s1 = ju - jl + 1
   ss0 = (s0 (s0+1))/2
@@ -189,8 +189,8 @@ theorems[\R, L1, L2\]() =
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -204,7 +204,7 @@ theorems[\R, L1, L2\]() =
     ot = MSS2DReductionBeside[\R\](q, r)
 
 
-    tup = op.unlift(GeneratorATWrapper(seed()).generateAT[\AnyMaybe\](op, ot, fn a => op.lift(mssBody[\R\](f(a)))))
+    tup = op.unlift(GeneratorATWrapper(self.seed).generateAT[\AnyMaybe\](op, ot, fn a => op.lift(mssBody[\R\](f(a)))))
     tup.b
   end
 
@@ -378,13 +378,13 @@ object MSS2DReductionAbove[\T\](op, ot) extends { AssociativeReduction[\SomeMSS2
   getter asString(): String = "MSS2DReductionAbove"
   simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] =
   do
-    (s0x, s1x) = x.size()
-    (s0y, s1y) = y.size()
+    (s0x, s1x) = x.size
+    (s0y, s1y) = y.size
     (* make sure s1x = s1y *)
     if (s1x =/= s1y) then
       throw SizeMismatchException
     end
-    b = op.join(x.s.indices().generate[\T\](op, fn ij => ot.join(x.s[ij], y.n[ij])), op.join(x.b, y.b))
+    b = op.join(x.s.indices.generate[\T\](op, fn ij => ot.join(x.s[ij], y.n[ij])), op.join(x.b, y.b))
     n = createArray2(x.n, fn ij => op.join(x.n[ij], ot.join(x.c[ij], y.n[ij])))
     s = createArray2(x.s, fn ij => op.join(y.s[ij], ot.join(y.c[ij], x.s[ij])))
     e = tri(x.e, gemm(op, ot, x.se, y.ne.t()), y.e, op.empty())
@@ -405,13 +405,13 @@ object MSS2DReductionBeside[\T\](op, ot) extends { AssociativeReduction[\SomeMSS
     getter asString(): String = "MSS2DReductionBeside"
     simpleJoin(x: SomeMSS2DTuple[\T\], y: SomeMSS2DTuple[\T\]): SomeMSS2DTuple[\T\] =
     do
-      (s0x, s1x) = x.size()
-      (s0y, s1y) = y.size()
+      (s0x, s1x) = x.size
+      (s0y, s1y) = y.size
       (* make sure s0x = s0y *)
       if (s0x =/= s0y) then
         throw SizeMismatchException
       end
-      b = op.join(x.e.indices().generate[\T\](op, fn ij => ot.join(x.e[ij], y.w[ij])), op.join(x.b, y.b))
+      b = op.join(x.e.indices.generate[\T\](op, fn ij => ot.join(x.e[ij], y.w[ij])), op.join(x.b, y.b))
 
       n = tri(x.n, gemm(op, ot, x.ne.t(), y.nw), y.n, op.empty())
       s = tri(x.s, gemm(op, ot, x.se.t(), y.sw), y.s, op.empty())

@@ -315,7 +315,7 @@ sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do
 
 sudoku(compact:String): Sudoku = do
     st0 = emptySudoku()
-    for n<-compact.bounds() do
+    for n<-compact.bounds do
         i=n DIV 9
         j=n REM 9
         if i<9 AND j<9 then

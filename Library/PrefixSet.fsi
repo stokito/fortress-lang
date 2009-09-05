@@ -43,11 +43,11 @@ import Map.{...} except { opr BIG UNION, opr BIG INTERSECTION, opr BIG SYMDIFF }
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     extends ContainmentGenerator[\F,PrefixSet[\E,F\]\]
     getter indexValuePairs(): ZeroIndexed[\(ZZ32, F)\]
+    abstract getter size(): ZZ32
+    getter isEmpty(): Boolean
 
     abstract isMember(): Boolean
     abstract children(): Map[\E, PrefixSet[\E, F\]\]
-    abstract size(): ZZ32
-    isEmpty(): Boolean
     prefixGenerate[\R\](prefix: F, r: Reduction[\R\], body: F -> R): R
     generate[\R\](r: Reduction[\R\], body: F -> R): R
     prefixSeqgen[\R\](prefix: F, r: Reduction[\R\], body: F -> R): R
@@ -90,10 +90,10 @@ end
 object fastPrefixSet[\E extends StandardTotalOrder[\E\],
         F extends List[\E\]\](v: Boolean, c: Map[\E, PrefixSet[\E, F\]\])
     extends PrefixSet[\E, F\]
+    getter size(): ZZ32
     fixedsize: ZZ32
     isMember(): Boolean
     children(): Map[\E, PrefixSet[\E, F\]\]
-    size(): ZZ32
 end
 
 prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](v: Boolean, c: Map[\E, PrefixSet[\E, F\]\]): PrefixSet[\E, F\]

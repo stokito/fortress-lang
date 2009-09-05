@@ -34,7 +34,7 @@ run():() = do
     finallyCount : ZZ32 := 0
     try
         try
-            Nothing[\ZZ32\].get()
+            Nothing[\ZZ32\].get
         catch x
             FailCalled => fail("Caught FailCalled!!")
         finally

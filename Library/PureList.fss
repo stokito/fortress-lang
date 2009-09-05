@@ -51,11 +51,13 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
         leftmost element).  They return %Nothing% if the list is empty.
         %right% and %extractRight% do the same with the rightmost
         element. *)
-    getter left():Maybe[\E\] = extractLeft().map[\E\](fn (v:E,_):E => v)
-    getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
+    getter left():Maybe[\E\] = self.extractLeft.map[\E\](fn (v:E,_):E => v)
+    getter right():Maybe[\E\] = self.extractRight.map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
     getter asString(): String = "<|" || ", ".join[\E\](self) || "|>"
+    getter reverse(): List[\E\] =
+        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     opr ||(self, other:List[\E\]): List[\E\]
     (** %addLeft% and %addRight% add an element to the left or right of
         the list, respectively *)
@@ -83,8 +85,6 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     (** %split% splits the list into two smaller lists.  If %|l| > 1%
         both lists will be non-empty. *)
     split(): (List[\E\], List[\E\])
-    reverse(): List[\E\] =
-        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
                                              else emptyList[\E\]() end)
@@ -96,7 +96,7 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     map[\G\](f: E->G): List[\G\] =
         concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
     ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
-        indexValuePairs().generate[\List[\G\]\](Concat[\G\],
+        self.indexValuePairs.generate[\List[\G\]\](Concat[\G\],
                   fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
 end
 
@@ -169,13 +169,14 @@ end
 value object PureList[\E\]( it: FingerTree[\E\] )
       extends { List[\E\] }
   getter size(): ZZ32 = |self|
-  getter isEmpty(): Boolean = it.isEmpty()
+  getter isEmpty(): Boolean = it.isEmpty
   getter left():Maybe[\E\] = left1(it)
   getter right():Maybe[\E\] = right1(it)
   getter extractLeft(): Maybe[\(E,PureList[\E\])\] = extractLeft1(it)
   getter extractRight(): Maybe[\(PureList[\E\],E)\] = extractRight1(it)
   getter indexValuePairs(): Generator[\(ZZ32,E)\] =
       IndexValuePairs[\E\](it)
+  getter reverse(): PureList[\E\] = PureList[\E\](it.revMap(identity[\E\]))
   opr |self| : ZZ32 = leafSize(it)
   generate[\R\](r: Reduction[\R\], body: E->R): R =
       it.generate[\R\](r,body)
@@ -222,26 +223,25 @@ value object PureList[\E\]( it: FingerTree[\E\] )
       (l,r) = it.split()
       (PureList[\E\](l),PureList[\E\](r))
     end
-  reverse(): PureList[\E\] = PureList[\E\](it.revMap(identity[\E\]))
   private contents():FingerTree[\E\] = it
   private left1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
   private left1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
-      Just[\E\](itt.left())
+      Just[\E\](itt.left)
   private right1(itt: D0[\E\]): Nothing[\E\] = Nothing[\E\]
   private right1(itt: NonEmptyFingerTree[\E\]): Just[\E\] =
-      Just[\E\](itt.right())
+      Just[\E\](itt.right)
   private extractLeft1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
       Nothing[\(E,PureList[\E\])\]
   private extractLeft1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
-      (h,t) = it.extractLeft()
+      (h,t) = it.extractLeft
       Just[\(E,PureList[\E\])\](h,PureList[\E\](t))
     end
   private extractRight1(itt: D0[\E\]): Nothing[\(E,PureList[\E\])\] =
       Nothing[\(E,PureList[\E\])\]
   private extractRight1(itt: NonEmptyFingerTree[\E\]):
           Just[\(E,PureList[\E\])\] = do
-      (i,l) = it.extractRight()
+      (i,l) = it.extractRight
       Just[\(PureList[\E\],E)\](PureList[\E\](i),l)
     end
 end
@@ -443,8 +443,8 @@ private object D1[\E\](a:E)
     extends { D01[\E\], D12[\E\], NonEmptyFingerTree[\E\] }
   getter left():Just[\E\] = a
   getter right():Just[\E\] = a
-  getter extractLeft():(E,FingerTree[\E\]) = uncons()
-  getter extractRight():Just[\(E,FingerTree[\E\])\] = unsnoc()
+  getter extractLeft():(E,FingerTree[\E\]) = self.uncons
+  getter extractRight():Just[\(E,FingerTree[\E\])\] = self.unsnoc
   getter uncons():(E,D0[\E\]) = (a,D0[\E\])
   getter unsnoc():(D0[\E\],E) = (D0[\E\],a)
   getter car() = a
@@ -523,19 +523,19 @@ private object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
   nodes3(x:D0[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
     nodes2(y)
   nodes3(x:D1[\E\],y:D14[\E\]):D14[\D23[\E\]\] =
-    snoc(x.car()).nodes2(y)
+    snoc(x.car).nodes2(y)
   nodes3(x:D24[\E\],y:D14[\E\]):D14[\D23[\E\]\] = do
-      (xh, xt) = x.uncons()
+      (xh, xt) = x.uncons
       xt.nodes2(y).cons(D3[\E\](a,b,xh))
     end
   nodes2(x:D14[\E\]):D12[\D23[\E\]\] =
     fail("Should never be called, shortcoming of comprises handling.")
   nodes2(x:D1[\E\]):D1[\D23[\E\]\] =
-    D1[\D23[\E\]\](self.snoc(x.car()))
+    D1[\D23[\E\]\](self.snoc(x.car))
   nodes2(x:D2[\E\]):D2[\D23[\E\]\] =
     D2[\D23[\E\]\](self,x)
   nodes2(x:D34[\E\]):D12[\D23[\E\]\] = do
-      (xh, xt) = x.uncons()
+      (xh, xt) = x.uncons
       xt.nodes1().cons(D3[\E\](a,b,xh))
     end
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
@@ -617,7 +617,7 @@ private object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
   nodes2(x:D14[\E\]):D13[\D23[\E\]\] =
     fail("Should never be called, shortcoming of comprises handling.")
   nodes2(x:D1[\E\]):D23[\D23[\E\]\] =
-    D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,x.car()))
+    D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,x.car))
   nodes2(x:D24[\E\]):D23[\D23[\E\]\] =
     x.nodes1().cons(self)
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
@@ -686,7 +686,7 @@ private object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
   getter car() = a
   getter rac() = d
   getter uncons():(E,D3[\E\]) = (a,D3[\E\](b,c,d))
-  getter unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)  
+  getter unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)
   getter asString() = "{" || a || ", " || b || ", " || c || ", " || d || "}"
   leafSize(self):ZZ32 = ls
   generate[\R\](r: Reduction[\R\], body: E->R): R =
@@ -808,12 +808,12 @@ private object Deep[\E\]
            (l:D14[\E\], m:FingerTree[\ D23[\E\] \], r:D14[\E\])
     extends { NonEmptyFingerTree[\E\] }
   ls = leafSize(l)+leafSize(m)+leafSize(r)
-  getter left():Just[\E\] = l.car()
-  getter right():Just[\E\] = r.rac()
+  getter left():Just[\E\] = l.car
+  getter right():Just[\E\] = r.rac
   getter extractLeft():(E,FingerTree[\E\]) = extractLeft1(l,m)
   getter extractRight():(FingerTree[\E\],E) = extractRight1(r,m)
-  getter asString() = "[" l.asString() ";" m.asString() ";" r.asString() "]"
-  
+  getter asString() = "[" l.asString ";" m.asString ";" r.asString "]"
+
   leafSize(self):ZZ32 = ls
   generate[\R\](j: Reduction[\R\], body: E->R): R = do
       j.join(
@@ -855,7 +855,7 @@ private object Deep[\E\]
         Deep[\E\](D2[\E\](e,l0.a),m.addLeft(D3[\E\](l0.b,l0.c,l0.d)),r)
   addLeft1(e:E,l0:D03[\E\]) = Deep[\E\](l0.cons(e),m,r)
   addLeftD(e:D14[\E\]) : FingerTree[\E\] = do
-      (ef,er) = e.unsnoc()
+      (ef,er) = e.unsnoc
       addLeft(er).addLeftD(ef)
     end
   addRight(e:E):FingerTree[\E\] = addRight1(e,r)
@@ -863,27 +863,27 @@ private object Deep[\E\]
       Deep[\E\](l,m.addRight(D3[\E\](r0.a,r0.b,r0.c)),D2[\E\](r0.d,e))
   addRight1(e:E,r0:D03[\E\]) = Deep[\E\](l,m,r.snoc(e))
   addRightD(e:D14[\E\]) : FingerTree[\E\] = do
-      (ef,er) = e.uncons()
+      (ef,er) = e.uncons
       addRight(ef).addRightD(er)
     end
 
   (* Helper methods for extractLeft and extractRight *)
-  extractLeft1(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car(),r.toFinger())
+  extractLeft1(l0:D1[\E\], m0:D0[\D23[\E\]\]) = (l0.car,r.toFinger())
   extractLeft1(l0:D1[\E\], m0:NonEmptyFingerTree[\D23[\E\]\]) = do
-      (l1,m1) = m0.extractLeft()
-      (l0.car(),Deep[\E\](l1,m1,r))
+      (l1,m1) = m0.extractLeft
+      (l0.car,Deep[\E\](l1,m1,r))
     end
   extractLeft1(l0:D24[\E\], m0:FingerTree[\D23[\E\]\]) = do
-      (f,l1) = l0.uncons()
+      (f,l1) = l0.uncons
       (f,Deep[\E\](l1,m0,r))
     end
-  extractRight1(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac())
+  extractRight1(r0:D1[\E\], m0:D0[\D23[\E\]\]) = (l.toFinger(),r0.rac)
   extractRight1(r0:D1[\E\], m0:NonEmptyFingerTree[\D23[\E\]\]) = do
-      (m1,r1) = m0.extractRight()
-      (Deep[\E\](l,m1,r1),r0.rac())
+      (m1,r1) = m0.extractRight
+      (Deep[\E\](l,m1,r1),r0.rac)
     end
   extractRight1(r0:D24[\E\], m0:FingerTree[\D23[\E\]\]) = do
-      (r1,b) = r0.unsnoc()
+      (r1,b) = r0.unsnoc
       (Deep[\E\](l,m0,r1),b)
     end
 
@@ -903,7 +903,7 @@ private object Deep[\E\]
   takeM(n:ZZ32, m0:D0[\D23[\E\]\]): FingerTree[\E\] = takeR(n)
   takeM(n:ZZ32, m0:NonEmptyFingerTree[\D23[\E\]\]): FingerTree[\E\] =
       if n <= leafSize(m0) then
-          (mm,mr) = m0.take(n).extractRight()
+          (mm,mr) = m0.take(n).extractRight
           deepR[\E\](l,mm,mr.take(n - leafSize(mm)))
       else
           takeR(n - leafSize(m0))
@@ -921,7 +921,7 @@ private object Deep[\E\]
   dropM(n:ZZ32,m0:NonEmptyFingerTree[\D23[\E\]\]): NonEmptyFingerTree[\E\] =
       if n < leafSize(m0) then
           md = m0.drop(n)
-          (ml,mm) = md.extractLeft()
+          (ml,mm) = md.extractLeft
           deepL[\E\](ml.drop(n-(leafSize(m0)-leafSize(md))),mm,r)
       else
           dropR(n - leafSize(m0))
@@ -984,7 +984,7 @@ deepL[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E
     Deep[\E\](l,m,r)
 deepL[\E\](_:D0[\E\],_:D0[\D23[\E\]\],r:D14[\E\]):FingerTree[\E\] = r.toFinger()
 deepL[\E\](_:D0[\E\],m:NonEmptyFingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E\] = do
-    (ll,mm) = m.extractLeft()
+    (ll,mm) = m.extractLeft
     Deep[\E\](ll,mm,r)
   end
 
@@ -992,7 +992,7 @@ deepR[\E\](l:D14[\E\],m:FingerTree[\D23[\E\]\],r:D14[\E\]):NonEmptyFingerTree[\E
     Deep[\E\](l,m,r)
 deepR[\E\](l:D14[\E\],_:D0[\D23[\E\]\],_:D0[\E\]):FingerTree[\E\] = l.toFinger()
 deepR[\E\](l:D14[\E\],m:NonEmptyFingerTree[\D23[\E\]\],_:D0[\E\]):NonEmptyFingerTree[\E\] = do
-    (mm,rr) = m.extractRight()
+    (mm,rr) = m.extractRight
     Deep[\E\](l,mm,rr)
   end
 

@@ -27,13 +27,13 @@ trait D14[\E\]
 end
 
 object D1[\E\]() extends { D14[\E\] }
-  asString()="1"
+  getter asString()="1"
 end
 
 run():() = do
   println("Starting instantiation")
   e = D1[\ZZ32\]()
-  println(e.asString())
+  println(e.asString)
   ()
 end
 

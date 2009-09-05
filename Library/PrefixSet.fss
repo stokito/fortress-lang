@@ -53,12 +53,12 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
 
     getter asString():String = "{/" || (", ".join[\F\](self)) || "/}"
 
+    getter size():ZZ32
+
+    getter isEmpty():Boolean = (NOT isMember()) AND children().isEmpty
+
     isMember():Boolean
     children():Map[\E,PrefixSet[\E,F\]\]
-
-    size():ZZ32
-
-    isEmpty():Boolean = (NOT isMember()) AND children().isEmpty()
 
     prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: F->R):R = do
         t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
@@ -138,7 +138,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             c := (if isMember() then 1 else 0 end)
             label Search
                 for (k,v) <- seq(children()) do
-                    s = v.size()
+                    s = v.size
                     if c + s > i then
                         exit Search with v[i-c].addLeft(k)
                     else
@@ -166,7 +166,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
                     if (k=h) then
                         exit Search with c+v.indexOfMember(t)
                     else
-                        c += v.size()
+                        c += v.size
                     end
                 end
             end Search
@@ -202,7 +202,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = prefixivgen[\R\](<|[\E\] |>, i0, r, body)
     (* Expensive indexing code ends here *)
 
-    minimum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMinimum() end
+    minimum():Maybe[\F\] = if self.isEmpty then Nothing[\F\] else Just[\F\] getMinimum() end
     getMinimum():F throws NotFound = do
         if isMember() then
             <|[\E\] |>
@@ -213,7 +213,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         end
     end
 
-    maximum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMaximum() end
+    maximum():Maybe[\F\] = if self.isEmpty then Nothing[\F\] else Just[\F\] getMaximum() end
     getMaximum():F throws NotFound = do
         if (k,v) <- children().maximum() then
             v.getMaximum().addLeft(k)
@@ -231,7 +231,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         if isMember() then
             Just[\(F, PrefixSet[\E,F\])\](<|[\E\] |>, fastPrefixSet[\E,F\](false, children()))
         elif (k,v,r) <- children().extractMinimum() then
-            (m,s) = v.extractMinimum().get()
+            (m,s) = v.extractMinimum().get
             Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](false, r.add(k,s)))
         else
             Nothing[\(F, PrefixSet[\E,F\])\]
@@ -240,7 +240,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
 
     extractMaximum():Maybe[\(F, PrefixSet[\E,F\])\] = do
         if (k,v,r) <- children().extractMaximum() then
-            (m,s) = v.extractMaximum().get()
+            (m,s) = v.extractMaximum().get
             Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](isMember(), r.add(k,s)))
         elif isMember() then
             Just[\(F, PrefixSet[\E,F\])\](<|[\E\] |>, emptyPrefixSet[\E,F\]())
@@ -273,13 +273,13 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     concat3(v:F, s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
         leftm = children().extractMaximum()
         rightm = s2.children().extractMinimum()
-        if NOT leftm.holds() then
+        if NOT leftm.holds then
             s2
-        elif NOT rightm.holds() then
+        elif NOT rightm.holds then
             self
         else
-            (leftmaxkey,leftmaxval,left) = leftm.get()
-            (rightminkey,rightminval,right) = rightm.get()
+            (leftmaxkey,leftmaxval,left) = leftm.get
+            (rightminkey,rightminval,right) = rightm.get
 
             if (|v| = 0) then
                 if leftmaxkey<rightminkey then
@@ -337,7 +337,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     end
 
 
-    opr |self|:ZZ32 = size()
+    opr |self|:ZZ32 = self.size
 
     opr UNION(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
         ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
@@ -376,15 +376,15 @@ end
 
 (* A PrefixSet with given children: 'unsafe' as it assumes it is not given any useless tree structure *)
 object fastPrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](v:Boolean,c:Map[\E,PrefixSet[\E,F\]\]) extends PrefixSet[\E,F\]
-    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size())
+    getter size():ZZ32 = fixedsize
+    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size)
     isMember():Boolean = v
     children():Map[\E,PrefixSet[\E,F\]\] = c
-    size():ZZ32 = fixedsize
 end
 
 
 (* A PrefixSet with given children: 'safe' as it will remove any useless tree structure *)
-prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](v:Boolean, c:Map[\E,PrefixSet[\E,F\]\]):PrefixSet[\E,F\] = fastPrefixSet[\E,F\](v, {[\E,PrefixSet[\E,F\]\] k |-> l | (k,l)<-c, l.size() =/= 0 })
+prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](v:Boolean, c:Map[\E,PrefixSet[\E,F\]\]):PrefixSet[\E,F\] = fastPrefixSet[\E,F\](v, {[\E,PrefixSet[\E,F\]\] k |-> l | (k,l)<-c, l.size =/= 0 })
 
 
 emptyPrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]():PrefixSet[\E,F\] = fastPrefixSet[\E,F\](false,mapping[\E,PrefixSet[\E,F\]\]())
@@ -472,7 +472,7 @@ opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Gen
 value object SeqPrefixSetGenerator[\E extends StandardTotalOrder[\E\],F extends List[\E\]\](s: PrefixSet[\E,F\])
         extends SequentialGenerator[\F\]
     getter size():ZZ32 = |s|
-    getter isEmpty():Boolean = s.isEmpty()
+    getter isEmpty():Boolean = s.isEmpty
     opr |self|: ZZ32 = |s|
     generate[\R\](r: Reduction[\R\], body: F->R): R =
         s.seqgen[\R\](r,body)
@@ -482,11 +482,11 @@ value object IndexValuePrefixSetGenerator[\E extends StandardTotalOrder[\E\],F e
         extends ZeroIndexed[\(ZZ32,F)\]
     getter size():ZZ32 = |s|
     getter indices(): Generator[\ZZ32\] = s.indices()
-    getter isEmpty(): Boolean = s.isEmpty()
+    getter isEmpty(): Boolean = s.isEmpty
     opr |self|:ZZ32 = |s|
     generate[\R\](r: Reduction[\R\], body: (ZZ32,F)->R): R = s.ivgen[\R\](0,r,body)
     opr[ x:ZZ32 ]:(ZZ32,E) = (x,s[x])
-    opr[ r:Range[\ZZ32\] ]:ZeroIndexed[\(ZZ32,F)\] = s[r].indexValuePairs()
+    opr[ r:Range[\ZZ32\] ]:ZeroIndexed[\(ZZ32,F)\] = s[r].indexValuePairs
     indexOf(i:ZZ32,v:F):Maybe[\ZZ32\] = if s[i]=v then Just[\ZZ32\](i) else Nothing[\ZZ32\] end
 end
 

@@ -129,7 +129,7 @@ object Entity(var positivity: ZZ32,
 
     getter asString(): String =
         ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time //
-         facts.asString())
+         facts.asString)
 
     otherResult(result: ZZ32): ZZ32 = 1 - result
     eventToResult(kind: ZZ32): ZZ32 = (kind+1) DIV 2

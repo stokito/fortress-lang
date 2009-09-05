@@ -33,7 +33,7 @@ playerOne = "X"
 playerTwo = "O"
 
 object IllegalMove(n) extends Exception
-    asString() = "Illegal move at " n
+    getter asString() = "Illegal move at " n
 end
 
 (* Returns a string copied x times *)
@@ -41,12 +41,12 @@ opr juxtaposition(x:Number, y:String) = BIG ||[n <- 0#x] y
 
 (*
 opr [n:ZZ32](z:List) =
-    z.take(n).drop(n-1).left().get()
+    z.take(n).drop(n-1).left.get
 *)
 
 (* Returns nth element of a list *)
 element(z:List[\ZZ32\], n:ZZ32) =
-    z.take(n+1).right().get()
+    z.take(n+1).right.get
 
 (* Replaces the index-th element with val *)
 update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
@@ -61,7 +61,7 @@ player(id) =
 
 (* Represents the tic-tac-toe board *)
 object Board(rows)
-    asString() = do
+    getter asString() = do
         var all:String = ""
         for y <- seq(0#boardSize) do
             for x <- seq(0#boardSize) do
@@ -155,7 +155,7 @@ object Board(rows)
               <| winnerRightDiagonal() |>)
         who = all.filter(fn i => i =/= 0)
         if |who| > 0 then
-            who.left().get()
+            who.left.get
         else
             0
         end

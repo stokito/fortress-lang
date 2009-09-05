@@ -15,24 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component booleanGuard
-import List.{...}
 export Executable
 
-run():() = do
-    a = <|0+0,1,2,3,5,6,7|>
-    c = <| x | x <- a, true |>
-    assert(c,a," true")
-    b = <| x | x <- a, x>2 |>
-    assert(b,a.filter(fn (x)=>x>2)," x>2")
-    d = <| x | x <- a, false |>
-    assert(d.isEmpty, "not isEmpty false")
-    e = <| 17 | _ <- true |>
-    assert(e,<|17|>,"true =/= <|17|>")
-    q = <| q | q <- Just[\(ZZ32,ZZ32)\](17,3) |>
-    assert(q,<|(17,3),(17,3)|>.drop(1), " Just")
-    f = <| x | x <- true |>
-    assert(f,<|(),()|>.drop(1), " void")
-  end
-
+trait T
+  getter z(): ZZ32 = 0
 end
+
+object O(x:ZZ32) extends T
+  getter y(): String = "y"
+  m() = do
+(*  printlnZZ32 z               (* 27 No *)
+    printlnZZ32 z()             (* 28 No *) *)
+    printlnZZ32 self.z          (* 29 Ok *)
+    printlnZZ32 self.z()        (* 30 No *)
+
+    printlnZZ32 x               (* 32 Ok *)
+    printlnZZ32 self.x          (* 33 Ok *)
+
+(*  println y                   (* 35 No *)
+    println y()                 (* 36 No *) *)
+    println self.y              (* 37 Ok *)
+    println self.y()            (* 38 No *)
+  end
+end
+
+run() = ()

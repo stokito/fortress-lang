@@ -28,8 +28,8 @@ initSyntax() = atomic in_id := 0
 
 (* abstract syntax tree *)
 trait Ast
+  getter asString(): String
   getId(): ZZ32
-  asString(): String
   toSource(): String
 end
 
@@ -37,10 +37,10 @@ end
 (* p  ::= fd... e *)
 object Program(decls: List[\FnDecl\], expr: Expr) extends Ast
   id = nextId()
-  getId() = id
+  getter asString() =
+    (BIG //[d <- decls] (indent d.asString)) // // indent expr.asString
 
-  asString() =
-    (BIG //[d <- decls] (indent d.asString())) // // indent expr.asString()
+  getId() = id
 
   toSource() =
     (BIG //[d <- decls] (indent d.toSource())) // // indent expr.toSource()
@@ -50,8 +50,8 @@ end
 (* fd ::= f(x:t) = e *)
 object FnDecl(name: String, param: String, body: Expr) extends Ast
   id = nextId()
+  getter asString() = name "_" id "(" param ") = " body.asString
   getId() = id
-  asString() = name "_" id "(" param ") = " body.asString()
   toSource() = name        "(" param ") = " body.toSource()
 end
 
@@ -65,24 +65,24 @@ trait Expr extends Ast comprises { Value, Var, App, If } end
 
 object Var(name: String) extends Expr
   id = nextId()
+  getter asString() = name "_" id
   getId() = id
-  asString() = name "_" id
   toSource() = name
 end
 
 object App(function: Expr, argument: Expr) extends Expr
   id = nextId()
+  getter asString() = function.asString "(_" id " " argument.asString ")"
   getId() = id
-  asString() = function.asString() "(_" id " " argument.asString() ")"
   toSource() = function.toSource() "("         argument.toSource() ")"
 end
 
 object If(cond: Expr, thenB: Expr, elseB: Expr) extends Expr
   id = nextId()
+  getter asString() =
+    ("if_" id " " cond.asString "\n" indent "then " thenB.asString "\n"
+     indent "else " elseB.asString "\n" indent "end")
   getId() = id
-  asString() =
-    ("if_" id " " cond.asString() "\n" indent "then " thenB.asString() "\n"
-     indent "else " elseB.asString() "\n" indent "end")
   toSource() =
     ("if  "   " " cond.toSource() "\n" indent "then " thenB.toSource() "\n"
      indent "else " elseB.toSource() "\n" indent "end")
@@ -97,23 +97,23 @@ trait Value extends Expr comprises { FnExpr, True, False } end
 
 object FnExpr(param: String, body: Expr) extends Value
   id = nextId()
+  getter asString() = "fn_" id " " param " => " body.asString
   getId() = id
-  asString() = "fn_" id " " param " => " body.asString()
   toSource() = "fn"     " " param " => " body.toSource()
 end
 
 object True extends Value
   id = nextId()
+  getter asString() = "true"
   getId() = id
-  asString() = "true"
-  toSource() = asString()
+  toSource() = self.asString
 end
 
 object False extends Value
   id = nextId()
+  getter asString() = "false"
   getId() = id
-  asString() = "false"
-  toSource() = asString()
+  toSource() = self.asString
 end
 
 end

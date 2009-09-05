@@ -90,6 +90,7 @@ end Radical
 
 (* H objects are the leaves of the trees.*)
 object H extends Radical
+    getter asString():String = "H"
     opr CMP(self, other:Radical):TotalComparison =
         typecase other of
             H   => EqualTo
@@ -98,11 +99,17 @@ object H extends Radical
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 0
     canonical():Boolean = true
-    asString():String = "H"
 end H
 
 (* Rad objects are the internal nodes of the trees.*)
 object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
+    getter asString():String =
+        case self of
+            methyl => "M";  ethyl  => "E"; propyl => "p3"
+            butyl  => "b4"; pentyl => "p5"
+            y3 => "y3"; t4 => "t4"; y4 => "y4"; z4 => "z4"
+            else => "[R " r1 " " r2 " " r3 " ]"
+        end
     opr CMP(self, other:Radical):TotalComparison =
         typecase other of
             H   => GreaterThan
@@ -113,13 +120,6 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
     canonical():Boolean = r1 <= r2 <= r3
-    asString():String =
-        case self of
-            methyl => "M";  ethyl  => "E"; propyl => "p3"
-            butyl  => "b4"; pentyl => "p5"
-            y3 => "y3"; t4 => "t4"; y4 => "y4"; z4 => "z4"
-            else => "[R " r1 " " r2 " " r3 " ]"
-        end
 end Rad
 
 (* Small radicals are used for printing, testing, and debugging*)
@@ -281,6 +281,7 @@ A total order is needed to build Sets of paraffins.
 *)
 object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
     extends StandardTotalOrder[\Paraffin\]
+    getter asString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
     opr CMP(self, other:Paraffin):TotalComparison =
         (r1 CMP other.r1) LEXICO:
         (r2 CMP other.r2) LEXICO:
@@ -302,7 +303,6 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
 
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4|
-    asString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
 end Paraffin
 
 (*

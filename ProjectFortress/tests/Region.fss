@@ -28,7 +28,7 @@ run():()=do
     all[5] := false
     all[6] := "Howdy"
     assert(region(all).isLocalTo(Global))
-    for (i,v) <- all.indexValuePairs() do
+    for (i,v) <- all.indexValuePairs do
         assert(all.region(i).isLocalTo(region(all)))
         assert(region(v).isLocalTo(Global))
         assert(isShared(v),isShared(all))

@@ -48,7 +48,7 @@ trait Finger[\ E \]
 end
 
 object D0[\E\]() extends { Finger[\E\] }
-  asString() = "0"
+  getter asString() = "0"
 end
 
 run():() = do

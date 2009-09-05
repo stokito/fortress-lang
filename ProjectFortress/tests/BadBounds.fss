@@ -21,9 +21,9 @@ run() :() = do
   b:ZZ32[3,2] = [1 2
                  3 4
                  5 6]
-  println ("b lower bounds " b.bounds().lower() )
-  println ("b upper bounds " b.bounds().upper() )
-  println ("b.bounds = " b.bounds())
+  println ("b lower bounds " b.bounds.lower )
+  println ("b upper bounds " b.bounds.upper )
+  println ("b.bounds = " b.bounds)
 
   bShifted = b.bounds ≫ (2,5)
   assert(b.bounds.extent, bShifted.extent)
@@ -32,11 +32,11 @@ run() :() = do
 
   assert(bShifted ≪ (2,5), b.bounds)
 
-  for (i,j) <- b.indices() do
+  for (i,j) <- b.indices do
       println("b[" i "," j "] = " b[i,j])
   end
 
-  for (i,j) <- sequential(b.indices()) do
+  for (i,j) <- sequential(b.indices) do
       println("b[" i "," j "] = " b[i,j])
   end
 
@@ -53,15 +53,15 @@ run() :() = do
 
   assert(cShifted ≪ (2, 5, 8), c.bounds)
 
-  for (i,j,k) <- c.indices() do
+  for (i,j,k) <- c.indices do
             println ("c[" i "," j "," k "] = " c[i,j,k] )
   end
-  for (i,j,k) <- sequential(c.indices()) do
+  for (i,j,k) <- sequential(c.indices) do
             println ("c[" i "," j "," k "] = " c[i,j,k] )
   end
-  println ("c lower bounds " c.bounds().lower() )
-  println ("c upper bounds " c.bounds().upper() )
-  println ("c.bounds = " c.bounds())
+  println ("c lower bounds " c.bounds.lower )
+  println ("c upper bounds " c.bounds.upper )
+  println ("c.bounds = " c.bounds)
 
 end
 

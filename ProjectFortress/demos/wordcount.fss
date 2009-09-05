@@ -44,7 +44,7 @@ getWords(s:String):Map[\CaseInsensitiveString, ZZ32\] = do
     var current:ZZ32 := 0
     var start:ZZ32 := 0
 
-    while (current < s.size()) do
+    while (current < s.size) do
         if isDelimiter(s[current]) then
            count := count - 1
            if count >= 1 then
@@ -97,7 +97,7 @@ processFile(name:String):() = do
     acq = nanoTime()
     time("Acquired words",start,acq)
     var invDatabase:Map[\ZZ32,List[\String\]\] =
-        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString(),y)
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString,y)
     inv = nanoTime()
     time("Inverted database",acq,inv)
     try

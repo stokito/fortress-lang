@@ -59,7 +59,7 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
     data : Array[\(ZZ64,Array[\T,ZZ32\]),ZZ32\] =
                         array[\(ZZ64,Array[\T,ZZ32\])\]((n+63) DIV 64).fill(0,emptyArray)
     getter indices(): Generator[\ZZ32\] =
-        data.indexValuePairs().nest[\ZZ32\](
+        data.indexValuePairs.nest[\ZZ32\](
             fn (i:ZZ32, t:(ZZ64,Array[\T,ZZ32\])): Generator[\ZZ32\] => do
                 (fe, d) = t
                 if fe = 0 then
@@ -76,8 +76,8 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
                 end
               end)
     getter asString(): String =
-        "[" bounds() "] = [" (BIG ||[(i,v) <- indexValuePairs()] " " i "|->" v) " ]"
-    getter asDebugStriing(): String = data.asString
+        "[" self.bounds "] = [" (BIG ||[(i,v) <- self.indexValuePairs] " " i "|->" v) " ]"
+    getter asDebugString(): String = data.asString
     indexAndMask(i:ZZ32) : (ZZ32,ZZ64) = (i RSHIFT 6, widen(1) LSHIFT (i BITAND 63))
     secondaryIndex(fe:ZZ64, mask:ZZ64):ZZ32 = popCount((mask-1) BITAND fe)
     isSet(i:ZZ32): Boolean = isSet0(offset(i))
@@ -158,15 +158,15 @@ test go(): () = do
     b : ZZ32[1077] = ChunkedSparseArray[\ZZ32,1077\](-1)
     a.init(123 i, 123 i), i <- 0 # ((1077+122) DIV 123)
     b[23 i] := 23 i, i <- 0 # ((1077+22) DIV  23)
-    for i <- a.bounds() do
+    for i <- a.bounds do
         chk("a",i,a[i],a.isSet(i),123)
     end
-    for i <- b.bounds() do
+    for i <- b.bounds do
         chk("b",i,b[i],b.isSet(i),23)
     end
-    e_b = SUM [i <- b.indices(), b.isSet(i)] chki("bi",i,b[i],23)
+    e_b = SUM [i <- b.indices, b.isSet(i)] chki("bi",i,b[i],23)
     assert(e_b, (1077+22) DIV 23, "Wrong number of set elements in ",b)
-    e_a = SUM [(i,n) <- a.indexValuePairs(), a.isSet(i)] chki("bi",i,n,123)
+    e_a = SUM [(i,n) <- a.indexValuePairs, a.isSet(i)] chki("bi",i,n,123)
     assert(e_a, (1077+122) DIV 123, "Wrong number of set elements in ",a)
     println("Tests complete.")
   end

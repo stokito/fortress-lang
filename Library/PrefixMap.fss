@@ -45,12 +45,12 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
     getter asString():String = "{/" (", ".join[\String\](self.map[\String\](fn(x:F,v:V) => (x.asString || " |-> " || v.asString)))) || "/}"
 
+    getter isEmpty():Boolean = (NOT isMember()) AND children().isEmpty
+    getter size():ZZ32
     content():Maybe[\V\]
     children():Map[\E,PrefixMap[\E,F,V\]\]
     isMember():Boolean = (if x <- content() then true else false end)
-    isEmpty():Boolean = (NOT isMember()) AND children().isEmpty()
-    size():ZZ32
-    opr |self|:ZZ32 = self.size()
+    opr |self|:ZZ32 = self.size
 
     prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: (F,V)->R):R = do
         t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
@@ -75,7 +75,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
     seq(self):SequentialGenerator[\(F,V)\] = SeqPrefixMapGenerator[\E,F,V\](self)
 
 
-    dom(self):PrefixSet[\E,F\] = fastPrefixSet[\E,F\](content().holds(), children().mapFilter[\PrefixSet[\E,F\]\](fn (k,v) => v.dom()))
+    dom(self):PrefixSet[\E,F\] = fastPrefixSet[\E,F\](content().holds, children().mapFilter[\PrefixSet[\E,F\]\](fn (k,v) => v.dom()))
 
 
     opr [k:F]:V throws NotFound = do
@@ -105,7 +105,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
     (** minimum and maximum refer to the key **)
 
-    minimum():Maybe[\(F,V)\] = if isEmpty() then Nothing[\(F,V)\] else Just[\(F,V)\](getMinimum()) end
+    minimum():Maybe[\(F,V)\] = if self.isEmpty then Nothing[\(F,V)\] else Just[\(F,V)\](getMinimum()) end
     getMinimum():(F,V) throws NotFound = do
         if x <- content() then
             (<|[\E\] |>, x)
@@ -117,7 +117,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
         end
     end
 
-    maximum(): Maybe[\(F,V)\] = if isEmpty() then Nothing[\(F,V)\] else Just[\(F,V)\](getMaximum()) end
+    maximum(): Maybe[\(F,V)\] = if self.isEmpty then Nothing[\(F,V)\] else Just[\(F,V)\](getMaximum()) end
     getMaximum():F throws NotFound = do
         if (k,v) <- children().maximum() then
             (f,w) = v.getMaximum()
@@ -140,7 +140,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
         if x <- content() then
             Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, fastPrefixMap[\E,F,V\](Nothing[\V\], children()))
         elif (k,v,r) <- children().extractMinimum() then
-            (m,w,s) = v.extractMinimum().get()
+            (m,w,s) = v.extractMinimum().get
             Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](Nothing[\V\], r.add(k,s)))
         else
             Nothing[\(F, V, PrefixMap[\E,F,V\])\]
@@ -149,7 +149,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
     extractMaximum():Maybe[\(F,V, PrefixMap[\E,F,V\])\] = do
         if (k,v,r) <- children().extractMaximum() then
-            (m,w,s) = v.extractMaximum().get()
+            (m,w,s) = v.extractMaximum().get
             Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](content(), r.add(k,s)))
         elif x <- content() then
             Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, emptyPrefixMap[\E,F,V\]())
@@ -233,7 +233,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
     (** UNION favors the leftmost value when a key occurs in both maps. **)
     opr UNION(self, other:PrefixMap[\E,F,V\]):PrefixMap[\E,F,V\] = do
-        inOrder(x:Maybe[\V\], y:Maybe[\V\]) = if x.holds() then x else y end
+        inOrder(x:Maybe[\V\], y:Maybe[\V\]) = if x.holds then x else y end
         ifOne(k:E, v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](v)
         mapOne(a:Map[\E,PrefixMap[\E,F,V\]\]):Map[\E,PrefixMap[\E,F,V\]\] = a
         ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](u UNION v)
@@ -243,7 +243,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
     (** UPLUS (disjoint union) throws the KeyOverlap exception when a key
             occurs in both maps. **)
     opr UPLUS(self, other: PrefixMap[\E,F,V\]): PrefixMap[\E,F,V\] = do
-        oneOrOther(x:Maybe[\V\], y:Maybe[\V\]):Maybe[\V\] = if x.holds() then if y.holds() then throw KeyOverlap else x end else y end
+        oneOrOther(x:Maybe[\V\], y:Maybe[\V\]):Maybe[\V\] = if x.holds then if y.holds then throw KeyOverlap else x end else y end
         ifOne(k:E, v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](v)
         mapOne(a:Map[\E,PrefixMap[\E,F,V\]\]):Map[\E,PrefixMap[\E,F,V\]\] = a
         ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](u UPLUS v)
@@ -300,7 +300,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
         We call doThis on keys present in self but not in that;
         We call doThat on keys present in that but not in self.
         When any of these functions returns r=Just[\Result\], the key is mapped
-            to r.get() in the result.
+            to r.get in the result.
         When any of these functions returns Nothing[\Result\] there is no
             mapping for the key in the result.
 
@@ -382,16 +382,16 @@ end
 
 (* A PrefixMap with given content and children: 'unsafe' as it assumes it is not given any useless tree structure *)
 object fastPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\V\],c:Map[\E,PrefixMap[\E,F,V\]\]) extends PrefixMap[\E,F,V\]
-    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size())
+    getter size():ZZ32 = fixedsize
+    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size)
     content():Maybe[\V\] = v
     children():Map[\E,PrefixMap[\E,F,V\]\] = c
-    size():ZZ32 = fixedsize
 end
 
 
 
 (* A PrefixMap with given children: 'safe' as it will remove any useless tree structure *)
-prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\V\], c:Map[\E,PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](v, {[\E,PrefixMap[\E,F,V\]\] k |-> l | (k,l)<-c, l.size() =/= 0 })
+prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\V\], c:Map[\E,PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](v, {[\E,PrefixMap[\E,F,V\]\] k |-> l | (k,l)<-c, l.size =/= 0 })
 
 
 

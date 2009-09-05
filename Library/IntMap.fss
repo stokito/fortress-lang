@@ -414,7 +414,7 @@ private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEm
     getter asDebugString(): String =
         "{" ||| left.asDebugString ||| "U" key ||| right.asDebugString ||| "}"
     getter asString(): String = do
-        (mk,mv,rest) = extractMaximum().get()
+        (mk,mv,rest) = extractMaximum().get
         ("{" ||| (BIG |||[(k,v) <- rest] k ||| "|->" ||| v ",") ||| mk ||| "|->" ||| mv ||| "}" )
       end
     asDot(pre:String): String = do

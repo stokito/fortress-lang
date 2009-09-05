@@ -21,17 +21,17 @@ import List.{...}
 export Executable
 
 checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
-    if h0.isEmpty() then
+    if h0.isEmpty then
         if NOT (n=0) then fail("empty with n=/=0") end
     else
         flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
-        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMinimum().get()
+        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMinimum().get
         k_prev : ZZ32 := k
         expected: ZZ32 := 1
         flags[v] := true
         failed : Boolean := false
-        while NOT h.isEmpty() AND expected <= n do
-            (k,v,h) := h.extractMinimum().get()
+        while NOT h.isEmpty AND expected <= n do
+            (k,v,h) := h.extractMinimum().get
             if k < k_prev then
                 println("FAIL: Keys " k_prev " and " k " out of order.")
                 failed := true
@@ -43,7 +43,7 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
             (k_prev, flags[v]) := (k,true)
             expected += 1
         end
-        if NOT h.isEmpty() then
+        if NOT h.isEmpty then
             println("FAIL: Too many elements.")
             failed := true
         elif expected < n then
@@ -54,8 +54,8 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
             h := h0
             expected := 0
             println(h.asDebugString)
-            while NOT h.isEmpty() AND expected <= n do
-                (k,v,h) := h.extractMinimum().get()
+            while NOT h.isEmpty AND expected <= n do
+                (k,v,h) := h.extractMinimum().get
                 println(expected ": min = (" k "," v ")")
                 println(h.asDebugString)
                 expected += 1
@@ -86,8 +86,8 @@ checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
     (mn,sz,mx) = h.generate[\AnyMaybe\](TestReduction, sing).getDefault(0,0,0)
     assert(n,sz," size versus computed size")
     if (sz > 0) then
-        (mn_k, mn_v) = h.minimum().get()
-        assert(mn,mn_k," computed minimum versus .minimum()")
+        (mn_k, mn_v) = h.minimum.get
+        assert(mn,mn_k," computed minimum versus .minimum")
     end
   end
 
@@ -136,9 +136,9 @@ run():() = do
     for s <- samples do
         slgs = s lg s
         print(s "\t" slgs)
-        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs())
+        testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs)
         testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
-        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs())
+        testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs)
         testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
         println()
     end

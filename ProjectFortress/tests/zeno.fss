@@ -98,11 +98,11 @@ prepad(w: ZZ32, s: String): String = spaces[ |s| : w ] s
 
 showHist():() = do
     mx = BIG MAX histogram
-    indexFieldWidth : ZZ32 = BIG MAX [(i,v) <- histogram.indexValuePairs(), v=/=0] |"" i| - 1
+    indexFieldWidth : ZZ32 = BIG MAX [(i,v) <- histogram.indexValuePairs, v=/=0] |"" i| - 1
     valueFieldWidth : ZZ32 = |"" mx| - 1
     println("mx = " mx)
     histogramLength = 75 - indexFieldWidth - valueFieldWidth
-    for (i,v) <- sequential(histogram.indexValuePairs()), v =/= 0 do
+    for (i,v) <- sequential(histogram.indexValuePairs), v =/= 0 do
         iAsString = "" i
         print(prepad(indexFieldWidth, iAsString) ": ")
         vAsString = "" v

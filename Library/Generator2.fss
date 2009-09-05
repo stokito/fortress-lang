@@ -70,13 +70,13 @@ end
 *)
 
 (* checking distributivity of r over q *)
-distributes[\R,L1,L2\](q : ActualReduction[\R,L1\], r : ActualReduction[\R,L2\]) : Boolean = r.distribute(q).holds()
+distributes[\R,L1,L2\](q : ActualReduction[\R,L1\], r : ActualReduction[\R,L2\]) : Boolean = r.distribute(q).holds
 (*
-distributes[\R,L1,L2\](q : ActualReduction[\R,L1\], r : ActualReduction[\R,L2\]) : Boolean = r.distribute[\L1\](q).holds()
+distributes[\R,L1,L2\](q : ActualReduction[\R,L1\], r : ActualReduction[\R,L2\]) : Boolean = r.distribute[\L1\](q).holds
      this got an error "Don't actually resolve overloading of generic methods yet."
 
 distributes[\R,L1,L2\](q : ActualReduction[\R,L1\], r : ActualReduction[\R,L2\]) : Boolean = distributes2(q, r)
-distributes2(q, r) : Boolean = r.distribute(q).holds()
+distributes2(q, r) : Boolean = r.distribute(q).holds
 
  avoids the error (why?). But there is another problem: without explicit static type parameter, distribute[\L\](r : ActualReduction[\R, L\]) is not dispatched to distribute(SomeReduction) when distribute is not overloaded for the SomeReduction.
 
@@ -104,7 +104,7 @@ commutative[\R\](r : R) : Boolean =
 object InitsReduction[\ E \] extends Reduction[\ List[\ List[\ E \] \] \]
   empty(): List[\ List[\ E \] \] = <|[\ List[\ E \] \] |>
   join(a:List[\ List[\ E \] \], b:List[\ List[\ E \] \]): List[\ List[\ E \] \] = do
-    l = a.right().generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
+    l = a.right.generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
     a || (b.map[\ List[\ E \] \](fn (x) => l || x));
   end
 end
@@ -120,9 +120,9 @@ initsImpl[\ E \]( x : Generator[\ E \]) : Generator[\ Generator[\ E \] \] = do
 (*   <| <| x[i] | i <- (0#s) |> | s <- (1#(|x|)) |> *)
   typecase x of
   Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
-    bs = x.bounds()
-    u = bs.upper()
-    l = bs.lower()
+    bs = x.bounds
+    u = bs.upper
+    l = bs.lower
     x.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x[l:i])
     end
   else => (* uses List for intemediate structure (reduction with Lists) *)
@@ -134,7 +134,7 @@ end
 (* Generator2 Inits *)
 object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
   getter seed() : Generator[\ E \] = g
-  asString() : String = initsImpl[\ E \](g).asString()
+  getter asString() : String = initsImpl[\ E \](g).asString
 
   (* actual generation the nested data structure *)
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
@@ -166,8 +166,8 @@ object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -179,8 +179,8 @@ object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -200,20 +200,20 @@ object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     wrap(a:R) : (R, R) = (a,a)
     unwrap(a:(R,R)) = do (r1, r2) = a; r1 end
 
-    unwrap ( seed().generate[\(R,R)\](MapReduceReduction[\(R,R)\](join,zero1), wrap COMPOSE f))
+    unwrap ( self.seed.generate[\(R,R)\](MapReduceReduction[\(R,R)\](join,zero1), wrap COMPOSE f))
   end
 
 
   efficientImplRelationalDistributiveImpl[\ R \](q : Reduction[\ R \], r : Reduction[\ R \], p : Generator[\E\]->Condition[\()\], f : E -> R) : R = do
     (* println("efficientImplRelationalDistributive") *)
-    rel : (E, E) -> Boolean = p(seed()).relation()  (* ugly *)
+    rel : (E, E) -> Boolean = p(self.seed).relation()  (* ugly *)
 
     join(x : (R, R, Maybe[\E\], Maybe[\E\]), y : (R, R, Maybe[\E\], Maybe[\E\])) : (R, R, Maybe[\E\], Maybe[\E\]) = do
       (i1,s1,h1,l1) = x
       (i2,s2,h2,l2) = y
 
       px = typecase (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get(), h2.get())
+      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
       else => true
       end
       if px then
@@ -224,7 +224,7 @@ object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     end
     zero1 = (q.empty(), r.empty(), Nothing[\E\], Nothing[\E\])
 
-    (r1, r2, r3, r4) = seed().generate[\(R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,Just[\E\](a),Just[\E\](a)) end))
+    (r1, r2, r3, r4) = self.seed.generate[\(R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,Just[\E\](a),Just[\E\](a)) end))
     r1
   end
 
@@ -241,7 +241,7 @@ inits[\E\](g : Generator[\E\]) : Inits[\E\] = Inits[\E\](g)
 object TailsReduction[\ E \] extends Reduction[\ List[\ List[\ E \] \] \]
   empty(): List[\ List[\ E \] \] = <|[\ List[\ E \] \] |>
   join(a:List[\ List[\ E \] \], b:List[\ List[\ E \] \]): List[\ List[\ E \] \] = do
-    h = b.left().generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
+    h = b.left.generate[\ List[\ E \]\](Concat[\ E \], fn (x) => x);
     a.map[\ List[\ E \] \](fn (x) => x || h) || b;
   end
 end
@@ -256,9 +256,9 @@ end
 tailsImpl[\ E \]( x : Generator[\ E \]) : Generator[\ Generator[\ E \] \] = do
   typecase x of
   Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
-    bs = x.bounds()
-    u = bs.upper()
-    l = bs.lower()
+    bs = x.bounds
+    u = bs.upper
+    l = bs.lower
     x.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x[i:u])
     end
   else => (* uses List for intemediate structure (reduction with Lists) *)
@@ -269,7 +269,7 @@ end
 (* Generator2 Tails *)
 object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
   getter seed() : Generator[\ E \] = g
-  asString() : String = tailsImpl[\ E \](g).asString()
+  getter asString() : String = tailsImpl[\ E \](g).asString
 
   (* actual generation the nested data structure *)
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
@@ -301,8 +301,8 @@ object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -314,8 +314,8 @@ object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -332,18 +332,18 @@ object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     end
     zero1 = (q.empty(), r.empty())
 
-    (r1, r2) = seed().generate[\(R,R)\](MapReduceReduction[\(R,R)\](join,zero1), (fn a => do b = f(a); (b,b) end))
+    (r1, r2) = self.seed.generate[\(R,R)\](MapReduceReduction[\(R,R)\](join,zero1), (fn a => do b = f(a); (b,b) end))
     r1
   end
   efficientImplRelationalDistributiveImpl[\ R \](q : Reduction[\ R \], r : Reduction[\ R \], p : Generator[\E\]->Condition[\()\], f : E -> R) : R = do
-    rel : (E, E) -> Boolean = p(seed()).relation()  (* ugly *)
+    rel : (E, E) -> Boolean = p(self.seed).relation()  (* ugly *)
 
     join(x : (R, R, Maybe[\E\], Maybe[\E\]), y : (R, R, Maybe[\E\], Maybe[\E\])) : (R, R, Maybe[\E\], Maybe[\E\]) = do
       (t1,s1,h1,l1) = x
       (t2,s2,h2,l2) = y
 
       px = typecase (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get(), h2.get())
+      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
       else => true
       end
       if px then
@@ -354,7 +354,7 @@ object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     end
     zero1 = (q.empty(), r.empty(), Nothing[\E\], Nothing[\E\])
 
-    (r1, r2, r3, r4) = seed().generate[\(R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,Just[\E\](a),Just[\E\](a)) end))
+    (r1, r2, r3, r4) = self.seed.generate[\(R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,Just[\E\](a),Just[\E\](a)) end))
     r1
   end
 end
@@ -374,9 +374,9 @@ segsImpl[\ E \]( x : Generator[\ E \]) : Generator[\ Generator[\ E \] \] = do
 (*
   typecase x of
   Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
-    bs = x.bounds()
-    u = bs.upper()
-    l = bs.lower()
+    bs = x.bounds
+    u = bs.upper
+    l = bs.lower
     <|[\Generator[\E\]\]  x[i:j] | i <- l:u, j <- i:u |> (* fails for arrays *)
     end
   else => (* uses List for intemediate structure (reduction with Lists) *)
@@ -388,7 +388,7 @@ end
 (* Generator2 Segs *)
 object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
   getter seed() : Generator[\ E \] = g
-  asString() : String = segsImpl[\ E \](g).asString()
+  getter asString() : String = segsImpl[\ E \](g).asString
 
   (* actual generation the nested data structure *)
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
@@ -420,8 +420,8 @@ object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -433,8 +433,8 @@ object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     (* println("efficientImplDistributive") *)
 
     rp = r.distribute(q)
-    i = rp.inner()
-    o = rp.outer()
+    i = rp.inner
+    o = rp.outer
     (* we suppose that the operators i and o are lifted to L1.
        This lifting type should be replaced with the type L of ReductionPair[\R, L\] returned by r.distribute(q).
        But, we do not have any way to capture the type L....
@@ -453,18 +453,18 @@ object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     end
     zero1 = (q.empty(), q.empty(), q.empty(), r.empty())
 
-    (r1, r2, r3, r4) = seed().generate[\(R,R,R,R)\](MapReduceReduction[\(R,R,R,R)\](join,zero1), (fn a => do b = f(a); (b,b,b,b) end))
+    (r1, r2, r3, r4) = self.seed.generate[\(R,R,R,R)\](MapReduceReduction[\(R,R,R,R)\](join,zero1), (fn a => do b = f(a); (b,b,b,b) end))
     r1
   end
   efficientImplRelationalDistributiveCommutativeImpl[\ R \](q : Reduction[\ R \], r : Reduction[\ R \], p : Generator[\E\]->Condition[\()\], f : E -> R) : R = do
-    rel : (E, E) -> Boolean = p(seed()).relation()  (* ugly *)
+    rel : (E, E) -> Boolean = p(self.seed).relation()  (* ugly *)
 
     join(x : (R, R, R, R, Maybe[\E\], Maybe[\E\]), y : (R, R, R, R, Maybe[\E\], Maybe[\E\])) : (R, R, R, R, Maybe[\E\], Maybe[\E\]) = do
       (m1,t1,i1,s1,h1,l1) = x
       (m2,t2,i2,s2,h2,l2) = y
 
       px = typecase (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get(), h2.get())
+      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
       else => true
       end
       if px then
@@ -475,7 +475,7 @@ object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
     end
     zero1 = (q.empty(), q.empty(), q.empty(), r.empty(), Nothing[\E\], Nothing[\E\])
 
-    (r1, r2, r3, r4, r5, r6) = seed().generate[\(R, R, R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,b,b,Just[\E\](a),Just[\E\](a)) end))
+    (r1, r2, r3, r4, r5, r6) = self.seed.generate[\(R, R, R, R, Maybe[\E\], Maybe[\E\])\](MapReduceReduction[\(R,R,R,R,Maybe[\E\],Maybe[\E\])\](join,zero1), (fn a => do b = f(a); (b,b,b,b,Just[\E\](a),Just[\E\](a)) end))
     r1
 
 
@@ -511,7 +511,7 @@ end
 (* Generator2 Subs *)
 object Subs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
   getter seed() : Generator[\ E \] = g
-  asString() : String = subsImpl[\ E \](g).asString()
+  getter asString() : String = subsImpl[\ E \](g).asString
 
   (* actual generation the nested data structure *)
   generate[\ R \](r : Reduction[\ R \], body : Generator[\ E \] -> R) : R = do
