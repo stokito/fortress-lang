@@ -67,7 +67,7 @@ trait SearchInstance[\Self extends SearchInstance[\Self,Cost\],
     (** If you don't write the children() getter you should write the
         generate() method. **)
     generate[\R\](r: Reduction[\R\], body: Self->R): R =
-        children().generate[\R\](r,body)
+        self.children.generate[\R\](r,body)
 end
 
 aStarPair[\T extends SearchInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
@@ -151,7 +151,7 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
             res
         end
     getter cost(): ZZ32 = 6 81 - 5 props - cands
-    getter isComplete(): ZZ32 = isConsistent() AND: props = 81
+    getter isComplete(): ZZ32 = self.isConsistent AND: props = 81
     getter longString(): String =
         (BIG ||[i<-0#9] (
              BIG ||[j<-0#9] (
@@ -171,7 +171,7 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
                  str
              end))
     getter children(): Generator[\Sudoku\] =
-        if isConsistent() then
+        if self.isConsistent then
             incons : Sudoku = Sudoku(0,props+1,state)
             <|  if state[iMax,jMax,k].working() then
                     child = self.copy()
@@ -351,10 +351,10 @@ value object NanoInterval(i:ZZ64)
     getter ns(): RR64 = 1.0 i
     getter asString(): String =
         if i = 0 then "0"
-        elif i >= 10^9 then sec() "s"
-        elif i >= 10^6 then ms() "ms"
-        elif i >= 10^3 then us() "µs"
-        else ns() "ns"
+        elif i >= 10^9 then self.sec "s"
+        elif i >= 10^6 then self.ms "ms"
+        elif i >= 10^3 then self.us "µs"
+        else self.ns "ns"
         end
     opr +(self, other:NanoInterval): NanoInterval =
         NanoInterval(i+other.i)
