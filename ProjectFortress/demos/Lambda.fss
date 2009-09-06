@@ -87,7 +87,7 @@ app(rator:Term, rand:Term): App = App(rator, rand)
 
 trait Var extends Term comprises { FreeVar, BoundVar }
     getter name(): String
-    pretty(_:ZZ32): String = name()
+    pretty(_:ZZ32): String = self.name
     subst(v:Var, val:Term): Term = if self=v then val else self end
     hasFreeVar(v:Var): Boolean = self = v
 end
