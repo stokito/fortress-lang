@@ -1051,15 +1051,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                     className, null, desc, null);
 
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", NamingCzar.voidToVoid, null, null);
-        cg.mv.visitCode();
-
-        cg.mv.visitVarInsn(Opcodes.ALOAD, 0);
-        cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL, desc,
-                              "<init>", NamingCzar.voidToVoid);
-        cg.mv.visitInsn(Opcodes.RETURN);
-        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-        cg.mv.visitEnd();
+        // Generate the constructor (initializes captured free vars from param list)
+        String init = taskConstructorDesc(freeVars);
+        cg.generateTaskInit(desc, init, freeVars);
 
         String applyDesc = NamingCzar.jvmSignatureFor(params, NamingCzar.jvmTypeDesc(rt, thisApi()),
                                                       thisApi());
@@ -1079,10 +1073,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         methodReturnAndFinish(cg);
         cg.dumpClass(className);
 
-        this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
-        mv.visitTypeInsn(Opcodes.NEW, className);
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", NamingCzar.voidToVoid);
+        constructWithFreeVars(className, freeVars, init);
     }
 
 
@@ -1584,7 +1575,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return result;
     }
 
-    private void generateTaskInit(String initDesc,
+    private void generateTaskInit(String baseClass,
+                                  String initDesc,
                                   List<VarCodeGen> freeVars) {
 
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
@@ -1592,9 +1584,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Call superclass constructor
         mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, NamingCzar.fortressBaseTask,
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, baseClass,
                               "<init>", NamingCzar.voidToVoid);
-        mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+        // mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
 
         // Stash away free variables Warning: freeVars contains
         // VarCodeGen objects from the parent context, we must look
@@ -1633,6 +1625,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return task;
     }
 
+    public String taskConstructorDesc(List<VarCodeGen> freeVars) {
+        // And their types
+        List<Type> freeVarTypes = new ArrayList(freeVars.size());
+        for (VarCodeGen v : freeVars) {
+            freeVarTypes.add(v.fortressType);
+        }
+        return NamingCzar.jvmTypeDescForGeneratedTaskInit(freeVarTypes, component.getName());
+    }
+
     // This sets up the parallel task construct.
     // Caveat: We create separate taskClasses for every task
     public String delegate(Expr x, String result, String init, List<VarCodeGen> freeVars) {
@@ -1654,7 +1655,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className, null, NamingCzar.fortressBaseTask, null);
 
-        cg.generateTaskInit(init, freeVars);
+        cg.generateTaskInit(NamingCzar.fortressBaseTask, init, freeVars);
 
         cg.generateTaskCompute(className, x, result);
 
@@ -1662,6 +1663,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
         return className;
+    }
+
+    public void constructWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
+            mv.visitTypeInsn(Opcodes.NEW, cname);
+            mv.visitInsn(Opcodes.DUP);
+            // Push the free variables in order.
+            for (VarCodeGen v : freeVars) {
+                v.pushValue(mv);
+            }
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cname, "<init>", sig);
     }
 
     // Evaluate args in parallel.  (Why is profitability given at a
@@ -1689,27 +1700,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String tDesc = NamingCzar.jvmTypeDesc(t, component.getName());
             // Find free vars of arg
             List<VarCodeGen> freeVars = getFreeVars(arg);
-            // And their types
-            List<Type> freeVarTypes = new ArrayList(freeVars.size());
-            for (VarCodeGen v : freeVars) {
-                freeVarTypes.add(v.fortressType);
-            }
 
             // Generate descriptor for init method of task
-            String init =
-                NamingCzar.jvmTypeDescForGeneratedTaskInit(freeVarTypes, component.getName());
+            String init = taskConstructorDesc(freeVars);
 
             String task = delegate(arg, tDesc, init, freeVars);
             tasks[i] = task;
             results[i] = tDesc;
 
-            mv.visitTypeInsn(Opcodes.NEW, task);
-            mv.visitInsn(Opcodes.DUP);
-            // Push the free variables in order.
-            for (VarCodeGen v : freeVars) {
-                v.pushValue(mv);
-            }
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, task, "<init>", init);
+            constructWithFreeVars(task, freeVars, init);
+
             mv.visitInsn(Opcodes.DUP);
             int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task), "L"+task+";");
             taskVars[i] = taskVar;
