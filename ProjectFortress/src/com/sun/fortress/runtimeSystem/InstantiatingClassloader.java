@@ -31,11 +31,11 @@ import org.objectweb.asm.Opcodes;
 import com.sun.fortress.repository.ProjectProperties;
 
 /**
- * This code steals willy-nilly from the Nextgen class loader.
+ * This code steals willy-nilly from the NextGen clGass loader.
  *
  * @author dr2chase
  */
-public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
+public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final boolean log_loads = false;
 
@@ -58,7 +58,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
     }
 
     /**
-     * Gets the bytes for a "resource". Resources can includes classfiles on the
+     * Gets the bytes for a "resource". Resources can include classfiles on the
      * classpath, which is handy.
      *
      * (adapted from Nextgen)
@@ -69,8 +69,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
      */
     private byte[] readResource(String className) throws IOException {
         // getResourceAsStream finds a file that's in the classpath. It's
-        // generally
-        // used to load resources (like images) from the same location as
+        // generally used to load resources (like images) from the same location as
         // class files. However for our purposes of loading the bytes of a class
         // file, this works perfectly. It will find the class in any place in
         // the classpath, and it doesn't force us to search the classpath
@@ -128,6 +127,7 @@ public class InstantiatingClassloader extends ClassLoader  implements Opcodes {
                 if (name.contains(Naming.ENVELOPE)) {
 
                     classData = instantiateClosure(name);
+
                 } else if (isExpanded(name)) {
                     String dename = Naming.deMangle(name);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
