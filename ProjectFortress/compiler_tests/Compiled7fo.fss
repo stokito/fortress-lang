@@ -50,12 +50,12 @@ run(): () = do
 (* TODO: hoist to top level *)
 start : RR64 = 0.0
 finish : RR64 = 1536.0
-errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
+errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 expect = 1.391570583 10.0^12
 
     (*) println("Time(s)\tArea")
-    for _ <- 0#10 do
+    for _ <- 0#reps do
         startTime = nanoTime()
         a = integrate(start,finish,errorTolerance)
         endTime = nanoTime()
