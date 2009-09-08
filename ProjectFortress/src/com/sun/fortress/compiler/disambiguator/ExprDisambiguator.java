@@ -236,28 +236,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return extendWithFns(definedDecls, CollectUtil.<Id>emptySet());
     }
 
-    private ExprDisambiguator extendWithGetterSetter(Set<Id> definedNames) {
-        return extendWithGetterSetter(definedNames, CollectUtil.<Id>emptySet());
-    }
-
     private ExprDisambiguator extendWithFns(Set<FnDecl> definedDecls, Set<Id> allowedShadowings) {
 
         checkForShadowingFunctions(extractDefinedFnNames(definedDecls), allowedShadowings);
         return extendWithFnsNoCheck(definedDecls);
     }
 
-    private ExprDisambiguator extendWithGetterSetter(Set<Id> getterSetter, Set<Id> allowedShadowings) {
-        checkForShadowingFunctions(getterSetter, allowedShadowings);
-        return extendWithGetterSetterNoCheck(getterSetter);
-    }
-
     private ExprDisambiguator extendWithFnsNoCheck(Set<FnDecl> definedFunctions) {
         NameEnv newEnv = new LocalFnEnv(_env, definedFunctions);
-        return new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, this._labels);
-    }
-
-    private ExprDisambiguator extendWithGetterSetterNoCheck(Set<Id> getterSetter) {
-        NameEnv newEnv = new LocalGetterSetterEnv(_env, getterSetter);
         return new ExprDisambiguator(newEnv, _uninitializedNames, _types, _errors, this._labels);
     }
 

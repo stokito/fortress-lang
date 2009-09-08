@@ -17,20 +17,19 @@
 
 export Executable
 
-(* Generic top-level functions *)
+(* Generic top-level overloaded functions *)
 
-f[\T\]():ZZ32 = 0
-g[\T, S\]():ZZ32 = f[\T\]() + 5
+f[\T\]():ZZ32 = 2
+f[\T extends ZZ32\](x: T):ZZ32 = f[\T\]() + x
 
 run() =do
-  a = f[\ZZ32\]()        (*) 0
-  b = g[\ZZ32,String\]() (*) 5
-  c = f[\String\]()      (*) 0
-  d = g[\String,ZZ32\]() (*) 5
+  a = f[\ZZ32\](3)      (*) 5
+  b = f[\ZZ32\](8)      (*) 10
+  c = f[\String\]()     (*) 2
 
-  sum =  a + b + c + d
+  sum =  a + b + c
   println(
-  if (sum = 10)
+  if (sum = 17)
      then "pass" else "fail" end
   )
 end

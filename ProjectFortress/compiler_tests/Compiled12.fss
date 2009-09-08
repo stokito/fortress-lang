@@ -17,20 +17,30 @@
 
 export Executable
 
-(* Generic top-level functions *)
+(* Generic trait *)
 
-f[\T\]():ZZ32 = 0
-g[\T, S\]():ZZ32 = f[\T\]() + 5
+f(x: ZZ32): ZZ32 = x
+g(x: String) = println x
+
+trait T[\S extends ZZ32\]
+  f(self):S
+  g():S
+end
+
+object O(x: ZZ32) extends T[\ZZ32\]
+  f(self):ZZ32 = x
+  g():ZZ32 = f(self) + 5
+end
 
 run() =do
-  a = f[\ZZ32\]()        (*) 0
-  b = g[\ZZ32,String\]() (*) 5
-  c = f[\String\]()      (*) 0
-  d = g[\String,ZZ32\]() (*) 5
+  o = O(3)
+  a = f(o)       (*) 3
+  b = o.g()      (*) 8
+  c = f(4)       (*) 4
 
-  sum =  a + b + c + d
+  sum =  a + b + c
   println(
-  if (sum = 10)
+  if (sum = 15)
      then "pass" else "fail" end
   )
 end

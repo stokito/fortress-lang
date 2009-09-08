@@ -17,18 +17,16 @@
 
 export Executable
 
-(* Generic top-level functions *)
+(* Generic top-level functions using generic types *)
 
-f[\T\]():ZZ32 = 0
-g[\T, S\]():ZZ32 = f[\T\]() + 5
+f[\T extends ZZ32\]():T = 0
+g[\T extends ZZ32, S\]():T = f[\T\]() + 5
 
 run() =do
   a = f[\ZZ32\]()        (*) 0
   b = g[\ZZ32,String\]() (*) 5
-  c = f[\String\]()      (*) 0
-  d = g[\String,ZZ32\]() (*) 5
 
-  sum =  a + b + c + d
+  sum =  a + 2 b
   println(
   if (sum = 10)
      then "pass" else "fail" end
