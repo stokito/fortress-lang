@@ -66,20 +66,20 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case STraitDecl(_,
                       STraitTypeHeader(sparams, _, _, where,
                                        throwsC, contract, extendsC, decls),
-                      excludes, comprises, _, self) =>
+                      self, excludes, comprises, _) =>
         val oldAnalyzer = analyzer
         analyzer = analyzer.extend(sparams, where)
         walk(sparams); walk(where); walk(throwsC); walk(contract); walk(extendsC)
-        walk(decls); walk(excludes); walk(comprises); walk(self)
+        walk(decls); walk(self); walk(excludes); walk(comprises)
         analyzer = oldAnalyzer
       case SObjectDecl(_,
                        STraitTypeHeader(sparams, _, _, where,
                                         throwsC, contract, extendsC, decls),
-                       params, self) =>
+                       self, params) =>
         val oldAnalyzer = analyzer
         analyzer = analyzer.extend(sparams, where)
         walk(sparams); walk(where); walk(throwsC); walk(contract); walk(extendsC)
-        walk(decls); walk(params); walk(self)
+        walk(decls); walk(self); walk(params)
         analyzer = oldAnalyzer
       case SFnDecl(_,
                    SFnHeader(sparams, _, _, where,

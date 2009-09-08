@@ -17,16 +17,24 @@
 
 export Executable
 
-(* Generic top-level functions *)
+(* Generic dotted methods *)
 
-f[\T\]():ZZ32 = 0
-g[\T, S\]():ZZ32 = f[\T\]() + 5
+trait T
+  f[\S\]():ZZ32
+  g[\S, U\]():ZZ32
+end
+
+object O extends T
+  f[\S\]():ZZ32 = 0
+  g[\S, U\]():ZZ32 = f[\S\]() + 5
+end
 
 run() =do
-  a = f[\ZZ32\]()        (*) 0
-  b = g[\ZZ32,String\]() (*) 5
-  c = f[\String\]()      (*) 0
-  d = g[\String,ZZ32\]() (*) 5
+  o = O
+  a = O.f[\ZZ32\]()        (*) 0
+  b = O.g[\ZZ32,String\]() (*) 5
+  c = O.f[\String\]()      (*) 0
+  d = O.g[\String,ZZ32\]() (*) 5
 
   sum =  a + b + c + d
   println(
