@@ -21,15 +21,16 @@ export Executable
 (** Add in a bunch more higher-order function goodness to Compiled7. **)
 
 (* Why is -> on types not right-associative? *)
-curry(f:(RR64,RR64)->RR64): RR64 -> (RR64 -> RR64) = fn a => fn b => f(a,b)
+curry(f:(RR64,RR64)->RR64): RR64 -> (RR64 -> RR64) = fn (a:RR64) => fn (b:RR64) => f(a,b)
 
 opr AP(f: RR64 -> RR64, a: () -> RR64): RR64 = f(a())
+opr APP(f: RR64 -> (RR64->RR64), a: () -> RR64): (RR64->RR64) = f(a())
 
 RR64AsString(x:RR64): String = x.asString()
 
 (* Actually test more HOFs *)
 integrate(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
-    integrate'(l,h,f(l),f(h),0,f,tol)
+    integrate'(l,h,f(l),f(h),0.0,f,tol)
 
 integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64): RR64 = do
     w = 0.5 (h-l)
@@ -39,19 +40,19 @@ integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64)
     al = hw (fl + fm)
     ah = hw (fm + fh)
     alh = al + ah
-    if |alh - a| <= |alh| tol OR: w <= tol then
+    if |alh - a| <= |alh| tol OR w <= tol then
         alh
     else
-        (curry(fn (x,y) => x+y) AP:
+        (curry(fn (x,y) => x+y) APP:
          integrate'(l,m,fl,fm,al,f,tol)) AP:
         integrate'(m,h,fm,fh,ah,f,tol)
     end
   end
 
-elapsedSec(init:ZZ64, final:ZZ64): RR64 =
+elapsedSec(init:RR64, final:RR64): RR64 =
     (final - init) / (10.0^9)
 
-f(x: RR64): RR64 = x (x x + 1.0)
+fun(x: RR64): RR64 = x (x x + 1.0)
 
 run(): () = do
 (* TODO: hoist to top level *)
@@ -64,7 +65,7 @@ expect = 1.391570583 10.0^12
     (*) println("Time(s)\tArea")
     for _ <- 0#reps do
         startTime = nanoTime()
-        a = integrate(start,finish,f,errorTolerance)
+        a = integrate(start,finish,fun,errorTolerance)
         endTime = nanoTime()
         if |a - expect| > errorTolerance a then
             println("FAIL: Bad error tolerance!")
