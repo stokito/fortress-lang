@@ -17,10 +17,12 @@
 component ForLoops
 export Executable
 
+  doNothing() = ()
   run():() = do
     for i <- 1#10 do
-      printlnZZ32 i
+      doNothing()
     end
+    printlnZZ32 0
   end
 
 end
