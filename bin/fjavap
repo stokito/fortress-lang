@@ -42,4 +42,4 @@ fi
 
 # echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"
 
-javap -bootclasspath "$CP" -classpath "$CP" "$@"
+javap -J-Dfile.encoding=UTF-8 -bootclasspath "$CP" -classpath "$CP" "$@"
