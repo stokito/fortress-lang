@@ -35,6 +35,9 @@ public class Naming {
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
     
+    public static final Object INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
+
+    
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
     public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);

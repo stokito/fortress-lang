@@ -1039,6 +1039,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         //      Create the Class
         String desc = NamingCzar.makeAbstractArrowDescriptor(params, rt, thisApi());
+        String idesc = NamingCzar.makeArrowDescriptor(params, rt, thisApi());
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
 
@@ -1049,7 +1050,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<VarCodeGen> freeVars = getFreeVars(body);
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                    className, null, desc, null);
+                    className, null, desc, new String[] {idesc});
 
         // Generate the constructor (initializes captured free vars from param list)
         String init = taskConstructorDesc(freeVars);

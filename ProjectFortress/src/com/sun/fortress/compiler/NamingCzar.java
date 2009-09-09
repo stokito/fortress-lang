@@ -664,17 +664,43 @@ public class NamingCzar {
         }
     }
 
-    public static String makeAbstractArrowDescriptor(List<com.sun.fortress.nodes.Param> params,
-                                             com.sun.fortress.nodes.Type rt,
-                                             APIName ifNone) {
-        String result = "AbstractArrow" + Naming.LEFT_OXFORD;
+    public static String makeAbstractArrowDescriptor(
+            List<com.sun.fortress.nodes.Param> params,
+            com.sun.fortress.nodes.Type rt, APIName ifNone) {
+        String result = "AbstractArrow";
+        return makeAnArrowDescriptor(params, rt, ifNone, result);
+    }
+
+    /**
+     * @param params
+     * @param rt
+     * @param ifNone
+     * @param result
+     * @return
+     */
+    private static String makeAnArrowDescriptor(
+            List<com.sun.fortress.nodes.Param> params,
+            com.sun.fortress.nodes.Type rt, APIName ifNone, String result) {
+        result += Naming.LEFT_OXFORD;
+        if (params.size() > 0)
         for (Param p : params) {
-            result = result + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + ";";
+            result = result
+                    + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + ";";
+        }
+        else {
+            result = result + Naming.INTERNAL_SNOWMAN + ";";
         }
 
         result = result + makeArrowDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
         result = Naming.mangleIdentifier(result);
         return result;
+    }
+
+    public static String makeArrowDescriptor(
+            List<com.sun.fortress.nodes.Param> params,
+            com.sun.fortress.nodes.Type rt, APIName ifNone) {
+        String result = "Arrow";
+        return makeAnArrowDescriptor(params, rt, ifNone, result);
     }
 
     public static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
