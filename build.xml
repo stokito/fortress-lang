@@ -514,7 +514,7 @@ maintain proper indentation.
   <target name="compile" depends="compileAll"/>
 
   <target name="check.blas" depends="init">
-    <javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics">
+    <javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics" debug="true">
       <classpath refid="compile.classpath"/>
     </javac>
 

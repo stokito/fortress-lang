@@ -20,6 +20,26 @@ export Executable
 
 RR64ToString(x:RR64): String = x.asString()
 
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+integrate_fo(l: RR64, h:RR64, tol: RR64): RR64 =
+    integrate_fo'(l,h,fun(l),fun(h),0.0,tol)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = fun(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        alh
+    else
+        integrate_fo'(l,m,fl,fm,al,tol) + integrate_fo'(m,h,fm,fh,ah,tol)
+    end
+  end
+
 (* Actually test more HOFs *)
 integrate(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
     integrate'(l,h,f(l),f(h),0.0,f,tol)
@@ -39,8 +59,48 @@ integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64)
     end
   end
 
+(** Add in a bunch more higher-order function goodness to Compiled7. **)
+
+(* Why is -> on types not right-associative? *)
+curry(f:(RR64,RR64)->RR64): RR64 -> (RR64 -> RR64) = fn (a:RR64) => fn (b:RR64) => f(a,b)
+
+opr AP(f: RR64 -> RR64, a: () -> RR64): RR64 = f(a())
+opr APP(f: RR64 -> (RR64->RR64), a: () -> RR64): (RR64->RR64) = f(a())
+
+(* Even higher-order functions (this found some more bugs in type names for curry etc) *)
+integrate_ho(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
+    integrate_ho'(l,h,f(l),f(h),0.0,f,tol)
+
+integrate_ho'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = f(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        alh
+    else
+        (curry(fn (x,y) => x+y) APP:
+         integrate_ho'(l,m,fl,fm,al,f,tol)) AP:
+        integrate_ho'(m,h,fm,fh,ah,f,tol)
+    end
+  end
+
+
 elapsedSec(init:RR64, final:RR64): RR64 =
     (final - init) / (10.0^9)
+
+runTest(desc:String, theTest: ()->RR64, expect: RR64, tol: RR64): () = do
+    startTime = nanoTime()
+    a = theTest()
+    endTime = nanoTime()
+    if |a - expect| > a tol then
+        println(desc " FAIL: Bad error tolerance!")
+    end
+    (* println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a)) *)
+  end
 
 run(): () = do
 
@@ -51,15 +111,14 @@ errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 expect = 1.391570583 10.0^12
 
-    (*) println("Time(s)\tArea")
-    for _ <- 0#reps do
-        startTime = nanoTime()
-        a = integrate(start,finish,fn x => x (x x + 1.0),errorTolerance)
-        endTime = nanoTime()
-        if |a - expect| > errorTolerance a then
-            println("FAIL: Bad error tolerance!")
-        end
-        (*) println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a))
+    (* println("Time(s)\tArea") *)
+    for _ <- seq(0#reps) do
+        runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance),
+                expect, errorTolerance)
+        runTest("Higher-order", fn () => integrate(start, finish, fn x => x (x x + 1.0), errorTolerance),
+                expect, errorTolerance)
+        runTest("Crazy curry", fn () => integrate_ho(start, finish, fun, errorTolerance),
+                expect, errorTolerance)
     end
     println("Done")
   end

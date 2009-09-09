@@ -21,11 +21,6 @@ public final class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMetho
         implements fortress.CompilerBuiltin.RR64 {
     final double val;
 
-    static {
-        FRR64 tmp = new FRR64(1.0);
-        // System.err.println("Loaded FRR64");
-    }
-
     FRR64(double x) { val = x; }
     public String toString() { return String.valueOf(val); }
     public FString asString() { return new FString(String.valueOf(val)); }
