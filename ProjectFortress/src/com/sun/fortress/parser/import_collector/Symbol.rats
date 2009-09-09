@@ -60,7 +60,7 @@ transient private String lesses = "<" (sd "<")*;
 transient private String greaters = ">" (sd ">")*;
 
 transient private String encloser =
-     !(bar) bars !([*.>/\\] / "->")
+     bars !([*.>/\\] / "->")
    / "\u2016"
    / "\u2af4" ;
 

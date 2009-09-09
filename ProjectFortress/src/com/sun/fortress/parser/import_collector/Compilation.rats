@@ -305,8 +305,8 @@ private List<IdOrOpOrAnonymousName> SimpleNames =
 
 /* AliasedSimpleName ::=
      Id (w => w Id)?
-   | opr (w BIG)? w (Encloser | Op) (w => w (Encloser | Op))?
    | opr (w BIG)? w EncloserPair (w => w EncloserPair)?
+   | opr (w BIG)? w (Encloser | Op) (w => w (Encloser | Op))?
  */
 private AliasedSimpleName AliasedSimpleName =
      a1:Id a2:(w match w Id)?
@@ -315,7 +315,7 @@ private AliasedSimpleName AliasedSimpleName =
        else
            yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
      }
-   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w match w (Encloser / Op))?
+   / opr big:(w BIG)? w a1:EncloserPair a2:(w match w EncloserPair)?
      { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
@@ -326,7 +326,7 @@ private AliasedSimpleName AliasedSimpleName =
                yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
      }
-   / opr big:(w BIG)? w a1:EncloserPair a2:(w match w EncloserPair)?
+   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w match w (Encloser / Op))?
      { if (big != null) a1 = NodeFactory.makeBig(a1);
        if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
