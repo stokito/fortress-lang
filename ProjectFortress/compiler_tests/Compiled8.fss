@@ -72,6 +72,7 @@ expect = 1.391570583 10.0^12
         end
         (*) println(RR64AsString(elapsedSec(startTime,endTime)) "\t" RR64AsString(a))
     end
+    println("Done")
   end
 
 end
