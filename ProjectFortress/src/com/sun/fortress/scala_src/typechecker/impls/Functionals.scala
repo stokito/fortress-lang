@@ -703,36 +703,36 @@ trait Functionals { self: STypeChecker with Common =>
     }
 
     case SFnExpr(SExprInfo(span, paren, _),
-                 SFnHeader(a, b, c, d, e, f, tempParams, retType), body) => {
+                 SFnHeader(a, b, c, d, e, f, tempParams, declaredRetType), body) => {
       // If expecting an arrow type, use its domain to infer param types.
-      val params = expected match {
+      val (params, expectedRetType) = expected match {
         case Some(arrow:ArrowType) =>
-          addParamTypes(arrow.getDomain, tempParams).getOrElse(tempParams)
-        case _ => tempParams
+          (addParamTypes(arrow.getDomain, tempParams).getOrElse(tempParams), Some(arrow.getRange))
+        case _ => (tempParams, None)
       }
 
+      val bodyType = declaredRetType.orElse(expectedRetType)
+      
       // Make sure all params have a type.
       val domain = makeDomainType(params).getOrElse {
         signal(expr, "Could not determine all parameter types of function expression.")
         return expr
       }
 
-      val (checkedBody, range) = retType match {
+      val checkedBody = bodyType match {
         // If there is a declared return type, use it.
         case Some(typ) =>
-          (this.extend(params).checkExpr(body,
+          this.extend(params).checkExpr(body,
                                          typ,
                                          errorString("Function body",
-                                                     "declared return")), typ)
-
+                                                     "declared return"))
         case None =>
-          val temp = this.extend(params).checkExpr(body)
-          (temp, getType(temp).getOrElse(return expr))
+          this.extend(params).checkExpr(body)
       }
 
+      val range = declaredRetType.getOrElse(getType(checkedBody).getOrElse(return expr))
       val arrow = NF.makeArrowType(span, domain, range)
-      val newRetType = retType.getOrElse(range)
-      val newHeader = SFnHeader(a, b, c, d, e, f, params, Some(newRetType))
+      val newHeader = SFnHeader(a, b, c, d, e, f, params, Some(range))
       SFnExpr(SExprInfo(span, paren, Some(arrow)), newHeader, checkedBody)
     }
 
