@@ -1311,7 +1311,15 @@ public class NodeUtil {
         }
     }
 
-    /* true is there exists a self parameter in a given parameter list */
+    /* true if there exists a self parameter in the parameter list of a given FnDecl */
+    public static boolean isFunctionalMethod(FnDecl f) {
+        for (Param p : getParams(f)) {
+            if (p.getName().getText().equals("self")) return true;
+        }
+        return false;
+    }
+
+    /* true if there exists a self parameter in a given parameter list */
     public static boolean isFunctionalMethod(List<Param> params) {
         for (Param p : params) {
             if (p.getName().getText().equals("self")) return true;
