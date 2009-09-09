@@ -29,29 +29,29 @@ public class Naming {
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.
     public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
-    
+
     public final static String ENVELOPE = "\u2709"; // Signals necessary closure
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
-    
+
     public static final Object INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
 
-    
+
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
     public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
-  
+
     public final static char LEFT_OXFORD_CHAR = '\u27e6';
     public final static char RIGHT_OXFORD_CHAR = '\u27e7';
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
-    
+
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
     public final static String NATIVE_PREFIX_DOT = "native.";
-    
+
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
-    
+
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
      */
@@ -61,7 +61,7 @@ public class Naming {
      */
     static Map<String, String> specialFortressTypes = new HashMap<String, String>();
 
-    
+
     static void bl(String lib, String ft, String cl) {
         cl = runtimeValues + cl;
         specialFortressDescriptors.put(lib+ft, "L" + cl + ";");
@@ -83,8 +83,8 @@ public class Naming {
         bl("", SNOWMAN, "FVoid");
     }
 
-    
-    
+
+
     /**
      * (Symbolic Freedom) Dangerous characters should not appear in JVM identifiers
      */
@@ -121,11 +121,11 @@ public class Naming {
         throw new Error("Bad fortress naming scheme tag (unicode " + Integer.toHexString(ch) +
                     ") on fortress type " + ft);
     }
-    
+
     public static String deDot(String s) {
         return s.replace(".", "/");
     }
-    
+
     public static String deMangle(String s) {
         if (s.length() < 2 || s.charAt(0) != '\\')
             return s;
@@ -199,7 +199,7 @@ public class Naming {
 
     /**
      * Concatenates s1 and s2, preserving valid-mangling property.
-     * 
+     *
      * @param s1 Validly mangled ("naming freedom") JVM identifier
      * @param s2 Validly mangled ("naming freedom") JVM identifier
      * @return concatenation of s1 and s2, validly mangled if s1 and s2 were validly mangled.
@@ -207,19 +207,19 @@ public class Naming {
     public static String catMangled(String s1, String s2) {
         int l1 = s1.length();
         int l2 = s2.length();
-        
+
         // Strictly speaking, empty strings are illegal inputs.
         if (l1 == 0) return s2;
         if (l2 == 0) return s1;
-        
+
         boolean ms1 = likelyMangled(s1);
         boolean ms2 = likelyMangled(s2);
-        
+
         if (ms1) {
             // Fancy way to encode the empty string.
             if (l1 == 2 && s1.charAt(1) == '=')
                 return s2;
-            
+
             if (ms2) {
                 // ms2 begins with \, hence no accidental escapes
                 char ch1 = s2.charAt(1);
@@ -237,7 +237,7 @@ public class Naming {
             }
         } else if (ms2) {
             char ch1 = s2.charAt(1);
- 
+
             // If s2 is truly mangled, then prepend \= to concatenation.
                 if (ch1 == '=') {
                     if (l2 == 2) {
@@ -278,17 +278,17 @@ public class Naming {
     public static String catMangledCheckingJoint(String s1, String s2) {
         int l1 = s1.length();
         int l2 = s2.length();
-        
+
         if (l2 == 0)
             return s1;
-        
+
         if (s1.endsWith("\\") &&
                 -1 != (l1 == 1 ? SF_FIRST_ESCAPES : SF_ESCAPES).indexOf(s2.charAt(0))) {
             // must escape trailing \
             return s1.charAt(0) != '\\'
                 ? "\\=" + s1 + "-" + s2
                 : s1 + "-" + s2;
-            
+
         } else {
             return s1 + s2;
         }
@@ -310,24 +310,24 @@ public class Naming {
          * Dangerous characters are the union of all characters forbidden
          * or otherwise restricted by the JVM specification, plus their mates,
          * if they are brackets.
-    
+
          * @param identifier
          * @return
          */
         public static String mangleIdentifier(String identifier) {
-    
+
             /* This is not quite right; accidental escapes are those
              * where the backslash is followed by one of |,?%^_{}!
              */
-            
+
             // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
             StringBuffer mangledStringBuffer = null;
             String mangledString = identifier;
-            
+
             int l = identifier.length();
             if (l == 0)
                 return "\\=";
-            
+
             for (int j = 0; j < l-1; j++) {
                 char ch = identifier.charAt(j);
                 if (ch == '\\') {
@@ -347,7 +347,7 @@ public class Naming {
                                     mangledStringBuffer.append('-');
                                 }
                             }
-                            
+
                         }
                          if (j + 2 < l)
                              mangledStringBuffer.append(identifier.charAt(l-1));
@@ -356,13 +356,13 @@ public class Naming {
                     }
                 }
             }
-            
+
     //        if (mangledString.startsWith("\\=")) {
     //            mangledString = "\\-=" + mangledString.substring(2);
     //        }
-    
+
             // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
-    
+
             mangledString = mangledString.replaceAll("/", "\\\\|");
             mangledString = mangledString.replaceAll("\\.", "\\\\,");
             mangledString = mangledString.replaceAll(";", "\\\\?");
@@ -372,17 +372,17 @@ public class Naming {
             mangledString = mangledString.replaceAll("\\[", "\\\\{");
             mangledString = mangledString.replaceAll("\\]", "\\\\}");
             mangledString = mangledString.replaceAll(":", "\\\\!");
-    
+
             // Actually, this is NOT ALLOWED.
     //        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
     //        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
-    
+
             // 3. If the first two steps introduced any change, <em>and</em> if the
             // string does not already begin with a backslash, prepend a null prefix (\=)
             if (!mangledString.equals(identifier))
-                if (!(mangledString.charAt(0) == '\\')) 
+                if (!(mangledString.charAt(0) == '\\'))
                 mangledString = "\\=" + mangledString;
-            
+
             return mangledString;
         }
 
@@ -400,10 +400,10 @@ public class Naming {
             start = end+1;
             end = sig.indexOf(';', start);
         }
-        
+
         return sig.substring(0,start) + sig.substring(end+1);
     }
-    
+
     public static String nthSigParameter(String sig, int selfIndex) {
         // start, end, are inclusive bounds of nth parameter in sig.
         int start = 1;
@@ -412,7 +412,7 @@ public class Naming {
             start = end+1;
             end = sig.indexOf(';', start);
         }
-        
+
         return sig.substring(start,end+1);
     }
 }
