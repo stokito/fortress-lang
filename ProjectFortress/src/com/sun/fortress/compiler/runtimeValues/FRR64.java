@@ -23,7 +23,7 @@ public final class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMetho
 
     static {
         FRR64 tmp = new FRR64(1.0);
-        System.err.println("Loaded FRR64");
+        // System.err.println("Loaded FRR64");
     }
 
     FRR64(double x) { val = x; }

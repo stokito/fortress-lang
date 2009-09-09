@@ -32,7 +32,7 @@ integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64)
     al = hw (fl + fm)
     ah = hw (fm + fh)
     alh = al + ah
-    if |alh - a| <= |alh| tol OR w <= tol then
+    if |alh - a| <= |alh| tol OR: w <= tol then (* OR: breaks it *)
         alh
     else
         integrate'(l,m,fl,fm,al,f,tol) + integrate'(m,h,fm,fh,ah,f,tol)

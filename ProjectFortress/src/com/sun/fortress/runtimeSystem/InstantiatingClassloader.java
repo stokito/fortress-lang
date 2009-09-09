@@ -258,7 +258,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitCode();
             for (int i = 1; i < parameters.size();i++) {
                 String param = parameters.get(i-1);
-                mv.visitVarInsn(ALOAD, i);
+                if (! param.equals(Naming.INTERNAL_SNOWMAN))
+                    mv.visitVarInsn(ALOAD, i);
 
             }
             mv.visitMethodInsn(INVOKESTATIC, staticClass, fn, sig);
@@ -374,7 +375,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int l = parameters.size();
 
         for (int i = 0; i < l-1; i++) {
-            sig += Naming.javaDescForTaggedFortressType(parameters.get(i));
+            String s = parameters.get(i);
+            if (! s.equals(Naming.INTERNAL_SNOWMAN))
+                sig += Naming.javaDescForTaggedFortressType(parameters.get(i));
         }
         sig += ")";
         // nothing special here, yet, but AbstractArrow will be different.

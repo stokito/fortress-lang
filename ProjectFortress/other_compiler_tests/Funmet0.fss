@@ -23,9 +23,9 @@ import Funmet2.{f2}
 export Executable
 
 run():() = do
-   jPrintln(me(f1(), 0))
+   jPrintln(me(f1(), 0)) (* 2 *)
    jPrintln(" ");
-   jPrintln(me(f2(), 0))
+   jPrintln(me(f2(), 0)) (* 3 *)
    jPrintln(" ");
 end
 
