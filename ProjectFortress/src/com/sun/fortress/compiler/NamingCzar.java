@@ -77,8 +77,6 @@ public class NamingCzar {
 
     private final static boolean logLoads = ProjectProperties.getBoolean("fortress.log.classloads", false);
 
-    private final static boolean transitionArrowNaming = false;
-
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
@@ -651,18 +649,23 @@ public class NamingCzar {
     public static String applyMethodName() { return "apply";}
 
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
-        if (transitionArrowNaming) {
-            return "com/sun/fortress/compiler/runtimeValues/AbstractArrow_" +
-                makeArrowDescriptor(t.getDomain(), ifNone) + "_" +
-                makeArrowDescriptor(t.getRange(), ifNone);
-        } else {
-            String res =
-             "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
-                makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
-            res = Naming.mangleIdentifier(res);
-            return res;
-        }
-    }
+        
+        String res =
+         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
+            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
+        res = Naming.mangleIdentifier(res);
+        return res;
+    
+}
+    public static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
+        
+        String res =
+         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
+            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
+        res = Naming.mangleIdentifier(res);
+        return Naming.NORMAL_TAG + res;
+    
+}
 
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
@@ -711,9 +714,7 @@ public class NamingCzar {
         Id id = t.getName();
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
-        if (transitionArrowNaming)
-            return id.getText();
-        else {
+         {
             if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
                 tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
             } else if (only.fj.definesApi(apiName)) {
@@ -737,16 +738,16 @@ public class NamingCzar {
                                     "Can't compile Keyword args yet");
         String res = "";
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            res += makeArrowDescriptor(ty, ifNone) + (transitionArrowNaming ? "_" : ';');
+            res += makeArrowDescriptor(ty, ifNone) +  ';';
         }
-        return res;
+        return Useful.substring(res, 0, -1);
     }
 
     public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
         if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t, ifNone);
         else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
         else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
-        else if (t instanceof ArrowType) return makeArrowDescriptor((ArrowType) t, ifNone);
+        else if (t instanceof ArrowType) return makeNestedArrowDescriptor((ArrowType) t, ifNone);
         else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }
