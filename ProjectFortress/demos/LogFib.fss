@@ -27,7 +27,7 @@ fib(n: ZZ): ZZ = do
     fib_n
   end
 
-logFib(n: ZZ): ZZ =
+logFib(n: ZZ): (ZZ, ZZ) =
     if n < 2 then
         (1-n, n)
     else

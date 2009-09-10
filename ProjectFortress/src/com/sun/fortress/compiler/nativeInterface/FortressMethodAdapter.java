@@ -24,7 +24,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
 
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.nativeHelpers.*;
 import com.sun.fortress.nodes.APIName;

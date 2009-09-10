@@ -21,7 +21,7 @@ import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
-import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
@@ -724,7 +724,7 @@ public class ForeignJava {
         MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
             class_size_partitioned_overloads =
                 new MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
-        
+
        for(Map.Entry<IdOrOpOrAnonymousName,
             MultiMap<Integer, Function>> entry : size_partitioned_overloads.entrySet()) {
            String n = entry.getKey().stringName();
@@ -732,10 +732,10 @@ public class ForeignJava {
            if (i == -1)
                throw new Error("Cannot happen; all foreign names should contain a dot: " + n);
            String pfx = n.substring(0,i+1);
-           
+
            class_size_partitioned_overloads.putItem(pfx, entry.getKey(), entry.getValue());
        }
-       
+
         // Need to generate wrappers for all these classes,
         // if they do not already exist.
         for (Type t : classes) {
@@ -758,8 +758,8 @@ public class ForeignJava {
 //                                                                        }
 //
 //                                                                    });
-            
-  
+
+
             size_partitioned_overloads = class_size_partitioned_overloads.get(starts_with);
             if (size_partitioned_overloads == null)
                 size_partitioned_overloads = Collections.emptyMap();

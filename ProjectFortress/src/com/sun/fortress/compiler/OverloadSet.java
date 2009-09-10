@@ -15,12 +15,13 @@
  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.phases;
+package com.sun.fortress.compiler;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -387,9 +388,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int j = i + 1; j < potypes.length; j++) {
                     Type ti = potypes[i].x;
                     Type tj = potypes[j].x;
-                    if (ta.subtype(ti, tj).isTrue()) {
+                    if (ta.subtypeNormal(ti, tj).isTrue()) {
                         potypes[i].edgeTo(potypes[j]);
-                    } else if (ta.subtype(tj, ti).isTrue()) {
+                    } else if (ta.subtypeNormal(tj, ti).isTrue()) {
                         potypes[j].edgeTo(potypes[i]);
                     }
                 }
@@ -410,7 +411,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     List<Param> parameters = f.tagParameters();
                     Param p = parameters.get(dispatchParameterIndex);
                     Type pt = p.getIdType().unwrap();
-                    if (ta.subtype(t, pt).isTrue()) {
+                    if (ta.subtypeNormal(t, pt).isTrue()) {
                         childLSTSF.add(f);
                         alreadySelected.add(f);
 
@@ -535,7 +536,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // if any type of the candidate is not a subtype(or eq)
             // of the corresponding type of the msf, then the candidate
             // is NOT better.
-            if (!ta.subtype(cand_t, msf_t).isTrue()) {
+            if (!ta.subtypeNormal(cand_t, msf_t).isTrue()) {
                 cand_better = false;
                 break;
             }
@@ -566,36 +567,27 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     public String getSignature() {
         String s = overloadedDomainSig();
-
-        Type r = null;
+        List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
 
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            r = join(r, f.getReturnType(), ta);
+            typesToJoin.add(f.getReturnType());
         }
-        s += NamingCzar.boxedImplDesc(r, null);
+
+        s += NamingCzar.boxedImplDesc(join(ta,typesToJoin), null);
 
         return s;
     }
 
     /**
-     * @param r
-     * @param r0
-     * @return
+     * Type-level join that erases to Any if it obtains a Union type.
+     *
+     * TODO: should really erase to concrete least upper bound in type hierarchy,
+     * but that requires extending TypeAnalyzer.
      */
-    private static Type join(Type r, Type r0, TypeAnalyzer ta) {
-        // Eventually we want to use the join from TypeAnalyzer, once we
-        // figure out how to deal with union types.
-        if (r == null) {
-            r = r0;
-        } else if (r.equals(r0)) {
-            // ok
-        } else if (ta.subtype(r, r0).isTrue()) {
-            r = r0;
-        } else if (ta.subtype(r0, r).isTrue()) {
-            // ok
-        } else if (!(r instanceof AnyType)) {
-            // Locate the any at the place we realized it was necessary.
-            r = NodeFactory.makeAnyType(r0.getInfo().getSpan());
+    private static Type join(TypeAnalyzer ta, Iterable<Type> tys) {
+        Type r = ta.joinNormal(tys);
+        if (r instanceof UnionType) {
+            r = NodeFactory.makeAnyType(r.getInfo().getSpan());
         }
         return r;
     }
@@ -670,8 +662,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     private static Type getRangeSignature(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
-
-        Type r = null;
+        List<Type> typesToJoin = new ArrayList(types.size());
 
         for (Type type : types) {
             Type r0;
@@ -696,32 +687,24 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
             }
-
-            r = join(r, r0, ta);
-
-            if (r instanceof AnyType)
-                break;
+            typesToJoin.add(r0);
         }
-        return r;
+        return join(ta,typesToJoin);
     }
 
     private static Type getParamType(IntersectionType t, int i, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
-
-        Type r = null;
+        List<Type> typesToJoin = new ArrayList(types.size());
 
         for (Type type : types) {
             Type r0;
 
             r0 = getParamType(type, i, paramCount, ta);
+            if (r0==null) continue;
 
-            if (r0 != null)
-                r = join(r, r0, ta);
-
-            if (r instanceof AnyType)
-                break;
+            typesToJoin.add(r0);
         }
-        return r;
+        return join(ta,typesToJoin);
     }
 
     /**
@@ -768,7 +751,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             com.sun.fortress.nodes.Type tp = p.getIdType().unwrap();
             if (ti == null)
                 return false;
-            if (!ta.subtype(tp, ti).isTrue())
+            if (!ta.subtypeNormal(tp, ti).isTrue())
                 return false;
         }
         return true;
@@ -799,13 +782,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     private Type overloadedParamType(int param) {
-        Type r = null;
+        List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<Param> params = f.tagParameters();
             Param p = params.get(param);
-            r = join(r, p.getIdType().unwrap(), ta);
+            typesToJoin.add(p.getIdType().unwrap());
         }
-        return r;
+        return join(ta,typesToJoin);
     }
 
     public String[] getExceptions() {

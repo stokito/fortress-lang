@@ -17,7 +17,7 @@
 
 package com.sun.fortress.exceptions;
 
-import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.useful.HasAt;
 
 public class CompilerError extends RuntimeException {
 
@@ -26,7 +26,7 @@ public class CompilerError extends RuntimeException {
      */
     private static final long serialVersionUID = 5598379625320784306L;
 
-    private Span span;
+    private HasAt loc;
 
     public CompilerError(String message) {
         super(message);
@@ -40,12 +40,12 @@ public class CompilerError extends RuntimeException {
         super(e);
     }
 
-    public CompilerError(Span span, String message) {
-        super("\n" + span.toString() + "\n    " + message);
-        this.span = span;
+    public CompilerError(HasAt loc, String message) {
+        super("\n" + loc.at() + "\n    " + message);
+        this.loc = loc;
     }
 
-    public Span getSpan() {
-        return span;
+    public HasAt getLoc() {
+        return loc;
     }
 }
