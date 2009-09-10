@@ -37,7 +37,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
@@ -441,7 +441,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private <T> T sayWhat(ASTNode x) {
         allSayWhats();
-        throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
+        throw new CompilerError(x, "Can't compile " + x);
     }
 
     private <T> T sayWhat(Node x) {
@@ -453,7 +453,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private <T> T sayWhat(ASTNode x, String message) {
         allSayWhats();
-        throw new CompilerError(NodeUtil.getSpan(x), message + " node = " + x);
+        throw new CompilerError(x, message + " node = " + x);
     }
 
     private void debug(Object... message){
@@ -502,7 +502,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         first.accept(this);
         Iterator<Link> i = links.iterator();
         if (links.size() != 1)
-            throw new CompilerError(NodeUtil.getSpan(x), x + "links.size != 1");
+            throw new CompilerError(x, x + "links.size != 1");
         Link link = i.next();
         link.getExpr().accept(this);
         debug( "forChainExpr", x, " about to call accept on ",
@@ -1033,7 +1033,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Param> params = header.getParams();
         Option<Type> returnType = header.getReturnType();
         if (!returnType.isSome())
-            throw new CompilerError(NodeUtil.getSpan(x), "No return type");
+            throw new CompilerError(x, "No return type");
         Type rt = returnType.unwrap();
 
 

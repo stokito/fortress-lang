@@ -28,7 +28,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.EmptyVisitor;
 
-import com.sun.fortress.compiler.phases.OverloadSet;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.useful.Debug;
 
 public class FortressForeignAdapter extends ClassAdapter {

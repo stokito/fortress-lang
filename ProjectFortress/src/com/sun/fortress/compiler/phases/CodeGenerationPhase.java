@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.phases;
 
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.ParallelismAnalyzer;
 import com.sun.fortress.compiler.codegen.FreeVariables;
@@ -64,8 +65,8 @@ public class CodeGenerationPhase extends Phase {
                     "CodeGenerationPhase: components " + previous.components() + " apis = " + previous.apis().keySet());
 
         GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil.union(env.apis(), previous.apis()));
-        
-        
+
+
         for (APIName api : previous.apis().keySet()) {
             if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                 ApiIndex ai = previous.apis().get(api);

@@ -27,9 +27,8 @@ import java.util.Map;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.optimization.Unbox.Contains;
-import com.sun.fortress.compiler.phases.OverloadSet;
 import com.sun.fortress.exceptions.CompilerError;
-import com.sun.fortress.nodes.ASTNode;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
@@ -490,7 +489,7 @@ public class NamingCzar {
                     result[i] = fortressAny;
                     continue;
                 }
-                throw new CompilerError(NodeUtil.getSpan(parentType),
+                throw new CompilerError(parentType,
                               errorMsg("Invalid type ",parentType," in extends clause."));
             }
             Id name = ((TraitType)parentType).getName();
@@ -731,11 +730,9 @@ public class NamingCzar {
         if ( NodeUtil.isVoidType(t) )
             return Naming.INTERNAL_TAG + Naming.SNOWMAN;
         if (t.getVarargs().isSome())
-            throw new CompilerError(NodeUtil.getSpan(t),
-                                    "Can't compile VarArgs yet");
+            throw new CompilerError(t,"Can't compile VarArgs yet");
         if (!t.getKeywords().isEmpty())
-            throw new CompilerError(NodeUtil.getSpan(t),
-                                    "Can't compile Keyword args yet");
+            throw new CompilerError(t,"Can't compile Keyword args yet");
         String res = "";
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
             res += makeArrowDescriptor(ty, ifNone) +  ';';
@@ -748,7 +745,7 @@ public class NamingCzar {
         else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
         else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
         else if (t instanceof ArrowType) return makeNestedArrowDescriptor((ArrowType) t, ifNone);
-        else throw new CompilerError(NodeUtil.getSpan(t), " How did we get here? type = " +
+        else throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }
 
@@ -765,9 +762,9 @@ public class NamingCzar {
                                      final APIName ifNone,
                                      final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
-            public void defaultCase(ASTNode x) {
-                throw new CompilerError(NodeUtil.getSpan(x),
-                                        "emitDesc of type failed");
+            @Override
+            public String defaultCase(Node x) {
+                throw new CompilerError(x,"emitDesc of type "+x+" failed");
             }
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
@@ -780,11 +777,9 @@ public class NamingCzar {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
                 if (t.getVarargs().isSome())
-                    throw new CompilerError(NodeUtil.getSpan(t),
-                                            "Can't compile VarArgs yet");
+                    throw new CompilerError(t,"Can't compile VarArgs yet");
                 if (!t.getKeywords().isEmpty())
-                    throw new CompilerError(NodeUtil.getSpan(t),
-                                            "Can't compile Keyword args yet");
+                    throw new CompilerError(t,"Can't compile Keyword args yet");
                 return jvmTypeDescs(t.getElements(), ifNone);
             }
             public String forAnyType (AnyType t) {
@@ -803,8 +798,7 @@ public class NamingCzar {
                 Id id = t.getName();
                 APIName api = id.getApiName().unwrap(ifNone);
                 if (api == null) {
-                    throw new CompilerError(NodeUtil.getSpan(id),
-                                            "no api name given for id");
+                    throw new CompilerError(id,"no api name given for id");
                 }
                 result = makeInnerClassName(api,id);
                 if (withLSemi)
@@ -823,9 +817,8 @@ public class NamingCzar {
     public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone)  {
         return type.accept(new NodeAbstractVisitor<String>() {
-            public void defaultCase(ASTNode x) {
-                throw new CompilerError(NodeUtil.getSpan(x),
-                                        "emitDesc of type failed");
+            public String defaultCase(Node x) {
+                throw new CompilerError(x,"methodDesc of type "+x+" failed");
             }
 
             public String forArrowType(ArrowType t) {
@@ -840,11 +833,9 @@ public class NamingCzar {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
                 if (t.getVarargs().isSome())
-                    throw new CompilerError(NodeUtil.getSpan(t),
-                                            "Can't compile VarArgs yet");
+                    throw new CompilerError(t,"Can't compile VarArgs yet");
                 if (!t.getKeywords().isEmpty())
-                    throw new CompilerError(NodeUtil.getSpan(t),
-                                            "Can't compile Keyword args yet");
+                    throw new CompilerError(t,"Can't compile Keyword args yet");
                 String res = "";
                 for (com.sun.fortress.nodes.Type ty : t.getElements()) {
                     res += jvmTypeDesc(ty, ifNone);
@@ -865,8 +856,7 @@ public class NamingCzar {
                 Option<APIName> maybeApi = id.getApiName();
                 APIName api = id.getApiName().unwrap(ifNone);
                 if (api == null) {
-                    throw new CompilerError(NodeUtil.getSpan(id),
-                                            "no api name given for id");
+                    throw new CompilerError(id,"no api name given for id");
                 }
                 result = makeInnerClassName(api,id);
                 result = "L" + result + ";";
