@@ -522,7 +522,7 @@ trait Operators { self: STypeChecker with Common =>
 
       // See if there was a coercion on the entire operator expression.
       val (realCheckedOpExpr, maybeOuterCoercion) = checkedOpExpr match {
-        case c @ SCoercionInvocation(_, _, _, arg) => (arg, Some(c))
+        case c:CoercionInvocation => (c.getArg, Some(c))
         case _ => (checkedOpExpr, None)
       }
 
@@ -531,7 +531,7 @@ trait Operators { self: STypeChecker with Common =>
 
       // See if there was a coercion on the LHS arg.
       val maybeInnerCoercion = argL match {
-        case c @ SCoercionInvocation(_, _, _, arg) => Some(c)
+        case c:CoercionInvocation => Some(c)
         case _ => None
       }
 

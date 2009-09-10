@@ -166,7 +166,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         String combiner = combine(arg,argName);
         if (isList) {
             writer.startLine("ArrayList<RetType> t = new ArrayList<RetType>();");
-            writer.startLine("for (" + argName + " e : v) t.add(" + combiner + "v));");
+            writer.startLine("for (" + argName + " e : v) t.add(" + combiner + "e));");
             writer.startLine("return combine(t);");
         } else if (isOption) {
             writer.startLine("if (v.isSome()) return ");

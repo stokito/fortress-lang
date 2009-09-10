@@ -38,6 +38,35 @@ object Lists {
 
   def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toList(list).map(fun))
 
+  /** Append a single element to the end of a list. */
+  def snoc[A, B >: A](xs: List[A], x: B): List[B] = xs ++ List(x)
+
+  /** Cons x onto xs if it exists. Otherwise, return xs. */
+  def maybeCons[A, B >: A](x: Option[B], xs: List[A]): List[B] = x match {
+    case Some(x) => x :: xs
+    case None => xs
+  }
+
+  /** Append x onto the end of xs if it exists. Otherwise, return xs. */
+  def maybeSnoc[A, B >: A](xs: List[A], x: Option[B]): List[B] = x match {
+    case Some(x) => snoc(xs, x)
+    case None => xs
+  }
+
+  /**
+   * If b is true, then this list was created with maybeCons; get back the
+   * consed head and the tail. If b is false, get back (None, list).
+   */
+  def maybeUncons[A](b: Boolean, xxs: List[A]): (Option[A], List[A]) =
+    if (b) (Some(xxs.first), xxs.tail) else (None, xxs)
+
+  /**
+   * If b is true, then this list was created with maybeSnoc; get back the
+   * appended last elt and the init-list. If b is false, return (None, list).
+   */
+  def maybeUnsnoc[A](b: Boolean, xxs: List[A]): (List[A], Option[A]) =
+    if (b) (xxs.init, Some(xxs.last)) else (xxs, None)
+
 }
 
 class JavaList[T] {

@@ -930,9 +930,34 @@ interface Node() extends HasAt;
                          * internal node created by static analysis
                          * after inferring the implicit coercion invocations
                          */
-                        CoercionInvocation(Type toType,
-                                           List<StaticArg> staticArgs,
-                                           Expr arg);
+                        abstract CoercionInvocation(Type toType,
+                                                    Expr arg);
+                            /**
+                             * Coercion invocation to a trait type. The FnRef is
+                             * the actual function that coercion calls, along
+                             * with any static args for the coercion.
+                             */
+                            TraitCoercionInvocation(
+                                TraitType toType,
+                                FnRef coercionFn);
+                            /**
+                             * Coercion invocation to a tuple type. Each type
+                             * in the tuple may or may not require a coercion;
+                             * the list of options corresponds to those that do.
+                             */
+                            TupleCoercionInvocation(
+                                TupleType toType,
+                                List<Option<CoercionInvocation>> subCoercions,
+                                Option<Option<CoercionInvocation>> varargCoercion);
+                            /**
+                             * Coercion invocation to an arrow type. Each type
+                             * in the arrow may or may not require a coercion;
+                             * the two options correspond to those that do.
+                             */
+                            ArrowCoercionInvocation(
+                                ArrowType toType,
+                                Option<CoercionInvocation> domainCoercion,
+                                Option<CoercionInvocation> rangeCoercion);
                         /**
                          * a method invocation
                          * some are created by parsing, while others require later

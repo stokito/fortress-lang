@@ -1964,12 +1964,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String forCoercionInvocationOnly(CoercionInvocation that,
                                             String info,
                                             String type_result,
-                                            List<String> staticArgs_result,
                                             String arg_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(type_result);
-        inOxfordBrackets(s, staticArgs_result);
         s.append(".coercion");
         s.append(inParentheses(arg_result));
 

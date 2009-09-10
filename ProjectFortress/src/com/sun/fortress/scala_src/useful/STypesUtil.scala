@@ -48,6 +48,9 @@ object STypesUtil {
 
   /** A function type that takes two types and returns a boolean. */
   type Subtype = (Type, Type) => Boolean
+
+  /** A function application candidate. */
+  type AppCandidate = (ArrowType, List[StaticArg], List[Expr])
   
   /**
    * Return the arrow type of the given Functional index.
@@ -717,5 +720,114 @@ object STypesUtil {
 
     // Do the inference.
     inferStaticParamsHelper(fnType, sparams, _ => constraint).map(_._1)
+  }
+
+
+  /**
+   * Define an ordering relation on arrows with their instantiations. That is,
+   * is candidate1 more specific than candidate2?
+   */
+  def moreSpecificCandidate(candidate1: AppCandidate,
+                            candidate2: AppCandidate)
+                           (implicit analyzer: TypeAnalyzer): Boolean = {
+
+    val (SArrowType(_, domain1, range1, _, _, mi1), _, args1) = candidate1
+    val (SArrowType(_, domain2, range2, _, _, mi2), _, args2) = candidate2
+
+    // If these are dotted methods, add in the self type as an implicit first
+    // parameter. The new domains will be a tuple of the form
+    // `(selfType, domainType)`.
+    val (newDomain1, newDomain2) = (mi1, mi2) match {
+      case (Some(SMethodInfo(selfType1, -1)),
+            Some(SMethodInfo(selfType2, -1))) =>
+        (STupleType(domain1.getInfo, List(selfType1, domain1), None, Nil),
+         STupleType(domain2.getInfo, List(selfType2, domain2), None, Nil))
+      case _ => (domain1, domain2)
+    }
+
+    // Determine if a coercion occurred.
+    val coercion1 = args1.exists(_.isInstanceOf[CoercionInvocation])
+    val coercion2 = args2.exists(_.isInstanceOf[CoercionInvocation])
+
+    // If one did not use coercions and the other did, the one without coercions
+    // is more specific.
+    (coercion1, coercion2) match {
+      case (true, false) => false
+      case (false, true) => true
+      case _ if analyzer.equivalent(newDomain1, newDomain2).isTrue => false
+      case _ => isSubtype(newDomain1, newDomain2)
+    }
+  }
+
+  /**
+   * Determines if the given overloading is dynamically applicable.
+   */
+  def isDynamicallyApplicable(overloading: Overloading,
+                              smaArrow: ArrowType,
+                              inferredStaticArgs: List[StaticArg])
+                             (implicit analyzer: TypeAnalyzer)
+                              : Option[Overloading] = {
+    // Is this arrow type applicable.
+    def arrowTypeIsApplicable(overloadingType: ArrowType): Option[Type] = {
+      val typ =
+        // If static args given, then instantiate the overloading first.
+        if (inferredStaticArgs.isEmpty)
+          overloadingType
+        else
+          instantiateStaticParams(inferredStaticArgs, overloadingType).
+            getOrElse(return None).asInstanceOf[ArrowType]
+
+      if (isSubtype(typ.getDomain, smaArrow.getDomain))
+        Some(typ)
+      else
+        None
+    }
+
+    // If overloading type is an intersection, check that any of its
+    // constituents is applicable.
+    val applicableArrows = conjuncts(toOption(overloading.getType).get).
+      map(_.asInstanceOf[ArrowType]).
+      flatMap(arrowTypeIsApplicable).
+      toList
+
+    val overloadingType = applicableArrows match {
+      case Nil => return None
+      case t::Nil => t
+      case _ => NF.makeIntersectionType(toJavaList(applicableArrows))
+    }
+    Some(SOverloading(overloading.getInfo,
+                      overloading.getUnambiguousName,
+                      Some(overloadingType)))
+  }
+
+  /**
+   * Given an applicand, the statically most applicable arrow type for it,
+   * and the static args from the application, return the applicand updated
+   * with the dynamically applicable overloadings, arrow type, and static args.
+   */
+  def rewriteApplicand(fn: Expr,
+                       arrow: ArrowType,
+                       sargs: List[StaticArg])
+                      (implicit analyzer: TypeAnalyzer): Expr = fn match {
+    case fn: FunctionalRef =>
+      // Use original static args if any were given. Otherwise use those inferred.
+      val newSargs = if (fn.getStaticArgs.isEmpty) sargs else toList(fn.getStaticArgs)
+
+      // Get the dynamically applicable overloadings.
+      val overloadings =
+        toList(fn.getNewOverloadings).
+        flatMap(o => isDynamicallyApplicable(o, arrow, newSargs))
+
+      // Add in the filtered overloadings, the inferred static args,
+      // and the statically most applicable arrow to the fn.
+      addType(
+        addStaticArgs(
+          addOverloadings(fn, overloadings), newSargs), arrow)
+
+    case _ if !sargs.isEmpty =>
+      NI.nyi("No place to put inferred static args in application.")
+
+    // Just add the arrow type if the applicand is not a FunctionalRef.
+    case _ => addType(fn, arrow)
   }
 }

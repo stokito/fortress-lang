@@ -47,80 +47,8 @@ import fortress.useful.{HasAt, NI}
  */
 trait Functionals { self: STypeChecker with Common =>
 
-  type AppCandidate = (ArrowType, List[StaticArg], List[Expr])
-
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
-
-  /**
-   * Determines if the given overloading is dynamically applicable.
-   */
-  protected def isDynamicallyApplicable(overloading: Overloading,
-                                        smaArrow: ArrowType,
-                                        inferredStaticArgs: List[StaticArg])
-                                        : Option[Overloading] = {
-    // Is this arrow type applicable.
-    def arrowTypeIsApplicable(overloadingType: ArrowType): Option[Type] = {
-      val typ =
-        // If static args given, then instantiate the overloading first.
-        if (inferredStaticArgs.isEmpty)
-          overloadingType
-        else
-          instantiateStaticParams(inferredStaticArgs, overloadingType).
-            getOrElse(return None).asInstanceOf[ArrowType]
-
-      if (isSubtype(typ.getDomain, smaArrow.getDomain))
-        Some(typ)
-      else
-        None
-    }
-
-    // If overloading type is an intersection, check that any of its
-    // constituents is applicable.
-    val applicableArrows = conjuncts(toOption(overloading.getType).get).
-      map(_.asInstanceOf[ArrowType]).
-      flatMap(arrowTypeIsApplicable).
-      toList
-
-    val overloadingType = applicableArrows match {
-      case Nil => return None
-      case t::Nil => t
-      case _ => NF.makeIntersectionType(toJavaList(applicableArrows))
-    }
-    Some(SOverloading(overloading.getInfo,
-                      overloading.getUnambiguousName,
-                      Some(overloadingType)))
-  }
-
-  /**
-   * Given an applicand, the statically most applicable arrow type for it,
-   * and the static args from the application, return the applicand updated
-   * with the dynamically applicable overloadings, arrow type, and static args.
-   */
-  protected def rewriteApplicand(fn: Expr,
-                                 arrow: ArrowType,
-                                 sargs: List[StaticArg]): Expr = fn match {
-    case fn: FunctionalRef =>
-      // Use original static args if any were given. Otherwise use those inferred.
-      val newSargs = if (fn.getStaticArgs.isEmpty) sargs else toList(fn.getStaticArgs)
-
-      // Get the dynamically applicable overloadings.
-      val overloadings =
-        toList(fn.getNewOverloadings).
-        flatMap(o => isDynamicallyApplicable(o, arrow, newSargs))
-
-      // Add in the filtered overloadings, the inferred static args,
-      // and the statically most applicable arrow to the fn.
-      addType(
-        addStaticArgs(
-          addOverloadings(fn, overloadings), newSargs), arrow)
-
-    case _ if !sargs.isEmpty =>
-      NI.nyi("No place to put inferred static args in application.")
-
-    // Just add the arrow type if the applicand is not a FunctionalRef.
-    case _ => addType(fn, arrow)
-  }
 
   /**
    * Signal a static error for an application for which there were no applicable
@@ -319,15 +247,16 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Gather up either-args and option-errors.
     val newArgsAndErrors = zipWithDomain(args, arrow.getDomain).map {
-      
-      // For each checked arg, make sure it's a subtype of the corresponding
-      // parameter, possibly performing a coercion.
+
+      // If `checked` is a subtype of the param type, use it. Otherwise, try to
+      // build a coercion to the param type and use that. If it does not coerce
+      // to the param type, this is a NotApplicableError.
       case (Left(checked), paramType) =>
-        getType(checked).get match {
-          case typ if isSubtype(typ, paramType) => (Left(checked), None)
-          case typ if coercesTo(typ, paramType) =>
-            (Left(makeCoercion(paramType, checked)), None)
-          case typ =>
+        if (isSubtype(getType(checked).get, paramType))
+          (Left(checked), None)
+        else coercions.buildCoercion(checked, paramType) match {
+          case Some(coercion) => (Left(coercion), None)
+          case None =>
             return Right(errorFactory.makeNotApplicableError(originalArrow, args))
         }
 
@@ -430,42 +359,6 @@ trait Functionals { self: STypeChecker with Common =>
     errorFactory.makeFnInferenceError(originalArrow, fnErrors)
   }
 
-
-  /**
-   * Define an ordering relation on arrows with their instantiations. That is,
-   * is candidate1 more specific than candidate2?
-   */
-  def moreSpecific(candidate1: AppCandidate,
-                   candidate2: AppCandidate): Boolean = {
-
-    val (SArrowType(_, domain1, range1, _, _, mi1), _, args1) = candidate1
-    val (SArrowType(_, domain2, range2, _, _, mi2), _, args2) = candidate2
-
-    // If these are dotted methods, add in the self type as an implicit first
-    // parameter. The new domains will be a tuple of the form
-    // `(selfType, domainType)`.
-    val (newDomain1, newDomain2) = (mi1, mi2) match {
-      case (Some(SMethodInfo(selfType1, -1)),
-            Some(SMethodInfo(selfType2, -1))) =>
-        (STupleType(domain1.getInfo, List(selfType1, domain1), None, Nil),
-         STupleType(domain2.getInfo, List(selfType2, domain2), None, Nil))
-      case _ => (domain1, domain2)
-    }
-
-    // Determine if a coercion occurred.
-    val coercion1 = args1.exists(_.isInstanceOf[CoercionInvocation])
-    val coercion2 = args2.exists(_.isInstanceOf[CoercionInvocation])
-
-    // If one did not use coercions and the other did, the one without coercions
-    // is more specific.
-    (coercion1, coercion2) match {
-      case (true, false) => false
-      case (false, true) => true
-      case _ if analyzer.equivalent(newDomain1, newDomain2).isTrue => false
-      case _ => isSubtype(newDomain1, newDomain2)
-    }
-  }
-
     /**
      * Type check the application of the given arrows to the given arg. This returns the statically
      * most specific arrow, inferred static args, and the new, checked argument expression.
@@ -510,7 +403,7 @@ trait Functionals { self: STypeChecker with Common =>
     }
 
     // Sort the arrows and instantiations to find the statically most applicable.
-    Some(candidates.sort(moreSpecific).first)
+    Some(candidates.sort(moreSpecificCandidate).first)
   }
 
   /**
