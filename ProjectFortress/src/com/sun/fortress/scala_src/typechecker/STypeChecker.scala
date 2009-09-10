@@ -254,23 +254,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     constraint.asInstanceOf[ScalaConstraint]
   }
 
-  /** Determine if t ~> u. */
-  protected def coercesTo(t: Type, u: Type): Boolean =
-    coercions.coercesTo(t, u)
-
-  /**
-   * Determine if t ~> u. If so, then return a CoercionInvocation node that
-   * represents a coercion from the expression to type u.
-   */
-  protected def coercesTo(t: Type,
-                          u: Type,
-                          arg: Expr): Option[CoercionInvocation] = {
-    if (coercions.coercesTo(t, u))
-      Some(makeCoercion(u, arg))
-    else
-      None
-  }
-
   protected def equivalentTypes(t1: Type, t2: Type): Boolean =
     analyzer.equivalent(t1, t2).isTrue
 
@@ -453,11 +436,12 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     val checkedExpr = checkExpr(expr, Some(expected))
     getType(checkedExpr) match {
       case Some(typ) if isSubtype(typ, expected) => checkedExpr
-      case Some(typ) if coercesTo(typ, expected) =>
-        makeCoercion(expected, checkedExpr)
       case Some(typ) =>
-        signal(location, message.format(normalize(typ), normalize(expected)))
-        expr
+        // Try to build a coercion of checkedExpr to the expected type.
+        coercions.buildCoercion(checkedExpr, expected).getOrElse {
+          signal(location, message.format(normalize(typ), normalize(expected)))
+          expr
+        }
       case None => expr
     }
   }

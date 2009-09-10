@@ -101,20 +101,25 @@ object SExprUtil {
     case _ => NI.nyi()
   }
 
-  /** Create a coercion invocation from t to u. */
-  def makeCoercion(u: Type, arg: Expr): CoercionInvocation = {
-    val SExprInfo(span, paren, _) = arg.getInfo
-    SCoercionInvocation(SExprInfo(span, paren, Some(u)),
-                        u,
-                        List[StaticArg](),
-                        arg)
-  }
+//  /** Create a coercion invocation from t to u. */
+//  def makeCoercion(u: Type, arg: Expr): CoercionInvocation = {
+//    val SExprInfo(span, paren, _) = arg.getInfo
+//    SCoercionInvocation(SExprInfo(span, paren, Some(u)),
+//                        u,
+//                        List[StaticArg](),
+//                        arg)
+//  }
 
   /** Create an identical coercion but wrapped around `onto`. */
-  def copyCoercion(c: CoercionInvocation, onto: Expr): CoercionInvocation = {
-    val SCoercionInvocation(v1, v2, v3, _) = c
-    SCoercionInvocation(v1, v2, v3, onto)
-  }
+  def copyCoercion(c: CoercionInvocation, onto: Expr): CoercionInvocation =
+    c match {
+      case STraitCoercionInvocation(v1, _, v2, v3) =>
+        STraitCoercionInvocation(v1, onto, v2, v3)
+      case STupleCoercionInvocation(v1, _, v2, v3, v4) =>
+        STupleCoercionInvocation(v1, onto, v2, v3, v4)
+      case SArrowCoercionInvocation(v1, _, v2, v3, v4) =>
+        SArrowCoercionInvocation(v1, onto, v2, v3, v4)
+    }
 
   /**
    * Finds static args explicitly provided for the given application. If this
@@ -131,9 +136,13 @@ object SExprUtil {
       case _ => None
     }
 
-  /** Make a dummy expression for the given type. */
+  /** Make a dummy expression for the given type and span. */
   def makeDummyFor(typ: Type, span: Span): Expr =
     SDummyExpr(SExprInfo(span, false, Some(typ)))
+
+  /** Make a dummy expression for the given type. */
+  def makeDummyFor(typ: Type): Expr =
+    SDummyExpr(SExprInfo(NU.getSpan(typ), false, Some(typ)))
 
   /** Make a dummy expression that copies the given expression info. */
   def makeDummyFor(expr: Expr): Expr = SDummyExpr(expr.getInfo)
