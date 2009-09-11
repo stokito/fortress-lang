@@ -118,6 +118,22 @@ public class BigNum extends NativeConstructor {
         }
     }
 
+    public static abstract class Z2I extends NativeMeth0 {
+        protected abstract int f(BigInteger x);
+
+        public final FValue applyMethod(FObject x) {
+            return FInt.make(f(toB(x)));
+        }
+    }
+
+    public static abstract class Z2L extends NativeMeth0 {
+        protected abstract long f(BigInteger x);
+
+        public final FValue applyMethod(FObject x) {
+            return FLong.make(f(toB(x)));
+        }
+    }
+
     public static final class Negate extends Z2Z {
         protected BigInteger f(BigInteger x) {
             return x.negate();
@@ -248,6 +264,18 @@ public class BigNum extends NativeConstructor {
     public static final class AsFloat extends Z2R {
         protected double f(BigInteger x) {
             return x.doubleValue();
+        }
+    }
+
+    public static final class ToZZ32 extends Z2I {
+        protected int f(BigInteger x) {
+            return x.intValue();
+        }
+    }
+
+    public static final class ToZZ64 extends Z2L {
+        protected long f(BigInteger x) {
+            return x.longValue();
         }
     }
 

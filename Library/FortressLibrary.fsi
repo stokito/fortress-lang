@@ -542,6 +542,8 @@ end
 trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64, NN64 }
     opr /(self,other:ZZ):QQ
     numerator(self): ZZ
+    narrow(self): ZZ32
+    widen(self): ZZ64
     odd(self): Boolean
     even(self): Boolean
 end
