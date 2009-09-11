@@ -19,7 +19,6 @@ package com.sun.fortress.scala_src.typechecker.impls
 
 import edu.rice.cs.plt.collect.IndexedRelation
 import edu.rice.cs.plt.collect.Relation
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug.bug
@@ -63,7 +62,7 @@ trait Common { self: STypeChecker =>
       for ( trait_ <- extended_traits ; if (! done) ) {
         val type_ = trait_.getBaseType
         if ( ! h.hasExplored(type_) ) {
-          h = h.explore(type_)
+          h.explore(type_)
           type_ match {
             case ty@STraitType(_, name, _, params) =>
               toOption(traits.typeCons(name)) match {
@@ -91,7 +90,9 @@ trait Common { self: STypeChecker =>
                     val instantiated_extends_types =
                       toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                             t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+                    val old_hist = h
                     methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types))
+                    h = old_hist
                   } else done = true
                 case _ => done = true
               }

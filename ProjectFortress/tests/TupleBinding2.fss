@@ -19,8 +19,8 @@ component TupleBinding2
 
 export Executable
 
-tuple = ("test", 8)
-(key, val):(String, ZZ32) = tuple
+tupleVar = ("test", 8)
+(key, val):(String, ZZ32) = tupleVar
 
 run() = do
    println("Key=" key)

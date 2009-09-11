@@ -19,9 +19,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.bo.fss:39:10-11:\n\
 \ Could not assign an expression of type Bar to variable a of type Foo.\n\
-${STATIC_TESTS_DIR}/Compiled6.bo.fss:45:10-20:\n\
-\ Could not assign an expression of type ((), Bar) to variable c of type Quux.\n\
-${STATIC_TESTS_DIR}/Compiled6.bo.fss:45:11-13:\n\
-\ Variable 'Quux' not found.\n\
-File Compiled6.bo.fss has 3 errors.\n
+${STATIC_TESTS_DIR}/Compiled6.bo.fss:45:10-19:\n\
+\ Could not assign an expression of type (Bar, Bar) to variable c of type Quux.\n\
+File Compiled6.bo.fss has 2 errors.\n
 compile_out_equals=

@@ -42,7 +42,13 @@ import com.sun.fortress.useful.NI
 
 
 object STypesUtil {
-  
+  // Make sure we don't infinitely explore supertraits that are cyclic
+  class HierarchyHistory() {
+    var explored = Set[Type]()
+    def explore(t: Type) = explored += t
+    def hasExplored(t: Type) = explored.exists(_ == t)
+  }
+
   /** A function that when applied yields an option type. */
   type TypeThunk = Function0[Option[Type]]
 
@@ -51,10 +57,10 @@ object STypesUtil {
 
   /** A function application candidate. */
   type AppCandidate = (ArrowType, List[StaticArg], List[Expr])
-  
+
   /**
    * Return the arrow type of the given Functional index.
-   */  
+   */
   def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
     val params = toList(f.parameters).map(NU.getParamType)
@@ -81,7 +87,7 @@ object STypesUtil {
                           where,
                           info))
   }
-  
+
   /**
    * Make a single argument type from a list of types.
    */
@@ -93,7 +99,7 @@ object STypesUtil {
       val span2 = NU.getSpan(ts.last)
       NF.makeTupleType(NU.spanTwo(span1, span2), toJavaList(ts))
   }
-  
+
   /**
    * Make a domain type from a list of parameters, including varargs and
    * keyword types. Ported from `TypeEnv.domainFromParams`. Returns None if
@@ -107,7 +113,7 @@ object STypesUtil {
       case Nil => NF.typeSpan
       case _ => NU.spanTwo(NU.getSpan(ps.first), NU.getSpan(ps.last))
     }
-    
+
     // Extract out the appropriate parameter types.
     ps.foreach(p => p match {
       case SParam(_, _, _, _, _, Some(vaType)) => // Vararg
@@ -157,7 +163,7 @@ object STypesUtil {
                  Some(substituteTypesForInferenceVars(s, idType)),
                  defaultExpr,
                  None)
-        case _ => p              
+        case _ => p
       }))
   }
 
@@ -201,7 +207,7 @@ object STypesUtil {
 
       case _ => None
     }
-  
+
   /**
    * Convert a static parameter to the corresponding static arg. Ported from
    * `TypeEnv.staticParamsToArgs`.
@@ -290,8 +296,8 @@ object STypesUtil {
    */
   def isArrows(expr: Expr): Boolean =
     isFnExpr(expr) || isArrows(SExprUtil.getType(expr).get)
-  
-  
+
+
   /**
    * Determine if the given type could possibly be an arrow or multiple arrows.
    * It could possibly be an arrow if it is a type variable whose bound is Any.
@@ -305,7 +311,7 @@ object STypesUtil {
       }
       case _ => isArrows(ty)
     }
-  
+
   /**
    * Performs the given substitution on the body type. Does not replace any
    * inference variables that appear in body but not in the substitution.
@@ -401,7 +407,7 @@ object STypesUtil {
   def isSubtype(subtype: Type, supertype: Type)
                (implicit analyzer: TypeAnalyzer): Boolean =
     checkSubtype(subtype, supertype).isTrue
-  
+
   /**
    * Replaces occurrences of static parameters with corresponding static
    * arguments in the given body type. In the end, any static parameters
@@ -579,7 +585,7 @@ object STypesUtil {
    * void type, it is the singleton iterator.
    */
   def typeIteratorVoid(dom: Type): Iterator[Type] = dom match {
-    case STupleType(_, Nil, None, _) => Iterator.single(dom) 
+    case STupleType(_, Nil, None, _) => Iterator.single(dom)
     case STupleType(_, elts, None, _) => elts.elements
     case STupleType(_, elts, Some(varargs), _) =>
       elts.elements ++ new Iterator[Type] {

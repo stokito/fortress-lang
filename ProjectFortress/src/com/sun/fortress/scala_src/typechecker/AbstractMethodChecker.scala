@@ -23,7 +23,6 @@ import scala.collection.Set
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
@@ -116,7 +115,7 @@ class AbstractMethodChecker(component: ComponentIndex,
       for ( trait_ <- extended_traits ; if (! done) ) {
         val type_ = trait_.getBaseType
         if ( ! h.hasExplored(type_) ) {
-          h = h.explore(type_)
+          h.explore(type_)
           type_ match {
             case ty@STraitType(_, name, _, params) =>
               toOption(traits.typeCons(name)) match {
@@ -134,7 +133,9 @@ class AbstractMethodChecker(component: ComponentIndex,
                     val instantiated_extends_types =
                       toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                             t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+                    val old_hist = h
                     methods ++= inheritedMethodsHelper(h, instantiated_extends_types)
+                    h = old_hist
                   } else done = true
                 case _ => done = true
               }
@@ -158,12 +159,14 @@ class AbstractMethodChecker(component: ComponentIndex,
     for ( trait_ <- extended_traits ; if ! h.hasExplored(trait_.getBaseType) ) {
       trait_.getBaseType match {
         case ty@STraitType(info, name, args, params) =>
-          h = h.explore(ty)
+          h.explore(ty)
           val tci = typeAnalyzer.traitTable.typeCons(name)
           if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
             val ti = tci.unwrap.asInstanceOf[TraitIndex]
             map.put(name, (ty, collectAbstractMethods(name, toList(NU.getDecls(ti.ast)))))
+            val old_hist = h
             map ++= inheritedAbstractMethodsHelper(h, toList(ti.extendsTypes))
+            h = old_hist
           } else error(NU.getSpan(trait_),
                        "Trait types are expected in an extends clause but found "
                        + ty.toStringVerbose + "\n" + tci.getClass)

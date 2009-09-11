@@ -381,7 +381,7 @@ public class ExprFactory {
                          overloadings,
                          Option.<Type>none());
     }
-    
+
     public static FnRef makeFnRef(Id orig, List<IdOrOp> names){
         return makeFnRef(NodeUtil.getSpan(orig), false, Option.<Type>none(),
                          Collections.<StaticArg>emptyList(),
@@ -429,7 +429,7 @@ public class ExprFactory {
                                   Option<Type> overloadingType) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new FnRef(info, staticArgs, lexicalDepth, name, names,
-        			     overloadings, newOverloadings, overloadingType);
+                         overloadings, newOverloadings, overloadingType);
     }
 
     public static FunctionalRef make_RewriteOpRefOverloading(Span span,
