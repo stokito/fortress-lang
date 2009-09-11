@@ -42,7 +42,7 @@
     var b : Bar
     var c : Quux
     (a,b) := Bar
-    c := (Quux, Bar)
+    c := (Bar, Bar)
 
     (* Other operators *)
   end

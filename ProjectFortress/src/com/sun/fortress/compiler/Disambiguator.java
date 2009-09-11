@@ -30,7 +30,6 @@ import java.util.Set;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
 import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
@@ -47,6 +46,7 @@ import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.scala_src.disambiguator.ExprDisambiguator;
 import com.sun.fortress.scala_src.linker.ExportExpander;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.tools.FortressAstToConcrete;
@@ -179,18 +179,12 @@ public class Disambiguator {
         List<Api> results = new ArrayList<Api>();
         for (Api api : newApis) {
             ApiIndex index = newGlobalEnv.api(api.getName());
-
             NameEnv env = new TopLevelEnv(newGlobalEnv, index, errors);
-
-            List<StaticError> newErrs = new ArrayList<StaticError>();
-            ExprDisambiguator ed = new ExprDisambiguator(env, newErrs);
-            Api edResult = (Api) api.accept(ed);
-
-            if (newErrs.isEmpty()) {
-            	results.add(edResult);
-            } else {
-            	errors.addAll(newErrs);
-            }
+            ExprDisambiguator sed = new ExprDisambiguator(api, env);
+            api = (Api) sed.check();
+            List<StaticError> newErrs = sed.getErrors();
+            if (newErrs.isEmpty()) results.add(api);
+            else errors.addAll(newErrs);
         }
 
         IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, newGlobalEnv, System.currentTimeMillis());
@@ -333,15 +327,11 @@ public class Disambiguator {
                 return new ComponentResult(results, errors);
 
             // Finally, disambiguate the expressions
-            List<StaticError> newErrs = new ArrayList<StaticError>();
-            ExprDisambiguator ed =
-                new ExprDisambiguator(env, //onDemandImports,
-                		newErrs);
-            Component edResult = (Component) comp.accept(ed);
-            if (newErrs.isEmpty())
-            	results.add(edResult);
-            else
-            	errors.addAll(newErrs);
+            ExprDisambiguator sed = new ExprDisambiguator(comp, env);
+            comp = (Component) sed.check();
+            List<StaticError> newErrs = sed.getErrors();
+            if (newErrs.isEmpty()) results.add(comp);
+            else errors.addAll(newErrs);
         }
 
         return new ComponentResult(results, errors);

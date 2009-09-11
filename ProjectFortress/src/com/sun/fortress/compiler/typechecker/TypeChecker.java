@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.disambiguator.ExprDisambiguator.HierarchyHistory;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.DeclaredVariable;
@@ -66,6 +65,7 @@ import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
+import com.sun.fortress.scala_src.useful.STypesUtil.HierarchyHistory;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
@@ -4651,6 +4651,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     // Return all of the methods from super-traits
     private Relation<IdOrOpOrAnonymousName, Method> inheritedMethodsHelper(HierarchyHistory h,
             List<TraitTypeWhere> extended_traits) {
+        HierarchyHistory history = h;
         Relation<IdOrOpOrAnonymousName, Method> methods = new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
         for( TraitTypeWhere trait_ : extended_traits ) {
 
@@ -4668,9 +4669,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             BaseType type_ = trait_.getBaseType();
 
-            if( h.hasExplored(type_) )
+            if( history.hasExplored(type_) )
                 continue;
-            h = h.explore(type_);
+            history.explore(type_);
 
             //this.traitTypesCallable(type_);
 
@@ -4733,7 +4734,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                 return  (TraitTypeWhere)arg0.accept(new StaticTypeReplacer(trait_params, trait_args));
                             }})
                 );
+                HierarchyHistory old_h = history;
                 methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types));
+                history = old_h;
             }
         }
         return methods;
