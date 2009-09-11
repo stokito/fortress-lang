@@ -77,7 +77,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
     private Set<String> overloadedNamesAndSigs;
-    private final List<ObjectDecl> singletonObjects;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -109,7 +108,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
         this.overloadedNamesAndSigs = new HashSet<String>();
-        this.singletonObjects = new ArrayList<ObjectDecl>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         this.env = env;
         debug( "Compile: Compiling ", packageAndClassName );
@@ -136,7 +134,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.env = c.env;
         this.topLevelOverloads = c.topLevelOverloads;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
-        this.singletonObjects = c.singletonObjects;
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
 
     }
@@ -542,6 +539,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  packageAndClassName, null, extendedJavaClass,
                  null);
 
+        for ( Import i : x.getImports() ) {
+            i.accept(this);
+        }
+
         // Always generate the init method
         generateFieldsAndInitMethod(packageAndClassName, extendedJavaClass, Collections.<Param>emptyList());
 
@@ -550,23 +551,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( exportsExecutable ) {
             generateMainMethod();
         }
-        for ( Import i : x.getImports() ) {
-            i.accept(this);
-        }
-
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
         overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw);
 
+        List<Decl> fieldDecls = new ArrayList<Decl>();
+
         /*
          * Must process these first to put them into scope.
-         * This probably will generalize to include VarDecl, in which case
-         * we probably want some sort of a visitor.
          */
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
-                this.forObjectDeclPrePass((ObjectDecl) d);
+                this.forObjectDeclPrePass((ObjectDecl) d, fieldDecls);
+            } else if (d instanceof VarDecl) {
+                fieldDecls.add(d);
             }
         }
 
@@ -577,11 +576,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 null,
                 null);
 
-       // Singletons;
+        // TODO: Need dependency analysis for component-level decls.
 
-        for (ObjectDecl y : singletonObjects) {
-            singletonObjectFieldAndInit(y);
+        // Create a field to hold instance of each singleton object, and
+        // emit initialization code to fill that field.
+        for (Decl y : fieldDecls) {
+            if (y instanceof ObjectDecl) {
+                singletonObjectFieldAndInit((ObjectDecl)y);
+            } else if (y instanceof VarDecl) {
+                this.forVarDeclPrePass((VarDecl)y);
+            } else {
+                sayWhat(y,"Don't recognize "+y+" as a fieldDecl");
+            }
         }
+
+        // Create a field for each decl, and emit initialization code to fill that field.
+        
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -595,7 +605,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forDecl(Decl x) {
-        sayWhat(x, "Can't handle decls");
+        sayWhat(x, "Can't handle decl class "+x.getClass().getName());
     }
 
 
@@ -1401,7 +1411,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         traitOrObjectName = null;
     }
 
-    public void forObjectDeclPrePass(ObjectDecl x) {
+    public void forObjectDeclPrePass(ObjectDecl x, List<Decl> singletonObjects) {
         debug("forObjectDeclPrePass ", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
@@ -1541,7 +1551,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Id id = (Id)  x.getHeader().getName();
 
-        addStaticVar(new VarCodeGen.SingletonObject(
+        addStaticVar(new VarCodeGen.StaticBinding(
                     id,
                     NodeFactory.makeTraitType(id),
                     packageAndClassName, objectFieldName, classDesc
@@ -1864,6 +1874,42 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inATrait = false;
         traitOrObjectName = null;
         springBoardClass = null;
+    }
+
+    public void forVarDecl(VarDecl v) {
+        // Assumption: we already dealt with this VarDecl in pre-pass.
+        // Therefore we can just skip it.
+        debug("forVarDecl ",v," should have been seen during pre-pass.");
+    }
+
+    public void forVarDeclPrePass(VarDecl v) {
+        List<LValue> lhs = v.getLhs();
+        Option<Expr> oinit = v.getInit();
+        if (lhs.size() != 1) {
+            sayWhat(v,"VarDecl "+v+" tupled lhs not handled.");
+        }
+        if (!oinit.isSome()) {
+            debug("VarDecl "+v+" skipping abs var decl.");
+            return;
+        }
+        LValue lv = lhs.get(0);
+        if (lv.isMutable()) {
+            sayWhat(v,"VarDecl "+v+" mutable bindings not yet handled.");
+        }
+        Id var = lv.getName();
+        String varName = var.stringName();
+        Type ty = lv.getIdType().unwrap();
+        String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
+        Expr exp = oinit.unwrap();
+        debug("VarDeclPrePass "+var+" : "+ty+" = "+exp);
+        cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+                      varName, tyDesc, null, null);
+
+        exp.accept(this);
+        mv.visitFieldInsn(Opcodes.PUTSTATIC, packageAndClassName, varName, tyDesc);
+
+        addStaticVar(
+            new VarCodeGen.StaticBinding(var, ty, packageAndClassName, varName, tyDesc));
     }
 
     public void forVarRef(VarRef v) {
