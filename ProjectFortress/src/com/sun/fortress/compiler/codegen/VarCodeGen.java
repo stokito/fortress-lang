@@ -144,9 +144,9 @@ public abstract class VarCodeGen {
 
     }
 
-    public static class SingletonObject extends NeedsType {
+    public static class StaticBinding extends NeedsType {
 
-        public SingletonObject(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+        public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType, owner, name, desc);
         }
 
@@ -155,7 +155,7 @@ public abstract class VarCodeGen {
         }
 
         public void prepareAssignValue(CodeGenMethodVisitor mv) {
-            throw new CompilerError(errorMsg("Invalid assignment to singleton object ",name,
+            throw new CompilerError(errorMsg("Invalid assignment to static binding ",name,
                     ": ", fortressType));
         }
 

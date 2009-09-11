@@ -18,6 +18,13 @@
 component Compiled7
 export Executable
 
+(* TODO: hoist to top level *)
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
+reps : ZZ32 = 10
+expect = 1.391570583 10.0^12
+
 RR64ToString(x:RR64): String = x.asString()
 
 fun(x: RR64): RR64 = x (x x + 1.0)
@@ -92,33 +99,22 @@ integrate_ho'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR
 elapsedSec(init:RR64, final:RR64): RR64 =
     (final - init) / (10.0^9)
 
-runTest(desc:String, theTest: ()->RR64, expect: RR64, tol: RR64): () = do
+runTest(desc:String, theTest: ()->RR64): () = do
     startTime = nanoTime()
     a = theTest()
     endTime = nanoTime()
-    if |a - expect| > a tol then
+    if |a - expect| > a errorTolerance then
         println(desc " FAIL: Bad error tolerance!")
     end
     (* println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a)) *)
   end
 
 run(): () = do
-
-(* TODO: hoist to top level *)
-start : RR64 = 0.0
-finish : RR64 = 1536.0
-errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
-reps : ZZ32 = 10
-expect = 1.391570583 10.0^12
-
     (* println("Time(s)\tArea") *)
     for _ <- seq(0#reps) do
-        runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance),
-                expect, errorTolerance)
-        runTest("Higher-order", fn () => integrate(start, finish, fn x => x (x x + 1.0), errorTolerance),
-                expect, errorTolerance)
-        runTest("Crazy curry", fn () => integrate_ho(start, finish, fun, errorTolerance),
-                expect, errorTolerance)
+        runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance))
+        runTest("Higher-order", fn () => integrate(start, finish, fn x => x (x x + 1.0), errorTolerance))
+        runTest("Crazy curry", fn () => integrate_ho(start, finish, fun, errorTolerance))
     end
     println("Done")
   end
