@@ -325,13 +325,12 @@ trait Misc { self: STypeChecker with Common =>
             if (eltsTypes.length != es.length)
               es.map(checkExpr)
             else
+              // Don't perform coercion.
               eltsTypes.map(et => checkExpr(et._1, Some(et._2)))
           case None => es.map(checkExpr)
         }
-        val types = newEs.map((e:Expr) =>
-                              if (getType(e).isDefined) getType(e).get
-                              else { Types.VOID })
-        val newType = NodeFactory.makeTupleType(span, toJavaList(types).asInstanceOf[JavaList[Type]])
+        val types = newEs.map(getType(_).getOrElse(Types.VOID))
+        val newType = NodeFactory.makeTupleType(span, toJavaList(types))
         STupleExpr(SExprInfo(span,parenthesized,Some(newType)), newEs, vs, ks, inApp)
       }
     }

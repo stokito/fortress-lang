@@ -1371,16 +1371,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
             return s.toString();
         } else {
-            if (exprs_result.size() == 1) return handleParen(exprs_result.get(0), NodeUtil.isParenthesized(that));
-            else {
-                StringBuilder s = new StringBuilder();
-
-                s.append("(");
-                s.append(join(exprs_result, ", "));
-                s.append(")");
-
-                return s.toString();
-            }
+            if (exprs_result.size() == 1)
+                return handleParen(exprs_result.get(0), NodeUtil.isParenthesized(that));
+            else
+                return IterUtil.toString(exprs_result, "(", ", ", ")");
         }
     }
 
@@ -2842,4 +2836,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "";
     }
 
+    @Override
+    public String forDummyExprOnly(DummyExpr that, String info_result) {
+        return String.format("$dummy (* %s *)", NodeUtil.getExprType(that));
+    }
 }

@@ -494,9 +494,11 @@ object IndexBuilder {
                           errors: JavaList[StaticError]): Unit = {
     val mods = NU.getMods(ast)
     val name = NU.getName(ast)
-    if (mods.isGetter) {
+    if (NU.isCoercion(ast)) {
+        coercions.add(new Coercion(ast, traitDecl, enclosingParams))
+    } else if (mods.isGetter) {
       name match {
-        case id@SId(_,_,_) =>
+        case id:Id =>
           if ( getters.keySet.contains(id) )
               error(errors, "Getter declarations should not be overloaded.", ast)
           else getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), traitDecl))
@@ -506,7 +508,7 @@ object IndexBuilder {
       }
     } else if (mods.isSetter) {
       name match {
-        case id@SId(_,_,_) =>
+        case id:Id =>
           if ( setters.keySet.contains(id) )
             error(errors, "Setter declarations should not be overloaded.", ast)
           else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), traitDecl))
@@ -514,9 +516,6 @@ object IndexBuilder {
           error(errors, "Getter declared with an operator name, '" +
                 NU.nameString(name) + "'", ast)
       }
-    } else if (name.isInstanceOf[Id] &&
-               name.asInstanceOf[Id].getText.equals(NamingCzar.COERCION_NAME)) {
-        coercions.add(new Coercion(ast, traitDecl, enclosingParams))
     } else {
       var functional = false
       for (p <- toList(NU.getParams(ast))) {

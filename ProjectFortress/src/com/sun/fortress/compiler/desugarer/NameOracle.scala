@@ -31,7 +31,7 @@ import com.sun.fortress.scala_src.useful.SExprUtil._
 class NameOracle(desugarer: Object) {
 
   /** The prefix on all fresh names created by this oracle. */
-  private val prefix = desugarer.getClass.getName
+  private val prefix = desugarer.getClass.getSimpleName
 
   /** The counter for how many fresh names have been created so far. */
   private var count = 0

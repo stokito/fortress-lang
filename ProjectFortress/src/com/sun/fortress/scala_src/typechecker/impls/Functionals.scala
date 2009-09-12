@@ -109,7 +109,10 @@ trait Functionals { self: STypeChecker with Common =>
 
   /** Same as other but provides a location for the span on the new type. */
   def getArgType(args: List[Either[Expr, FnExpr]], span: Span): Type = {
-    val argTypes = args.map(_.fold(e => getType(e).get, _ => Types.BOTTOM_ARROW))
+    val argTypes = args.map {
+      case Left(e) => getType(e).get
+      case Right(_) => Types.BOTTOM_ARROW
+    }
     NF.makeMaybeTupleType(span, toJavaList(argTypes))
   }
 
@@ -360,8 +363,9 @@ trait Functionals { self: STypeChecker with Common =>
   }
 
     /**
-     * Type check the application of the given arrows to the given arg. This returns the statically
-     * most specific arrow, inferred static args, and the new, checked argument expression.
+     * Type check the application of the given arrows to the given arg. This
+     * returns the statically most specific arrow, inferred static args, and the
+     * new, checked argument expression.
      */
   def checkApplication(arrows: List[ArrowType],
                        arg: Expr,
@@ -380,8 +384,9 @@ trait Functionals { self: STypeChecker with Common =>
   }
 
   /**
-   * Type check the application of the given arrows to the given args. This returns the statically
-   * most specific arrow, inferred static args, and the new, checked argument expressions.
+   * Type check the application of the given arrows to the given args. This
+   * returns the statically most specific arrow, inferred static args, and the
+   * new, checked argument expressions.
    */
   def checkApplication(arrows: List[ArrowType],
                        iargs: List[Expr],

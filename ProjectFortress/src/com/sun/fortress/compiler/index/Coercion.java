@@ -32,7 +32,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Note that this is a {@link com.sun.fortress.compiler.index.Function}, not a {@link com.sun.fortress.compiler.index.Method}, despite the name
+ * Note that this is a {@link com.sun.fortress.compiler.index.Function}, not a
+ * {@link com.sun.fortress.compiler.index.Method}, despite the name
  * (methods have distinct receivers).
  */
 public class Coercion extends Function {

@@ -198,7 +198,8 @@ trait Decls { self: STypeChecker with Common =>
 
         case None =>
           val newBody = newChecker.checkExpr(body)
-          (getType(newBody), newBody)
+          val rt = if (NU.isCoercion(f)) None else getType(newBody)
+          (rt, newBody)
       }
 
       SFnDecl(info,
@@ -277,13 +278,13 @@ trait Decls { self: STypeChecker with Common =>
 
             // Get all the LHSes and their corresponding RHS type.
             val lhsAndRhsTypes = lhses match {
-              case lhs :: Nil => List((lhs, rhsType))
+              case List(lhs) => List((lhs, rhsType))
               case _ =>
                 if (!enoughElementsForType(lhses, rhsType)) {
                   signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
                   return expr
                 }
-                zipWithDomain(lhses, rhsType)
+                zipWithRhsType(lhses, rhsType)
             }
 
             // Map over the LHS/RHS pairs to create the new list of LHSes.

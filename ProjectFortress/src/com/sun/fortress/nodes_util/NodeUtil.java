@@ -34,6 +34,7 @@ import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.Function;
@@ -1449,7 +1450,7 @@ public class NodeUtil {
     public static boolean isCoercion(Decl d) {
         return ( d instanceof FnDecl &&
                  getName((FnDecl)d) instanceof Id &&
-                 ((Id)getName((FnDecl)d)).getText().equals("coerce") );
+                 ((Id)getName((FnDecl)d)).getText().equals(NamingCzar.COERCION_NAME));
     }
 
     public static void checkMembers(BufferedWriter writer, List<Decl> members) {

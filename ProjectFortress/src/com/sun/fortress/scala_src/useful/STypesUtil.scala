@@ -586,25 +586,26 @@ object STypesUtil {
    */
   def typeIteratorVoid(dom: Type): Iterator[Type] = dom match {
     case STupleType(_, Nil, None, _) => Iterator.single(dom)
-    case STupleType(_, elts, None, _) => elts.elements
-    case STupleType(_, elts, Some(varargs), _) =>
-      elts.elements ++ new Iterator[Type] {
-        def hasNext = true
-        def next() = varargs
-      }
-    case _ => Iterator.single(dom)
+    case _ => typeIterator(dom)
   }
 
   /**
    * Zip the given iterator of elements with the type iterator for the given
    * domain type.
    */
-  def zipWithDomain[T](elts: Iterator[T], dom: Type): Iterator[(T, Type)] =
-    elts zip typeIterator(dom)
+  def zipWithDomain[T](elts: Iterator[T], dom: Type): Iterator[(T, Type)] = {
+    val first = elts.next
+    if (!elts.hasNext)
+      Iterator.single((first, dom))
+    else 
+      (Iterator.single(first) ++ elts) zip typeIterator(dom)
+  }
 
   /** Same as the other zipWithDomain but uses lists. */
-  def zipWithDomain[T](elts: List[T], dom: Type): List[(T, Type)] =
-    List.fromIterator(zipWithDomain(elts.elements, dom))
+  def zipWithDomain[T](elts: List[T], dom: Type): List[(T, Type)] = elts match {
+    case List(elt) => List((elt, dom))
+    case _ => List.fromIterator(elts.elements zip typeIterator(dom))
+  }
 
   /**
    * Zip the given iterator of elements with the type iterator for the given
