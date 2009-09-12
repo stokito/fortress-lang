@@ -432,14 +432,35 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   def checkExpr(expr: Expr,
                 expected: Type,
                 message: String,
-                location: HasAt): Expr = {
+                location: HasAt): Expr =
+    checkExpr(expr, expected, Some((message, location)))
+
+  /**
+   * Check the expression with the given expected type. Do not signal an error
+   * on failure.
+   */
+  def checkExpr(expr: Expr,
+                expected: Type): Expr =
+    checkExpr(expr, expected, None)
+
+  /**
+   * Check the expression with the given expected type. If the error message and
+   * location are present, then the appropriate error will be signaled.
+   */
+  protected def checkExpr(expr: Expr,
+                          expected: Type,
+                          msgAndLoc: Option[(String, HasAt)]): Expr = {
     val checkedExpr = checkExpr(expr, Some(expected))
     getType(checkedExpr) match {
       case Some(typ) if isSubtype(typ, expected) => checkedExpr
       case Some(typ) =>
         // Try to build a coercion of checkedExpr to the expected type.
         coercions.buildCoercion(checkedExpr, expected).getOrElse {
-          signal(location, message.format(normalize(typ), normalize(expected)))
+          msgAndLoc match {
+            case Some((message, location)) =>
+              signal(location, message.format(normalize(typ), normalize(expected)))
+            case None =>
+          }
           expr
         }
       case None => expr
@@ -541,7 +562,7 @@ class TryChecker(current: CompilationUnitIndex,
    */
   def tryCheckExpr(expr: Expr, typ: Type): Option[Expr] =
     try {
-      val checkedExpr = super.checkExpr(expr, typ, "")
+      val checkedExpr = super.checkExpr(expr, typ)
       if (getType(checkedExpr).isNone)
         bug("TryChecker returned an untyped expr!")
       Some(checkedExpr)

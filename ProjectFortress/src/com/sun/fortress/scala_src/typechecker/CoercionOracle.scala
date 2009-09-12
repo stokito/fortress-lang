@@ -192,7 +192,7 @@ class CoercionOracle(traits: TraitTable,
     if (analyzer.subtype(x, y).isTrue) return None
 
     // 2. If X has more elts, then create the coercions for them.
-    if (xelts.length >= yelts.length) return None
+    if (xelts.length > yelts.length) return None
     var xCoercionElts = List.map2(xelts, yelts)((xelt, yelt) => {
       val maybeDummy = maybeArg.map(_ => makeDummyFor(xelt))
       checkSubstitutable(xelt, yelt, maybeDummy)
