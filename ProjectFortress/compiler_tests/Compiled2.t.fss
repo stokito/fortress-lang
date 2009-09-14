@@ -18,9 +18,7 @@
 component Compiled2.t
 export Executable
 
-  x:Number = 1 
   x:String = "hello"
 
   run(): () = ()
 end
-
