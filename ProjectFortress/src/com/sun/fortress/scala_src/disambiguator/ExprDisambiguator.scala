@@ -23,6 +23,7 @@ import _root_.java.util.{Set => JSet}
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.iter.IterUtil
 import edu.rice.cs.plt.tuple.{Option => JOption}
+import com.sun.fortress.compiler.NamingCzar
 import com.sun.fortress.compiler.disambiguator.LocalFnEnv
 import com.sun.fortress.compiler.disambiguator.LocalVarEnv
 import com.sun.fortress.compiler.disambiguator.NameEnv
@@ -127,7 +128,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         extendWithVars(extractStaticExprVars(sparams))
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
-        val (vars, gettersAndSetters, fns) = partitionDecls(decls)
+        val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
         val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
@@ -178,22 +179,29 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             checkForShadowingTopFunction(name)
             topFns += name
             checkForValidParams(extractParamNames(ps))
-            for (param <- ps; if param.getMods.isWrapped) {
-              toOption(param.getIdType) match {
-                case Some(ty) if ty.isInstanceOf[VarType] =>
-                  val tyVar = ty.asInstanceOf[VarType].getName
-                  if (env.typeConsIndex(tyVar) == null)
-                    error("A wrapped field " + param.getName + " must not have " +
-                          "a naked type variable " + tyVar + ".", tyVar)
-                case _ =>
-              }
-              toOption(param.getVarargsType) match {
-                case Some(ty) if ty.isInstanceOf[VarType] =>
-                  val tyVar = ty.asInstanceOf[VarType].getName
-                  if (env.typeConsIndex(tyVar) == null)
-                    error("A wrapped field " + param.getName + " must not have " +
-                          "a naked type variable " + tyVar + ".", tyVar)
-                case _ =>
+            for (param <- ps) {
+              val mods = param.getMods
+              if (!mods.isHidden && NU.isVarargsParam(param) )
+                error("Varargs object parameters should not define getters.", param)
+              if ( (mods.isSettable || mods.isVar) && NU.isVarargsParam(param) )
+                error("Varargs object parameters should not define setters.", param)
+              if (param.getMods.isWrapped) {
+                toOption(param.getIdType) match {
+                  case Some(ty) if ty.isInstanceOf[VarType] =>
+                    val tyVar = ty.asInstanceOf[VarType].getName
+                    if (env.typeConsIndex(tyVar) == null)
+                      error("A wrapped field " + param.getName + " must not have " +
+                            "a naked type variable " + tyVar + ".", tyVar)
+                  case _ =>
+                }
+                toOption(param.getVarargsType) match {
+                  case Some(ty) if ty.isInstanceOf[VarType] =>
+                    val tyVar = ty.asInstanceOf[VarType].getName
+                    if (env.typeConsIndex(tyVar) == null)
+                      error("A wrapped field " + param.getName + " must not have " +
+                            "a naked type variable " + tyVar + ".", tyVar)
+                  case _ =>
+                }
               }
             }
           case _ =>
@@ -203,10 +211,10 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val old_env = env
         extendWithVars(extractStaticExprVars(sparams))
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
-        // Include trait declarations and inherited methods
-        val (vars, gettersAndSetters, fns) = partitionDecls(decls)
-        val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
         val params = extractParamNames(old_params)
+        // Include trait declarations and inherited methods
+        val (vars, gettersAndSetters, fns) = partitionDecls(decls, params)
+        val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
         val fields = params ++ vars
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
@@ -230,14 +238,22 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        * parameters and 'self' if it is a method.
        * TODO: Handle variables bound in where clauses.
        */
-      case SFnDecl(info,
-                   SFnHeader(sparams, mods, old_name, where, throwsC, contract,
-                             params, returnType),
-                   uname, body, imp_name) =>
+      case fd@SFnDecl(info,
+                      SFnHeader(sparams, mods, old_name, where, throwsC, contract,
+                                params, returnType),
+                      uname, body, imp_name) =>
         val name = old_name.asInstanceOf[IdOrOp]
         if (!inTraitOrObject) {
           checkForShadowingTopFunction(name)
           topFns += name
+        }
+        var functional = false
+        for (p <- params) {
+          if (p.getName.equals(NamingCzar.SELF_NAME)) {
+            if (functional)
+              error("Parameter 'self' appears twice in a method declaration.", fd)
+            functional = true
+          }
         }
         val old_env = env
         val param_names = extractParamNames(params)
@@ -285,7 +301,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                        self) =>
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
-        val (vars, gettersAndSetters, fns) = partitionDecls(decls)
+        val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
         val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
         val old_env = env
         extendWithVars(Set(NF.makeId(span, "self")))
@@ -815,22 +831,44 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * sets: a set of variable Ids, a set of Ids for accessors, and a set of
    * FnDecls for other functions.
    */
-  private def partitionDecls(decls: List[Decl]) =
-    decls.foldLeft((Set[Id](), Set[Id](), Set[FnDecl]()))
-                  {(res, decl) => (res, decl) match {
-                     case ((vars, accessors, fns),
-                           fd@SFnDecl(_,
-                                      SFnHeader(_,mods,name,_,_,_,params,_),_,_,_)) =>
-                       if (mods.isGetterSetter)
-                         (vars, accessors + name.asInstanceOf[Id], fns)
-                       // Don't add functional methods!  They go at the top level.
-                       else if (!NU.isFunctionalMethod(toJavaList(params)))
-                         (vars, accessors, fns + fd)
-                       else (vars, accessors, fns)
-                     case ((vars, accessors, fns), vd@SVarDecl(_, lhs, _)) =>
-                       (joinFields(vars, extractDefinedVarNames(lhs)), accessors, fns)
-                     case _ => res
-                   }}
+  private def partitionDecls(decls: List[Decl], paramFields: Set[Id]) = {
+    val (vars, gettersAndSetters, fns) =
+      decls.foldLeft((Set[Id](), Set[FnDecl](), Set[FnDecl]()))
+                    {(res, decl) => (res, decl) match {
+                       case ((vars, accessors, fns),
+                             fd@SFnDecl(_,
+                                        SFnHeader(_,mods,name,_,_,_,params,_),_,_,_)) =>
+                         if (mods.isGetterSetter) {
+                           name match {
+                             case id:Id =>
+                               if (accessors.exists(acc =>
+                                                    NU.getName(acc).asInstanceOf[Id].getText.equals(id.getText) &&
+                                                    NU.getMods(acc).equals(mods))) {
+                                 error("Getter/setter declarations should not be overloaded.", fd)
+                               }
+                               (vars, accessors + fd, fns)
+                             case _ =>
+                               error("Getter/setter declared with an operator name, '" +
+                                     NU.nameString(name) + "'", fd)
+                               (vars, accessors, fns)
+                           }
+                         // Don't add functional methods!  They go at the top level.
+                         } else if (!NU.isFunctionalMethod(toJavaList(params)))
+                           (vars, accessors, fns + fd)
+                         else (vars, accessors, fns)
+                       case ((vars, accessors, fns), vd@SVarDecl(_, lhs, _)) =>
+                         (joinFields(vars, extractDefinedVarNames(lhs)), accessors, fns)
+                       case _ => res
+                     }}
+    val accessors = gettersAndSetters.map(NU.getName(_).asInstanceOf[Id])
+    for (id <- paramFields ++ vars ++ accessors)
+      if (fns.exists(fd => NU.getName(fd) match {
+                     case fname:Id => fname.getText.equals(id.getText)
+                     case _ => false
+                     }))
+        error("Getter/setter declarations should not be overloaded with method declarations.", id)
+    (vars, accessors, fns)
+  }
 
   private def joinFields(vars: Set[Id], new_vars: Set[Id]) =
     vars.intersect(new_vars).toList match {
