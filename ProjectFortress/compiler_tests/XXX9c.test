@@ -1,0 +1,93 @@
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+
+tests=Compiled9.c
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:39:7:\n\
+\ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:42:8:\n\
+\ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:43:8:\n\
+\ Top-level variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:43:8:\n\
+\ Type o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:44:8:\n\
+\ Top-level variable f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:44:8:\n\
+\ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:45:8:\n\
+\ Top-level variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:45:8:\n\
+\ Type o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:47:8:\n\
+\ Type p is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:51:1:\n\
+\ Top-level variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:52:1:\n\
+\ Top-level variable p is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:54:1:\n\
+\ Top-level variable v is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:57:1:\n\
+\ Top-level variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:59:1:\n\
+\ Top-level variable v is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:63:17:\n\
+\ Field x is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:72:18:\n\
+\ Getter/setter declarations should not be overloaded with method declarations.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:85:3:\n\
+\ Top-level variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:87:3:\n\
+\ Top-level variable v is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:113:13:\n\
+\ Label l is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:120:3:\n\
+\ Variable o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:121:3:\n\
+\ Variable q is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:122:3:\n\
+\ Variable v is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:123:3:\n\
+\ Variable g is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:131:5:\n\
+\ Variable x is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:132:5:\n\
+\ Variable m is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:133:5:\n\
+\ Variable n is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:138:8:\n\
+\ Variable lv is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:146:3:\n\
+\ Local function o is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:147:3:\n\
+\ Local function q is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:148:3:\n\
+\ Local function v is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:149:3:\n\
+\ Local function g is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:157:5:\n\
+\ Local function x is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:158:5:\n\
+\ Local function m is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:159:5:\n\
+\ Local function n is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:164:5:\n\
+\ Local function lv is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled9.c.fss:167:8:\n\
+\ Local function lf is already declared.\n\
+File Compiled9.c.fss has 36 errors.\n
+compile_out_equals=
