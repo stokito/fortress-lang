@@ -20,16 +20,26 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:22:8:\n\
 \ Type f is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:23:8:\n\
+\ Top-level variable f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:23:8:\n\
 \ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:25:1:\n\
+\ Top-level variable f is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:30:3:\n\
 \ Local function f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:30:3:\n\
+\ Top-level variable f is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:31:5:\n\
 \ Local function f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:31:5:\n\
+\ Top-level variable f is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:33:3:\n\
 \ Local function g is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:33:3:\n\
+\ Top-level variable g is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:34:3:\n\
 \ Variable h is already declared.\n\
 ${STATIC_TESTS_DIR}/Compiled7.h.fss:36:11:\n\
 \ Label f is already declared.\n\
-File Compiled7.h.fss has 7 errors.\n
+File Compiled7.h.fss has 12 errors.\n
 compile_out_equals=
