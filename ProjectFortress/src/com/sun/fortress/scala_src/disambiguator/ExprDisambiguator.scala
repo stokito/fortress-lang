@@ -77,6 +77,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
   var uninitializedNames = Set[Id]()
   var inComponent = false
   var inTraitOrObject = false
+  var inBlock = false
 
   def check() = walk(compilation_unit)
   def getErrors() = errors
@@ -243,10 +244,6 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                                 params, returnType),
                       uname, body, imp_name) =>
         val name = old_name.asInstanceOf[IdOrOp]
-        if (!inTraitOrObject) {
-          checkForShadowingTopFunction(name)
-          topFns += name
-        }
         var functional = false
         for (p <- params) {
           if (p.getName.equals(NamingCzar.SELF_NAME)) {
@@ -254,6 +251,10 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
               error("Parameter 'self' appears twice in a method declaration.", fd)
             functional = true
           }
+        }
+        if (!inBlock && (!inTraitOrObject || functional)) {
+          checkForShadowingTopFunction(name)
+          topFns += name
         }
         val old_env = env
         val param_names = extractParamNames(params)
@@ -602,14 +603,14 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        * LetFns introduce local functions in scope within the body.
        */
       case SLetFn(info, body, fns) =>
+        inBlock = true
         val old_env = env
         val definedDecls = listToSet(fns)
         for (fn <- fns) {
           NU.getName(fn) match {
             case name:Id =>
               if (!env.explicitVariableNames(name).isEmpty ||
-                  !env.explicitFunctionNames(name).isEmpty ||
-                  !env.explicitTypeConsNames(name).isEmpty)
+                  !env.explicitFunctionNames(name).isEmpty)
                 error("Local function " + name + " is already declared.", name)
             case _ =>
           }
@@ -618,6 +619,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val result = SLetFn(info, walk(body).asInstanceOf[List[Expr]],
                             walk(fns).asInstanceOf[List[FnDecl]])
         env = old_env
+        inBlock = false
         result
 
       case _:Type => node

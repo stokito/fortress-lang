@@ -112,6 +112,8 @@ stateful void Token =
    / NumericSeparator
    / AssignOp
    / Op
+   / NoNewlineComment
+   / NewlineComment
    / a1:(_ (!w))+
      { Debug.debug( Debug.Type.PARSER, 1, "Got the token: ", a1 ); };
 

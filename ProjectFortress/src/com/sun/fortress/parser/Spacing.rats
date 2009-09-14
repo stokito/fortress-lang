@@ -49,14 +49,14 @@ transient void InvalidSpace =
 transient private void Newline =
      void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
    / !("&") NewlineComment ;
-private void Comment =
+void Comment =
      "(*" CommentContents "*)"
    / <ErrorProduction> "(*" CommentContents w EndOfFile
      { log(createSpan(yyStart,yyCount),
            "Unbalanced comment: '*)' is expected.");
      };
 
-private void NoNewlineComment =
+void NoNewlineComment =
      "(*)" NNCommentContents
    / "(*" NNCommentContents "*)"
    / "&" s NewlineComment
