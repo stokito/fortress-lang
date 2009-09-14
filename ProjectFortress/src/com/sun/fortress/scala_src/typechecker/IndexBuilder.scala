@@ -307,32 +307,6 @@ object IndexBuilder {
                                               dottedMethods, functionalMethods))
   }
 
-  private def checkObject(getters: JavaMap[Id, Method],
-                          setters: JavaMap[Id, Method],
-                          dottedMethods: Relation[IdOrOpOrAnonymousName, JavaDeclaredMethod],
-                          optParams: JavaOption[JavaList[Param]],
-                          errors: JavaList[StaticError]) = {
-    for (id <- getters.keySet) {
-      if ( dottedMethods.firstSet().contains(id) )
-        error(errors, "Getter declarations should not be overloaded with method declarations.", id)
-    }
-    for (id <- setters.keySet) {
-      if ( dottedMethods.firstSet().contains(id) )
-        error(errors, "Setter declarations should not be overloaded with method declarations.", id)
-    }
-    toOption(optParams) match {
-      case Some(params) =>
-        for (p <- toList(params)) {
-          val mods = p.getMods
-          if (!mods.isHidden && NU.isVarargsParam(p) )
-              error(errors, "Varargs object parameters should not define getters.", p)
-          if ( (mods.isSettable || mods.isVar) && NU.isVarargsParam(p) )
-              error(errors, "Varargs object parameters should not define setters.", p)
-        }
-      case _ =>
-    }
-  }
-
   /**
    * Create an ObjectTraitIndex and put it in the given map; add functional methods
    * to the given relation; create a constructor function or singleton variable and
@@ -394,8 +368,6 @@ object IndexBuilder {
         variables.put(name, new JavaSingletonVariable(name))
         none[JavaConstructor]
     }
-
-    checkObject(getters, setters, dottedMethods, ast.getParams, errors)
 
     typeConses.put(name, new ObjectTraitIndex(ast, constructor, fields, initializers,
                                               getters, setters, coercions,
@@ -499,33 +471,22 @@ object IndexBuilder {
     } else if (mods.isGetter) {
       name match {
         case id:Id =>
-          if ( getters.keySet.contains(id) )
-              error(errors, "Getter declarations should not be overloaded.", ast)
-          else getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), traitDecl))
-        case _ =>
-          error(errors, "Getter declared with an operator name, '" +
-                NU.nameString(name) + "'", ast)
+          if ( !getters.keySet.contains(id) )
+            getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), traitDecl))
+        case _ => // Checked by ExprDisambiguator.
       }
     } else if (mods.isSetter) {
       name match {
         case id:Id =>
-          if ( setters.keySet.contains(id) )
-            error(errors, "Setter declarations should not be overloaded.", ast)
-          else setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), traitDecl))
-        case _ =>
-          error(errors, "Getter declared with an operator name, '" +
-                NU.nameString(name) + "'", ast)
+          if ( !setters.keySet.contains(id) )
+            setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), traitDecl))
+        case _ => // Checked by ExprDisambiguator.
       }
     } else {
       var functional = false
       for (p <- toList(NU.getParams(ast))) {
-        if (p.getName.equals(NamingCzar.SELF_NAME)) {
-          if (functional) {
-              error(errors, "Parameter 'self' appears twice in a method declaration.", ast)
-              return
-          }
+        if (p.getName.equals(NamingCzar.SELF_NAME))
           functional = true
-        }
       }
       val operator = NU.isOp(ast)
       // Determine whether:
