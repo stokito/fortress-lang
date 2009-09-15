@@ -62,26 +62,30 @@ object STypeCheckerFactory {
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: STypeEnv)
-           (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer, MMap.empty)
+           (implicit analyzer: TypeAnalyzer,
+                     cycleChecker: CyclicReferenceChecker): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer, MMap.empty, cycleChecker)
   
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: STypeEnv,
            errors: ErrorLog)
-          (implicit analyzer: TypeAnalyzer): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, errors)(analyzer, MMap.empty)
+          (implicit analyzer: TypeAnalyzer,
+                    cycleChecker: CyclicReferenceChecker): STypeCheckerImpl =
+    new STypeCheckerImpl(current, traits, env, errors)(analyzer, MMap.empty, cycleChecker)
 
   def makeTryChecker(current: CompilationUnitIndex,
                      traits: TraitTable,
                      env: STypeEnv)
-                    (implicit analyzer: TypeAnalyzer): TryChecker =
-    new TryChecker(current, traits, env, new TryErrorLog)(analyzer, MMap.empty)
+                    (implicit analyzer: TypeAnalyzer,
+                              cycleChecker: CyclicReferenceChecker): TryChecker =
+    new TryChecker(current, traits, env, new TryErrorLog)(analyzer, MMap.empty, cycleChecker)
 
   def makeTryChecker(checker: STypeChecker): TryChecker =
-    makeTryChecker(checker.current,
+    new TryChecker(checker.current,
                    checker.traits,
-                   checker.env)(checker.analyzer)
+                   checker.env,
+                   new TryErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
 }
 
 /**
@@ -93,8 +97,9 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
                        env: STypeEnv,
                        errors: ErrorLog)
                       (implicit analyzer: TypeAnalyzer,
-                                envCache: MMap[APIName, STypeEnv])
-    extends STypeChecker(current, traits, env, errors)(analyzer, envCache)
+                                envCache: MMap[APIName, STypeEnv],
+                                cycleChecker: CyclicReferenceChecker)
+    extends STypeChecker(current, traits, env, errors)
     with Dispatch with Common
     with Decls with Functionals with Operators
     with Misc {
@@ -104,7 +109,8 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
                            env: STypeEnv,
                            errors: ErrorLog)
                           (implicit analyzer: TypeAnalyzer,
-                                    envCache: MMap[APIName, STypeEnv]) =
+                                    envCache: MMap[APIName, STypeEnv],
+                                    cycleChecker: CyclicReferenceChecker) =
     new STypeCheckerImpl(current, traits, env, errors)
 
 }
@@ -127,7 +133,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                             val env: STypeEnv,
                             val errors: ErrorLog)
                            (implicit val analyzer: TypeAnalyzer,
-                                     val envCache: MMap[APIName, STypeEnv]) {
+                                     val envCache: MMap[APIName, STypeEnv],
+                                     val cycleChecker: CyclicReferenceChecker) {
 
   /** Oracle for determining exclusion between types. */
   protected val exclusions = new ExclusionOracle(analyzer, errors)
@@ -148,10 +155,11 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                   env: STypeEnv,
                   errors: ErrorLog)
                  (implicit analyzer: TypeAnalyzer,
-                           envCache: MMap[APIName, STypeEnv]): STypeCheckerImpl
+                           envCache: MMap[APIName, STypeEnv],
+                           cycleChecker: CyclicReferenceChecker): STypeCheckerImpl
 
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
-    constructor(current, traits, newEnv, errors)(newAnalyzer, envCache)
+    constructor(current, traits, newEnv, errors)(newAnalyzer, envCache, cycleChecker)
 
   def extend(bindings: List[Binding]) =
     constructor(current,
@@ -163,7 +171,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     constructor(current,
                 traits,
                 env,
-                errors)(analyzer.extend(sparams, where), envCache)
+                errors)(analyzer.extend(sparams, where), envCache, cycleChecker)
 
   def extend(sparams: List[StaticParam],
              params: Option[List[Param]],
@@ -175,7 +183,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     constructor(current,
                 traits,
                 newEnv,
-                errors)(analyzer.extend(sparams, where), envCache)
+                errors)(analyzer.extend(sparams, where), envCache, cycleChecker)
   }
 
   def extend(id: Id, typ: Type): STypeChecker =
@@ -197,7 +205,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                 env.extendWithFunctions(methods),
                 errors)
 
-  def extendWithListOfFunctions(fns:List[FnDecl]) =
+  def extendWithListOfFunctions[T <: Functional](fns:List[T]) =
     constructor(current,
                 traits,
                 env.extendWithListOfFunctions(fns),
@@ -509,7 +517,8 @@ class TryChecker(current: CompilationUnitIndex,
                  env: STypeEnv,
                  errors: ErrorLog)
                 (implicit analyzer: TypeAnalyzer,
-                          envCache: MMap[APIName, STypeEnv])
+                          envCache: MMap[APIName, STypeEnv],
+                          cycleChecker: CyclicReferenceChecker)
     extends STypeCheckerImpl(current, traits, env, errors) {
 
   override def constructor(current: CompilationUnitIndex,
@@ -517,7 +526,8 @@ class TryChecker(current: CompilationUnitIndex,
                            env: STypeEnv,
                            errors: ErrorLog)
                           (implicit analyzer: TypeAnalyzer,
-                                    envCache: MMap[APIName, STypeEnv]) =
+                                    envCache: MMap[APIName, STypeEnv],
+                                    cycleChecker: CyclicReferenceChecker) =
     new TryChecker(current, traits, env, errors)
 
   /** Check the given node; return it if successful, None otherwise. */

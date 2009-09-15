@@ -21,6 +21,7 @@ import _root_.java.util.{List => JavaList}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
 import com.sun.fortress.compiler.index.CompilationUnitIndex
+import com.sun.fortress.compiler.index.DeclaredFunction
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
@@ -531,15 +532,17 @@ trait Misc { self: STypeChecker with Common =>
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
-    case SLetFn(getInfo, getBody, getFns) => {
-      val newChecker = this.extendWithListOfFunctions(getFns)
-      SLetFn(getInfo, getBody.map((e:Expr) => newChecker.checkExpr(e)),
-                      getFns.map((f:FnDecl) =>
-                                  f match {
-                                    case SFnDecl(i,h,n,Some(e),m) =>
-                                      new FnDecl(i,h,n,Some(newChecker.checkExpr(e)),m)
-                                    case _ => f
-                                  }))
+    case SLetFn(SExprInfo(span, paren, _), getBody, getFns) => {
+      // Extend with functions
+      val fnIndices = getFns.map(new DeclaredFunction(_))
+      
+      val newChecker = this.extendWithListOfFunctions(fnIndices)
+      // Prime functionals
+      Thunker.primeFunctionals(fnIndices, STypeCheckerFactory.makeTryChecker(this))
+      val newBody = getBody.map((e:Expr) => newChecker.checkExpr(e))
+      if(!haveTypes(newBody)) return expr
+      val newFns = getFns.map(newChecker.check(_).asInstanceOf[FnDecl])
+      SLetFn(SExprInfo(span, paren, getType(newBody.last)), newBody, newFns)
     }
 
 
@@ -556,7 +559,8 @@ trait Misc { self: STypeChecker with Common =>
                       errors: ErrorLog,
                       enclosingExpr: String)
                      (implicit analyzer: TypeAnalyzer,
-                               envCache: MMap[APIName, STypeEnv])
+                               envCache: MMap[APIName, STypeEnv],
+                               cycleChecker: CyclicReferenceChecker)
       extends STypeCheckerImpl(current,traits,env,errors) {
 
     override def constructor(current: CompilationUnitIndex,
@@ -564,7 +568,8 @@ trait Misc { self: STypeChecker with Common =>
                               env: STypeEnv,
                               errors: ErrorLog)
                              (implicit analyzer: TypeAnalyzer,
-                                       envCache: MMap[APIName, STypeEnv]) =
+                                       envCache: MMap[APIName, STypeEnv],
+                                       cycleChecker: CyclicReferenceChecker) =
       new AtomicChecker(current, traits, env, errors, enclosingExpr)
 
     val message = errorMsg("A 'spawn' expression must not occur inside ",
