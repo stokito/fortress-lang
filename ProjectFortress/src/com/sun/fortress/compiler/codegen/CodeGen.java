@@ -578,8 +578,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // TODO: Need dependency analysis for component-level decls.
 
-        // Create a field to hold instance of each singleton object, and
-        // emit initialization code to fill that field.
+        // Create a field to hold instance of each singleton object,
+        // and emit initialization code to fill that field.  Do the
+        // same for each top-level variable declaration.
         for (Decl y : fieldDecls) {
             if (y instanceof ObjectDecl) {
                 singletonObjectFieldAndInit((ObjectDecl)y);
@@ -589,9 +590,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 sayWhat(y,"Don't recognize "+y+" as a fieldDecl");
             }
         }
-
-        // Create a field for each decl, and emit initialization code to fill that field.
-        
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -665,7 +663,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         debug("forFnDecl ", x);
         FnHeader header = x.getHeader();
- 
+
         List<Param> params = header.getParams();
         int selfIndex = selfParameterIndex(params);
         boolean functionalMethod = selfIndex != -1;
@@ -707,10 +705,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             sayWhat(x);
         }
-        
+
         boolean canCompile =
             (header.getStaticParams().isEmpty() || // no static parameter
-             !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) && 
+             !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) &&
         header.getWhereClause().isNone() && // no where clause
         header.getThrowsClause().isNone() && // no throws clause
         header.getContract().isNone() && // no contract
@@ -877,7 +875,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                     // TODO different collision rules for top-level and for
                     // methods. (choice of mname)
-                    
+
                     if (functionalMethod) {
                         sig = Naming.removeNthSigParameter(sig, selfIndex);
                         mname = fmDottedName(singleName(name), selfIndex);
@@ -895,12 +893,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
 
                     CodeGen cg = new CodeGen(this);
-                    
+
                     cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
                     cg.mv.visitCode();
 
                     boolean hasSelfVar = hasSelf || functionalMethod;
-                    
+
                     // Now inside method body. Generate code for the method
                     // body. Start by binding the parameters and setting up the
                     // initial locals.
@@ -1081,7 +1079,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                       thisApi());
 
         // Generate the apply method
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC , NamingCzar.applyMethodName() , applyDesc, null, null);
+        // System.err.println(idesc+".apply"+applyDesc+" gen in "+className);
+        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, Naming.APPLY_METHOD, applyDesc, null, null);
         cg.mv.visitCode();
 
         // Since we call this virtually we need a slot for the arrow implementation this object.
@@ -2026,10 +2025,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(t,"Higher-order call to non-arrow type " + t);
         }
         ArrowType at = (ArrowType)t;
-        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-                           NamingCzar.makeArrowDescriptor(at, thisApi()),
-                           NamingCzar.applyMethodName(),
-                           NamingCzar.jvmSignatureFor(at,thisApi()));
+        String desc = NamingCzar.makeArrowDescriptor(at, thisApi());
+        String sig = NamingCzar.jvmSignatureFor(at,thisApi());
+        // System.err.println(desc+".apply"+sig+" call");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, desc,
+                           Naming.APPLY_METHOD, sig);
     }
 
     public void for_RewriteFnApp(_RewriteFnApp x) {
