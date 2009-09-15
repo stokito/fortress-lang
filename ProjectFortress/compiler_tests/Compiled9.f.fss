@@ -40,4 +40,4 @@ end (*) trait baz
 
 object foo extends baz end
 
-run() = print foo.baz()
+run() = println foo.baz()
