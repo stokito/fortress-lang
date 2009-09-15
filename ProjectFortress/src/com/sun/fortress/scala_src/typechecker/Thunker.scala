@@ -133,20 +133,26 @@ object Thunker {
   /** For each index in the set, construct and insert its thunk. */
   def primeFunctionals[T<:Functional]
       (fns: JavaSet[T], tryChecker: TryChecker)
-      (implicit cycleChecker: CyclicReferenceChecker) =
-
-    toSet(fns).foreach(fn => {
-      if (!fn.hasThunk)
-      fn match {
-        case m:Method =>
-          m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], m, tryChecker))
-        case d:DeclaredFunction =>
-          d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
-        case f:FunctionalMethod =>
-          f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
-        case _ =>
-      }
-    })
+      (implicit cycleChecker: CyclicReferenceChecker) = toSet(fns).foreach(primeFunctional(cycleChecker, tryChecker))
+      
+  def primeFunctionals[T<:Functional]
+      (fns: List[T], tryChecker: TryChecker)
+      (implicit cycleChecker: CyclicReferenceChecker) = fns.foreach(primeFunctional(cycleChecker, tryChecker))                                
+      
+  def primeFunctional[T<:Functional](cycleChecker: CyclicReferenceChecker,
+                                      tryChecker: TryChecker)(fn: T) = {
+    implicit val check = cycleChecker
+    if (!fn.hasThunk)
+	fn match {
+	  case m:Method =>
+	    m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], m, tryChecker))
+      case d:DeclaredFunction =>
+	    d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
+      case f:FunctionalMethod =>    
+	    f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
+	  case _ =>
+	}
+   }
 
   /** Make the thunk used for the given functional that checks its body. */
   def makeThunk(decl: FnDecl,

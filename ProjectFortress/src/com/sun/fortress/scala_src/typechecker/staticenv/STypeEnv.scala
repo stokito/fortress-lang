@@ -65,8 +65,8 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
                                                api: Option[APIName]): STypeEnv =
     new NestedSTypeEnv(this, STypeEnv.extractTypeConsBindings(m, api))
 
-  def extendBindingsFromFnList(fns:List[Decl]) =
-    throw new Error("Not yet implemented: extendBindingsFromFnList")
+  def extendWithBindingsFromFnList[T <: Functional](fns:List[T]) =
+    new NestedSTypeEnv(this, STypeEnv.extractFunctionBindings(fns.map( x => (x.name, Set(x))), None))
 
   /** Extend me with the bindings of the given functions relation. */
   def extendWithFunctions[T <: Functional]
@@ -87,8 +87,8 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
       (r: Relation[IdOrOpOrAnonymousName, T]): STypeEnv =
     extendWithFunctions(r, None)
 
-  def extendWithListOfFunctions(fns:List[FnDecl]): STypeEnv =
-    new NestedSTypeEnv(this, extendBindingsFromFnList(fns))
+  def extendWithListOfFunctions[T <: Functional](fns:List[T]): STypeEnv =
+    extendWithBindingsFromFnList(fns)
 
   /** Extend me without the bindings with the given names. */
   def extendWithout[T <: Name](names: Collection[T]): STypeEnv =
@@ -249,33 +249,37 @@ object STypeEnv extends StaticEnvCompanion[Type] {
   protected def extractFunctionBindings[T <: Functional]
       (r: Relation[IdOrOpOrAnonymousName, T],
        api: Option[APIName]): Iterable[TypeBinding] = {
-
     val fns = toSet(r.firstSet)
     // For each name, intersect together all of its overloading types.
-    fns.map(x => {
-        val fns: Set[Functional] =
-          toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])
-
-        // Lazily compute the type for this function binding at the time of
-        // lookup.
-        val lazyTypeEvaluation: TypeThunk = new TypeThunk {
-          def apply: Option[Type] = {
-            // TODO: Currently ignoring any errors from makeArrowFromFunctional
-            val oTypes = fns.flatMap[Type](STypesUtil.makeArrowFromFunctional)
-            if (oTypes.isEmpty)
-              None
-            else
-              Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
-          }
-        }
-        val mods = if ( fns.isEmpty ) Modifiers.None
-                   else fns.find(_.mods != Modifiers.None) match {
-                          case Some(f) => f.mods
-                          case _ => Modifiers.None
-                        }
-        makeBinding(x, lazyTypeEvaluation, mods, false)
-    })
+    val map = fns.map(x => (x, toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])))
+    extractFunctionBindings(map,api)
   }
+  
+  protected def extractFunctionBindings[S <: Name, T <: Functional]
+                                       (functions: Iterable[(S,Set[T])],
+                                        api: Option[APIName]): Iterable[TypeBinding] = {
+    functions.map{ tuple =>
+      val (x,fns) = tuple
+      // Lazily compute the type for this function binding at the time of
+      // lookup.
+      val lazyTypeEvaluation: TypeThunk = new TypeThunk {
+        def apply: Option[Type] = {
+          // TODO: Currently ignoring any errors from makeArrowFromFunctional
+          val oTypes = fns.flatMap[Type](STypesUtil.makeArrowFromFunctional)
+          if (oTypes.isEmpty)
+            None
+          else
+            Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
+        }
+      }
+      val mods = if ( fns.isEmpty ) Modifiers.None
+                 else fns.find(_.mods != Modifiers.None) match {
+                   case Some(f) => f.mods
+                     case _ => Modifiers.None
+                   }
+      makeBinding(x, lazyTypeEvaluation, mods, false)
+    }
+  } 
 }
 
 

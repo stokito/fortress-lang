@@ -270,16 +270,16 @@ public class StaticChecker {
                     //Create thunks for when the user elides function return types
                     CyclicReferenceChecker cycleChecker = cycleChecker = new CyclicReferenceChecker(log);
                     STypeChecker thunkChecker =
-                      STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer);
+                      STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer, cycleChecker);
                     Thunker thunker = new Thunker(thunkChecker,cycleChecker);
                     thunker.walk(component_ast);
                     //make sure to do toplevel functions after walking so functional methods and operators will already have thunks
-                    TryChecker tryChecker = STypeCheckerFactory.makeTryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer);
+                    TryChecker tryChecker = STypeCheckerFactory.makeTryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer, cycleChecker);
                     Thunker$.MODULE$.primeFunctionals(componentIndex.parametricOperators(), tryChecker, cycleChecker);
                     Thunker$.MODULE$.primeFunctionals(componentIndex.functions().secondSet(), tryChecker, cycleChecker);
                     //Typecheck
                     STypeChecker typeChecker =
-                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer);
+                        STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer, cycleChecker);
                     ast = (Component)typeChecker.typeCheck(component_ast);
                     componentIndex = (ComponentIndex)buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
