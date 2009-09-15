@@ -713,6 +713,7 @@ public class NamingCzar {
         Id id = t.getName();
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
+        String sep = ".";
          {
             if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
                 tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
@@ -720,9 +721,11 @@ public class NamingCzar {
                 tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
             } else {
                 tag = Naming.NORMAL_TAG; // smiley face == normal case.
+                sep = "$";
             }
 
-            return tag + apiName + "." + id.getText();
+                // this might be buggy.
+            return tag + apiName + sep + id.getText();
         }
     }
 

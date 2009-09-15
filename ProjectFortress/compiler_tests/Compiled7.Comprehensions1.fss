@@ -24,8 +24,8 @@ comprehensions, in order to see whether we can typecheck it.
 (** Is excludes Boolean actually necessary here, or is that a bug in
     exclusion checking? *)
 trait GenZZ32 excludes Boolean
-    generate(r: ReductionString, body: ZZ32->String): String
-    filter(f: ZZ32 -> Boolean): GenZZ32
+    generate(r: ReductionString, body: ZZ32->String): String = "string"
+    filter(f: ZZ32 -> Boolean): GenZZ32 = self
 end
 
 object ReductionString
