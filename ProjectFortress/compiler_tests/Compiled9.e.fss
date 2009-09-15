@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+export Executable
+
+import Names.a.{bar, baz}  (*) bar is a trait, baz is a variable
+(* Names.a also declares foo as a trait and a top-level variable,
+   but these declarations are not imported even though bar extends foo. *)
+
+(* bar and baz have multiple declarations in different namespaces.
+   This should be allowed. *)
+
+bar: String = baz
+
+trait baz extends bar
+  baz() = label bar
+    label baz
+      label foo
+        exit bar with bar
+      end foo
+    end baz
+  end bar
+end (*) trait baz
+
+object foo extends baz end
+
+run() = println foo.baz()

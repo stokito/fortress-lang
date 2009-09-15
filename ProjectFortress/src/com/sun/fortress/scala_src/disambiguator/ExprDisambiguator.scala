@@ -415,7 +415,6 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                     return vref
                   } else Some(SVarRef(info, name, sargs, depth))
                 case _ =>
-                  error("Duplicate variable name: " + name, name)
                   return vref
               }
             }
