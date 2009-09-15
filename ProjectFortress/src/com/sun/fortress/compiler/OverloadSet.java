@@ -753,6 +753,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 return false;
             if (!ta.subtypeNormal(tp, ti).isTrue())
                 return false;
+            i++;
         }
         return true;
     }
