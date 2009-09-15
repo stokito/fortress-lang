@@ -17,7 +17,7 @@
 
 export Executable
 
-(* Generic top-level functions *)
+  (* Generic top-level functions *)
 
 f[\T\]():ZZ32 = 0
 g[\T, S\]():ZZ32 = f[\T\]() + 5

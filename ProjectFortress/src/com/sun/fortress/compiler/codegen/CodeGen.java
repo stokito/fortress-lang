@@ -665,17 +665,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         debug("forFnDecl ", x);
         FnHeader header = x.getHeader();
-        boolean canCompile = header.getStaticParams().isEmpty() && // no static
-                // parameter
-                header.getWhereClause().isNone() && // no where clause
-                header.getThrowsClause().isNone() && // no throws clause
-                header.getContract().isNone() && // no contract
-                header.getMods().isEmpty() && // no modifiers
-                !inABlock; // no local functions
-
-        if (!canCompile)
-            sayWhat(x);
-
+ 
         List<Param> params = header.getParams();
         int selfIndex = selfParameterIndex(params);
         boolean functionalMethod = selfIndex != -1;
@@ -717,6 +707,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             sayWhat(x);
         }
+        
+        boolean canCompile =
+            (header.getStaticParams().isEmpty() || // no static parameter
+             !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) && 
+        header.getWhereClause().isNone() && // no where clause
+        header.getThrowsClause().isNone() && // no throws clause
+        header.getContract().isNone() && // no contract
+        header.getMods().isEmpty() && // no modifiers
+        !inABlock; // no local functions
+
+        if (!canCompile)
+            sayWhat(x);
 
         try {
             inAnObject = false;
@@ -854,27 +856,34 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                     methodReturnAndFinish(cg);
 
-
+                    // END OF emitting trait default
                 } else {
+                    /* options here:
+                     *  - functional method in object
+                     *  - normal method in object
+                     *  - top level
+                     */
                     int modifiers = Opcodes.ACC_PUBLIC;
 
-                    CodeGen cg = new CodeGen(this); /*
-                                                     * Need to modify the
-                                                     * signature, depending on
-                                                     * circumstances.
-                                                     */
+                    /*
+                     * Need to modify the
+                     * signature, depending on
+                     * circumstances.
+                     */
                     String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                             returnType.unwrap(), component.getName());
 
-                    if (functionalMethod) {
-                        sig = Naming.removeNthSigParameter(sig, selfIndex);
-                    }
+                    String mname;
 
                     // TODO different collision rules for top-level and for
-                    // methods.
-                    String mname = functionalMethod ? fmDottedName(
-                            singleName(name), selfIndex)
-                            : nonCollidingSingleName(name, sig);
+                    // methods. (choice of mname)
+                    
+                    if (functionalMethod) {
+                        sig = Naming.removeNthSigParameter(sig, selfIndex);
+                        mname = fmDottedName(singleName(name), selfIndex);
+                    } else {
+                        mname = nonCollidingSingleName(name, sig);
+                    }
 
                     if (!savedInAnObject) {
                         // trait default OR top level.
@@ -885,16 +894,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         modifiers |= Opcodes.ACC_STATIC;
                     }
 
+                    CodeGen cg = new CodeGen(this);
+                    
                     cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
                     cg.mv.visitCode();
 
+                    boolean hasSelfVar = hasSelf || functionalMethod;
+                    
                     // Now inside method body. Generate code for the method
-                    // body.
-                    // Start by binding the parameters and setting up the
-                    // initial
-                    // locals.
+                    // body. Start by binding the parameters and setting up the
+                    // initial locals.
                     VarCodeGen selfVar = null;
-                    if (hasSelf || functionalMethod) {
+                    if (hasSelfVar) {
                         // TODO: Add proper type information here based on the
                         // enclosing trait/object decl. For now we can get away
                         // with just stashing a null as we're not using it to
@@ -1149,7 +1160,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 b.append(ch);
             } else {
                 b.append('x');
-                b.append(Integer.toHexString(ch));
+                b. append(Integer.toHexString(ch));
             }
         }
         return b.toString();

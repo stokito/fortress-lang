@@ -31,12 +31,13 @@ import org.objectweb.asm.Opcodes;
 import com.sun.fortress.repository.ProjectProperties;
 
 /**
- * This code steals willy-nilly from the NextGen clGass loader.
+ * This code steals willy-nilly from the NextGen class loader.
  *
  * @author dr2chase
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
+    // TODO make this depends on properties/env w/o dragging in all of the world.
     private final boolean log_loads = false;
 
     public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
@@ -124,11 +125,18 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         } else {
             byte[] classData = null;
             try {
-                if (name.contains(Naming.ENVELOPE)) {
+                boolean isClosure = name.contains(Naming.ENVELOPE);
+                boolean isGeneric = isExpanded(name);
+//                if (isClosure && isGeneric) {
+//                    // A generic function, or so we think.
+//                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
+//                } else
+                    
+               if (isClosure) {
 
                     classData = instantiateClosure(name);
 
-                } else if (isExpanded(name)) {
+                } else if (isGeneric) {
                     String dename = Naming.deMangle(name);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
