@@ -50,6 +50,8 @@ public class Naming {
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
     public final static String NATIVE_PREFIX_DOT = "native.";
 
+    public final static String APPLY_METHOD = "apply";
+
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
 
     /**

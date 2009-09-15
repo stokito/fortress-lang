@@ -645,25 +645,23 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true);
     }
 
-    public static String applyMethodName() { return "apply";}
-
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
-        
+
         String res =
          "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
             makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
         res = Naming.mangleIdentifier(res);
         return res;
-    
+
 }
     public static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
-        
+
         String res =
          "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
             makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
         res = Naming.mangleIdentifier(res);
         return Naming.NORMAL_TAG + res;
-    
+
 }
 
     public static String makeAbstractArrowDescriptor(

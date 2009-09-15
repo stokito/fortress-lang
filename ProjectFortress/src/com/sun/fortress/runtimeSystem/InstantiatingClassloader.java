@@ -131,7 +131,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 //                    // A generic function, or so we think.
 //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
 //                } else
-                    
+
                if (isClosure) {
 
                     classData = instantiateClosure(name);
@@ -262,8 +262,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // What if staticClass is compiler builtin?  How do we know?
             String staticClass = api.replaceAll("[.]", "/");
 
-            mv = cw.visitMethod(ACC_PUBLIC, "apply", sig, null, null);
+            // System.err.println(name + ".apply" + sig + " concrete");
+            mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
             mv.visitCode();
+            // Is this right?  What about a 2-arg function that takes a void as its second arg?
+            // This can happen with generic instantiations of various sorts (esp the default
+            // seq implementation!).
             for (int i = 1; i < parameters.size();i++) {
                 String param = parameters.get(i-1);
                 if (! param.equals(Naming.INTERNAL_SNOWMAN))
@@ -326,7 +330,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
+            // System.err.println(name+".apply"+sig+" abstract");
+        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                 sig,
                 null, null);
         mv.visitEnd();
@@ -363,7 +368,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, "apply",
+            // System.err.println(name + ".apply" + sig+" abstract for abstract");
+        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                 sig,
                 null, null);
         mv.visitEnd();
