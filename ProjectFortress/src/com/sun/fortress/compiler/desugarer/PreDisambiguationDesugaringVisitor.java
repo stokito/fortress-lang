@@ -32,6 +32,7 @@ import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.useful.Iter;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.nodes_util.DesugarerUtil.*;
@@ -227,8 +228,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         Iterator<Expr> i = args.iterator();
         Expr res = i.next();
         Span sp = NodeUtil.getSpan(opExp);
-        while (i.hasNext()) {
-            Expr arg = (Expr)i.next();
+        for (Expr arg: Iter.iter(i)) {
             if (prefix) {
                 res = thunk(res);
             }

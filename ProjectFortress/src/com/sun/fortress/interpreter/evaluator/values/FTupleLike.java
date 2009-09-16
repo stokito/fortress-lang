@@ -58,8 +58,7 @@ public abstract class FTupleLike extends FValue implements Selectable {
     public String getString() {
         StringBuffer res = new StringBuffer();
         boolean first = true;
-        for (Iterator<FValue> i = vals.iterator(); i.hasNext();) {
-            FValue val = i.next();
+        for (FValue val : vals) {
             if (first) {
                 first = false;
                 res.append('(');

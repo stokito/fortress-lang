@@ -42,14 +42,14 @@ class LocalVarTypeEnv extends TypeEnv {
     }
 
     private Option<LValue> findLVal(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	for (LValue lval : decl.getLhs()) {
+        for (LValue lval : decl.getLhs()) {
             if (lval.getName().equals(var) || lval.getName().equals(no_api_var)) {
                 return some(lval);
             }
-    	}
-    	return none();
+        }
+        return none();
     }
 
     /**
@@ -57,12 +57,12 @@ class LocalVarTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	Option<LValue> lval = findLVal(var);
+        Option<LValue> lval = findLVal(var);
 
-    	if(lval.isSome())
-    		return some(new BindingLookup(lval.unwrap()));
-    	else
-    		return parent.binding(var);
+        if(lval.isSome())
+            return some(new BindingLookup(lval.unwrap()));
+        else
+            return parent.binding(var);
     }
 
     @Override
@@ -75,25 +75,25 @@ class LocalVarTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-		Option<LValue> lval = findLVal(var);
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        Option<LValue> lval = findLVal(var);
 
-		if(lval.isSome())
-			return Option.<Node>some(decl);
-		else
-			return parent.declarationSite(var);
-	}
+        if(lval.isSome())
+            return Option.<Node>some(decl);
+        else
+            return parent.declarationSite(var);
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		return new LocalVarTypeEnv((LocalVarDecl)this.decl.accept(rep),
-				this.parent.replaceAllIVars(ivars));
-	}
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        return new LocalVarTypeEnv((LocalVarDecl)this.decl.accept(rep),
+                this.parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

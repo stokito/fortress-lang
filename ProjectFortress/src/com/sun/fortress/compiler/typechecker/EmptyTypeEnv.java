@@ -29,11 +29,11 @@ import static edu.rice.cs.plt.tuple.Option.*;
 
 class EmptyTypeEnv extends TypeEnv {
     public static final EmptyTypeEnv ONLY = new EmptyTypeEnv();
-    
+
     private EmptyTypeEnv() {}
-    
+
     private RuntimeException error() { throw new RuntimeException("Attempt to lookup in an EmptyTypeEnv."); }
-    
+
     @Override
 	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) { return none(); }
     @Override
@@ -44,13 +44,13 @@ class EmptyTypeEnv extends TypeEnv {
         return Collections.emptyList();
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-		return none();
-	}
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        return none();
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		return this;
-	}
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        return this;
+    }
 }

@@ -398,18 +398,12 @@ public class TopLevelEnvGen {
     private static void getRawBaseCase(MethodVisitor mv, String className, Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, int code, Label returnNull) {
 
         PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
-        Iterator<String> iterator = strings.iterator();
-        while (iterator.hasNext()) {
-            String testString = iterator.next();
+        for (String testString : strings) {
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(testString);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
             Label afterReturn = new Label();
-            if (iterator.hasNext()) {
-                mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
-            } else {
-                mv.visitJumpInsn(Opcodes.IFEQ, returnNull);
-            }
+            mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = testString + environmentClass.namespace();
             mv.visitFieldInsn(Opcodes.GETFIELD, className, Naming.mangleIdentifier(idString), environmentClass.descriptor());
@@ -476,18 +470,12 @@ public class TopLevelEnvGen {
     private static void putRawBaseCase(MethodVisitor mv, String className, Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, int code, Label notFound) {
 
         PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
-        Iterator<String> iterator = strings.iterator();
-        while (iterator.hasNext()) {
-            String testString = iterator.next();
+        for (String testString : strings) {
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(testString);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
             Label afterSetValue = new Label();
-            if (iterator.hasNext()) {
-                mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
-            } else {
-                mv.visitJumpInsn(Opcodes.IFEQ, notFound);
-            }
+            mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             String idString = testString + environmentClass.namespace();

@@ -32,7 +32,7 @@ import com.sun.fortress.nodes._InferenceVarType;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/** 
+/**
  * A type environment that will conceal bindings from its parent type
  * environments. All bindings contained in this type environment will have no
  * type.
@@ -41,20 +41,20 @@ class ConcealingTypeEnv extends TypeEnv {
     private final Set<? extends IdOrOpOrAnonymousName> entries;
     private final TypeEnv parent;
     private final Node declSite;
-    
+
     ConcealingTypeEnv(Node _declSite, Set<? extends IdOrOpOrAnonymousName> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
         declSite = _declSite;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to no
      * type (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
+
     	if (!entries.contains(no_api_var)) { return parent.binding(var); }
         return some(new BindingLookup(var, Option.<Type>none()));
     }
@@ -72,25 +72,25 @@ class ConcealingTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
-    	if (!entries.contains(no_api_var)) { return parent.declarationSite(var); }
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
+
+        if (!entries.contains(no_api_var)) { return parent.declarationSite(var); }
         return some(declSite);
-	}
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
-		return new ConcealingTypeEnv((Node)this.declSite.accept(rep),
-				entries, 
-				parent.replaceAllIVars(ivars));
-	}
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+        return new ConcealingTypeEnv((Node)this.declSite.accept(rep),
+                entries,
+                parent.replaceAllIVars(ivars));
+    }
+
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

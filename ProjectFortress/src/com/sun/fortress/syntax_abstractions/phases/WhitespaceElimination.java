@@ -29,10 +29,8 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
     @Override
     public Node forSyntaxDef(SyntaxDef that) {
         List<SyntaxSymbol> ls = new LinkedList<SyntaxSymbol>();
-        Iterator<SyntaxSymbol> it = that.getSyntaxSymbols().iterator();
         boolean ignoreWhitespace = false;
-        while (it.hasNext()) {
-            SyntaxSymbol symbol = it.next();
+        for (SyntaxSymbol symbol : that.getSyntaxSymbols()) {
             if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {
                 if (symbol instanceof NoWhitespaceSymbol) {
                     symbol = ((NoWhitespaceSymbol) symbol).getSymbol();

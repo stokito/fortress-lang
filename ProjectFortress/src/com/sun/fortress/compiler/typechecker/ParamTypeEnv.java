@@ -51,7 +51,7 @@ class ParamTypeEnv extends TypeEnv {
 
     private Option<Param> findParam(Id var) {
         Id no_api_var = removeApi(var);
-        
+
         for (Param param : entries) {
             if (param.getName().getText().equals(no_api_var.getText())) {
                 return some(param);
@@ -59,23 +59,23 @@ class ParamTypeEnv extends TypeEnv {
         }
         return none();
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	if (!(var instanceof Id)) { return parent.binding(var); }
-    	Id _var = (Id)var;
-    	
-    	Option<Param> _p = findParam(_var); 
-    	
-    	if( _p.isSome() ) {
-    		Param p = _p.unwrap();
-    		return some(new BindingLookup(_var, typeFromParam(p), p.getMods()));
-    	}
-    	else
-    		return parent.binding(_var);
+        if (!(var instanceof Id)) { return parent.binding(var); }
+        Id _var = (Id)var;
+
+        Option<Param> _p = findParam(_var);
+
+        if( _p.isSome() ) {
+            Param p = _p.unwrap();
+            return some(new BindingLookup(_var, typeFromParam(p), p.getMods()));
+        }
+        else
+            return parent.binding(_var);
     }
 
     @Override
@@ -88,33 +88,33 @@ class ParamTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-    	if (!(var instanceof Id)) { return parent.declarationSite(var); }
-    	Id _var = (Id)var;
-    	
-    	Option<Param> _p = findParam(_var); 
-    	if( _p.isSome() )
-    		return Option.<Node>some(_p.unwrap());
-    	else
-    		return parent.declarationSite(var);
-	}
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        if (!(var instanceof Id)) { return parent.declarationSite(var); }
+        Id _var = (Id)var;
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		
-		List<Param> new_entries = new ArrayList<Param>(entries.size());
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
-		for( Param p : entries ) {
-			new_entries.add((Param)p.accept(rep));
-		}
-		
-		return new ParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
-	}
+        Option<Param> _p = findParam(_var);
+        if( _p.isSome() )
+            return Option.<Node>some(_p.unwrap());
+        else
+            return parent.declarationSite(var);
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+
+        List<Param> new_entries = new ArrayList<Param>(entries.size());
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+
+        for( Param p : entries ) {
+            new_entries.add((Param)p.accept(rep));
+        }
+
+        return new ParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+    }
+
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

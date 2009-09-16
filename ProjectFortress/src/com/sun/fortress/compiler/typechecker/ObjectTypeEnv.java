@@ -114,8 +114,8 @@ class ObjectTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.declarationSite(var); }
         Id _var = (Id)var;
 
@@ -131,24 +131,24 @@ class ObjectTypeEnv extends TypeEnv {
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
 
         return Option.<Node>some(objIndex.ast());
-	}
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
 
-		Map<Id, TypeConsIndex> new_entries = new HashMap<Id, TypeConsIndex>();
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        Map<Id, TypeConsIndex> new_entries = new HashMap<Id, TypeConsIndex>();
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		for( Map.Entry<Id, TypeConsIndex> entry : entries.entrySet() ) {
-			TypeConsIndex tc = entry.getValue();
-			tc = tc.acceptNodeUpdateVisitor(rep);
-			new_entries.put(entry.getKey(), tc);
-		}
-		return new ObjectTypeEnv(new_entries, parent.replaceAllIVars(ivars));
-	}
+        for( Map.Entry<Id, TypeConsIndex> entry : entries.entrySet() ) {
+            TypeConsIndex tc = entry.getValue();
+            tc = tc.acceptNodeUpdateVisitor(rep);
+            new_entries.put(entry.getKey(), tc);
+        }
+        return new ObjectTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }
