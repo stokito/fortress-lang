@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component LocalFnRef
   export Executable
 
   (* Tests that LetFn correctly binds the two local function definitions over its
@@ -27,4 +26,3 @@ component LocalFnRef
     ignore(g(f, g))
     ()
   end
-end
