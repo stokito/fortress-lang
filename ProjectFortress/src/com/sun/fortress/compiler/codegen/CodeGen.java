@@ -55,6 +55,8 @@ import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
+import com.sun.fortress.useful.TopSort;
+import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
 // Note we have a name clash with org.objectweb.asm.Type
@@ -214,7 +216,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private void generateFieldsAndInitMethod(String classFile, String superClass, List<Param> params) {
-        // TODO Allocate fields
+        // Allocate fields
         for (Param p : params) {
             // TODO need to spot for "final" fields.
             String pn = p.getName().getText();
@@ -229,7 +231,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, superClass, "<init>", NamingCzar.voidToVoid);
 
-        // TODO Initialize fields.
+        // Initialize fields.
         int pno = 1;
         for (Param p : params) {
             String pn = p.getName().getText();
@@ -558,9 +560,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         List<Decl> fieldDecls = new ArrayList<Decl>();
 
-        /*
-         * Must process these first to put them into scope.
-         */
+        // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
                 this.forObjectDeclPrePass((ObjectDecl) d, fieldDecls);
@@ -577,10 +577,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 null);
 
         // TODO: Need dependency analysis for component-level decls.
+        fieldDecls = topSortDeclsByDependencies(fieldDecls);
 
-        // Create a field to hold instance of each singleton object,
-        // and emit initialization code to fill that field.  Do the
-        // same for each top-level variable declaration.
+        // Emit initialization code to create a field for
+        // each singleton / top-level bindings, and generate
+        // init code to fill it.
         for (Decl y : fieldDecls) {
             if (y instanceof ObjectDecl) {
                 singletonObjectFieldAndInit((ObjectDecl)y);
@@ -1705,7 +1706,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String [] tasks = new String[n];
         String [] results = new String[n];
         int [] taskVars = new int[n];
-        // TODO: fix free variable handling here to match delegate() above.
 
         // Push arg tasks from right to left, so
         // that local evaluation of args will proceed left to right.
@@ -1923,13 +1923,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forVarRef(VarRef v) {
-        debug("forVarRef ", v, " which had better be local (for the moment)");
         if (v.getStaticArgs().size() > 0) {
             sayWhat(v,"varRef with static args!  That requires non-local VarRefs");
         }
         VarCodeGen vcg = getLocalVar(v.getVarId());
         debug("forVarRef ", v , " Value = " + vcg);
-            vcg.pushValue(mv);
+        vcg.pushValue(mv);
     }
 
     private void pushVoid() {
@@ -1957,7 +1956,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             domain_type = sigtype.getDomain();
             range_type = sigtype.getRange();
         } else {
-            // TODO: some methods applications (particularly those
+            // TODO: some method applications (particularly those
             // introduced during getter desugaring) don't have an
             // OverloadingType.  Fix?  Or live with it?
             domain_type = exprType(arg);
@@ -2194,6 +2193,45 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return result;
     }
 
+    private List<Decl> topSortDeclsByDependencies(List<Decl> decls) {
+        HashMap<IdOrOp, TopSortItemImpl<Decl>> varToNode =
+            new HashMap<IdOrOp, TopSortItemImpl<Decl>>(2 * decls.size());
+        List<TopSortItemImpl<Decl>> nodes = new ArrayList(decls.size());
+        for (Decl d : decls) {
+            TopSortItemImpl<Decl> node =
+                new TopSortItemImpl<Decl>(d);
+            nodes.add(node);
+            if (d instanceof VarDecl) {
+                VarDecl vd = (VarDecl)d;
+                for (LValue lv : vd.getLhs()) {
+                    varToNode.put(lv.getName(), node);
+                }
+            } else if (d instanceof TraitObjectDecl) {
+                TraitObjectDecl tod = (TraitObjectDecl)d;
+                IdOrOpOrAnonymousName name = tod.getHeader().getName();
+                if (name instanceof IdOrOp) {
+                    varToNode.put((IdOrOp)name, node);
+                }
+            } else {
+                sayWhat(d, " can't sort non-value-creating decl by dependencies.");
+            }
+        }
+        for (TopSortItemImpl<Decl> node : nodes) {
+            for (IdOrOp freeVar : fv.freeVars(node.x)) {
+                TopSortItemImpl<Decl> dest = varToNode.get(freeVar);
+                if (dest != null && dest != node) {
+                    node.edgeTo(dest);
+                }
+            }
+        }
+        // TODO: can't handle cycles!
+        nodes = TopSort.depthFirst(nodes);
+        List<Decl> result = new ArrayList(nodes.size());
+        for (TopSortItemImpl<Decl> node : nodes) {
+            result.add(node.x);
+        }
+        return result;
+    }
 
     /**
      * Traits compile to interfaces.  These are all the abstract methods that
