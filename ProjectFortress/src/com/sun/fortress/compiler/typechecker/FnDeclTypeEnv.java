@@ -60,7 +60,7 @@ class FnDeclTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_name = removeApi(var);
+        IdOrOpOrAnonymousName no_api_name = removeApi(var);
 
         Set<FnDecl> fns = entries.matchFirst(no_api_name);
         if (fns.isEmpty()) {
@@ -93,9 +93,9 @@ class FnDeclTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_name = removeApi(var);
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        IdOrOpOrAnonymousName no_api_name = removeApi(var);
 
         Set<FnDecl> fns = entries.matchFirst(no_api_name);
         if (fns.isEmpty()) {
@@ -107,30 +107,28 @@ class FnDeclTypeEnv extends TypeEnv {
             return parent.declarationSite(var);
         }
 
-		throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
-	}
+        throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		Iterator<? extends Pair<IdOrOpOrAnonymousName, FnDecl>> iter = this.entries.iterator();
-		Set<Pair<IdOrOpOrAnonymousName, FnDecl>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, FnDecl>>();
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        Set<Pair<IdOrOpOrAnonymousName, FnDecl>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, FnDecl>>();
 
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		while( iter.hasNext() ) {
-			Pair<IdOrOpOrAnonymousName, FnDecl> p = iter.next();
-			FnDecl f = p.second();
+        for (Pair<IdOrOpOrAnonymousName, FnDecl> p : this.entries) {
+            FnDecl f = p.second();
 
-			f = (FnDecl)f.accept(rep);
-			new_entries_.add(Pair.make(p.first(), f));
-		}
+            f = (FnDecl)f.accept(rep);
+            new_entries_.add(Pair.make(p.first(), f));
+        }
 
-		return new FnDeclTypeEnv(CollectUtil.makeRelation(new_entries_),
-				                parent.replaceAllIVars(ivars));
-	}
+        return new FnDeclTypeEnv(CollectUtil.makeRelation(new_entries_),
+                                 parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

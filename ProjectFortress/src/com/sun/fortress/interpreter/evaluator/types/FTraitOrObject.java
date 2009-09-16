@@ -369,21 +369,20 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                     }
 
                     OverloadedFunction.OverloadComparisonResult ocr = new OverloadedFunction.OverloadComparisonResult();
-
+                    // DEAD CODE?
                     // Thin allMethods by removing anything covered by an overriding function.
-                    for (String s : overrides.keySet()) {
-                        Set<Overload> overs = overrides.get(s);
-                        Set<Overload> alls = allMethods.get(s);
-                        if (alls == null) continue;
-                        for (Overload omc : overs) {
-                            Iterator<Overload> imc = alls.iterator();
-                            while (imc.hasNext()) {
-                                Overload amc = imc.next();
+                    // for (String s : overrides.keySet()) {
+                    //     Set<Overload> overs = overrides.get(s);
+                    //     Set<Overload> alls = allMethods.get(s);
+                    //     if (alls == null) continue;
+                    //     for (Overload omc : overs) {
+                    //         Iterator<Overload> imc = alls.iterator();
+                    //         while (imc.hasNext()) {
+                    //             Overload amc = imc.next();
+                    //         }
+                    //     }
+                    // }
 
-                            }
-                        }
-
-                    }
                     // Add everything from this type, too.
                     addEnvToMultiMap(m, allMethods);
 

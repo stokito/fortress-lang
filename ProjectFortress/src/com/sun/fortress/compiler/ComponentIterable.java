@@ -25,32 +25,32 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 
 public final class ComponentIterable implements Iterable<Component>  {
-	
-    private final Map<APIName, ComponentIndex> _components;	
-    
+
+    private final Map<APIName, ComponentIndex> _components;
+
     ComponentIterable(Map<APIName, ComponentIndex> components) {
-    	_components = components;
+        _components = components;
     }
 
-	public Iterator<Component> iterator() {
-		
-		final Iterator<ComponentIndex> componentIndexIterator = _components.values().iterator();
-		
-		return new Iterator<Component>() {
+    public Iterator<Component> iterator() {
 
-			public boolean hasNext() {
-				return componentIndexIterator.hasNext();
-			}
+        final Iterator<ComponentIndex> componentIndexIterator = _components.values().iterator();
 
-			public Component next() {
-				return (Component) componentIndexIterator.next().ast();
-			}
+        return new Iterator<Component>() {
 
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-			
-		};
-	}
-	
+            public boolean hasNext() {
+                return componentIndexIterator.hasNext();
+            }
+
+            public Component next() {
+                return (Component) componentIndexIterator.next().ast();
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+        };
+    }
+
 }

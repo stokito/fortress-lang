@@ -95,20 +95,16 @@ public class ObjectTraitIndex extends TraitIndex {
             new_coercions.add((Coercion) vd.acceptNodeUpdateVisitor(v));
         }
 
-        Iterator<Pair<IdOrOpOrAnonymousName, DeclaredMethod>> iter_1 = this.dottedMethods().iterator();
         Set<Pair<IdOrOpOrAnonymousName, DeclaredMethod>> new_dm =
                 new HashSet<Pair<IdOrOpOrAnonymousName, DeclaredMethod>>();
-        while (iter_1.hasNext()) {
-            Pair<IdOrOpOrAnonymousName, DeclaredMethod> p = iter_1.next();
+        for (Pair<IdOrOpOrAnonymousName, DeclaredMethod> p : this.dottedMethods()) {
             new_dm.add(Pair.make(p.first(), (DeclaredMethod) p.second().acceptNodeUpdateVisitor(v)));
         }
         Relation<IdOrOpOrAnonymousName, DeclaredMethod> new_dotted = CollectUtil.makeRelation(new_dm);
 
-        Iterator<Pair<IdOrOpOrAnonymousName, FunctionalMethod>> iter_2 = this.functionalMethods().iterator();
         Set<Pair<IdOrOpOrAnonymousName, FunctionalMethod>> new_fm =
                 new HashSet<Pair<IdOrOpOrAnonymousName, FunctionalMethod>>();
-        while (iter_1.hasNext()) {
-            Pair<IdOrOpOrAnonymousName, FunctionalMethod> p = iter_2.next();
+        for (Pair<IdOrOpOrAnonymousName, FunctionalMethod> p : this.functionalMethods()) {
             new_fm.add(Pair.make(p.first(), (FunctionalMethod) p.second().acceptNodeUpdateVisitor(v)));
         }
         Relation<IdOrOpOrAnonymousName, FunctionalMethod> new_functional = CollectUtil.makeRelation(new_fm);

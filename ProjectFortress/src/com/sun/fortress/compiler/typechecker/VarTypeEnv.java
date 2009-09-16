@@ -101,48 +101,48 @@ class VarTypeEnv extends TypeEnv {
     }
 
     @Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName id) {
-	     if (!(id instanceof Id)) { return parent.declarationSite(id); }
-	     Id _var = (Id)id;
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName id) {
+        if (!(id instanceof Id)) { return parent.declarationSite(id); }
+        Id _var = (Id)id;
 
-	     Id no_api_var = removeApi(_var);
+        Id no_api_var = removeApi(_var);
 
-	     if (entries.containsKey(no_api_var)) {
-	    	 Variable var = entries.get(no_api_var);
-	    	 if( var instanceof DeclaredVariable ) {
-	    		 return Option.<Node>some(((DeclaredVariable)var).ast());
-	    	 }
-	    	 else if( var instanceof ParamVariable ) {
-	    		 return Option.<Node>some(((ParamVariable)var).ast());
-	    	 }
-	    	 else if( var instanceof SingletonVariable ) {
-	    		 return NI.nyi("We don't yet store the declaring nodes for SingletonVariables.");
-	    	 }
-	    	 else {
-	    		 bug("Unknown subtype of Variable");
-	    	 }
-	     }
-	     return parent.declarationSite(id);
-	}
+        if (entries.containsKey(no_api_var)) {
+            Variable var = entries.get(no_api_var);
+            if( var instanceof DeclaredVariable ) {
+                return Option.<Node>some(((DeclaredVariable)var).ast());
+            }
+            else if( var instanceof ParamVariable ) {
+                return Option.<Node>some(((ParamVariable)var).ast());
+            }
+            else if( var instanceof SingletonVariable ) {
+                return NI.nyi("We don't yet store the declaring nodes for SingletonVariables.");
+            }
+            else {
+                bug("Unknown subtype of Variable");
+            }
+        }
+        return parent.declarationSite(id);
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		Map<Id, Variable> new_entries = new HashMap<Id,Variable>();
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        Map<Id, Variable> new_entries = new HashMap<Id,Variable>();
 
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		for( Map.Entry<Id, Variable> entry : this.entries.entrySet() ) {
-			Variable v = entry.getValue();
+        for( Map.Entry<Id, Variable> entry : this.entries.entrySet() ) {
+            Variable v = entry.getValue();
 
-			Variable new_v = v.acceptNodeUpdateVisitor(rep);
-			new_entries.put(entry.getKey(), new_v);
-		}
+            Variable new_v = v.acceptNodeUpdateVisitor(rep);
+            new_entries.put(entry.getKey(), new_v);
+        }
 
-		return new VarTypeEnv(new_entries, parent.replaceAllIVars(ivars));
-	}
+        return new VarTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return this.parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return this.parent.staticParam(id);
+    }
 }

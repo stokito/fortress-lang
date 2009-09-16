@@ -53,9 +53,9 @@ class MethodTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	Set<Method> methods = entries.matchFirst(no_api_var);
+        Set<Method> methods = entries.matchFirst(no_api_var);
         if (methods.isEmpty()) {
             return parent.binding(var);
         }
@@ -100,40 +100,37 @@ class MethodTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-   	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+       IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	Set<Method> methods = entries.matchFirst(no_api_var);
+        Set<Method> methods = entries.matchFirst(no_api_var);
         if (methods.isEmpty()) {
             return parent.declarationSite(var);
         }
 
-		throw new IllegalArgumentException("The declarationSite method should not be called on any functions, but was called on " + var);
-	}
+        throw new IllegalArgumentException("The declarationSite method should not be called on any functions, but was called on " + var);
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
 
-		Set<Pair<IdOrOpOrAnonymousName, Method>> new_entries = new HashSet<Pair<IdOrOpOrAnonymousName, Method>>();
-		Iterator<Pair<IdOrOpOrAnonymousName, Method>> iter = entries.iterator();
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        Set<Pair<IdOrOpOrAnonymousName, Method>> new_entries = new HashSet<Pair<IdOrOpOrAnonymousName, Method>>();
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		while(iter.hasNext()) {
-			Pair<IdOrOpOrAnonymousName, Method> p = iter.next();
+        for (Pair<IdOrOpOrAnonymousName, Method> p : entries) {
+            Method m = p.second();
+            Method new_m = (Method)m.acceptNodeUpdateVisitor(rep);
 
-			Method m = p.second();
-			Method new_m = (Method)m.acceptNodeUpdateVisitor(rep);
+            new_entries.add(Pair.make(p.first(), new_m));
+        }
 
-			new_entries.add(Pair.make(p.first(), new_m));
-		}
+        return new MethodTypeEnv(CollectUtil.makeRelation(new_entries),
+                parent.replaceAllIVars(ivars));
+    }
 
-		return new MethodTypeEnv(CollectUtil.makeRelation(new_entries),
-				parent.replaceAllIVars(ivars));
-	}
-
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return parent.staticParam(id);
-	}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return parent.staticParam(id);
+    }
 }

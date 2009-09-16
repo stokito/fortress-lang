@@ -48,14 +48,14 @@ class LValueTypeEnv extends TypeEnv {
     }
 
     private Option<LValue> findLVal(IdOrOpOrAnonymousName var) {
-    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
+        IdOrOpOrAnonymousName no_api_var = removeApi(var);
 
-    	for (LValue entry : entries) {
+        for (LValue entry : entries) {
             if (var.equals(entry.getName()) || no_api_var.equals(entry.getName())) {
                 return some(entry);
             }
         }
-    	return none();
+        return none();
     }
 
     /**
@@ -63,12 +63,12 @@ class LValueTypeEnv extends TypeEnv {
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	Option<LValue> lval = findLVal(var);
+        Option<LValue> lval = findLVal(var);
 
-    	if( lval.isSome() )
-    		return some(new BindingLookup(lval.unwrap()));
-    	else
-    		return parent.binding(var);
+        if( lval.isSome() )
+            return some(new BindingLookup(lval.unwrap()));
+        else
+            return parent.binding(var);
     }
 
     @Override
@@ -81,31 +81,31 @@ class LValueTypeEnv extends TypeEnv {
         return result;
     }
 
-	@Override
-	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-		Option<LValue> lval = findLVal(var);
+    @Override
+    public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
+        Option<LValue> lval = findLVal(var);
 
-		if( lval.isSome() )
-			return Option.<Node>some(lval.unwrap());
-		else
-			return parent.declarationSite(var);
-	}
+        if( lval.isSome() )
+            return Option.<Node>some(lval.unwrap());
+        else
+            return parent.declarationSite(var);
+    }
 
-	@Override
-	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		LValue[] new_entries = new LValue[entries.length];
+    @Override
+    public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
+        LValue[] new_entries = new LValue[entries.length];
 
-		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
+        InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-		for( int i = 0; i<entries.length; i++ ) {
-			new_entries[i] = (LValue)entries[i].accept(rep);
-		}
+        for( int i = 0; i<entries.length; i++ ) {
+            new_entries[i] = (LValue)entries[i].accept(rep);
+        }
 
-		return new LValueTypeEnv(new_entries, parent.replaceAllIVars(ivars));
-	}
+        return new LValueTypeEnv(new_entries, parent.replaceAllIVars(ivars));
+    }
 
-	@Override
-	public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
-		return parent.staticParam(id);
-	}
-}
+    @Override
+    public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
+        return parent.staticParam(id);
+    }
+} 

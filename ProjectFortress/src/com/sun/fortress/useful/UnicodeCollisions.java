@@ -159,9 +159,7 @@ public class UnicodeCollisions {
         }
         Set<String> keys = h.keySet();
 
-        Iterator<String> ki = keys.iterator();
-        while (ki.hasNext()) {
-            String s = ki.next();
+        for (String s : keys) {
             checkNonHex(s);
         }
     }

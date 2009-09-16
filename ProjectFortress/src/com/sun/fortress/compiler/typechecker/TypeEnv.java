@@ -522,5 +522,5 @@ public abstract class TypeEnv {
     /**
      * Replace all of the inference variables given with their corresponding types.
      */
-	public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
+    public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
 }

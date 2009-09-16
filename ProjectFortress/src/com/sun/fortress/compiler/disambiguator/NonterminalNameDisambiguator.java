@@ -68,12 +68,9 @@ public class NonterminalNameDisambiguator {
         Span span = NodeFactory.macroSpan;
         while (it.hasNext() && !foundApi) {
             ids.add(it.next());
-            boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span, ids));
-            if (realApi) {
-                foundApi = true;
-            }
+            foundApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span, ids));
         }
-        if (!foundApi || !it.hasNext()) {
+        if (!it.hasNext()) {
             return Option.none();
         }
         Id grammarName = it.next();

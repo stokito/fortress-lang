@@ -25,32 +25,32 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 
 public final class ApiIterable implements Iterable<Api>  {
-	
-    private final Map<APIName, ApiIndex> _apis;	
-    
+
+    private final Map<APIName, ApiIndex> _apis;
+
     ApiIterable(Map<APIName, ApiIndex> apis) {
-    	_apis = apis;
+        _apis = apis;
     }
 
-	public Iterator<Api> iterator() {
-		
-		final Iterator<ApiIndex> apiIndexIterator = _apis.values().iterator();
-		
-		return new Iterator<Api>() {
+    public Iterator<Api> iterator() {
 
-			public boolean hasNext() {
-				return apiIndexIterator.hasNext();
-			}
+        final Iterator<ApiIndex> apiIndexIterator = _apis.values().iterator();
 
-			public Api next() {
-				return (Api) apiIndexIterator.next().ast();
-			}
+        return new Iterator<Api>() {
 
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-			
-		};
-	}
-	
+            public boolean hasNext() {
+                return apiIndexIterator.hasNext();
+            }
+
+            public Api next() {
+                return (Api) apiIndexIterator.next().ast();
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+        };
+    }
+
 }

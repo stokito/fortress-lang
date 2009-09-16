@@ -375,7 +375,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue winner = c.getMatchClause().accept(this);
         CaseClause res = c;
 
-        for (; i.hasNext();) {
+        while (i.hasNext()) {
             c = i.next();
             List<FValue> vargs = new ArrayList<FValue>(2);
             FValue current = c.getMatchClause().accept(this);
@@ -412,8 +412,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (compare.isSome()) fcn = (Fcn) getOp(compare.unwrap());
 
             // Iterate through the cases
-            for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
-                CaseClause c = i.next();
+            for (CaseClause c : clauses) {
                 // Evaluate the clause
                 FValue match = c.getMatchClause().accept(this);
                 List<FValue> vargs = new ArrayList<FValue>();
@@ -579,8 +578,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<TypecaseClause> result = new ArrayList<TypecaseClause>();
         boolean addedCandidate = false;
 
-        for (Iterator<TypecaseClause> i = bestSoFar.iterator(); i.hasNext();) {
-            TypecaseClause current = i.next();
+        for (TypecaseClause current : bestSoFar) {
             if (moreSpecificHelper(candidate, current, ev)) {
                 if (!addedCandidate) {
                     result.add(candidate);
@@ -691,9 +689,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forIf(If x) {
-        List<IfClause> clause = x.getClauses();
-        for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
-            IfClause ifclause = i.next();
+        List<IfClause> clauses = x.getClauses();
+        for (IfClause ifclause : clauses) {
             GeneratorClause cond = ifclause.getTestClause();
             Expr testExpr;
             if (cond.getBind().isEmpty()) testExpr = cond.getInit();

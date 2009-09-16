@@ -49,9 +49,7 @@ public class UsefulPLT {
      * Does the given ConsList contain the given element?
      */
     public static <T> boolean consListContains(T item, ConsList<? extends T> list) {
-        Iterator<? extends T> iter = list.iterator();
-        while (iter.hasNext()) {
-            T t = iter.next();
+        for (T t : list) {
             if (t.equals(item)) return true;
         }
         return false;

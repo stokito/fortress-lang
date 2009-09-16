@@ -192,13 +192,11 @@ class FnTypeEnv extends TypeEnv {
 
     @Override
     public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-        Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends Function>> iter = entries.iterator();
         Set<Pair<IdOrOpOrAnonymousName, Function>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, Function>>();
 
         InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
-        while( iter.hasNext() ) {
-            Pair<IdOrOpOrAnonymousName, ? extends Function> p = iter.next();
+        for (Pair<IdOrOpOrAnonymousName, ? extends Function> p : entries) {
             Function f = p.second();
 
             f = (Function)f.acceptNodeUpdateVisitor(rep);
