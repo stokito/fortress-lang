@@ -72,9 +72,13 @@ public abstract class Functional extends InferredTypeIndex {
     }
 
     /**
-     * Override in indices where return types can be elided.
+     * Override in indices for functions that may have a return type.
      */
     public boolean hasDeclaredReturnType() {
-        return hasExplicitType();
+        return false;
+    }
+    
+    public boolean hasExplicitType() {
+        return hasDeclaredReturnType();
     }
 }

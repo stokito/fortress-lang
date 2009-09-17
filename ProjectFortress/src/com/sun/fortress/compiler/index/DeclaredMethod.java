@@ -124,7 +124,7 @@ public class DeclaredMethod extends Method {
     }
 
     @Override
-    public boolean hasExplicitType() {
+    public boolean hasDeclaredReturnType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }
 }

@@ -125,6 +125,4 @@ public class Constructor extends Function {
     public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
         return new Constructor(this, v);
     }
-
-
 }

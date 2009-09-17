@@ -330,7 +330,7 @@ object IndexBuilder {
 
     for (decl <- NU.getDecls(ast)) {
       decl match {
-        case d@SFnDecl(_,_,_,_,_) =>
+        case d:FnDecl =>
           buildMethod(d, ast, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
@@ -341,10 +341,10 @@ object IndexBuilder {
 
     for (decl <- NU.getDecls(ast)) {
       decl match {
-        case d@SVarDecl(_,_,_) =>
+        case d:VarDecl =>
           buildFields(d, ast, fields, getters, setters)
           if (d.getInit.isSome) initializers.add(d)
-        case d@SPropertyDecl(_,_,_,_) => NI.nyi; ()
+        case d:PropertyDecl => NI.nyi; ()
         case _ =>
       }
     }
@@ -441,12 +441,6 @@ object IndexBuilder {
     functions.add(ast.getUnambiguousName, df)
   }
 
-  private def fnDeclToBinding(ast: FnDecl) = {
-    val mods = NU.getMods(ast)
-    new LValue(ast.getInfo, NU.getName(ast).asInstanceOf[Id], mods,
-               NU.getReturnType(ast), mods.isMutable)
-  }
-
   /**
    * Determine whether the given declaration is a getter, setter, coercion, dotted
    * method, or functional method, and add it to the appropriate map; also store
@@ -472,14 +466,14 @@ object IndexBuilder {
       name match {
         case id:Id =>
           if ( !getters.keySet.contains(id) )
-            getters.put(id, new JavaFieldGetterMethod(fnDeclToBinding(ast), traitDecl))
+            getters.put(id, new JavaFieldGetterMethod(ast, traitDecl))
         case _ => // Checked by ExprDisambiguator.
       }
     } else if (mods.isSetter) {
       name match {
         case id:Id =>
           if ( !setters.keySet.contains(id) )
-            setters.put(id, new JavaFieldSetterMethod(fnDeclToBinding(ast), NU.getParams(ast).get(0), traitDecl))
+            setters.put(id, new JavaFieldSetterMethod(ast, traitDecl))
         case _ => // Checked by ExprDisambiguator.
       }
     } else {

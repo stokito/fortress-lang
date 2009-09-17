@@ -25,6 +25,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Sets._
+import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
 import edu.rice.cs.plt.lambda.{LazyThunk, Thunk}
@@ -61,14 +62,13 @@ class Thunker(var typeChecker: STypeChecker)
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c }}
       toOption(typeChecker.traits.typeCons(name.asInstanceOf[Id])) match {
-        case None => ()
-        case Some(ti) =>
+        case Some(ti:TraitIndex) =>
           // Extend method checker with methods and functions
           // that will now be in scope
           val inheritedMethods = typeChecker.inheritedMethods(extendsC)
-          val functionalMethods = ti.asInstanceOf[TraitIndex].functionalMethods
-          val dottedMethods = ti.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
+          val functionalMethods = ti.functionalMethods
+          val dottedMethods = ti.dottedMethods.
+                                 asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           typeChecker = typeChecker.extendWithFunctions(methods)
@@ -80,9 +80,13 @@ class Thunker(var typeChecker: STypeChecker)
           }
           //Create a tryChecker
           val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
-          //Prime all the dotted and functional method indices)
-          Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
-          Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
+          // Prime all the functional indices in this object to set their return
+          // types.
+          Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(CollectUtil.asSet(ti.getters.values), tryChecker)
+          
+        case _ => ()
       }
     }
     
@@ -96,14 +100,13 @@ class Thunker(var typeChecker: STypeChecker)
                                         case SVarDecl(_,lhs,_) => c.extend(lhs)
                                         case _ => c }}
       toOption(typeChecker.traits.typeCons(name.asInstanceOf[Id])) match {
-        case None => ()
-        case Some(to) =>
+        case Some(to:ObjectTraitIndex) =>
           // Extend method checker with methods and functions
           // that will now be in scope
           val inheritedMethods = typeChecker.inheritedMethods(extendsC)
-          val functionalMethods = to.asInstanceOf[TraitIndex].functionalMethods
-          val dottedMethods = to.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
+          val functionalMethods = to.functionalMethods
+          val dottedMethods = to.dottedMethods.
+                                 asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
           val methods = new UnionRelation(inheritedMethods,
                                           dottedMethods)
           typeChecker = typeChecker.extendWithFunctions(methods)
@@ -115,9 +118,13 @@ class Thunker(var typeChecker: STypeChecker)
           }
           //Create a TryChecker
           val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
-          //Prime all the dotted and functional method indices
-          Thunker.primeFunctionals(dottedMethods.secondSet,tryChecker)
-          Thunker.primeFunctionals(functionalMethods.secondSet,tryChecker)
+          // Prime all the functional indices in this object to set their return
+          // types.
+          Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(CollectUtil.asSet(to.getters.values), tryChecker)
+          
+        case _ => ()
     }
   }
     
@@ -143,17 +150,19 @@ object Thunker {
                                       tryChecker: TryChecker)(fn: T) = {
     implicit val check = cycleChecker
     if (!fn.hasThunk)
-	fn match {
-	  case m:Method =>
-	    m.putThunk(makeThunk(m.ast.asInstanceOf[FnDecl], m, tryChecker))
-      case d:DeclaredFunction =>
-	    d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
-      case f:FunctionalMethod =>    
-	    f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
-	  case _ =>
-	}
-   }
-
+      fn match {
+        case m:FieldGetterMethod if m.fnDecl.isSome =>
+          m.putThunk(makeThunk(m.fnDecl.unwrap, m, tryChecker))
+        case m:DeclaredMethod =>
+          m.putThunk(makeThunk(m.ast, m, tryChecker))
+        case d:DeclaredFunction =>
+          d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
+        case f:FunctionalMethod =>    
+          f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
+        case _ =>
+      }
+  }
+  
   /** Make the thunk used for the given functional that checks its body. */
   def makeThunk(decl: FnDecl,
                 index: Functional,

@@ -32,28 +32,28 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.Collections;
 import java.util.List;
 
-public class FieldSetterMethod extends Method {
+public class FieldSetterMethod extends FieldGetterOrSetterMethod {
 
-    private final Binding _ast;
     private final Param _param;
-    private final Id _declaringTrait;
-    private final Option<Type> _selfType;
 
-    public FieldSetterMethod(Binding ast, TraitObjectDecl traitDecl) {
-        this(ast,
-             NodeFactory.makeParam(NodeUtil.getSpan(ast),
-                                   Modifiers.None,
-                                   NodeFactory.makeId(NodeUtil.getSpan(ast), "fakeParamForImplicitSetter"),
-                                   ast.getIdType()),
-             traitDecl);
+    public FieldSetterMethod(Binding b, TraitObjectDecl traitDecl) {
+        super(b, traitDecl);
+        _param = NodeFactory.makeParam(
+            NodeUtil.getSpan(b),
+            Modifiers.None,
+            NodeFactory.makeId(NodeUtil.getSpan(b), "fakeParamForImplicitSetter"),
+            b.getIdType());
+
+        // Return type is always VOID.
+        _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
 
-    public FieldSetterMethod(Binding ast, Param param, TraitObjectDecl traitDecl) {
-        _ast = ast;
-        _param = param;
-        _declaringTrait = NodeUtil.getName(traitDecl);
-        _selfType = traitDecl.getSelfType();
+    /** Create an implicit setter from a variable binding. */
+    public FieldSetterMethod(FnDecl f, TraitObjectDecl traitDecl) {
+        super(f, makeBinding(f), traitDecl);
+        _param = NodeUtil.getParams(f).get(0);
 
+        // Return type is always VOID.
         _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(Option.<Type>some(Types.VOID)));
     }
 
@@ -61,28 +61,19 @@ public class FieldSetterMethod extends Method {
      * Copy another FieldSetterMethod, performing a substitution with the visitor.
      */
     public FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
-        _ast = (Binding) that._ast.accept(visitor);
-        _param = that._param;
-        _declaringTrait = that._declaringTrait;
-        _selfType = visitor.recurOnOptionOfType(that._selfType);
-
-        _thunk = that._thunk;
-        _thunkVisitors = that._thunkVisitors;
-        pushVisitor(visitor);
+        super(that, visitor);
+        _param = (Param) that._param.accept(visitor);
     }
-
-    public Binding ast() {
-        return _ast;
-    }
-
-    @Override
-    public Span getSpan() {
-        return NodeUtil.getSpan(_ast);
-    }
-
-    @Override
-    public Option<Expr> body() {
-        return Option.none();
+    
+    /** Make a Binding for this setter from the given function. */
+    private static Binding makeBinding(FnDecl f) {
+        Param p = NodeUtil.getParams(f).get(0);
+        Modifiers mods = NodeUtil.getMods(f);
+        return new LValue(f.getInfo(),
+                          (Id) NodeUtil.getName(f),
+                          mods,
+                          p.getIdType(),
+                          mods.isMutable());
     }
 
     @Override
@@ -91,37 +82,13 @@ public class FieldSetterMethod extends Method {
     }
 
     @Override
-    public List<StaticParam> staticParameters() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<BaseType> thrownTypes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+    public FieldSetterMethod instantiate(List<StaticParam> params, List<StaticArg> args) {
         StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
         return new FieldSetterMethod(this, replacer);
     }
 
-    public Id declaringTrait() {
-        return this._declaringTrait;
-    }
-
-    public Option<Type> selfType() {
-        return _selfType;
-    }
-
     @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+    public FieldSetterMethod acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
         return new FieldSetterMethod(this, visitor);
     }
-
-    @Override
-    public Id name() {
-        return _ast.getName();
-    }
-
 }

@@ -915,7 +915,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                    val (my_acc, my_meth) =
                        (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
                         methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
-                   val old_hist = hist
+                   val old_hist = hist.copy
                    // Now recursively add methods from trait's extends clause
                    val (inherited_acc, inherited_meth) =
                        inheritedMethodsHelper(hist, toList(ti.extendsTypes))
