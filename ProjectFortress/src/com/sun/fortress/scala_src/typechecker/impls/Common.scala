@@ -50,16 +50,16 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 trait Common { self: STypeChecker =>
 
   // TODO: Rewrite this method!
-  def inheritedMethods(extendedTraits: List[TraitTypeWhere]) = {
+  def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere]) = {
 
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,
-                               extended_traits: List[TraitTypeWhere])
+                               extended_traits: Iterable[TraitTypeWhere])
                                : Relation[IdOrOpOrAnonymousName, Method] = {
-      var methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
+      val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
       var done = false
       var h = history
-      for ( trait_ <- extended_traits ; if (! done) ) {
+      for ( trait_ <- extended_traits if (! done) ) {
         val type_ = trait_.getBaseType
         if ( ! h.hasExplored(type_) ) {
           h.explore(type_)
@@ -90,7 +90,7 @@ trait Common { self: STypeChecker =>
                     val instantiated_extends_types =
                       toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                             t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
-                    val old_hist = h
+                    val old_hist = h.copy
                     methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types))
                     h = old_hist
                   } else done = true
@@ -112,7 +112,7 @@ trait Common { self: STypeChecker =>
     val traitTypes = traitTypesCallable(receiverType)
     //TODO: What does the next line do?
     val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
-    val allMethods = inheritedMethods(ttAsWheres.toList)
+    val allMethods = inheritedMethods(ttAsWheres)
     toSet(allMethods.matchFirst(methodName))
   }
 
@@ -140,7 +140,7 @@ trait Common { self: STypeChecker =>
     setters.firstOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
   }
 
-    /**
+  /**
    * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
    * that this type could be used as for the purposes of calling methods and fields.
    */

@@ -154,7 +154,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
     }
 
     @Override
-    public boolean hasExplicitType() {
+    public boolean hasDeclaredReturnType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }
 

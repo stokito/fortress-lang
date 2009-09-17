@@ -43,10 +43,15 @@ import com.sun.fortress.useful.NI
 
 object STypesUtil {
   // Make sure we don't infinitely explore supertraits that are cyclic
-  class HierarchyHistory() {
+  class HierarchyHistory {
     var explored = Set[Type]()
     def explore(t: Type) = explored += t
     def hasExplored(t: Type) = explored.exists(_ == t)
+    def copy = {
+      val h = new HierarchyHistory
+      h.explored = this.explored
+      h
+    }
   }
 
   /** A function that when applied yields an option type. */

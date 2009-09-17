@@ -18,11 +18,9 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
-import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
@@ -30,45 +28,41 @@ import edu.rice.cs.plt.tuple.Option;
 import java.util.Collections;
 import java.util.List;
 
-public class FieldGetterMethod extends Method {
+public class FieldGetterMethod extends FieldGetterOrSetterMethod {
 
-    private final Binding _ast;
-    private final Id _declaringTrait;
-    private final Option<Type> _selfType;
+    /** Create an implicit getter from a variable binding. */
+    public FieldGetterMethod(Binding b, TraitObjectDecl traitDecl) {
+        super(b, traitDecl);
 
-    public FieldGetterMethod(Binding ast, TraitObjectDecl traitDecl) {
-        _ast = ast;
-        _declaringTrait = NodeUtil.getName(traitDecl);
-        _selfType = traitDecl.getSelfType();
+        // If the Binding has a declared type, use it for the thunk.
+        if (_ast.getIdType().isSome())
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(_ast.getIdType()));
+    }
+    
+    /** Create an explicit getter from a function. */
+    public FieldGetterMethod(FnDecl f, TraitObjectDecl traitDecl) {
+        super(f, makeBinding(f), traitDecl);
 
-        if (_ast.getIdType().isSome()) _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(_ast.getIdType()));
+        // If the FnDecl has a declared return type, use it for the thunk.
+        if (NodeUtil.getReturnType(f).isSome())
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(f)));
     }
 
     /**
      * Copy another FieldGetterMethod, performing a substitution with the visitor.
      */
     public FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
-        _ast = (Binding) that._ast.accept(visitor);
-        _declaringTrait = that._declaringTrait;
-        _selfType = visitor.recurOnOptionOfType(that._selfType);
-
-        _thunk = that._thunk;
-        _thunkVisitors = that._thunkVisitors;
-        pushVisitor(visitor);
+        super(that, visitor);
     }
 
-    public Binding ast() {
-        return _ast;
-    }
-
-    @Override
-    public Span getSpan() {
-        return NodeUtil.getSpan(_ast);
-    }
-
-    @Override
-    public Option<Expr> body() {
-        return Option.none();
+    /** Make a Binding for this setter from the given function. */
+    private static Binding makeBinding(FnDecl f) {
+        Modifiers mods = NodeUtil.getMods(f);
+        return new LValue(f.getInfo(),
+                          (Id) NodeUtil.getName(f),
+                          mods,
+                          NodeUtil.getReturnType(f),
+                          mods.isMutable());
     }
 
     @Override
@@ -77,38 +71,18 @@ public class FieldGetterMethod extends Method {
     }
 
     @Override
-    public List<StaticParam> staticParameters() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<BaseType> thrownTypes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
+    public FieldGetterMethod instantiate(List<StaticParam> params, List<StaticArg> args) {
         StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
         return new FieldGetterMethod(this, replacer);
     }
 
-    public Id declaringTrait() {
-        return this._declaringTrait;
-    }
-
-    public Option<Type> selfType() {
-        return _selfType;
-    }
-
     @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
+    public FieldGetterMethod acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
         return new FieldGetterMethod(this, visitor);
     }
 
     @Override
-    public Id name() {
-        return _ast.getName();
+    public boolean hasDeclaredReturnType() {
+      return _ast.getIdType().isSome();
     }
-
-
 }
