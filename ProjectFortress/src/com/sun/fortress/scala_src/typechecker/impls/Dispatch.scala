@@ -84,6 +84,7 @@ trait Dispatch { self: STypeChecker =>
    * method defined elsewhere.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr = expr match {
+    case e:LetFn => checkExprDecls(e, expected)
     case e:LocalVarDecl => checkExprDecls(e, expected)
 
     case e:_RewriteFnApp => checkExprFunctionals(e, expected)

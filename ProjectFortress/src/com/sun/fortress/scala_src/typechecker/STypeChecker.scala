@@ -231,6 +231,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
 
   protected def syntaxError(hasAt:HasAt, msg:String) =
     error(hasAt, msg)
+  
+  protected def isValidErrorMessage(msg: String) = !msg.containsSlice("%s")
 
   /**
    *  Determine if subtype <: supertype. If false, then the given error message
@@ -241,7 +243,12 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                           location: HasAt,
                           error: String): Boolean = {
     val judgement = isSubtype(subtype, supertype)
-    if (! judgement) signal(error, location)
+    if (! judgement) {
+      if (isValidErrorMessage(error))
+        signal(error, location)
+      else
+        signal(error.format(normalize(subtype), normalize(supertype)), location)
+    }
     judgement
   }
 
