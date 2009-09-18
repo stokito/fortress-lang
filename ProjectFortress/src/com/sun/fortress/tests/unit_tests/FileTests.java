@@ -899,8 +899,11 @@ public class FileTests {
                                                 failsOnly,
                                                 expect_failure));
                 } else if (s.endsWith(".test")) { // need to define the test of tests.
-
-                    StringMap props = new StringMap.FromFileProps(join(dir_name_canonical, s));
+                    String propFileName = join(dir_name_canonical, s);
+                    StringMap props = new StringMap.FromFileProps(propFileName);
+                    if (props.isEmpty()) {
+                        throw new java.io.FileNotFoundException("File not found or empty: "+propFileName);
+                    }
                     props = ProjectProperties.composedWith(props);
 
                     int l = s.lastIndexOf(".test");
@@ -1009,7 +1012,10 @@ public class FileTests {
         for (String c : new ArrayList<String>(java.util.Arrays.asList(supported))) {
             if (props.get(c) != null) found = true;
         }
-        if (!found) System.out.println("Not supported " + dirname + "/" + testname);
+        if (!found) {
+            throw new IllegalArgumentException("No supported tests found in " +
+                                               dirname + "/" + testname);
+        }
     }
 
     /**

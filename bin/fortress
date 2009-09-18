@@ -36,7 +36,7 @@ else
     else
       JAVACMD="$JAVA_HOME/bin/java"
     fi
-    
+
     if [ -z "$JAVA_FLAGS" ] ; then
       JAVA_FLAGS=-Xmx256m
     fi
