@@ -52,6 +52,7 @@ import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
@@ -372,7 +373,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return
      * @throws Error
      */
-    private Pair<String, String> resolveMethodAndSignature(FunctionalRef x,
+    private Pair<String, String> resolveMethodAndSignature(ASTNode x,
             com.sun.fortress.nodes.Type arrow, String methodName) throws Error {
         Pair<String, String> method_and_signature = null;
 
@@ -707,8 +708,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(x);
         }
 
+        List<StaticParam> sparams = header.getStaticParams();
+        
         boolean canCompile =
-            (header.getStaticParams().isEmpty() || // no static parameter
+            (sparams.isEmpty() || // no static parameter
              !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) &&
         header.getWhereClause().isNone() && // no where clause
         header.getThrowsClause().isNone() && // no throws clause
@@ -729,7 +732,57 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // we have to get nesting right---we generate a pile of
             // class files for one Fortress component
 
-            if (emittingFunctionalMethodWrappers) {
+            if (! sparams.isEmpty()) {
+                /*
+                 * Different plan for static parameter decls;
+                 * instead of a method name, we are looking for an
+                 * inner class name, similar to how these are constructed
+                 * for traits.
+                 * 
+                 * The inner class name has the form
+                 * 
+                 * PKG.component$GEARfunction[\t1;t2;n3;o4\]ENVELOPEarrow[\d1;d2;r\]
+                 * 
+                 * where
+                 * PKG is package name
+                 * component is component name
+                 * GEAR is Unicode "GEAR"
+                 * function is function name
+                 * t1, t2, n3, o4 encode static parameter kinds
+                 * ENVELOPE is unicode Envelope (just like a closure)
+                 * arrow is "Arrow", the stem on a generic arrow type
+                 * d1, d2, r are the type parameters of the arrow type.
+                 * 
+                 * These classes will have all the attributes required of a
+                 * closure class, except that the static parameters will be
+                 * dummies to be replaced at instantiation time.
+                 */
+                
+                /*
+                 * Need to modify the
+                 * signature, depending on
+                 * circumstances.
+                 */
+                
+                String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                        returnType.unwrap(), component.getName());
+
+                ArrowType at = fndeclToType(x);
+                
+                String mname;
+
+                // TODO different collision rules for top-level and for
+                // methods. (choice of mname)
+
+                if (functionalMethod) {
+                    sig = Naming.removeNthSigParameter(sig, selfIndex);
+                    mname = fmDottedName(singleName(name), selfIndex);
+                } else {
+                    mname = nonCollidingSingleName(name, sig);
+                }
+                
+            
+            } else if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, params, selfIndex, name,
                         savedInATrait, returnType);
             } else {
@@ -883,7 +936,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     } else {
                         mname = nonCollidingSingleName(name, sig);
                     }
-
+                    
                     if (!savedInAnObject) {
                         // trait default OR top level.
                         // DO NOT special case run() here and make it non-static
@@ -941,6 +994,43 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             emittingFunctionalMethodWrappers = savedEmittingFunctionalMethodWrappers;
         }
 
+    }
+
+    private ArrowType fndeclToType(FnDecl x) {
+        FnHeader fh = x.getHeader();
+        Type rt = fh.getReturnType().unwrap();
+        List<Param> lp = fh.getParams();
+        Type dt = null;
+        switch (lp.size()) {
+        case 0:
+            dt = NodeFactory.makeVoidType(x.getInfo().getSpan());
+            break;
+        case 1:
+            dt = lp.get(0).getIdType().unwrap(); // TODO varargs
+            break;
+        default:
+            dt = NodeFactory.makeTupleType(Useful.applyToAll(lp, new Fn<Param,Type>() {
+                @Override
+                public Type apply(Param x) {
+                    return x.getIdType().unwrap(); // TODO varargs
+                }}));
+            break;
+        }
+        return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
+    }
+
+    private String decorateMethodIfstaticParams(FnDecl x, String mname) {
+        List<StaticParam> sparams = x.getHeader().getStaticParams();
+        if (sparams.size() == 0)
+            return mname;
+        String frag = Naming.GEAR + mname + Naming.LEFT_OXFORD;
+        for (StaticParam sp : sparams) {
+            StaticParamKind spk = sp.getKind();
+            IdOrOp spn = sp.getName();
+            
+        }
+        // TODO Auto-generated method stub
+        return frag + Naming.RIGHT_OXFORD;
     }
 
     /**
