@@ -41,7 +41,7 @@ public class CompilerError extends RuntimeException {
     }
 
     public CompilerError(HasAt loc, String message) {
-        super("\n" + loc.at() + "\n    " + message);
+        super("\n" + loc.at() + ":\n    " + message);
         this.loc = loc;
     }
 

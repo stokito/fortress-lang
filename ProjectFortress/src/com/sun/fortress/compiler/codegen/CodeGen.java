@@ -282,11 +282,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return v;
     }
 
-    private VarCodeGen getLocalVar( IdOrOp nm ) {
-        VarCodeGen r = getLocalVarOrNull(nm);
-        if (r==null) return sayWhat(nm, "Can't find lexEnv mapping for local var");
-        return r;
-    }
+    // Always needs context-sensitive null handling anyway.  TO FIX.
+    // private VarCodeGen getLocalVar( ASTNode ctxt, IdOrOp nm ) {
+    //     VarCodeGen r = getLocalVarOrNull(nm);
+    //     if (r==null) return sayWhat(ctxt, "Can't find lexEnv mapping for local var");
+    //     return r;
+    // }
 
     private VarCodeGen getLocalVarOrNull( IdOrOp nm ) {
         debug("getLocalVar: " + nm);
@@ -2016,7 +2017,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (v.getStaticArgs().size() > 0) {
             sayWhat(v,"varRef with static args!  That requires non-local VarRefs");
         }
-        VarCodeGen vcg = getLocalVar(v.getVarId());
+        VarCodeGen vcg = getLocalVarOrNull(v.getVarId());
+        if (vcg==null) sayWhat(v, "Can't find lexEnv mapping for local var");
         debug("forVarRef ", v , " Value = " + vcg);
         vcg.pushValue(mv);
     }
