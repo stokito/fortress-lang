@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.typechecker.impls
 
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
+import com.sun.fortress.compiler.index.DeclaredFunction
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
@@ -47,6 +48,29 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  * access its protected members.)
  */
 trait Decls { self: STypeChecker with Common =>
+
+  // ---------------------------------------------------------------------------
+  // HELPER METHODS ------------------------------------------------------------
+    
+  /** Check the body exprs of a LetExpr. */
+  protected def checkLetBody(bodyChecker: STypeChecker,
+                             body: List[Expr])
+                             : Option[(List[Expr], Option[Type])] = {
+    
+    // Check the body exprs and make sure all but the last have type ().
+    val newBody = body.map(bodyChecker.checkExpr)
+    if (!haveTypes(newBody)) return None
+    for (e <- newBody.dropRight(1)) {
+      isSubtype(getType(e).get,
+                Types.VOID,
+                e,
+                errorString("Non-last expression in a block"))
+    }
+    
+    // The type of the body is either () or the type of the last element.
+    val newType = if (body.isEmpty) Some(Types.VOID) else getType(newBody.last)
+    Some((newBody, newType))
+  }
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
@@ -303,20 +327,27 @@ trait Decls { self: STypeChecker with Common =>
       // Extend typechecker with new bindings from the RHS types
       val newChecker = this.extend(newLhses)
 
-      // Check the body exprs and make sure all but the last have type ().
-      val newBody = body.map(newChecker.checkExpr)
-      if (!haveTypes(newBody)) return expr
-      newBody.dropRight(1).foreach(e =>
-        isSubtype(getType(e).get, Types.VOID, e, errorString("Non-last expression in a block")))
-
-      // The type of the body is either () or the type of the last element.
-      val newType = body.size match {
-        case 0 => Some(Types.VOID)
-        case _ => getType(newBody.last)
-      }
+      // Check the LetExpr body.
+      val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
+      
       SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, newMaybeRhs)
     }
 
+    case SLetFn(SExprInfo(span, paren, _), body, fns) => {
+      // Extend with functions
+      val fnIndices = fns.map(new DeclaredFunction(_))
+      val newChecker = this.extendWithListOfFunctions(fnIndices)
+      
+      // Prime functionals to infer return types.
+      Thunker.primeFunctionals(fnIndices, STypeCheckerFactory.makeTryChecker(this))
+      
+      // Check the contained body and FnDecls.
+      val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
+      val newFns = fns.map(newChecker.check(_).asInstanceOf[FnDecl])
+      
+      SLetFn(SExprInfo(span, paren, newType), newBody, newFns)
+    }
+
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
-  } 
+  }
 }

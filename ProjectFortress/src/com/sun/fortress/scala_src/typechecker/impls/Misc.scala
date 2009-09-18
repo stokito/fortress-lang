@@ -21,7 +21,6 @@ import _root_.java.util.{List => JavaList}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
 import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.index.DeclaredFunction
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
@@ -531,21 +530,6 @@ trait Misc { self: STypeChecker with Common =>
       val checkedSub = checkExpr(sub, typ, errorString("Expression", "assumed"))
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
-
-    case SLetFn(SExprInfo(span, paren, _), getBody, getFns) => {
-      // Extend with functions
-      val fnIndices = getFns.map(new DeclaredFunction(_))
-
-      val newChecker = this.extendWithListOfFunctions(fnIndices)
-      // Prime functionals
-      Thunker.primeFunctionals(fnIndices, STypeCheckerFactory.makeTryChecker(this))
-      val newBody = getBody.map((e:Expr) => newChecker.checkExpr(e))
-      if(!haveTypes(newBody)) return expr
-      val newFns = getFns.map(newChecker.check(_).asInstanceOf[FnDecl])
-      SLetFn(SExprInfo(span, paren, getType(newBody.last)), newBody, newFns)
-    }
-
-
 
     case expr:DummyExpr => expr
 
