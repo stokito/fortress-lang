@@ -15,17 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXSpawnInsideAtomicBlock
 export Executable
 
-  (* A spawn expression should not occur inside an atomic block. *)
+  (* Atomic block has type of its body. *)
 
   run():() = do
 
-    atomic do
-      spawn true
-    end
+    ignore(atomic do
+      ignore(0)
+      true
+    end typed Boolean)
+    ()
 
   end
-
-end

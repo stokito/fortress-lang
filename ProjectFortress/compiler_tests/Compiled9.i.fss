@@ -15,17 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component IfThenElse
 export Executable
 
-(* Tests that If expression correctly has union of its IfClauses' types. *)
+  (* A spawn expression should not occur inside an atomic block. *)
 
-run():() = do
-  x:IntLiteral = if true then
-    1
-  else
-    0
+  run():() = do
+
+    atomic do
+      spawn true
+    end
+
   end
-end
-
-end

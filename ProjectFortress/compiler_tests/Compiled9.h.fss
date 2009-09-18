@@ -15,26 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DoFronts
 export Executable
 
-  (* Type of do block with multiple do fronts is union of block types. *)
+(* Check that the type checker fails if the last expression does not have
+   type (). *)
 
-  run():() = do
-    var b:Boolean
-
-    b:= do
-      ()
-      true
-    also atomic do
-      ()
-      false
-    also do
-      ()
-      false
-    end typed Boolean
-    ()
-
-  end
-
-end
+run():() = (5, true, 1.0)
