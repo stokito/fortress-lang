@@ -249,7 +249,7 @@ trait Misc { self: STypeChecker with Common =>
                 loc, true, withinDo, exprs) =>
       forAtomic(SBlock(SExprInfo(span,parenthesized,resultType),
                        loc, false, withinDo, exprs),
-                "an 'atomic'do block")
+                "an 'atomic' do block")
 
     /* Matches if block is not an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
@@ -535,7 +535,7 @@ trait Misc { self: STypeChecker with Common =>
     case SLetFn(SExprInfo(span, paren, _), getBody, getFns) => {
       // Extend with functions
       val fnIndices = getFns.map(new DeclaredFunction(_))
-      
+
       val newChecker = this.extendWithListOfFunctions(fnIndices)
       // Prime functionals
       Thunker.primeFunctionals(fnIndices, STypeCheckerFactory.makeTryChecker(this))

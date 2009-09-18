@@ -15,19 +15,13 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component AtomicDo
 export Executable
 
-  (* Atomic block has type of its body. *)
+  (* Atomic expression has type of its body. *)
 
   run():() = do
 
-    ignore(atomic do
-      ignore(0)
-      true
-    end typed Boolean)
+    ignore((atomic true) typed Boolean)
     ()
 
   end
-
-end

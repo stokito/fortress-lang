@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXIfThenNotVoid
 export Executable
 
 (* Each IfClause should have type () if there is no corresponding 'else'. *)
@@ -59,7 +58,5 @@ run():() = do
     9
     ()
   end
-
-end
 
 end
