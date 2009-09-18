@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXAllVoidButLast
   export Executable
 
   bar() : () = do
@@ -34,4 +33,3 @@ component DXXAllVoidButLast
     f("This should fail b/c it's not void!")
     ()
   end
-end
