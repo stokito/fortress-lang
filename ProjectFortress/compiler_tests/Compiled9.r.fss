@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXVoidTest
   export Executable
 
   run() = do
@@ -23,5 +22,3 @@ component DXXVoidTest
     ((a) = true)
     false
   end
-
-end
