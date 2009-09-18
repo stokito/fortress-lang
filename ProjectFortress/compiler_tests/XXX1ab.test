@@ -17,9 +17,7 @@ tests=Compiled1.ab
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.ab.fss:23:8-10:\n\
-\ Variable true is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled1.ab.fss:26:9:\n\
 \ Variable z is not defined.\n\
-File Compiled1.ab.fss has 2 errors.\n
+File Compiled1.ab.fss has 1 error.\n
 compile_out_equals=

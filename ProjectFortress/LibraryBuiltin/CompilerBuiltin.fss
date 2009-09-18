@@ -136,4 +136,7 @@ end
 trait Boolean
 end
 
+true : Boolean = (0=0)
+false : Boolean = (0=1)
+
 end

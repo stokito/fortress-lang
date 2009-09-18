@@ -92,4 +92,7 @@ end
 trait Boolean
 end
 
+true : Boolean
+false : Boolean
+
 end

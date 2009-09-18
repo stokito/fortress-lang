@@ -21,13 +21,6 @@ api CompilerLibrary
  * Value bindings
  ************************************************************)
 
-(* Placed up front to work around bug #357 *)
-
-(*
-true : Boolean
-false : Boolean
-*)
-
 (************************************************************
  * Simple Combinators
  ************************************************************)

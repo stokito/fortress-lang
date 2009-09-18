@@ -23,13 +23,6 @@ export CompilerLibrary
  * Value bindings
  ************************************************************)
 
-(* Placed up front to work around bug #357 *)
-
-(*
-true : Boolean = (0=0)
-false : Boolean = (0=1)
-*)
-
 (************************************************************
  * Simple Combinators
  ************************************************************)
