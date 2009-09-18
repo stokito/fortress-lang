@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -108,4 +108,4 @@ class LValueTypeEnv extends TypeEnv {
     public Option<StaticParam> staticParam(IdOrOpOrAnonymousName id) {
         return parent.staticParam(id);
     }
-} 
+}
