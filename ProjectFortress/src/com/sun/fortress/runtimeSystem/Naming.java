@@ -41,6 +41,8 @@ public class Naming {
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
     public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
+    
+    public final static String GEAR = "\u2699";
 
     public final static char LEFT_OXFORD_CHAR = '\u27e6';
     public final static char RIGHT_OXFORD_CHAR = '\u27e7';
