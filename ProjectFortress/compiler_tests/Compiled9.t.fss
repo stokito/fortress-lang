@@ -15,25 +15,31 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ExitWithoutTarget
 export Executable
 
   (* Test various properly formed label expressions. *)
-
   run():() = do
+
+    (* type of outer should be Boolean OR Boolean *)
+    ignore(label outer
+      (* type of inner should be ZZ32 OR ZZ32 *)
+      ignore(label inner
+        exit inner with 1
+        exit outer with true
+        5
+      end inner typed IntLiteral)
+      false
+    end outer typed Boolean)
 
     (* type of outer should be ZZ32 OR ZZ32 *)
     ignore(label outer
       (* type of inner should be Boolean OR Boolean *)
       ignore(label inner
-        exit with true
+        exit inner with true (* remove the 'inner' when disambiguator works *)
         exit outer with 5
         false
       end inner typed Boolean)
       3
     end outer typed IntLiteral)
     ()
-
   end
-
-end

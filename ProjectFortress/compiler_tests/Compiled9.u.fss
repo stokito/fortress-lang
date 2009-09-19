@@ -15,20 +15,22 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXExitTargetOutOfScope
 export Executable
 
-  (* An exit with an invalid target label should generate error. *)
+  (* Test various properly formed label expressions. *)
 
   run():() = do
 
-    label outer
-      label inner
-        exit outer (* ok *)
-      end inner
-      exit inner (* outside label's scope *)
-    end outer
+    (* type of outer should be ZZ32 OR ZZ32 *)
+    ignore(label outer
+      (* type of inner should be Boolean OR Boolean *)
+      ignore(label inner
+        exit with true
+        exit outer with 5
+        false
+      end inner typed Boolean)
+      3
+    end outer typed IntLiteral)
+    ()
 
   end
-
-end

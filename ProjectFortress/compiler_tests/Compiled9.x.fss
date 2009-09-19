@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXExitTargetInvalid
 export Executable
 
   (* An exit with an invalid target label should generate error. *)
@@ -28,5 +27,3 @@ export Executable
     end l
 
   end
-
-end

@@ -15,19 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXExitThroughSpawn
 export Executable
 
-  (* The target of an exit that occurs inside a spawn should not be outside the spawn. *)
+  (* An exit with an invalid target label should generate error. *)
 
   run():() = do
 
-    label l
-      spawn do
-        exit l
-      end
-    end l
+    label outer
+      label inner
+        exit outer (* ok *)
+      end inner
+      exit inner (* outside label's scope *)
+    end outer
 
   end
-
-end
