@@ -17,7 +17,10 @@
 
 package com.sun.fortress.scala_src.typechecker.impls
 
+import _root_.java.util.{HashSet => JavaHashSet}
 import _root_.java.util.{List => JavaList}
+import _root_.java.util.{Map => JavaMap}
+import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
 import com.sun.fortress.compiler.index.CompilationUnitIndex
@@ -27,9 +30,9 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Modifiers
-import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
 import com.sun.fortress.scala_src.nodes._
@@ -82,11 +85,11 @@ trait Misc { self: STypeChecker with Common =>
               (SGeneratorClause(info, Nil, newInit), Nil)
             case hd::tl =>
               def mkInferenceVarType(id: Id) =
-                NodeFactory.make_InferenceVarType(NodeUtil.getSpan(id))
+                NF.make_InferenceVarType(NU.getSpan(id))
               val (lhstype, bindings) = binds.length match {
                 case 1 => // Just one binding
                   val lhstype = mkInferenceVarType(hd)
-                  (lhstype, List[LValue](NodeFactory.makeLValue(hd, lhstype)))
+                  (lhstype, List[LValue](NF.makeLValue(hd, lhstype)))
                 case n =>
                   // Because generator_type is almost certainly an _InferenceVar,
                   // we have to declare a new tuple that is the size of the bindings
@@ -94,10 +97,10 @@ trait Misc { self: STypeChecker with Common =>
                   val inference_vars = binds.map(mkInferenceVarType)
                   (Types.makeTuple(toJavaList(inference_vars)),
                    binds.zip(inference_vars).map((p:(Id,Type)) =>
-                                                 NodeFactory.makeLValue(p._1,p._2)))
+                                                 NF.makeLValue(p._1,p._2)))
               }
               // Get the type of the Generator
-              val infer_type = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(init))
+              val infer_type = NF.make_InferenceVarType(NU.getSpan(init))
               val generator_type = if (mustBeCondition)
                                      Types.makeConditionType(infer_type)
                                    else Types.makeGeneratorType(infer_type)
@@ -330,7 +333,7 @@ trait Misc { self: STypeChecker with Common =>
           case None => es.map(checkExpr)
         }
         val types = newEs.map(getType(_).getOrElse(Types.VOID))
-        val newType = NodeFactory.makeTupleType(span, toJavaList(types))
+        val newType = NF.makeTupleType(span, toJavaList(types))
         STupleExpr(SExprInfo(span,parenthesized,Some(newType)), newEs, vs, ks, inApp)
       }
     }
@@ -400,14 +403,13 @@ trait Misc { self: STypeChecker with Common =>
     case v@SVarRef(SExprInfo(span,paren,_), id, sargs, depth) => {
       val checkedId = check(id).asInstanceOf[Id]
       val ty = getTypeFromName(checkedId).getOrElse(return expr)
-      if ( NodeUtil.isSingletonObject(v) )
+      if ( NU.isSingletonObject(v) )
         ty match {
           case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
-            if ( NodeUtil.isGenericSingletonType(typ) &&
+            if ( NU.isGenericSingletonType(typ) &&
                  staticArgsMatchStaticParams(sargs, params)) {
               // make a trait type that is GenericType instantiated
-              val newType = NodeFactory.makeTraitType(sp, pr, name,
-                                                      toJavaList(sargs))
+              val newType = NF.makeTraitType(sp, pr, name, toJavaList(sargs))
               SVarRef(SExprInfo(span,paren,Some(newType)), checkedId, sargs, depth)
             } else {
               signal(v, "Unexpected type for a singleton object reference.")
@@ -443,8 +445,7 @@ trait Misc { self: STypeChecker with Common =>
                            format(id)))
 
           val idTypes = bindIds.map(getTypeFromName(_).getOrElse(return expr))
-          (None, NodeFactory.makeMaybeTupleType(NodeUtil.getSpan(expr),
-                                                toJavaList(idTypes)))
+          (None, NF.makeMaybeTupleType(NU.getSpan(expr), toJavaList(idTypes)))
       }
 
       // Check that the number of bindIds matches the size of the bindExpr.
@@ -480,9 +481,9 @@ trait Misc { self: STypeChecker with Common =>
           if (isMultipleIds) {
             val STupleType(_, eltTypes, _, _) = checkedType
             eltTypes.zip(matchType).map((p:(Type, Type)) =>
-                normalize(NodeFactory.makeIntersectionType(p._1, p._2)))
+                normalize(NF.makeIntersectionType(p._1, p._2)))
           } else {
-            List[Type](normalize(NodeFactory.makeIntersectionType(checkedType, matchType.first)))
+            List[Type](normalize(NF.makeIntersectionType(checkedType, matchType.first)))
           }
 
         val checkedBody =
@@ -512,7 +513,7 @@ trait Misc { self: STypeChecker with Common =>
         case Some(t) => Set(clauseTypes:_*) + t
         case _ => Set(clauseTypes:_*)
       }
-      val unionType = NodeFactory.makeUnionType(toJavaSet(allTypes))
+      val unionType = NF.makeUnionType(toJavaSet(allTypes))
       // TODO: A nonexhaustive typecase is an error.
       STypecase(SExprInfo(span, paren, Some(unionType)),
                 bindIds,
@@ -531,6 +532,63 @@ trait Misc { self: STypeChecker with Common =>
       SAsIfExpr(SExprInfo(span, paren, Some(typ)), checkedSub, typ)
     }
 
+    case label@SLabel(SExprInfo(span, paren, _), name, body) =>
+      // Make sure this label isn't already bound
+      env.lookup(name) match {
+        case Some(_) =>
+          signal(label, "Cannot use an existing identifier " + name +
+                        " for a 'label' expression.")
+          label
+        case None =>
+          // Initialize the set of exit types
+          labelExitTypes.put(name, Some(new JavaHashSet()))
+          // Extend the checker with this label name in the type env
+          val newChecker = this.extend(List(NF.makeLValue(name, Types.LABEL)))
+          val newBody = newChecker.checkExpr(body).asInstanceOf[Block]
+          // If the body was typed, union all the exit types with it.
+          // If any exit type is none, then don't type this label.
+          var labelType: Option[Type] = None
+          (getType(newBody), labelExitTypes.get(name)) match {
+            case (Some(ty), Some(exitTypes)) =>
+              exitTypes.add(ty)
+              labelType = Some(normalize(analyzer.join(exitTypes)))
+            case _ =>
+          }
+          // Destroy the mappings for this label
+          labelExitTypes.remove(name)
+          SLabel(SExprInfo(span, paren, labelType), name, newBody)
+      }
+
+    case exit@SExit(SExprInfo(span, paren, _), targetOpt, returnOpt) => {
+      (targetOpt, returnOpt) match {
+        case (Some(target), Some(returnExpr)) => env.lookup(target) match {
+          case Some(b) => b.typeThunk.apply match {
+            case Some(targetType) =>
+              if (! targetType.isInstanceOf[LabelType])
+                signal(exit, "Target of 'exit' is not a label name: " + target)
+              else {
+                // Append the 'with' type to the list for this label
+                val newReturn = checkExpr(returnExpr)
+                getType(newReturn) match {
+                  case Some(ty) =>
+                    val types = labelExitTypes.get(target)
+                    if (types != null && types.isDefined) types.get.add(ty)
+                    else signal(exit, "Target of 'exit' is missing.")
+                  case None => labelExitTypes.put(target, None)
+                }
+                return SExit(SExprInfo(span, paren, Some(Types.BOTTOM)),
+                             Some(target), Some(newReturn))
+              }
+            case None => signal(exit, "Target of 'exit' is missing.")
+          }
+          case None => signal(exit, "Could not find 'label' with name: " + target)
+        }
+        case (None, _) => signal(exit, "Target of 'exit' is missing.")
+        case (_, None) => signal(exit, "Return expression of 'exit' is missing.")
+      }
+      return exit
+    }
+
     case expr:DummyExpr => expr
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
@@ -545,12 +603,13 @@ trait Misc { self: STypeChecker with Common =>
                      (implicit analyzer: TypeAnalyzer,
                                envCache: MMap[APIName, STypeEnv],
                                cycleChecker: CyclicReferenceChecker)
-      extends STypeCheckerImpl(current,traits,env,errors) {
+    extends STypeCheckerImpl(current,traits,env,labelExitTypes,errors) {
 
     override def constructor(current: CompilationUnitIndex,
-                              traits: TraitTable,
-                              env: STypeEnv,
-                              errors: ErrorLog)
+                             traits: TraitTable,
+                             env: STypeEnv,
+                             labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
+                             errors: ErrorLog)
                              (implicit analyzer: TypeAnalyzer,
                                        envCache: MMap[APIName, STypeEnv],
                                        cycleChecker: CyclicReferenceChecker) =

@@ -22,7 +22,6 @@ import _root_.java.util.{HashMap => JavaHashMap}
 import _root_.java.util.{Set => JavaSet}
 
 import edu.rice.cs.plt.collect.Relation
-import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Functional
 import com.sun.fortress.compiler.index.Method
@@ -64,27 +63,33 @@ object STypeCheckerFactory {
            env: STypeEnv)
            (implicit analyzer: TypeAnalyzer,
                      cycleChecker: CyclicReferenceChecker): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, new ErrorLog)(analyzer, MMap.empty, cycleChecker)
-  
+    new STypeCheckerImpl(current, traits, env,
+                         new JavaHashMap[Id, Option[JavaSet[Type]]](),
+                         new ErrorLog)(analyzer, MMap.empty, cycleChecker)
+
   def make(current: CompilationUnitIndex,
            traits: TraitTable,
            env: STypeEnv,
            errors: ErrorLog)
           (implicit analyzer: TypeAnalyzer,
                     cycleChecker: CyclicReferenceChecker): STypeCheckerImpl =
-    new STypeCheckerImpl(current, traits, env, errors)(analyzer, MMap.empty, cycleChecker)
+    new STypeCheckerImpl(current, traits, env,
+                         new JavaHashMap[Id, Option[JavaSet[Type]]](),
+                         errors)(analyzer, MMap.empty, cycleChecker)
 
   def makeTryChecker(current: CompilationUnitIndex,
                      traits: TraitTable,
                      env: STypeEnv)
                     (implicit analyzer: TypeAnalyzer,
-                              cycleChecker: CyclicReferenceChecker): TryChecker =
-    new TryChecker(current, traits, env, new TryErrorLog)(analyzer, MMap.empty, cycleChecker)
+                     cycleChecker: CyclicReferenceChecker): TryChecker =
+    new TryChecker(current, traits, env,
+                   new JavaHashMap[Id, Option[JavaSet[Type]]](), new TryErrorLog)(analyzer, MMap.empty, cycleChecker)
 
   def makeTryChecker(checker: STypeChecker): TryChecker =
     new TryChecker(checker.current,
                    checker.traits,
                    checker.env,
+                   checker.labelExitTypes,
                    new TryErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
 }
 
@@ -95,11 +100,12 @@ object STypeCheckerFactory {
 class STypeCheckerImpl(current: CompilationUnitIndex,
                        traits: TraitTable,
                        env: STypeEnv,
+                       labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                        errors: ErrorLog)
                       (implicit analyzer: TypeAnalyzer,
                                 envCache: MMap[APIName, STypeEnv],
                                 cycleChecker: CyclicReferenceChecker)
-    extends STypeChecker(current, traits, env, errors)
+    extends STypeChecker(current, traits, env, labelExitTypes, errors)
     with Dispatch with Common
     with Decls with Functionals with Operators
     with Misc {
@@ -107,11 +113,12 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
   override def constructor(current: CompilationUnitIndex,
                            traits: TraitTable,
                            env: STypeEnv,
+                           labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                            errors: ErrorLog)
                           (implicit analyzer: TypeAnalyzer,
                                     envCache: MMap[APIName, STypeEnv],
                                     cycleChecker: CyclicReferenceChecker) =
-    new STypeCheckerImpl(current, traits, env, errors)
+  new STypeCheckerImpl(current, traits, env, labelExitTypes, errors)
 
 }
 
@@ -120,17 +127,18 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
  * basic functionality for use in type checking, including helper methods that
  * are widely used for many different cases. Use the `STypeChecker` class
  * instead for a fully implemented type checker.
- * 
+ *
  * The actual type checking is defined abstractly; concrete subclasses or mixed-
  * in traits should provide the actual implementation of type checking each
  * case.
- * 
+ *
  * Constructor parameters are marked `protected val` so that the implementing,
  * mixed-in traits can access the fields.
  */
 abstract class STypeChecker(val current: CompilationUnitIndex,
-                            val traits: TraitTable, 
+                            val traits: TraitTable,
                             val env: STypeEnv,
+                            val labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                             val errors: ErrorLog)
                            (implicit val analyzer: TypeAnalyzer,
                                      val envCache: MMap[APIName, STypeEnv],
@@ -142,9 +150,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   /** Oracle for determining coercions between types. */
   protected val coercions = new CoercionOracle(traits, exclusions)
 
-  protected var labelExitTypes: JavaMap[Id, JavaOption[JavaSet[Type]]] =
-    new JavaHashMap[Id, JavaOption[JavaSet[Type]]]()
-
   /**
    * This method simply creates a new instance of the class in which it is defined. We need this
    * so that subclasses will extend themselves properly. This MUST be overriden in every subclass of
@@ -153,24 +158,27 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   def constructor(current: CompilationUnitIndex,
                   traits: TraitTable,
                   env: STypeEnv,
+                  labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                   errors: ErrorLog)
                  (implicit analyzer: TypeAnalyzer,
                            envCache: MMap[APIName, STypeEnv],
                            cycleChecker: CyclicReferenceChecker): STypeCheckerImpl
 
   def extend(newEnv: STypeEnv, newAnalyzer: TypeAnalyzer) =
-    constructor(current, traits, newEnv, errors)(newAnalyzer, envCache, cycleChecker)
+    constructor(current, traits, newEnv, labelExitTypes, errors)(newAnalyzer, envCache, cycleChecker)
 
   def extend(bindings: List[Binding]) =
     constructor(current,
                 traits,
                 env.extend(bindings),
+                labelExitTypes,
                 errors)
 
   def extend(sparams: List[StaticParam], where: Option[WhereClause]) =
     constructor(current,
                 traits,
                 env,
+                labelExitTypes,
                 errors)(analyzer.extend(sparams, where), envCache, cycleChecker)
 
   def extend(sparams: List[StaticParam],
@@ -183,6 +191,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     constructor(current,
                 traits,
                 newEnv,
+                labelExitTypes,
                 errors)(analyzer.extend(sparams, where), envCache, cycleChecker)
   }
 
@@ -190,31 +199,35 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     extend(List[LValue](NodeFactory.makeLValue(id, typ)))
 
   def extend(ids: List[Id], types: List[Type]): STypeChecker =
-    extend(ids.zip(types).map((p:(Id, Type)) => 
+    extend(ids.zip(types).map((p:(Id, Type)) =>
         NodeFactory.makeLValue(p._1,p._2)))
 
   def extend(decl: LocalVarDecl): STypeChecker =
     constructor(current,
                 traits,
                 env.extend(decl),
+                labelExitTypes,
                 errors)
 
   def extendWithFunctions[T <: Functional](methods: Relation[IdOrOpOrAnonymousName, T]) =
     constructor(current,
                 traits,
                 env.extendWithFunctions(methods),
+                labelExitTypes,
                 errors)
 
   def extendWithListOfFunctions[T <: Functional](fns:List[T]) =
     constructor(current,
                 traits,
                 env.extendWithListOfFunctions(fns),
+                labelExitTypes,
                 errors)
 
   def extendWithout(declSite: Node, names: Set[Id]) =
     constructor(current,
                 traits,
                 env.extendWithout(names),
+                labelExitTypes,
                 errors)
 
   def addSelf(self_type: Type) =
@@ -231,7 +244,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
 
   protected def syntaxError(hasAt:HasAt, msg:String) =
     error(hasAt, msg)
-  
+
   protected def isValidErrorMessage(msg: String) = !msg.containsSlice("%s")
 
   /**
@@ -279,8 +292,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Get the TypeEnv that corresponds to this API.
    */
   protected def getEnvFromApi(api: APIName): STypeEnv =
-    envCache.getOrElseUpdate(api, STypeEnv.make(traits.compilationUnit(api)))  
-  
+    envCache.getOrElseUpdate(api, STypeEnv.make(traits.compilationUnit(api)))
+
   /**
    * Replaces the given name with the name it aliases
    * (or leaves it alone if it doesn't alias any thing)
@@ -288,11 +301,11 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   protected def handleAlias(name: Name, imports: List[Import]): Name =
     name match {
       case name@SIdOrOp(_, Some(api), _) =>
-  
+
         // Get the alias for `name` from this import, if it exists.
         def getAlias(imp: Import): Option[IdOrOp] = imp match {
           case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
-    
+
             // Get the name from an aliased name.
             def getName(aliasedName: AliasedSimpleName): Option[IdOrOp] =
               aliasedName match {
@@ -300,15 +313,15 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                   if alias.equals(name) => Some(newName.asInstanceOf)
                 case _ => None
               }
-    
+
             // Get the first name that matched.
             aliases.flatMap(getName).firstOption
           case _ => None
         }
-    
+
         // Get the first name that matched within any import, or return name.
         imports.flatMap(getAlias).firstOption.getOrElse(name)
-        
+
       case _ => name
     }
 
@@ -378,11 +391,11 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   protected def errorString(first: String, second: String): String =
     first + " has type %s, but " + second + " type is %s."
-  
+
 
   // ---------------------------------------------------------------------------
   // ABSTRACT DEFINITIONS ------------------------------------------------------
-  
+
   /**
    * Type check the given node, returning the rewritten node. Either a subclass
    * or mixed-in trait should provide the implementation of type checking an
@@ -404,16 +417,16 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * @return The rewritten expression node.
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr
-  
+
   def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere]): Relation[IdOrOpOrAnonymousName, Method]
-  
+
   // ---------------------------------------------------------------------------
   // CONCRETE DEFINITIONS ------------------------------------------------------
 
   /**
    * Type check the given node. External code must use this method for all type
    * checking.
-   * 
+   *
    * @param node The node to type check.
    * @return The resulting node, possibly containing new type information.
    */
@@ -427,7 +440,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         errors.signal(e.getOriginalMessage, e.getLoc.unwrap)
         node
     }
-  
+
   /**
    * Type check an expression and guarantee that its type is substitutable for
    * the expected type. That is, the resulting type should be a subtype of or
@@ -496,7 +509,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * @return The rewritten expression node.
    */
   def checkExpr(expr: Expr): Expr = checkExpr(expr, None)
-  
+
   /**
    * Check the given expr if it is checkable, yielding Left for the checked expr and Right for the
    * unchecked original expr.
@@ -522,20 +535,22 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
 class TryChecker(current: CompilationUnitIndex,
                  traits: TraitTable,
                  env: STypeEnv,
+                 labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                  errors: ErrorLog)
                 (implicit analyzer: TypeAnalyzer,
                           envCache: MMap[APIName, STypeEnv],
                           cycleChecker: CyclicReferenceChecker)
-    extends STypeCheckerImpl(current, traits, env, errors) {
+  extends STypeCheckerImpl(current, traits, env, labelExitTypes, errors) {
 
   override def constructor(current: CompilationUnitIndex,
                            traits: TraitTable,
                            env: STypeEnv,
+                           labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
                            errors: ErrorLog)
                           (implicit analyzer: TypeAnalyzer,
                                     envCache: MMap[APIName, STypeEnv],
                                     cycleChecker: CyclicReferenceChecker) =
-    new TryChecker(current, traits, env, errors)
+    new TryChecker(current, traits, env, labelExitTypes, errors)
 
   /** Check the given node; return it if successful, None otherwise. */
   def tryCheck(node: Node): Option[Node] =

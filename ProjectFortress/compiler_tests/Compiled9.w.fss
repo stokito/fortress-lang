@@ -15,34 +15,16 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Label
 export Executable
 
-  (* Test various properly formed label expressions. *)
+  (* The target of an exit that occurs inside a spawn should not be outside the spawn. *)
+
   run():() = do
 
-    (* type of outer should be Boolean OR Boolean *)
-    ignore(label outer
-      (* type of inner should be ZZ32 OR ZZ32 *)
-      ignore(label inner
-        exit inner with 1
-        exit outer with true
-        5
-      end inner typed IntLiteral)
-      false
-    end outer typed Boolean)
+    label l
+      spawn do
+        exit l
+      end
+    end l
 
-    (* type of outer should be ZZ32 OR ZZ32 *)
-    ignore(label outer
-      (* type of inner should be Boolean OR Boolean *)
-      ignore(label inner
-        exit inner with true (* remove the 'inner' when disambiguator works *)
-        exit outer with 5
-        false
-      end inner typed Boolean)
-      3
-    end outer typed IntLiteral)
-    ()
   end
-
-end
