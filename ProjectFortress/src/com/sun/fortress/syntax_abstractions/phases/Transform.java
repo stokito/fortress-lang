@@ -478,7 +478,7 @@ public class Transform extends TemplateUpdateVisitor {
                     });
                 }
             });
-            List<Expr> body_result = recurOnListOfExpr(thatLetFn.getBody());
+            Block body_result = (Block) recur(thatLetFn.getBody());
             ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(thatLetFn),
                                                      NodeUtil.isParenthesized(thatLetFn),
                                                      exprType_result);
@@ -519,7 +519,7 @@ public class Transform extends TemplateUpdateVisitor {
                 }
             });
             Option<Expr> rhs_result = recurOnOptionOfExpr(that.getRhs());
-            List<Expr> body_result = recurOnListOfExpr(that.getBody());
+            Block body_result = (Block) recur(that.getBody());
             /*
             List<Expr> body_result = Useful.applyToAll(recurOnListOfExpr(that.getBody()),
                                                        new Fn<Expr, Expr>(){

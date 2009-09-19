@@ -50,7 +50,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
     @Override
     public FValue forLetFn(LetFn x) {
         List<FnDecl> fns = x.getFns();
-        List<Expr> body = x.getBody();
+        Block body = x.getBody();
 
         for (int i = 0; i < fns.size(); i++) {
             FnDecl fn = fns.get(i);
@@ -73,13 +73,13 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             List<Parameter> fparams = EvalType.paramsToParameters(containing, params);
             cl.setParamsAndReturnType(fparams, ft);
         }
-        return (new Evaluator(containing)).evalExprList(body, x);
+        return (new Evaluator(containing)).eval(body);
     }
 
     public FValue forLocalVarDecl(LocalVarDecl x) {
         List<LValue> lhs = x.getLhs();
         Option<Expr> rhs = x.getRhs();
-        List<Expr> body = x.getBody();
+        Block body = x.getBody();
         //FValue res = Evaluator.evVoid;
 
         Evaluator new_eval = new Evaluator(containing);
@@ -126,7 +126,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             }
 
         }
-        return new_eval.evalExprList(body, x);
+        return new_eval.eval(body);
     }
 
     public FValue doLets(LetExpr exp) {

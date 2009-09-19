@@ -710,7 +710,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         List<StaticParam> sparams = header.getStaticParams();
-        
+
         boolean canCompile =
             (sparams.isEmpty() || // no static parameter
              !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) &&
@@ -739,11 +739,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * instead of a method name, we are looking for an
                  * inner class name, similar to how these are constructed
                  * for traits.
-                 * 
+                 *
                  * The inner class name has the form
-                 * 
+                 *
                  * PKG.component$GEARfunction[\t1;t2;n3;o4\]ENVELOPEarrow[\d1;d2;r\]
-                 * 
+                 *
                  * where
                  * PKG is package name
                  * component is component name
@@ -753,23 +753,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * ENVELOPE is unicode Envelope (just like a closure)
                  * arrow is "Arrow", the stem on a generic arrow type
                  * d1, d2, r are the type parameters of the arrow type.
-                 * 
+                 *
                  * These classes will have all the attributes required of a
                  * closure class, except that the static parameters will be
                  * dummies to be replaced at instantiation time.
                  */
-                
+
                 /*
                  * Need to modify the
                  * signature, depending on
                  * circumstances.
                  */
-                
+
                 String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                         returnType.unwrap(), component.getName());
 
                 ArrowType at = fndeclToType(x);
-                
+
                 String mname;
 
                 // TODO different collision rules for top-level and for
@@ -781,8 +781,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 } else {
                     mname = nonCollidingSingleName(name, sig);
                 }
-                
-            
+
+
             } else if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, params, selfIndex, name,
                         savedInATrait, returnType);
@@ -937,7 +937,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     } else {
                         mname = nonCollidingSingleName(name, sig);
                     }
-                    
+
                     if (!savedInAnObject) {
                         // trait default OR top level.
                         // DO NOT special case run() here and make it non-static
@@ -1028,7 +1028,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
             IdOrOp spn = sp.getName();
-            
+
         }
         // TODO Auto-generated method stub
         return frag + Naming.RIGHT_OXFORD;
@@ -1495,7 +1495,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         CodeGen cg = new CodeGen(this);
         cg.addLocalVar(vcg);
 
-        cg.doStatements(d.getBody());
+        cg.doStatements(d.getBody().getExprs());
 
         // Dispose of binding now that we're done
         vcg.outOfScope(mv);

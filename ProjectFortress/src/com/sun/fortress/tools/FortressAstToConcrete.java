@@ -1571,14 +1571,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forLetFnOnly(LetFn that, String info, List<String> body_result, List<String> fns_result) {
+    public String forLetFnOnly(LetFn that, String info, String body_result, List<String> fns_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(join(fns_result, "\n"));
-        if (!body_result.isEmpty()) {
-            s.append("\n");
-            s.append(join(body_result, "\n"));
-        }
+        s.append("\n");
+        s.append(body_result);
 
         return handleParen(s.toString(), NodeUtil.isParenthesized(that));
     }
@@ -1590,14 +1588,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for (LValue lv : that.getLhs()) {
             locals.add(lv.getName().getText());
         }
-        List<String> body_result = recurOnListOfExpr(that.getBody());
+        String body_result = recur(that.getBody());
         return forLocalVarDeclOnly(that, "", body_result, lhs_result, rhs_result);
     }
 
     @Override
     public String forLocalVarDeclOnly(LocalVarDecl that,
                                       String info,
-                                      List<String> body_result,
+                                      String body_result,
                                       List<String> lhs_result,
                                       Option<String> rhs_result) {
         StringBuilder s = new StringBuilder();
@@ -1615,10 +1613,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             }
             s.append(rhs_result.unwrap());
         }
-        if (!body_result.isEmpty()) {
-            s.append("\n");
-            s.append(join(body_result, "\n"));
-        }
+        s.append("\n");
+        s.append(body_result);
 
         return handleParen(s.toString(), NodeUtil.isParenthesized(that));
     }
