@@ -697,7 +697,7 @@ interface Node() extends HasAt;
                  * LocalVarFnDecl ::= LocalFnDecl+
                  *                  | LocalVarDecl
                  */
-                abstract LetExpr(List<Expr> body);
+                abstract LetExpr(Block body);
                     /**
                      * local function declaration
                      * LocalFnDecl ::= LocalFnMods? NamedFnHeaderFront FnHeaderClause

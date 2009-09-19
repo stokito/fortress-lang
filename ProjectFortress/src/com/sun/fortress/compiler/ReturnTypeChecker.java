@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeUtil;

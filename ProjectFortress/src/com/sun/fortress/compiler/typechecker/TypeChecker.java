@@ -3027,9 +3027,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         List<TypeCheckerResult> fn_results = newChecker.recurOnListOfFnDecl(that.getFns());
 
         // A LetFn is like a let. It has a body, and it's type is the type of the body
-        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
-        List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody());
-        Option<Type> body_type = that.getBody().size() == 0 ?
+        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody().getExprs());
+        List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody().getExprs());
+        Option<Type> body_type = that.getBody().getExprs().size() == 0 ?
                 Option.<Type>some(Types.VOID) :
                     body_results.get(body_results.size()-1).type();
 
@@ -3076,9 +3076,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         newChecker = newChecker.extendWithConstraints(rhs_constraint);
 
         // A LocalVarDecl is like a let. It has a body, and it's type is the type of the body
-        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
-        List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody());
-        Option<Type> body_type = that.getBody().size() == 0 ?
+        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody().getExprs());
+        List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody().getExprs());
+        Option<Type> body_type = that.getBody().getExprs().size() == 0 ?
                 Option.<Type>some(Types.VOID) :
                     body_results.get(body_results.size()-1).type();
 

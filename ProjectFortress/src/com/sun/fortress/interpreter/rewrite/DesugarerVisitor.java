@@ -950,12 +950,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
     public Node forLocalVarDecl(LocalVarDecl lvd) {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
-
-        List<LValue> lhs = lvd.getLhs();
-        Option<Expr> rhs = lvd.getRhs();
-        List<Expr> body = lvd.getBody();
-
-        lvaluesToLocal(lhs);
+        lvaluesToLocal(lvd.getLhs());
         // not quite right because initializing exprs are evaluated in the wrong context.
         // TODO wip
 

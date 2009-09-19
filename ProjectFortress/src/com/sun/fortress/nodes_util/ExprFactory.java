@@ -750,6 +750,15 @@ public class ExprFactory {
                                                 List<Expr> body,
                                                 List<LValue> lhs,
                                                 Option<Expr> rhs) {
+        return makeLocalVarDecl(span, parenthesized, ty, makeBlock(span, body), lhs, rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span,
+                                                boolean parenthesized,
+                                                Option<Type> ty,
+                                                Block body,
+                                                List<LValue> lhs,
+                                                Option<Expr> rhs) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new LocalVarDecl(info, body, lhs, rhs);
     }
@@ -1347,6 +1356,14 @@ public class ExprFactory {
                                   boolean parenthesized,
                                   Option<Type> ty,
                                   List<Expr> body,
+                                  List<FnDecl> fns) {
+        return makeLetFn(span, parenthesized, ty, makeBlock(span, body), fns);
+    }
+
+    public static LetFn makeLetFn(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> ty,
+                                  Block body,
                                   List<FnDecl> fns) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new LetFn(info, body, fns);
@@ -2049,7 +2066,7 @@ public class ExprFactory {
         for (Expr e : exprs) {
             if (e instanceof LetExpr) {
                 LetExpr _e = (LetExpr)e;
-                if (_e.getBody().isEmpty()) {
+                if (_e.getBody().getExprs().isEmpty()) {
                     if (_e instanceof LocalVarDecl) {
                         NodeUtil.validId(writer, ((LocalVarDecl)_e).getLhs());
                     }

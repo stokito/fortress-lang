@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.typechecker._
@@ -38,10 +39,10 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 
 /**
  * Provides the implementation of cases relating to declarations.
- * 
+ *
  * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker along with the Common helpers. This is what
  * allows this trait to implement abstract members of STypeChecker and to
@@ -51,32 +52,33 @@ trait Decls { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
-    
+
   /** Check the body exprs of a LetExpr. */
   protected def checkLetBody(bodyChecker: STypeChecker,
-                             body: List[Expr])
-                             : Option[(List[Expr], Option[Type])] = {
-    
+                             body: Block)
+                             : Option[(Block, Option[Type])] = {
+
     // Check the body exprs and make sure all but the last have type ().
-    val newBody = body.map(bodyChecker.checkExpr)
-    if (!haveTypes(newBody)) return None
-    for (e <- newBody.dropRight(1)) {
+    val newBody = bodyChecker.checkExpr(body).asInstanceOf[Block].getExprs
+    val newBlock = toList(newBody)
+    if (!haveTypes(newBlock)) return None
+    for (e <- newBlock.dropRight(1)) {
       isSubtype(getType(e).get,
                 Types.VOID,
                 e,
                 errorString("Non-last expression in a block"))
     }
-    
+
     // The type of the body is either () or the type of the last element.
-    val newType = if (body.isEmpty) Some(Types.VOID) else getType(newBody.last)
-    Some((newBody, newType))
+    val newType = if (newBody.isEmpty) Some(Types.VOID) else getType(newBlock.last)
+    Some((EF.makeBlock(NU.getSpan(body), newBody), newType))
   }
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
-  
+
   def checkDecls(node: Node): Node = node match {
-    
+
     case SComponent(info, name, imports, decls, comprises, isNative, exports) =>
       SComponent(info, name, imports,
                  decls.map((n:Decl) => check(n).asInstanceOf[Decl]), comprises,
@@ -257,7 +259,7 @@ trait Decls { self: STypeChecker with Common =>
               SVarDecl(info,
                        addLhsTypes(lhs, typ).getOrElse(return node),
                        Some(checkedRhs))
-            
+
             case None => node
           }
 
@@ -269,7 +271,7 @@ trait Decls { self: STypeChecker with Common =>
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
-  
+
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
@@ -283,7 +285,7 @@ trait Decls { self: STypeChecker with Common =>
           Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))
         else
           None
-      
+
       // Type check the RHS, expecting the declared type.
       val (newLhses, newMaybeRhs) = declaredType match {
 
@@ -329,7 +331,7 @@ trait Decls { self: STypeChecker with Common =>
 
       // Check the LetExpr body.
       val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
-      
+
       SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, newMaybeRhs)
     }
 
@@ -337,14 +339,14 @@ trait Decls { self: STypeChecker with Common =>
       // Extend with functions
       val fnIndices = fns.map(new DeclaredFunction(_))
       val newChecker = this.extendWithListOfFunctions(fnIndices)
-      
+
       // Prime functionals to infer return types.
       Thunker.primeFunctionals(fnIndices, STypeCheckerFactory.makeTryChecker(this))
-      
+
       // Check the contained body and FnDecls.
       val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
       val newFns = fns.map(newChecker.check(_).asInstanceOf[FnDecl])
-      
+
       SLetFn(SExprInfo(span, paren, newType), newBody, newFns)
     }
 

@@ -592,7 +592,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         //   2. We don't signal shadowing errors when they are initialized.
         if (!new_rhs.isDefined) uninitializedNames ++= definedNames
         extendWithVars(definedNames, uninitializedNames)
-        val result = SLocalVarDecl(info, walk(body).asInstanceOf[List[Expr]],
+        val result = SLocalVarDecl(info, walk(body).asInstanceOf[Block],
                                    new_lhs, new_rhs)
         env = old_env
         uninitializedNames = old_uninitialized
@@ -615,7 +615,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
           }
         }
         extendWithFnsNoCheck(definedDecls)
-        val result = SLetFn(info, walk(body).asInstanceOf[List[Expr]],
+        val result = SLetFn(info, walk(body).asInstanceOf[Block],
                             walk(fns).asInstanceOf[List[FnDecl]])
         env = old_env
         inBlock = false

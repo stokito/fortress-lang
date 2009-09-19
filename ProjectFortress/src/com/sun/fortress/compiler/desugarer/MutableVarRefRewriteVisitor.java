@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.TraitTypeHeader;
+import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
@@ -108,7 +109,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
         }
 
         LocalVarDecl newLocalVarDecl = null;
-        List<Expr> body_result = recurOnListOfExpr( that.getBody() );
+        List<Expr> body_result = recurOnListOfExpr( that.getBody().getExprs() );
 
         for( VarRef var : varRefsToRewrite ) {
             VarRefContainer container = mutableVarRefContainerMap.get(var);
@@ -142,9 +143,10 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
 
         List<Expr> new_body_result = new ArrayList<Expr>(1);
         new_body_result.add(newLocalVarDecl);
+        Block new_body = ExprFactory.makeBlock(NodeUtil.getSpan(that), new_body_result);
 
         return super.forLocalVarDeclOnly( that, that.getInfo(),
-                            new_body_result, that.getLhs(), that.getRhs() );
+                                          new_body, that.getLhs(), that.getRhs() );
     }
 
     @Override
