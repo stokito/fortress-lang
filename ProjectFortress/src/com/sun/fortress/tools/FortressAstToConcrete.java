@@ -1941,7 +1941,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forChainExprOnly(ChainExpr that, String info, String first_result, List<String> links_result) {
+    public String forChainExprOnly(ChainExpr that,
+                                   String info,
+                                   String first_result,
+                                   List<String> links_result,
+                                   String and_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(first_result);
@@ -2836,4 +2840,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String forDummyExprOnly(DummyExpr that, String info_result) {
         return String.format("$dummy (* %s *)", NodeUtil.getExprType(that));
     }
+
+    @Override
+    public String forMethodInfoOnly(MethodInfo that, String selfType_result) {
+        return "";
+    }
+    
+    
 }

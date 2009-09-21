@@ -160,6 +160,12 @@ Component comp = (Component) component.ast();
             comp = (Component) coercionDesugarer.walk(comp);
         }
 
+        // Desugar chain exprs into compound operator expressions.
+        if (Shell.getChainExprDesugaring()) {
+            ChainExprDesugarer chainExprDesugarer = new ChainExprDesugarer();
+            comp = (Component) chainExprDesugarer.walk(comp);
+        }
+
         if (Shell.getGetterSetterDesugaring()) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);

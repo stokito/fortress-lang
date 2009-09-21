@@ -1236,7 +1236,7 @@ public class ExprFactory {
                                           Option<Type> ty,
                                           Expr first, List<Link> links) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
-        return new ChainExpr(info, first, links);
+        return new ChainExpr(info, first, links, makeInfixAnd(span));
     }
 
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
@@ -1631,6 +1631,10 @@ public class ExprFactory {
 
     public static FunctionalRef makeInfixIn(Span span){
         return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "IN")));
+    }
+
+    public static FunctionalRef makeInfixAnd(Span span){
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "AND")));
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {

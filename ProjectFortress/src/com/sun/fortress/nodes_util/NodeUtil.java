@@ -82,12 +82,16 @@ public class NodeUtil {
 // let span_two (one : 'a node) (two : 'b node) : span =
 //   join one.node_span two.node_span
 
-    public static Span spanTwo(ASTNode s1, ASTNode s2) {
-        return new Span(getSpan(s1).getBegin(), getSpan(s2).getEnd());
-    }
-
     public static Span spanTwo(Span s1, Span s2) {
         return new Span(s1.getBegin(), s2.getEnd());
+    }
+
+    public static Span spanTwo(ASTNode s1, ASTNode s2) {
+        return spanTwo(getSpan(s1), getSpan(s2));
+    }
+
+    public static Span spanTwo(Expr e1, Expr e2) {
+        return spanTwo(getSpan(e1), getSpan(e2));
     }
 
 // let rec span_all (com.sun.fortress.interpreter.nodes : 'a node list) : span =

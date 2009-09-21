@@ -23,6 +23,7 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.typechecker._
@@ -385,10 +386,10 @@ trait Operators { self: STypeChecker with Common =>
         getOrElse(checkExpr(args.reduceLeft(infixAssociate)))
     }
 
-    case SChainExpr(SExprInfo(span,parenthesized,_), first, links) => {
+    case SChainExpr(SExprInfo(span,parenthesized,_), first, links, andOp) => {
       // Build up a list of OpExprs from the Links (in reverse).
-      def makeOpExpr(prevAndResult: (Expr, List[Expr]),
-                       nextLink: Link): (Expr, List[Expr]) = {
+      def makeOpExpr(prevAndResult: (Expr, List[OpExpr]),
+                       nextLink: Link): (Expr, List[OpExpr]) = {
         val (prev, result) = prevAndResult
         val next = nextLink.getExpr()
         val op = nextLink.getOp()
@@ -398,24 +399,43 @@ trait Operators { self: STypeChecker with Common =>
                                              next)
         (next, newExpr :: result)
       }
-      val (_, conjuncts) = links.foldLeft((first, List[Expr]()))(makeOpExpr)
+      val (_, conjuncts) = links.foldLeft((first, List[OpExpr]()))(makeOpExpr)
 
 
-      // Check that an expr is a Boolean.
-      def checkBoolean(expr: Expr): Boolean = {
-        getType(checkExpr(expr)) match {
+      // Check that every OpExpr formed from Links is a Boolean, and get out
+      // its checked FnRef.
+      def checkBoolean(expr: OpExpr): Option[FunctionalRef] = {
+        val checked = checkExpr(expr).asInstanceOf[OpExpr]
+        getType(checked) match {
           case Some(ty) =>
             isSubtype(ty, Types.BOOLEAN, expr,
-                      errorMsg("The chained expression ",
-                               " should have type Boolean, but had type ", normalize(ty), "."))
-          case _ => false
+                      errorMsg("The chained expression should have type Boolean, but had type ", normalize(ty), "."))
+            Some(checked.getOp)
+          case _ => None
         }
       }
-      if (!conjuncts.forall(checkBoolean)) return expr
+      val fnRefs = conjuncts.flatMap(checkBoolean)
+      if (conjuncts.size != fnRefs.size) return expr
+      
+      // For each link, insert the corresponding checked FnRef and check it.
+      val newLinks = List.map2(links, fnRefs) {
+        case (SLink(info, _, expr), fnRef) =>
+          SLink(info, fnRef, checkExpr(expr)).asInstanceOf[Link]
+      }
+      
+      // Check a dummy OpExpr for the AND operation.
+      val andExpr = EF.makeOpExpr(NF.typeSpan,
+                                  andOp,
+                                  makeDummyFor(Types.BOOLEAN),
+                                  makeDummyFor(Types.BOOLEAN))
+      
+      // Check it and pull out the checked AND op.
+      val checkedAndOp = checkExpr(andExpr).asInstanceOf[OpExpr].getOp
 
-      // Reduce the OpExprs with an AND operation.
-      SChainExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), checkExpr(first),
-                 links.map(t => check(t).asInstanceOf[Link]))
+      SChainExpr(SExprInfo(span, parenthesized, Some(Types.BOOLEAN)),
+                 checkExpr(first),
+                 newLinks,
+                 checkedAndOp)
     }
 
     // A singleton ordinary assignment. e.g. x := e
