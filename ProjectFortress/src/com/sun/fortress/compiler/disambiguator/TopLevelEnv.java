@@ -245,8 +245,11 @@ public class TopLevelEnv extends NameEnv {
                 } else { // fnName instanceof Op
                     Op _opName = (Op) fnName;
                     Op name = copyOpWithNewAPIName(_opName, apiEntry.getKey());
+                    /* r4187
                     boolean found = false;
+                    */
                     // NEB: I put this code here because I don't see why we shouldn't qualify Ops as well...
+                    /* r4187
                     for (IdOrOpOrAnonymousName f : ops_result.keySet()) {
                         if (f instanceof Op && ((Op)f).getText().equals(_opName.getText())) {
                             ops_result.get(f).add(name);
@@ -254,6 +257,14 @@ public class TopLevelEnv extends NameEnv {
                         }
                     }
                     if (!found) {
+                        Set<Op> matches = new HashSet<Op>();
+                        matches.add(name);
+                        ops_result.put(_opName, matches);
+                    }
+                    */
+                    if (ops_result.containsKey(_opName)) {
+                        ops_result.get(_opName).add(name);
+                    } else {
                         Set<Op> matches = new HashSet<Op>();
                         matches.add(name);
                         ops_result.put(_opName, matches);
@@ -415,6 +426,7 @@ public class TopLevelEnv extends NameEnv {
                 else result_id = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
             } else result_id = name;
             result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_id));
+        /* r4187
         } else if (name instanceof Op) {
             for (IdOrOpOrAnonymousName f : _current.functions().firstSet()) {
                 if (f instanceof Op && ((Op)f).getText().equals(((Op)name).getText())) {
@@ -422,6 +434,7 @@ public class TopLevelEnv extends NameEnv {
                     result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_op));
                 }
             }
+        */
         }
 
         // Also add imports
@@ -529,11 +542,18 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Op> onDemandFunctionNames(Op name) {
+        /* r4187
         for (Op op : _onDemandFunctionOps.keySet()) {
             if (op.getText().equals(name.getText()))
                 return _onDemandFunctionOps.get(op);
         }
         return new HashSet<Op>();
+        */
+        if (_onDemandFunctionOps.containsKey(name)) {
+            return _onDemandFunctionOps.get(name);
+        } else {
+            return new HashSet<Op>();
+        }
     }
 
     public Set<Pair<ApiIndex, ParametricOperator>> onDemandParametricOps() {
@@ -787,6 +807,7 @@ public class TopLevelEnv extends NameEnv {
         Predicate2<IdOrOpOrAnonymousName, Function> pred =
             new Predicate2<IdOrOpOrAnonymousName, Function>() {
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
+                /* r4187
                 if (arg0 instanceof Op) {
                     String op = ((Op)arg0).getText();
                     for (IdOrOpOrAnonymousName f : allowed_) {
@@ -795,6 +816,7 @@ public class TopLevelEnv extends NameEnv {
                     }
                     return false;
                 } else
+                */
                     return allowed_.contains(arg0);
             }
 

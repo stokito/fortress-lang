@@ -116,6 +116,7 @@ public abstract class CompilationUnitIndex {
                     _typeConses.keySet().contains(id) ||
                     _dimensions.keySet().contains(id) ||
                     _units.keySet().contains(id));
+        /* r4187
         } else if (name instanceof Op) {
             String op = ((Op)name).getText();
             for (IdOrOpOrAnonymousName f : _functions.firstSet()) {
@@ -129,6 +130,19 @@ public abstract class CompilationUnitIndex {
         } else {
             if (_functions.firstSet().contains(name)) return true;
             else return false;
+        }
+        */
+        } else {
+            if (_functions.firstSet().contains(name)) return true;
+            else {
+                if (name instanceof Op) {
+                    Op op = (Op) name;
+                    for (ParametricOperator opr : _parametricOperators) {
+                        if (opr.name().getText().equals(op.getText())) return true;
+                    }
+                    return false;
+                } else return false;
+            }
         }
     }
 }
