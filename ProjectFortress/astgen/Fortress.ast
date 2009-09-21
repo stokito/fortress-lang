@@ -924,7 +924,9 @@ interface Node() extends HasAt;
                          * delivering boolean results, may be chained.
                          * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                          */
-                        ChainExpr(Expr first, List<Link> links);
+                        ChainExpr(Expr first,
+                                  List<Link> links,
+                                  FunctionalRef andOp);
                         /**
                          * coercion invocation
                          * internal node created by static analysis

@@ -22,6 +22,7 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
@@ -35,8 +36,7 @@ class TempVarDecl(val refs: List[VarRef], val rhs: Option[Expr]) {
 
   /** Create a list of LValues from the VarRefs. */
   def makeLValues: List[LValue] =
-    try { refs.map(ref => NF.makeLValue(ref.getVarId, getType(ref).get)) }
-    catch { case _:NoSuchElementException => bug("VarRef had no type") }
+    refs.map(ref => NF.makeLValue(NU.getSpan(ref), ref.getVarId, getType(ref)))
 
   /** Create a LocalVarDecl using the given body exprs. */
   def makeLocalVarDecl(body: List[Expr]): LocalVarDecl = {
@@ -44,14 +44,13 @@ class TempVarDecl(val refs: List[VarRef], val rhs: Option[Expr]) {
                                    toJavaList(body),
                                    toJavaList(makeLValues),
                                    toJavaOption(rhs))
+    // If the body hasn't been typed yet, just use the decl without a type.
+    if (!haveTypes(body)) return decl
+    
+    // Otherwise get a type for the body and the decl.
     val declType = body.size match {
       case 0 => Types.VOID
-      case _ =>
-        try { getType(body.last).get }
-        catch {
-          case _:NoSuchElementException =>
-            bug("Tried to make LocalVarDecl with body that had no type.")
-        }
+      case _ => getType(body.last).get
     }
     addType(decl, declType).asInstanceOf[LocalVarDecl]
   }

@@ -80,6 +80,25 @@ object SExprUtil {
     }
     adder(expr).asInstanceOf[Expr]
   }
+  
+  /**
+   * Given an expression, return an identical expression that is either
+   * parenthesized or not.
+   */
+  def setParenthesized(expr: Expr, paren: Boolean): Expr = {
+    object setter extends Walker {
+      var swap = false
+
+      override def walk(node: Any): Any = node match {
+        case SExprInfo(a, _, b) if !swap =>
+          swap = true
+          SExprInfo(a, paren, b)
+        case _ if (!swap) => super.walk(node)
+        case _ => node
+      }
+    }
+    setter(expr).asInstanceOf[Expr]
+  }
 
   /**
    * Replaces the overloadings in a FunctionalRef with the given overloadings

@@ -271,6 +271,10 @@ public final class Shell {
         return compileProperties.use_scala && compileProperties.coercion_desugar;
     }
 
+    public static boolean getChainExprDesugaring(){
+        return compileProperties.use_scala && compileProperties.chainexpr_desugar;
+    }
+
     public static void setMacro(boolean macro) {
         compileProperties.macro = macro;
     }
@@ -301,6 +305,10 @@ public final class Shell {
 
     public static void setCoercionDesugaring(boolean desugar){
         compileProperties.coercion_desugar = desugar;
+    }
+
+    public static void setChainExprDesugaring(boolean desugar){
+        compileProperties.chainexpr_desugar = desugar;
     }
 
     /**
@@ -1219,6 +1227,7 @@ public final class Shell {
         boolean test_coercion = ProjectProperties.getBoolean("fortress.compile.testcoercion",false); // test coercion
         boolean assignment_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.assignment",true); // run assignment desugaring or not
         boolean coercion_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.coercion",true); // run coercion desugaring or not
+        boolean chainexpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.chainexpr",true); // run chain expr desugaring or not
     }
 
 }
