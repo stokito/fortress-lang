@@ -13,10 +13,10 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Overriding
+tests=Compiled9.Overriding
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 
 compile
+link
 run
-
 run_out_equals=O.m\n

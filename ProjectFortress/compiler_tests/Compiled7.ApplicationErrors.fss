@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ApplicationErrors
 export Executable
 
   identity[\T\](x: T): T = x
@@ -38,4 +37,3 @@ export Executable
   call6() = baz(fn (x):ZZ32 => x)
 
   run() = ()
-end

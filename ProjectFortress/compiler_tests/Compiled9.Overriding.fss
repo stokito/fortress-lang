@@ -21,7 +21,7 @@ trait S extends Object
   m() = "S.m"
 end
 
-trait T extends Object 
+trait T extends Object
   m() = "T.m"
 end
 
