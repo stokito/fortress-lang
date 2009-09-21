@@ -222,15 +222,14 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    private static Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>> initializeOnDemandFunctionNames(
-            Map<APIName, ApiIndex> imported_apis) {
+    private static Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>>
+                   initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) {
         Map<Id, Set<Id>> fun_result = new HashMap<Id, Set<Id>>();
         Map<Op, Set<Op>> ops_result = new HashMap<Op, Set<Op>>();
         Set<Pair<ApiIndex, ParametricOperator>> paramOpsResult = new HashSet<Pair<ApiIndex, ParametricOperator>>();
 
         for (Map.Entry<APIName, ApiIndex> apiEntry : imported_apis.entrySet()) {
             for (IdOrOpOrAnonymousName fnName : apiEntry.getValue().functions().firstSet()) {
-
                 if (fnName instanceof Id) {
                     Id _fnName = (Id) fnName;
                     Id name = NodeFactory.makeId(NodeUtil.getSpan(_fnName),
@@ -246,11 +245,15 @@ public class TopLevelEnv extends NameEnv {
                 } else { // fnName instanceof Op
                     Op _opName = (Op) fnName;
                     Op name = copyOpWithNewAPIName(_opName, apiEntry.getKey());
+                    boolean found = false;
                     // NEB: I put this code here because I don't see why we shouldn't qualify Ops as well...
-
-                    if (ops_result.containsKey(_opName)) {
-                        ops_result.get(_opName).add(name);
-                    } else {
+                    for (IdOrOpOrAnonymousName f : ops_result.keySet()) {
+                        if (f instanceof Op && ((Op)f).getText().equals(_opName.getText())) {
+                            ops_result.get(f).add(name);
+                            found = true;
+                        }
+                    }
+                    if (!found) {
                         Set<Op> matches = new HashSet<Op>();
                         matches.add(name);
                         ops_result.put(_opName, matches);
@@ -411,15 +414,22 @@ public class TopLevelEnv extends NameEnv {
                                                                        NodeUtil.getSpan(name));
                 else result_id = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
             } else result_id = name;
-
             result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_id));
+        } else if (name instanceof Op) {
+            for (IdOrOpOrAnonymousName f : _current.functions().firstSet()) {
+                if (f instanceof Op && ((Op)f).getText().equals(((Op)name).getText())) {
+                    Op result_op = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
+                    result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_op));
+                }
+            }
         }
 
         // Also add imports
         result = CollectUtil.union(result, this.onDemandFunctionNames(name));
 
-        if (_aliases.containsKey(name)) result = CollectUtil.union(result, explicitFunctionNames((IdOrOp) _aliases.get(
-                name)));
+        if (_aliases.containsKey(name))
+            result = CollectUtil.union(result,
+                                       explicitFunctionNames((IdOrOp) _aliases.get(name)));
 
         return result;
     }
@@ -519,11 +529,11 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Op> onDemandFunctionNames(Op name) {
-        if (_onDemandFunctionOps.containsKey(name)) {
-            return _onDemandFunctionOps.get(name);
-        } else {
-            return new HashSet<Op>();
+        for (Op op : _onDemandFunctionOps.keySet()) {
+            if (op.getText().equals(name.getText()))
+                return _onDemandFunctionOps.get(op);
         }
+        return new HashSet<Op>();
     }
 
     public Set<Pair<ApiIndex, ParametricOperator>> onDemandParametricOps() {
@@ -774,15 +784,18 @@ public class TopLevelEnv extends NameEnv {
     private ApiIndex keep(ApiIndex index,
                           final Set<IdOrOpOrAnonymousName> allowed_,
                           final Set<AliasedSimpleName> aliased_) {
-
-        //         System.err.println("keep called with allowed_=");
-        //         for (IdOrOpOrAnonymousName a : allowed_) {
-        //              System.err.println(a.getClass() + " " + a);
-        //         }
-        //         System.err.println("end allowed_");
-        Predicate2<IdOrOpOrAnonymousName, Function> pred = new Predicate2<IdOrOpOrAnonymousName, Function>() {
+        Predicate2<IdOrOpOrAnonymousName, Function> pred =
+            new Predicate2<IdOrOpOrAnonymousName, Function>() {
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
-                return allowed_.contains(arg0);
+                if (arg0 instanceof Op) {
+                    String op = ((Op)arg0).getText();
+                    for (IdOrOpOrAnonymousName f : allowed_) {
+                        if (f instanceof Op && ((Op)f).getText().equals(op))
+                            return true;
+                    }
+                    return false;
+                } else
+                    return allowed_.contains(arg0);
             }
 
         };
@@ -840,54 +853,35 @@ public class TopLevelEnv extends NameEnv {
                 final APIName name = that.getApiName();
 
                 // Handle aliased names
-                final List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(),
-                                                                                            new Lambda<AliasedSimpleName, IdOrOpOrAnonymousName>() {
-                                                                                                public IdOrOpOrAnonymousName value(
-                                                                                                        AliasedSimpleName arg0) {
-                                                                                                    //                                  System.err.println("aliased name: " + arg0.getName());
-                                                                                                    if (aliases.containsKey(
-                                                                                                            name)) {
-                                                                                                        aliases.get(name)
-                                                                                                                .add(arg0);
-                                                                                                    } else {
-                                                                                                        aliases.put(name,
-                                                                                                                    Useful.set(
-                                                                                                                            arg0));
-                                                                                                    }
-                                                                                                    // Check whether the imported name is declared in the API.
-                                                                                                    IdOrOpOrAnonymousName
-                                                                                                            imported_name =
-                                                                                                            arg0.getName();
-                                                                                                    //                                 System.err.println("Looking up API name " + name);
-                                                                                                    if (!apis.containsKey(
-                                                                                                            name)) {
-                                                                                                        _errors.add(
-                                                                                                                StaticError.make(
-                                                                                                                        errorMsg(
-                                                                                                                                "Reference to API ",
-                                                                                                                                name,
-                                                                                                                                " cannot be resolved."),
-                                                                                                                        that));
-                                                                                                    } else if (!apis.get(
-                                                                                                            name)
-                                                                                                            .declared(
-                                                                                                                    imported_name)) {
-                                                                                                        _errors.add(
-                                                                                                                StaticError.make(
-                                                                                                                        errorMsg(
-                                                                                                                                "Attempt to import ",
-                                                                                                                                imported_name,
-                                                                                                                                " from the API ",
-                                                                                                                                name,
-                                                                                                                                "\n    which does not declare ",
-                                                                                                                                imported_name +
-                                                                                                                                "."),
-                                                                                                                        that));
-                                                                                                    }
-                                                                                                    return imported_name;
-                                                                                                }
-                                                                                            }));
-                //                 System.out.println("names: " + names);
+                Lambda<AliasedSimpleName, IdOrOpOrAnonymousName> lambda =
+                new Lambda<AliasedSimpleName, IdOrOpOrAnonymousName>() {
+                    public IdOrOpOrAnonymousName value(AliasedSimpleName arg0) {
+                        //                                  System.err.println("aliased name: " + arg0.getName());
+                        if (aliases.containsKey(name)) {
+                            aliases.get(name).add(arg0);
+                        } else {
+                            aliases.put(name, Useful.set(arg0));
+                        }
+                        // Check whether the imported name is declared in the API.
+                        IdOrOpOrAnonymousName imported_name = arg0.getName();
+    //System.err.println("Looking up API name " + name);
+                        if (!apis.containsKey(name)) {
+                            _errors.add(StaticError.make(errorMsg("Reference to API ", name,
+                                                                  " cannot be resolved."),
+                                                         that));
+                        } else if (!apis.get(name).declared(imported_name)) {
+                            _errors.add(StaticError.make(errorMsg("Attempt to import ", imported_name,
+                                                                  " from the API ", name,
+                                                                  "\n    which does not declare ",
+                                                                  imported_name + "."),
+                                                         that));
+                        }
+                        return imported_name;
+                    }
+                };
+                final List<IdOrOpOrAnonymousName> names =
+                    CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), lambda));
+    //System.out.println("names: " + names);
 
                 if (allowed.containsKey(name)) allowed.get(name).addAll(names);
                 else allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
@@ -924,11 +918,12 @@ public class TopLevelEnv extends NameEnv {
                 Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
                 result.put(name, remove(index, exceptions_));
             } else if (allowed.containsKey(name)) {
-                //                 System.err.println("allowed API: " + name);
-                //                 System.err.println("allowed index: " + index);
+    //System.err.println("allowed API: " + name);
+    //System.err.println("allowed index: " + index);
                 Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
-                //                 System.err.println("allowed names: " + allowed_);
+    //System.err.println("allowed names: " + allowed_);
                 Set<AliasedSimpleName> aliased_ = aliases.get(name);
+    //System.err.println("aliased names: " + aliased_);
                 result.put(name, keep(index, allowed_, aliased_));
             } else if (name.getText().equals(WellKnownNames.fortressBuiltin())) {
                 // Fortress builtin is always implicitly imported
@@ -944,9 +939,9 @@ public class TopLevelEnv extends NameEnv {
 
         // Now handle aliases
 
-        //         System.err.println("result");
-        //         System.err.println(result);
-        //         System.err.println("end result");
+        //                         System.err.println("result");
+        //                         System.err.println(result);
+        //                         System.err.println("end result");
         return result;
     }
 }
