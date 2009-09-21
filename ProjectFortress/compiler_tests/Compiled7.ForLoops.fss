@@ -14,7 +14,6 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component ForLoops
 export Executable
 
   doNothing() = ()
@@ -24,5 +23,3 @@ export Executable
     end
     printlnZZ32 0
   end
-
-end

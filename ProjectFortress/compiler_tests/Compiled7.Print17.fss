@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Print17
 export Executable
 
 (* First-order version of Compiled7 *)
@@ -26,5 +25,3 @@ run(): () = do
 (*    println((17.0).asString()) *)
     println((23.0 - 6.0).asString())
   end
-
-end
