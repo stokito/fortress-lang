@@ -111,18 +111,24 @@ public abstract class CompilationUnitIndex {
     public boolean declared(IdOrOpOrAnonymousName name) {
         if (name instanceof Id) {
             Id id = (Id) name;
-            return (_variables.keySet().contains(id) || _functions.firstSet().contains(id) || _typeConses.keySet().contains(id) || _dimensions.keySet().contains(id) || _units.keySet().contains(id));
+            return (_variables.keySet().contains(id) ||
+                    _functions.firstSet().contains(id) ||
+                    _typeConses.keySet().contains(id) ||
+                    _dimensions.keySet().contains(id) ||
+                    _units.keySet().contains(id));
+        } else if (name instanceof Op) {
+            String op = ((Op)name).getText();
+            for (IdOrOpOrAnonymousName f : _functions.firstSet()) {
+                if (f instanceof Op && ((Op)f).getText().equals(op))
+                    return true;
+            }
+            for (ParametricOperator opr : _parametricOperators) {
+                if (opr.name().getText().equals(op)) return true;
+            }
+            return false;
         } else {
             if (_functions.firstSet().contains(name)) return true;
-            else {
-                if (name instanceof Op) {
-                    Op op = (Op) name;
-                    for (ParametricOperator opr : _parametricOperators) {
-                        if (opr.name().getText().equals(op.getText())) return true;
-                    }
-                    return false;
-                } else return false;
-            }
+            else return false;
         }
     }
 }

@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component OprImportChecks
+
 import Operators.{opr OP, opr |, opr | |}
 export Executable
 
@@ -23,6 +23,4 @@ run() = do
  (3)OP
  |"first", "second"|
  "first" | "second"
-end
-
 end
