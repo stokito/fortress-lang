@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -428,6 +429,12 @@ public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fc
                         */
                         if (!p1.equals(p2)) distinct = true; // This seems wrong/unnecessary
                     }
+
+                    if ( o1.getFn().getFnName() instanceof Op &&
+                         o2.getFn().getFnName() instanceof Op &&
+                         ((Op)o1.getFn().getFnName()).getFixity() !=
+                         ((Op)o2.getFn().getFnName()).getFixity() )
+                        distinct = true;
 
                     if (p1.excludesOther(p2)) {
                         exclDumpln("distinct.");

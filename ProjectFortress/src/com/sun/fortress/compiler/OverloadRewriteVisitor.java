@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.DefaultComparator;
@@ -58,7 +60,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             return x.getUnambiguousName();
         }
     };
-    
+
     public final static Comparator<Overloading> overloadComparator = new Comparator<Overloading>() {
 
         @Override
@@ -81,25 +83,24 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                 Type t2 = ot2.unwrap();
                 return NodeComparator.typeComparer.compare(t1, t2);
             }
-            
-        } 
+        }
     };
-    
+
     public final static Comparator<List<? extends Overloading>> overloadListComparator = new AnyListComparer<Overloading>(overloadComparator);
-    
+
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedFunctions = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedOperators = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
-    
+
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
                              Option<List<FunctionalRef>> opt_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
-        
+
         Collections.<Overloading>sort(newOverloadings, overloadComparator);
         fns = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
-        
+
         if (newOverloadings.size() > 1) {
             // Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
@@ -124,7 +125,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         } else {
             fns = Collections.unmodifiableList(Collections.singletonList(originalName));
         }
-  
+
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
                 opt_overloadings, Collections.<Overloading>emptyList(), type_result);
     }
@@ -136,8 +137,25 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              Option<List<FunctionalRef>> opt_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
+        Op originalOp = (Op)originalName;
         Collections.<Overloading>sort(newOverloadings, overloadComparator);
         ops = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
+        List<IdOrOp> newOps = new ArrayList<IdOrOp>();
+        List<Overloading> newNewOverloadings = new ArrayList<Overloading>();
+
+        for (int i = 0; i < ops.size(); i++) {
+            Op op_i = (Op)ops.get(i);
+            if (OprUtil.equal(op_i.getFixity(), originalOp.getFixity())) {
+                newOps.add(op_i);
+                newNewOverloadings.add(newOverloadings.get(i));
+            }
+        }
+
+        ops = new ArrayList<IdOrOp>();
+        newOverloadings = new ArrayList<Overloading>();
+        ops.addAll(newOps);
+        newOverloadings.addAll(newNewOverloadings);
+
        if (newOverloadings.size() > 1) {
             // Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
 
@@ -157,9 +175,9 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             }
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
-        }
+       }
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
-                opt_overloadings, newOverloadings, type_result);
+                                  opt_overloadings, newOverloadings, type_result);
     }
 
 

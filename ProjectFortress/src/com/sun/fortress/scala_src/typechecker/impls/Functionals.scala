@@ -298,7 +298,7 @@ trait Functionals { self: STypeChecker with Common =>
   /**
    * Try to infer the parameter type on the given unchecked FnExpr. This will
    * check the expression, then return either the checked expression (possibly
-   * applying a coercion) or a BodyError on failure.  
+   * applying a coercion) or a BodyError on failure.
    */
   def inferFnExprParams(unchecked: FnExpr,
                         paramType: ArrowType,
@@ -589,7 +589,6 @@ trait Functionals { self: STypeChecker with Common =>
       val opType = getType(checkedOp).getOrElse(return expr)
       val arrows = getArrowsForFunction(opType, expr).getOrElse(return expr)
       implicit val errorFactory = new ApplicationErrorFactory(expr, None)
-
       // Type check the application.
       val (smaArrow, infSargs, checkedArgs) =
         checkApplication(arrows, args, expected).getOrElse(return expr)
@@ -610,7 +609,7 @@ trait Functionals { self: STypeChecker with Common =>
       }
 
       val bodyType = declaredRetType.orElse(expectedRetType)
-      
+
       // Make sure all params have a type.
       val domain = makeDomainType(params).getOrElse {
         signal(expr, "Could not determine all parameter types of function expression.")

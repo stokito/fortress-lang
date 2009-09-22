@@ -298,7 +298,6 @@ public class BetterEnv extends BaseEnv {
      */
     public FValue getValueRaw(String s) {
         FValue v = get(var_env, s);
-
         return v;
     }
 
