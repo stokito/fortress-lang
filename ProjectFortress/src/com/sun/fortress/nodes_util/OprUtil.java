@@ -17,14 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Fixity;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.UnknownFixity;
-import com.sun.fortress.nodes.PostFixity;
-import com.sun.fortress.nodes.PreFixity;
+import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
 
 public final class OprUtil {
@@ -155,4 +148,13 @@ public final class OprUtil {
                       o.getFixity(), o.isEnclosing());
     }
 
+    public static boolean equal(Fixity l, Fixity r) {
+        return ((l instanceof    InFixity && r instanceof    InFixity) ||
+                (l instanceof   PreFixity && r instanceof   PreFixity) ||
+                (l instanceof  PostFixity && r instanceof  PostFixity) ||
+                (l instanceof    NoFixity && r instanceof    NoFixity) ||
+                (l instanceof MultiFixity && r instanceof MultiFixity) ||
+                (l instanceof   BigFixity && r instanceof   BigFixity) ||
+                (l instanceof EnclosingFixity && r instanceof EnclosingFixity));
+    }
 }

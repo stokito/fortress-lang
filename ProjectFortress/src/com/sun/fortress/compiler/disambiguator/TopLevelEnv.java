@@ -245,11 +245,8 @@ public class TopLevelEnv extends NameEnv {
                 } else { // fnName instanceof Op
                     Op _opName = (Op) fnName;
                     Op name = copyOpWithNewAPIName(_opName, apiEntry.getKey());
-                    /* r4187
-                    boolean found = false;
-                    */
                     // NEB: I put this code here because I don't see why we shouldn't qualify Ops as well...
-                    /* r4187
+                    boolean found = false;
                     for (IdOrOpOrAnonymousName f : ops_result.keySet()) {
                         if (f instanceof Op && ((Op)f).getText().equals(_opName.getText())) {
                             ops_result.get(f).add(name);
@@ -261,7 +258,7 @@ public class TopLevelEnv extends NameEnv {
                         matches.add(name);
                         ops_result.put(_opName, matches);
                     }
-                    */
+                    /* r4187
                     if (ops_result.containsKey(_opName)) {
                         ops_result.get(_opName).add(name);
                     } else {
@@ -269,6 +266,7 @@ public class TopLevelEnv extends NameEnv {
                         matches.add(name);
                         ops_result.put(_opName, matches);
                     }
+                    */
                 }
             }
             // Accumulate parametrically named operators from imported APIs.
@@ -426,7 +424,6 @@ public class TopLevelEnv extends NameEnv {
                 else result_id = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
             } else result_id = name;
             result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_id));
-        /* r4187
         } else if (name instanceof Op) {
             for (IdOrOpOrAnonymousName f : _current.functions().firstSet()) {
                 if (f instanceof Op && ((Op)f).getText().equals(((Op)name).getText())) {
@@ -434,7 +431,6 @@ public class TopLevelEnv extends NameEnv {
                     result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_op));
                 }
             }
-        */
         }
 
         // Also add imports
@@ -542,18 +538,11 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Op> onDemandFunctionNames(Op name) {
-        /* r4187
         for (Op op : _onDemandFunctionOps.keySet()) {
             if (op.getText().equals(name.getText()))
                 return _onDemandFunctionOps.get(op);
         }
         return new HashSet<Op>();
-        */
-        if (_onDemandFunctionOps.containsKey(name)) {
-            return _onDemandFunctionOps.get(name);
-        } else {
-            return new HashSet<Op>();
-        }
     }
 
     public Set<Pair<ApiIndex, ParametricOperator>> onDemandParametricOps() {
@@ -807,7 +796,6 @@ public class TopLevelEnv extends NameEnv {
         Predicate2<IdOrOpOrAnonymousName, Function> pred =
             new Predicate2<IdOrOpOrAnonymousName, Function>() {
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
-                /* r4187
                 if (arg0 instanceof Op) {
                     String op = ((Op)arg0).getText();
                     for (IdOrOpOrAnonymousName f : allowed_) {
@@ -816,7 +804,6 @@ public class TopLevelEnv extends NameEnv {
                     }
                     return false;
                 } else
-                */
                     return allowed_.contains(arg0);
             }
 
@@ -886,7 +873,7 @@ public class TopLevelEnv extends NameEnv {
                         }
                         // Check whether the imported name is declared in the API.
                         IdOrOpOrAnonymousName imported_name = arg0.getName();
-    //System.err.println("Looking up API name " + name);
+                        //    System.err.println("Looking up API name " + name);
                         if (!apis.containsKey(name)) {
                             _errors.add(StaticError.make(errorMsg("Reference to API ", name,
                                                                   " cannot be resolved."),
@@ -903,7 +890,7 @@ public class TopLevelEnv extends NameEnv {
                 };
                 final List<IdOrOpOrAnonymousName> names =
                     CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), lambda));
-    //System.out.println("names: " + names);
+                //    System.out.println("names: " + names);
 
                 if (allowed.containsKey(name)) allowed.get(name).addAll(names);
                 else allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
@@ -940,12 +927,12 @@ public class TopLevelEnv extends NameEnv {
                 Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
                 result.put(name, remove(index, exceptions_));
             } else if (allowed.containsKey(name)) {
-    //System.err.println("allowed API: " + name);
-    //System.err.println("allowed index: " + index);
                 Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
-    //System.err.println("allowed names: " + allowed_);
                 Set<AliasedSimpleName> aliased_ = aliases.get(name);
-    //System.err.println("aliased names: " + aliased_);
+                //    System.err.println("allowed API: " + name);
+                //    System.err.println("allowed index: " + index);
+                //    System.err.println("allowed names: " + allowed_);
+                //    System.err.println("aliased names: " + aliased_);
                 result.put(name, keep(index, allowed_, aliased_));
             } else if (name.getText().equals(WellKnownNames.fortressBuiltin())) {
                 // Fortress builtin is always implicitly imported
@@ -961,9 +948,9 @@ public class TopLevelEnv extends NameEnv {
 
         // Now handle aliases
 
-        //                         System.err.println("result");
-        //                         System.err.println(result);
-        //                         System.err.println("end result");
+//                         System.err.println("result");
+//                         System.err.println(result);
+//                         System.err.println("end result");
         return result;
     }
 }
