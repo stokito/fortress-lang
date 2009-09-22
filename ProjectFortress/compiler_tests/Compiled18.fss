@@ -75,8 +75,8 @@ run(): () = do
     (* This one doesn't appear to type check, even though the other three do.
        Baffling! *)
     println(__bigOperator(ReductionString,
-                          fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString()))))
-    println(BIG ||[n <- 0:100] (2 n + 1).asString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString())
-    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString())
+                          fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString))))
+    println(BIG ||[n <- 0:100] (2 n + 1).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString)
   end

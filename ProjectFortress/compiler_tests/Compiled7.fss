@@ -25,7 +25,7 @@ errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 expect = 1.391570583 10.0^12
 
-RR64ToString(x:RR64): String = x.asString()
+RR64ToString(x:RR64): String = x.asString
 
 fun(x: RR64): RR64 = x (x x + 1.0)
 

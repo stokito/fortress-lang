@@ -210,7 +210,7 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
   end intersection
 
 object dumpShow[\I\](r:Range[\I\]) extends Equality[\dumpShow[\I\]\]
-    getter asString(): String = r.asDebugString "==" r.asString()
+    getter asString(): String = r.asDebugString "==" r.asString
     opr =(self, other:dumpShow[\I\]): Boolean = self.r = other.r
 end
 
