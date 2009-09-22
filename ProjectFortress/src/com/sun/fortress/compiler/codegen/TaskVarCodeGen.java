@@ -60,7 +60,7 @@ public class TaskVarCodeGen extends VarCodeGen {
         mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
         mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
                           name.getText(),
-                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone)) ;
+                          NamingCzar.jvmTypeDesc(fortressType, ifNone)) ;
 
     }
 
@@ -71,7 +71,7 @@ public class TaskVarCodeGen extends VarCodeGen {
     public void assignValue(CodeGenMethodVisitor mv) {
         mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass,
                           name.getText(),
-                          NamingCzar.only.jvmTypeDesc(fortressType, ifNone)
+                          NamingCzar.jvmTypeDesc(fortressType, ifNone)
                           );
     }
 

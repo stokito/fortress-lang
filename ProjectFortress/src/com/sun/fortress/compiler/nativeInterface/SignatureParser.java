@@ -191,7 +191,7 @@ public class SignatureParser {
      * @return
      */
     private String toImplFFFF(String arg_desc) {
-        com.sun.fortress.nodes.Type ftype = NamingCzar.only.fortressTypeForForeignJavaType(arg_desc);
+        com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(arg_desc);
         if (ftype == null)
             error("No Fortress type (yet) for foreign Java type descriptor '" + arg_desc + "'");
         String desc = NamingCzar.boxedImplDesc(ftype, null);

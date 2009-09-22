@@ -65,7 +65,7 @@ gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R
         r.empty()
     end
 
-opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => 0=0)
+opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => true)
 
 opr BIG ||(): ReductionString = ReductionString
 

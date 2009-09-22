@@ -74,7 +74,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // traitsAndObjects appears to be dead code.
     // private final Map<String, ClassWriter> traitsAndObjects =
     //     new BATree<String, ClassWriter>(DefaultComparator.normal());
-    private final HashMap<String, String> aliasTable;
     private final TypeAnalyzer ta;
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
@@ -103,7 +102,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    ComponentIndex ci, GlobalEnvironment env) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName());
-        aliasTable = new HashMap<String, String>();
         this.ta = ta;
         this.pa = pa;
         this.fv = fv;
@@ -126,7 +124,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.cw = c.cw;
         this.mv = c.mv;
         this.packageAndClassName = c.packageAndClassName;
-        this.aliasTable = c.aliasTable;
         this.inATrait = c.inATrait;
         this.inAnObject = c.inAnObject;
         this.inABlock = c.inABlock;
@@ -377,29 +374,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private Pair<String, String> resolveMethodAndSignature(ASTNode x,
             com.sun.fortress.nodes.Type arrow, String methodName) throws Error {
         Pair<String, String> method_and_signature = null;
+        String signature = null;
 
         if ( arrow instanceof ArrowType ) {
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
             // conservative answer is "no".
             methodName = Naming.mangleIdentifier(methodName);
-            method_and_signature =
-                new Pair<String, String>(methodName,
-                                         NamingCzar.jvmMethodDesc(arrow, component.getName()));
+            signature = NamingCzar.jvmMethodDesc(arrow, component.getName());
 
         } else if (arrow instanceof IntersectionType) {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
                     OverloadSet.oMangle(methodName) : Naming.mangleIdentifier(methodName);
 
-            method_and_signature = new Pair<String, String>(methodName,
-                    OverloadSet.getSignature(it, paramCount, ta));
+            signature = OverloadSet.getSignature(it, paramCount, ta);
 
         } else {
                 sayWhat( x, "Neither arrow nor intersection type: " + arrow );
-                throw new Error(); // not reached
         }
-        return method_and_signature;
+        return new Pair<String,String>(methodName, signature);
     }
 
     // paramCount communicates this information from call to function reference,
@@ -1260,45 +1254,43 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
         debug("forFnRef ", x);
-        if (fnRefIsApply)
+        if (fnRefIsApply) {
             forFunctionalRef(x);
-        else {
-            // Not entirely sure about this next bit; how are function-valued parameters referenced?
-            VarCodeGen fn = getLocalVarOrNull(x.getOriginalName());
-            if (fn == null) {
-                // Get it from top level.
-                Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
-                // If it's an overloaded type, oy.
-                com.sun.fortress.nodes.Type arrow = exprType(x);
-                // Capture the overloading foo, mutilate that into the name of the thing that we want.
-                Pair<String, String> method_and_signature = resolveMethodAndSignature(
-                        x, arrow, pc_and_m.getB());
-                /* we now have package+class, method name, and signature.
-                 * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
-                 * Classloader will see this, and it will trigger demangling of the name, to figure
-                 * out the contents of the class to be loaded.
-                 */
-                String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
-                String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
-                String PCN = pc_and_m.getA() + "/" +
-                  Naming.catMangled(
-                    method_and_signature.getA() ,
-                    Naming.ENVELOPE , // "ENVELOPE"
-                    arrow_type);
-                /* The suffix will be
-                 * (potentially mangled)
-                 * functionName<ENVELOPE>closureType (which is an arrow)
-                 *
-                 * must generate code for the class with a method apply, that
-                 * INVOKE_STATICs prefix.functionName .
-                 */
-                mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
-
-            } else {
-                sayWhat(x, "Haven't figured out references to local/parameter functions yet");
-            }
-
+            return;
         }
+        // Not entirely sure about this next bit; how are function-valued parameters referenced?
+        VarCodeGen fn = getLocalVarOrNull(x.getOriginalName());
+        if (fn != null) {
+            sayWhat(x, "Haven't figured out references to local/parameter functions yet");
+            return;
+        }
+        // Get it from top level.
+        Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
+        // If it's an overloaded type, oy.
+        com.sun.fortress.nodes.Type arrow = exprType(x);
+        // Capture the overloading foo, mutilate that into the name of the thing that we want.
+        Pair<String, String> method_and_signature = resolveMethodAndSignature(
+                x, arrow, pc_and_m.getB());
+        /* we now have package+class, method name, and signature.
+         * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
+         * Classloader will see this, and it will trigger demangling of the name, to figure
+         * out the contents of the class to be loaded.
+         */
+        String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
+        String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
+        String PCN = pc_and_m.getA() + "/" +
+          Naming.catMangled(
+            method_and_signature.getA() ,
+            Naming.ENVELOPE , // "ENVELOPE"
+            arrow_type);
+        /* The suffix will be
+         * (potentially mangled)
+         * functionName<ENVELOPE>closureType (which is an arrow)
+         *
+         * must generate code for the class with a method apply, that
+         * INVOKE_STATICs prefix.functionName .
+         */
+        mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
     }
 
     /**
@@ -1323,47 +1315,45 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private Pair<String, String> functionalRefToPackageClassAndMethod(
             FunctionalRef x) {
-        Pair<String, String> calleeInfo;
-
-        String name = idOrOpToString(x.getOriginalName());
         List<IdOrOp> names = x.getNames();
+
+        if ( names.size() != 1) {
+            return sayWhat(x,"Non-unique overloading after rewrite " + x);
+        }
+        return idToPackageClassAndName(names.get(0));
+    }
+
+    private Pair<String, String> idToPackageClassAndName(IdOrOp fnName) {
+        Option<APIName> possibleApiName = fnName.getApiName();
 
         /* Note that after pre-processing in the overload rewriter,
          * there is only one name here; this is not an overload check.
          */
         String calleePackageAndClass = "";
-        String method = "";
+        String method = idOrOpToString(fnName);
 
-        if ( names.size() != 1) {
-            sayWhat(x,"Non-unique overloading after rewrite " + x);
+        if (!possibleApiName.isSome()) {
+            // NOT Foreign, calls same component.
+            // Nothing special to do.
+            calleePackageAndClass = packageAndClassName;
         } else {
-            IdOrOp fnName = names.get(0);
-            Option<APIName> apiName = fnName.getApiName();
-
-            if (!apiName.isSome()) {
-                // NOT Foreign, calls same component.
-                // Nothing special to do.
-                calleePackageAndClass = packageAndClassName;
-                method = idOrOpToString(fnName);
-            } else if (!ForeignJava.only.definesApi(apiName.unwrap())) {
+            APIName apiName = possibleApiName.unwrap();
+            if (!ForeignJava.only.definesApi(apiName)) {
                 // NOT Foreign, calls other component.
                 calleePackageAndClass =
-                    NamingCzar.javaPackageClassForApi(apiName.unwrap());
-
-                method = idOrOpToString(fnName);
-            } else if ( aliasTable.containsKey(name) ) {
+                    NamingCzar.javaPackageClassForApi(apiName);
+            } else {
                 // Foreign function call
                 // TODO this prefix op belongs in naming czar.
-                String n = Naming.NATIVE_PREFIX_DOT + aliasTable.get(name);
+                String n = Naming.NATIVE_PREFIX_DOT + fnName;
                 // Cheating by assuming class is everything before the dot.
                 int lastDot = n.lastIndexOf(".");
                 calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
                 method = n.substring(lastDot+1);
-            } else {
-                sayWhat(x, "Foreign function " + x + " missing from alias table");
             }
         }
-        calleeInfo = new Pair<String, String>(calleePackageAndClass, method);
+        Pair<String, String> calleeInfo =
+            new Pair<String, String>(calleePackageAndClass, method);
         return calleeInfo;
     }
 
@@ -1409,24 +1399,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forImportNames(ImportNames x) {
-        debug("forImportNames", x);
-        Option<String> foreign = x.getForeignLanguage();
-        if ( !foreign.isSome() ) return;
-        if ( !foreign.unwrap().equals("java") ) {
-            sayWhat(x, "Unrecognized foreign import type (only recognize java): "+
-                       foreign.unwrap());
-            return;
-        }
-        String apiName = x.getApiName().getText();
-        for ( AliasedSimpleName n : x.getAliasedNames() ) {
-            Option<IdOrOpOrAnonymousName> aliasId = n.getAlias();
-            if (!(aliasId.isSome())) continue;
-            debug("forImportNames ", x,
-                  " aliasing ", NodeUtil.nameString(aliasId.unwrap()),
-                  " to ", NodeUtil.nameString(n.getName()));
-            aliasTable.put(NodeUtil.nameString(aliasId.unwrap()),
-                           apiName + "." + NodeUtil.nameString(n.getName()));
-        }
+        // No longer need to set up alias table; rely on ForeignJava exclusively instead.
     }
 
     public void forIntLiteralExpr(IntLiteralExpr x) {
@@ -2015,11 +1988,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forVarRef(VarRef v) {
         if (v.getStaticArgs().size() > 0) {
-            sayWhat(v,"varRef with static args!  That requires non-local VarRefs");
+            sayWhat(v,"varRef with static args!  That requires non-local VarRefs.  We can't deal for now.");
         }
-        VarCodeGen vcg = getLocalVarOrNull(v.getVarId());
-        if (vcg==null) sayWhat(v, "Can't find lexEnv mapping for local var");
-        debug("forVarRef ", v , " Value = " + vcg);
+        Id id = v.getVarId();
+        VarCodeGen vcg = getLocalVarOrNull(id);
+        if (vcg == null) {
+            debug("forVarRef fresh import ", v);
+            Type ty = NodeUtil.getExprType(v).unwrap();
+            String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
+            Pair<String, String> classAndMethod = idToPackageClassAndName(id);
+            vcg = new VarCodeGen.StaticBinding(id, ty,
+                                               classAndMethod.getA(),
+                                               classAndMethod.getB(),
+                                               tyDesc);
+            addStaticVar(vcg);
+        }
+        debug("forVarRef ", v , " Value = ", vcg);
         vcg.pushValue(mv);
     }
 
@@ -2242,7 +2226,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                os.split(true);
 
                String s = name.stringName();
-               String s2 = NamingCzar.only.apiAndMethodToMethod(api_name, s);
+               String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
 
                os.generateAnOverloadDefinition(s2, cw);
 
