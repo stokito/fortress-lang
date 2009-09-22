@@ -216,10 +216,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void generateFieldsAndInitMethod(String classFile, String superClass, List<Param> params) {
         // Allocate fields
         for (Param p : params) {
-            // TODO need to spot for "final" fields.
+            // TODO need to spot for "final" fields.  Right now we assume final.
             String pn = p.getName().getText();
             Type pt = p.getIdType().unwrap();
-            cw.visitField(Opcodes.ACC_PRIVATE, pn,
+            cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, pn,
                     NamingCzar.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
         }
 
@@ -1653,7 +1653,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             new BATree<String, VarCodeGen>(StringHashComparer.V);
         for (VarCodeGen v : freeVars) {
             String name = v.name.getText();
-            cw.visitField(Opcodes.ACC_PUBLIC, name,
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name,
                           NamingCzar.boxedImplDesc(v.fortressType, thisApi()),
                           null, null);
             result.put(name, new TaskVarCodeGen(v, taskClass, thisApi()));
@@ -1736,7 +1736,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         // WARNING: result may need mangling / NamingCzar-ing.
-        cg.cw.visitField(Opcodes.ACC_PUBLIC, "result", result, null, null);
+        cg.cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, "result", result, null, null);
 
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className, null, NamingCzar.fortressBaseTask, null);
