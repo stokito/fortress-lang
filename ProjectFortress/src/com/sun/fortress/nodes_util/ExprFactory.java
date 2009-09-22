@@ -900,6 +900,15 @@ public class ExprFactory {
                              Collections.<KeywordExpr>emptyList(), false);
     }
 
+    public static TupleExpr makeTupleExpr(Span span,
+                                          boolean parenthesized,
+                                          Option<Type> ty,
+                                          List<Expr> exprs) {
+        return makeTupleExpr(span, parenthesized, ty, exprs,
+                             Option.<Expr>none(),
+                             Collections.<KeywordExpr>emptyList(), false);
+    }
+
     public static Expr makeMaybeTupleExpr(Span span, List<Expr> elements) {
         if ( elements.size() > 1 )
             return makeTupleExpr(span, elements);

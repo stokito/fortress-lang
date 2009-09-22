@@ -99,6 +99,25 @@ object SExprUtil {
     }
     setter(expr).asInstanceOf[Expr]
   }
+  
+  /**
+   * Given an expression, return an identical expression with the given span
+   * inserted into its ExprInfo.
+   */
+  def addSpan(expr: Expr, span: Span): Expr = {
+    object adder extends Walker {
+      var swap = false
+
+      override def walk(node: Any): Any = node match {
+        case SExprInfo(_, a, b) if !swap =>
+          swap = true
+          SExprInfo(span, a, b)
+        case _ if (!swap) => super.walk(node)
+        case _ => node
+      }
+    }
+    adder(expr).asInstanceOf[Expr]
+  }
 
   /**
    * Replaces the overloadings in a FunctionalRef with the given overloadings
