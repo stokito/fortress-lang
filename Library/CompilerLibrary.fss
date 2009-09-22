@@ -215,14 +215,14 @@ end
 opr SEQV(a:Any, b:Any) = jSEQV(a,b)
 *)
 
-opr XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
 opr OR(a:Boolean, b:Boolean):Boolean = if a then a else b end
 opr AND(a:Boolean, b:Boolean):Boolean = if a then b else a end
 opr OR(a:Boolean, b:()->Boolean):Boolean = if a then a else b() end
 opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else a end
-opr NOT(a:Boolean):Boolean = if a then (0=1) else (0=0) end
-opr ->(a: Boolean, b:Boolean):Boolean = if a then b else (0=0) end
-opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else (0=0) end
+opr NOT(a:Boolean):Boolean = if a then false else true end
+opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
+opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
+opr XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
 opr <->(a: Boolean, b:Boolean):Boolean = if a then b else NOT b end
 
 (************************************************************

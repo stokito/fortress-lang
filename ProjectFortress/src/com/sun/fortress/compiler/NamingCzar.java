@@ -66,13 +66,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class NamingCzar {
-    public static final NamingCzar only = new NamingCzar(ForeignJava.only);
-
-    private final ForeignJava fj;
-
-    private NamingCzar(ForeignJava fj) {
-        this.fj = fj;
-    }
+    private NamingCzar() { super(); }
 
     private final static boolean logLoads = ProjectProperties.getBoolean("fortress.log.classloads", false);
 
@@ -380,18 +374,22 @@ public class NamingCzar {
         return jvmTypeDesc(t, ifNone, false);
     }
 
-    public String apiNameToPackageName(APIName name) {
-        if (fj.definesApi(name)) {
+    public static String apiNameToPackageName(APIName name) {
+        if (ForeignJava.only.definesApi(name)) {
             return Naming.NATIVE_PREFIX_DOT + name.getText();
         } else {
             return javaPackageClassForApi(name, ".");
         }
     }
 
-    public String apiAndMethodToMethodOwner(APIName name, Function method) {
-        String p;
+    public static String apiAndMethodToMethodOwner(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
-        if (fj.definesApi(name)) {
+        return apiAndMethodToMethodOwner(name, m);
+    }
+
+    public static String apiAndMethodToMethodOwner(APIName name, String m) {
+        String p;
+        if (ForeignJava.only.definesApi(name)) {
              p = Naming.NATIVE_PREFIX_DOT + name.getText();
              int idot = m.lastIndexOf(".");
              if (idot != -1) {
@@ -405,7 +403,7 @@ public class NamingCzar {
         return p;
     }
 
-    public String apiAndMethodToMethod(APIName name, Function method) {
+    public static String apiAndMethodToMethod(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
         return apiAndMethodToMethod(name, m);
     }
@@ -415,8 +413,8 @@ public class NamingCzar {
      * @param m
      * @return
      */
-    public String apiAndMethodToMethod(APIName name, String m) {
-        if (fj.definesApi(name)) {
+    public static String apiAndMethodToMethod(APIName name, String m) {
+        if (ForeignJava.only.definesApi(name)) {
             int idot = m.lastIndexOf(".");
             if (idot != -1) {
                 m = m.substring(idot+1);
@@ -715,7 +713,7 @@ public class NamingCzar {
          {
             if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
                 tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
-            } else if (only.fj.definesApi(apiName)) {
+            } else if (ForeignJava.only.definesApi(apiName)) {
                 tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
             } else {
                 tag = Naming.NORMAL_TAG; // smiley face == normal case.

@@ -34,7 +34,7 @@ public class ClosureMaker implements Opcodes {
     public static Applicable closureForTopLevelFunction(APIName apiname, FnDecl fd) throws InstantiationException,
                                                                                            IllegalAccessException,
                                                                                            Exception {
-        String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
+        String pkg_dots = NamingCzar.apiNameToPackageName(apiname);
         String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
         Id name = (Id) fd.getHeader().getName();
         String aClass;
@@ -84,7 +84,7 @@ public class ClosureMaker implements Opcodes {
           }
          and that is all.
         */
-        String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
+        String pkg_dots = NamingCzar.apiNameToPackageName(apiname);
         String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
         int nargs = fd.getHeader().getParams().size();
 

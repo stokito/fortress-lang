@@ -37,11 +37,10 @@ public class NamingCzarJUTest extends TestCaseWrapper {
     }
 
     public void testForeign() {
-        NamingCzar nc = NamingCzar.only;
         assertEquals("Lcom/sun/fortress/compiler/runtimeValues/FZZ32;", 
-                     nc.boxedImplDesc(nc.fortressTypeForForeignJavaType("I"), null));
+                     NamingCzar.boxedImplDesc(NamingCzar.fortressTypeForForeignJavaType("I"), null));
         assertEquals("Lcom/sun/fortress/compiler/runtimeValues/FString;",
-                nc.boxedImplDesc(nc.fortressTypeForForeignJavaType("Ljava/lang/String;"), null));
+                NamingCzar.boxedImplDesc(NamingCzar.fortressTypeForForeignJavaType("Ljava/lang/String;"), null));
     }
     
     public void testNameMangling() {
