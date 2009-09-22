@@ -22,6 +22,6 @@ export Executable
 run(): () = do
 (* Next line fails due to hosure either in primitive types or in
    dotted method invocation. *)
-(*    println((17.0).asString()) *)
-    println((23.0 - 6.0).asString())
+(*    println((17.0).asString) *)
+    println((23.0 - 6.0).asString)
   end

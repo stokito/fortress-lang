@@ -24,8 +24,8 @@ end Object
 nanoTime(): RR64
 
 trait String
-    asString(): String
-opr || (self, b:String):String
+    getter asString(): String
+    opr || (self, b:String):String
     opr juxtaposition(self, b:String): String
 end
 
@@ -41,12 +41,12 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number
-    asZZ32(): ZZ32
+    getter asZZ32(): ZZ32
 end
 
 trait ZZ32 extends Number comprises { IntLiteral }
-    asZZ32(): ZZ32
-    asString(): String
+    getter asZZ32(): ZZ32
+    getter asString(): String
     opr |self| : ZZ32
     opr -(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
@@ -65,7 +65,7 @@ object IntLiteral extends ZZ32
 end
 
 trait RR64 extends Number comprises {FloatLiteral}
-    asString(): String
+    getter asString(): String
     opr |self| : RR64
     opr -(self): RR64
     opr +(self, other:RR64): RR64

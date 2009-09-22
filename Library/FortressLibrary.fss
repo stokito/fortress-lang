@@ -2924,7 +2924,7 @@ end
     Nothing becomes zero
 **)
 object LiftedCommutativeMonoidReduction[\R\](org : CommutativeMonoidReduction[\R\]) extends ActualReduction[\R,AnyMaybe\]
-    getter asString(): String = org.asString() "(Lifted)"
+    getter asString(): String = org.asString "(Lifted)"
     empty(): Nothing[\R\] = Just(org.empty())
     join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
         if av <- a then

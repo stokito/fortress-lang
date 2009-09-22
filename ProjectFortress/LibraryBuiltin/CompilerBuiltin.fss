@@ -56,7 +56,7 @@ trait Object extends Any
 end Object
 
 trait String
-    asString(): String = self
+    getter asString(): String = self
     opr ||(self, b:String): String =  jConcatenate(self, b)
     opr juxtaposition(self, b:String): String = jConcatenate(self, b)
 end
@@ -65,7 +65,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-printlnZZ32(x:ZZ32):() = jPrintln(x.asString())
+printlnZZ32(x:ZZ32):() = jPrintln(x.asString)
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 
@@ -73,12 +73,12 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number
-    asZZ32(): ZZ32 = jLongToInt(self)
+    getter asZZ32(): ZZ32 = jLongToInt(self)
 end
 
 trait ZZ32 extends Number comprises { IntLiteral }
-    asZZ32(): ZZ32 = self
-    asString(): String = jIntToString(self)
+    getter asZZ32(): ZZ32 = self
+    getter asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntAbs(self)
     opr -(self): ZZ32 = jIntNeg(self)
     opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
@@ -97,7 +97,7 @@ object IntLiteral extends ZZ32
 end
 
 trait RR64 extends Number comprises {FloatLiteral}
-    asString(): String = jDoubleToString(self)
+    getter asString(): String = jDoubleToString(self)
     opr |self| : RR64 = jDoubleAbs(self)
     opr -(self): RR64 = jDoubleNeg(self)
     opr +(self, other:RR64): RR64 = jDoubleAdd(self,other)

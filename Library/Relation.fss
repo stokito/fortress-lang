@@ -28,7 +28,7 @@ export Relation
 
 object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relation[\T\]\]
 
-  getter asString(): String = "Relation " || rel.asString()
+  getter asString(): String = "Relation " || rel.asString
   dom(self): Set[\T\] = dom(rel)
 
   range(self): Set[\T\] = BIG UNION[\T\][(k,v) <- rel] v
