@@ -23,6 +23,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
@@ -39,8 +40,8 @@ class TempVarDecl(val refs: List[VarRef], val rhs: Option[Expr]) {
     refs.map(ref => NF.makeLValue(NU.getSpan(ref), ref.getVarId, getType(ref)))
 
   /** Create a LocalVarDecl using the given body exprs. */
-  def makeLocalVarDecl(body: List[Expr]): LocalVarDecl = {
-    val decl = EF.makeLocalVarDecl(NF.desugarerSpan,
+  def makeLocalVarDecl(span: Span, body: List[Expr]): LocalVarDecl = {
+    val decl = EF.makeLocalVarDecl(span,
                                    toJavaList(body),
                                    toJavaList(makeLValues),
                                    toJavaOption(rhs))
@@ -56,7 +57,18 @@ class TempVarDecl(val refs: List[VarRef], val rhs: Option[Expr]) {
   }
 
   /** Create a LocalVarDecl using the given body expr. */
-  def makeLocalVarDecl(body: Expr): LocalVarDecl = makeLocalVarDecl(List(body))
+  def makeLocalVarDecl(span: Span, body: Expr): LocalVarDecl =
+    makeLocalVarDecl(span, List(body))
+  
+  /** Create a Do expr around a LocalVarDecl using the given body exprs. */
+  def makeLocalVarDeclDo(span: Span, body: List[Expr]): Do = {
+    val decl = makeLocalVarDecl(span, body)
+    EF.makeDo(span, NU.getExprType(decl), decl)
+  }
+  
+  /** Create a Do expr around a LocalVarDecl using the given body expr. */
+  def makeLocalVarDeclDo(span: Span, body: Expr): Do =
+    makeLocalVarDeclDo(span, List(body))
 }
 
 /** Convenience methods. */
@@ -71,7 +83,25 @@ object TempVarDecl {
 
   def apply(ref: VarRef): TempVarDecl = new TempVarDecl(List(ref), None)
   def apply(refs: List[VarRef]): TempVarDecl = new TempVarDecl(refs, None)
-
+  
+  /**
+   * Create a decl for multiple vars on the left and a tuple comprised of the
+   * given expressions on the right.
+   */
+  def apply(refs: List[VarRef], rhses: List[Expr]): TempVarDecl = {
+    val javaRhses = toJavaList(rhses)
+    val rhsTuple =
+      if (haveTypes(rhses)) {
+        // Give the RHS a type.
+        val rhsType = makeArgumentType(rhses.map(getType(_).get))
+        val tuple = EF.makeMaybeTupleExpr(NU.spanAll(javaRhses), javaRhses)
+        addType(tuple, rhsType)
+      } else {
+        EF.makeMaybeTupleExpr(NU.spanAll(javaRhses), javaRhses)
+      }
+    
+    new TempVarDecl(refs, Some(rhsTuple))
+  }
 
   /**
    * Collapse a list of TempVarDecls into one big nested LocalVarDecl using
@@ -81,15 +111,17 @@ object TempVarDecl {
    * get its element out.
    */
   def makeLocalVarDeclFromList(decls: List[TempVarDecl],
+                               span: Span,
                                body: List[Expr]): LocalVarDecl =
     decls.foldRight(body) {
-      (nextDecl, nextBody) => List(nextDecl.makeLocalVarDecl(nextBody))
+      (nextDecl, nextBody) => List(nextDecl.makeLocalVarDecl(span, nextBody))
     }.first.asInstanceOf[LocalVarDecl]
 
   /** Same as the other but takes only a single body expression. */
   def makeLocalVarDeclFromList(decls: List[TempVarDecl],
+                               span: Span,
                                body: Expr): LocalVarDecl =
     decls.foldRight(body) {
-      (nextDecl, nextBody) => nextDecl.makeLocalVarDecl(nextBody)
+      (nextDecl, nextBody) => nextDecl.makeLocalVarDecl(span, nextBody)
     }.asInstanceOf[LocalVarDecl]
 }

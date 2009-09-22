@@ -99,7 +99,9 @@ class AssignmentDesugarer extends Walker {
     // Collapse each parallel group of decls into nested LocalVarDecls. The
     // result is a list of LocalVarDecls that must be done in parallel.
     val actualParallelDecls = parallelDecls.map(decls =>
-      TempVarDecl.makeLocalVarDeclFromList(decls, List(EF.makeTupleExpr(NF.desugarerSpan))))
+      TempVarDecl.makeLocalVarDeclFromList(decls,
+                                           assnSpan,
+                                           EF.makeTupleExpr(assnSpan)))
 
     // Create the parallel do expression for the Phase 1 decls.
     val phaseOneDoFronts = actualParallelDecls.map(e => EF.makeBlock(e))
@@ -123,7 +125,7 @@ class AssignmentDesugarer extends Walker {
     // Collapse all the expressions after Phase 1.
     val exprAfterPhaseOne =
       if (isCompound)
-        compoundDecl.get.makeLocalVarDecl(List(phaseTwoExpr))
+        compoundDecl.get.makeLocalVarDecl(assnSpan, phaseTwoExpr)
       else
         phaseTwoExpr
 
@@ -133,13 +135,13 @@ class AssignmentDesugarer extends Walker {
     // Collapse the block after Phase 1 with the Phase 1 decls to create one
     // massive LocalVarDecl.
     val phasesOneAndTwo =
-      TempVarDecl.makeLocalVarDeclFromList(phaseOneDecls, afterPhaseOneDecls)
+      TempVarDecl.makeLocalVarDeclFromList(phaseOneDecls, assnSpan, afterPhaseOneDecls)
 
     // Create the do block that wraps around the whole mess (and a void).
-    EF.makeDo(NU.getSpan(assn),
+    EF.makeDo(assnSpan,
               Some(Types.VOID),
               toJavaList(List(phasesOneAndTwo,
-                              EF.makeVoidLiteralExpr(NF.desugarerSpan))))
+                              EF.makeVoidLiteralExpr(assnSpan))))
   }
 
   /**
@@ -265,7 +267,7 @@ class AssignmentDesugarer extends Walker {
 
     // Make the fresh variables and return the decl.
     val freshVars = opExprs.map(naming.makeVarRef)
-    val opExprsTuple = EF.makeMaybeTupleExpr(NF.desugarerSpan, toJavaList(opExprs))
+    val opExprsTuple = EF.makeMaybeTupleExpr(NU.getSpan(assn), toJavaList(opExprs))
     (TempVarDecl(freshVars, opExprsTuple), freshVars)
   }
 
@@ -278,7 +280,9 @@ class AssignmentDesugarer extends Walker {
 
     // Create the individual assignments.
     val assns = List.map2(evaledLhses, phaseTwoRhses) { (lhs, rhs) =>
-      val info = SExprInfo(NF.desugarerSpan, false, Some(Types.VOID))
+      val info = SExprInfo(NU.getSpan(assn),
+                           NU.isParenthesized(assn),
+                           Some(Types.VOID))
       SAssignment(info, List(lhs), None, rhs, Nil)
     }
 

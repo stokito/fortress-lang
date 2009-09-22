@@ -111,7 +111,7 @@ class CoercionDesugarer(table: TraitTable) extends Walker {
                                           false)
 
     // Wrap the decl around the tuple and insert in a do.
-    EF.makeDo(info.getSpan, some[Type](toType), decl.makeLocalVarDecl(coercionsTuple))
+    decl.makeLocalVarDeclDo(NU.getSpan(coercion), coercionsTuple)
   }
 
   /**
