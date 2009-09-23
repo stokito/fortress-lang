@@ -244,7 +244,7 @@ public class StaticChecker {
             if (Shell.testCoercion())
                 errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
 
-            errors.addAll(typeHierarchyChecker.checkAcyclicHierarchy(exclusionOracle));
+            errors.addAll(typeHierarchyChecker.checkAcyclicHierarchy(typeAnalyzer, exclusionOracle));
             errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());
 
             TypeCheckerResult result;
