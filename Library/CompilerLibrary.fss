@@ -263,8 +263,8 @@ seqloop(body:ZZ32->(), lo:ZZ32, hi:ZZ32): () =
     if lo=hi then body(lo)
     else
         mid = (lo+hi) DIV 2
-        parloop(body, lo, mid)
-        parloop(body, mid+1, hi)
+        seqloop(body, lo, mid)
+        seqloop(body, mid+1, hi)
     end
 
 (*
