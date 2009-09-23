@@ -27,6 +27,7 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.TraitIndex
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
@@ -64,11 +65,12 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     toJavaList(removeDuplicates(toList(errors)))
   }
 
-  def checkAcyclicHierarchy(exclusionOracle: ExclusionOracle): JavaList[StaticError] = {
+  def checkAcyclicHierarchy(analyzer: TypeAnalyzer,
+                            exclusionOracle: ExclusionOracle): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       checkAcyclicity(typ, List(), errors)
-      checkDeclComprises(typ, exclusionOracle, errors)
+      checkDeclComprises(typ, exclusionOracle, errors, analyzer)
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
@@ -160,8 +162,9 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
    *         T should be in S's extends clause
    *         S should be declared in the same component or API
    */
-  def checkDeclComprises(decl:Id, exclusionOracle: ExclusionOracle,
-                         errors:JavaList[StaticError]): Unit = {
+  def checkDeclComprises(decl: Id, exclusionOracle: ExclusionOracle,
+                         errors: JavaList[StaticError],
+                         analyzer: TypeAnalyzer): Unit = {
     getTypes(decl, errors) match {
       case ti:TraitIndex =>
         // println("checkDeclComprises" + ti.ast)
@@ -212,24 +215,24 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
           case si:ProperTraitIndex =>
             for (ty <- toSet(si.comprisesTypes)) {
               ty match {
-                case STraitType(_,name,_,_) =>
+                case tt@STraitType(_,name,_,_) =>
                   getTypes(name, errors) match {
-                    case tt:TraitIndex =>
-                    if ( ! extendsContains(tt.extendsTypes, decl) )
-                      error(errors, "Invalid comprises clause: " + name +
-                            " is included in the comprises clause of " + decl +
-                            "\n    but " + name + " does not extend " + decl + ".", tt.ast)
-                    name match {
-                      case SId(_,Some(nameApi),_) => // in a different compilation unit
-                        if ( ! nameApi.getText.equals(compilation_unit.ast.getName.getText) )
-                          error(errors, "Invalid comprises clause: " + name +
-                                " is included in the comprises clause of " + decl +
-                                "\n    but " + name +
-                                " is not declared in the same compilation unit.", tt.ast)
-                      case _ =>
+                    case tti:TraitIndex =>
+                      if ( ! extendsContains(tt, tti.extendsTypes, decl, analyzer) )
+                        error(errors, "Invalid comprises clause: " + tt +
+                              " is included in the comprises clause of " + decl +
+                              "\n    but " + name + " does not extend " + decl + ".", tti.ast)
+                      name match {
+                        case SId(_,Some(nameApi),_) => // in a different compilation unit
+                          if ( ! nameApi.getText.equals(compilation_unit.ast.getName.getText) )
+                            error(errors, "Invalid comprises clause: " + name +
+                                  " is included in the comprises clause of " + decl +
+                                  "\n    but " + name +
+                                  " is not declared in the same compilation unit.", tti.ast)
+                        case _ =>
+                      }
                     }
-                  }
-              }
+                }
             }
           case _ =>
         }
@@ -247,13 +250,28 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     false
   }
 
-  private def extendsContains(extendsC: JavaList[TraitTypeWhere], decl:Id): Boolean = {
+  private def extendsContains(comprised: TraitType,
+                              extendsC: JavaList[TraitTypeWhere],
+                              decl:Id, analyzer: TypeAnalyzer): Boolean = {
     for (ty <- toList(extendsC)) {
       ty match {
         case STraitTypeWhere(_,SAnyType(_),_) =>
           if ( decl.getText.equals("Any") ) return true
-        case STraitTypeWhere(_,STraitType(_,name,_,_),_) =>
-          if ( name.getText.equals(decl.getText) ) return true
+        case STraitTypeWhere(_,STraitType(_,name,sargs,_),_) =>
+          if ( name.getText.equals(decl.getText) ) {
+            val sparams = compilation_unit.typeConses.get(decl).staticParameters
+            STypesUtil.staticInstantiation(toList(sparams) zip sargs, comprised)(analyzer) match {
+              case Some(STraitType(_,n1,s1@hd::_,_)) =>
+                val s2 = toList(compilation_unit.typeConses.get(n1).staticParameters)
+                return (s1 zip s2).forall(pair =>
+                                          (pair._1, STypesUtil.staticParamToArg(pair._2)) match {
+                                            case (STypeArg(_,_,t1), STypeArg(_,_,t2)) =>
+                                              t1 == t2
+                                            case _ => false
+                                          })
+              case _ => return true
+            }
+          }
       }
     }
     false
