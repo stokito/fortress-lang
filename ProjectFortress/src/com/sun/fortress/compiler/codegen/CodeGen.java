@@ -2296,7 +2296,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             for (IdOrOp freeVar : fv.freeVars(node.x)) {
                 TopSortItemImpl<Decl> dest = varToNode.get(freeVar);
                 if (dest != null && dest != node) {
-                    node.edgeTo(dest);
+                    dest.edgeTo(node);
                 }
             }
         }
