@@ -154,6 +154,14 @@ public class FileTests {
                 any_check = true;
             }
 
+            what = pfx + which + "_does_not_contain";
+            test = props.get(what);
+            test = ProjectProperties.get(test);
+            if (test != null && test.length() > 0) {
+                if (contents.contains(test)) return what + "=" + test;
+                any_check = true;
+            }
+
             what = pfx + which + "_matches";
             test = props.get(what);
             test = ProjectProperties.get(test);

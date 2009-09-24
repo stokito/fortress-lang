@@ -59,6 +59,8 @@ public class MainWrapper {
 
 
         try {
+            // ensure that FortressExecutable is loaded and statically initialized
+            // so that there is a task pool before any user code is run.
             ClassLoader icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
             // Class cl = Class.forName(whatToRun);

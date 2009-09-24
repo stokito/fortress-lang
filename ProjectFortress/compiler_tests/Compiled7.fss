@@ -18,16 +18,20 @@
 component Compiled7
 export Executable
 
-(* TODO: hoist to top level *)
+(* Bindings gratuitously out of order to test top-level binding dependency analysis *)
+expect : RR64 = integ(finish) - integ(start)
 start : RR64 = 0.0
 finish : RR64 = 1536.0
 errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
 reps : ZZ32 = 10
-expect = 1.391570583 10.0^12
-
-RR64ToString(x:RR64): String = x.asString
 
 fun(x: RR64): RR64 = x (x x + 1.0)
+
+(* integral fun(x) dx from 0 to x *)
+integ(x: RR64): RR64 = do
+    x2 = x x
+    0.25 x2 (x2 + 2.0)
+  end
 
 integrate_fo(l: RR64, h:RR64, tol: RR64): RR64 =
     integrate_fo'(l,h,fun(l),fun(h),0.0,tol)
@@ -106,11 +110,12 @@ runTest(desc:String, theTest: ()->RR64): () = do
     if |a - expect| > a errorTolerance then
         println(desc " FAIL: Bad error tolerance!")
     end
-    (* println(RR64ToString(elapsedSec(startTime,endTime)) "\t" RR64ToString(a)) *)
+    println(elapsedSec(startTime,endTime).asString "\t" a.asString "\t" desc)
   end
 
 run(): () = do
-    (* println("Time(s)\tArea") *)
+    println("Expect\t\t" expect.asString)
+    println("Time(s)\t\tArea")
     for _ <- seq(0#reps) do
         runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance))
         runTest("Higher-order", fn () => integrate(start, finish, fn x => x (x x + 1.0), errorTolerance))

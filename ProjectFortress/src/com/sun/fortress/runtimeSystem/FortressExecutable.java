@@ -21,10 +21,11 @@ import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.nativeHelpers.systemHelper;
 import jsr166y.RecursiveAction;
 
-// Superclass of the generated component class.  We can't refer to that one until
-// we have defined it and we need to pass an instance of it to the primordial task.
-// We need a run method here because the one in the generated class isn't visisble yet.
-
+/** Superclass of the generated component class.  We can't refer to
+ *  that one until we have defined it and we need to pass an instance
+ *  of it to the primordial task.  We need a run method here because
+ *  the one in the generated class isn't visisble yet.
+ */
 public abstract class FortressExecutable extends RecursiveAction {
     public static int numThreads = getNumThreads();
     public static FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(numThreads);
@@ -41,13 +42,17 @@ public abstract class FortressExecutable extends RecursiveAction {
 
     public final void runExecutable(String args[]) {
         systemHelper.registerArgs(args);
-        group.invoke(this);
+        //group.invoke(this);
+        group.execute(this);
+        this.join();
     }
 
+    /**
+     * Should simply call through to static run() method in the
+     * implementing class.  run() used to be an abstract method here,
+     * but that requires us to make it non-static and thus totally
+     * unlike every single other top-level function that we codegen.
+     */
     public abstract void compute();
-    // Should simply call through to static run() method in the
-    // implementing class.  run() used to be an abstract method here,
-    // but that requires us to make it non-static and thus totally
-    // unlike every single other top-level function that we codegen.
 
 }
