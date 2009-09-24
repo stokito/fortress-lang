@@ -156,7 +156,7 @@ Component comp = (Component) component.ast();
 
         // Desugar coercion invocation nodes into function applications.
         if (Shell.getCoercionDesugaring()) {
-            CoercionDesugarer coercionDesugarer = new CoercionDesugarer(traitTable);
+            CoercionDesugarer coercionDesugarer = new CoercionDesugarer();
             comp = (Component) coercionDesugarer.walk(comp);
         }
 

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.compiler.desugarer
 
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -25,8 +24,6 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.TraitTable
-import com.sun.fortress.scala_src.useful.KindEnvWalker
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
@@ -37,7 +34,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  * expressions composed thereof. No CoercionInvocation nodes of any kind will
  * remain.
  */
-class CoercionDesugarer(table: TraitTable) extends Walker {
+class CoercionDesugarer extends Walker {
 
   /** Oracle used for generating names. */
   private val naming = new NameOracle(this)
