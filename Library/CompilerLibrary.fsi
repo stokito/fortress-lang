@@ -18,6 +18,22 @@
 api CompilerLibrary
 
 (************************************************************
+* \subsection*{Exception hierarchy}
+************************************************************)
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+(* Exceptions which are not checked *)
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+(* Checked Exceptions *)
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+(************************************************************
  * Value bindings
  ************************************************************)
 
