@@ -15,17 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ThrowTest
   export Executable
 
-  object FooExn extends CheckedException
+  object Something end
+  object SomethingElse extends Exception end
+  object FooExn extends Exception end
 
+  run() : () = do
+    var z:String
+    z := try
+      throw FooExn
+    catch e
+      FooExn => "First string"
+      Exception => "Second string"
+    forbid { Something, SomethingElse }
+    end
+    ()
   end
-
-  foo () : () = do
-    var a : ZZ32 = throw FooExn (* You can assign throw to any type *)
-    throw FooExn (* Here throw takes on the value of () *)
-  end
-
-  run () : () = ()
-end

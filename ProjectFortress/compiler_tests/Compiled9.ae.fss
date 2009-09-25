@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXTryTestCatchNotExn
   export Executable
 
   object Something end
@@ -32,4 +31,3 @@ component DXXTryTestCatchNotExn
     end
     ()
   end
-end

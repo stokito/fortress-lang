@@ -27,8 +27,10 @@ export Regex
         raw():String = (BIG || [x<-elements] x)
         (*
         opr =(self,s:String):Boolean = match(self.raw(),s)
-        *)
         opr =(self,r:Regexp):Boolean = self SEQV r
+        *)
+        opr =(self,r:Regexp):Boolean =
+          BIG AND [(x,y)<-self.elements.zip[\Element\](r.elements)] (x.asString = y.asString)
         opr CONTAINS(self,s:String):Boolean = match(self.raw(),s)
         opr IN(s:String,self):Boolean = match(self.raw(),s)
     end
