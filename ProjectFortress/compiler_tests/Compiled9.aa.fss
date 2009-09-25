@@ -15,22 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component DXXTryTestFinally
   export Executable
 
-  object Something end
-  object FooExn extends Exception end
-
-  run() : () = do
-    var z:String
-    z := try
-      throw FooExn
-    catch e
-      FooExn => "First string"
-      Exception => "Second string"
-    finally
-      4
-    end
-    ()
+  object FooExn
   end
-end
+
+  foo () : () = throw FooExn
+
+  run() : () = ()

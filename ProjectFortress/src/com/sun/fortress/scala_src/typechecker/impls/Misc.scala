@@ -589,6 +589,73 @@ trait Misc { self: STypeChecker with Common =>
       return exit
     }
 
+    case SThrow(SExprInfo(span, paren, _), exn) => {
+      // A throw expression has type bottom, pretty much regardless
+      // but expr must have type Exception
+      val newExn = checkExpr(exn)
+      getType(newExn) match {
+        case Some(ty) =>
+          isSubtype(ty, Types.EXCEPTION, exn,
+                    errorMsg("'throw' can only throw objects of Exception type.  ",
+                             "This expression is of type " + normalize(ty), "."))
+        case None => return expr
+      }
+      SThrow(SExprInfo(span, paren, Some(Types.BOTTOM)), newExn)
+    }
+
+    case STry(SExprInfo(span, paren, _), body, catchC, forbidC, finallyC) => {
+      // Check that all forbids are subtypes of exception
+      for (ty <- forbidC)
+          isSubtype(ty, Types.EXCEPTION, ty,
+                    "All types in 'forbids' clause must be subtypes of Exception " +
+                    "type, but "+ ty + " is not.")
+      // the resulting type is the join of try, catches, and finally
+      var allTypes = List[Type]()
+      val newBody = checkExpr(body).asInstanceOf[Block]
+              allTypes ::= getType(newBody).getOrElse(return expr)
+      val newCatch = catchC match {
+        case Some(SCatch(info, name, clauses)) =>
+          val newClauses =
+              clauses.map(_ match {
+                          case SCatchClause(i, t, b) =>
+                            // We have to pass the name down
+                            // so it can be bound to each exn type in turn
+                            /**
+                             * Given the CatchClause and an Id, the Id will be bound
+                             * to the exception type that the catch clause declares
+                             * to catch, and then its body will be type-checked.
+                             */
+                            isSubtype(t, Types.EXCEPTION, t,
+                                      "Catch clauses must catch subtypes of Exception," +
+                                      " but " + t + " is not.")
+                            // bind id and check the body
+                            val newChecker = this.extend(List(NF.makeLValue(name, t)))
+                            val newB = newChecker.checkExpr(b).asInstanceOf[Block]
+                            SCatchClause(i, t, newB)
+                          })
+          val newC = SCatch(info, name, newClauses)
+          // Gather all the types of the catch clauses
+          val clauseTypes =
+              newClauses.map(_ match {
+                             case SCatchClause(_,_,b) =>
+                               getType(b).getOrElse(return expr)
+                            })
+          // resulting type is the join of those types
+          allTypes ::= self.analyzer.join(toJavaList(clauseTypes))
+          Some(newC)
+        case None => None
+      }
+      val newFinally = finallyC match {
+        case Some(b) =>
+          val newB = checkExpr(b).asInstanceOf[Block]
+          allTypes ::= getType(newB).getOrElse(return expr)
+          Some(newB)
+        case None => None
+      }
+      val newTy = Some(self.analyzer.join(toJavaList(allTypes)))
+      STry(SExprInfo(span, paren, newTy), newBody, newCatch, forbidC, newFinally)
+    }
+
     case expr:DummyExpr => expr
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
