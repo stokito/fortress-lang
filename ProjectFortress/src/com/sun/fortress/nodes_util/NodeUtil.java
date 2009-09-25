@@ -1134,10 +1134,10 @@ public class NodeUtil {
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-		    log(writer, span, "Syntax Error: a numeral " +
+    log(writer, span, "Syntax Error: a numeral " +
                         "has radix 12 and contains letters other " +
                         "than A, B, X, E, a, b, x or e.");
-		}
+                }
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
                     if (sawXe)
                         log(writer, span, "Syntax Error: a numeral " +

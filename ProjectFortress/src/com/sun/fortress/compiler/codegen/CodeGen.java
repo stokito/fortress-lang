@@ -518,7 +518,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forComponent(Component x) {
         debug("forComponent ",x.getName(),NodeUtil.getSpan(x));
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visitSource(packageAndClassName, null);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
 
@@ -554,39 +554,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Must do this first, to get local decls right.
         overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw);
 
-        List<Decl> fieldDecls = new ArrayList<Decl>();
-
         // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
-                this.forObjectDeclPrePass((ObjectDecl) d, fieldDecls);
+                this.forObjectDeclPrePass((ObjectDecl) d);
             } else if (d instanceof VarDecl) {
-                fieldDecls.add(d);
+                this.forVarDeclPrePass((VarDecl)d);
             }
         }
 
         // Static initializer for this class.
+        // Since all top-level fields and singleton objects are singleton inner classes,
+        // this does nothing.
         mv = cw.visitMethod(Opcodes.ACC_STATIC,
                 "<clinit>",
                 "()V",
                 null,
                 null);
-
-        // TODO: Need dependency analysis for component-level decls.
-        fieldDecls = topSortDeclsByDependencies(fieldDecls);
-
-        // Emit initialization code to create a field for
-        // each singleton / top-level bindings, and generate
-        // init code to fill it.
-        for (Decl y : fieldDecls) {
-            if (y instanceof ObjectDecl) {
-                singletonObjectFieldAndInit((ObjectDecl)y);
-            } else if (y instanceof VarDecl) {
-                this.forVarDeclPrePass((VarDecl)y);
-            } else {
-                sayWhat(y,"Don't recognize "+y+" as a fieldDecl");
-            }
-        }
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -1147,11 +1131,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String idesc = NamingCzar.makeArrowDescriptor(params, rt, thisApi());
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         String className = NamingCzar.gensymArrowClassName(Naming.deDot(thisApi().getText()));
 
         debug("forFnExpr className = " + className + " desc = " + desc);
-        cg.cw.visitSource(className, null);
         List<VarCodeGen> freeVars = getFreeVars(body);
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
@@ -1486,7 +1470,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         traitOrObjectName = null;
     }
 
-    public void forObjectDeclPrePass(ObjectDecl x, List<Decl> singletonObjects) {
+    public void forObjectDeclPrePass(ObjectDecl x) {
         debug("forObjectDeclPrePass ", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
@@ -1508,21 +1492,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = true;
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
-
-        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                                                         idToString(NodeUtil.getName(x)));
+        Id classId = NodeUtil.getName(x);
+        String classFile =
+            NamingCzar.jvmTypeForToplevelDecl(classId,packageAndClassName);
         traitOrObjectName = classFile;
+        String classDesc = NamingCzar.internalToDesc(classFile);
         debug("forObjectDeclPrePass ",x," classFile = ", classFile);
 
 
+        boolean hasParameters = x.getParams().isSome();
         List<Param> params;
-        if (x.getParams().isSome()) {
+        if (hasParameters) {
             params = x.getParams().unwrap();
+            String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
 
              // Generate the factory method
-            String classDesc = NamingCzar.internalToDesc(classFile);
             String sig = NamingCzar.jvmSignatureFor(params, classDesc, thisApi());
-            String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
 
             String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
 
@@ -1551,28 +1536,55 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitEnd();
         } else { // singleton
             params = Collections.<Param>emptyList();
-            // Add to list to be initialized in clinit
-            singletonObjects.add(x);
         }
 
         CodeGenClassWriter prev = cw;
 
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visitSource(classFile, null);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         // Until we resolve the directory hierarchy problem.
         //            cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
-        cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
+        cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
 
-        // Emit fields here, one per parameter.
+        if (!hasParameters) {
+            // Singleton; generate field in class to hold sole instance.
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
+                          NamingCzar.SINGLETON_FIELD_NAME, classDesc,
+                          null /* for non-generic */, null /* instance has no value */);
+        }
 
+        // Emit fields here, one per parameter.
         generateFieldsAndInitMethod(classFile, NamingCzar.internalObject, params);
+
+        if (!hasParameters) {
+            MethodVisitor imv = cw.visitMethod(Opcodes.ACC_STATIC,
+                                               "<clinit>",
+                                               NamingCzar.voidToVoid,
+                                               null,
+                                               null);
+
+            imv.visitTypeInsn(Opcodes.NEW, classFile);
+            imv.visitInsn(Opcodes.DUP);
+            imv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile,
+                                "<init>", NamingCzar.voidToVoid);
+            imv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
+                               NamingCzar.SINGLETON_FIELD_NAME, classDesc);
+            imv.visitInsn(Opcodes.RETURN);
+            imv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+            imv.visitEnd();
+
+            addStaticVar(new VarCodeGen.StaticBinding(
+                                 classId, NodeFactory.makeTraitType(classId),
+                                 classFile,
+                                 NamingCzar.SINGLETON_FIELD_NAME, classDesc));
+        }
 
         BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
-        // need to add locals to the environment, yes.
+        // need to add locals to the environment.
         // each one has name, mangled with a preceding "$"
         for (Param p : params) {
             Type param_type = p.getIdType().unwrap();
@@ -1597,40 +1609,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw = prev;
         inAnObject = savedInAnObject;
         traitOrObjectName = null;
-    }
-
-    /**
-     * @param classFile
-     * @param objectFieldName
-     */
-    private void singletonObjectFieldAndInit(ObjectDecl x) {
-        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                idToString(NodeUtil.getName(x)));
-
-        String objectFieldName = x.getHeader().getName().stringName();
-
-
-        String classDesc = NamingCzar.internalToDesc(classFile);
-
-         // Singleton field.
-        cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                objectFieldName,
-                      classDesc,
-                      null,
-                      null);
-
-        mv.visitTypeInsn(Opcodes.NEW, classFile);
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", NamingCzar.voidToVoid);
-        mv.visitFieldInsn(Opcodes.PUTSTATIC, packageAndClassName, objectFieldName, classDesc);
-
-        Id id = (Id)  x.getHeader().getName();
-
-        addStaticVar(new VarCodeGen.StaticBinding(
-                    id,
-                    NodeFactory.makeTraitType(id),
-                    packageAndClassName, objectFieldName, classDesc
-                ));
     }
 
     // This returns a list rather than a set because the order matters;
@@ -1732,7 +1710,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Create a new environment, and codegen task class in it.
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cg.cw.visitSource(className,null);
+        cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         // WARNING: result may need mangling / NamingCzar-ing.
@@ -1869,10 +1847,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " subs = ", subs, " op = ", op, " static args = ", staticArgs,
               " varRef = ", idToString(id));
 
-        addLineNumberInfo(x);
-        mv.visitFieldInsn(Opcodes.GETSTATIC, NamingCzar.jvmClassForSymbol(id) ,
-                          idToString(id),
-                          "L" + NamingCzar.makeInnerClassName(id) + ";");
+        var.accept(this);
 
         for (Expr e : subs) {
             debug("calling accept on ", e);
@@ -1915,7 +1890,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         CodeGenClassWriter prev = cw;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visitSource(classFile, null);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( Opcodes.V1_5,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
@@ -1925,20 +1900,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Now lets do the springboard inner class that implements this interface.
         springBoardClass = classFile + NamingCzar.springBoard;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visitSource(springBoardClass, null);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         // I think springboard can be abstract.
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
                  null, NamingCzar.FValueType, new String[0] );
         debug("Start writing springboard class ",
               springBoardClass);
-        generateFieldsAndInitMethod(springBoardClass, NamingCzar.FValueType, Collections.<Param>emptyList());
+        generateFieldsAndInitMethod(springBoardClass, NamingCzar.FValueType,
+                                    Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
         dumpTraitDecls(header.getDecls());
         debug("Finished dumpDecls ", springBoardClass);
         dumpClass(springBoardClass);
         // Now lets dump out the functional methods at top level.
         cw = prev;
-        cw.visitSource(classFile, null);
 
         emittingFunctionalMethodWrappers = true;
         dumpTraitDecls(header.getDecls());
@@ -1956,7 +1931,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forVarDecl ",v," should have been seen during pre-pass.");
     }
 
-    public void forVarDeclPrePass(VarDecl v) {
+    /** Supposed to be called with nested codegen context. */
+    private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyDesc, Expr exp) {
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
+        cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
+                  classFile, null, NamingCzar.internalSingleton, null );
+        cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
+                      NamingCzar.SINGLETON_FIELD_NAME, tyDesc, null, null);
+        mv = cw.visitMethod(Opcodes.ACC_STATIC,
+                            "<clinit>", NamingCzar.voidToVoid, null, null);
+        exp.accept(this);
+        mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
+                          NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
+        dumpClass( classFile );
+    }
+
+    private void forVarDeclPrePass(VarDecl v) {
         List<LValue> lhs = v.getLhs();
         Option<Expr> oinit = v.getInit();
         if (lhs.size() != 1) {
@@ -1971,19 +1965,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(v,"VarDecl "+v+" mutable bindings not yet handled.");
         }
         Id var = lv.getName();
-        String varName = var.stringName();
         Type ty = lv.getIdType().unwrap();
-        String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
         Expr exp = oinit.unwrap();
+        String classFile = NamingCzar.jvmTypeForToplevelDecl(var, packageAndClassName);
+        String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
         debug("VarDeclPrePass "+var+" : "+ty+" = "+exp);
-        cw.visitField(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
-                      varName, tyDesc, null, null);
-
-        exp.accept(this);
-        mv.visitFieldInsn(Opcodes.PUTSTATIC, packageAndClassName, varName, tyDesc);
+        new CodeGen(this).generateVarDeclInnerClass(v, classFile, tyDesc, exp);
 
         addStaticVar(
-            new VarCodeGen.StaticBinding(var, ty, packageAndClassName, varName, tyDesc));
+            new VarCodeGen.StaticBinding(var, ty, classFile,
+                                         NamingCzar.SINGLETON_FIELD_NAME, tyDesc));
     }
 
     public void forVarRef(VarRef v) {
@@ -1996,14 +1987,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             debug("forVarRef fresh import ", v);
             Type ty = NodeUtil.getExprType(v).unwrap();
             String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
-            Pair<String, String> classAndMethod = idToPackageClassAndName(id);
+            String className = NamingCzar.jvmTypeForToplevelDecl(id, packageAndClassName);
             vcg = new VarCodeGen.StaticBinding(id, ty,
-                                               classAndMethod.getA(),
-                                               classAndMethod.getB(),
+                                               className,
+                                               NamingCzar.SINGLETON_FIELD_NAME,
                                                tyDesc);
             addStaticVar(vcg);
         }
         debug("forVarRef ", v , " Value = ", vcg);
+        addLineNumberInfo(v);
         vcg.pushValue(mv);
     }
 

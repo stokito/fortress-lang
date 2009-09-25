@@ -33,6 +33,7 @@ integ(x: RR64): RR64 = do
     0.25 x2 (x2 + 2.0)
   end
 
+(* First-order version of integration that can only integrate fun, above. *)
 integrate_fo(l: RR64, h:RR64, tol: RR64): RR64 =
     integrate_fo'(l,h,fun(l),fun(h),0.0,tol)
 
@@ -51,7 +52,7 @@ integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
     end
   end
 
-(* Actually test more HOFs *)
+(* The same integration, generalized to an arbitrary function f. *)
 integrate(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
     integrate'(l,h,f(l),f(h),0.0,f,tol)
 

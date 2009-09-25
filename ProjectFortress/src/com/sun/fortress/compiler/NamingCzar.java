@@ -73,6 +73,12 @@ public class NamingCzar {
     public static final String COERCION_NAME = "coerce";
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
+    /** Name for sole field of top-level singleton class representing a
+     *  top-level binding.  Should not need to be particularly
+     *  unambiguous, as other fields can't occur in the class, right?
+     */
+    public static final String SINGLETON_FIELD_NAME = "ONLY";
+
     public static final String springBoard = "$DefaultTraitMethods";
     public static final String make = "make";
 
@@ -114,6 +120,7 @@ public class NamingCzar {
     public static final String internalChar       = org.objectweb.asm.Type.getInternalName(char.class);
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
+    public static final String internalSingleton  = internalObject;
 
     public static final String descFloat         = org.objectweb.asm.Type.getDescriptor(float.class);
     public static final String descInt           = org.objectweb.asm.Type.getDescriptor(int.class);
@@ -305,7 +312,7 @@ public class NamingCzar {
     static final String runtimeValues = com.sun.fortress.runtimeSystem.Naming.runtimeValues;
 
     public static final String FValueType = runtimeValues + "FValue";
-    static final String FValueDesc = "L" + FValueType + ";";
+    static final String FValueDesc = internalToDesc(FValueType);
 
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
@@ -330,7 +337,7 @@ public class NamingCzar {
     }
 
     static void b(com.sun.fortress.nodes.Type t, String cl) {
-        specialFortressDescriptors.put(t, "L" + cl + ";");
+        specialFortressDescriptors.put(t, internalToDesc(cl));
         specialFortressTypes.put(t, cl );
     }
 
@@ -768,7 +775,7 @@ public class NamingCzar {
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
 
-                if (withLSemi) res = "L" + res + ";";
+                if (withLSemi) res = internalToDesc(res);
                 return res;
             }
 
@@ -801,7 +808,7 @@ public class NamingCzar {
                 }
                 result = makeInnerClassName(api,id);
                 if (withLSemi)
-                    result = "L" + result + ";";
+                    result = internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
@@ -858,7 +865,7 @@ public class NamingCzar {
                     throw new CompilerError(id,"no api name given for id");
                 }
                 result = makeInnerClassName(api,id);
-                result = "L" + result + ";";
+                result = internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
@@ -944,5 +951,17 @@ public class NamingCzar {
         return "(" + jvmTypeDescs(fvtypes, ifNone) + ")V";
     }
 
+    /** Type name for class containing singleton binding of toplevel
+     * entity, or declaration of toplevel type.
+     *
+     * TODO: call this from code above when referencing types by name.
+     */
+    public static String jvmTypeForToplevelDecl(IdOrOp x, String api) {
+        Option<APIName> actualApiOpt = x.getApiName();
+        if (actualApiOpt.isSome()) {
+            api = javaPackageClassForApi(actualApiOpt.unwrap());
+        }
+        return makeInnerClassName(api, x.getText());
+    }
 
 }
