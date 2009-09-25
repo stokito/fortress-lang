@@ -65,8 +65,8 @@ public abstract class BaseTask extends RecursiveAction {
         // Why are these behaving differently?  The thread context is the
         // same in both cases!
 
-        // FortressExecutable.group.execute(this);
-        // actuallyForked = EXECUTED;
+        FortressExecutable.group.execute(this);
+        actuallyForked = EXECUTED;
     }
 
     private void forkAlways() {
