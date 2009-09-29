@@ -28,7 +28,8 @@ import jsr166y.RecursiveAction;
  */
 public abstract class FortressExecutable extends RecursiveAction {
     public static int numThreads = getNumThreads();
-    public static FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(numThreads);
+    public static FortressTaskRunnerGroup group =
+        new FortressTaskRunnerGroup(numThreads);
 
     static int getNumThreads() {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
