@@ -21,6 +21,7 @@ import jsr166y.ForkJoinPool;
 import jsr166y.ForkJoinTask;
 import jsr166y.RecursiveAction;
 
+import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
 /** Base class for Fortress tasks.  Includes administrative methods
  *  that make code generation for task spawn a bit easier.
  *
@@ -34,19 +35,22 @@ import jsr166y.RecursiveAction;
  *    ... use tmp.result (compiler-inserted field) if desired ...
  */
 public abstract class BaseTask extends RecursiveAction {
+    public static int spawnThreshold = numThreads + 3;
+
     // Could get this by hacking ForkJoinTask's status field, but
     // not touching that for now as it's too changeable
     private static int UNFORKED = 0;
     private static int FORKED = 1;
     private static int EXECUTED = 2;
+
     private int actuallyForked = UNFORKED;
 
     private static boolean unsafeWorthSpawning() {
-        return (getSurplusQueuedTaskCount() < 3);
+        return (numThreads > 1 && getQueuedTaskCount() < spawnThreshold);
     }
 
     public static boolean worthSpawning() {
-        return !ForkJoinTask.inForkJoinPool() || unsafeWorthSpawning();
+        return numThreads > 1 && !ForkJoinTask.inForkJoinPool() || unsafeWorthSpawning();
     }
 
     // The constructor used by all compiled instances (right now)
@@ -85,11 +89,9 @@ public abstract class BaseTask extends RecursiveAction {
     }
 
     public void joinOrRun() {
-        // Written as an if chain to emphasize common UNFORKED case.
+        // Emphasize common UNFORKED case.
         if (actuallyForked == UNFORKED) {
             this.compute();
-        } else if (actuallyForked == FORKED) {
-            this.helpJoin();
         } else {
             this.join();
         }
