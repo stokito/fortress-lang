@@ -38,9 +38,8 @@ run() =do
   b = o.g()      (*) 8
   c = f(4)       (*) 4
 
-  sum =  a + b + c
   println(
-  if (sum = 15)
+  if (a=3 AND b=8 AND c=4)
      then "pass" else "fail" end
   )
 end

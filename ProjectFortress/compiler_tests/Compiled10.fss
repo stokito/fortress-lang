@@ -30,7 +30,7 @@ run() =do
 
   sum =  a + b + c + d
   println(
-  if (sum = 10)
+  if (a=c=0 AND c=d=5)
      then "pass" else "fail" end
   )
 end
