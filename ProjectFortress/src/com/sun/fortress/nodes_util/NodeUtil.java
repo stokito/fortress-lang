@@ -1456,6 +1456,16 @@ public class NodeUtil {
                  getName((FnDecl)d) instanceof Id &&
                  ((Id)getName((FnDecl)d)).getText().equals(NamingCzar.COERCION_NAME));
     }
+    
+    /**
+     * Coercion declarations are moved and renamed to top-level functions. This
+     * method will determine if the given decl is one such function.
+     */
+    public static boolean isLiftedCoercion(Decl d) {
+      return ( d instanceof FnDecl &&
+          getName((FnDecl)d) instanceof Id &&
+          ((Id)getName((FnDecl)d)).getText().startsWith(NamingCzar.LIFTED_COERCION_PREFIX));
+    }
 
     public static void checkMembers(BufferedWriter writer, List<Decl> members) {
         boolean seenField = false;

@@ -166,26 +166,26 @@ object IndexBuilder {
     val dimensions: JavaMap[Id, JavaDimension] = new JavaHashMap[Id, JavaDimension]()
     val units: JavaMap[Id, JavaUnit] = new JavaHashMap[Id, JavaUnit]()
     val grammars: JavaMap[String, GrammarIndex] = new JavaHashMap[String, GrammarIndex]()
+    val apiName = if (isApi) Some(ast.getName) else None
     for (decl <- ast.getDecls) {
       decl match {
         case d@STraitDecl(_, _, self, excludes, comprises, _) =>
-          buildTrait(d, typeConses, functions, parametricOperators, errors)
+          buildTrait(d, apiName, typeConses, functions, parametricOperators, errors)
           checkTraitClauses(typeConses, NU.getName(d),
                             NU.getStaticParams(d),
                             excludes, comprises, self)
-        case d@SObjectDecl(_,_,_,_) =>
-          buildObject(d, typeConses, functions, parametricOperators, variables, errors)
-        case d@SVarDecl(_,_,_) =>
+        case d:ObjectDecl =>
+          buildObject(d, apiName, typeConses, functions, parametricOperators, variables, errors)
+        case d:VarDecl =>
           buildVariables(d, variables)
           if (! isApi) initializers.add(d)
-        case d@SFnDecl(_,_,_,_,_) => buildFunction(d, functions)
-        case d@SDimDecl(_,_,_,_) => buildDimension(d, dimensions)
-        case d@SUnitDecl(_,_,_,_,_) => buildUnit(d, units)
-        case d@SGrammarDecl(_,_,_,_,_,_) =>
-          if (isApi) buildGrammar(d, grammars, errors)
-        case d@STypeAlias(_,_,_,_) => bug("Not yet implemented: " + d)
-        case d@STestDecl(_,_,_,_) => bug("Not yet implemented: " + d)
-        case d@SPropertyDecl(_,_,_,_) => bug("Not yet implemented: " + d)
+        case d:FnDecl => buildFunction(d, apiName, functions)
+        case d:DimDecl => buildDimension(d, dimensions)
+        case d:UnitDecl => buildUnit(d, units)
+        case d:GrammarDecl => if (isApi) buildGrammar(d, grammars, errors)
+        case d:TypeAlias => bug("Not yet implemented: " + d)
+        case d:TestDecl => bug("Not yet implemented: " + d)
+        case d:PropertyDecl => bug("Not yet implemented: " + d)
         case _ =>
       }
     }
@@ -213,7 +213,7 @@ object IndexBuilder {
     val index_holder: JavaMap[Id,TypeConsIndex] = new JavaHashMap[Id,TypeConsIndex]()
     // TODO: Fix this so that the global function map and parametricOperator set are
     // threaded through to here.
-    buildObject(decl, index_holder,
+    buildObject(decl, None, index_holder,
                 new IndexedRelation[IdOrOpOrAnonymousName,JavaFunction](),
                 new JavaHashSet[ParametricOperator](), new JavaHashMap[Id,Variable](),
                 new LinkedList[StaticError]())
@@ -270,7 +270,9 @@ object IndexBuilder {
    * Create a ProperTraitIndex and put it in the given map; add functional methods
    * to the given relation.
    */
-  private def buildTrait(ast: TraitDecl, typeConses: JavaMap[Id, TypeConsIndex],
+  private def buildTrait(ast: TraitDecl,
+                         apiName: Option[APIName],
+                         typeConses: JavaMap[Id, TypeConsIndex],
                          functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
                          parametricOperators: JavaSet[ParametricOperator],
                          errors: JavaList[StaticError]) = {
@@ -286,8 +288,8 @@ object IndexBuilder {
     // FnDecls should be handled before VarDecls
     for (decl <- NU.getDecls(ast)) {
       decl match {
-        case d@SFnDecl(_,_,_,_,_) =>
-          buildMethod(d, ast, NU.getStaticParams(ast),
+        case d:FnDecl =>
+          buildMethod(d, apiName, ast, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -297,8 +299,8 @@ object IndexBuilder {
 
     for (decl <- NU.getDecls(ast)) {
       decl match {
-        case d@SVarDecl(_,_,_) => buildTraitFields(d, ast, getters, setters)
-        case d@SPropertyDecl(_,_,_,_) => NI.nyi; ()
+        case d:VarDecl => buildTraitFields(d, ast, getters, setters)
+        case d:PropertyDecl => NI.nyi; ()
         case _ =>
       }
     }
@@ -312,7 +314,9 @@ object IndexBuilder {
    * to the given relation; create a constructor function or singleton variable and
    * put it in the appropriate map.
    */
-  private def buildObject(ast: ObjectDecl, typeConses: JavaMap[Id, TypeConsIndex],
+  private def buildObject(ast: ObjectDecl,
+                          apiName: Option[APIName],
+                          typeConses: JavaMap[Id, TypeConsIndex],
                           functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
                           parametricOperators: JavaSet[ParametricOperator],
                           variables: JavaMap[Id, Variable],
@@ -331,7 +335,7 @@ object IndexBuilder {
     for (decl <- NU.getDecls(ast)) {
       decl match {
         case d:FnDecl =>
-          buildMethod(d, ast, NU.getStaticParams(ast),
+          buildMethod(d, apiName, ast, NU.getStaticParams(ast),
                       getters, setters, coercions, dottedMethods,
                       functionalMethods, functions, parametricOperators,
                       errors)
@@ -435,6 +439,7 @@ object IndexBuilder {
    * relation.
    */
   private def buildFunction(ast: FnDecl,
+                            apiName: Option[APIName],
                             functions: Relation[IdOrOpOrAnonymousName, JavaFunction]) = {
     val df = new JavaDeclaredFunction(ast)
     functions.add(NU.getName(ast), df)
@@ -448,7 +453,9 @@ object IndexBuilder {
    * are also propagated to top-level, with their parametric names. These names
    * must be substituted with particular instantiations during lookup.
    */
-  private def buildMethod(ast: FnDecl, traitDecl: TraitObjectDecl,
+  private def buildMethod(ast: FnDecl,
+                          apiName: Option[APIName],
+                          traitDecl: TraitObjectDecl,
                           enclosingParams: JavaList[StaticParam],
                           getters: JavaMap[Id, Method],
                           setters: JavaMap[Id, Method],
@@ -461,7 +468,7 @@ object IndexBuilder {
     val mods = NU.getMods(ast)
     val name = NU.getName(ast)
     if (NU.isCoercion(ast)) {
-        coercions.add(new Coercion(ast, traitDecl, enclosingParams))
+      coercions.add(new Coercion(ast, traitDecl, apiName, enclosingParams))
     } else if (mods.isGetter) {
       name match {
         case id:Id =>

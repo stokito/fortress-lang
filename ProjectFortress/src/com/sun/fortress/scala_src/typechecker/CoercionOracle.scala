@@ -17,6 +17,8 @@
 
 package com.sun.fortress.scala_src.typechecker
 
+import com.sun.fortress.compiler.index._
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.CompilerError
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
@@ -24,9 +26,6 @@ import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.compiler.index._
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
-import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Iterators._
@@ -35,19 +34,24 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
 class CoercionOracle(traits: TraitTable,
-                     exclusions: ExclusionOracle)
+                     exclusions: ExclusionOracle,
+                     current: CompilationUnitIndex)
                     (implicit analyzer: TypeAnalyzer) {
 
-  /** Create the Id for an invocation of a coercion to trait U. */
+  /**
+   * Create the Id for an invocation of a coercion to trait U. If the trait's
+   * name is Oof which is an imported alias of Foo from API A, then the coercion
+   * name will include "Foo" instead of "Oof". In any case, if the trait was
+   * imported explicitly (e.g. not via ellipsis), this coercion name will be
+   * qualified.
+   */
   def makeCoercionId(u: TraitType): Id = {
-    val api = toOption(u.getName.getApiName) match {
-      case Some(a) => "_%s".format(a.getText)
-      case None => ""
-    }
-    NF.makeId(NF.typeSpan, "coerce%s_%s".format(api, u.getName.getText))
+    val realTraitName = getRealName(u.getName, toList(current.ast.getImports))
+    NF.makeLiftedCoercionId(NU.getSpan(u), realTraitName.asInstanceOf[Id])
   }
 
   /**
@@ -80,7 +84,7 @@ class CoercionOracle(traits: TraitTable,
   private def rejects(t: Type, u: Type): Boolean =
     getCoercionsTo(t).forall(a => exclusions.excludes(a.getDomain, u))
 
-  /** The set of all types T such that T --> U. Nil if u not a trait type. */
+  /** The set of all arrow types for coercions from types T to U. */
   def getCoercionsTo(u: Type): Set[ArrowType] = {
     if (!u.isInstanceOf[TraitType]) return Set()
 
@@ -163,7 +167,7 @@ class CoercionOracle(traits: TraitTable,
 
     // Make a dummy overloading for all coercions to U.
     val coercionId = makeCoercionId(u)
-    val ovType = NF.makeIntersectionType(toJavaSet(allArrows))
+    val ovType = NF.makeIntersectionType(toJavaSet(arrowsAndArgs.map(_._1)))
     val overloading = SOverloading(SSpanInfo(argSpan), coercionId, Some(ovType))
 
     // Make a dummy functional ref.
