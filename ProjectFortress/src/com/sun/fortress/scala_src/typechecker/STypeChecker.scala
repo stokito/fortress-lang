@@ -45,6 +45,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.TryErrorLog
 import com.sun.fortress.useful.HasAt
 
@@ -148,7 +149,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   protected val exclusions = new ExclusionOracle(analyzer, errors)
 
   /** Oracle for determining coercions between types. */
-  protected val coercions = new CoercionOracle(traits, exclusions)
+  protected val coercions = new CoercionOracle(traits, exclusions, current)
 
   /**
    * This method simply creates a new instance of the class in which it is defined. We need this
@@ -295,44 +296,12 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     envCache.getOrElseUpdate(api, STypeEnv.make(traits.compilationUnit(api)))
 
   /**
-   * Replaces the given name with the name it aliases
-   * (or leaves it alone if it doesn't alias any thing)
-   */
-  protected def handleAlias(name: Name, imports: List[Import]): Name =
-    name match {
-      case name@SIdOrOp(_, Some(api), _) =>
-
-        // Get the alias for `name` from this import, if it exists.
-        def getAlias(imp: Import): Option[IdOrOp] = imp match {
-          case SImportNames(_, _, aliasApi, aliases) if api.equals(aliasApi) =>
-
-            // Get the name from an aliased name.
-            def getName(aliasedName: AliasedSimpleName): Option[IdOrOp] =
-              aliasedName match {
-                case SAliasedSimpleName(_, newName, Some(alias))
-                  if alias.equals(name) => Some(newName.asInstanceOf)
-                case _ => None
-              }
-
-            // Get the first name that matched.
-            aliases.flatMap(getName).firstOption
-          case _ => None
-        }
-
-        // Get the first name that matched within any import, or return name.
-        imports.flatMap(getAlias).firstOption.getOrElse(name)
-
-      case _ => name
-    }
-
-  /**
    * Lookup the type of the given name in the proper type environment.
    */
   protected def getTypeFromName(name: Name): Option[Type] =
-    handleAlias(name, toList(current.ast.getImports)) match {
-      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-        getEnvFromApi(api).getType(id)
-      case id@SIdOrOpOrAnonymousName(_, None) => env.getType(id) match {
+    getRealName(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getType(id)
+      case id:IdOrOp => env.getType(id) match {
         case Some(ty) => Some(ty)
         case None => analyzer.kindEnv.getType(id)
       }
@@ -343,11 +312,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Is there a binding for the given name?
    */
   protected def nameHasBinding(name: Name): Boolean =
-    handleAlias(name, toList(current.ast.getImports)) match {
-      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-        getEnvFromApi(api).contains(id)
-      case id@SIdOrOpOrAnonymousName(_, None) =>
-        env.contains(id) || analyzer.kindEnv.contains(id)
+    getRealName(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).contains(id)
+      case id:IdOrOp => env.contains(id) || analyzer.kindEnv.contains(id)
       case _ => false
     }
 
@@ -355,10 +322,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Lookup the modifiers of the given name in the proper type environment.
    */
   protected def getModsFromName(name: Name): Option[Modifiers] =
-    handleAlias(name, toList(current.ast.getImports)) match {
-      case id@SIdOrOpOrAnonymousName(_, Some(api)) =>
-        getEnvFromApi(api).getMods(id)
-      case id@SIdOrOpOrAnonymousName(_, None) => env.getMods(id)
+    getRealName(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getMods(id)
+      case id:IdOrOp => env.getMods(id)
       case _ => None
     }
 

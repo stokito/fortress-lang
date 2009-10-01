@@ -17,8 +17,19 @@
 
 package com.sun.fortress.nodes_util;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
+import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.Types;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.parser_util.FnHeaderClause;
+import com.sun.fortress.parser_util.FnHeaderFront;
+import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.scala_src.useful.Sets;
+import com.sun.fortress.useful.Useful;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.tuple.Option;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,18 +40,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.parser_util.FnHeaderClause;
-import com.sun.fortress.parser_util.FnHeaderFront;
-import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
-import com.sun.fortress.useful.Useful;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.tuple.Option;
-import com.sun.fortress.scala_src.useful.Sets;
-import com.sun.fortress.compiler.Types;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class NodeFactory {
     public static int lexicalDepth = -2147483648;
@@ -2610,5 +2612,13 @@ public class NodeFactory {
     public static UnknownType makeUnknownType() {
         TypeInfo info = makeTypeInfo(typeSpan, false);
         return new UnknownType(info);
+    }
+    
+    public static Id makeLiftedCoercionId(Span span, Id trait) {
+        return makeId(span, trait.getApiName(), NamingCzar.makeLiftedCoercionName(trait));
+    }
+    
+    public static Id makeLiftedCoercionId(Span span, Id trait, APIName api) {
+        return makeId(span, api, NamingCzar.makeLiftedCoercionName(trait));
     }
 }

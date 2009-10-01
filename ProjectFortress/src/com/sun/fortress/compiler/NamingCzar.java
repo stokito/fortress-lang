@@ -71,6 +71,8 @@ public class NamingCzar {
     private final static boolean logLoads = ProjectProperties.getBoolean("fortress.log.classloads", false);
 
     public static final String COERCION_NAME = "coerce";
+    public static final String LIFTED_COERCION_PREFIX = "coerce_";
+    
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
     /** Name for sole field of top-level singleton class representing a
@@ -964,4 +966,10 @@ public class NamingCzar {
         return makeInnerClassName(api, x.getText());
     }
 
+    /**
+     * The name of a renamed, lifted coercion declaration for the given trait.
+     */
+    public static String makeLiftedCoercionName(Id traitName) {
+        return LIFTED_COERCION_PREFIX + traitName.getText();
+    }
 }

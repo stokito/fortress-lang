@@ -41,9 +41,15 @@ public class Coercion extends Function {
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
 
-    public Coercion(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
+    public Coercion(FnDecl ast,
+                    TraitObjectDecl traitDecl,
+                    Option<APIName> apiName,
+                    List<StaticParam> traitParams) {
         _ast = ast;
-        _declaringTrait = NodeUtil.getName(traitDecl);
+        if (apiName.isSome())
+            _declaringTrait = NodeFactory.makeId(apiName.unwrap(), NodeUtil.getName(traitDecl));
+        else
+            _declaringTrait = NodeUtil.getName(traitDecl);
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
@@ -115,8 +121,7 @@ public class Coercion extends Function {
 
     @Override
     public List<StaticParam> staticParameters() {
-        // No static parameters allowed on individual coercions.
-        return _traitParams;
+        return CollectUtil.makeList(IterUtil.compose(_traitParams, NodeUtil.getStaticParams(_ast)));
     }
 
     @Override

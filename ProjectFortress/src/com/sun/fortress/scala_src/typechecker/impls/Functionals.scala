@@ -30,6 +30,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import exceptions.StaticError
 import fortress.useful.{HasAt, NI}
@@ -523,7 +524,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _) => {
       // Error if this is a getter
-      val thisEnv = handleAlias(name, toList(current.ast.getImports)) match {
+      val thisEnv = getRealName(name, toList(current.ast.getImports)) match {
         case id@SIdOrOpOrAnonymousName(_, Some(api)) => getEnvFromApi(api)
         case _ => env
       }

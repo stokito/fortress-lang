@@ -124,7 +124,7 @@ class CoercionLifter(env: GlobalEnvironment) extends Walker {
         // Get the imported trait names that have coercions and create a new
         // import for their lifted coercions.
         val traitsWithCoercions = aliases.flatMap { a: AliasedSimpleName =>
-          CoercionLifter.hasCoercions(api, a.getName)
+          CoercionLifter.isTraitWithCoercions(api, a.getName)
         }
         if (traitsWithCoercions.isEmpty)
           None
@@ -142,17 +142,13 @@ class CoercionLifter(env: GlobalEnvironment) extends Walker {
 
 object CoercionLifter {
 
-  /** Make the new lifted name from the given span and trait name. */
-  protected def liftedCoercionName(span: Span, t: Name): Id =
-    NF.makeId(span, "coerce_%s".format(t.asInstanceOf[Id].getText))
-
   /** Make the new, lifted coercion function's FnDecl. */
   protected def makeLiftedCoercion(f: FnDecl, t: TraitObjectDecl): FnDecl = {
     val SFnDecl(f1, header, f3, f4, f5) = f
     val SFnHeader(fnSparams, h2, _, h4, h5, h6, h7, _) = header
 
     // Get the lifted name.
-    val newName = liftedCoercionName(NU.getSpan(NU.getName(f)), NU.getName(t))
+    val newName = NF.makeLiftedCoercionId(NU.getSpan(NU.getName(f)), NU.getName(t))
 
     // Concatenate the trait's and the function's static params.
     val sparams = toList(NU.getStaticParams(t)) ++ fnSparams
@@ -172,7 +168,7 @@ object CoercionLifter {
    * Is `name` in API `api` a trait with declared coercions? If so, return the
    * name as an Id.
    */
-  protected def hasCoercions(api: ApiIndex, name: Name): Option[Id] = {
+  protected def isTraitWithCoercions(api: ApiIndex, name: Name): Option[Id] = {
     
     // Since this is called for any name and not just traits, it may not be an Id.
     val id = name match {
@@ -193,12 +189,12 @@ object CoercionLifter {
    * these traits for the node info and foreign language.
    */
   protected def makeCoercionImport(apiName: APIName,
-                                   traits: List[Name],
+                                   traits: List[Id],
                                    fromImport: ImportNames): ImportNames = {
     // Make the simple aliases for the lifted coercion functions.
     val aliases = traits.map { t =>
       val span = NU.getSpan(t)
-      val liftedName = liftedCoercionName(span, t)
+      val liftedName = NF.makeLiftedCoercionId(span, t)
       SAliasedSimpleName(SSpanInfo(span), liftedName, None)
     }
 
