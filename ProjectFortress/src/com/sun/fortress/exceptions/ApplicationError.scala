@@ -86,7 +86,7 @@ class NoSuchMethod(app: Expr, recvrType: Type)
 class ApplicationErrorFactory(val app: Expr, val recvrType: Option[Type]) {
 
   /** Create the top level ApplicationError for this application. */
-  def makeApplicationError(errors: List[OverloadingError]) =
+  def makeApplicationError(errors: List[OverloadingError]): TypeError =
     new ApplicationError(app, errors, recvrType)
 
   /** Create a NotApplicableError for this application. */
@@ -226,4 +226,16 @@ object OverloadingError {
   /** Format a list of argument types as a single type String. */
   def argTypesToString(argTypes: List[Type]) =
     NF.makeMaybeTupleType(NF.typeSpan, toJavaList(argTypes)).toString
+}
+
+/**
+ * Creates useless errors. This should be used only if the errors resulting
+ * from application checking are not needed.
+ */
+object DummyApplicationErrorFactory extends ApplicationErrorFactory(null, null) {
+
+  /** Create a dummy ApplicationError.*/
+  override def makeApplicationError(errors: List[OverloadingError]) =
+    new TypeError("(dummy application error)", NF.typeSpan)
+  
 }
