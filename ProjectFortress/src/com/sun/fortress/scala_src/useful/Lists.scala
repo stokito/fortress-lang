@@ -17,21 +17,28 @@ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 package com.sun.fortress.scala_src.useful
 
-import _root_.java.util.{LinkedList => JLinkedList}
+import _root_.java.util.{ArrayList => JArrayList}
 import _root_.java.util.{List => JList}
 import _root_.junit.framework.TestCase
 import scala.collection.jcl.Conversions
 
 object Lists {
-  def toJavaList[T](xs: List[T]): JLinkedList[T] = {
-    xs match {
-      case List() => new JLinkedList[T]
-      case y :: ys => {
-        val result = toJavaList(ys)
-        result.addFirst(y)
-        result
-      }
-    }
+//  def toJavaList[T](xs: List[T]): JLinkedList[T] = {
+//    xs match {
+//      case List() => new JLinkedList[T]
+//      case y :: ys => {
+//        val result = toJavaList(ys)
+//        result.addFirst(y)
+//        result
+//      }
+//    }
+//  }
+  
+  /** Convert any collection to a Java list. */
+  def toJavaList[T](elts: Collection[T]): JArrayList[T] = {
+    val result = new JArrayList[T](elts.size)
+    elts.foreach(result.add(_))
+    result
   }
 
   def toList[T](xs: JList[T]) = List() ++ Conversions.convertList(xs)
@@ -70,13 +77,7 @@ object Lists {
 }
 
 class JavaList[T] {
-  def apply(xs: T*) = {
-    val result = new JLinkedList[T]
-    for (x <- xs.elements) {
-      result.addLast(x)
-    }
-    result
-  }
+  def apply(xs: T*) = Lists.toJavaList(xs)
 
   def unapplySeq(xs: JList[T]) = Some(Lists.toList(xs))
 }

@@ -30,6 +30,7 @@ import java.util.Set;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.compiler.desugarer.CoercionLifter;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
 import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
@@ -128,6 +129,9 @@ public class Disambiguator {
         List<StaticError> errors = new ArrayList<StaticError>();
 
 
+        
+        // Object that moves coercion definitions to top-level.
+        CoercionLifter lifter = new CoercionLifter(globalEnv);
 
         // First, loop through apis, disambiguating types.
         List<Api> newApis = new ArrayList<Api>();
@@ -145,11 +149,14 @@ public class Disambiguator {
 
             SelfParamDisambiguator selfDisambig = new SelfParamDisambiguator();
             Api spdResult = (Api) api.accept(selfDisambig);
+            
+            // Lift out coercions.
+            Api liftedApi = (Api) lifter.liftCoercions(spdResult);
 
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td =
                 new TypeDisambiguator(env, onDemandImports, newErrs);
-            Api tdResult = (Api) spdResult.accept(td);
+            Api tdResult = (Api) liftedApi.accept(td);
 
             if (newErrs.isEmpty()) {
                 newApis.add(tdResult);
@@ -280,6 +287,9 @@ public class Disambiguator {
         // Then, rebuild the component indices based on disambiguated types
         IndexBuilder.ComponentResult newComponentsExpanded =
         	IndexBuilder.buildComponents(expandedComps, System.currentTimeMillis());
+        
+        // Object that moves coercion definitions to top-level.
+        CoercionLifter lifter = new CoercionLifter(globalEnv);
 
         // Next, disambiguate the types
         List<Component> new_comps = new ArrayList<Component>();
@@ -289,17 +299,19 @@ public class Disambiguator {
                 throw new IllegalArgumentException("Missing component index");
             }
 
-
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
             Component spdResult = (Component) comp.accept(self_disambig);
 
+            // Lift out coercions.
+            Component liftedComp = (Component) lifter.liftCoercions(spdResult);
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
             TypeDisambiguator td =
                 new TypeDisambiguator(env, onDemandImports, newErrs);
-            Component tdResult = (Component) spdResult.accept(td);
+            Component tdResult = (Component) liftedComp.accept(td);
             if (newErrs.isEmpty())
             	new_comps.add(tdResult);
             else

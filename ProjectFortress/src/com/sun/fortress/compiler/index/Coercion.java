@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -40,21 +41,39 @@ public class Coercion extends Function {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
+    protected final boolean _lifted;
 
+    /** Construct a Coercion index using the original, unlifted function. */
     public Coercion(FnDecl ast,
                     TraitObjectDecl traitDecl,
                     Option<APIName> apiName,
                     List<StaticParam> traitParams) {
+        _lifted = false;
         _ast = ast;
-        if (apiName.isSome())
-            _declaringTrait = NodeFactory.makeId(apiName.unwrap(), NodeUtil.getName(traitDecl));
-        else
-            _declaringTrait = NodeUtil.getName(traitDecl);
+        _declaringTrait = NodeFactory.makeId(apiName, NodeUtil.getName(traitDecl));
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
             public Option<Type> value() {
                 return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, TypesUtil.staticParamsToArgs(_traitParams)));
+            }
+        });
+    }
+
+    /** Construct a Coercion index using the renamed, lifted function. */
+    public Coercion(FnDecl ast, Option<APIName> apiName) {
+        
+        // Return type always a TraitType inserted by CoercionLifter.
+        final TraitType returnType = (TraitType) NodeUtil.getReturnType(ast).unwrap();
+        
+        _lifted = true;
+        _ast = ast;
+        _declaringTrait = NodeFactory.makeId(apiName, returnType.getName());
+        _traitParams = Collections.emptyList();
+
+        _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
+            public Option<Type> value() {
+                return Option.<Type>some(returnType);
             }
         });
     }
@@ -66,10 +85,15 @@ public class Coercion extends Function {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _traitParams = visitor.recurOnListOfStaticParam(that._traitParams);
+        _lifted = that._lifted;
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
+    }
+    
+    public boolean isLifted() {
+        return _lifted;
     }
 
     public FnDecl ast() {
@@ -121,7 +145,11 @@ public class Coercion extends Function {
 
     @Override
     public List<StaticParam> staticParameters() {
-        return CollectUtil.makeList(IterUtil.compose(_traitParams, NodeUtil.getStaticParams(_ast)));
+        List<StaticParam> fnSparams = NodeUtil.getStaticParams(_ast);
+        if (_lifted)
+            return fnSparams;
+        else
+            return CollectUtil.makeList(IterUtil.compose(_traitParams, fnSparams));
     }
 
     @Override
