@@ -48,13 +48,18 @@ object Errors {
 }
 
 /**
- * Stores the error and then throws it as an exception. Error messages should be printed with
- * nested spacing so that any errors from the tryCheck that are actually reported will be nested
- * inside an outer error from the type checker.
+ * Stores the error and then throws it as an exception. Error messages should be
+ * printed with nested spacing so that any errors from the tryCheck that are
+ * actually reported will be nested inside an outer error from the type checker.
  */
 class TryErrorLog extends ErrorLog {
   override def signal(error: StaticError) = {
     super.signal(error)
     throw error
   }
+}
+
+/** Does not maintain any errors; no throwing, no storing. */
+object DummyErrorLog extends ErrorLog {
+  override def signal(error: StaticError) = ()
 }

@@ -17,10 +17,11 @@
 
 export Executable
 
-run():() =
-  case 5#10 of
+run():() = do
+  x = case 5#10 of
     2#10 => 0
     1    => 1
     5#10 => 1
     else => -1
   end
+end

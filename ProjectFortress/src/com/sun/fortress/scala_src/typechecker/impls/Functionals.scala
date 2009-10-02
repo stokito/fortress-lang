@@ -670,10 +670,14 @@ trait Functionals { self: STypeChecker with Common =>
               def checkOp(op: FunctionalRef): FunctionalRef = {
                 val opType = getType(op).getOrElse(return op)
                 val arrows = getArrowsForFunction(opType, expr).getOrElse(return op)
-                implicit val errorFactory = new ApplicationErrorFactory(expr, None)
-                // Type check the application.
+                
+                // Type check the application without reporting an error.
+                implicit val errorFactory = DummyApplicationErrorFactory
+                val checker = STypeCheckerFactory.makeDummyChecker(this)
                 val (smaArrow, infSargs, checkedArgs) =
-                  checkApplication(arrows, args, Some(Types.BOOLEAN)).getOrElse(return op)
+                  checker.checkApplication(arrows, args, Some(Types.BOOLEAN))
+                         .getOrElse(return op)
+                
                 // Rewrite the applicand to include the arrow and static args
                 // and update the application.
                 rewriteApplicand(op, smaArrow, infSargs).asInstanceOf[FunctionalRef]

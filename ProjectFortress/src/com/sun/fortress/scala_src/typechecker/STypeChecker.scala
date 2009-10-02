@@ -40,6 +40,7 @@ import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.impls._
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
+import com.sun.fortress.scala_src.useful.DummyErrorLog
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -87,11 +88,25 @@ object STypeCheckerFactory {
                    new JavaHashMap[Id, Option[JavaSet[Type]]](), new TryErrorLog)(analyzer, MMap.empty, cycleChecker)
 
   def makeTryChecker(checker: STypeChecker): TryChecker =
-    new TryChecker(checker.current,
-                   checker.traits,
-                   checker.env,
-                   checker.labelExitTypes,
-                   new TryErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
+    new TryChecker(
+      checker.current,
+      checker.traits,
+      checker.env,
+      checker.labelExitTypes,
+      new TryErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
+  
+  /**
+   * Creates a type checker that does not throw or store errors. This is a bit
+   * different from a TryChecker in that it silently doesn't report anything.
+   */
+  def makeDummyChecker(checker: STypeChecker): STypeCheckerImpl =
+    new STypeCheckerImpl(
+      checker.current,
+      checker.traits,
+      checker.env,
+      checker.labelExitTypes,
+      DummyErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
+    
 }
 
 /**
