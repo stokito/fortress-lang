@@ -363,11 +363,11 @@ trait Functionals { self: STypeChecker with Common =>
     errorFactory.makeFnInferenceError(originalArrow, fnErrors)
   }
 
-    /**
-     * Type check the application of the given arrows to the given arg. This
-     * returns the statically most specific arrow, inferred static args, and the
-     * new, checked argument expression.
-     */
+  /**
+   * Type check the application of the given arrows to the given arg. This
+   * returns the statically most specific arrow, inferred static args, and the
+   * new, checked argument expression.
+   */
   def checkApplication(arrows: List[ArrowType],
                        arg: Expr,
                        context: Option[Type])
@@ -632,6 +632,88 @@ trait Functionals { self: STypeChecker with Common =>
       val arrow = NF.makeArrowType(span, domain, range)
       val newHeader = SFnHeader(a, b, c, d, e, f, params, Some(range))
       SFnExpr(SExprInfo(span, paren, Some(arrow)), newHeader, checkedBody)
+    }
+
+    case SCaseExpr(SExprInfo(span, paren, _), param, compare, equalsOp, inOp,
+                   clauses, elseClause) => {
+      var newClauses =
+          clauses.map(c => c match {
+                      case SCaseClause(info, matchE, body, op) =>
+                        SCaseClause(info, checkExpr(matchE),
+                                    checkExpr(body).asInstanceOf[Block],
+                                    op.map(checkExpr).asInstanceOf[Option[FunctionalRef]])})
+      var checkedExprs =
+          newClauses.flatMap(c => c match {
+                             case SCaseClause(_,m,b,Some(o)) => List(m,b,o)
+                             case SCaseClause(_,m,b,None) => List(m,b)})
+      def handleExpr(e: Expr) = {
+        val newE = checkExpr(e)
+        checkedExprs ::= newE
+        newE
+      }
+      val newParam = param.map(handleExpr)
+      val newCompare = compare.map(handleExpr).asInstanceOf[Option[FunctionalRef]]
+      val newEquals = handleExpr(equalsOp).asInstanceOf[FunctionalRef]
+      val newIn = handleExpr(inOp).asInstanceOf[FunctionalRef]
+      val newElse = elseClause.map(handleExpr).asInstanceOf[Option[Block]]
+      // Check that subexpressions all typechecked properly
+      if (!haveTypes(checkedExprs)) return expr
+      var body_types: List[Type] = newClauses.map(c => getType(c.getBody).get)
+      newParam match {
+        // Handle regular (non-extremum) case expressions
+        case Some(p) =>
+          // During inference, we'll try to apply the given compare op
+          // (if there is one) and otherwise try equals and in.
+          def checkCaseClause(c: CaseClause): CaseClause = c match {
+            case SCaseClause(info@SASTNodeInfo(span), matchE, block, _) =>
+              val args = List(p, c.getMatchClause)
+              def checkOp(op: FunctionalRef): FunctionalRef = {
+                val opType = getType(op).getOrElse(return op)
+                val arrows = getArrowsForFunction(opType, expr).getOrElse(return op)
+                implicit val errorFactory = new ApplicationErrorFactory(expr, None)
+                // Type check the application.
+                val (smaArrow, infSargs, checkedArgs) =
+                  checkApplication(arrows, args, Some(Types.BOOLEAN)).getOrElse(return op)
+                // Rewrite the applicand to include the arrow and static args
+                // and update the application.
+                rewriteApplicand(op, smaArrow, infSargs).asInstanceOf[FunctionalRef]
+              }
+              newCompare match {
+                // If compare is some, we use that operator
+                case Some(op) => SCaseClause(info, matchE, block, Some(checkOp(op)))
+                case None =>
+                  // Check both = and IN operators
+                  // we first want to do <: generator test.
+                  // If both are sat, we use =, if only IN is sat, we use IN
+                  val isG_match =
+                      isSubtype(getType(matchE).get,
+                                Types.makeGeneratorZZ32Type(span))
+                  val isG_cond =
+                      isSubtype(getType(p).get,
+                                Types.makeGeneratorZZ32Type(span))
+                  val newOp = if (isG_match && !isG_cond) Some(checkOp(newIn))
+                              else Some(checkOp(newEquals))
+                  SCaseClause(info, matchE, block, newOp)
+              }
+          }
+          newClauses = newClauses.map(checkCaseClause)
+          newElse.foreach(body_types ::= getType(_).get)
+        // Extremum expressions: case most < of ... end
+        case None =>
+          val match_types =
+              newClauses.map(c => getType(c.getMatchClause).get)
+          val unionTy = self.analyzer.join(toJavaList(match_types))
+          val opName = newCompare.get.getOriginalName.asInstanceOf[Op]
+          isSubtype(unionTy,
+                    Types.makeTotalOperatorOrder(unionTy, opName), expr,
+                    "In an extremum expression, the union of all candidate " +
+                    "types must be a subtype of TotalOperatorOrder[\\union," +
+                    "<,<=,>=,>," + opName + "\\] but it is not.  " +
+                    "The union is " + unionTy + ".")
+      }
+      val newTy = self.analyzer.join(toJavaList(body_types))
+      SCaseExpr(SExprInfo(span, paren, Some(newTy)), newParam, newCompare, newEquals,
+                newIn, newClauses, newElse)
     }
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))

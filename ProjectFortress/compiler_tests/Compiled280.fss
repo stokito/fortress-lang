@@ -15,15 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component CaseExpr
 import Set.{...}
 export Executable
 
 (* Tests that various normal (not extemum) case expressions type check ok. *)
 
-foo(z:ZZ32,g:Generator[\ZZ32\]) : String = do
-  ignore(case z IN of
-           g => "this?" end typed String)
+foo(z:ZZ32,g:Generator[\ZZ32\]) = do
+  println(case z IN of
+            g => "this?" end typed String)
 
   case z of
     g => "Did this work?"
@@ -32,48 +31,45 @@ end
 
 
 run():() = do
-  ignore(case 5 of
-           1=> "1"
-           2=> "2"
-         end typed String)
-
-(*
+  println(case 5 of
+            1 => "1"
+            2 => "2"
+            else => "else"
+          end typed String)
 
   (* No operator *)
-  ignore(case 5:10 of
-    2:10 => 0
-    1    => 1
-    5:10 => 1
-    else => -1
-  end typed IntLiteral)
+  ignore(case 5#10 of
+           2#10 => 0
+           1    => 1
+           5#10 => 1
+           else => -1
+         end)
+
   ignore(case 5 of
-    1 => "1"
-    2 => "2"
-    (* 3:10 => "range" won't work because of stupid IntLiteral *)
-  end typed String)
+           1 => "1"
+           2 => "2"
+           3:10 => "3:10"
+         end typed String)
+
   ignore(case 5 of
-    1 => "1"
-    2 => "2"
-    (* 6:10 => "range" Won't work because of stupid IntLiteral *)
-    else => "else"
-  end typed String)
-  *)
+           1 => "1"
+           2 => "2"
+           6:10 => "range"
+           else => "else"
+         end typed String)
+
     (* Operator *)
-    (*
+    ignore(case 5 > of
+             4 => true
+             6 => false
+             else => false
+           end typed Boolean)
+
     planet = "Saturn"
     ignore(case planet IN of
-      {"Mercury", "Venus", "Earth", "Mars"} => "inner"
-      {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
-      else => "remote"
-    end typed String)
-
-    ignore(case 5 > of
-      4 => true
-    6 => false
-    else => false
-  end typed Boolean)
-*)
-
-end
+             {"Mercury", "Venus", "Earth", "Mars"} => "inner"
+             {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
+             else => "remote"
+           end typed String)
 
 end

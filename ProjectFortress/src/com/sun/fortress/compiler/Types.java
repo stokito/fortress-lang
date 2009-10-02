@@ -122,6 +122,13 @@ public final class Types {
     }
 
     /**
+     * Create a type {@code CompilerLibrary.GeneratorZZ32}.
+     */
+    public static TraitType makeGeneratorZZ32Type(Span span) {
+        return makeTraitType(makeId(span, fortressLibrary(), "GeneratorZZ32"));
+    }
+
+    /**
      * Create a type {@code FortressLibrary.Condition[\typeArg\]}.
      */
     public static TraitType makeConditionType(Type typeArg) {

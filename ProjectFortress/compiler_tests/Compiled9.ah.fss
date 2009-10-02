@@ -1,0 +1,60 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+export Executable
+
+(* Tests that various normal (not extemum) case expressions type check ok. *)
+
+foo(z:ZZ32,g:GeneratorZZ32) = do
+  println(case z IN of
+            g => "this?" end typed String)
+
+  case z of
+    g => "Did this work?"
+  end
+end
+
+
+run():() = do
+  println(case 5 of
+            1 => "1"
+            2 => "2"
+            else => "else"
+          end typed String)
+
+  (* No operator *)
+  ignore(case 5 of
+           1 => "1"
+           2 => "2"
+           3#10 => "3#10"
+         end typed String)
+
+  ignore(case 5 of
+           1 => "1"
+           2 => "2"
+           6#10 => "range"
+           else => "else"
+         end typed String)
+
+    (* Operator *)
+    ignore(case 5 > of
+             4 => true
+             6 => false
+             else => false
+           end typed Boolean)
+
+end

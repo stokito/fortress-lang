@@ -66,8 +66,10 @@ trait GeneratorZZ32
     getter asString(): String
     seq(self): GeneratorZZ32
     loop(body:ZZ32->()): ()
+    opr IN(x:ZZ32, self): Boolean
 end
 
+opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean
 (*
 opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32
 *)

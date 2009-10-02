@@ -19,6 +19,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled9.r.fss:22:7-14:\n\
 \ Could not check call to operator =\n\
+\ - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (Boolean, Boolean).\n\
 \ - (RR64, RR64)->Boolean is not applicable to an argument of type (Boolean, Boolean).\n\
 \ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (Boolean, Boolean).\n\
 File Compiled9.r.fss has 1 error.\n
