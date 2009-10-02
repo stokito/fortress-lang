@@ -13,11 +13,5 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled6.p
-STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+tests=Compiled9.CompiledCoercions
 compile
-compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.p.fss:25:1-27:2:\n\
-\ Cyclic type hierarchy: Type B transitively extends/coerces to itself.\n\
-File Compiled6.p.fss has 1 error.\n
-compile_out_equals=

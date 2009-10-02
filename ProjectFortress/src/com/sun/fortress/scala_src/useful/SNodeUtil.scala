@@ -88,4 +88,10 @@ object SNodeUtil {
     case SConstructorFnName(info, _, ctor) => SConstructorFnName(info, Some(api), ctor)
     case _ => name
   }
+  
+  /** Return a copy of the given static parameter but lifted. */
+  def liftStaticParam(sp: StaticParam): StaticParam = {
+    val SStaticParam(v1, v2, v3, v4, v5, v6, _) = sp
+    SStaticParam(v1, v2, v3, v4, v5, v6, true) 
+  }
 }

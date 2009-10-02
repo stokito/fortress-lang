@@ -29,6 +29,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
 /**
@@ -46,12 +47,14 @@ class CoercionLifter(env: GlobalEnvironment) extends Walker {
    * Public method that does the actual lifting for the given program. Returns
    * a new program with the coercions lifted.
    */
-  def liftCoercions(program: CompilationUnit): CompilationUnit =
+  def liftCoercions(program: CompilationUnit): CompilationUnit = {
+    liftedCoercions = Nil
     walk(program) match {
       case a:Api => putCoercionsInto(a)
       case c:Component => putCoercionsInto(c)
       case _ => bug("Unexpected program in CoercionLifter!")
     }
+  }
 
   /** Walk the hierarchy to gather coercions. */
   override def walk(node: Any) = node match {
@@ -151,7 +154,8 @@ object CoercionLifter {
     val newName = NF.makeLiftedCoercionId(NU.getSpan(NU.getName(f)), NU.getName(t))
 
     // Concatenate the trait's and the function's static params.
-    val sparams = toList(NU.getStaticParams(t)) ++ fnSparams
+    val liftedSparams = toList(NU.getStaticParams(t)).map(liftStaticParam)
+    val sparams = liftedSparams ++ fnSparams
 
     // Create the return type.
     val returnType = t.getSelfType.getOrElse(bug("No self type on trait "+t))

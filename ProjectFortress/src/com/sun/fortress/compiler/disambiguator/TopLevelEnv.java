@@ -752,22 +752,32 @@ public class TopLevelEnv extends NameEnv {
         return filterMap(map, set, pred);
     }
 
-    private Relation<IdOrOpOrAnonymousName, Function> alias(Relation<IdOrOpOrAnonymousName, Function> relation,
-                                                            Set<AliasedSimpleName> aliases) {
-        // Argument false to the IndexedRelation constructor avoids unnecessary indexing from seconds to firsts.
-        Relation<IdOrOpOrAnonymousName, Function> result = new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
-        result.addAll(relation);
+    /** Add into the aliases map any aliased indices from the relation. */
+    private <V> void addAliasesFrom(Relation<IdOrOpOrAnonymousName, V> relation,
+                                    Set<AliasedSimpleName> aliases) {
         for (AliasedSimpleName alias : aliases) {
             if (alias.getAlias().isSome()) {
                 IdOrOpOrAnonymousName oldFirst = alias.getName();
                 IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
-                Set<Function> seconds = new HashSet<Function>(result.matchFirst(oldFirst));
-                for (Function second : seconds) {
+                if (relation.containsFirst(oldFirst)) {
                     _aliases.put(newFirst, oldFirst);
                 }
             }
         }
-        return result;
+    }
+
+    /** Add into the aliases map any aliased indices from the given map. */
+    private <V> void addAliasesFrom(Map<? extends Id, V> map,
+                                    Set<AliasedSimpleName> aliases) {
+        for (AliasedSimpleName alias : aliases) {
+            if (alias.getName() instanceof Id && alias.getAlias().isSome()) {
+                Id oldFirst = (Id) alias.getName();
+                Id newFirst = (Id) alias.getAlias().unwrap();
+                if (map.containsKey(oldFirst)) {
+                    _aliases.put(newFirst, oldFirst);
+                }
+            }
+        }
     }
 
     private <V> Map<Id, V> aliasIds(Map<Id, V> allowed, Set<AliasedSimpleName> aliased) {
@@ -793,33 +803,47 @@ public class TopLevelEnv extends NameEnv {
     private ApiIndex keep(ApiIndex index,
                           final Set<IdOrOpOrAnonymousName> allowed_,
                           final Set<AliasedSimpleName> aliased_) {
-        Predicate2<IdOrOpOrAnonymousName, Function> pred =
-            new Predicate2<IdOrOpOrAnonymousName, Function>() {
-            public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
-                if (arg0 instanceof Op) {
-                    String op = ((Op)arg0).getText();
-                    for (IdOrOpOrAnonymousName f : allowed_) {
-                        if (f instanceof Op && ((Op)f).getText().equals(op))
-                            return true;
-                    }
-                    return false;
-                } else
-                    return allowed_.contains(arg0);
-            }
 
-        };
+        // Build up relation of Function indices based on names that are allowable.
+        Relation<IdOrOpOrAnonymousName, Function> allowedFunctions =
+                new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
+        for (Pair<IdOrOpOrAnonymousName, Function> entry : index.functions()) {
+            IdOrOpOrAnonymousName name = entry.first();
+            Function function = entry.second();
+            if (name instanceof Op) {
+                String op = ((Op)name).getText();
+                for (IdOrOpOrAnonymousName f : allowed_) {
+                    if (f instanceof Op && ((Op)f).getText().equals(op))
+                        allowedFunctions.add(name, function);
+                }
+            } else if (allowed_.contains(name)) {
+                allowedFunctions.add(name, function);
+            }
+        }
+        
+        // Build up map of TypeConsIndex based on names that are allowable.
+        Map<Id, TypeConsIndex> allowedTypeConses =
+                new HashMap<Id, TypeConsIndex>(index.typeConses().size());
+        for (Map.Entry<Id, TypeConsIndex> entry : index.typeConses().entrySet()) {
+            if (allowed_.contains(entry.getKey())) {
+                allowedTypeConses.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        // Add into the aliases map any aliases for functions and type conses.
+        addAliasesFrom(allowedFunctions, aliased_);
+        addAliasesFrom(allowedTypeConses, aliased_);
 
         return new ApiIndex((Api) index.ast(),
                             aliasIds(keepHelper(index.variables(), allowed_), aliased_),
-                            alias(new FilteredRelation<IdOrOpOrAnonymousName, Function>(index.functions(), pred),
-                                  aliased_),
+                            allowedFunctions,
 
                             // Parametric operators are parameterized by their names; they can't be filtered
                             // in any straightforward way.
                             // TODO: Do we need to attach lists of filtered operators to suppress
                             // matching of certain parametric operators? EricAllen 12/18/2008
                             index.parametricOperators(),
-                            aliasIds(keepHelper(index.typeConses(), allowed_), aliased_),
+                            allowedTypeConses,
                             aliasIds(keepHelper(index.dimensions(), allowed_), aliased_),
                             aliasIds(keepHelper(index.units(), allowed_), aliased_),
                             index.grammars(),

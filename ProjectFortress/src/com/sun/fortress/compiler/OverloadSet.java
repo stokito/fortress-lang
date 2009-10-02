@@ -573,7 +573,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             typesToJoin.add(f.getReturnType());
         }
 
-        s += NamingCzar.boxedImplDesc(join(ta,typesToJoin), null);
+        s += NamingCzar.boxedImplDesc(join(ta,typesToJoin), ifNone);
 
         return s;
     }

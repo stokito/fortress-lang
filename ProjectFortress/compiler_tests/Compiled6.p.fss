@@ -19,10 +19,12 @@ component Compiled6.p
 export Executable
 
 trait A extends B
-  coerce(x:B) = element
+  coerce(x:B) = x.element
   element: A
 end
-trait B end
+trait B
+  element: A
+end
 
 run(): () = ()
 

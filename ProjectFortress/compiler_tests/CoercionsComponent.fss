@@ -15,47 +15,15 @@
    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************)
 
-component Compiled9
-
-export Executable
-
-object C extends A end
-object D extends B end
+export CoercionsApi
 
 trait A
   coerce(x: D) = C
-  coerce(t: (D, D)) = C
 end
 
 trait B
   coerce(x: C) = D
 end
 
-f(x: A): A = x
-g(x: B): B = x
-
-h(x: A): C = C
-i(x: A, y: B): C = C
-
-run():() = do
-  (*) Test trait type coercions.
-  x: A = D
-  y: B = C
-  a = f(D)
-  b = g(C)
-
-  (*) Test tuple type coercions.
-  b11 = (D, 5)
-  b1: (A, ZZ32) = b11
-  b2: (A, B) = (D, C)
-  b33 = ((D, C), C)
-  b3: ((A, B), B) = b33
-
-  (*) Test arrow type coercions.
-  c1: D -> B = h
-  c2: ((D, D), C) -> B = i
-
-  ()
-end
-
-end
+object C extends A end
+object D extends B end

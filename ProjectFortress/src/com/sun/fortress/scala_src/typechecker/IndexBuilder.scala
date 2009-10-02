@@ -28,6 +28,8 @@ import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import edu.rice.cs.plt.collect.IndexedRelation
 import edu.rice.cs.plt.collect.Relation
+import scala.collection.mutable.MultiMap
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 
@@ -75,6 +77,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
@@ -167,6 +170,10 @@ object IndexBuilder {
     val units: JavaMap[Id, JavaUnit] = new JavaHashMap[Id, JavaUnit]()
     val grammars: JavaMap[String, GrammarIndex] = new JavaHashMap[String, GrammarIndex]()
     val apiName = if (isApi) Some(ast.getName) else None
+    
+    // Make a mutable multimap to hold the coercions to each trait.
+    val liftedCoercions = new HashMap[String, Set[Coercion]] with MultiMap[String, Coercion]
+    
     for (decl <- ast.getDecls) {
       decl match {
         case d@STraitDecl(_, _, self, excludes, comprises, _) =>
@@ -179,7 +186,7 @@ object IndexBuilder {
         case d:VarDecl =>
           buildVariables(d, variables)
           if (! isApi) initializers.add(d)
-        case d:FnDecl => buildFunction(d, apiName, functions)
+        case d:FnDecl => buildFunction(d, apiName, functions, liftedCoercions)
         case d:DimDecl => buildDimension(d, dimensions)
         case d:UnitDecl => buildUnit(d, units)
         case d:GrammarDecl => if (isApi) buildGrammar(d, grammars, errors)
@@ -189,6 +196,9 @@ object IndexBuilder {
         case _ =>
       }
     }
+    
+    // Add lifted coercions that were found.
+    addLiftedCoercions(typeConses, liftedCoercions)
     if (isApi)
       new ApiIndex(ast.asInstanceOf[Api], variables, functions, parametricOperators,
                    typeConses, dimensions, units, grammars, modifiedDate)
@@ -243,7 +253,7 @@ object IndexBuilder {
         // add t to d's excludes clause
         val tName = t.asInstanceOf[NamedType].getName
         var typ = t match {
-          case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
+          case _:TraitType => t.asInstanceOf[TraitType]
           case _ => NF.makeTraitType(tName)
         }
         dIndex.addExcludesType(typ)
@@ -440,10 +450,18 @@ object IndexBuilder {
    */
   private def buildFunction(ast: FnDecl,
                             apiName: Option[APIName],
-                            functions: Relation[IdOrOpOrAnonymousName, JavaFunction]) = {
+                            functions: Relation[IdOrOpOrAnonymousName, JavaFunction],
+                            liftedCoercions: MultiMap[String, Coercion]) = {
     val df = new JavaDeclaredFunction(ast)
     functions.add(NU.getName(ast), df)
     functions.add(ast.getUnambiguousName, df)
+    // TODO: Don't double-add the indices?
+    
+    // Add as coercion too?
+    if (NU.isLiftedCoercion(ast)) {
+      val c = new Coercion(ast, apiName)
+      liftedCoercions.add(c.declaringTrait.getText, c)
+    }
   }
 
   /**
@@ -544,13 +562,39 @@ object IndexBuilder {
         error(errors, "Nonterminal declared twice: "+m.getName, m)
       names.add(m.getName)
       m match {
-        case d@SNonterminalDef(_,_,_,_,_) =>
+        case d:NonterminalDef =>
           result.add(new NonterminalDefIndex(d))
-        case d@SNonterminalExtensionDef(_,_,_) =>
+        case d:NonterminalExtensionDef =>
           result.add(new NonterminalExtendIndex(d))
         case _ =>
       }
     }
     result
+  }
+  
+  /**
+   * For each TraitIndex in `typeConses` add in any lifted coercions that were
+   * found. Because each TraitIndex has a publicly accessible, mutable set of
+   * Coercion indices, we can merely get that set and add into it.
+   */
+  private def addLiftedCoercions(typeConses: JavaMap[Id, TypeConsIndex],
+                                 liftedCoercions: MultiMap[String, Coercion]) = {
+    // Loop over the typeCons Ids.
+    for (id <- typeConses.keySet) {
+      
+      // Get all the coercions with the same trait name.
+      liftedCoercions.get(id.getText) match {
+        case None =>
+        case Some(csLifted) =>
+          
+          // Get the current index, which must be a trait or object. Get its
+          // mutable set of Coercion indices and add the lifted ones!
+          val ti = typeConses.get(id)
+          if (ti.isInstanceOf[TraitIndex]) {
+            // Add in the lifted coercions by mutating the current index. 
+            ti.asInstanceOf[TraitIndex].coercions.addAll(toJavaSet(csLifted))
+          }
+      }
+    }
   }
 }
