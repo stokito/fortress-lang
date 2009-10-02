@@ -24,6 +24,7 @@ object D extends B end
 
 trait A
   coerce(x: D) = C
+  coerce(t: (D, D)) = C
 end
 
 trait B
@@ -43,8 +44,16 @@ run():() = do
   a = f(D)
   b = g(C)
 
+  (*) Test tuple type coercions.
+  b11 = (D, 5)
+  b1: (A, ZZ32) = b11
+  b2: (A, B) = (D, C)
+  b33 = ((D, C), C)
+  b3: ((A, B), B) = b33
+
   (*) Test arrow type coercions.
   c1: D -> B = h
+  c2: ((D, D), C) -> B = i
 
   ()
 end
