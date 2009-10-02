@@ -240,6 +240,7 @@ trait GeneratorZZ32
     getter asString(): String = ""
     seq(self): GeneratorZZ32 = self
     loop(body:ZZ32->()): () = ()
+    opr IN(x:ZZ32, self): Boolean = false
 end
 
 object SimpleRange(lo:ZZ32, hi:ZZ32) extends GeneratorZZ32
@@ -270,6 +271,7 @@ seqloop(body:ZZ32->(), lo:ZZ32, hi:ZZ32): () =
         seqloop(body, mid+1, hi)
     end
 
+opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean = false
 (*
 opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32 = SimpleRange(lo,hi)
 *)

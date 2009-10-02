@@ -29,7 +29,7 @@ import com.sun.fortress.scala_src.typechecker.STypeChecker
  * mixed into STypeChecker, the resulting type has abstract methods for
  * checking each group, so each group's implementation needs to be mixed in as
  * well to provide full type checking.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker. This is what allows this trait to implement
  * abstract members of STypeChecker and to access its protected members.)
@@ -38,47 +38,47 @@ trait Dispatch { self: STypeChecker =>
 
   // ---------------------------------------------------------------------------
   // ABSTRACT IMPL DECLARATIONS ------------------------------------------------
-  
+
   // Decls group
   def checkDecls(node: Node): Node
   def checkExprDecls(expr: Expr, expected: Option[Type]): Expr
-  
+
   // Functionals group
   def checkFunctionals(node: Node): Node
   def checkExprFunctionals(expr: Expr, expected: Option[Type]): Expr
-  
+
   // Operators group
   def checkOperators(node: Node): Node
   def checkExprOperators(expr: Expr, expected: Option[Type]): Expr
-  
+
   // Misc group
   def checkMisc(node: Node): Node
   def checkExprMisc(expr: Expr, expected: Option[Type]): Expr
 
   // ---------------------------------------------------------------------------
   // DISPATCH IMPLEMENTATION ---------------------------------------------------
-  
+
   /**
    * Implements STypeChecker.check by dispatching to some other abstract
    * method defined elsewhere.
    */
   def check(node: Node): Node = node match {
     case n:Expr => checkExpr(n)
-    
+
     case n:Component => checkDecls(n)
     case n:TraitDecl => checkDecls(n)
     case n:ObjectDecl => checkDecls(n)
     case n:FnDecl => checkDecls(n)
     case n:VarDecl => checkDecls(n)
-    
+
     case n:Overloading => checkFunctionals(n)
-    
+
     case n:Op => checkOperators(n)
     case n:Link => checkOperators(n)
-    
+
     case _ => checkMisc(node)
   }
-  
+
   /**
    * Implements STypeChecker.checkExpr by dispatching to some other abstract
    * method defined elsewhere.
@@ -88,6 +88,7 @@ trait Dispatch { self: STypeChecker =>
     case e:LocalVarDecl => checkExprDecls(e, expected)
 
     case e:_RewriteFnApp => checkExprFunctionals(e, expected)
+    case e:CaseExpr => checkExprFunctionals(e, expected)
     case e:FnExpr => checkExprFunctionals(e, expected)
     case e:FunctionalRef => checkExprFunctionals(e, expected)
     case e:MethodInvocation => checkExprFunctionals(e,expected)
