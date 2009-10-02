@@ -26,5 +26,5 @@ run():() = do
   y: B = C
   a = f(DD)
   b = g(C)
-  ()
+  println "OK"
 end
