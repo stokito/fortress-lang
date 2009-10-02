@@ -14,4 +14,6 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled9.CompiledCoercions
-compile
+build
+run
+run_out_contains=OK
