@@ -17,6 +17,7 @@
 
 package com.sun.fortress.scala_src.typechecker.impls
 
+import _root_.java.math.BigInteger
 import _root_.java.util.{HashSet => JavaHashSet}
 import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Map => JavaMap}
@@ -26,6 +27,7 @@ import edu.rice.cs.plt.collect.UnionRelation
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
+import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
@@ -43,6 +45,7 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import com.sun.fortress.useful.Useful
 
 import scala.collection.mutable.{Map => MMap}
 
@@ -654,6 +657,131 @@ trait Misc { self: STypeChecker with Common =>
       }
       val newTy = Some(self.analyzer.join(toJavaList(allTypes)))
       STry(SExprInfo(span, paren, newTy), newBody, newCatch, forbidC, newFinally)
+    }
+
+    // This case is only called for single element arrays ( e.g., [5] )
+    // and not for pieces of ArrayElements
+    case SArrayElement(SExprInfo(span, paren, _), sargs, element) => {
+      val newElement = checkExpr(element)
+      val ind = toOption(traits.typeCons(Types.getArrayKName(1))) match {
+        case None => toOption(traits.typeCons(Types.ARRAY_NAME)) match {
+          case None =>
+            signal(expr, "Type " + Types.ARRAY_NAME + " is not available.")
+            return expr
+          case Some(i) => i.asInstanceOf[TraitIndex]
+        }
+        case Some(index) => index.asInstanceOf[TraitIndex]
+      }
+      val elemType = getType(newElement).getOrElse(return expr)
+      val newTy = sargs match {
+        case Nil =>
+          val lower = NF.makeIntArgVal(NU.getSpan(expr), "0")
+          val size = NF.makeIntArgVal(NU.getSpan(expr), "1")
+          Some(Types.makeArrayKType(1, Useful.list(NF.makeTypeArg(elemType),
+                                                   lower, size)))
+        case _ =>
+          if (staticArgsMatchStaticParams(sargs, toList(ind.staticParameters))) {
+            val typ = sargs.head.asInstanceOf[TypeArg].getTypeArg
+            isSubtype(elemType, typ, elemType,
+                      elemType + " must be a subtype of " + typ + ".")
+            Some(Types.makeArrayKType(1, toJavaList(sargs)))
+          } else {
+            signal(expr, "Explicit static arguments do not match the required " +
+                   "arguments for Array1 (" + ind.staticParameters + ".)")
+            None
+          }
+      }
+      SArrayElement(SExprInfo(span, paren, newTy), sargs, newElement)
+    }
+
+    case SArrayElements(SExprInfo(span, paren, _),
+                        sargs, dimension, elements, outermost) => {
+      val newElements = elements.map(checkExpr).asInstanceOf[List[ArrayExpr]]
+      // We have to create a new visitor that visits ArrayElements and ArrayElement
+      // knowing that we are inside of another ArrayElement.
+      def getTypeAndBoundsFromArray(typ: Type): (Type, List[BigInteger]) = {
+        typ match {
+          case ty:TraitType =>
+            if (ty.getName.toString.startsWith(NU.nameString(Types.ARRAY_NAME))) {
+              var dims = List[BigInteger]()
+              for {i <- 2 until ty.getArgs.size if i % 2 == 0} {
+                ty.getArgs.get(i) match {
+                  case ia:IntArg => ia.getIntVal match {
+                    case ib:IntBase => dims ++= List(ib.getIntVal.getIntVal)
+                    case _ => signal(expr, "Not yet implemented.")
+                  }
+                  case _ => signal(expr, "Array type changed.")
+                }
+              }
+              ty.getArgs.get(0) match {
+                case ta:TypeArg => return (ta.getTypeArg, dims)
+                case _ => signal(expr, "Array type changed.")
+              }
+            } else signal(expr, "Not an Array.")
+          case _ => signal(expr, "Not an Array.")
+        }
+        (typ, List[BigInteger]())
+      }
+      var failed = false
+      val temp =
+        newElements.map(e => getType(checkExpr(e)).map(getTypeAndBoundsFromArray))
+      val types = temp.foldLeft(List[Type]())((res, elem) => elem match {
+                                              case None => res
+                                              case Some((t,_)) => res ++ List(t)})
+      val dims  = temp.foldLeft(List[List[BigInteger]]())((res, elem) => elem match {
+                                                          case None => res
+                                                          case Some((_,is)) => res ++ List(is)})
+      // one of your subarrays already failed
+      if (temp.size != types.size) failed = true
+      val first = dims.head
+      var same_size = true
+      dims.foreach(d => if (!d.equals(first)) same_size = false)
+      val arrayType = self.analyzer.join(toJavaList(types))
+      if (!same_size) signal(expr, "Not all subarrays are the same size.")
+      // Now try to get array type for the dimension we have
+      val ind = toOption(traits.typeCons(Types.getArrayKName(dimension))) match {
+        case None => toOption(traits.typeCons(Types.ARRAY_NAME)) match {
+          case None =>
+            signal(expr, "Type " + Types.ARRAY_NAME + " is not available.")
+            return expr
+          case Some(i) => i.asInstanceOf[TraitIndex]
+        }
+        case Some(index) => index.asInstanceOf[TraitIndex]
+      }
+      if (failed || !same_size) return expr
+      val span = NU.getSpan(expr)
+      val newTy = sargs match {
+        case Nil =>
+          // then we just use what we determine to be true
+          var inferredArgs = List[StaticArg](NF.makeTypeArg(arrayType))
+          inferredArgs ++= List(NF.makeIntArgVal(span, "0"),
+                                NF.makeIntArgVal(span, newElements.size.toString))
+          for {i <- 0 until dimension-1} {
+            val s = first.apply(i)
+            inferredArgs ++= List(NF.makeIntArgVal(span, "0"),
+                                  NF.makeIntArgVal(span, s.toString))
+          }
+          // then instantiate and return
+          Some(Types.makeArrayKType(dimension, toJavaList(inferredArgs)))
+        case _ =>
+          if (staticArgsMatchStaticParams(sargs, toList(ind.staticParameters))) {
+            // First arg MUST BE a TypeArg, and it must be a supertype of the elements
+            val typ = sargs.head.asInstanceOf[TypeArg].getTypeArg
+            isSubtype(arrayType, typ, arrayType,
+                      "Array elements must be a subtype of explicitly declared " +
+                      "type " + typ + ".")
+            // Check infered dims against explicit dims
+            Some(Types.makeArrayKType(dimension, toJavaList(sargs)))
+
+          } else {
+            signal(expr, "Explicit static arguments do not match the required " +
+                   "arguments for Array1 (" + ind.staticParameters + ".)")
+            None
+          }
+          None
+      }
+      SArrayElements(SExprInfo(span, paren, newTy),
+                     sargs, dimension, newElements, outermost)
     }
 
     case expr:DummyExpr => expr
