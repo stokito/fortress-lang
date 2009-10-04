@@ -15,7 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component UseConditionalOp
   export Executable
 
   trait Gnarly end
@@ -23,4 +22,3 @@ component UseConditionalOp
   foo(g1:Boolean, g2:Boolean):Boolean = g1 AND: g2
 
   run():() = ()
-end
