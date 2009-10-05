@@ -614,21 +614,25 @@ public class NamingCzar {
         return makeInnerClassName(jvmClassForSymbol(id), id.getText());
     }
 
+    // Naming Czar and CodeGen
     public static String makeInnerClassName(String packageAndClassName, String t) {
         return packageAndClassName + "$" + t;
     }
 
+    // CodeGen.generateHigherOrderCall
     public static String jvmSignatureFor(ArrowType arrow, APIName ifNone) {
         return jvmSignatureFor(arrow.getDomain(), arrow.getRange(), ifNone);
     }
 
+    // Codegen, several methods
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
                                          com.sun.fortress.nodes.Type range,
                                          APIName ifNone) {
         return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
     }
 
-    public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
+    // 
+    private static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
             String rangeDesc,
             APIName ifNone) {
         return makeMethodDesc(
@@ -636,6 +640,7 @@ public class NamingCzar {
                         rangeDesc);
     }
 
+    // CodeGen, several methods
     public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
             String rangeDesc, APIName ifNone) {
         String args = "";
@@ -648,6 +653,7 @@ public class NamingCzar {
         return makeMethodDesc(args, rangeDesc);
     }
 
+    // CodeGen.forFnDecl
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
             String rangeDesc, int spliceAt, com.sun.fortress.nodes.Type spliceType, APIName ifNone) {
         String args = "";
@@ -677,26 +683,36 @@ public class NamingCzar {
         return makeMethodDesc(args, rangeDesc);
     }
 
-    public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
+    private static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
             com.sun.fortress.nodes.Type range,
             APIName ifNone) {
         return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
     }
 
+    // OverloadSet.jvmSignatureFor
     public static String jvmSignatureFor(Function f, APIName ifNone) {
         return jvmSignatureFor(f.parameters(), f.getReturnType().unwrap(), ifNone);
     }
 
+    // Codegen.dumpSigs
     public static String jvmSignatureFor(FnDecl f, APIName ifNone) {
         FnHeader h = f.getHeader();
         return jvmSignatureFor(h.getParams(), h.getReturnType().unwrap(), ifNone);
     }
 
+    /**
+     * It looks like a bad idea to call this; how can the API possible be right?
+     * 
+     * @deprecated 
+     * @param fnName
+     * @return
+     */
+    // Seems like a bad idea to call this.
     public static String jvmClassForSymbol(IdOrOp fnName) {
         return jvmClassForSymbol(fnName, "");
     }
 
-    public static String jvmClassForSymbol(IdOrOp fnName, String ifNone) {
+    private static String jvmClassForSymbol(IdOrOp fnName, String ifNone) {
         Option<APIName> maybe_api = fnName.getApiName();
         String result = ifNone;
         if (maybe_api.isSome()) {
@@ -720,11 +736,13 @@ public class NamingCzar {
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
+    // Widely used
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone) {
         return jvmTypeDesc(type, ifNone, true);
     }
 
+    // Local, and Codegen.generateHigherOrderCall
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
 
         String res =
@@ -735,10 +753,11 @@ public class NamingCzar {
 
     }
 
-    public static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
+    private static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
         return Naming.NORMAL_TAG + makeArrowDescriptor(t,ifNone);
     }
 
+    // forFnExpr
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone) {
@@ -771,6 +790,7 @@ public class NamingCzar {
         return result;
     }
 
+    // forFnExpr
     public static String makeArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone) {
@@ -778,11 +798,11 @@ public class NamingCzar {
         return makeAnArrowDescriptor(params, rt, ifNone, result);
     }
 
-    public static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
+    private static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
         return "Object_";
     }
 
-    public static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
+    private static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
         Id id = t.getName();
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
@@ -802,7 +822,7 @@ public class NamingCzar {
         }
     }
 
-    public static String makeArrowDescriptor(VarType t, final APIName ifNone) {
+    private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
         
         String tag = Naming.YINYANG;
@@ -811,7 +831,7 @@ public class NamingCzar {
     }
 
 
-    public static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
+    private static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) )
             return Naming.INTERNAL_TAG + Naming.SNOWMAN;
         if (t.getVarargs().isSome())
@@ -835,7 +855,7 @@ public class NamingCzar {
                                      t + " of class " + t.getClass());
     }
 
-    public static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
+    private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
                                       final APIName ifNone) {
         String r = "";
         for (com.sun.fortress.nodes.Type t : types) {
@@ -899,7 +919,7 @@ public class NamingCzar {
 
 
     /* Clone of above, to clean things out, TYPE DESCRIPTORS != METHOD DESCRIPTORS */
-
+    // Codegen.reloveMethodAndSignature
     public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone)  {
         return type.accept(new NodeAbstractVisitor<String>() {
@@ -953,13 +973,14 @@ public class NamingCzar {
             });
     }
 
-    public static String jvmTypeDesc(Option<com.sun.fortress.nodes.Type> otype, APIName ifNone) {
+    private static String jvmTypeDesc(Option<com.sun.fortress.nodes.Type> otype, APIName ifNone) {
         if (!otype.isSome()) {
             throw new CompilerError("Expected type information was absent.");
         }
         return jvmTypeDesc(otype.unwrap(), ifNone);
     }
 
+    // CodegenMethodVisitor
     public static List<String> parseArgs(String desc) {
         List<String> args = new ArrayList<String>();
         if (desc.charAt(0) != '(') throw new CompilerError("Bad Type Descriptor:" + desc);
@@ -993,7 +1014,9 @@ public class NamingCzar {
         }
         return args;
     }
-
+    
+    
+    // CodeGenMethodVisitor
     public static String parseResult(String desc) {
         int i = desc.lastIndexOf(')') + 1;
         int ch = desc.charAt(i);
@@ -1025,6 +1048,7 @@ public class NamingCzar {
         }
     }
 
+    // Codegen.taskConstructorDesc
     public static String
             jvmTypeDescForGeneratedTaskInit(List<com.sun.fortress.nodes.Type> fvtypes,
                                             APIName ifNone) {
@@ -1036,6 +1060,7 @@ public class NamingCzar {
      *
      * TODO: call this from code above when referencing types by name.
      */
+    // Called from CodeGen
     public static String jvmTypeForToplevelDecl(IdOrOp x, String api) {
         Option<APIName> actualApiOpt = x.getApiName();
         if (actualApiOpt.isSome()) {
