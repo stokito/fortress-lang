@@ -92,8 +92,8 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
         analyzer = oldAnalyzer
 
       // Check the well-formedness of types.
-      case SAnyType(_) => // OK
-      case SBottomType(_) => // OK
+      case _:AnyType => // OK
+      case _:BottomType => // OK
       case t@SVarType(_, name, _) =>
         if ( ! analyzer.kindEnv.contains(name) )
           error("Unbound type: " + name, t)
@@ -131,8 +131,19 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case SArrowType(_, domain, range, effect, io, _) => walk(domain); walk(range)
       case SIntersectionType(_, elements) => elements.foreach((t:Type) => walk(t))
       case SUnionType(_, elements) => elements.foreach((t:Type) => walk(t))
-      case SLabelType(_) => // OK
-      case SDimBase(_) => // OK
+      case _:LabelType => // OK
+      case _:DimBase => // OK
+      
+      // Nodes with subnodes we want to ignore.
+      case SCaseExpr(getInfo, getParam, getCompare, getEqualsOp, getInOp, getClauses, getElseClause) =>
+        SCaseExpr(walk(getInfo).asInstanceOf[ExprInfo],
+                  walk(getParam).asInstanceOf[Option[Expr]],
+                  getCompare,
+                  getEqualsOp,
+                  getInOp,
+                  walk(getClauses).asInstanceOf[List[CaseClause]],
+                  walk(getElseClause).asInstanceOf[Option[Block]])
+      
       /* Not yet implemented...
       case SFixedPointType(_, name, body) =>
       case STaggedDimType(_, elemType, dimExpr, unitExpr) =>

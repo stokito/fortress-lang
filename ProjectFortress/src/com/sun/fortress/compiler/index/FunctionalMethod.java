@@ -22,6 +22,7 @@ import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -50,7 +51,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
         _selfType = traitDecl.getSelfType();
         int i = 0;
         for (Param p : NodeUtil.getParams(ast)) {
-            if (p.getName().equals("self")) break;
+            if (p.getName().equals(NamingCzar.SELF_NAME)) break;
             ++i;
         }
         _selfPosition = i;

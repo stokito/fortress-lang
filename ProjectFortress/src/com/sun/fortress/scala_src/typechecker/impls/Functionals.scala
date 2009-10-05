@@ -139,15 +139,23 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Infer lifted static params.
     val argType = getArgType(args)
-    val liftedArrow = inferLiftedStaticParams(arrow, argType).getOrElse {
-      return Right(errorFactory.makeNotApplicableError(arrow, args))
-    }
+    val (liftedArrow, liftedSargs) =
+      inferLiftedStaticParams(arrow, argType).getOrElse {
+        return Right(errorFactory.makeNotApplicableError(arrow, args))
+      }
 
     // Are there static params? i.e., do we need more inference?
-    if (hasStaticParams(liftedArrow))
-      checkApplicableWithInference(liftedArrow, arrow, context, args)
-    else
-      checkApplicableWithoutInference(liftedArrow, arrow, args)
+    val candidateOrError =
+      if (hasStaticParams(liftedArrow))
+        checkApplicableWithInference(liftedArrow, arrow, context, args)
+      else
+        checkApplicableWithoutInference(liftedArrow, arrow, args)
+    
+    // If applicable, then inject the lifted static args into the result.
+    candidateOrError match {
+      case Left((arrow, sargs, args)) => Left((arrow, liftedSargs ++ sargs, args))
+      case error => error
+    }
   }
 
   /**
@@ -488,7 +496,7 @@ trait Functionals { self: STypeChecker with Common =>
       // Type check the application.
       val (smaArrow, infSargs, checkedSubs) =
         checkApplication(arrows, subs, expected).getOrElse(return expr)
-      val newSargs = if (sargs.isEmpty) infSargs else sargs
+      val newSargs = if (sargs.isEmpty) infSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
       SSubscriptExpr(SExprInfo(span, paren, Some(smaArrow.getRange)),
@@ -511,7 +519,7 @@ trait Functionals { self: STypeChecker with Common =>
       // Type check the application.
       val (smaArrow, infSargs, checkedArg) =
         checkApplication(arrows, arg, expected).getOrElse(return expr)
-      val newSargs = if (sargs.isEmpty) infSargs else sargs
+      val newSargs = if (sargs.isEmpty) infSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
       SMethodInvocation(SExprInfo(span, paren, Some(smaArrow.getRange)),
@@ -579,7 +587,7 @@ trait Functionals { self: STypeChecker with Common =>
       val (smaArrow, infSargs, checkedArg) =
         checkApplication(arrows, arg, expected).getOrElse(return expr)
 
-      // Rewrite the applicand to include the arrow and static args
+      // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
       val newFn = rewriteApplicand(checkedFn, smaArrow, infSargs)
       S_RewriteFnApp(SExprInfo(span, paren, Some(smaArrow.getRange)), newFn, checkedArg)
@@ -692,9 +700,11 @@ trait Functionals { self: STypeChecker with Common =>
                   val isG_match =
                       isSubtype(getType(matchE).get,
                                 Types.makeGeneratorZZ32Type(span))
+                                // Types.makeGeneratorType(NF.make_InferenceVarType(span)))
                   val isG_cond =
                       isSubtype(getType(p).get,
                                 Types.makeGeneratorZZ32Type(span))
+                                // Types.makeGeneratorType(NF.make_InferenceVarType(span)))
                   val newOp = if (isG_match && !isG_cond) Some(checkOp(newIn))
                               else Some(checkOp(newEquals))
                   SCaseClause(info, matchE, block, newOp)
