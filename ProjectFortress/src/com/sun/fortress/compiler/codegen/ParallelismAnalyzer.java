@@ -66,13 +66,14 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
         if (tallyArgs(x.getArgs())) worthy.add(x);
     }
 
+    public void forTupleExprOnly(TupleExpr x) {
+        debug(x,"forTupleExpr");
+        if (tallyArgs(x.getExprs())) worthy.add(x);
+    }
+
     public void for_RewriteFnAppOnly(_RewriteFnApp x) {
         debug(x,"for_RewriteFnApp");
         Expr arg = x.getArgument();
-
-        if (arg instanceof TupleExpr) {
-            TupleExpr targ = (TupleExpr) arg;
-            if (tallyArgs(targ.getExprs())) worthy.add(x);
-        }
+        if (worthParallelizing(arg)) worthy.add(x);
     }
 }
