@@ -179,6 +179,26 @@ trait Misc { self: STypeChecker with Common =>
       id
     }
 
+    // The requires clause consists of a sequence of expressions of type Boolean.
+    // Expression in each subclause of ensures clause has type Boolean.
+    // The expression in the provided subclause of an ensures clause subclause
+    // is of type Boolean.
+    case SContract(info, requiresC, ensures, invariants) => {
+      val msg1 = "A requires clause"
+      val msg2 = "An ensures clause"
+      val msg3 = "A provided clause"
+      val newRequires =
+        requiresC.map(_.map(checkExpr(_, Types.BOOLEAN, errorString(msg1))))
+      val newEnsures =
+        ensures.map(_.map(ec => ec match {
+                          case SEnsuresClause(info, post, pre) =>
+                            SEnsuresClause(info, checkExpr(post, Types.BOOLEAN,
+                                                           errorString(msg2)),
+                                           pre.map(checkExpr(_, Types.BOOLEAN,
+                                                             errorString(msg3))))}))
+      SContract(info, newRequires, newEnsures, invariants.map(_.map(checkExpr)))
+    }
+
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
 
@@ -344,6 +364,12 @@ trait Misc { self: STypeChecker with Common =>
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
       val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
       if ( haveTypes(fs) ) {
+          // In a do-also expression (i.e., one in which also appears),
+          // each block expression must have type ().
+          if (fs.size > 1)
+              fs.map(checkExpr(_, Types.VOID,
+                               errorString("do-also expression")))
+
           // Get union of all clauses' types
           val frontTypes =
             fs.take(fs.size-1).foldRight(getType(fs.last).get)

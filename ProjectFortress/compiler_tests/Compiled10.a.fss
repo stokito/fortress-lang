@@ -17,19 +17,4 @@
 
 export Executable
 
-  run():() = do
-    var b:Boolean
-
-    b:= do
-      ()
-      true
-    also atomic do
-      ()
-      false
-    also do
-      ()
-      false
-    end typed Boolean
-    ()
-
-  end
+run() = do 3 also do 5 end
