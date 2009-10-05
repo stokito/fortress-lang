@@ -17,19 +17,8 @@
 
 export Executable
 
-  run():() = do
-    var b:Boolean
+object O
+  m(x: ZZ32) = ()
+end
 
-    b:= do
-      ()
-      true
-    also atomic do
-      ()
-      false
-    also do
-      ()
-      false
-    end typed Boolean
-    ()
-
-  end
+run() = O.m(3 typed Number)
