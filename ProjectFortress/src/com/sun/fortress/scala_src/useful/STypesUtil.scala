@@ -805,9 +805,14 @@ object STypesUtil {
           instantiateLiftedStaticParams(liftedInfSargs, typ1).getOrElse(return None)
         else
           typ1
-      
+
+      // If there are still some static params in it, then we can't infer them
+      // so it's not applicable.
       val typ = typ2.asInstanceOf[ArrowType]
-      if (isSubtype(typ.getDomain, smaArrow.getDomain)) Some(typ) else None
+      if (!hasStaticParams(typ) && isSubtype(typ.getDomain, smaArrow.getDomain))
+        Some(typ)
+      else
+        None
     }
 
     // If overloading type is an intersection, check that any of its
