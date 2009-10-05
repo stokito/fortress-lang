@@ -108,21 +108,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.packageAndClassName = c.packageAndClassName;
         this.traitOrObjectName = c.traitOrObjectName;
         this.springBoardClass = c.springBoardClass;
-        
+
         this.ta = c.ta;
         this.pa = c.pa;
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
-       
+
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
-        
+
         this.inATrait = c.inATrait;
         this.inAnObject = c.inAnObject;
-        this.inABlock = c.inABlock;   
+        this.inABlock = c.inABlock;
         this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
-        
+
         this.component = c.component;
         this.ci = c.ci;
         this.env = c.env;
@@ -755,10 +755,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 Map<String, String> xlation = new HashMap<String, String>();
                 String sparams_part = genericDecoration(x, xlation);
-                
+
                 FnDecl y = x;
                 x = (FnDecl) x.accept(new GenericNumberer(xlation));
-                
+
                  String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                         returnType.unwrap(), component.getName());
 
@@ -777,29 +777,29 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
 
                 String PCN = packageAndClassName + "$" +
-                Naming.GEAR + 
+                Naming.GEAR +
                 Naming.catMangled(
                       Naming.mangleIdentifier(mname + sparams_part),
                   Naming.ENVELOPE , // "ENVELOPE"
                   arrow_type);
-                
+
                 System.err.println(PCN);
-                
+
                 CodeGen cg = new CodeGen(this);
                 cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-                
+
                 String staticClass = PCN.replaceAll("[.]", "/");
                 // This creates the closure bits
                 InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass);
-                
+
                 // Code below cribbed from top-level/functional/ordinary method
-                
+
                 int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
-    
+
                 cg.mv = cg.cw.visitMethod(modifiers, mname, sig, null, null);
                 cg.mv.visitCode();
 
-               
+
                 List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(
                         params.size());
                 int index = 0;
@@ -813,7 +813,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 exitMethodScope(selfIndex, cg, null, paramsGen);
 
                 methodReturnAndFinish(cg);
-                                                
+
                 cg.dumpClass(PCN);
 
             } else if (emittingFunctionalMethodWrappers) {
@@ -944,9 +944,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                     // END OF emitting trait default
                 } else {
-                    
+
                     CodeGen cg = new CodeGen(this);
-                    
+
                     /* options here:
                      *  - functional method in object
                      *  - normal method in object
@@ -1091,17 +1091,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         public String forKindUnit(KindUnit that) {
             return Naming.ATOM;
         }
-        
+
         @Override
         public String forBoolBase(BoolBase b) {
             return b.isBoolVal() ? "T" : "F";
         }
-        
+
         @Override
         public String forBoolRef(BoolRef b) {
             return b.getName().getText();
         }
-        
+
         @Override
         public String forBoolBinaryOp(BoolBinaryOp b) {
             BoolExpr l = b.getLeft();
@@ -1109,19 +1109,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Op op = b.getOp();
             return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
         }
-        
+
         @Override
         public String forBoolUnaryOp(BoolUnaryOp b) {
             BoolExpr v = b.getBoolVal();
             Op op = b.getOp();
             return v.accept(this) + Naming.ENTER + op.getText();
         }
-         
+
         /* These need to return encodings of Fortress types. */
         @Override
         public String forBoolArg(BoolArg that) {
             BoolExpr arg = that.getBoolArg();
-            
+
             return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
         }
 
@@ -1135,12 +1135,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         public String forIntBase(IntBase b) {
             return String.valueOf(b.getIntVal());
         }
-        
+
         @Override
         public String forIntRef(IntRef b) {
             return b.getName().getText();
         }
-        
+
         @Override
         public String forIntBinaryOp(IntBinaryOp b) {
             IntExpr l = b.getLeft();
@@ -1148,7 +1148,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Op op = b.getOp();
             return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
         }
-         
+
        @Override
         public String forIntArg(IntArg that) {
             IntExpr arg = that.getIntVal();
@@ -1176,20 +1176,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             UnitExpr arg = that.getUnitArg();
             return Naming.ATOM;
         }
-        
+
 
     };
-    
+
     private String genericDecoration(FnDecl x, Map<String, String> xlation) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
         if (sparams.size() == 0)
             return "";
-        
+
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
-            
+
             IdOrOp spn = sp.getName();
             String tag = spk.accept(spkTagger) + index;
             xlation.put(spn.getText(), tag+index);
@@ -1199,7 +1199,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO Auto-generated method stub
         return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
     }
-    
+
     private String genericDecoration(List<StaticArg> sargs) {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)
@@ -1357,7 +1357,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, Naming.APPLY_METHOD, applyDesc, null, null);
         cg.mv.visitCode();
 
-        // Since we call this virtually we need a slot for the arrow implementation this object.
+        // Since we call this virtually we need a slot for the arrow implementation of this object.
         cg.mv.reserveSlot0();
         for (Param p : params) {
             cg.addParam(p);
@@ -1456,7 +1456,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // need to deal with generics.
         List<StaticArg> sargs = x.getStaticArgs();
-        
+
         // Get it from top level.
         Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
         // If it's an overloaded type, oy.
@@ -1493,9 +1493,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forFunctionalRef " + x);
 
         List<StaticArg> sargs = x.getStaticArgs();
-        
+
         String decoration = genericDecoration(sargs);
-        
+
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
 
@@ -1504,7 +1504,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
 
         String pkgClass = calleeInfo.getA();
-        
+
         if (decoration.length() > 0) {
             /*
              * TODO, BUG, need to use arrow type of uninstantiated generic!
@@ -1512,7 +1512,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * to figure out the name of the template class that will be
              * expanded later.
              */
-            
+
             String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
             pkgClass = pkgClass + "$" + Naming.GEAR + Naming.catMangled(
                     calleeInfo.getB(),
@@ -1521,7 +1521,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     arrow_type // TODO fix this.
                     );
         }
-        
+
         callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.getB());
     }
 
@@ -1648,13 +1648,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forLocalVarDecl(LocalVarDecl d) {
         debug("forLocalVarDecl", d);
         List<LValue> lhs = d.getLhs();
-        if (lhs.size()!=1) {
-            sayWhat(d, "Can't yet generate code for bindings of multiple lhs variables");
-        }
-        LValue v = lhs.get(0);
-        if (v.isMutable()) {
-            sayWhat(d, "Can't yet generate code for mutable variable declarations.");
-        }
         if (!d.getRhs().isSome()) {
             // Just a forward declaration to be bound in subsequent
             // code.  But we need to leave a marker so that the
@@ -1664,30 +1657,56 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // subsequent true definitions.
             sayWhat(d, "Can't yet handle forward binding declarations.");
         }
-        if (!v.getIdType().isSome()) {
-            sayWhat(d, "Variable being bound lacks type information!");
+        int n = lhs.size();
+        List<VarCodeGen> vcgs = new ArrayList(n);
+        for (LValue v : lhs) {
+            if (v.isMutable()) {
+                sayWhat(d, "Can't yet generate code for mutable variable declarations.");
+            }
+            if (!v.getIdType().isSome()) {
+                sayWhat(d, "Variable being bound lacks type information!");
+            }
+
+            // Introduce variable
+            Type ty = v.getIdType().unwrap();
+            VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
+            vcgs.add(vcg);
         }
 
-        // Introduce variable
-        Type ty = v.getIdType().unwrap();
-        VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
-        vcg.prepareAssignValue(mv);
-
         // Compute rhs
+        List<Expr> rhss;
         Expr rhs = d.getRhs().unwrap();
-        rhs.accept(this);
+        if (n==1) {
+            rhss = Collections.singletonList(rhs);
+        } else if (rhs instanceof TupleExpr &&
+                   !((TupleExpr)rhs).getVarargs().isSome() &&
+                   ((TupleExpr)rhs).getKeywords().isEmpty() &&
+                   ((TupleExpr)rhs).getExprs().size() == n) {
+            rhss = ((TupleExpr)rhs).getExprs();
+        } else {
+            sayWhat(d, "Can't yet generate multiple-variable bindings unless rhs is a manifest tuple of the same size.");
+            return;
+        }
 
-        // Perform binding
-        vcg.assignValue(mv);
+        if (pa.worthParallelizing(rhs)) {
+            forExprsParallel(rhss, vcgs);
+        } else {
+            forExprsSerial(rhss,vcgs);
+        }
 
         // Evaluate rest of block with binding in scope
         CodeGen cg = new CodeGen(this);
-        cg.addLocalVar(vcg);
+        for (VarCodeGen vcg : vcgs) {
+            cg.addLocalVar(vcg);
+        }
 
         cg.doStatements(d.getBody().getExprs());
 
-        // Dispose of binding now that we're done
-        vcg.outOfScope(mv);
+        // Dispose of bindings now that we're done
+        // Do this in reverse order of creation.
+        for (int i = n-1; i >= 0; i--) {
+            vcgs.get(i).outOfScope(mv);
+        }
     }
 
     public void forObjectDecl(ObjectDecl x) {
@@ -1973,13 +1992,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     // Evaluate args in parallel.  (Why is profitability given at a
     // level where we can't ask the qustion here?)
-    // Leave the results (in the order given) on the stack.
-    public void forExprsParallel(List<? extends Expr> args) {
+    // Leave the results (in the order given) on the stack when vcgs==null;
+    // otherwise use the provided vcgs to bind corresponding values.
+    public void forExprsParallel(List<? extends Expr> args, List<VarCodeGen> vcgs) {
         final int n = args.size();
         if (n <= 0) return;
         String [] tasks = new String[n];
         String [] results = new String[n];
         int [] taskVars = new int[n];
+
+        if (vcgs != null && vcgs.size() != n) {
+            sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+        }
 
         // Push arg tasks from right to left, so
         // that local evaluation of args will proceed left to right.
@@ -2013,9 +2037,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
         }
         // arg 0 gets compiled in place, rather than turned into work.
+        if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
+        if (vcgs != null) vcgs.get(0).assignValue(mv);
+
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
+            if (vcgs != null) vcgs.get(i).prepareAssignValue(mv);
             int taskVar = taskVars[i];
             mv.visitVarInsn(Opcodes.ALOAD, taskVar);
             mv.disposeCompilerLocal(taskVar);
@@ -2023,6 +2051,29 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = tasks[i];
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "joinOrRun", "()V");
             mv.visitFieldInsn(Opcodes.GETFIELD, task, "result", results[i]);
+            if (vcgs != null) vcgs.get(i).assignValue(mv);
+        }
+    }
+
+    // Evaluate args serially, from left to right.
+    // Leave the results (in the order given) on the stack when vcgs==null;
+    // otherwise use the provided vcgs to bind corresponding values.
+    public void forExprsSerial(List<? extends Expr> args, List<VarCodeGen> vcgs) {
+        if (vcgs == null) {
+            for (Expr arg : args) {
+                arg.accept(this);
+            }
+        } else {
+            int n = args.size();
+            if (args.size() != vcgs.size()) {
+                sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+            }
+            for (int i = 0; i < n; i++) {
+                VarCodeGen vcg = vcgs.get(i);
+                vcg.prepareAssignValue(mv);
+                args.get(i).accept(this);
+                vcg.assignValue(mv);
+            }
         }
     }
 
@@ -2033,9 +2084,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Expr> args = x.getArgs();
 
         if (pa.worthParallelizing(x)) {
-            forExprsParallel(args);
+            forExprsParallel(args, null);
         } else {
-
             for (Expr arg : args) {
                 arg.accept(this);
             }
