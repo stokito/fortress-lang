@@ -147,7 +147,11 @@ class CoercionDesugarer extends Walker {
 
     // Put the body in a new FnExpr.
     val params = List(NF.makeParam(x.getVarId, getType(x).get))
-    addType(EF.makeFnExpr(info.getSpan, toJavaList(params), body), toType)
+    val fnExpr = EF.makeFnExpr(info.getSpan,
+                               toJavaList(params),
+                               some(toType.getRange),
+                               body)
+    addType(fnExpr, toType)
   }
 
 }
