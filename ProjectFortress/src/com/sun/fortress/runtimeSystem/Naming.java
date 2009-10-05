@@ -34,14 +34,34 @@ public class Naming {
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
+ 
+    public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
+    public static final String SCALES = "\u2696"; // dimension static param
+    public static final String MUSIC_SHARP = "\u266f"; // int static param
+    public static final String MUSIC_NATURAL = "\u266e"; // nat(ural) static param
+    public static final String HAMMER_AND_PICK = "\u2692"; // opr static param
+    public static final String YINYANG = "\u262f"; // type static param
+    public static final String ATOM = "\u269b"; // unit static param
+    
+    public static final String GENERIC_TAGS = 
+        BALLOT_BOX_WITH_CHECK + SCALES + MUSIC_SHARP +
+        HAMMER_AND_PICK + YINYANG + ATOM;
+
+    public static final String ENTER = "\u2386";
 
     public static final Object INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
-
 
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
     public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
-    
+    public static final char BALLOT_BOX_WITH_CHECK_CHAR = BALLOT_BOX_WITH_CHECK.charAt(0);
+    public static final char SCALES_CHAR = SCALES.charAt(0);
+    public static final char MUSIC_SHARP_CHAR = MUSIC_SHARP.charAt(0);
+    public static final char MUSIC_NATURAL_CHAR = MUSIC_NATURAL.charAt(0);
+    public static final char HAMMER_AND_PICK_CHAR = HAMMER_AND_PICK.charAt(0);
+    public static final char YINYANG_CHAR = YINYANG.charAt(0);
+    public static final char ATOM_CHAR = ATOM.charAt(0);
+
     public final static String GEAR = "\u2699";
 
     public final static char LEFT_OXFORD_CHAR = '\u27e6';
@@ -107,7 +127,6 @@ public class Naming {
     private static final String SF_TRANSLATES = "/.;$<>][:\\";
 
     private static final String SF_FIRST_ESCAPES = SF_ESCAPES + "=";
-
 
     public static String javaDescForTaggedFortressType(String ft) {
         char ch = ft.charAt(0);
@@ -302,6 +321,9 @@ public class Naming {
 
     public static String catMangled(String s1, String s2, String s3) {
         return catMangled(catMangled(s1,s2), s3);
+    }
+    public static String catMangled(String s1, String s2, String s3, String s4) {
+        return catMangled(catMangled(s1,s2), catMangled(s3,s4));
     }
 
 

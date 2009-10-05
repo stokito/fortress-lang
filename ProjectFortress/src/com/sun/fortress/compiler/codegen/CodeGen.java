@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
@@ -96,6 +97,38 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final ComponentIndex ci;
     private GlobalEnvironment env;
 
+    // Create a fresh codegen object for a nested scope.  Technically,
+    // we ought to be able to get by with a single lexEnv, because
+    // variables ought to be unique by location etc.  But in practice
+    // I'm not assuming we have a unique handle for any variable,
+    // so we get a fresh CodeGen for each scope to avoid collisions.
+    private CodeGen(CodeGen c) {
+        this.cw = c.cw;
+        this.mv = c.mv;
+        this.packageAndClassName = c.packageAndClassName;
+        this.traitOrObjectName = c.traitOrObjectName;
+        this.springBoardClass = c.springBoardClass;
+        
+        this.ta = c.ta;
+        this.pa = c.pa;
+        this.fv = c.fv;
+        this.topLevelOverloads = c.topLevelOverloads;
+        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
+       
+        this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
+        
+        this.inATrait = c.inATrait;
+        this.inAnObject = c.inAnObject;
+        this.inABlock = c.inABlock;   
+        this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
+        this.currentTraitObjectDecl = c.currentTraitObjectDecl;
+        
+        this.component = c.component;
+        this.ci = c.ci;
+        this.env = c.env;
+
+    }
+
 
     public CodeGen(Component c,
                    TypeAnalyzer ta, ParallelismAnalyzer pa, FreeVariables fv,
@@ -114,29 +147,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
-    // Create a fresh codegen object for a nested scope.  Technically,
-    // we ought to be able to get by with a single lexEnv, because
-    // variables ought to be unique by location etc.  But in practice
-    // I'm not assuming we have a unique handle for any variable,
-    // so we get a fresh CodeGen for each scope to avoid collisions.
-    private CodeGen(CodeGen c) {
-        this.component = c.component;
-        this.cw = c.cw;
-        this.mv = c.mv;
-        this.packageAndClassName = c.packageAndClassName;
-        this.inATrait = c.inATrait;
-        this.inAnObject = c.inAnObject;
-        this.inABlock = c.inABlock;
-        this.ta = c.ta;
-        this.pa = c.pa;
-        this.fv = c.fv;
-        this.ci = c.ci;
-        this.env = c.env;
-        this.topLevelOverloads = c.topLevelOverloads;
-        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
-        this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
-
-    }
 
     // We need to expose this because nobody else helping CodeGen can
     // understand unqualified names (esp types) without it!
@@ -743,11 +753,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * circumstances.
                  */
 
-                String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                Map<String, String> xlation = new HashMap<String, String>();
+                String sparams_part = genericDecoration(x, xlation);
+                
+                FnDecl y = x;
+                x = (FnDecl) x.accept(new GenericNumberer(xlation));
+                
+                 String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                         returnType.unwrap(), component.getName());
 
                 ArrowType at = fndeclToType(x);
-
+                String arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 String mname;
 
                 // TODO different collision rules for top-level and for
@@ -760,6 +776,45 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     mname = nonCollidingSingleName(name, sig);
                 }
 
+                String PCN = packageAndClassName + "$" +
+                Naming.GEAR + 
+                Naming.catMangled(
+                      Naming.mangleIdentifier(mname + sparams_part),
+                  Naming.ENVELOPE , // "ENVELOPE"
+                  arrow_type);
+                
+                System.err.println(PCN);
+                
+                CodeGen cg = new CodeGen(this);
+                cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+                
+                String staticClass = PCN.replaceAll("[.]", "/");
+                // This creates the closure bits
+                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass);
+                
+                // Code below cribbed from top-level/functional/ordinary method
+                
+                int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
+    
+                cg.mv = cg.cw.visitMethod(modifiers, mname, sig, null, null);
+                cg.mv.visitCode();
+
+               
+                List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(
+                        params.size());
+                int index = 0;
+                for (Param p : params) {
+                    VarCodeGen v = cg.addParam(p);
+                    paramsGen.add(v);
+                    index++;
+                }
+
+                body.unwrap().accept(cg);
+                exitMethodScope(selfIndex, cg, null, paramsGen);
+
+                methodReturnAndFinish(cg);
+                                                
+                cg.dumpClass(PCN);
 
             } else if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, params, selfIndex, name,
@@ -889,6 +944,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                     // END OF emitting trait default
                 } else {
+                    
+                    CodeGen cg = new CodeGen(this);
+                    
                     /* options here:
                      *  - functional method in object
                      *  - normal method in object
@@ -924,8 +982,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // in the executable wrapper code instead.
                         modifiers |= Opcodes.ACC_STATIC;
                     }
-
-                    CodeGen cg = new CodeGen(this);
 
                     cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
                     cg.mv.visitCode();
@@ -998,18 +1054,166 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
 
-    private String decorateMethodIfstaticParams(FnDecl x, String mname) {
+    NodeAbstractVisitor<String> spkTagger = new NodeAbstractVisitor<String> () {
+
+        @Override
+        public String forKindBool(KindBool that) {
+            return Naming.BALLOT_BOX_WITH_CHECK;
+        }
+
+        @Override
+        public String forKindDim(KindDim that) {
+            return Naming.SCALES;
+        }
+
+        @Override
+        public String forKindInt(KindInt that) {
+            return Naming.MUSIC_SHARP;
+        }
+
+        @Override
+        public String forKindNat(KindNat that) {
+            // nats and ints go with same encoding; no distinction in args
+            return Naming.MUSIC_SHARP;
+        }
+
+        @Override
+        public String forKindOp(KindOp that) {
+            return Naming.HAMMER_AND_PICK;
+        }
+
+        @Override
+        public String forKindType(KindType that) {
+            return Naming.YINYANG;
+        }
+
+        @Override
+        public String forKindUnit(KindUnit that) {
+            return Naming.ATOM;
+        }
+        
+        @Override
+        public String forBoolBase(BoolBase b) {
+            return b.isBoolVal() ? "T" : "F";
+        }
+        
+        @Override
+        public String forBoolRef(BoolRef b) {
+            return b.getName().getText();
+        }
+        
+        @Override
+        public String forBoolBinaryOp(BoolBinaryOp b) {
+            BoolExpr l = b.getLeft();
+            BoolExpr r = b.getRight();
+            Op op = b.getOp();
+            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+        }
+        
+        @Override
+        public String forBoolUnaryOp(BoolUnaryOp b) {
+            BoolExpr v = b.getBoolVal();
+            Op op = b.getOp();
+            return v.accept(this) + Naming.ENTER + op.getText();
+        }
+         
+        /* These need to return encodings of Fortress types. */
+        @Override
+        public String forBoolArg(BoolArg that) {
+            BoolExpr arg = that.getBoolArg();
+            
+            return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
+        }
+
+        @Override
+        public String forDimArg(DimArg that) {
+            DimExpr arg = that.getDimArg();
+            return Naming.SCALES;
+        }
+
+        @Override
+        public String forIntBase(IntBase b) {
+            return String.valueOf(b.getIntVal());
+        }
+        
+        @Override
+        public String forIntRef(IntRef b) {
+            return b.getName().getText();
+        }
+        
+        @Override
+        public String forIntBinaryOp(IntBinaryOp b) {
+            IntExpr l = b.getLeft();
+            IntExpr r = b.getRight();
+            Op op = b.getOp();
+            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+        }
+         
+       @Override
+        public String forIntArg(IntArg that) {
+            IntExpr arg = that.getIntVal();
+            return Naming.MUSIC_SHARP + arg.accept(this);
+        }
+
+        @Override
+        public String forOpArg(OpArg that) {
+            FunctionalRef arg = that.getName();
+            // TODO what about static args here?
+            IdOrOp name = arg.getNames().get(0);
+            return Naming.HAMMER_AND_PICK + name.getText();
+        }
+
+        @Override
+        public String forTypeArg(TypeArg that) {
+            Type arg = that.getTypeArg();
+            // Pretagged with type information
+            String s =  NamingCzar.makeArrowDescriptor(arg, thisApi());
+            return s;
+        }
+
+        @Override
+        public String forUnitArg(UnitArg that) {
+            UnitExpr arg = that.getUnitArg();
+            return Naming.ATOM;
+        }
+        
+
+    };
+    
+    private String genericDecoration(FnDecl x, Map<String, String> xlation) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
         if (sparams.size() == 0)
-            return mname;
-        String frag = Naming.GEAR + mname + Naming.LEFT_OXFORD;
+            return "";
+        
+        String frag = Naming.LEFT_OXFORD;
+        int index = 1;
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
+            
             IdOrOp spn = sp.getName();
-
+            String tag = spk.accept(spkTagger) + index;
+            xlation.put(spn.getText(), tag+index);
+            frag += tag + ";";
+            index++;
         }
         // TODO Auto-generated method stub
-        return frag + Naming.RIGHT_OXFORD;
+        return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
+    }
+    
+    private String genericDecoration(List<StaticArg> sargs) {
+        // TODO we need to make the conventions for Arrows and other static types converge.
+        if (sargs.size() == 0)
+            return "";
+        String frag = Naming.LEFT_OXFORD;
+        int index = 1;
+        for (StaticArg sp : sargs) {
+            String tag = sp.accept(spkTagger);
+            frag += tag;
+            frag += ";";
+            index++;
+        }
+        // TODO Auto-generated method stub
+        return Naming.mangleIdentifier(Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD);
     }
 
     /**
@@ -1242,12 +1446,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             forFunctionalRef(x);
             return;
         }
+
         // Not entirely sure about this next bit; how are function-valued parameters referenced?
         VarCodeGen fn = getLocalVarOrNull(x.getOriginalName());
         if (fn != null) {
             sayWhat(x, "Haven't figured out references to local/parameter functions yet");
             return;
         }
+
+        // need to deal with generics.
+        List<StaticArg> sargs = x.getStaticArgs();
+        
         // Get it from top level.
         Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
         // If it's an overloaded type, oy.
@@ -1262,8 +1471,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
         String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
-        String PCN = pc_and_m.getA() + "/" +
-          Naming.catMangled(
+        String PCN = pc_and_m.getA() + "$" +
+           Naming.catMangled(
             method_and_signature.getA() ,
             Naming.ENVELOPE , // "ENVELOPE"
             arrow_type);
@@ -1283,6 +1492,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forFunctionalRef(FunctionalRef x) {
         debug("forFunctionalRef " + x);
 
+        List<StaticArg> sargs = x.getStaticArgs();
+        
+        String decoration = genericDecoration(sargs);
+        
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
 
@@ -1290,7 +1503,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
 
-        callStaticSingleOrOverloaded(x, arrow, calleeInfo.getA(), calleeInfo.getB());
+        String pkgClass = calleeInfo.getA();
+        
+        if (decoration.length() > 0) {
+            /*
+             * TODO, BUG, need to use arrow type of uninstantiated generic!
+             * This is necessary because otherwise it is difficult (impossible?)
+             * to figure out the name of the template class that will be
+             * expanded later.
+             */
+            
+            String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
+            pkgClass = pkgClass + "$" + Naming.GEAR + Naming.catMangled(
+                    calleeInfo.getB(),
+                    decoration,
+                    Naming.ENVELOPE,
+                    arrow_type // TODO fix this.
+                    );
+        }
+        
+        callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.getB());
     }
 
     /**
@@ -1632,7 +1864,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (VarCodeGen v : freeVars) {
             String name = v.name.getText();
             cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name,
-                          NamingCzar.boxedImplDesc(v.fortressType, thisApi()),
+                          NamingCzar.jvmTypeDesc(v.fortressType, thisApi()),
                           null, null);
             result.put(name, new TaskVarCodeGen(v, taskClass, thisApi()));
         }
@@ -1774,7 +2006,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(Opcodes.DUP);
-            int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task), "L"+task+";");
+            int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task),
+                    NamingCzar.internalToDesc(task));
             taskVars[i] = taskVar;
             mv.visitVarInsn(Opcodes.ASTORE, taskVar);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, task, "forkIfProfitable", "()V");

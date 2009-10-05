@@ -301,6 +301,35 @@ public class Useful {
         return result;
 
     }
+    
+    public static <T> List<T> applyToAllPossiblyReusing(List<T> s, F<T, T> verb) {
+        int j = 0;
+        for (T i : s) {
+            T new_i = verb.apply(i);
+            
+            if (new_i != i) {
+                /*
+                 *  this will abandon the outer loop,
+                 *  and execute one that allocates new
+                 */
+                int k = 0;
+                ArrayList<T> result = new ArrayList<T>(s.size());
+
+                for (T ii : s) {
+                    result.add (k < j ? ii :     // copy
+                                k == j ? new_i : // reuse
+                                verb.apply(ii)); // compute
+                    k++;
+                }
+                
+                return result;
+            }
+            j++;
+        }
+        return s;
+
+    }
+
 
     /**
      * Returns the LIST result APPEND [ e = verb.apply(i) | i IN s ]
@@ -1011,12 +1040,16 @@ public class Useful {
     }
 
     public static String substituteVarsCompletely(String e, StringMap map, int limit) {
+        return substituteVarsCompletely(e, map, limit, envVar, INTRO_LEN, OUTRO_LEN);
+    }
+        
+    public static String substituteVarsCompletely(String e, StringMap map, int limit, Pattern vpat, int v_intro, int v_outro) {
         String initial_e = e;
         String old_e = e;
-        e = substituteVars(e, map);
+        e = substituteVars(e, vpat, v_intro, v_outro, map);
         while (old_e != e && limit-- > 0) {
             old_e = e;
-            e = substituteVars(e, map);
+            e = substituteVars(e, vpat, v_intro, v_outro, map);
         }
         if (limit <= 0) {
             throw new Error(

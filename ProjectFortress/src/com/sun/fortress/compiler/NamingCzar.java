@@ -230,6 +230,7 @@ public class NamingCzar {
      * If it is not defined in the current foreign interface implementation,
      * null is returned.
      */
+    // One reference, from ForeignJava.recurOnOpaqueClass
     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
         return fortressTypeForForeignJavaType(t.getDescriptor());
     }
@@ -242,6 +243,7 @@ public class NamingCzar {
      * If it is not defined in the current foreign interface implementation,
      * null is returned.
      */
+    // Used in this class, in test, and in SignatureParser.toImplFFFF
     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
         return specialForeignJavaTranslations.get(s);
     }
@@ -249,47 +251,63 @@ public class NamingCzar {
     // Translate among Java type names
     // (Section 2.1.3 in ASM 3.0: A Java bytecode engineering library)
 
+    /**
+     * Convert an ASM internal form to a Java descriptor form.
+     * That is, surround a class type with L and ;
+     */
+    // Widely used
     public static String internalToDesc(String type) {
         return "L" + type + ";";
     }
+    /**
+     * Returns "(" + param + ")" + result ; converts
+     * to JVM method descriptor form.
+     * 
+     * @param param
+     * @param result
+     * @return
+     */
+    // Widely used internally, not much outside.
     public static String makeMethodDesc(String param, String result) {
         return "(" + param + ")" + result;
     }
-    public static String makeMethodDesc(List<String> params, String result) {
-        String desc ="(";
-        for (String param : params) {
-            desc += param;
-        }
-        desc += ")" + result;
-        return desc;
-    }
+//    public static String makeMethodDesc(List<String> params, String result) {
+//        String desc ="(";
+//        for (String param : params) {
+//            desc += param;
+//        }
+//        desc += ")" + result;
+//        return desc;
+//    }
 
-    public static String makeArrayDesc(String element) {
+    // Used once.
+    private static String makeArrayDesc(String element) {
         return "[" + element;
     }
 
     // fortress runtime types: internal names
-    public static String makeFortressInternal(String type) {
+    private static String makeFortressInternal(String type) {
         return "com/sun/fortress/compiler/runtimeValues/F" + type;
         // return "fortress/CompilerBuiltin/" + type;
     }
 
 
-    static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
+    private static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations =
+        new HashMap<String, com.sun.fortress.nodes.Type>();
 
     /* Minor hackery here -- because we know these types are already loaded
      * and not eligible for ASM-wrapping, we just go ahead and refer to the
      * loaded class.
      */
-    static void s(Class cl, APIName api, String str) {
+    private static void s(Class cl, APIName api, String str) {
         s(Type.getType(cl), api, str);
     }
 
-    static void s(Type cl, APIName api, String str) {
+    private static void s(Type cl, APIName api, String str) {
         s(cl.getDescriptor(), api, str);
     }
 
-    static void s(String cl, APIName api, String str) {
+    private static void s(String cl, APIName api, String str) {
         specialForeignJavaTranslations.put(cl,
                 NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str))); /* api was commented out before... */
     }
@@ -311,34 +329,39 @@ public class NamingCzar {
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
     }
 
-    static final String runtimeValues = com.sun.fortress.runtimeSystem.Naming.runtimeValues;
+    /**
+     * Package prefix for runtime values
+     */
+    private static final String runtimeValues = com.sun.fortress.runtimeSystem.Naming.runtimeValues;
 
     public static final String FValueType = runtimeValues + "FValue";
-    static final String FValueDesc = internalToDesc(FValueType);
+    // static final String FValueDesc = internalToDesc(FValueType);
 
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
      */
-    static Map<com.sun.fortress.nodes.Type, String> specialFortressDescriptors = new HashMap<com.sun.fortress.nodes.Type, String>();
+    private static Map<com.sun.fortress.nodes.Type, String> specialFortressDescriptors =
+        new HashMap<com.sun.fortress.nodes.Type, String>();
     /**
      * Java descriptors for (boxed) Fortress types, WITHOUT leading L and trailing ;
      */
-    static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
+    private static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes =
+        new HashMap<com.sun.fortress.nodes.Type, String>();
 
-    static void bl(APIName api, String str, String cl) {
+    private static void bl(APIName api, String str, String cl) {
         b(api,str, runtimeValues+cl);
     }
 
-    static void bl(com.sun.fortress.nodes.Type t, String cl) {
+    private static void bl(com.sun.fortress.nodes.Type t, String cl) {
         b(t, runtimeValues+cl);
     }
 
-    static void b(APIName api, String str, String cl) {
+    private static void b(APIName api, String str, String cl) {
         b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str)), cl);
         b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, /* api, */ str)), cl);
     }
 
-    static void b(com.sun.fortress.nodes.Type t, String cl) {
+    private static void b(com.sun.fortress.nodes.Type t, String cl) {
         specialFortressDescriptors.put(t, internalToDesc(cl));
         specialFortressTypes.put(t, cl );
     }
@@ -358,31 +381,33 @@ public class NamingCzar {
         bl(NodeFactory.makeVoidType(span), "FVoid");
     }
 
-    /** Determine whether given TraitType is special. */
+    /**
+     * Determine whether given TraitType is special, meaning, implemented
+     * by hand, with a non-standard naming convention.
+     * 
+     * Note that this is used only once, to determine whether a method
+     * invocation should be invoke interface or invoke virtual, and
+     * arguably that is a bug in how these are defined.
+     */
     public static boolean fortressTypeIsSpecial(com.sun.fortress.nodes.Type t) {
         return specialFortressDescriptors.containsKey(t);
     }
 
+//    public static String boxedImplDesc(com.sun.fortress.nodes.Type t, APIName ifNone) {
+//        return jvmTypeDesc(t, ifNone);
+//    }
+
+
+//    public static String boxedImplType( com.sun.fortress.nodes.Type t, APIName ifNone ) {
+//        return jvmTypeDesc(t, ifNone, false);
+//    }
+
     /**
-     * If a type occurs in a parameter list or return type, it
-     * is necessary to determine its name for purpose of generating
-     * the signature portion of a Java method name.
-     *
-     * The Java type that is generated will be an interface type for all
-     * trait types, and a final class for all object types.
-     *
-     * Generic object types yield non-final classes; they are extended by their
-     * instantiations (which are final classes).
+     * @deprecated
+     * Converts Fortress API name to Java package name.
+     * However, this is probably obsolete, since it appears to be
+     * only used in the interpreter code (csf.interpreter.env.ClosureMaker)
      */
-    public static String boxedImplDesc(com.sun.fortress.nodes.Type t, APIName ifNone) {
-        return jvmTypeDesc(t, ifNone);
-    }
-
-
-    public static String boxedImplType( com.sun.fortress.nodes.Type t, APIName ifNone ) {
-        return jvmTypeDesc(t, ifNone, false);
-    }
-
     public static String apiNameToPackageName(APIName name) {
         if (ForeignJava.only.definesApi(name)) {
             return Naming.NATIVE_PREFIX_DOT + name.getText();
@@ -391,11 +416,23 @@ public class NamingCzar {
         }
     }
 
+    /**
+     * Given an APIName and function (static method), return the name of
+     * the package and class containing the function (static method) in the
+     * generated code.
+     */
+    // Only called from OverloadSet.AmongApis
     public static String apiAndMethodToMethodOwner(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
         return apiAndMethodToMethodOwner(name, m);
     }
 
+    /**
+     * Given an APIName and function (static method) name, return the name of
+     * the package and class containing the function (static method) in the
+     * generated code.
+     */
+    // Only called by preceding method...
     public static String apiAndMethodToMethodOwner(APIName name, String m) {
         String p;
         if (ForeignJava.only.definesApi(name)) {
@@ -411,17 +448,28 @@ public class NamingCzar {
         p = Useful.replace(p, ".", "/") ;
         return p;
     }
-
+    
+    /**
+     * Returns name of method, in generated code, for a given API and function.
+     * 
+     * @param name
+     * @param method
+     * @return
+     */
+    // Only called from OverloadSet.AmongApis
     public static String apiAndMethodToMethod(APIName name, Function method) {
         String m = method.toUndecoratedName().toString();
         return apiAndMethodToMethod(name, m);
     }
 
     /**
+     * Returns name of method, in generated code, for a given API and function.
+     *
      * @param name
      * @param m
      * @return
      */
+    // Only called above, and in CodeGen.generateTopLevelOverloads
     public static String apiAndMethodToMethod(APIName name, String m) {
         if (ForeignJava.only.definesApi(name)) {
             int idot = m.lastIndexOf(".");
@@ -433,19 +481,23 @@ public class NamingCzar {
     }
 
     /**
+     * @deprecated
      * @param componentName
      * @return the name of the class implementing the compiled top-level
      *         environment for component componentName.
      */
+    // I think this is old interpreter-centric code.
     public static String classNameForComponentEnvironment(APIName componentName) {
         return classNameForComponentEnvironment(NodeUtil.nameString(componentName));
     }
 
     /**
+     * @deprecated
      * @param componentName
      * @return the name of the class implementing the compiled top-level
      *         environment for component componentName.
      */
+    // I think this is old interpreter-centric code.
     public static String classNameForComponentEnvironment(String componentName) {
         componentName = componentName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
         componentName = mangleClassIdentifier(componentName);  // Need to mangle the name if it contains "."
@@ -453,28 +505,37 @@ public class NamingCzar {
     }
 
     /**
+     * @deprecated
      *
      * @param apiName
      * @return the name of the class implementing the compiled top-level
      *         environment for api apiName
      */
+    // I think this is old interpreter-centric code.
     public static String classNameForApiEnvironment(APIName apiName) {
         return classNameForApiEnvironment(NodeUtil.nameString(apiName));
     }
 
     /**
+     * @deprecated
      *
      * @param apiName
      * @return the name of the class implementing the compiled top-level
      *         environment for apiName
      */
+    // I think this is old interpreter-centric code.
     public static String classNameForApiEnvironment(String apiName) {
         apiName = apiName + TopLevelEnvGen.API_ENV_SUFFIX;
         apiName = mangleClassIdentifier(apiName);  // Need to mangle the name if it contains "."
         return apiName;
     }
 
-    public static String mangleClassIdentifier(String identifier) {
+    /**
+     * @deprecated
+     * @param identifier
+     * @return
+     */
+    private static String mangleClassIdentifier(String identifier) {
         // Is this adequate, given naming freedom?
         String mangledString = identifier.replaceAll("\\.", "\\$");
         return mangledString+deCase(mangledString);
@@ -512,7 +573,7 @@ public class NamingCzar {
         return javaPackageClassForApi(api, "/");
     }
 
-    public static String javaPackageClassForApi(APIName api, String sep) {
+    private static String javaPackageClassForApi(APIName api, String sep) {
         return javaPackageClassForApi(api.getText(), sep);
     }
 
@@ -520,7 +581,7 @@ public class NamingCzar {
      * @param api
      * @return
      */
-    public static String javaPackageClassForApi(String api, String sep) {
+    private static String javaPackageClassForApi(String api, String sep) {
         boolean defaultLib = WellKnownNames.exportsDefaultLibrary( api );
         if (!(sep.equals("."))) {
             api = Useful.replace(api, ".", sep);
@@ -548,6 +609,7 @@ public class NamingCzar {
         return makeInnerClassName(javaPackageClassForApi(api), id.getText());
     }
 
+    // forSubscriptExpr
     public static String makeInnerClassName(Id id) {
         return makeInnerClassName(jvmClassForSymbol(id), id.getText());
     }
@@ -647,6 +709,17 @@ public class NamingCzar {
         return result;
     }
 
+    /**
+     * If a type occurs in a parameter list or return type, it
+     * is necessary to determine its name for purpose of generating
+     * the signature portion of a Java method name.
+     *
+     * The Java type that is generated will be an interface type for all
+     * trait types, and a final class for all object types.
+     *
+     * Generic object types yield non-final classes; they are extended by their
+     * instantiations (which are final classes).
+     */
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone) {
         return jvmTypeDesc(type, ifNone, true);
@@ -734,6 +807,15 @@ public class NamingCzar {
         }
     }
 
+    public static String makeArrowDescriptor(VarType t, final APIName ifNone) {
+        Id id = t.getName();
+        
+        String tag = Naming.YINYANG;
+        // this might be buggy.
+        return tag + id.getText();
+    }
+
+
     public static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) )
             return Naming.INTERNAL_TAG + Naming.SNOWMAN;
@@ -753,6 +835,7 @@ public class NamingCzar {
         else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
         else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
         else if (t instanceof ArrowType) return makeNestedArrowDescriptor((ArrowType) t, ifNone);
+        else if (t instanceof VarType) return makeArrowDescriptor((VarType) t, ifNone);
         else throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }

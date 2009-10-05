@@ -21,6 +21,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Properties;
 
 public interface StringMap {
@@ -48,7 +49,7 @@ public interface StringMap {
 
         public int getInt(String s, int ifMissing) {
             String result = get(s);
-            if (result != null) result = Useful.substituteVarsCompletely(result, this, 1000);
+            if (result != null) result = getCompletely(result, 1000);
             if (result == null) return ifMissing;
             if (result.length() == 0) return ifMissing;
             int base = 10;
@@ -63,7 +64,7 @@ public interface StringMap {
 
         public long getLong(String s, long ifMissing) {
             String result = get(s);
-            if (result != null) result = Useful.substituteVarsCompletely(result, this, 1000);
+            if (result != null) result = getCompletely(result, 1000);
             if (result == null) return ifMissing;
             if (result.length() == 0) return ifMissing;
             int base = 10;
@@ -77,7 +78,7 @@ public interface StringMap {
 
         final public boolean getBoolean(String s, boolean ifMissing) {
             String result = get(s);
-            if (result != null) result = Useful.substituteVarsCompletely(result, this, 1000);
+            if (result != null) result = getCompletely(result, 1000);
             if (result == null) return ifMissing;
             if (result.length() == 0) return true;
             s = result.toLowerCase();
@@ -91,7 +92,7 @@ public interface StringMap {
         final public String get(String s, String ifMissing) {
             String result = get(s);
             if (result == null) result = ifMissing;
-            if (result != null) result = Useful.substituteVarsCompletely(result, this, 1000);
+            if (result != null) result = getCompletely(result, 1000);
             if (result == null) {
                 throw new Error(
                         "Must supply a definition (as property, environment variable, or repository configuration property) for " +
@@ -138,6 +139,23 @@ public interface StringMap {
 
         public String get(String s) {
             return p.getProperty(s);
+        }
+
+        public boolean isEmpty() {
+            return p == null;
+        }
+
+    }
+
+    static public class FromMap extends FromBase implements StringMap {
+        Map<String, String> p;
+
+        public FromMap(Map<String, String> p) {
+            this.p = p;
+        }
+
+        public String get(String s) {
+            return p.get(s);
         }
 
         public boolean isEmpty() {

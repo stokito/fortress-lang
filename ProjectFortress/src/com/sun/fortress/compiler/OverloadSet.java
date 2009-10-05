@@ -573,7 +573,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             typesToJoin.add(f.getReturnType());
         }
 
-        s += NamingCzar.boxedImplDesc(join(ta,typesToJoin), ifNone);
+        s += NamingCzar.jvmTypeDesc(join(ta,typesToJoin), ifNone);
 
         return s;
     }
@@ -610,7 +610,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         Type r = getRangeSignature(t, paramCount, ta);
 
-        s += NamingCzar.boxedImplDesc(r, null);
+        s += NamingCzar.jvmTypeDesc(r, null);
 
         return s;
     }
@@ -766,7 +766,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String s = "(";
 
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.boxedImplDesc(getParamType(t, i, paramCount, ta), null);
+            s += NamingCzar.jvmTypeDesc(getParamType(t, i, paramCount, ta), null);
         }
         s += ")";
         return s;
@@ -776,7 +776,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String s = "(";
 
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.boxedImplDesc(overloadedParamType(i), ifNone);
+            s += NamingCzar.jvmTypeDesc(overloadedParamType(i), ifNone);
         }
         s += ")";
         return s;
@@ -801,7 +801,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String[] string_exceptions = new String[exceptions.size()];
         int i = 0;
         for (Type e : exceptions) {
-            string_exceptions[i++] = NamingCzar.boxedImplDesc(e, ifNone);
+            string_exceptions[i++] = NamingCzar.jvmTypeDesc(e, ifNone);
         }
         return string_exceptions;
     }
