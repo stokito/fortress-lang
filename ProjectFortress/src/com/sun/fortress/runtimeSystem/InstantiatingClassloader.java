@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 package com.sun.fortress.runtimeSystem;
 
 import java.io.IOException;
@@ -43,10 +43,10 @@ import com.sun.fortress.repository.ProjectProperties;
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     // TODO make this depends on properties/env w/o dragging in all of the world.
-    private final static boolean log_loads = false;
+    private static final boolean log_loads = false;
 
-    public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
-            Thread.currentThread().getContextClassLoader());
+    public final static InstantiatingClassloader ONLY =
+        new InstantiatingClassloader(Thread.currentThread().getContextClassLoader());
 
     private final static ClassLoadChecker _classLoadChecker = new ClassLoadChecker();
 
@@ -96,7 +96,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     protected byte[] getClass(String name) throws ClassNotFoundException,
-            IOException {
+                                                  IOException {
         // We can load it ourselves. Let's get the bytes.
         byte[] classData;
 
@@ -111,7 +111,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     protected Class loadClass(String name, boolean resolve)
-            throws ClassNotFoundException {
+        throws ClassNotFoundException {
         Class clazz;
         // First, we need to replace all occurrences of the System path
         // separator
@@ -133,33 +133,31 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
                 boolean isGeneric = isExpanded(name);
                 boolean isGenericFunction = name.contains(Naming.GEAR);
-//                if (isClosure && isGeneric) {
-//                    // A generic function, or so we think.
-//                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
-//                } else
+                //                if (isClosure && isGeneric) {
+                //                    // A generic function, or so we think.
+                //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
+                //                } else
 
-               if (isGenericFunction) {
-                   // also a closure
-                   HashMap<String, String> xlation = new HashMap<String, String>();
-                   String template_name = functionTemplateName(name, xlation);
-                   byte[] templateClassData = readResource(template_name);
-                   ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-                   ClassReader cr = new ClassReader(templateClassData);
-                   ClassVisitor cvcw = new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err));
-                   Instantiater instantiater = new Instantiater(cvcw, xlation, name);
-                   cr.accept(instantiater, 0);
-                   classData = cw.toByteArray();
-               } else if (isClosure) {
-
+                if (isGenericFunction) {
+                    // also a closure
+                    HashMap<String, String> xlation = new HashMap<String, String>();
+                    String template_name = functionTemplateName(name, xlation);
+                    byte[] templateClassData = readResource(template_name);
+                    ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+                    ClassReader cr = new ClassReader(templateClassData);
+                    ClassVisitor cvcw = new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err));
+                    Instantiater instantiater = new Instantiater(cvcw, xlation, name);
+                    cr.accept(instantiater, 0);
+                    classData = cw.toByteArray();
+                } else if (isClosure) {
                     classData = instantiateClosure(name);
-
-               } else if (isGeneric) {
+                } else if (isGeneric) {
                     String dename = Naming.deMangle(name);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
                     String stem = dename.substring(0,left);
                     ArrayList<String> parameters = extractStringParameters(
-                            dename, left, right);
+                                                                           dename, left, right);
                     if (stem.equals("Arrow")) {
                         classData = instantiateArrow(name, parameters);
                     } else if (stem.equals("AbstractArrow")) {
@@ -170,20 +168,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 } else {
                     classData = getClass(name);
                 }
-                // System.err.println("trying to getClass("+name+")");
                 clazz = defineClass(name, classData, 0, classData.length);
                 if (log_loads)
-                   System.err.println("Loaded " + clazz.getName());
+                    System.err.println("Loaded " + clazz.getName());
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();
                 throw new ClassNotFoundException(
-                        "IO Exception in reading class : " + name + " ", ioe);
+                                                 "IO Exception in reading class : " + name + " ", ioe);
             } catch (ClassFormatError ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();
                 throw new ClassNotFoundException(
-                        "ClassFormatError in reading class file: ", ioe);
+                                                 "ClassFormatError in reading class file: ", ioe);
             } catch (IOException ioe) {
                 // this incl FileNotFoundException which is used by resource
                 // loader
@@ -194,7 +191,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 // ClassNotFoundException("IO Exception in reading class file: "
                 // + ioe);
                 throw new ClassNotFoundException(
-                        "IO Exception in reading class file: ", ioe);
+                                                 "IO Exception in reading class file: ", ioe);
             }
         }
 
@@ -215,7 +212,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int mangleBegin = name.indexOf(Naming.GEAR)+1; // A mangled string follows
         String firstPart = name.substring(0, mangleBegin);
         name = Naming.deMangle(name.substring(mangleBegin));
-        
+
         int genericBegin = name.indexOf(Naming.LEFT_OXFORD) + 1;
         int genericEnd = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
         String template_start = name.substring(0,genericBegin);
@@ -228,12 +225,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             int end = generics.indexOf(';');
             if (end == -1)
                 end = generics.length();
-            String tok = 
+            String tok =
                 generics.substring(0, end);
             char ch = tok.charAt(0);
             String tag;
             if (ch == Naming.FOREIGN_TAG_CHAR ||
-                ch == Naming.NORMAL_TAG_CHAR || 
+                ch == Naming.NORMAL_TAG_CHAR ||
                 ch == Naming.INTERNAL_TAG_CHAR) {
                 tag = Naming.YINYANG;
             } else if (ch == Naming.MUSIC_SHARP_CHAR) {
@@ -245,8 +242,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             }
             template_middle += tag+i;
             xlation.put(tag+i, tok);
-            
-            
+
+
             if (end == generics.length())
                 break;
             template_middle += ";";
@@ -254,12 +251,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             i++;
         }
         return firstPart + Naming.mangleIdentifier(
-                template_start + template_middle + template_end);
+                                                   template_start + template_middle + template_end);
     }
 
     private static byte[] instantiateClosure(String name) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-        
+
         closureClassPrefix(name, cw, null);
         cw.visitEnd();
 
@@ -283,7 +280,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         String stem = ft.substring(0,left);
         ArrayList<String> parameters = extractStringParameters(
-                ft, left, right);
+                                                               ft, left, right);
 
         /*
          * Recipe:
@@ -321,7 +318,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitInsn(RETURN);
             mv.visitMaxs(2, 0);
             mv.visitEnd();
-            }
+        }
 
 
         {
@@ -340,7 +337,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (staticClass == null)
                 staticClass = api.replaceAll("[.]", "/");
 
-            // System.err.println(name + ".apply" + sig + " concrete");
+            if (log_loads) System.err.println(name + ".apply" + sig + " concrete");
             mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
             mv.visitCode();
             // Is this right?  What about a 2-arg function that takes a void as its second arg?
@@ -368,7 +365,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @return
      */
     private static ArrayList<String> extractStringParameters(String s,
-            int leftBracket, int rightBracket) {
+                                                             int leftBracket, int rightBracket) {
         ArrayList<String> parameters = new ArrayList<String>();
         int depth = 1;
         int pbegin = leftBracket+1;
@@ -399,16 +396,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         AnnotationVisitor av0;
 
         cw.visit(Opcodes.V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
-                name, null, "java/lang/Object", null);
+                 name, null, "java/lang/Object", null);
 
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-            // System.err.println(name+".apply"+sig+" abstract");
-        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
-                sig,
-                null, null);
-        mv.visitEnd();
+            if (log_loads) System.err.println(name+".apply"+sig+" abstract");
+            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+                                sig,
+                                null, null);
+            mv.visitEnd();
         }
         cw.visitEnd();
 
@@ -423,10 +420,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         String name = Naming.mangleIdentifier(dename);
         String if_name =
-            Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
+            // Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
+            Naming.mangleIdentifier(dename.substring("Abstract".length()));
 
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
-                "java/lang/Object", new String[] { if_name });
+                 "java/lang/Object", new String[] { if_name });
 
 
         {
@@ -442,11 +440,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-            // System.err.println(name + ".apply" + sig+" abstract for abstract");
-        mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
-                sig,
-                null, null);
-        mv.visitEnd();
+            if (log_loads) System.err.println(name + ".apply" + sig+" abstract for abstract");
+            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+                                sig,
+                                null, null);
+            mv.visitEnd();
         }
         cw.visitEnd();
 
@@ -495,7 +493,7 @@ class ClassLoadChecker {
         // is regardless of the security manager.
         // javax. too, though this is not documented
         if (name.startsWith("java.") || name.startsWith("javax.")
-                || name.startsWith("sun.") || (name.startsWith("com.sun.") && ! name.startsWith("com.sun.fortress."))) {
+            || name.startsWith("sun.") || (name.startsWith("com.sun.") && ! name.startsWith("com.sun.fortress."))) {
             return true;
         }
 

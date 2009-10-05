@@ -63,13 +63,7 @@ public class MainWrapper {
             // so that there is a task pool before any user code is run.
             ClassLoader icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
-            // Class cl = Class.forName(whatToRun);
-            Class[] arg_classes = new Class[1];
-            // The following two lines can be helpful.
-//            Class clo = Class.forName("Arrow0.\\=f✉Arrow⟦⚠CompilerBuiltin\\,ZZ32\\?⚠CompilerBuiltin\\,ZZ32⟧", true, icl);
-//            java.lang.reflect.Field f = clo.getDeclaredField("closure");
-            arg_classes[0] = String[].class;
-            java.lang.reflect.Method m = cl.getDeclaredMethod("main", arg_classes);
+            java.lang.reflect.Method m = cl.getDeclaredMethod("main", String[].class);
             m.invoke(null, (Object) subargs);
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
