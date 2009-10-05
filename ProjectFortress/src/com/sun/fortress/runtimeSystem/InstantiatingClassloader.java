@@ -18,15 +18,20 @@ package com.sun.fortress.runtimeSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.repository.ProjectProperties;
 
@@ -38,7 +43,7 @@ import com.sun.fortress.repository.ProjectProperties;
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     // TODO make this depends on properties/env w/o dragging in all of the world.
-    private final boolean log_loads = false;
+    private final static boolean log_loads = false;
 
     public final static InstantiatingClassloader ONLY = new InstantiatingClassloader(
             Thread.currentThread().getContextClassLoader());
@@ -127,16 +132,28 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
                 boolean isGeneric = isExpanded(name);
+                boolean isGenericFunction = name.contains(Naming.GEAR);
 //                if (isClosure && isGeneric) {
 //                    // A generic function, or so we think.
 //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
 //                } else
 
-               if (isClosure) {
+               if (isGenericFunction) {
+                   // also a closure
+                   HashMap<String, String> xlation = new HashMap<String, String>();
+                   String template_name = functionTemplateName(name, xlation);
+                   byte[] templateClassData = readResource(template_name);
+                   ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+                   ClassReader cr = new ClassReader(templateClassData);
+                   ClassVisitor cvcw = new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err));
+                   Instantiater instantiater = new Instantiater(cvcw, xlation, name);
+                   cr.accept(instantiater, 0);
+                   classData = cw.toByteArray();
+               } else if (isClosure) {
 
                     classData = instantiateClosure(name);
 
-                } else if (isGeneric) {
+               } else if (isGeneric) {
                     String dename = Naming.deMangle(name);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
@@ -193,8 +210,69 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return clazz;
     }
 
-    private byte[] instantiateClosure(String name) {
-        int last_dot = name.lastIndexOf('.');
+    private String functionTemplateName(String name, Map<String, String> xlation) {
+        // We have a mangling problem here.
+        int mangleBegin = name.indexOf(Naming.GEAR)+1; // A mangled string follows
+        String firstPart = name.substring(0, mangleBegin);
+        name = Naming.deMangle(name.substring(mangleBegin));
+        
+        int genericBegin = name.indexOf(Naming.LEFT_OXFORD) + 1;
+        int genericEnd = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
+        String template_start = name.substring(0,genericBegin);
+        String template_end = name.substring(genericEnd);
+        // Note include trailing oxford to simplify loop termination.
+        String generics = name.substring(genericBegin, genericEnd);
+        String template_middle = "";
+        int i = 1;
+        while (generics.length() > 0) {
+            int end = generics.indexOf(';');
+            if (end == -1)
+                end = generics.length();
+            String tok = 
+                generics.substring(0, end);
+            char ch = tok.charAt(0);
+            String tag;
+            if (ch == Naming.FOREIGN_TAG_CHAR ||
+                ch == Naming.NORMAL_TAG_CHAR || 
+                ch == Naming.INTERNAL_TAG_CHAR) {
+                tag = Naming.YINYANG;
+            } else if (ch == Naming.MUSIC_SHARP_CHAR) {
+                tag = Naming.MUSIC_SHARP;
+            } else if (ch == Naming.HAMMER_AND_PICK_CHAR) {
+                tag = Naming.MUSIC_SHARP;
+            } else {
+                throw new Error("Unimplemented generic kind " + ch + " seen in instantiating classloader");
+            }
+            template_middle += tag+i;
+            xlation.put(tag+i, tok);
+            
+            
+            if (end == generics.length())
+                break;
+            template_middle += ";";
+            generics = generics.substring(end+1);
+            i++;
+        }
+        return firstPart + Naming.mangleIdentifier(
+                template_start + template_middle + template_end);
+    }
+
+    private static byte[] instantiateClosure(String name) {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        
+        closureClassPrefix(name, cw, null);
+        cw.visitEnd();
+
+        return cw.toByteArray();
+
+    }
+
+    /**
+     * @param name
+     * @param cw
+     */
+    public static void closureClassPrefix(String name, ClassWriter cw, String staticClass) {
+        int last_dot = name.lastIndexOf('$');
         String api = name.substring(0,last_dot);
         String suffix = Naming.deMangle(name.substring(last_dot+1));
         int env_loc = suffix.indexOf(Naming.ENVELOPE);
@@ -218,7 +296,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
          */
 
 
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
@@ -260,7 +337,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
             String sig = arrowParamsToJVMsig(parameters);
             // What if staticClass is compiler builtin?  How do we know?
-            String staticClass = api.replaceAll("[.]", "/");
+            if (staticClass == null)
+                staticClass = api.replaceAll("[.]", "/");
 
             // System.err.println(name + ".apply" + sig + " concrete");
             mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
@@ -281,10 +359,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitMaxs(2, 3);
             mv.visitEnd();
         }
-        cw.visitEnd();
-
-        return cw.toByteArray();
-
     }
 
     /**
@@ -293,7 +367,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param rightBracket
      * @return
      */
-    private ArrayList<String> extractStringParameters(String s,
+    private static ArrayList<String> extractStringParameters(String s,
             int leftBracket, int rightBracket) {
         ArrayList<String> parameters = new ArrayList<String>();
         int depth = 1;
@@ -318,7 +392,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return parameters;
     }
 
-    private byte[] instantiateArrow(String name, ArrayList<String> parameters) {
+    private static byte[] instantiateArrow(String name, ArrayList<String> parameters) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
@@ -341,7 +415,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
     }
 
-    private byte[] instantiateAbstractArrow(String dename, ArrayList<String> parameters) {
+    private static byte[] instantiateAbstractArrow(String dename, ArrayList<String> parameters) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
@@ -383,7 +457,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param parameters
      * @return
      */
-    private String arrowParamsToJVMsig(ArrayList<String> parameters) {
+    private static String arrowParamsToJVMsig(ArrayList<String> parameters) {
         String sig = "(";
 
         int l = parameters.size();

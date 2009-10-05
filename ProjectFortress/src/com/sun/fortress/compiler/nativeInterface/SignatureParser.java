@@ -194,7 +194,7 @@ public class SignatureParser {
         com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(arg_desc);
         if (ftype == null)
             error("No Fortress type (yet) for foreign Java type descriptor '" + arg_desc + "'");
-        String desc = NamingCzar.boxedImplDesc(ftype, null);
+        String desc = NamingCzar.jvmTypeDesc(ftype, null);
         if (desc == null)
             error("No Java impl type (yet) for Fortress type " + ftype + " for foreign descriptor '" + arg_desc + "'");
         return desc;
