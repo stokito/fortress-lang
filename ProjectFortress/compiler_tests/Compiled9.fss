@@ -46,7 +46,7 @@ run():() = do
   (*) Test arrow type coercions.
   c1: D -> B = h
 
-  ()
+  println "OK"
 end
 
 end
