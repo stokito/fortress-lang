@@ -733,16 +733,11 @@ public class NamingCzar {
         res = Naming.mangleIdentifier(res);
         return res;
 
-}
+    }
+
     public static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
-
-        String res =
-         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
-            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
-        res = Naming.mangleIdentifier(res);
-        return Naming.NORMAL_TAG + res;
-
-}
+        return Naming.NORMAL_TAG + makeArrowDescriptor(t,ifNone);
+    }
 
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
