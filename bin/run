@@ -37,11 +37,11 @@ else
 fi
 
 if [ -z "$JAVA_FLAGS" ] ; then
-  JAVA_FLAGS="-Xmx768m -Dfile.encoding=UTF-8"
+  JAVA_FLAGS="-Xmx768m"
 fi
 
-JAVA_FLAGS+=" -Dfile.encoding=UTF-8"
+JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
 
 # echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"
 
-"$JAVACMD" $JAVA_FLAGS -Xfuture -cp "$CP" com.sun.fortress.runtimeSystem.MainWrapper "$@"
+"$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.runtimeSystem.MainWrapper "$@"
