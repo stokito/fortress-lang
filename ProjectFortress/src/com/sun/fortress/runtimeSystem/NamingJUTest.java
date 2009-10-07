@@ -42,6 +42,50 @@ public class NamingJUTest extends TestCaseWrapper {
             "\\-%\\%",
         };
         
+        public void testFortressMangleNoChange() {
+            // First, do no harm; these should be identity-mangles
+
+            String a = "a";
+            String ab = "a$b";
+            String abc = "a$b$c";
+            String a_a = "(La;)La;";
+            String ab_ab = "(La/b;)La$b;";
+            
+            assertEquals(a, Naming.mangleFortressIdentifier(a));
+            assertEquals(ab, Naming.mangleFortressIdentifier(ab));
+            assertEquals(abc, Naming.mangleFortressIdentifier(abc));
+            assertEquals(a_a, Naming.mangleMethodSignature(a_a));
+            assertEquals(ab_ab, Naming.mangleMethodSignature(ab_ab));
+            
+            
+        }
+        
+        public void testFortressMangleNoNest() {
+            String a = "a.";
+            String ab = "a.b";
+            String abc = ".a.b.c.";
+            String ab_ab = "(La.b;)La:b;";
+            
+            assertEquals("\\=a\\,", Naming.mangleFortressIdentifier(a));
+            assertEquals("\\=a\\,b", Naming.mangleFortressIdentifier(ab));
+            assertEquals("\\,a\\,b\\,c\\,", Naming.mangleFortressIdentifier(abc));
+            assertEquals("(L\\=a\\,b;)L\\=a\\!b;", Naming.mangleMethodSignature(ab_ab));
+           
+        }
+        
+        public void testFortressMangleNest() {
+            String a = "a\u27e6.\u27e7";
+            String ab = "a.\u27e6b\u27e7";
+            String abc = "a\u27e6b$c\u27e7";
+            String ab_ab = "(La\u27e6b$c\u27e7;Lc\u27e6d$e\u27e7;)Lx\u27e6y;z\u27e7;";
+            
+            assertEquals("\\=a\u27e6\\,\u27e7", Naming.mangleFortressIdentifier(a));
+            assertEquals("\\=a\\,\u27e6b\u27e7", Naming.mangleFortressIdentifier(ab));
+            assertEquals("\\=a\u27e6b\\%c\u27e7", Naming.mangleFortressIdentifier(abc));
+            assertEquals("(L\\=a\u27e6b\\%c\u27e7;L\\=c\u27e6d\\%e\u27e7;)L\\=x\u27e6y\\?z\u27e7;", Naming.mangleMethodSignature(ab_ab));
+           
+        }
+      
         public void testMangle() {
             for (int i = 0; i < inputs.length; i++) {
                 String a = outputs[i];
