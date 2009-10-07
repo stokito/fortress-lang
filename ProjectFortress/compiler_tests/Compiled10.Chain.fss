@@ -14,11 +14,17 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component ChainExprs
+
+component Compiled10.Chain
 export Executable
 
-  run():() = 
-    if 1 < 2 <= 3 then printlnZZ32 0
-    else printlnZZ32 1 end
+(* cf tests/chain2.fss, which is identical. *)
+
+t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
+
+run() = do
+  t( 0<=0<1=1<2<=2 )
+  t( NOT (0>=0>1=1>2>=2) )
+end
 
 end
