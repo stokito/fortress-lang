@@ -279,7 +279,23 @@ public class NodeFactory {
                                                     Option<Id> alias) {
         return new AliasedAPIName(makeSpanInfo(span), api, alias);
     }
-
+    
+    public static TraitDecl makeTraitDecl(TraitType selfType,
+                                          List<TraitTypeWhere> extendsC,
+                                          List<BaseType> excludesC,
+                                          Option<List<BaseType>> comprisesC) {
+        return makeTraitDecl(NodeUtil.getSpan(selfType),
+                             Modifiers.None,
+                             selfType.getName(),
+                             NodeUtil.getStaticParams(selfType),
+                             extendsC,
+                             Option.<WhereClause>none(),
+                             Collections.<Decl>emptyList(),
+                             excludesC,
+                             comprisesC,
+                             Option.<Type>some(selfType));
+    }
+    
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,

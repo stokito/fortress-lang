@@ -20,6 +20,9 @@ package com.sun.fortress.scala_src.useful
 import _root_.java.util.ArrayList
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.compiler.Types.ANY
+import com.sun.fortress.compiler.Types.BOTTOM
+import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer
@@ -53,7 +56,7 @@ object STypesUtil {
       h
     }
   }
-
+  
   /** A function that when applied yields an option type. */
   type TypeThunk = Function0[Option[Type]]
 
