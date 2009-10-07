@@ -326,7 +326,119 @@ public class Naming {
         return catMangled(catMangled(s1,s2), catMangled(s3,s4));
     }
 
+    public static String mangleMethodSignature(String s) {
+        StringBuffer sb = new StringBuffer();
+        int l = s.length();
+        int i = 0;
+        while (i < l) {
+            char ch = s.charAt(i);
+            switch (ch) {
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'F':
+            case 'I':
+            case 'J':
+            case 'S':
+            case 'V': // should only appear in return if well-formed
+                
+            case '[': // eat array indicator
+            case '(': // eat intro and outro, assume well-formed
+            case ')':
+                sb.append(ch);
+                i++;
+                break;
+            case 'L':
+                sb.append(ch);
+                i = mangleFortressIdentifier(s, i+1, sb);
+                break;
+            default:
+                throw new Error("Was not expecting to see character " + ch);
+            }
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Mangles the chunks of a fortress identifier, where the chunks are
+     * delimited by $, /, and ; appearing outside of Oxford brackets.
+     * 
+     * Returns either when the string is exhausted,
+     * or after a semicolon is processed.
+     *  
+     * @param s  the string to mangle
+     * @param i  the index to begin at
+     * @param sb the stringbuffer to which the transformed string is appended.
+     * @return the index of the next character to process (if any).
+     */
+    public static int mangleFortressIdentifier(String s, int start, StringBuffer sb) {
+        return mangleOrNotFortressIdentifier(s,start, sb,true);
+    }
+    public static String mangleFortressIdentifier(String s) {
+        StringBuffer sb = new StringBuffer();
+         mangleOrNotFortressIdentifier(s,0, sb,true);
+         return sb.toString();
+    }
+    /**
+     * DE-mangles the chunks of a fortress identifier, where the chunks are
+     * delimited by $, /, and ; appearing outside of Oxford brackets.
+     * 
+     * Returns either when the string is exhausted,
+     * or after a semicolon is processed.
+     * 
+     * @param s  the string to mangle
+     * @param i  the index to begin at
+     * @param sb the stringbuffer to which the transformed string is appended.
+     * @return the index of the next character to process (if any).
+     */
+    public static int demangleFortressIdentifier(String s, int start, StringBuffer sb) {
+        return mangleOrNotFortressIdentifier(s,start, sb,false);
+    }
+    
+    public static String demangleFortressIdentifier(String s) {
+        StringBuffer sb = new StringBuffer();
+         mangleOrNotFortressIdentifier(s,0, sb, false);
+         return sb.toString();
+    }
 
+    
+    public static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+        int l = s.length();
+        int nesting = 0;
+        
+        for (int i = start; i < l; i++) {
+            char ch = s.charAt(i);
+            if (ch == LEFT_OXFORD_CHAR) {
+                nesting++;
+            } else if (ch == RIGHT_OXFORD_CHAR) {
+                nesting--;
+            } else if (nesting == 0 && (ch == '$' || ch == '/' || ch == ';')) {
+                appendNonEmptyMangledSubstring(sb, s, start, i, mangleOrNot);
+                sb.append(ch);
+                if (ch == ';')
+                    return i+1;
+                start = i+1;
+            }
+        }
+        appendNonEmptyMangledSubstring(sb, s, start, l, mangleOrNot);
+        return l;
+    }
+
+
+    /**
+     * @param sb
+     * @param s
+     * @param start
+     * @param i
+     */
+    private static void appendNonEmptyMangledSubstring(StringBuffer sb,
+            String s, int start, int i, boolean mangleOrNot) {
+        if (i - start > 0) {
+            s = s.substring(start, i);
+            sb.append(mangleOrNot ? mangleIdentifier(s) : deMangle(s));
+        }
+    }
+    
 
     /**
          * Convert a string identifier into something that will be legal in a
