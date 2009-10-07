@@ -132,12 +132,12 @@ public class Naming {
         char ch = ft.charAt(0);
         ft = ft.substring(1);
         String tx = specialFortressDescriptors.get(ft);
-        if (tx != null)
+        if (tx != null) {
             return tx;
-        if (ch == NORMAL_TAG_CHAR) {
+        } else if (ch == NORMAL_TAG_CHAR) {
             return "L" + deDot(ft) + ";";
         } else if (ch == INTERNAL_TAG_CHAR) {
-            return "Lfortress/" + deDot(ft) + ";";
+            return "Lfortress/" + deDollar(ft) + ";";
         } else if (ch == FOREIGN_TAG_CHAR) {
             throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
@@ -147,6 +147,10 @@ public class Naming {
 
     public static String deDot(String s) {
         return s.replace(".", "/");
+    }
+
+    public static String deDollar(String s) {
+        return s.replace(".", "$");
     }
 
     public static String deMangle(String s) {

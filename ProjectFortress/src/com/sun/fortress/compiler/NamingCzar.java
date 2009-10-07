@@ -72,7 +72,7 @@ public class NamingCzar {
 
     public static final String COERCION_NAME = "coerce";
     public static final String LIFTED_COERCION_PREFIX = "coerce_";
-    
+
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
     /** Name for sole field of top-level singleton class representing a
@@ -262,7 +262,7 @@ public class NamingCzar {
     /**
      * Returns "(" + param + ")" + result ; converts
      * to JVM method descriptor form.
-     * 
+     *
      * @param param
      * @param result
      * @return
@@ -384,7 +384,7 @@ public class NamingCzar {
     /**
      * Determine whether given TraitType is special, meaning, implemented
      * by hand, with a non-standard naming convention.
-     * 
+     *
      * Note that this is used only once, to determine whether a method
      * invocation should be invoke interface or invoke virtual, and
      * arguably that is a bug in how these are defined.
@@ -448,10 +448,10 @@ public class NamingCzar {
         p = Useful.replace(p, ".", "/") ;
         return p;
     }
-    
+
     /**
      * Returns name of method, in generated code, for a given API and function.
-     * 
+     *
      * @param name
      * @param method
      * @return
@@ -631,7 +631,7 @@ public class NamingCzar {
         return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
     }
 
-    // 
+    //
     private static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
             String rangeDesc,
             APIName ifNone) {
@@ -702,8 +702,8 @@ public class NamingCzar {
 
     /**
      * It looks like a bad idea to call this; how can the API possible be right?
-     * 
-     * @deprecated 
+     *
+     * @deprecated
      * @param fnName
      * @return
      */
@@ -824,7 +824,7 @@ public class NamingCzar {
 
     private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
-        
+
         String tag = Naming.YINYANG;
         // this might be buggy.
         return tag + id.getText();
@@ -1014,8 +1014,8 @@ public class NamingCzar {
         }
         return args;
     }
-    
-    
+
+
     // CodeGenMethodVisitor
     public static String parseResult(String desc) {
         int i = desc.lastIndexOf(')') + 1;

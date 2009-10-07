@@ -17,59 +17,10 @@
 
 export Executable
 
-(* Mock up of the kind of code we expect after desugaring of
-comprehensions, in order to see whether we can typecheck it.
-*)
-
-(** Is excludes Boolean actually necessary here, or is that a bug in
-    exclusion checking? *)
-trait GenZZ32 excludes Boolean
-    generate(r: ReductionString, body: ZZ32->String): String = "string"
-    filter(f: ZZ32 -> Boolean): GenZZ32 = self
-end
-
-object ReductionString
-    empty(): String = ""
-    join(a: String, b: String): String = a || b
-end
-
-intToStr(i:ZZ32): String = i.asString
-
-__bigOperator(o:ReductionString,
-              desugaredClauses:(ReductionString, String->String)->String): String =
-    desugaredClauses(o,fn (s:String):String => s)
-
-__generate(g: GenZZ32, r: ReductionString, f:ZZ32->String): String =
-    g.generate(r,f)
-__generate(p: Boolean, r: ReductionString, f:()->String): String =
-    if p then f() else r.empty() end
-
-
-object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends GenZZ32
-    generate(r: ReductionString, body: ZZ32->String): String = gen(lo,hi,p,r,body)
-    filter(q: ZZ32 -> Boolean): GenZZ32 =
-        FilteredRange(lo, hi, fn n => p(n) AND: q(n))
-end
-
-
-gen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionString, body: ZZ32->String): String =
-    if lo < hi then
-        mid = (lo+hi) DIV 2
-        r.join(gen(lo, mid, p, r, body), gen(mid+1,hi,p,r,body))
-    elif lo=hi AND: p(lo) then
-        body(lo)
-    else
-        r.empty()
-    end
-
-opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => true)
-
-opr BIG ||(): ReductionString = ReductionString
-
-opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
+opr BIG ||(): StringConcatenation = StringConcatenation
 
 run(): () = do
-    println(__bigOperator(ReductionString,
+    println(__bigOperator(StringConcatenation,
                           fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString))))
     println(BIG ||[n <- 0:100] (2 n + 1).asString)
     println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString)
