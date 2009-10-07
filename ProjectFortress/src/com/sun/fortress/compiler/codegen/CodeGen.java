@@ -1688,7 +1688,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             return;
         }
 
-        if (pa.worthParallelizing(rhs)) {
+        if (false && pa.worthParallelizing(rhs)) {
             forExprsParallel(rhss, vcgs);
         } else {
             forExprsSerial(rhss,vcgs);

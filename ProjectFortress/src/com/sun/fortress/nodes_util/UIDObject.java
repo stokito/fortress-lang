@@ -22,6 +22,7 @@ import java.io.IOException;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.tools.FortressAstToConcrete;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -69,6 +70,15 @@ public class UIDObject implements HasAt {
             e.printStackTrace();
         }
         return sb.toString();
+    }
+
+    public String toStringReadable() {
+        if (this instanceof Node) {
+            FortressAstToConcrete fatc = new FortressAstToConcrete(false, false);
+            return this.toString()+"\n"+((Node)this).accept( fatc );
+        } else {
+            return this.toStringVerbose();
+        }
     }
 
     static private Object lock = new Object();

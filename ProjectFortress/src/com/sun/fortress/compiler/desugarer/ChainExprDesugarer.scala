@@ -36,7 +36,7 @@ class ChainExprDesugarer extends Walker {
 
   /** Oracle used for generating names. */
   private val naming = new NameOracle(this)
-  
+
   /** Java Option of boolean type. */
   private val BOOLEAN = some[Type](Types.BOOLEAN)
 
@@ -46,108 +46,49 @@ class ChainExprDesugarer extends Walker {
     case _ => super.walk(node)
   }
 
-// This should be uncommented and used once LocalVarDecls allow for multiple
-// names on the LHS and a tuple on the RHS.
-
-//  /** Desugar the given ChainExpr. */
-//  def desugarChainExpr(e: ChainExpr): Expr = {
-//    val SChainExpr(info, first, links, _) = e
-//    val andOp = addSpan(e.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
-//    
-//    // Recursively desugar the constituent expressions.
-//    val newFirst = walk(first).asInstanceOf[Expr]
-//    val newLinks = links.map(walk(_).asInstanceOf[Link])
-//    val linkExprs = newLinks.map(_.getExpr)
-//    
-//    // Create the decl to bind new vars to all exprs.
-//    val firstVar = naming.makeVarRef(newFirst)
-//    val linkVars = linkExprs.map(naming.makeVarRef)
-//    val allVars = firstVar :: linkVars
-//    val decl = TempVarDecl(allVars, newFirst :: linkExprs)
-//    
-//    // Create the conjuncts.
-//    val varPairs = allVars.init zip allVars.tail
-//    val conjuncts = List.map2(newLinks, varPairs) {
-//      case (SLink(_, op, _), (left, right)) =>
-//        EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right)
-//    }
-//    
-//    // Build up the conjunction.
-//    val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
-//      EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next)
-//    }
-//    
-//    // Wrap a declaring do block around the conjunction.
-//    val block = decl.makeLocalVarDeclDo(NU.getSpan(e), conjunction)
-//    
-//    // Set parenthesized depending on if the ChainExpr was.
-//    setParenthesized(block, NU.isParenthesized(e))
-//  }
-
   /** Desugar the given ChainExpr. */
   def desugarChainExpr(e: ChainExpr): Expr = {
     val SChainExpr(info, first, links, _) = e
     val andOp = addSpan(e.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
-    
+
     // Recursively desugar the constituent expressions.
     val newFirst = walk(first).asInstanceOf[Expr]
     val newLinks = links.map(walk(_).asInstanceOf[Link])
-    val linkExprs = newLinks.map(_.getExpr)
 
-    // Recursively build up the nested Do's for each link. 
-    def recur(lastVar: VarRef, links: List[Link]): Expr = {
-      
-      // Peel the next link off.
-      val (SLink(_, nextFn, nextExpr) :: tailLinks) = links
-      
-      // Declare a temp var for the next expr.
-      val nextVar = naming.makeVarRef(nextExpr)
-      val linkSpan = NU.spanTwo(lastVar, nextVar)
-      
-      // Make the OpExpr.
-      val opExpr = EF.makeOpExpr(linkSpan,
-                                 BOOLEAN,
-                                 nextFn,
-                                 lastVar,
-                                 nextVar)
-      
-      // If there are no more links, that's it.
-      val bodyExpr = if (tailLinks.isEmpty) {
-        opExpr
-      } else {
-        // If another link, make the conjunct.
-        EF.makeOpExpr(linkSpan,
-                      BOOLEAN,
-                      andOp,
-                      opExpr,
-                      recur(nextVar, tailLinks))
-      }
-      
-      // Make the LocalVarDecl and wrap it in a Do.
-      val decl = TempVarDecl(nextVar, nextExpr).makeLocalVarDecl(NU.getSpan(e), bodyExpr)
-      EF.makeDo(NU.getSpan(e), BOOLEAN, decl)
+    // Common case: 1 operator.  Written rather imperatively
+    // to bail out without complicating the rest.
+    newLinks match {
+        case SLink(info, op, expr) :: Nil =>
+            var res = EF.makeOpExpr(NU.getSpan(e), BOOLEAN, op, newFirst, expr);
+            return setParenthesized(res, NU.isParenthesized(e));
+        case _ => ()
     }
-    
-    // If there's only one link, just create the OpExpr.
-    val desugared = newLinks match {
-      case List(SLink(nextInfo, nextFn, nextExpr)) =>
-        EF.makeOpExpr(NU.spanTwo(NU.getSpan(first), nextInfo.getSpan),
-                      BOOLEAN,
-                      nextFn,
-                      newFirst,
-                      nextExpr)
-        
-      case _ =>
-        // Declare a temp var for the first expr and wrap its decl around the
-        // whole desugared expr for the remaining links.
-        val firstVar = naming.makeVarRef(first)
-        val desugaredLinkExpr = recur(firstVar, newLinks)
-        val decl = TempVarDecl(firstVar, newFirst).makeLocalVarDecl(NU.getSpan(e), desugaredLinkExpr)
-        EF.makeDo(info.getSpan, BOOLEAN, decl)
+
+    // Create the decl to bind new vars to all exprs.
+    val linkExprs = newLinks.map(_.getExpr)
+    val firstVar = naming.makeVarRef(newFirst)
+    val linkVars = linkExprs.map(naming.makeVarRef)
+    val allVars = firstVar :: linkVars
+    val decl = TempVarDecl(allVars, newFirst :: linkExprs)
+
+    // Create the conjuncts.
+    val conjuncts = List.map3(allVars, newLinks, linkVars) {
+      case (left, SLink(_, op, _), right) =>
+        EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right)
     }
-    
+
+    // Build up the conjunction.
+    val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
+      EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next)
+    }
+
+    // Wrap a declaring do block around the conjunction.
+    val block = decl.makeLocalVarDeclDo(NU.getSpan(e), conjunction)
+
+    // System.err.println("desugarChainExpr:\n"+block.toStringReadable());
+
     // Set parenthesized depending on if the ChainExpr was.
-    setParenthesized(desugared, NU.isParenthesized(e))
+    setParenthesized(block, NU.isParenthesized(e))
   }
 
 }
