@@ -58,22 +58,46 @@ opr <->(a: Boolean, b:Boolean):Boolean
  * Simple Range support
  ************************************************************)
 
-(* Just enough for counted loops for now. *)
-
-__loop(g: GeneratorZZ32, body: ZZ32->()): ()
-
-trait GeneratorZZ32
+trait GeneratorZZ32 excludes { Boolean }
     getter asString(): String
-    seq(self): GeneratorZZ32
+    seq(self): SeqGeneratorZZ32
     loop(body:ZZ32->()): ()
+    generate(r: ReductionString, body: ZZ32->String): String
+    seqloop(body:ZZ32->()): ()
+    seqgenerate(r: ReductionString, body: ZZ32->String): String
+    filter(f: ZZ32 -> Boolean): GeneratorZZ32
     opr IN(x:ZZ32, self): Boolean
 end
 
+trait SeqGeneratorZZ32 extends GeneratorZZ32
+    filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
+end
+
 opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean
-(*
+
+__bigOperator(o:ReductionString,
+              desugaredClauses:(ReductionString, String->String)->String): String
+
+__generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String
+__generate(p: Boolean, r: ReductionString, f:()->String): String
+
+__loop(g: GeneratorZZ32, body: ZZ32->()): ()
+
+trait ReductionString
+    empty(): String
+    join(a: String, b: String): String
+end
+
+object StringConcatenation extends ReductionString
+    empty(): String
+    join(a: String, b: String): String
+end
+
 opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32
-*)
 opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
 
+(*
+opr BIG ||(): ReductionString
+*)
 
 end

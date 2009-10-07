@@ -337,7 +337,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (staticClass == null)
                 staticClass = api.replaceAll("[.]", "/");
 
-            if (log_loads) System.err.println(name + ".apply" + sig + " concrete");
+            if (log_loads) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
             mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
             mv.visitCode();
             // Is this right?  What about a 2-arg function that takes a void as its second arg?
