@@ -269,12 +269,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cw
      */
     public static void closureClassPrefix(String name, ClassWriter cw, String staticClass) {
-        int last_dot = name.lastIndexOf('$');
+        int env_loc = name.indexOf(Naming.ENVELOPE);
+        int last_dot = name.substring(0,env_loc).lastIndexOf('$');
+        
         String api = name.substring(0,last_dot);
         String suffix = Naming.deMangle(name.substring(last_dot+1));
-        int env_loc = suffix.indexOf(Naming.ENVELOPE);
+        env_loc = suffix.indexOf(Naming.ENVELOPE); // followed by $
         String fn = suffix.substring(0,env_loc);
-        String ft = suffix.substring(env_loc+1);
+        String ft = suffix.substring(env_loc+2); // skip $
 
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);

@@ -776,11 +776,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     mname = nonCollidingSingleName(name, sig);
                 }
 
-                String PCN = packageAndClassName + "$" +
-                Naming.GEAR +
+                String PCN = packageAndClassName + Naming.GEAR +"$" +
+                
                 Naming.catMangled(
                       Naming.mangleIdentifier(mname + sparams_part),
-                  Naming.ENVELOPE , // "ENVELOPE"
+                  Naming.ENVELOPE + "$", // "ENVELOPE" "$"
                   arrow_type);
 
                 System.err.println(PCN);
@@ -1474,7 +1474,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String PCN = pc_and_m.getA() + "$" +
            Naming.catMangled(
             method_and_signature.getA() ,
-            Naming.ENVELOPE , // "ENVELOPE"
+            Naming.ENVELOPE + "$", // "ENVELOPE"
             arrow_type);
         /* The suffix will be
          * (potentially mangled)
@@ -1517,7 +1517,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             pkgClass = pkgClass + "$" + Naming.GEAR + Naming.catMangled(
                     calleeInfo.getB(),
                     decoration,
-                    Naming.ENVELOPE,
+                    Naming.ENVELOPE + "$",
                     arrow_type // TODO fix this.
                     );
         }
