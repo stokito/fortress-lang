@@ -717,7 +717,7 @@ __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L
 
 (** Application of two nested BIG operators, possibly with fusion.  This covers only
     comprehensions of the form:
-        %BIG outer [ xs <- expro ] (BIG inner [x <- xs] expri)
+        %BIG OUTER [ xs <- expro ] (BIG INNER [x <- xs] expri)
     The desugarer extracts comprehensions of this form from more complex nests of
     comprehensions, using a combination of splitting:
         %BIG OP [ gs1, gs2 ] expr = BIG OP [ gs1 ] (BIG OP [ gs2 ] expr)
@@ -893,8 +893,8 @@ value trait AnyUniqueItem extends Equality[\AnyUniqueItem\] excludes Number
     opr =(self, other:AnyUniqueItem): Boolean
 end
 
-(** The type UniqueItem[\T\] extends Maybe[\T\] from a semilattice
-    to a lattice by adjoining a top element NotUnique[\T\].  An
+(** The type %UniqueItem[\T\]% extends %Maybe[\T\]% from a semilattice
+    to a lattice by adjoining a top element %NotUnique[\T\]%.  An
     object of type %UniqueItem[\T\]% can be used as a generator; it is either
     empty (%Nothing% or %NotUnique%) or generates the single element yielded by
     %get%, so there is no issue of canonical order or parallelism. *)
