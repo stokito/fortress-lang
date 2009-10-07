@@ -64,7 +64,7 @@ trait Common { self: STypeChecker =>
         if ( ! h.hasExplored(type_) ) {
           h.explore(type_)
           type_ match {
-            case ty@STraitType(_, name, _, params) =>
+            case ty@STraitType(_, name, _, _) =>
               toOption(traits.typeCons(name)) match {
                 case Some(ti) =>
                   if ( ti.isInstanceOf[TraitIndex] ) {

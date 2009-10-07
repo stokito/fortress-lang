@@ -336,7 +336,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                         i += 1
                     }
                     val mt = NodeFactory.makeTupleType(NodeUtil.getSpan(t), toJavaList(elems))
-                    NodeFactory.makeIntersectionType(info, toJavaList(mt :: tuples))
+                    typeAnalyzer.normalize(mt)
                 } else t
             }
         case _ => t
