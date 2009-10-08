@@ -28,6 +28,7 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import com.sun.fortress.useful.HasAt
 
 /**
  * Contains miscellaneous utility code for the Node hierarchy.
@@ -93,5 +94,26 @@ object SNodeUtil {
   def liftStaticParam(sp: StaticParam): StaticParam = {
     val SStaticParam(v1, v2, v3, v4, v5, v6, _) = sp
     SStaticParam(v1, v2, v3, v4, v5, v6, true) 
+  }
+  
+  /** Given a node with a Span, return the same node but with the given span. */
+  def setSpan(node: HasAt, span: Span): HasAt = {
+    object adder extends Walker {
+      var swap = false
+      override def walk(node: Any): Any = node match {
+        case SExprInfo(_, a, b) if !swap =>
+          swap = true
+          SExprInfo(span, a, b)
+        case STypeInfo(_, a, b, c) if !swap =>
+          swap = true
+          STypeInfo(span, a, b, c)
+        case SSpanInfo(_) if !swap =>
+          swap = true
+          SSpanInfo(span)
+        case _ if !swap => super.walk(node)
+        case _ => node
+      }
+    }
+    adder(node).asInstanceOf[HasAt]
   }
 }

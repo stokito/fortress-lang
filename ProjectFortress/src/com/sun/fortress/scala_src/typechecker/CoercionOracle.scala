@@ -41,6 +41,9 @@ class CoercionOracle(traits: TraitTable,
                      exclusions: ExclusionOracle,
                      current: CompilationUnitIndex)
                     (implicit analyzer: TypeAnalyzer) {
+  
+  /** A coercion index and its arrow type with lifted params instantiated. */
+  type LiftedCoercion = (Coercion, ArrowType)
 
   /**
    * Create the Id for an invocation of a coercion to trait U. If the trait's
@@ -82,10 +85,10 @@ class CoercionOracle(traits: TraitTable,
 
   /** Determines if T rejects U. */
   private def rejects(t: Type, u: Type): Boolean =
-    getCoercionsTo(t).forall(a => exclusions.excludes(a.getDomain, u))
+    getCoercionsTo(t).forall(ca => exclusions.excludes(ca._2.getDomain, u))
 
   /** The set of all arrow types for coercions from types T to U. */
-  def getCoercionsTo(u: Type): Set[ArrowType] = {
+  def getCoercionsTo(u: Type): Set[LiftedCoercion] = {
     if (!u.isInstanceOf[TraitType]) return Set()
 
     // Get name and possible static args out of the type.
@@ -98,10 +101,10 @@ class CoercionOracle(traits: TraitTable,
     }
 
     // Get the instantiated coercion arrow.
-    def instantiateArrow(c: Coercion): Option[ArrowType] = {
+    def instantiateArrow(c: Coercion): Option[LiftedCoercion] = {
       makeArrowFromFunctional(c).flatMap(arrow =>
         instantiateLiftedStaticParams(sargs, arrow).map(instArrow =>
-          instArrow.asInstanceOf[ArrowType]))
+          (c, instArrow.asInstanceOf[ArrowType])))
     }
 
     // Get all the arrows that were found.
@@ -153,22 +156,34 @@ class CoercionOracle(traits: TraitTable,
     // Make the dummy argument.
     val dummyArg = makeDummyFor(t)
 
-    // Get a list of all the (arrow, inferred args) pairs that worked.
-    val allArrows = getCoercionsTo(u)
-    val arrowsAndArgs = allArrows.flatMap(inferStaticParams(_, t, None))
-    if (arrowsAndArgs.isEmpty) return None
+    // Get a list of all the (coercion, arrow, inferred args) pairs that worked.
+    val allLiftedCoercions = getCoercionsTo(u)
+    val coercionsAndArgs = allLiftedCoercions flatMap { liftedCoercion =>
+      inferStaticParams(liftedCoercion._2, t, None) map { arrowAndSargs =>
+        (liftedCoercion._1, arrowAndSargs._1, arrowAndSargs._2)
+      }
+    }
+    if (coercionsAndArgs.isEmpty) return None
     else if (maybeArg.isNone) return Some(None)
     val arg = maybeArg.get
     val argSpan = NU.getSpan(arg)
 
     // Build app candidates and sort them to find the SMA.
-    val candidates = arrowsAndArgs.map(aa => (aa._1, aa._2, List(arg)))
+    val candidates = coercionsAndArgs.map(caa => (caa._2, caa._3, List(arg)))
     val (smaArrow, unliftedSargs, _) = candidates.toList.sort(moreSpecificCandidate).first
 
-    // Make a dummy overloading for all coercions to U.
     val coercionId = makeCoercionId(u)
-    val ovType = NF.makeIntersectionType(toJavaSet(arrowsAndArgs.map(_._1)))
-    val overloading = SOverloading(SSpanInfo(argSpan), coercionId, Some(ovType))
+    
+    // Make an overloading for each lifted coercion to U.
+    val overloadings = coercionsAndArgs map { caa =>
+      
+      // Compute the name here using the import information, but use the span
+      // from the original coercion decl.
+      val coercionNameSpan = NU.getSpan(caa._1.ast.getUnambiguousName)
+      val overloadingId = setSpan(coercionId, coercionNameSpan).asInstanceOf[Id]
+      
+      SOverloading(SSpanInfo(coercionNameSpan), coercionId, Some(caa._2))
+    }
 
     // Make a dummy functional ref.
     val sargs = toList(u.getArgs) ++ unliftedSargs
@@ -177,7 +192,7 @@ class CoercionOracle(traits: TraitTable,
                              coercionId,
                              toJavaList(Nil),
                              toJavaList(sargs),
-                             toJavaList(List(overloading)))
+                             toJavaList(overloadings))
 
     // Rewrite the FnRef so that it filters out dynamically unapplicable arrows.
     val newFnRef = rewriteApplicand(fnRef, smaArrow, sargs).asInstanceOf[FnRef]
