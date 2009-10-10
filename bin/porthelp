@@ -19,5 +19,6 @@
 
 FORTRESS_HOME="`${0%porthelp}fortress_home`"
 
+
 java -cp ${FORTRESS_HOME}/ProjectFortress/build com.sun.fortress.useful.MacPortsHelper "$@"
 
