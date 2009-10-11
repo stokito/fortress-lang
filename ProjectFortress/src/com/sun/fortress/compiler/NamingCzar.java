@@ -748,7 +748,6 @@ public class NamingCzar {
         String res =
          "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
             makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
-        res = Naming.mangleIdentifier(res);
         return res;
 
     }
@@ -786,7 +785,6 @@ public class NamingCzar {
         }
 
         result = result + makeArrowDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
-        result = Naming.mangleIdentifier(result);
         return result;
     }
 
@@ -810,6 +808,7 @@ public class NamingCzar {
          {
             if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
                 tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
+                sep = "$"; // for some reason this fails, why?
             } else if (ForeignJava.only.definesApi(apiName)) {
                 tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
             } else {

@@ -63,7 +63,7 @@ public class MainWrapper {
             // so that there is a task pool before any user code is run.
             ClassLoader icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
-            Class arr = Class.forName("\\=Arrow\u27e6\u26a0CompilerLibrary\\,ReductionString\\?\u26a0CompilerBuiltin\\,String\u27e7", true, icl);
+            Class arr = Class.forName("\\=Arrow\u27e6\u26a0CompilerLibrary\\%ReductionString\\?\u26a0CompilerBuiltin\\%String\u27e7", true, icl);
             Class red = Class.forName("fortress.CompilerLibrary$ReductionString", true, icl);
             java.lang.reflect.Method ap = arr.getDeclaredMethod("apply", red);
             java.lang.reflect.Method m = cl.getDeclaredMethod("main", String[].class);
