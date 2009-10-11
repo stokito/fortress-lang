@@ -150,7 +150,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
                 } else if (isClosure) {
-                    classData = instantiateClosure(name);
+                    classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
                 } else if (isGeneric) {
                     String dename = Naming.deMangle(name);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
@@ -273,7 +273,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
         
         String api = name.substring(0,last_dot);
-        String suffix = Naming.deMangle(name.substring(last_dot+1));
+        String suffix = name.substring(last_dot+1);
         env_loc = suffix.indexOf(Naming.ENVELOPE); // followed by $
         String fn = suffix.substring(0,env_loc);
         String ft = suffix.substring(env_loc+2); // skip $
@@ -298,10 +298,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
-        String superClass = Naming.mangleIdentifier("Abstract"+ft);
-        name = name.replaceAll("[.]", "/");
+        String superClass = Naming.mangleFortressIdentifier("Abstract"+ft);
+        name = api.replaceAll("[.]", "/") + '$' + suffix;
+        name = Naming.mangleFortressIdentifier(name);
         String desc = "L" + name + ";";
-        String field_desc = "L" + Naming.mangleIdentifier(ft) + ";";
+        String field_desc = "L" + Naming.mangleFortressIdentifier(ft) + ";";
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
         {

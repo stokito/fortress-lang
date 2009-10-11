@@ -26,6 +26,7 @@ import java.util.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.exceptions.CompilerError;
@@ -47,9 +48,9 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
     // This stuff is kept around to emit debugging information.
     // All these lists are managed stack-fashion and indexed by handle.
-    List<String> varNames;
-    List<String> varTypes;
-    List<Label> varFirstUse;
+    private List<String> varNames;
+    private List<String> varTypes;
+    private List<Label> varFirstUse;
 
     public CodeGenMethodVisitor(int access, String name, String desc,
                                 String signature, String[] exceptions,
@@ -159,6 +160,59 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         } else {
             throw new CompilerError("Trying to get this/self in static method.");
         }
+    }
+
+    @Override
+    public void visitFieldInsn(int opcode, String owner, String name,
+            String desc) {
+        
+        owner = Naming.mangleFortressIdentifier(owner);
+        name = Naming.mangleMemberName(name);
+        desc = Naming.mangleFortressDescriptor(desc);
+
+        super.visitFieldInsn(opcode, owner, name, desc);
+    }
+
+    @Override
+    public void visitLocalVariable(String name, String desc, String signature,
+            Label start, Label end, int index) {
+        
+        signature = Naming.mangleFortressIdentifier(signature);
+        name = Naming.mangleMemberName(name);
+        desc = Naming.mangleFortressDescriptor(desc);
+
+        super.visitLocalVariable(name, desc, signature, start, end, index);
+    }
+
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc) {
+        owner = Naming.mangleFortressIdentifier(owner);
+        name = Naming.mangleMemberName(name);
+        desc = Naming.mangleMethodSignature(desc);
+
+        super.visitMethodInsn(opcode, owner, name, desc);
+    }
+
+    @Override
+    public void visitMultiANewArrayInsn(String desc, int dims) {
+        desc = Naming.mangleFortressIdentifier(desc);
+        super.visitMultiANewArrayInsn(desc, dims);
+    }
+
+    @Override
+    public void visitTryCatchBlock(Label start, Label end, Label handler,
+            String type) {
+        // TODO Auto-generated method stub
+        // need to do more here, eventually
+        super.visitTryCatchBlock(start, end, handler, type);
+    }
+
+    @Override
+    public void visitTypeInsn(int opcode, String type) {
+        type = Naming.mangleFortressIdentifier(type);
+
+        super.visitTypeInsn(opcode, type);
     }
 
 }

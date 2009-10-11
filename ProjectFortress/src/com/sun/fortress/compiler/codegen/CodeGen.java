@@ -390,13 +390,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
             // conservative answer is "no".
-            methodName = Naming.mangleIdentifier(methodName);
             signature = NamingCzar.jvmMethodDesc(arrow, component.getName());
 
         } else if (arrow instanceof IntersectionType) {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
-                    OverloadSet.oMangle(methodName) : Naming.mangleIdentifier(methodName);
+                    OverloadSet.oMangle(methodName) : methodName;
 
             signature = OverloadSet.getSignature(it, paramCount, ta);
 
@@ -777,11 +776,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
 
                 String PCN = packageAndClassName + Naming.GEAR +"$" +
-                
-                Naming.catMangled(
-                      Naming.mangleIdentifier(mname + sparams_part),
-                  Naming.ENVELOPE + "$", // "ENVELOPE" "$"
-                  arrow_type);
+                mname + sparams_part + Naming.ENVELOPE + "$" + arrow_type;
+//                Naming.catMangled(
+//                      Naming.mangleIdentifier(mname + sparams_part),
+//                  Naming.ENVELOPE + "$", // "ENVELOPE" "$"
+//                  arrow_type);
 
                 System.err.println(PCN);
 
@@ -1213,7 +1212,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             index++;
         }
         // TODO Auto-generated method stub
-        return Naming.mangleIdentifier(Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD);
+        return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
     }
 
     /**
@@ -1396,8 +1395,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private String singleName(IdOrOpOrAnonymousName name) {
         String nameString = idOrOpToString((IdOrOp)name);
-        String mname = Naming.mangleIdentifier(nameString);
-        return mname;
+        return nameString;
     }
 
     // belongs in Naming perhaps
@@ -2030,7 +2028,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(Opcodes.DUP);
-            int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task),
+            int taskVar = mv.createCompilerLocal(task,
                     NamingCzar.internalToDesc(task));
             taskVars[i] = taskVar;
             mv.visitVarInsn(Opcodes.ASTORE, taskVar);
@@ -2137,9 +2135,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             e.accept(this);
         }
         addLineNumberInfo(x);
+        // TODO, need to remove these open-coded references to classes.
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
-                           Naming.mangleIdentifier(opToString(op)),
+                           opToString(op),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 

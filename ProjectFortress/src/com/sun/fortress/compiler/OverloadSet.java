@@ -893,7 +893,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public static String oMangle(String name) {
-        return Naming.mangleIdentifier(name); // no mangling after all.
+        return name; // no mangling after all.
     }
 
     public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
@@ -979,10 +979,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
             if (getOverloadSubsets().containsKey(sig)) {
-                mname = Naming.mangleIdentifier(mname);
                 mname = NamingCzar.mangleAwayFromOverload(mname);
-            } else {
-                mname = Naming.mangleIdentifier(mname);
             }
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);

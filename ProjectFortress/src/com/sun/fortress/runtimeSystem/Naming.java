@@ -97,13 +97,13 @@ public class Naming {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
-        bl(COMPILER_BUILTIN, ".Boolean", "FBoolean");
-        bl(COMPILER_BUILTIN, ".Char", "FChar");
-        bl(COMPILER_BUILTIN, ".RR32", "FRR32");
-        bl(COMPILER_BUILTIN, ".RR64", "FRR64");
-        bl(COMPILER_BUILTIN, ".ZZ32", "FZZ32");
-        bl(COMPILER_BUILTIN, ".ZZ64", "FZZ64");
-        bl(COMPILER_BUILTIN, ".String", "FString");
+        bl(COMPILER_BUILTIN, "$Boolean", "FBoolean");
+        bl(COMPILER_BUILTIN, "$Char", "FChar");
+        bl(COMPILER_BUILTIN, "$RR32", "FRR32");
+        bl(COMPILER_BUILTIN, "$RR64", "FRR64");
+        bl(COMPILER_BUILTIN, "$ZZ32", "FZZ32");
+        bl(COMPILER_BUILTIN, "$ZZ64", "FZZ64");
+        bl(COMPILER_BUILTIN, "$String", "FString");
         bl("", SNOWMAN, "FVoid");
     }
 
@@ -133,11 +133,11 @@ public class Naming {
         ft = ft.substring(1);
         String tx = specialFortressDescriptors.get(ft);
         if (tx != null) {
-            return tx;
+            return tx; // Should be correct by construction
         } else if (ch == NORMAL_TAG_CHAR) {
-            return "L" + deDot(ft) + ";";
+            return "L" + mangleIdentifier(deDot(ft)) + ";";
         } else if (ch == INTERNAL_TAG_CHAR) {
-            return "Lfortress/" + deDollar(ft) + ";";
+            return "Lfortress/" + mangleFortressIdentifier(deDot(ft)) + ";";
         } else if (ch == FOREIGN_TAG_CHAR) {
             throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
@@ -146,7 +146,13 @@ public class Naming {
     }
 
     public static String deDot(String s) {
-        return s.replace(".", "/");
+        int lox = s.indexOf(LEFT_OXFORD_CHAR);
+        if (lox == -1)
+            return s.replace(".", "/");
+        // don't de-dot inside of oxford brackets.
+        int rox = s.indexOf(RIGHT_OXFORD_CHAR);
+        return s.substring(0, lox).replace(".", "/") +
+               s.substring(lox);
     }
 
     public static String deDollar(String s) {
@@ -344,6 +350,7 @@ public class Naming {
             case 'I':
             case 'J':
             case 'S':
+            case 'Z':
             case 'V': // should only appear in return if well-formed
                 
             case '[': // eat array indicator
@@ -375,14 +382,51 @@ public class Naming {
      * @param sb the stringbuffer to which the transformed string is appended.
      * @return the index of the next character to process (if any).
      */
-    public static int mangleFortressIdentifier(String s, int start, StringBuffer sb) {
+    private static int mangleFortressIdentifier(String s, int start, StringBuffer sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,true);
     }
+    
     public static String mangleFortressIdentifier(String s) {
+        if (s == null)
+            return null;
+        int l = s.length();
+        // Special case of <init> and <clinit>
+        if (pointyDelimitedInitMethod(s))
+            return s;
         StringBuffer sb = new StringBuffer();
          mangleOrNotFortressIdentifier(s,0, sb,true);
          return sb.toString();
     }
+    
+    /**
+     * Expects a type, surrounded by L;, or one of the descriptor type characters.
+     * @param s
+     * @return
+     */
+    public static String mangleFortressDescriptor(String s) {
+        // This is a degenerate case of "signature"; if that is made pickier, this will not work.
+        return mangleMethodSignature(s);
+    }
+
+    /**
+     * Mangles names of methods (and fields?).
+     * Mangling includes / and $.
+     * Names beginning and end with less-than and greater-than are left along
+     * (init, clinit)
+     * 
+     * @param s
+     * @return
+     */
+    public static String mangleMemberName(String s) {
+        if (s == null)
+            return null;
+        int l = s.length();
+        // Special case of <init> and <clinit>
+        if (pointyDelimitedInitMethod(s))
+            return s;
+        return mangleIdentifier(s);
+    }
+
     /**
      * DE-mangles the chunks of a fortress identifier, where the chunks are
      * delimited by $, /, and ; appearing outside of Oxford brackets.
@@ -395,18 +439,36 @@ public class Naming {
      * @param sb the stringbuffer to which the transformed string is appended.
      * @return the index of the next character to process (if any).
      */
-    public static int demangleFortressIdentifier(String s, int start, StringBuffer sb) {
+    private static int demangleFortressIdentifier(String s, int start, StringBuffer sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,false);
     }
     
     public static String demangleFortressIdentifier(String s) {
+        if (s == null)
+            return null;
+        int l = s.length();
+        
+        // Special case of <init> and <clinit>
+        if (pointyDelimitedInitMethod(s))
+            return s;
+
         StringBuffer sb = new StringBuffer();
          mangleOrNotFortressIdentifier(s,0, sb, false);
          return sb.toString();
     }
 
+    /**
+     * @param s
+     * @param l
+     * @return
+     */
+    private static boolean pointyDelimitedInitMethod(String s) {
+        int l = s.length();
+        return s.charAt(0) == '<' && s.endsWith("init>");
+    }
+
     
-    public static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
         int l = s.length();
         int nesting = 0;
         

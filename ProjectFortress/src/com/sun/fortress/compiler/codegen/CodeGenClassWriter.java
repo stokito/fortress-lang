@@ -22,6 +22,8 @@ package com.sun.fortress.compiler.codegen;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 public class CodeGenClassWriter extends ClassWriter {
 
     public CodeGenClassWriter(int flags) {
@@ -30,8 +32,71 @@ public class CodeGenClassWriter extends ClassWriter {
 
 
     public CodeGenMethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        name = Naming.mangleMemberName(name);
+        signature = Naming.mangleFortressIdentifier(signature);
+        desc = Naming.mangleMethodSignature(desc);
+
         return new CodeGenMethodVisitor(access, name, desc, signature, exceptions, 
                                         super.visitMethod(access, name, desc, signature, exceptions));
+    }
+
+
+    @Override
+    protected String getCommonSuperClass(String type1, String type2) {
+        // We may need to do something interesting here.
+        return super.getCommonSuperClass(type1, type2);
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature,
+            String superName, String[] interfaces) {
+        signature = Naming.mangleFortressIdentifier(signature);
+        name = Naming.mangleFortressIdentifier(name);
+        superName = Naming.mangleFortressIdentifier(superName);
+        
+        String[] _interfaces =
+            interfaces == null ? null : new String[interfaces.length];
+        if (interfaces != null)
+            for (int i = 0; i < interfaces.length; i++)
+                _interfaces[i] = Naming.mangleFortressIdentifier(interfaces[i]);
+
+        super.visit(version, access, name, signature, superName, _interfaces);
+    }
+
+
+    @Override
+    public FieldVisitor visitField(int access, String name, String desc,
+            String signature, Object value) {
+        signature = Naming.mangleFortressIdentifier(signature);
+        name = Naming.mangleMemberName(name);
+        desc = Naming.mangleFortressDescriptor(desc);
+        return super.visitField(access, name, desc, signature, value);
+    }
+
+
+    @Override
+    public void visitInnerClass(String name, String outerName,
+            String innerName, int access) {
+        name = Naming.mangleFortressIdentifier(name);
+        outerName = Naming.mangleFortressIdentifier(outerName);
+        innerName = Naming.mangleMethodSignature(innerName);
+        super.visitInnerClass(name, outerName, innerName, access);
+    }
+
+
+    @Override
+    public void visitOuterClass(String owner, String name, String desc) {
+        name = Naming.mangleFortressIdentifier(name);
+        owner = Naming.mangleFortressIdentifier(owner);
+        desc = Naming.mangleFortressDescriptor(desc);
+        super.visitOuterClass(owner, name, desc);
+    }
+
+
+    @Override
+    public void visitSource(String file, String debug) {
+        // TODO Auto-generated method stub
+        super.visitSource(file, debug);
     }
 
 }
