@@ -28,12 +28,15 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ScalaConstraint
 import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
+import com.sun.fortress.scala_src.typechecker.CnAnd
+import com.sun.fortress.scala_src.typechecker.CnOr
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
@@ -44,24 +47,10 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
   def bottom = BOTTOM
 
   def lteq(x: Type, y: Type): Boolean =  subtype(x, y).isTrue
-  def meet(x: Type, y: Type): Type = x
-  def join(x: Type, y: Type): Type = y
+  def meet(x: Type, y: Type): Type = normalize(makeIntersectionType(List(x, y)))
+  def join(x: Type, y: Type): Type = normalize(makeUnionType(List(x, y)))
   
   def subtype(x: Type, y: Type): ScalaConstraint = sub(normalize(x), normalize(y))
-
-  def equivalent(x: Type, y: Type): ScalaConstraint = {
-    val s = normalize(x)
-    val t = normalize(y)
-    eq(s,t)
-  }
-  
-  def excludes(x: Type, y: Type) = false
-  
-  def normalize(x: Type): Type = x
-  
-  private def eq(x: Type, y:Type): ScalaConstraint  = {
-    and(sub(x, y), sub(x, y))
-  }
   
   private def sub(x: Type, y: Type): ScalaConstraint = (x,y) match {
     case (s: BottomType, _) => TRUE
@@ -74,18 +63,18 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
     //Type variables
     case (s: VarType, t: VarType) if (s==t) => TRUE
     case (s@SVarType(_, id, _), t) => 
-      val sParam = staticParam(id).getOrElse(bug(s, s + " is not in the kind environment."))
+      val sParam = staticParam(id)
       val supers = toList(sParam.getExtendsClause)
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
     //Trait types
+    case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
       List.map2(a1, a2)((a, b) => eq(a, b)).foldLeft(TRUE)(and)
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
-      val index = typeCons(n).getOrElse(bug(s, s + "is not in the trait table.")).asInstanceOf[TraitIndex]
+      val index = typeCons(n).asInstanceOf[TraitIndex]
       val supers = toList(index.extendsTypes).
         map(tw => substitute(a, toList(index.staticParameters), tw.getBaseType))
-      val base = if (s!=OBJECT) sub(OBJECT, t) else FALSE
-      supers.map(sub(_, t)).foldLeft(base)(or)
+      supers.map(sub(_, t)).foldLeft(FALSE)(or)
     //Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) => 
       and(and(sub(d2, d1), sub(r1, r2)), sub(e1, e2))
@@ -96,10 +85,12 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
       sub(s, disjunctFromTuple(t,1))
     case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, Some(v), _)) =>
       sub(s, disjunctFromTuple(t, e1.size))
-    case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2)) if (e1.size == e2.size) =>
-      List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
-    case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2)) if (e1.size == e2.size) =>
-      List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
+    case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2))
+      if (e1.size == e2.size) =>
+        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
+    case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2)) 
+      if (e1.size == e2.size) =>
+        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
     //Intersection types
     case (s, SIntersectionType(_,ts)) =>
       ts.map(sub(s, _)).foldLeft(TRUE)(and)
@@ -133,6 +124,17 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
     else
       FALSE
   }
+
+  
+  def equivalent(x: Type, y: Type): ScalaConstraint = {
+    val s = normalize(x)
+    val t = normalize(y)
+    eq(s,t)
+  }
+  
+  private def eq(x: Type, y:Type): ScalaConstraint  = {
+    and(sub(x, y), sub(x, y))
+  }
   
   private def eq(x: StaticArg, y: StaticArg): ScalaConstraint = (x,y) match {
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => eq(s, t)
@@ -143,18 +145,44 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
     case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b)
     case _ => FALSE
   }
+
   
+  def excludes(x: Type, y: Type) = exc(normalize(x), normalize(y))
+
   private def exc(x: Type, y: Type): Boolean = (x,y) match {
     case (s: BottomType, _) => true
     case (_, t: BottomType) => true
     case (s: AnyType, _) => false
     case (_, t: AnyType) => false
     case (s@SVarType(_, id, _), t) =>
-      val sParam = staticParam(id).getOrElse(bug(s,s + "is not in the kind env"))
+      val sParam = staticParam(id)
       val supers = toList(sParam.getExtendsClause)
       supers.exists(exc(_, t))
     case (s, t:VarType) => exc(t, s)
-    case (s: TraitType, t: TraitType) => true
+    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) =>
+     if(or(sub(s, t), sub(t, s)).isFalse) {
+       val sIndex = typeCons(n1).asInstanceOf[TraitIndex]
+       val tIndex = typeCons(n2).asInstanceOf[TraitIndex]
+       (sIndex, tIndex) match {
+         case (si: ProperTraitIndex, ti: ProperTraitIndex) =>
+           val sExcludes = excludesClause(s)
+           val tExcludes = excludesClause(t)
+           val sComprises = comprisesClause(s)
+           val tComprises = comprisesClause(t)
+           if (sExcludes.exists(sub(t, _).isTrue))
+             return true
+           if (tExcludes.exists(sub(s, _).isTrue))
+             return true
+           if (!sComprises.isEmpty && sComprises.forall(exc(t, _)))
+             return true
+           if (!tComprises.isEmpty && tComprises.forall(exc(s, _)))
+             return true
+           false
+         case _ => true
+       }
+     } else {
+       false
+     }
     //Arrow types
     case (s: ArrowType, t: ArrowType) => false
     case (s: ArrowType, _) => true
@@ -184,11 +212,75 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
     case _ => false
   }
   
-  // Accessor method for trait table
-  private def typeCons(x: Id): Option[TypeConsIndex] = toOption(traits.typeCons(x))
+  private def comprisesClause(t: TraitType): Set[TraitType] = {
+    val ti = typeCons(t.getName).asInstanceOf[ProperTraitIndex]
+    val args = toList(t.getArgs)
+    val params = toList(ti.staticParameters)
+    toSet(ti.comprisesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
+  }
   
-  //Accessor method for kind env
-  private def staticParam(x: Id): Option[StaticParam] = env.staticParam(x)
+  private def excludesClause(t: TraitType): Set[TraitType] = {
+    val ti = typeCons(t.getName).asInstanceOf[ProperTraitIndex]
+    val args = toList(t.getArgs)
+    val params = toList(ti.staticParameters)
+    val excludes = toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
+    val supers = toList(ti.extendsTypes).map(tw => substitute(args, params, tw.getBaseType))
+    val transitively = supers.flatMap{
+      case s: TraitType => excludesClause(s)
+      case _ => Set[TraitType]()
+    }
+    excludes ++ transitively
+  }
+  
+  def normalize(x: Type): Type = {
+    object normalizer extends Walker {
+      def walker(y: Node) = y match {
+        case t@STraitType(_, n, a, _) => 
+          val index = typeCons(n)
+          index match {
+            case ti: TypeAliasIndex =>
+              val params = toList(ti.staticParameters)
+              walk(substitute(a, params, ti.ast.getTypeDef))
+            case _ => super.walk(t)
+          }
+        // ToDo: Keywords
+        case t@STupleType(_, e, None, _) => t
+        case a: ArrowType => a
+        case e: Effect => e
+        case u@SUnionType(_, e) =>
+          val ps = e.flatMap(y => disjuncts(normalize(y)))
+          makeUnionType(reduceSum(ps))
+        case i@SIntersectionType(_, e) =>
+          val sop = cross(e.map(y => disjuncts(normalize(y))))
+          val ps = sop.map(y => makeIntersectionType(reduceProduct(y.flatMap(disjuncts))))
+          makeUnionType(reduceSum(ps))
+        case _ => super.walk(y)
+      }
+    }
+    normalizer(x).asInstanceOf[Type]
+  }
+  
+  private def reduceProduct(x: Iterable[Type]): List[Type] = {
+    if(x.exists(y => x.exists(z => exc(y, z))))
+      Nil
+    else
+      x.filter(y => (x.exists(z => lt(z, y)))).toList
+  }
+  private def reduceSum(x: Iterable[Type]): List[Type] = {
+    x.filter(y => (x.exists(z => lt(y, z)))).toList
+  }
+  
+  private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
+    x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
+  }
+
+  // Accessor method for trait table
+  private def typeCons(x: Id): TypeConsIndex = 
+    toOption(traits.typeCons(x)).getOrElse(bug(x, x + "is not in the trait table"))
+  
+  // Accessor method for kind env
+  private def staticParam(x: Id): StaticParam = 
+    env.staticParam(x).getOrElse(bug(x, x + "is not in the kind env."))
   
   //Type utilites
   private def substitute(args: List[StaticArg], params: List[StaticParam], typ: Type): Type = {
@@ -255,12 +347,16 @@ class TypeLattice(traits: TraitTable, env: KindEnv) extends BoundedLattice[Type]
     STypeInfo(typeSpan, false ,Nil, None)
   }
   
-  //Constraint Utilities
+  //Todo: Constraint Utilities
   private val TRUE: ScalaConstraint = CnTrue
   private val FALSE: ScalaConstraint = CnFalse
-  private def and(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint = TRUE
-  private def or(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint = TRUE
-  private def upperBound(i: _InferenceVarType, t: Type): ScalaConstraint = TRUE
-  private def lowerBound(i: _InferenceVarType, t: Type): ScalaConstraint = TRUE
+  private def and(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint =
+    x.scalaAnd(y, this.lteq)
+  private def or(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint =
+    x.scalaOr(y, this.lteq)
+  private def upperBound(i: _InferenceVarType, t: Type): ScalaConstraint =
+    CnAnd(Map((i,t)), Map(), this.lteq)
+  private def lowerBound(i: _InferenceVarType, t: Type): ScalaConstraint =
+    CnAnd(Map(), Map((i,t)), this.lteq)
   private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
 }
