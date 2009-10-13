@@ -23,7 +23,7 @@ end
 trait S extends R
   m(x:String, y:String): String = ("S.m " x y)
 end
-  
+
 trait T extends R
   m(x:String, y:String): String
 end

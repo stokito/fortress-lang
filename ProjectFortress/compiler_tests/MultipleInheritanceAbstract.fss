@@ -16,23 +16,24 @@
  ******************************************************************************)
 export Executable
 
-trait R
-  m(x:String, y:String): String 
+trait S
+  m(x:String, y:String): String
 end
 
-trait S extends R
-  m(x:String, y:String): String 
-end
-  
-trait T extends R
-  m(x:String, y:String): String 
+trait T
+  m(x:String, y:String): String
 end
 
 object O(x:ZZ32,y:ZZ32) extends {S,T}
-  m(a:String, b:String): String = ("O.m " a b)
+  m(a:String, b:String): String = ("O(" x.asString "," y.asString ").m " a b)
 end
+
+f(s:S): String = s.m("c","d")
+g(t:T): String = t.m("c","d")
 
 run() = do
   o = O(1,2)
   println(o.m("c","d"))
+  println(f(o))
+  println(g(o))
 end
