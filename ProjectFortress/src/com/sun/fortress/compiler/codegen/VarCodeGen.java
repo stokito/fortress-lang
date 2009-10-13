@@ -193,16 +193,6 @@ public abstract class VarCodeGen {
         }
     }
 
-    /** Self parameter for dotted methods. */
-    public static class SelfVar extends ParamVar {
-        public SelfVar(Span s, Type fortressType, CodeGen cg) {
-            super(NodeFactory.makeId(s,"self"), fortressType, cg);
-            if (offset != 0) {
-                throw new CompilerError(s, " self parameter got stack slot "+offset);
-            }
-        }
-    }
-
     /** Local variable not visible outside current activation.  We
      *  don't presently distinguish mutable and immutable locals;
      *  perhaps we should.  A LocalVar doesn't include any variable
