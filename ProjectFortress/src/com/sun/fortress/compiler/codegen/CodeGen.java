@@ -909,11 +909,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         IdOrOpOrAnonymousName name = header.getName();
 
-        boolean inAMethod = inAnObject || inATrait;
-        boolean savedInAnObject = inAnObject;
-        boolean savedInATrait = inATrait;
-        boolean savedEmittingFunctionalMethodWrappers = emittingFunctionalMethodWrappers;
-
         if (emittingFunctionalMethodWrappers) {
             if (selfIndex==NO_SELF)
                 return; // Not functional = no wrapper needed.
@@ -955,9 +950,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(x, "Don't know how to compile this kind of FnDecl.");
 
         Option<Expr> optBody = x.getBody();
-        if (optBody.isNone())
-            sayWhat(x, "Abstract function declarations are not supported.");
+        if (optBody.isNone()) {
+            if (inATrait) return; // Nothing concrete to do; dumpSigs already generated abstract signature.
+            sayWhat(x, "Abstract function declarations are only supported in traits.");
+        }
         Expr body = optBody.unwrap();
+
+        boolean inAMethod = inAnObject || inATrait;
+        boolean savedInAnObject = inAnObject;
+        boolean savedInATrait = inATrait;
+        boolean savedEmittingFunctionalMethodWrappers = emittingFunctionalMethodWrappers;
 
         try {
             inAnObject = false;
