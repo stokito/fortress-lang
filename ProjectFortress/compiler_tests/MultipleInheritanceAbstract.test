@@ -13,10 +13,10 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests= SingleInheritanceAbstract
+tests= MultipleInheritanceAbstract
 compile
 link
 run
 run_out_equals=O(1,2).m cd\n\
+O(1,2).m cd\n\
 O(1,2).m cd\n
-
