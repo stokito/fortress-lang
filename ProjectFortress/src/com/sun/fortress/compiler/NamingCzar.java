@@ -805,6 +805,7 @@ public class NamingCzar {
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
         String sep = ".";
+        if (false)
          {
             if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
                 tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
@@ -818,6 +819,8 @@ public class NamingCzar {
 
                 // this might be buggy.
             return tag + apiName + sep + id.getText();
+        } else {
+            return Naming.NORMAL_TAG + jvmTypeDesc(t, ifNone, false);
         }
     }
 
