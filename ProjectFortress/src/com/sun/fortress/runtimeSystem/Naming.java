@@ -135,9 +135,9 @@ public class Naming {
         if (tx != null) {
             return tx; // Should be correct by construction
         } else if (ch == NORMAL_TAG_CHAR) {
-            return "L" + mangleIdentifier(deDot(ft)) + ";";
+            return "L" + mangleFortressIdentifier(ft) + ";";
         } else if (ch == INTERNAL_TAG_CHAR) {
-            return "Lfortress/" + mangleFortressIdentifier(deDot(ft)) + ";";
+            return "Lfortress/" + mangleFortressIdentifier(ft) + ";";
         } else if (ch == FOREIGN_TAG_CHAR) {
             throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
