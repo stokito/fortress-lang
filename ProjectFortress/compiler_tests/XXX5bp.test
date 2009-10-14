@@ -20,9 +20,5 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.bp.fsi:19:1-11:\n\
 \ Invalid comprises clause: Compiled5.bp.P is included in the comprises clause of T\n\
 \ but Compiled5.bp.P does not extend T.\n\
-${STATIC_TESTS_DIR}/Compiled5.bp.fss:22:19:\n\
-\ Types T and Compiled5.bp.S[\\String\\] exclude each other.  O must not extend them.\n\
-${STATIC_TESTS_DIR}/Compiled5.bp.fss:22:22-30:\n\
-\ Types Compiled5.bp.S[\\String\\] and T exclude each other.  O must not extend them.\n\
-File Compiled5.bp.fss has 3 errors.\n
+File Compiled5.bp.fss has 1 error.\n
 compile_out_equals=

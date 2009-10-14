@@ -23,11 +23,11 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticParamTypeEnv
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 
@@ -95,7 +95,7 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case _:AnyType => // OK
       case _:BottomType => // OK
       case t@SVarType(_, name, _) =>
-        if ( ! analyzer.kindEnv.contains(name) )
+        if ( ! analyzer.env.contains(name) )
           error("Unbound type: " + name, t)
       case t@STraitType(_, name, sargs, _) =>
         getTypes(name) match {

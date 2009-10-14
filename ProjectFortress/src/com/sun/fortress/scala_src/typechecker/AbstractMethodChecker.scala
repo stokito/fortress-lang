@@ -26,13 +26,13 @@ import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -85,10 +85,8 @@ class AbstractMethodChecker(component: ComponentIndex,
                           decls: List[Decl]) = {
     // Extend the type analyzer with the collected static parameters
     val oldTypeAnalyzer = typeAnalyzer
-    val staticParameters = new ArrayList[StaticParam]()
     // Add static parameters of the enclosing trait or object
-    staticParameters.addAll( toJavaList(sparams) )
-    typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+    typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
     for ( t <- toCheck.keySet ) {
       for ( (owner, ds) <- toCheck.get(t) ) {
@@ -160,7 +158,7 @@ class AbstractMethodChecker(component: ComponentIndex,
       trait_.getBaseType match {
         case ty@STraitType(info, name, args, params) =>
           h.explore(ty)
-          val tci = typeAnalyzer.traitTable.typeCons(name)
+          val tci = typeAnalyzer.traits.typeCons(name)
           if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
             val ti = tci.unwrap.asInstanceOf[TraitIndex]
             map.put(name, (ty, collectAbstractMethods(name, toList(NU.getDecls(ti.ast)))))
@@ -203,7 +201,7 @@ class AbstractMethodChecker(component: ComponentIndex,
    * implements the abstract method declaration "d".
    */
   private def implement(d: FnDecl, decl: FnDecl, t: TraitType): Boolean = {
-    val tci = typeAnalyzer.traitTable.typeCons(t.getName)
+    val tci = typeAnalyzer.traits.typeCons(t.getName)
     var sparams = List[StaticParam]()
     if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] )
       sparams = toList(NU.getStaticParams(tci.unwrap.asInstanceOf[TraitIndex].ast.asInstanceOf[TraitObjectDecl])).asInstanceOf[List[StaticParam]]

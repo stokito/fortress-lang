@@ -18,7 +18,6 @@
 package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.compiler.index._
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.CompilerError
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
@@ -27,6 +26,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.ErrorLog
@@ -38,7 +38,6 @@ import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
 class CoercionOracle(traits: TraitTable,
-                     exclusions: ExclusionOracle,
                      current: CompilationUnitIndex)
                     (implicit analyzer: TypeAnalyzer) {
   
@@ -81,11 +80,11 @@ class CoercionOracle(traits: TraitTable,
   /** The `noLessSpecific` relation. */
   private def noLessSpecific(t: Type, u: Type): Boolean =
     analyzer.subtype(t, u).isTrue ||
-      (exclusions.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
+      (analyzer.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
 
   /** Determines if T rejects U. */
   private def rejects(t: Type, u: Type): Boolean =
-    getCoercionsTo(t).forall(ca => exclusions.excludes(ca._2.getDomain, u))
+    getCoercionsTo(t).forall(ca => analyzer.excludes(ca._2.getDomain, u))
 
   /** The set of all arrow types for coercions from types T to U. */
   def getCoercionsTo(u: Type): Set[LiftedCoercion] = {

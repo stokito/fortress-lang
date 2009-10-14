@@ -19,7 +19,6 @@ package com.sun.fortress.scala_src.useful
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.WellKnownNames._
 import com.sun.fortress.compiler.index._
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
@@ -28,6 +27,7 @@ import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.nodes_util.NodeUtil._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.TraitTable
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
@@ -60,14 +60,22 @@ object TypeParser extends RegexParsers {
   def arrowType: Parser[ArrowType] = nonArrowType ~ "->" ~ typ ^^
     {case dom~_~ran => makeArrowType(typeSpan,dom, ran)}
     
-  def nonArrowType: Parser[Type] = baseType | parenthesizedType | tupleType
+  def nonArrowType: Parser[Type] = baseType | tupleType | intersectionType | unionType
   
-  def parenthesizedType: Parser[Type] = "(" ~> typ <~ ")"
+  def tupleType: Parser[Type] = "(" ~> repsep(typ, ",") <~ ")" ^^
+    {typs => makeMaybeTupleType(typeSpan, toJavaList(typs))}
   
-  def tupleType: Parser[TupleType] = "(" ~> repsep(typ, ",") <~ ")" ^^
-    {typs => makeTupleType(toJavaList(typs))}
+  def baseType: Parser[BaseType] = anyType | bottomType | traitType | varType
   
-  def baseType: Parser[BaseType] = traitType | varType
+  def anyType: Parser[AnyType] = literal("ANY") ^^ {x => ANY}
+  
+  def bottomType: Parser[BottomType] = literal("BOTTOM") ^^ {x => BOTTOM}
+  
+  def intersectionType: Parser[Type] = "&&" ~> "{" ~> repsep(typ, ",") <~ "}" ^^ 
+    {x => makeMaybeIntersectionType(toJavaList(x))}
+  
+  def unionType: Parser[Type] = "||" ~> "{" ~> repsep(typ, ",") <~ "}" ^^
+    { x => makeMaybeUnionType(toJavaList(x))}
   
   def varType: Parser[VarType] = regex(VAR) ^^ 
     {id => makeVarType(typeSpan, id)}
@@ -88,17 +96,21 @@ object TypeParser extends RegexParsers {
       val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
       val ast = makeTraitDecl(tType, toJavaList(superWheres), toJavaList(excludes),
                               toJavaOption(mComprises.map(toJavaList(_))))
-      new ProperTraitIndex(ast,
-                           toJavaMap(Map()),
-                           toJavaMap(Map()),
-                           toJavaSet(Set()),
-                           CollectUtil.emptyRelation[IdOrOpOrAnonymousName,DeclaredMethod],
-                           CollectUtil.emptyRelation[IdOrOpOrAnonymousName,FunctionalMethod])}
-  
+      val ti = new ProperTraitIndex(ast,
+                                    toJavaMap(Map()),
+                                    toJavaMap(Map()),
+                                    toJavaSet(Set()),
+                                    CollectUtil.emptyRelation[IdOrOpOrAnonymousName,DeclaredMethod],
+                                    CollectUtil.emptyRelation[IdOrOpOrAnonymousName,FunctionalMethod])
+     excludes.map(x => ti.addExcludesType(x.asInstanceOf[TraitType]))
+     mComprises.map(x => x.map(y => ti.addComprisesType(y.asInstanceOf[TraitType])))
+     ti
+  }
+
   def typeAnalyzer: Parser[TypeAnalyzer] = "{" ~> repsep(traitIndex, ",") <~ "}" ^^
     {traits => 
       val component = makeComponentIndex("OverloadingTest", traits)
-      new TypeAnalyzer(new TraitTable(component, GLOBAL_ENV))
+      TypeAnalyzer.make(new TraitTable(component, GLOBAL_ENV))
     }
   
   def overloadingSet: Parser[List[ArrowType]] = "{" ~> repsep(arrowTypeSchema, ",") <~ "}"

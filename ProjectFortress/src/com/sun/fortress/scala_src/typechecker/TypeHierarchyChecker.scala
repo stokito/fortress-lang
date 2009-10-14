@@ -27,7 +27,6 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.TraitIndex
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
@@ -40,6 +39,7 @@ import com.sun.fortress.nodes.TraitType
 import com.sun.fortress.nodes.TraitTypeWhere
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.STypesUtil
@@ -65,12 +65,11 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     toJavaList(removeDuplicates(toList(errors)))
   }
 
-  def checkAcyclicHierarchy(analyzer: TypeAnalyzer,
-                            exclusionOracle: ExclusionOracle): JavaList[StaticError] = {
+  def checkAcyclicHierarchy(analyzer: TypeAnalyzer): JavaList[StaticError] = {
     val errors = new ArrayList[StaticError]()
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       checkAcyclicity(typ, List(), errors)
-      checkDeclComprises(typ, exclusionOracle, errors, analyzer)
+      checkDeclComprises(typ, errors, analyzer)
     }
     toJavaList(removeDuplicates(toList(errors)))
   }
@@ -162,7 +161,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
    *         T should be in S's extends clause
    *         S should be declared in the same component or API
    */
-  def checkDeclComprises(decl: Id, exclusionOracle: ExclusionOracle,
+  def checkDeclComprises(decl: Id,
                          errors: JavaList[StaticError],
                          analyzer: TypeAnalyzer): Unit = {
     getTypes(decl, errors) match {
@@ -178,7 +177,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               for (second <- extended) {
                 second match {
                   case STraitTypeWhere(_,other@STraitType(_,_,_,_),_) =>
-                    if ( exclusionOracle.excludes(st, other) )
+                    if ( analyzer.excludes(st, other) )
                       error(errors, "Types " + st + " and " + other +
                             " exclude each other.  " + decl +
                             " must not extend them.", st)
@@ -187,7 +186,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               }
               getTypes(name, errors) match {
                 case si:ProperTraitIndex =>
-                  if ( exclusionOracle.excludes(tt, st) ) {
+                  if ( analyzer.excludes(tt, st) ) {
                       error(errors, "Type " + decl + " excludes " + name +
                             " but it extends " + name + ".", extension)
                   }

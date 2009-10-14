@@ -38,7 +38,6 @@ import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -67,6 +66,8 @@ import com.sun.fortress.scala_src.typechecker.TryChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.types.TypeAnalyzer$;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
 import com.sun.fortress.useful.Debug;
@@ -238,13 +239,12 @@ public class StaticChecker {
             index = buildIndex(ast, isApi);
 
             TraitTable traitTable = new TraitTable(index, env);
-            TypeAnalyzer typeAnalyzer = TypeAnalyzer.make(traitTable);
-            ExclusionOracle exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog());
+            TypeAnalyzer typeAnalyzer = TypeAnalyzer$.MODULE$.make(traitTable);
 
             if (Shell.testCoercion())
-                errors.addAll(new CoercionTest(typeAnalyzer, exclusionOracle).run());
+                errors.addAll(new CoercionTest(typeAnalyzer).run());
 
-            errors.addAll(typeHierarchyChecker.checkAcyclicHierarchy(typeAnalyzer, exclusionOracle));
+            errors.addAll(typeHierarchyChecker.checkAcyclicHierarchy(typeAnalyzer));
             errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());
 
             TypeCheckerResult result;

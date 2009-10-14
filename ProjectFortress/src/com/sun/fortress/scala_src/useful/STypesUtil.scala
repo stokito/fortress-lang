@@ -25,7 +25,6 @@ import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
@@ -36,6 +35,7 @@ import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ScalaConstraint
 import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._

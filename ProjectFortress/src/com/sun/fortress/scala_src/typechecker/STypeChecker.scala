@@ -27,7 +27,6 @@ import com.sun.fortress.compiler.index.Functional
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.typechecker.TypeNormalizer
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.StaticError.errorMsg
@@ -40,6 +39,7 @@ import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.impls._
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.DummyErrorLog
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
@@ -160,11 +160,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                                      val envCache: MMap[APIName, STypeEnv],
                                      val cycleChecker: CyclicReferenceChecker) {
 
-  /** Oracle for determining exclusion between types. */
-  protected val exclusions = new ExclusionOracle(analyzer, errors)
-
   /** Oracle for determining coercions between types. */
-  protected val coercions = new CoercionOracle(traits, exclusions, current)
+  protected val coercions = new CoercionOracle(traits, current)
 
   /**
    * This method simply creates a new instance of the class in which it is defined. We need this
@@ -318,7 +315,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getType(id)
       case id:IdOrOp => env.getType(id) match {
         case Some(ty) => Some(ty)
-        case None => analyzer.kindEnv.getType(id)
+        case None => analyzer.env.getType(id)
       }
       case _ => None
     }
@@ -329,7 +326,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   protected def nameHasBinding(name: Name): Boolean =
     getRealName(name, toList(current.ast.getImports)) match {
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).contains(id)
-      case id:IdOrOp => env.contains(id) || analyzer.kindEnv.contains(id)
+      case id:IdOrOp => env.contains(id) || analyzer.env.contains(id)
       case _ => false
     }
 
