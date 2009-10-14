@@ -40,9 +40,8 @@ class OverloadingJUTest extends TestCase {
   
   def testExclusion() = {
     val ta = typeAnalyzer("{[T]List[T], [T]ArrayList[T] extends {List[T]} , Foo extends {Bar}, Bar}")
-    val ea = new ExclusionOracle(ta, new ErrorLog())
     val mt = ta.meet(typ("List[Foo]"), typ("List[Bar]"))
-    if(ea.excludes(typ("List[Foo]"), typ("List[Bar]")))
+    if(ta.excludes(typ("List[Foo]"), typ("List[Bar]")))
       println("blah")
     else
       println("hoo")

@@ -28,7 +28,6 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
@@ -37,6 +36,7 @@ import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.ErrorLog
@@ -396,7 +396,7 @@ trait Misc { self: STypeChecker with Common =>
             case None => { (None, None) }
             case Some(ty) =>
               // Get union of all clauses' types
-              (Some(newBlock), Some(normalize(analyzer.join(toJavaList(ty::types)))))
+              (Some(newBlock), Some(normalize(analyzer.join(ty::types))))
           }
         }
       }
@@ -580,7 +580,7 @@ trait Misc { self: STypeChecker with Common =>
           (getType(newBody), labelExitTypes.get(name)) match {
             case (Some(ty), Some(exitTypes)) =>
               exitTypes.add(ty)
-              labelType = Some(normalize(analyzer.join(exitTypes)))
+              labelType = Some(normalize(analyzer.join(toSet(exitTypes))))
             case _ =>
           }
           // Destroy the mappings for this label
@@ -670,7 +670,7 @@ trait Misc { self: STypeChecker with Common =>
                                getType(b).getOrElse(return expr)
                             })
           // resulting type is the join of those types
-          allTypes ::= self.analyzer.join(toJavaList(clauseTypes))
+          allTypes ::= self.analyzer.join(clauseTypes)
           Some(newC)
         case None => None
       }
@@ -681,7 +681,7 @@ trait Misc { self: STypeChecker with Common =>
           Some(newB)
         case None => None
       }
-      val newTy = Some(self.analyzer.join(toJavaList(allTypes)))
+      val newTy = Some(self.analyzer.join(allTypes))
       STry(SExprInfo(span, paren, newTy), newBody, newCatch, forbidC, newFinally)
     }
 
@@ -762,7 +762,7 @@ trait Misc { self: STypeChecker with Common =>
       val first = dims.head
       var same_size = true
       dims.foreach(d => if (!d.equals(first)) same_size = false)
-      val arrayType = self.analyzer.join(toJavaList(types))
+      val arrayType = self.analyzer.join(types)
       if (!same_size) signal(expr, "Not all subarrays are the same size.")
       // Now try to get array type for the dimension we have
       val ind = toOption(traits.typeCons(Types.getArrayKName(dimension))) match {

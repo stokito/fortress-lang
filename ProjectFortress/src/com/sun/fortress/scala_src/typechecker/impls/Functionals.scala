@@ -716,7 +716,7 @@ trait Functionals { self: STypeChecker with Common =>
         case None =>
           val match_types =
               newClauses.map(c => getType(c.getMatchClause).get)
-          val unionTy = self.analyzer.join(toJavaList(match_types))
+          val unionTy = self.analyzer.join(match_types)
           val opName = newCompare.get.getOriginalName.asInstanceOf[Op]
           isSubtype(unionTy,
                     Types.makeTotalOperatorOrder(unionTy, opName), expr,
@@ -725,7 +725,7 @@ trait Functionals { self: STypeChecker with Common =>
                     "<,<=,>=,>," + opName + "\\] but it is not.  " +
                     "The union is " + unionTy + ".")
       }
-      val newTy = self.analyzer.join(toJavaList(body_types))
+      val newTy = self.analyzer.join(body_types)
       SCaseExpr(SExprInfo(span, paren, Some(newTy)), newParam, newCompare, newEquals,
                 newIn, newClauses, newElse)
     }

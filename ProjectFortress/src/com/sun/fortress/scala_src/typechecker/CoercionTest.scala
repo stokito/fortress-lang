@@ -16,8 +16,8 @@
  ******************************************************************************/
 package com.sun.fortress.scala_src.typechecker
 
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 
 
@@ -27,7 +27,7 @@ import com.sun.fortress.scala_src.useful.Lists._
  * Error messages are read via stderr.
  * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
  */
-class CoercionTest(analyzer:TypeAnalyzer, exclusionOracle:ExclusionOracle) {
+class CoercionTest(analyzer:TypeAnalyzer) {
   def run() = {
     toJavaList(List[StaticError]())
   }
