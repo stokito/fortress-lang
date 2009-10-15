@@ -58,7 +58,7 @@ public class MethodInstantiater implements MethodVisitor {
             String desc) {
         owner = xlation.getCompletely(owner);
         name = xlation.getCompletely(name);
-        desc = xlation.getCompletely(desc);
+        desc = xlation.getDesc(desc);
         mv.visitFieldInsn(opcode, owner, name, desc);
     }
 
@@ -115,7 +115,7 @@ public class MethodInstantiater implements MethodVisitor {
             String desc) {
         owner = xlation.getCompletely(owner);
         name = xlation.getCompletely(name);
-        desc = xlation.getCompletely(desc);
+        desc = xlation.getDesc(desc);
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
 

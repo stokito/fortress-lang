@@ -827,7 +827,7 @@ public class NamingCzar {
     private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
 
-        String tag = Naming.YINYANG;
+        String tag = Naming.NORMAL_TAG; // has to be a NORMAL_TAG to work.
         // this might be buggy.
         return tag + id.getText();
     }

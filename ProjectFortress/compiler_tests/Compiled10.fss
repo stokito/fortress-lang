@@ -17,7 +17,7 @@
 
 export Executable
 
- (* Generic top-level functions *)
+(* Generic top-level functions *)
 
 f[\T\]():ZZ32 = 0
 g[\T, S\]():ZZ32 = f[\T\]() + 5
@@ -27,6 +27,11 @@ run() =do
   b = g[\ZZ32,String\]() (*) 5
   c = f[\String\]()      (*) 0
   d = g[\String,ZZ32\]() (*) 5
+
+  printlnZZ32(a)
+  printlnZZ32(b)
+  printlnZZ32(c)
+  printlnZZ32(d)
 
   sum =  a + b + c + d
   println(

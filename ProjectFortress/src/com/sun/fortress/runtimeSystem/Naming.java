@@ -135,9 +135,11 @@ public class Naming {
         if (tx != null) {
             return tx; // Should be correct by construction
         } else if (ch == NORMAL_TAG_CHAR) {
-            return "L" + mangleFortressIdentifier(ft) + ";";
+            //return "L" + mangleFortressIdentifier(ft) + ";";
+            return "L" + (ft) + ";";
         } else if (ch == INTERNAL_TAG_CHAR) {
-            return "Lfortress/" + mangleFortressIdentifier(ft) + ";";
+            //return "Lfortress/" + mangleFortressIdentifier(ft) + ";";
+            return "Lfortress/" + (ft) + ";";
         } else if (ch == FOREIGN_TAG_CHAR) {
             throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
@@ -368,6 +370,40 @@ public class Naming {
             }
         }
         return sb.toString();
+    }   
+    
+    public static String demangleMethodSignature(String s) {
+        StringBuffer sb = new StringBuffer();
+        int l = s.length();
+        int i = 0;
+        while (i < l) {
+            char ch = s.charAt(i);
+            switch (ch) {
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'F':
+            case 'I':
+            case 'J':
+            case 'S':
+            case 'Z':
+            case 'V': // should only appear in return if well-formed
+                
+            case '[': // eat array indicator
+            case '(': // eat intro and outro, assume well-formed
+            case ')':
+                sb.append(ch);
+                i++;
+                break;
+            case 'L':
+                sb.append(ch);
+                i = demangleFortressIdentifier(s, i+1, sb);
+                break;
+            default:
+                throw new Error("Was not expecting to see character " + ch);
+            }
+        }
+        return sb.toString();
     }
     
     /**
@@ -395,7 +431,10 @@ public class Naming {
             return s;
         StringBuffer sb = new StringBuffer();
          mangleOrNotFortressIdentifier(s,0, sb,true);
-         return sb.toString();
+         String t = sb.toString();
+         if (t.startsWith("\\-=Arrow"))
+             throw new Error("AHA!");
+         return t;
     }
     
     /**
@@ -405,7 +444,14 @@ public class Naming {
      */
     public static String mangleFortressDescriptor(String s) {
         // This is a degenerate case of "signature"; if that is made pickier, this will not work.
-        return mangleMethodSignature(s);
+        String t =  mangleMethodSignature(s);
+        if (t.startsWith("\\-=Arrow"))
+            throw new Error("AHA!");
+        return t;
+    }
+    public static String demangleFortressDescriptor(String s) {
+        // This is a degenerate case of "signature"; if that is made pickier, this will not work.
+        return demangleMethodSignature(s);
     }
 
     /**

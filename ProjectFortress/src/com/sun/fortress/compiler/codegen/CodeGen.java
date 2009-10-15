@@ -191,7 +191,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // generation and the result is not reentrant (ie if we call
         // run() recursively we lose).
 
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             NamingCzar.stringArrayToVoid, null, null);
         mv.visitCode();
         // new packageAndClassName()
@@ -212,7 +212,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitEnd();
         // return
 
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "compute",
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "compute",
                             NamingCzar.voidToVoid, null, null);
         mv.visitCode();
         // Call through to static run method in this component.
@@ -236,7 +236,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, superClass, "<init>", NamingCzar.voidToVoid);
@@ -307,10 +307,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return r;
     }
 
-    public void dumpClass( String file ) {
+    public void dumpClass( String unmangled_file_name ) {
         PrintWriter pw = new PrintWriter(System.out);
         cw.visitEnd();
 
+        String file = Naming.mangleFortressIdentifier(unmangled_file_name);
+        
         if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
             CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
 
@@ -577,7 +579,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Static initializer for this class.
         // Since all top-level fields and singleton objects are singleton inner classes,
         // this does nothing.
-        mv = cw.visitMethod(Opcodes.ACC_STATIC,
+        mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                 "<clinit>",
                 "()V",
                 null,
@@ -626,10 +628,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private void generateGenericMethodClass(FnDecl x, IdOrOp name,
-                                            List<Param> params,
-                                            int selfIndex,
-                                            Type returnType,
-                                            Expr body) {
+                                            
+                                            int selfIndex) {
         /*
          * Different plan for static parameter decls;
          * instead of a method name, we are looking for an
@@ -638,7 +638,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          *
          * The inner class name has the form
          *
-         * PKG.component$GEARfunction[\t1;t2;n3;o4\]ENVELOPEarrow[\d1;d2;r\]
+         * PKG.componentGEAR$function[\t1;t2;n3;o4\]ENVELOPEarrow[\d1;d2;r\]
          *
          * where
          * PKG is package name
@@ -666,7 +666,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         FnDecl y = x;
         x = (FnDecl) x.accept(new GenericNumberer(xlation));
-
+        
+        // Get rewritten parts.
+        FnHeader header = x.getHeader();
+        List<Param> params = header.getParams();
+        Type returnType = header.getReturnType().unwrap();
+        Expr body = x.getBody().unwrap();
+ 
         String sig =
             NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                                        returnType, component.getName());
@@ -766,7 +772,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // trait default OR top level.
 
-        cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+        cg.mv = cw.visitCGMethod(modifiers, mname, sig, null, null);
         cg.mv.visitCode();
 
         // We received "self" in parameter 0
@@ -849,7 +855,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                           List<Param> params, int selfIndex,
                                           boolean inAMethod, Expr body) {
 
-        mv = cw.visitMethod(modifiers, mname, sig, null, null);
+        mv = cw.visitCGMethod(modifiers, mname, sig, null, null);
         mv.visitCode();
 
         // Now inside method body. Generate code for the method
@@ -973,7 +979,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (! sparams.isEmpty()) {
                 generateGenericMethodClass(x, (IdOrOp)name,
-                                           params, selfIndex, returnType, body);
+                                           selfIndex);
             } else if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, (IdOrOp)name,
                                         params, selfIndex, returnType, savedInATrait);
@@ -1155,7 +1161,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             IdOrOp spn = sp.getName();
             String tag = spk.accept(spkTagger) + index;
-            xlation.put(spn.getText(), tag+index);
+            xlation.put(spn.getText(), tag);
             frag += tag + ";";
             index++;
         }
@@ -1175,8 +1181,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             frag += ";";
             index++;
         }
-        // TODO Auto-generated method stub
-        return Naming.mangleIdentifier(Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD);
+        // TODO Why are we mangling this?
+        // return Naming.mangleFortressIdentifier(Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD);
+        return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
     }
 
     /**
@@ -1227,7 +1234,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String mname = nonCollidingSingleName(name, sig);
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
-        cg.mv = cw.visitMethod(modifiers, mname, sig, null, null);
+        cg.mv = cw.visitCGMethod(modifiers, mname, sig, null, null);
         cg.mv.visitCode();
 
         // Now inside method body. Generate code for the method body.
@@ -1321,7 +1328,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Generate the apply method
         // System.err.println(idesc+".apply"+applyDesc+" gen in "+className);
-        cg.mv = cg.cw.visitMethod(Opcodes.ACC_PUBLIC, Naming.APPLY_METHOD, applyDesc, null, null);
+        cg.mv = cg.cw.visitCGMethod(Opcodes.ACC_PUBLIC, Naming.APPLY_METHOD, applyDesc, null, null);
         cg.mv.visitCode();
 
         // Since we call this virtually we need a slot for the arrow implementation of this object.
@@ -1439,10 +1446,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
         String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
         String PCN = pc_and_m.getA() + "$" +
-           Naming.catMangled(
-            method_and_signature.getA() ,
-            Naming.ENVELOPE + "$", // "ENVELOPE"
-            arrow_type);
+           
+            method_and_signature.getA() +
+            Naming.ENVELOPE + "$"+ // "ENVELOPE"
+            arrow_type;
         /* The suffix will be
          * (potentially mangled)
          * functionName<ENVELOPE>closureType (which is an arrow)
@@ -1481,12 +1488,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              */
 
             String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
-            pkgClass = pkgClass + "$" + Naming.GEAR + Naming.catMangled(
-                    calleeInfo.getB(),
-                    decoration,
-                    Naming.ENVELOPE + "$",
+            pkgClass = pkgClass + Naming.GEAR + "$" + 
+                    calleeInfo.getB() +
+                    decoration +
+                    Naming.ENVELOPE + "$" +
                     arrow_type // TODO fix this.
-                    );
+                    ;
         }
 
         callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.getB());
@@ -1729,7 +1736,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
 
-            mv = cw.visitMethod(Opcodes.ACC_STATIC,
+            mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                     mname,
                     sig,
                     null,
@@ -1861,7 +1868,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                   String initDesc,
                                   List<VarCodeGen> freeVars) {
 
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "<init>", initDesc, null, null);
         mv.visitCode();
 
         // Call superclass constructor
@@ -1887,7 +1894,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private void generateTaskCompute(String className, Expr x, String result) {
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL,
                                   "compute", "()V", null, null);
         mv.visitCode();
 
@@ -2189,7 +2196,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   classFile, null, NamingCzar.internalSingleton, null );
         cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
                       NamingCzar.SINGLETON_FIELD_NAME, tyDesc, null, null);
-        mv = cw.visitMethod(Opcodes.ACC_STATIC,
+        mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                             "<clinit>", NamingCzar.voidToVoid, null, null);
         exp.accept(this);
         mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
@@ -2587,7 +2594,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                             singleName(name), selfIndex) : nonCollidingSingleName(
                                     name, desc);
 
-            mv = cw.visitMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
+            mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
                                 mname, desc, null, null);
 
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
