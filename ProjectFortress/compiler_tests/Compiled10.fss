@@ -27,15 +27,8 @@ run() =do
   b = g[\ZZ32,String\]() (*) 5
   c = f[\String\]()      (*) 0
   d = g[\String,ZZ32\]() (*) 5
-
-  println(a)
-  println(b)
-  println(c)
-  println(d)
-
-  sum =  a + b + c + d
   println(
-  if (a=c=0 AND c=d=5)
+  if (a=c=0 AND b=d=5)
      then "pass" else "fail" end
   )
 end
