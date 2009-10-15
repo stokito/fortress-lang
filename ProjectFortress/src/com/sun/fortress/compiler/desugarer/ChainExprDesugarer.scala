@@ -74,12 +74,12 @@ class ChainExprDesugarer extends Walker {
     // Create the conjuncts.
     val conjuncts = List.map3(allVars, newLinks, linkVars) {
       case (left, SLink(_, op, _), right) =>
-        EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right)
+        setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right), true)
     }
 
     // Build up the conjunction.
     val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
-      EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next)
+      setParenthesized(EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next), true)
     }
 
     // Wrap a declaring do block around the conjunction.
