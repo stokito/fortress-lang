@@ -65,7 +65,8 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-printlnZZ32(x:ZZ32):() = jPrintln(x.asString)
+println(x:ZZ32):() = jPrintln(x.asString)
+println(x:RR64):() = jPrintln(x.asString)
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 

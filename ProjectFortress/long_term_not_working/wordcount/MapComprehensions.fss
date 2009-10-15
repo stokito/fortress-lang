@@ -17,8 +17,8 @@
 component ChainExprs
 export Executable
 
-  run():() = 
-    if 1 < 2 <= 3 then printlnZZ32 0
-    else printlnZZ32 1 end
+  run():() =
+    if 1 < 2 <= 3 then println 0.asString
+    else println 1.asString end
 
 end

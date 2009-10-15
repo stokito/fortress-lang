@@ -21,4 +21,4 @@ export Executable
 f(x:ZZ32):ZZ32 = x
 g(x:ZZ32):ZZ32 = x
 
-run(): () = printlnZZ32(g(3))
+run(): () = println(g(3))

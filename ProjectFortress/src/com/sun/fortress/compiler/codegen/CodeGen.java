@@ -1348,7 +1348,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     /**
      * Creates a name that will not collide with any overloaded functions
-     * (the overloaded name "wins" because it if it is exported, this one is not).
+     * (the overloaded name "wins" because if it is exported, this one is not).
      *
      * @param name
      * @param sig The jvm signature for a method, e.g., (ILjava/lang/Object;)D
@@ -2158,7 +2158,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         springBoardClass = classFile + NamingCzar.springBoard;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        // I think springboard can be abstract.
+        // Springboard *must* be abstract if any methods / fields are abstract!
+        // In general Springboard must not be directly instantiable.
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
                  null, NamingCzar.FValueType, new String[0] );
         debug("Start writing springboard class ",
@@ -2422,19 +2423,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    non-existent static method.
                 */
                 if (OverloadSet.functionInstanceofType(f, ty, ta)) {
-                    OverloadSet.TaggedFunctionName tagged_f = new OverloadSet.TaggedFunctionName(apiname, f);
+                    OverloadSet.TaggedFunctionName tagged_f =
+                        new OverloadSet.TaggedFunctionName(apiname, f);
                     byCount.putItem(f.parameters().size(), tagged_f);
                 }
             }
         }
 
-        for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry : byCount
-                .entrySet()) {
+        for (Map.Entry<Integer, Set<OverloadSet.TaggedFunctionName>> entry :
+                 byCount.entrySet()) {
             int i = entry.getKey();
             Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
             if (fs.size() > 1) {
                 OverloadSet os = new OverloadSet.AmongApis(thisApi(), name,
-                        ta, fs, i);
+                                                           ta, fs, i);
 
                 os.split(false);
                 os.generateAnOverloadDefinition(name.stringName(), cw);
@@ -2459,12 +2461,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Set<String> overloaded_names_and_sigs = new HashSet<String>();
 
-        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 : size_partitioned_overloads.entrySet()) {
+        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 :
+                 size_partitioned_overloads.entrySet()) {
             IdOrOpOrAnonymousName  name = entry1.getKey();
             MultiMap<Integer, Function> partitionedByArgCount = entry1.getValue();
 
-            for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount
-                    .entrySet()) {
+            for (Map.Entry<Integer, Set<Function>> entry :
+                     partitionedByArgCount.entrySet()) {
                int i = entry.getKey();
                Set<Function> fs = entry.getValue();
 

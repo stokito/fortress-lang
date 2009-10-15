@@ -53,22 +53,22 @@ public abstract class GlobalEnvironment {
         return this.getClass().getSimpleName() + " " + apis();
     }
 
-    public Iterable<Api> apiAsts() { 
+    public Iterable<Api> apiAsts() {
         Set<Api> result = new HashSet<Api>();
 
-        for (ApiIndex apiIndex : apis().values()) { 
+        for (ApiIndex apiIndex : apis().values()) {
             result.add((Api)apiIndex.ast());
         }
         return result;
     }
 
-    public boolean contains(APIName api1, APIName api2) { 
+    public boolean contains(APIName api1, APIName api2) {
         // Degeneratively, every API contains itself.
-        if (api1.equals(api2)) { 
-            return true; 
+        if (api1.equals(api2)) {
+            return true;
         }
-        else { 
-            for (APIName constituent : api(api1).comprises()) { 
+        else {
+            for (APIName constituent : api(api1).comprises()) {
                 if (contains(constituent, api2)) { return true; }
             }
             return false;
@@ -100,6 +100,7 @@ public abstract class GlobalEnvironment {
             }
         }
     }
+
     public static class FromRepository extends GlobalEnvironment {
 
         final private FortressRepository repository;

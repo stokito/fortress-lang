@@ -23,5 +23,5 @@ object O
 end
 
 run(): () = do
-  printlnZZ32 O.m()
+  println O.m()
 end

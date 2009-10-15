@@ -33,7 +33,8 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
-printlnZZ32(x:ZZ32):()
+println(x:ZZ32):()
+println(x:RR64):()
 
 strToInt(s:String):ZZ32
 

@@ -24,13 +24,13 @@ end
 object O(x:ZZ32) extends T
   getter y(): String = "y"
   m() = do
-(*  printlnZZ32 z               (* 27 No *)
-    printlnZZ32 z()             (* 28 No *) *)
-    printlnZZ32 self.z          (* 29 Ok *)
-    printlnZZ32 self.z()        (* 30 No *)
+(*  println z               (* 27 No *)
+    println z()             (* 28 No *) *)
+    println self.z          (* 29 Ok *)
+    println self.z()        (* 30 No *)
 
-    printlnZZ32 x               (* 32 Ok *)
-    printlnZZ32 self.x          (* 33 Ok *)
+    println x               (* 32 Ok *)
+    println self.x          (* 33 Ok *)
 
 (*  println y                   (* 35 No *)
     println y()                 (* 36 No *) *)

@@ -20,5 +20,5 @@ import  Compiled5.ax.A.{...}
 export Executable
 
 trait T end
-run():() = printlnZZ32 7
+run():() = println 7
 end

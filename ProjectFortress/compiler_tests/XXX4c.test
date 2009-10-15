@@ -17,9 +17,9 @@ tests=Compiled4.c
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled4.c.fss:25:23-32:\n\
+${STATIC_TESTS_DIR}/Compiled4.c.fss:25:19-28:\n\
 \ Unmatched delimiters \"(\" and \"]\".\n\
-${STATIC_TESTS_DIR}/Compiled4.c.fss:25:28-31:\n\
+${STATIC_TESTS_DIR}/Compiled4.c.fss:25:24-27:\n\
 \ Unmatched delimiters \"[\" and \")\".\n\
 File Compiled4.c.fss has 2 errors.\n
 compile_out_equals=

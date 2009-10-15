@@ -28,10 +28,10 @@ run() =do
   c = f[\String\]()      (*) 0
   d = g[\String,ZZ32\]() (*) 5
 
-  printlnZZ32(a)
-  printlnZZ32(b)
-  printlnZZ32(c)
-  printlnZZ32(d)
+  println(a)
+  println(b)
+  println(c)
+  println(d)
 
   sum =  a + b + c + d
   println(

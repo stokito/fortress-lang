@@ -30,6 +30,6 @@ end
 
 run() = do
   o = O(1,2)
-  printlnZZ32(o.n())
+  println(o.n())
   (*) println(o.m("c","d"))
 end

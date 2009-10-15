@@ -94,15 +94,15 @@ public class CodeGenerationPhase extends Phase {
             Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
             TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
 
-            // Temporary code
-            ParallelismAnalyzer pa = new ParallelismAnalyzer();
-            component.accept(pa);
-            pa.printTable();
-
             // Compute locally bound variables, necessary for closure conversion and
             // task creation.
             FreeVariables lbv = new FreeVariables();
             component.accept(lbv);
+
+            // Temporary code
+            ParallelismAnalyzer pa = new ParallelismAnalyzer();
+            component.accept(pa);
+            pa.printTable();
 
             CodeGen c = new CodeGen(component, ta, pa, lbv, ci, apiEnv);
             component.accept(c);

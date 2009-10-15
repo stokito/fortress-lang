@@ -24,13 +24,13 @@ end
 object O(x:ZZ32) extends T
   getter y(): String = "y"
   m() = do
-(*  printlnZZ32 z               (* 27 No *)
-    printlnZZ32 z()             (* 28 No *) *)
-    printlnZZ32 self.z          (* 29 Ok *)
-    printlnZZ32 self.z()        (* 30 No *)
+(*  println z               (* 27 No *)
+    println z()             (* 28 No *) *)
+    println self.z          (* 29 Ok *)
+    println self.z()        (* 30 No *)
 
-    printlnZZ32 x               (* 32 Ok *)
-    printlnZZ32 self.x          (* 33 Ok *)
+    println x               (* 32 Ok *)
+    println self.x          (* 33 Ok *)
 
 (*  println y                   (* 35 No *)
     println y()                 (* 36 No *) *)
@@ -41,9 +41,9 @@ end
 
 run(): () = do
   o = O(3)
-  printlnZZ32 o.x               (* 44 Ok *)
-  printlnZZ32 o.z               (* 45 Ok *)
-  printlnZZ32 o.z()             (* 46 No *)
+  println o.x               (* 44 Ok *)
+  println o.z               (* 45 Ok *)
+  println o.z()             (* 46 No *)
   println o.y                   (* 47 Ok *)
   println o.y()                 (* 48 No *)
 end
