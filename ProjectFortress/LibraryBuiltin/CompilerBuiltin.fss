@@ -65,12 +65,12 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-println(x:ZZ32):() = jPrintln(x.asString)
-println(x:RR64):() = jPrintln(x.asString)
+println(x:Number):() = jPrintln(x.asString)
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 
 trait Number excludes { String }
+    getter asString(): String
 end
 
 trait ZZ64 extends Number
