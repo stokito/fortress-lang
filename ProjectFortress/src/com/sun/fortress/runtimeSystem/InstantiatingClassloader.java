@@ -44,7 +44,8 @@ import com.sun.fortress.repository.ProjectProperties;
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     // TODO make this depends on properties/env w/o dragging in all of the world.
-    private static final boolean log_loads = false;
+    private static final boolean LOG_LOADS = false;
+    private static final boolean LOG_FUNCTION_EXPANSION = false;
 
     public final static InstantiatingClassloader ONLY =
         new InstantiatingClassloader(Thread.currentThread().getContextClassLoader());
@@ -148,7 +149,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     byte[] templateClassData = readResource(template_name);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
-                    ClassVisitor cvcw = new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err));
+                    ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
+                        new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
+                            cw;
                     Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
@@ -172,7 +175,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     classData = getClass(name);
                 }
                 clazz = defineClass(name, classData, 0, classData.length);
-                if (log_loads)
+                if (LOG_LOADS)
                     System.err.println("Loaded " + clazz.getName());
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
@@ -345,7 +348,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (staticClass == null)
                 staticClass = api.replaceAll("[.]", "/");
 
-            if (log_loads) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
+            if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
             mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
             mv.visitCode();
             // Is this right?  What about a 2-arg function that takes a void as its second arg?
@@ -409,7 +412,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-            if (log_loads) System.err.println(name+".apply"+sig+" abstract");
+            if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
                                 null, null);
@@ -450,7 +453,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String sig = arrowParamsToJVMsig(parameters);
 
         {
-            if (log_loads) System.err.println(name + ".apply" + sig+" abstract for abstract");
+            if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
             mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
                                 null, null);
