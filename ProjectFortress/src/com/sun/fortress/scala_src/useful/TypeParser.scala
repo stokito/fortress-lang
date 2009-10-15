@@ -86,7 +86,7 @@ object TypeParser extends RegexParsers {
   def staticArg: Parser[StaticArg] = typ ^^ 
     {t => makeTypeArg(typeSpan, t)}
   
-  def traitIndex: Parser[TraitIndex] = traitSchema ~ 
+  def traitIndex: Parser[TraitIndex] = "trait" ~> traitSchema ~ 
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ~
     opt("excludes {" ~> repsep(baseType, ",") <~ "}") ~
     opt("comprises {" ~> repsep(baseType, ",") <~ "}") ^^
@@ -107,7 +107,24 @@ object TypeParser extends RegexParsers {
      ti
   }
 
-  def typeAnalyzer: Parser[TypeAnalyzer] = "{" ~> repsep(traitIndex, ",") <~ "}" ^^
+  def objectIndex: Parser[TraitIndex] = "object" ~> traitSchema ~ 
+    opt("extends {" ~> repsep(baseType, ",") <~ "}") ^^
+    {case tType~mSupers => 
+      val supers = mSupers.getOrElse(Nil)
+      val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
+      val ast = makeObjectDecl(tType, toJavaList(superWheres))
+      new ObjectTraitIndex(ast,
+                           toJavaOption(None),
+                           toJavaMap(Map()),
+                           toJavaSet(Set()),
+                           toJavaMap(Map()),
+                           toJavaMap(Map()),
+                           toJavaSet(Set()),
+                           CollectUtil.emptyRelation[IdOrOpOrAnonymousName,DeclaredMethod],
+                           CollectUtil.emptyRelation[IdOrOpOrAnonymousName,FunctionalMethod])
+  }
+    
+  def typeAnalyzer: Parser[TypeAnalyzer] = "{" ~> repsep(traitIndex | objectIndex, ",") <~ "}" ^^
     {traits => 
       val component = makeComponentIndex("OverloadingTest", traits)
       TypeAnalyzer.make(new TraitTable(component, GLOBAL_ENV))
@@ -148,8 +165,8 @@ object TypeParser extends RegexParsers {
   }
   
   val GLOBAL_ENV = {
-    val any = makeApiIndex(anyTypeLibrary, List(parse(traitIndex, "Any").get))
-    val obj = makeApiIndex(fortressBuiltin, List(parse(traitIndex, "Object").get))
+    val any = makeApiIndex(anyTypeLibrary, List(parse(traitIndex, "trait Any").get))
+    val obj = makeApiIndex(fortressBuiltin, List(parse(traitIndex, "trait Object").get))
     new GlobalEnvironment.FromMap(toJavaMap(Map((any.ast.getName, any), (obj.ast.getName, obj))))
   }
   

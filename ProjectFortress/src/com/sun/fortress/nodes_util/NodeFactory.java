@@ -296,6 +296,7 @@ public class NodeFactory {
                              Option.<Type>some(selfType));
     }
     
+    
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,
@@ -383,7 +384,22 @@ public class NodeFactory {
                               Option.<List<BaseType>>none(),
                               Option.<Contract>none(),selfType);
     }
-
+    
+    public static ObjectDecl makeObjectDecl(TraitType selfType,
+                                            List<TraitTypeWhere> extendsC) {
+        return makeObjectDecl(NodeUtil.getSpan(selfType),
+                Modifiers.None,
+                selfType.getName(),
+                NodeUtil.getStaticParams(selfType),
+                extendsC,
+                Option.<WhereClause>none(),
+                Collections.<Decl>emptyList(),
+                Option.<List<Param>>none(),
+                Option.<List<BaseType>>none(),
+                Option.<Contract>none(),
+                Option.<Type>some(selfType));
+    }
+    
     public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,
                                             List<StaticParam> sparams,
                                             List<TraitTypeWhere> extendsC,

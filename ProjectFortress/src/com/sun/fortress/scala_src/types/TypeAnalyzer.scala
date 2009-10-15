@@ -265,19 +265,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
   private def reduceProduct(x: Iterable[Type]): List[Type] = {
     if(x.exists(y => x.exists(z => exc(y, z))))
-      Nil
+      List(BOTTOM)
     else {
-      def temp(l: List[Type], a: Type) = {
-        l.filter(!gt(a,_)) ++ (if (l.exists(lteq(_,a))) Nil else List(a))
-      }
-      x.foldLeft(List[Type]())(temp)
+      x.foldLeft(List[Type]())((l, a) => {
+        val l2 = l.filter(!sub(a,_).isTrue)
+        l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
+      })
     }
   }
   private def reduceSum(x: Iterable[Type]): List[Type] = {
-      def temp(l: List[Type], a: Type) = {
-        l.filter(!lt(_,a)) ++ (if (l.exists(gteq(a,_))) Nil else List(a))
-      }
-      x.foldLeft(List[Type]())(temp)
+      x.foldLeft(List[Type]())((l, a) => {
+        val l2 = l.filter(!sub(_,a).isTrue)
+        l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
+      })
   }
   
   private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {

@@ -11,13 +11,12 @@ class TypeAnalyzerJUTest extends TestCase {
   def typ(str: String) = TypeParser.parse(TypeParser.typ, str).get
   
   def testNormalize() = {
-    val ta = typeAnalyzer("{String, Intliteral}")
-    val test = ta.normalize(typ("||{BOTTOM, String}"))
-    assert(test == typ("String"))
+    val ta = typeAnalyzer("{trait Tt comprises {Oo, Pp}, object Oo extends {Tt}, object Pp extends {Tt}}")
+    assert(ta.normalize(typ("&&{Tt, ||{Oo, Pp}}")) == typ("||{Oo, Pp}"))
   }
   
   def testExcludes() = {
-    val ta = typeAnalyzer("{ Tt excludes {Ss}, Ss, Uu extends {Tt}, Vv extends {Uu, Ss} }")
+    val ta = typeAnalyzer("{trait Tt excludes {Ss}, trait Ss, trait Uu extends {Tt}, trait Vv extends {Uu, Ss}}")
     assert(ta.excludes(typ("Vv"), typ("Uu")))
     assert(ta.excludes(typ("Vv"), typ("Ss")))
   }
