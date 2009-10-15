@@ -33,12 +33,12 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
-println(x:ZZ32):()
-println(x:RR64):()
+println(x:Number):()
 
 strToInt(s:String):ZZ32
 
 trait Number excludes { String }
+    abstract getter asString(): String
 end
 
 trait ZZ64 extends Number

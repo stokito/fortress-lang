@@ -59,18 +59,18 @@ opr <->(a: Boolean, b:Boolean):Boolean
  ************************************************************)
 
 trait GeneratorZZ32 excludes { Boolean }
-    getter asString(): String
+    abstract getter asString(): String
     seq(self): SeqGeneratorZZ32
-    loop(body:ZZ32->()): ()
-    generate(r: ReductionString, body: ZZ32->String): String
-    seqloop(body:ZZ32->()): ()
-    seqgenerate(r: ReductionString, body: ZZ32->String): String
-    filter(f: ZZ32 -> Boolean): GeneratorZZ32
+    abstract loop(body:ZZ32->()): ()
+    abstract generate(r: ReductionString, body: ZZ32->String): String
+    abstract seqloop(body:ZZ32->()): ()
+    abstract seqgenerate(r: ReductionString, body: ZZ32->String): String
+    abstract filter(f: ZZ32 -> Boolean): GeneratorZZ32
     opr IN(x:ZZ32, self): Boolean
 end
 
 trait SeqGeneratorZZ32 extends GeneratorZZ32
-    filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
+    abstract filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
 end
 
 opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean
@@ -84,8 +84,8 @@ __generate(p: Boolean, r: ReductionString, f:()->String): String
 __loop(g: GeneratorZZ32, body: ZZ32->()): ()
 
 trait ReductionString
-    empty(): String
-    join(a: String, b: String): String
+    abstract empty(): String
+    abstract join(a: String, b: String): String
 end
 
 object StringConcatenation extends ReductionString
