@@ -46,8 +46,35 @@ public class Instantiater extends ClassAdapter {
             // TODO Auto-generated constructor stub
         }
         
-        public String getCompletely(String s, int limit) {
+        
+        public String getCompletely(String s) {
+            // TODO will need to rewrite into type, desc, and method variants.
             if (s == null) return s;
+            
+            s = Naming.demangleFortressIdentifier(s);
+            
+            s =  getCompletely(s, 1000);
+            
+            // Don't remangle; the writer will do that for us.
+            // s = Naming.mangleFortressIdentifier(s);
+            
+            return s;
+        }
+        public String getDesc(String s) {
+            // TODO will need to rewrite into type, desc, and method variants.
+            if (s == null) return s;
+            
+            s = Naming.demangleFortressDescriptor(s);
+            
+            s =  getCompletely(s, 1000);
+            
+            // Don't remangle; the writer will do that for us.
+            // s = Naming.mangleFortressIdentifier(s);
+            
+            return s;
+        }
+        public String getCompletely(String s, int limit) {
+            
             return Useful.substituteVarsCompletely(s, this, limit, envVar, INTRO_LEN, OUTRO_LEN);
         }
         
@@ -134,6 +161,7 @@ public class Instantiater extends ClassAdapter {
     public FieldVisitor visitField(int access, String name, String desc,
             String signature, Object value) {
         // TODO Auto-generated method stub
+        desc = xlation.getDesc(desc);
         return super.visitField(access, name, desc, signature, value);
     }
 

@@ -33,6 +33,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
+import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.repository.ProjectProperties;
 
 /**
@@ -141,12 +142,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 if (isGenericFunction) {
                     // also a closure
                     HashMap<String, String> xlation = new HashMap<String, String>();
-                    String template_name = functionTemplateName(name, xlation);
+                    String dename = Naming.demangleFortressIdentifier(name);
+
+                    String template_name = functionTemplateName(dename, xlation);
                     byte[] templateClassData = readResource(template_name);
-                    ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+                    ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
                     ClassVisitor cvcw = new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err));
-                    Instantiater instantiater = new Instantiater(cvcw, xlation, name);
+                    Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
                 } else if (isClosure) {
@@ -159,7 +162,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> parameters = extractStringParameters(
                                                                            dename, left, right);
                     if (stem.equals("Arrow")) {
-                        classData = instantiateArrow(name, parameters);
+                        classData = instantiateArrow(dename, parameters);
                     } else if (stem.equals("AbstractArrow")) {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else {
@@ -207,11 +210,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return clazz;
     }
 
-    private String functionTemplateName(String name, Map<String, String> xlation) {
+    private String functionTemplateName(String dename, Map<String, String> xlation) {
         // We have a mangling problem here.
-        int mangleBegin = name.indexOf(Naming.GEAR)+1; // A mangled string follows
-        String firstPart = name.substring(0, mangleBegin);
-        name = Naming.deMangle(name.substring(mangleBegin));
+        int mangleBegin = dename.indexOf(Naming.GEAR)+1; // A mangled string follows
+        String firstPart = dename.substring(0, mangleBegin);
+        String name = dename.substring(mangleBegin);
 
         int genericBegin = name.indexOf(Naming.LEFT_OXFORD) + 1;
         int genericEnd = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
@@ -250,12 +253,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             generics = generics.substring(end+1);
             i++;
         }
-        return firstPart + Naming.mangleIdentifier(
-                                                   template_start + template_middle + template_end);
+        return Naming.mangleFortressIdentifier(firstPart +  template_start + template_middle + template_end);
+        // return firstPart +  template_start + template_middle + template_end;
     }
 
     private static byte[] instantiateClosure(String name) {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
         closureClassPrefix(name, cw, null);
         cw.visitEnd();
@@ -268,7 +271,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param name
      * @param cw
      */
-    public static void closureClassPrefix(String name, ClassWriter cw, String staticClass) {
+    public static void closureClassPrefix(String name, ManglingClassWriter cw, String staticClass) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
         
@@ -298,11 +301,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
-        String superClass = Naming.mangleFortressIdentifier("Abstract"+ft);
+        //String superClass = Naming.mangleFortressIdentifier("Abstract"+ft);
+        String superClass = "Abstract"+ft;
         name = api.replaceAll("[.]", "/") + '$' + suffix;
-        name = Naming.mangleFortressIdentifier(name);
+        // name = Naming.mangleFortressIdentifier(name);
         String desc = "L" + name + ";";
-        String field_desc = "L" + Naming.mangleFortressIdentifier(ft) + ";";
+        // String field_desc = "L" + Naming.mangleFortressIdentifier(ft) + ";";
+        String field_desc = "L" +(ft) + ";";
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
         {
@@ -393,7 +398,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     private static byte[] instantiateArrow(String name, ArrayList<String> parameters) {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
@@ -416,15 +421,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     private static byte[] instantiateAbstractArrow(String dename, ArrayList<String> parameters) {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
 
-        String name = Naming.mangleIdentifier(dename);
+        // String name = Naming.mangleIdentifier(dename);
+        String name = (dename);
         String if_name =
-            // Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
-            Naming.mangleIdentifier(dename.substring("Abstract".length()));
+//            // Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
+//            Naming.mangleIdentifier(dename.substring("Abstract".length()));
+        (dename.substring("Abstract".length()));
 
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
                  "java/lang/Object", new String[] { if_name });
