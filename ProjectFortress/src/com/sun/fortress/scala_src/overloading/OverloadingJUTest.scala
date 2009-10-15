@@ -38,13 +38,6 @@ class OverloadingJUTest extends TestCase {
   def overloadingSet(str: String) = TypeParser.parse(TypeParser.overloadingSet, str).get
   def typ(str: String) = TypeParser.parse(TypeParser.typ, str).get
   
-  def testExclusion() = {
-    val ta = typeAnalyzer("{[T]List[T], [T]ArrayList[T] extends {List[T]} , Foo extends {Bar}, Bar}")
-    val mt = ta.meet(typ("List[Foo]"), typ("List[Bar]"))
-    if(ta.excludes(typ("List[Foo]"), typ("List[Bar]")))
-      println("blah")
-    else
-      println("hoo")
+  def test(){
   }
-  
 }
