@@ -25,11 +25,11 @@ trait S
 end
 
 object O(x:ZZ32,y:ZZ32) extends S
-  n():String = m("a","b")
+  n():String = O(" x.asString "," y.asString ") " m("a","b")
 end
 
 run() = do
   o = O(1,2)
   println(o.n())
-  (*) println(o.m("c","d"))
+  println(o.m("c","d"))
 end

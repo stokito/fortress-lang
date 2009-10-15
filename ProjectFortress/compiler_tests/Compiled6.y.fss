@@ -26,8 +26,8 @@ object O extends T
 end
 
 run(): () = do
-  printlnZZ32 O.z               (* 29 Ok *)
-  printlnZZ32 O.z()             (* 30 No *)
+  println O.z               (* 29 Ok *)
+  println O.z()             (* 30 No *)
   println O.y                   (* 31 Ok *)
   println O.y()                 (* 32 No *)
 end

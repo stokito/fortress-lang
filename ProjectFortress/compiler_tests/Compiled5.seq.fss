@@ -31,6 +31,6 @@ fib(n: ZZ32): ZZ32 =
         t1+t2
     end
 
-run(): () = printlnZZ32(fib 20)
+run(): () = println(fib 20)
 
 end

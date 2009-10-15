@@ -20,5 +20,5 @@ object O(x:ZZ32,y:ZZ32) end
 
 run() = do
   o = O(1,2)
-  printlnZZ32 o.x
+  println o.x
 end

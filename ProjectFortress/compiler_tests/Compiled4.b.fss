@@ -22,7 +22,7 @@ export { Executable }
 opr (n:ZZ32)! = if n <= 1 then 1 else n (n - 1)! 
 
 run(): () = do
-  printlnZZ32(strToInt(args[0]!))
+  println(strToInt(args[0]!))
 end
 
 end

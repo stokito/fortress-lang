@@ -57,11 +57,8 @@ public abstract class TraitIndex extends TypeConsIndex {
     }
 
     public Option<Type> typeOfSelf() {
-        if (this.ast() instanceof TraitDecl) {
-            return ((TraitDecl) this.ast()).getSelfType();
-        }
-        if (this.ast() instanceof ObjectDecl) {
-            return ((ObjectDecl) this.ast()).getSelfType();
+        if (this.ast() instanceof TraitObjectDecl) {
+            return ((TraitObjectDecl) this.ast()).getSelfType();
         }
         return Option.<Type>none();
     }

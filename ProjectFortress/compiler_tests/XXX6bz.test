@@ -17,7 +17,7 @@ tests=Compiled6.bz
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.bz.fss:30:17-23:\n\
+${STATIC_TESTS_DIR}/Compiled6.bz.fss:30:13-19:\n\
 \ No such method O.z.\n\
 ${STATIC_TESTS_DIR}/Compiled6.bz.fss:38:13-19:\n\
 \ No such method O.y.\n\

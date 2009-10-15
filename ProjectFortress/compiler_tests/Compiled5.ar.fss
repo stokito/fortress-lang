@@ -18,5 +18,5 @@
 import Compiled5.ar.A1.{...}
 export Executable
 
-run():() = printlnZZ32(1)
+run():() = println(1)
 

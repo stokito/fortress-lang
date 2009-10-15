@@ -304,138 +304,131 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // If there are no other alternatives, then we are done.
         }
 
-        {
-            // Accumulate sets of parameter types.
-            int nargs = paramCount;
-            ;
+        // Accumulate sets of parameter types.
+        int nargs = paramCount;
 
-            MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
-            for (int i = 0; i < nargs; i++) {
-                typeSets[i] = new MultiMap<Type, TaggedFunctionName>();
+        MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
+        for (int i = 0; i < nargs; i++) {
+            typeSets[i] = new MultiMap<Type, TaggedFunctionName>();
+        }
+
+        for (TaggedFunctionName f : lessSpecificThanSoFar) {
+            List<Param> parameters = f.tagParameters();
+            int i = 0;
+            for (Param p : parameters) {
+                if (testedIndices.contains(i)) {
+                    i++;
+                    continue;
+                }
+                Option<Type> ot = p.getIdType();
+                Option<Type> ovt = p.getVarargsType();
+                if (ovt.isSome()) {
+                    InterpreterBug.bug("Not ready to handle compilation of overloaded varargs yet, function is " + f);
+                }
+                if (ot.isNone()) {
+                    InterpreterBug.bug("Missing type for parameter " + i + " of " + f);
+                }
+                Type t = ot.unwrap();
+                typeSets[i++].putItem(t, f);
             }
+        }
+
+        // Choose parameter index with greatest variation.
+        // Choose parameter index with the smallest largest subset.
+        int besti = -1;
+        int best = 0;
+        boolean greatest_variation = false;
+        for (int i = 0; i < nargs; i++) {
+            if (testedIndices.contains(i))
+                continue;
+            if (greatest_variation) {
+                if (typeSets[i].size() > best) {
+                    best = typeSets[i].size();
+                    besti = i;
+                }
+            } else {
+                MultiMap<Type, TaggedFunctionName> mm = typeSets[i];
+                int largest = 0;
+                for (Set<TaggedFunctionName> sf : mm.values()) {
+                    if (sf.size() > largest)
+                        largest = sf.size();
+                }
+                if (besti == -1 || largest < best) {
+                    besti = i;
+                    best = largest;
+                }
+            }
+        }
+
+        // dispatch on maxi'th parameter.
+        dispatchParameterIndex = besti;
+        Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
+
+
+        children = new OverloadSet[best];
+        BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
+
+        int i = 0;
+        TopSortItemImpl<Type>[] potypes =
+                new OverloadSet.POType[dispatchTypes.size()];
+        /* Convert set of dispatch types into something that can be
+           (topologically) sorted. */
+        for (Type t : dispatchTypes) {
+            potypes[i] = new POType(t);
+            i++;
+        }
+
+        /*
+         * Figure out ordering relationship for top sort.  O(N^2) work,
+         * hope N is not too large.
+         */
+        for (i = 0; i < potypes.length; i++) {
+            for (int j = i + 1; j < potypes.length; j++) {
+                Type ti = potypes[i].x;
+                Type tj = potypes[j].x;
+                if (ta.subtypeNormal(ti, tj).isTrue()) {
+                    potypes[i].edgeTo(potypes[j]);
+                } else if (ta.subtypeNormal(tj, ti).isTrue()) {
+                    potypes[j].edgeTo(potypes[i]);
+                }
+            }
+        }
+
+        List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirst(potypes);
+        children = new OverloadSet[specificFirst.size()];
+
+        // fill in children.
+        for (i = 0; i < specificFirst.size(); i++) {
+            Type t = specificFirst.get(i).x;
+            Set<TaggedFunctionName> childLSTSF = new HashSet<TaggedFunctionName>();
 
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
                 List<Param> parameters = f.tagParameters();
-                int i = 0;
-                for (Param p : parameters) {
-                    if (testedIndices.contains(i)) {
-                        i++;
-                        continue;
-                    }
-                    Option<Type> ot = p.getIdType();
-                    Option<Type> ovt = p.getVarargsType();
-                    if (ovt.isSome()) {
-                        InterpreterBug.bug("Not ready to handle compilation of overloaded varargs yet, function is " + f);
-                    }
-                    if (ot.isNone()) {
-                        InterpreterBug.bug("Missing type for parameter " + i + " of " + f);
-                    }
-                    Type t = ot.unwrap();
-                    typeSets[i++].putItem(t, f);
+                Param p = parameters.get(dispatchParameterIndex);
+                Type pt = p.getIdType().unwrap();
+                if (ta.subtypeNormal(t, pt).isTrue()) {
+                    childLSTSF.add(f);
                 }
             }
 
-            // Choose parameter index with greatest variation.
-            // Choose parameter index with the smallest largest subset.
-            int besti = -1;
-            int best = 0;
-            boolean greatest_variation = false;
-            for (int i = 0; i < nargs; i++) {
-                if (testedIndices.contains(i))
-                    continue;
-                if (greatest_variation) {
-                    if (typeSets[i].size() > best) {
-                        best = typeSets[i].size();
-                        besti = i;
-                    }
-                } else {
-                    MultiMap<Type, TaggedFunctionName> mm = typeSets[i];
-                    int largest = 0;
-                    for (Set<TaggedFunctionName> sf : mm.values()) {
-                        if (sf.size() > largest)
-                            largest = sf.size();
-                    }
-                    if (besti == -1 || largest < best) {
-                        besti = i;
-                        best = largest;
-                    }
-                }
-            }
+            childLSTSF = thin(childLSTSF, childTestedIndices);
 
-            // dispatch on maxi'th parameter.
-            dispatchParameterIndex = besti;
-            Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
-
-
-            children = new OverloadSet[best];
-            BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
-
-            int i = 0;
-            TopSortItemImpl<Type>[] potypes =
-                    new OverloadSet.POType[dispatchTypes.size()];
-            /* Convert set of dispatch types into something that can be
-               (topologically) sorted. */
-            for (Type t : dispatchTypes) {
-                potypes[i] = new POType(t);
-                i++;
-            }
-
-            /*
-             * Figure out ordering relationship for top sort.  O(N^2) work,
-             * hope N is not too large.
-             */
-            for (i = 0; i < potypes.length; i++) {
-                for (int j = i + 1; j < potypes.length; j++) {
-                    Type ti = potypes[i].x;
-                    Type tj = potypes[j].x;
-                    if (ta.subtypeNormal(ti, tj).isTrue()) {
-                        potypes[i].edgeTo(potypes[j]);
-                    } else if (ta.subtypeNormal(tj, ti).isTrue()) {
-                        potypes[j].edgeTo(potypes[i]);
-                    }
-                }
-            }
-
-            List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirst(potypes);
-            children = new OverloadSet[specificFirst.size()];
-            Set<TaggedFunctionName> alreadySelected = new HashSet<TaggedFunctionName>();
-
-            // fill in children.
-            for (i = 0; i < specificFirst.size(); i++) {
-                Type t = specificFirst.get(i).x;
-                Set<TaggedFunctionName> childLSTSF = new HashSet<TaggedFunctionName>();
-
-                for (TaggedFunctionName f : lessSpecificThanSoFar) {
-//                        if (alreadySelected.contains(f))
-//                            continue;
-                    List<Param> parameters = f.tagParameters();
-                    Param p = parameters.get(dispatchParameterIndex);
-                    Type pt = p.getIdType().unwrap();
-                    if (ta.subtypeNormal(t, pt).isTrue()) {
-                        childLSTSF.add(f);
-                        alreadySelected.add(f);
-
-                    }
-                }
-
-                childLSTSF = thin(childLSTSF, childTestedIndices);
-
-                // ought to not be necessary
-                if (paramCount == childTestedIndices.size()) {
-                    // Choose most specific member of lessSpecificThanSoFar
-                    childLSTSF = mostSpecificMemberOf(childLSTSF);
-
-                }
-
-                OverloadSet ch = makeChild(childLSTSF, childTestedIndices, t);
-                ch.overloadSubsets = overloadSubsets;
-                children[i] = ch;
+            // ought to not be necessary
+            if (paramCount == childTestedIndices.size()) {
+                // Choose most specific member of lessSpecificThanSoFar
+                childLSTSF = mostSpecificMemberOf(childLSTSF);
 
             }
-            for (OverloadSet child : children) {
-                child.splitInternal();
-            }
+
+            OverloadSet ch = makeChild(childLSTSF, childTestedIndices, t);
+            ch.overloadSubsets = overloadSubsets;
+            children[i] = ch;
+
         }
+        for (OverloadSet child : children) {
+            child.splitInternal();
+        }
+
         splitDone = true;
     }
 

@@ -18,7 +18,7 @@
 export Executable
 
 run(): () = do
-  printlnZZ32((fn (x:ZZ32) => x) 3)
+  println((fn (x:ZZ32) => x) 3)
   b: ZZ32 -> ZZ32 = fn (y):ZZ32 => y
   c: ZZ32 -> ZZ32 = fn z:ZZ32   => z
 end

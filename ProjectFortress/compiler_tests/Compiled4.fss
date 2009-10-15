@@ -22,7 +22,7 @@ export { Executable }
 opr (n:ZZ32)! : ZZ32 = if n <= 1 then 1 else n (n - 1)! end
 
 run():() = do
-  printlnZZ32(strToInt(args[0])!)
+  println(strToInt(args[0])!)
   println("Should be 120.")
 end
 

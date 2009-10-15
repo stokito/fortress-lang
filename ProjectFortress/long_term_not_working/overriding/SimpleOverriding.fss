@@ -26,7 +26,7 @@ trait S
 end
 
 object O(x:ZZ32,y:ZZ32) extends S
-  m(): String = self.m("a","b")
+  m(): String = "O(" x.asString "," y.asString ") " self.m("a","b")
 end
 
 run() = do

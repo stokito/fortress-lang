@@ -21,6 +21,6 @@ export Executable
 
 trait T end
 
-run() = printlnZZ32 1
+run() = println 1
 
 end

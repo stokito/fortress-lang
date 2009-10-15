@@ -25,6 +25,6 @@ fib(n: ZZ32): ZZ32 =
     elif n=1 then 1
     else fib(n-1) + fib(n-2) end
 
-run(): () = printlnZZ32(fib 20)
+run(): () = println(fib 20)
 
 end

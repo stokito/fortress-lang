@@ -35,5 +35,5 @@ run(): () = do
   x = 1
   y:ZZ32 := x
   y += 1
-  printlnZZ32 f(x + y)
+  println f(x + y)
 end

@@ -267,15 +267,15 @@ public class TypeAnalyzer {
         debug.logStart("t", outer_t);
         Type outer_result = (Type) outer_t.accept(new NodeUpdateVisitor() {
 
-                @Override public BaseType forTraitTypeOnly(TraitType t,
-                                                           TypeInfo i,
-                                                           Id name, List<StaticArg> normalArgs,
-                                                           List<StaticParam> normalParams) {
+            @Override public BaseType forTraitTypeOnly(TraitType t,
+                                                       TypeInfo i,
+                                                       Id name, List<StaticArg> normalArgs,
+                                                       List<StaticParam> normalParams) {
                 Option<TypeConsIndex> ind = _table.typeCons(name);
-             if(ind.isNone()){
-              throw new IllegalArgumentException("Unrecognized name: " + name);
-             }
-             TypeConsIndex index = ind.unwrap();
+                if(ind.isNone()){
+                    throw new IllegalArgumentException("Unrecognized name: " + name);
+                }
+                TypeConsIndex index = ind.unwrap();
                 if (index instanceof TypeAliasIndex) {
                     TypeAliasIndex aliasIndex = (TypeAliasIndex) index;
                     // TODO: can we optimize substitution so that the result is already normalized?
@@ -298,57 +298,57 @@ public class TypeAnalyzer {
                 }
             }
 
-                @Override public Type forTupleTypeOnly(TupleType t,
-                                                       TypeInfo i,
-                                                       List<Type> normalElements,
-                                                       Option<Type> normalVarargs,
-                                                       List<KeywordType> keywords) {
-                    if ( normalVarargs.isNone() ) {
-                        Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
-                        return t.equals(result) ? t : result;
-                    } else {
-                        // the varargs type can be treated like just another tuple element, as far as
-                        // normalization is concerned, unless the varargs type is Bottom
-                        if (normalVarargs.unwrap().equals(BOTTOM)) {
-                            return handleAbstractTuple(normalElements, MAKE_TUPLE);
-                        }
-                        else {
-                            Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
-                                public Type value(Iterable<Type> ts) {
-                                    if (IterUtil.isEmpty(ts)) { return VOID; }
-                                    else {
-                                        List<Type> elts = makeList(skipLast(ts));
-                                        Type varargs = last(ts);
-                                        return NodeFactory.makeTupleType(NodeFactory.makeSpan(elts, varargs),
-                                                                         false, elts, Option.<Type>some(varargs),
-                                                                         Collections.<KeywordType>emptyList());
-                                    }
+            @Override public Type forTupleTypeOnly(TupleType t,
+                                                   TypeInfo i,
+                                                   List<Type> normalElements,
+                                                   Option<Type> normalVarargs,
+                                                   List<KeywordType> keywords) {
+                if ( normalVarargs.isNone() ) {
+                    Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
+                    return t.equals(result) ? t : result;
+                } else {
+                    // the varargs type can be treated like just another tuple element, as far as
+                    // normalization is concerned, unless the varargs type is Bottom
+                    if (normalVarargs.unwrap().equals(BOTTOM)) {
+                        return handleAbstractTuple(normalElements, MAKE_TUPLE);
+                    }
+                    else {
+                        Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
+                            public Type value(Iterable<Type> ts) {
+                                if (IterUtil.isEmpty(ts)) { return VOID; }
+                                else {
+                                    List<Type> elts = makeList(skipLast(ts));
+                                    Type varargs = last(ts);
+                                    return NodeFactory.makeTupleType(NodeFactory.makeSpan(elts, varargs),
+                                                                     false, elts, Option.<Type>some(varargs),
+                                                                     Collections.<KeywordType>emptyList());
                                 }
-                            };
-                            Type result = handleAbstractTuple(compose(normalElements, normalVarargs.unwrap()),
-                                                              factory);
-                            return t.equals(result) ? t : result;
-                        }
+                            }
+                        };
+                        Type result = handleAbstractTuple(compose(normalElements, normalVarargs.unwrap()),
+                                                          factory);
+                        return t.equals(result) ? t : result;
                     }
                 }
+            }
 
-                @Override public Type forTupleType(TupleType that) {
-                    if ( that.getKeywords().isEmpty() ) {
-                        List<Type> args_result = recurOnListOfType(that.getElements());
-                        Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
-                        List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
-                        return forTupleTypeOnly(that, that.getInfo(),
-                                                args_result, varargs_result, keywords_result);
-                    } else {
-                        // recur on a single args type rather than each element individually
-                        Type args = stripKeywords(that);
-                        Type argsNorm = (Type) args.accept(this);
-                        List<KeywordType> ks = that.getKeywords();
-                        List<KeywordType> ksNorm = recurOnListOfKeywordType(ks);
-                        if (args == argsNorm && ks == ksNorm) { return that; }
-                        else { return makeDomain(argsNorm, ksNorm); }
-                    }
+            @Override public Type forTupleType(TupleType that) {
+                if ( that.getKeywords().isEmpty() ) {
+                    List<Type> args_result = recurOnListOfType(that.getElements());
+                    Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
+                    List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
+                    return forTupleTypeOnly(that, that.getInfo(),
+                                            args_result, varargs_result, keywords_result);
+                } else {
+                    // recur on a single args type rather than each element individually
+                    Type args = stripKeywords(that);
+                    Type argsNorm = (Type) args.accept(this);
+                    List<KeywordType> ks = that.getKeywords();
+                    List<KeywordType> ksNorm = recurOnListOfKeywordType(ks);
+                    if (args == argsNorm && ks == ksNorm) { return that; }
+                    else { return makeDomain(argsNorm, ksNorm); }
                 }
+            }
 
             private Type handleAbstractTuple(Iterable<Type> normalElements,
                                              final Lambda<Iterable<Type>, Type> factory) {

@@ -31,11 +31,13 @@ orderedEnum(lo:ZZ32, hi:ZZ32, f: ZZ32->()): () =
         orderedEnum(mid+1,hi,f)
     end
 
+printlnZZ(n:ZZ32): () = println(n.asString)
+
 run():() = do
     (** TODO: type annotation should not be necessary! *)
-    orderedEnum(0,9, fn n => printlnZZ32(n))
+    orderedEnum(0,9, fn n => println(n))
     (** TODO: closing over non-generic global function *)
-    orderedEnum(0,9,printlnZZ32)
+    orderedEnum(0,9,printlnZZ)
   end
 
 end

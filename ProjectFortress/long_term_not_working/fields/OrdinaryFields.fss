@@ -23,5 +23,5 @@ end
 
 run() = do
   o = O
-  printlnZZ32(o.x)
+  println(o.x.asString)
 end

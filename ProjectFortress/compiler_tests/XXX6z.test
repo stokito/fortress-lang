@@ -17,9 +17,9 @@ tests=Compiled6.z
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:27:17:\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:27:13:\n\
 \ Variable z is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:28:17:\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:28:13:\n\
 \ Variable z is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:35:13:\n\
 \ Variable y is not defined.\n\
