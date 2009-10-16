@@ -259,7 +259,10 @@ object IndexBuilder {
         dIndex.addExcludesType(typ)
         // add d to t's excludes clause
         typ = toOption(self) match {
-          case Some(ty) => ty.asInstanceOf[TraitType]
+          case Some(ty) if (ty.isInstanceOf[TraitType]) =>
+            ty.asInstanceOf[TraitType]
+          case Some(ty) if (ty.isInstanceOf[IntersectionType]) =>
+            ty.asInstanceOf[IntersectionType].getElements.get(0).asInstanceOf[TraitType]
           case _ =>
             NF.makeTraitType(dName.asInstanceOf[Id],
                              TypeEnv.staticParamsToArgs(staticParams))
