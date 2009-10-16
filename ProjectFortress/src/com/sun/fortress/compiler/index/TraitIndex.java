@@ -44,31 +44,31 @@ public abstract class TraitIndex extends TypeConsIndex {
     private final Relation<IdOrOpOrAnonymousName, FunctionalMethod> _functionalMethods;
 
     public TraitIndex(TraitObjectDecl ast, Map<Id, Method> getters, Map<Id, Method> setters, Set<Coercion> coercions, Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods, Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
-        _ast = ast;
-        _getters = getters;
-        _setters = setters;
-        _coercions = coercions;
-        _dottedMethods = dottedMethods;
-        _functionalMethods = functionalMethods;
+	_ast = ast;
+	_getters = getters;
+	_setters = setters;
+	_coercions = coercions;
+	_dottedMethods = dottedMethods;
+	_functionalMethods = functionalMethods;
     }
 
     public TraitObjectDecl ast() {
-        return _ast;
+	return _ast;
     }
 
     public Option<Type> typeOfSelf() {
-        if (this.ast() instanceof TraitObjectDecl) {
-            return ((TraitObjectDecl) this.ast()).getSelfType();
-        }
-        return Option.<Type>none();
+	if (this.ast() instanceof TraitObjectDecl) {
+	    return ((TraitObjectDecl) this.ast()).getSelfType();
+	}
+	return Option.<Type>none();
     }
 
     public List<StaticParam> staticParameters() {
-        return NodeUtil.getStaticParams(_ast);
+	return NodeUtil.getStaticParams(_ast);
     }
 
     public List<Id> hiddenParameters() {
-        return Collections.emptyList();
+	return Collections.emptyList();
     }
 
     /**
@@ -77,31 +77,31 @@ public abstract class TraitIndex extends TypeConsIndex {
      * of {@code p.second()}.
      */
     public Iterable<Pair<Type, Type>> typeConstraints() {
-        return IterUtil.empty();
+	return IterUtil.empty();
     }
 
     public List<TraitTypeWhere> extendsTypes() {
-        return NodeUtil.getExtendsClause(_ast);
+	return NodeUtil.getExtendsClause(_ast);
     }
 
     public Map<Id, Method> getters() {
-        return _getters;
+	return _getters;
     }
 
     public Map<Id, Method> setters() {
-        return _setters;
+	return _setters;
     }
 
     public Set<Coercion> coercions() {
-        return _coercions;
+	return _coercions;
     }
 
     public Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods() {
-        return _dottedMethods;
+	return _dottedMethods;
     }
 
     public Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods() {
-        return _functionalMethods;
+	return _functionalMethods;
     }
 
 }

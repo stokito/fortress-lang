@@ -1020,7 +1020,7 @@ public class NodeFactory {
                              CollectUtil.makeList(types));
     }
 
-    /** Return either a single type or an intersection depending on the set. */
+    /** Return either a single type or an union depending on the set. */
     public static Type makeMaybeUnionType(Iterable<? extends Type> types) {
         int size = IterUtil.sizeOf(types, 2);
         if (size == 0) {

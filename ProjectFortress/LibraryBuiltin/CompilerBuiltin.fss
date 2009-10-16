@@ -77,7 +77,7 @@ trait ZZ64 extends Number
     getter asZZ32(): ZZ32 = jLongToInt(self)
 end
 
-trait ZZ32 extends Number comprises { IntLiteral }
+trait ZZ32 extends Number excludes ZZ64
     getter asZZ32(): ZZ32 = self
     getter asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntAbs(self)
@@ -97,7 +97,7 @@ end
 object IntLiteral extends ZZ32
 end
 
-trait RR64 extends Number comprises {FloatLiteral}
+trait RR64 extends Number
     getter asString(): String = jDoubleToString(self)
     opr |self| : RR64 = jDoubleAbs(self)
     opr -(self): RR64 = jDoubleNeg(self)

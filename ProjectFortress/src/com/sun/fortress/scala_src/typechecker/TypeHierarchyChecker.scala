@@ -30,18 +30,13 @@ import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
-import com.sun.fortress.nodes.APIName
-import com.sun.fortress.nodes.BaseType
-import com.sun.fortress.nodes.Id
-import com.sun.fortress.nodes.NamedType
-import com.sun.fortress.nodes.Node
-import com.sun.fortress.nodes.TraitType
-import com.sun.fortress.nodes.TraitTypeWhere
+import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.STypesUtil
 import com.sun.fortress.scala_src.useful.Sets._
 
@@ -168,6 +163,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
       case ti:TraitIndex =>
         // println("checkDeclComprises" + ti.ast)
         val tt = ti.typeOfSelf.unwrap
+        val new_analyzer = analyzer.extend(toList(ti.staticParameters), None)
         val extended = toList(ti.extendsTypes)
         for (extension <- extended) {
           extension match {
@@ -177,7 +173,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               for (second <- extended) {
                 second match {
                   case STraitTypeWhere(_,other@STraitType(_,_,_,_),_) =>
-                    if ( analyzer.excludes(st, other) )
+                    if ( new_analyzer.excludes(st, other) )
                       error(errors, "Types " + st + " and " + other +
                             " exclude each other.  " + decl +
                             " must not extend them.", st)
@@ -186,8 +182,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
               }
               getTypes(name, errors) match {
                 case si:ProperTraitIndex =>
-                  if ( analyzer.excludes(tt, st) ) {
-                      error(errors, "Type " + decl + " excludes " + name +
+                  if ( new_analyzer.excludes(tt, st) ) {
+                      error(errors, "Type " + tt + " excludes " + name +
                             " but it extends " + name + ".", extension)
                   }
                   val comprises = si.comprisesTypes
@@ -217,7 +213,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                 case tt@STraitType(_,name,_,_) =>
                   getTypes(name, errors) match {
                     case tti:TraitIndex =>
-                      if ( ! extendsContains(tt, tti.extendsTypes, decl, analyzer) )
+                      if ( ! extendsContains(tt, tti.extendsTypes, decl, new_analyzer) )
                         error(errors, "Invalid comprises clause: " + tt +
                               " is included in the comprises clause of " + decl +
                               "\n    but " + name + " does not extend " + decl + ".", tti.ast)

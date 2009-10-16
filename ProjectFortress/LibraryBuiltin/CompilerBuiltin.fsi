@@ -45,7 +45,7 @@ trait ZZ64 extends Number
     getter asZZ32(): ZZ32
 end
 
-trait ZZ32 extends Number comprises { IntLiteral }
+trait ZZ32 extends Number excludes ZZ64
     getter asZZ32(): ZZ32
     getter asString(): String
     opr |self| : ZZ32
@@ -65,7 +65,7 @@ end
 object IntLiteral extends ZZ32
 end
 
-trait RR64 extends Number comprises {FloatLiteral}
+trait RR64 extends Number
     getter asString(): String
     opr |self| : RR64
     opr -(self): RR64

@@ -171,6 +171,9 @@ interface Node() extends HasAt;
                 /**
                  * trait or object declaration in components or APIs
                  * Name must be unqualified.
+                 *
+                 * selfType is introduced in r3713;
+                 * it is initialized by compiler.disambiguator.SelfParamDisambiguator.
                  */
                 abstract TraitObjectDecl(TraitTypeHeader header, Option<Type> selfType) implements Generic;
                     /**
