@@ -33,7 +33,6 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.desugarer.CoercionLifter;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalDisambiguator;
-import com.sun.fortress.compiler.disambiguator.SelfParamDisambiguator;
 import com.sun.fortress.compiler.disambiguator.TopLevelEnv;
 import com.sun.fortress.compiler.disambiguator.TypeDisambiguator;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -48,6 +47,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.scala_src.disambiguator.ExprDisambiguator;
+import com.sun.fortress.scala_src.disambiguator.SelfParamDisambiguator;
 import com.sun.fortress.scala_src.linker.ExportExpander;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.tools.FortressAstToConcrete;
@@ -148,7 +148,7 @@ public class Disambiguator {
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
             SelfParamDisambiguator selfDisambig = new SelfParamDisambiguator();
-            Api spdResult = (Api) api.accept(selfDisambig);
+            Api spdResult = (Api) selfDisambig.walk(api);
             
             // Lift out coercions.
             Api liftedApi = (Api) lifter.liftCoercions(spdResult);
@@ -303,7 +303,7 @@ public class Disambiguator {
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
-            Component spdResult = (Component) comp.accept(self_disambig);
+            Component spdResult = (Component) self_disambig.walk(comp);
 
             // Lift out coercions.
             Component liftedComp = (Component) lifter.liftCoercions(spdResult);

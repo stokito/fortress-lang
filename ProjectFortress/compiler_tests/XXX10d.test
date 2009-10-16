@@ -13,12 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled6.c
+tests=Compiled10.d
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.c.fss:24:1-25:2:\n\
-\ Invalid comprises clause: T has a comprises clause\n\
-\ but its immediate subtype Mumble is not included in the comprises clause.\n\
-File Compiled6.c.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled10.d.fss:20:13-17:\n\
+\ Could not check call to function g\n\
+\ - O->() is not applicable to an argument of type AND(T,OR(O,P)).\n\
+File Compiled10.d.fss has 1 error.\n
 compile_out_equals=
