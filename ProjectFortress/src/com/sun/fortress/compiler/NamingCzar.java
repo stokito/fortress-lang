@@ -893,6 +893,12 @@ public class NamingCzar {
             public String forAnyType (AnyType t) {
                 return descFortressAny;
             }
+            public String forVarType (VarType t) {
+                // 
+                String s = t.getName().getText();
+                s = internalToDesc(s);
+                return s;
+            }
             public String forTraitType(TraitType t) {
                 // I think this is wrong!  What about API names?
                 // What about foreign-implemented types?
