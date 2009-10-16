@@ -36,18 +36,18 @@
 \def\endFortress{\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
   \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
 \makeatother
-\newcommand\FortressMathsurround{\mathsurround=0.166666em}
-\newcommand\SmallFortressMathsurround{\mathsurround=0.083333em}
+\newdimen\FortressMathsurround   \FortressMathsurround=0.166666em
+\newcommand\FortressMathsurroundFixup[1]{\ifdim \lastskip = 0pt \hskip-#1\FortressMathsurround \fi}
 
-\newcommand\FortressOuterKWD[1]{{\ensuremath{\mathtt{#1}\FortressMathsurround}}}
-\newcommand\FortressOuterKWDVAR[1]{{\ensuremath{\mathtt{#1}\FortressMathsurround}}}
-\newcommand\FortressOuterOPR[1]{{\ensuremath{\mathtt{#1}\FortressMathsurround}}}
-\newcommand\FortressOuterTYP[1]{{\ensuremath{\mathrm{#1}\SmallFortressMathsurround}}}
-\newcommand\FortressOuterVAR[1]{{\ensuremath{\mathit{#1}\SmallFortressMathsurround}}}
-\newcommand\FortressOuterSTR[1]{{\ensuremath{\hbox{\tt#1}\FortressMathsurround}}}
-\newcommand\EXP[1]{{\ensuremath{{\protect\FortressInnerMacros#1}\FortressMathsurround}}}
-\newcommand\FortressOuterMacros{\let\KWD\FortressOuterKWD \let\KWDVAR\FortressOuterKWDVAR \let\OPR\FortressOuterOPR
- \let\TYP\FortressOuterTYP \let\VAR\FortressOuterVAR \let\STR\FortressOuterSTR}
+\newcommand\FortressOuterKWD[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterKWDVAR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterOPR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterTYP[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathrm{#1}\mathsurround=0.5\FortressMathsurround}}}
+\newcommand\FortressOuterVAR[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathit{#1}\mathsurround=0.5\FortressMathsurround}}}
+\newcommand\FortressOuterSTR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\hbox{\tt\usefont{T1}{pcr}{m}{n}\selectfont#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\EXP[1]{{\FortressMathsurroundFixup{1}\ensuremath{{\protect\FortressInnerMacros#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterMacros{\let\KWD\FortressOuterKWD \let\KWDVAR\FortressOuterKWDVAR
+  \let\OPR\FortressOuterOPR \let\TYP\FortressOuterTYP \let\VAR\FortressOuterVAR \let\STR\FortressOuterSTR}
 
 \FortressOuterMacros
 
@@ -58,9 +58,9 @@
 \newcommand\FortressInnerBIGOP[1]{\mathop{\lower0.2ex\hbox{\Large$#1$}}}
 \newcommand\FortressInnerTYP[1]{\mathord{\mathrm{#1}}}
 \newcommand\FortressInnerVAR[1]{\mathord{\mathit{#1}}}
-\newcommand\FortressInnerSTR[1]{\hbox{\tt#1}}
-\newcommand\FortressInnerMacros{\let\KWD\FortressInnerKWD \let\KWDVAR\FortressInnerKWDVAR \let\OPR\FortressInnerOPR
-  \let\BIGOPR\FortressInnerBIGOPR \let\BIGOP\FortressInnerBIGOP
+\newcommand\FortressInnerSTR[1]{\hbox{\tt\usefont{T1}{pcr}{m}{n}\selectfont#1}}
+\newcommand\FortressInnerMacros{\let\KWD\FortressInnerKWD \let\KWDVAR\FortressInnerKWDVAR
+  \let\OPR\FortressInnerOPR \let\BIGOPR\FortressInnerBIGOPR \let\BIGOP\FortressInnerBIGOP
   \let\TYP\FortressInnerTYP \let\VAR\FortressInnerVAR \let\STR\FortressInnerSTR}
 
 \newcommand\CONDEQ{\mathrel{\mathtt{:}}=\mathrel{\mathtt{:}}}
@@ -72,6 +72,30 @@
 \def\Vvert{\mathrel{\vert\mskip-1.5mu\vert\mskip-1.5mu\vert}}
 \def\VVert{\mathrel{\vert\mskip-1.5mu\vert\mskip-1.5mu\vert\mskip-1.5mu\vert}}
 \def\sequiv{\mathrel{\hbox{\raise0.215ex\hbox to 0pt{$\equiv$\hss}\lower0.215ex\hbox{$\equiv$}}}}
+
+\newcommand\bigllbracket{\bigl[\mkern-5mu\bigl[}
+\newcommand\bigrrbracket{\bigr]\mkern-5mu\bigr]}
+\newcommand\Bigllbracket{\Bigl[\mkern-5.5mu\Bigl[}
+\newcommand\Bigrrbracket{\Bigr]\mkern-5.5mu\Bigr]}
+\newcommand\biggllbracket{\biggl[\mkern-6mu\biggl[}
+\newcommand\biggrrbracket{\biggr]\mkern-6mu\biggr]}
+\newcommand\Biggllbracket{\Biggl[\mkern-6.5mu\Biggl[}
+\newcommand\Biggrrbracket{\Biggr]\mkern-6.5mu\Biggr]}
+\newcommand\leftllbracket{\left[\mkern-5.5mu\left[}
+\newcommand\rightrrbracket{\right]\mkern-5.5mu\right]}
+
+
+\newcommand\FortressUnknownCharacter[1]{{\fboxsep=0.166666em\fbox{\small\tt#1}}}
+
+
+
+\newenvironment{FortressDoc}[1]{\vspace{0.5ex}%
+\begin{list}{}{%
+  \setlength{\parskip}{\FortressParSkip}
+  \settowidth{\leftmargin}{{\tt {#1}}}%
+  \addtolength{\leftmargin}{\FortressCodeIndent}}%
+     \item[]\raggedright%
+}{\unskip\end{list}\vspace{-3ex}}
 
 %% The old FortressDoc (introduced in r1437) is not working any more.
 %% It is going to be replaced by the new fortify tool soon.
@@ -86,6 +110,7 @@
 %   \addtolength{\leftmargin}{\FortressCodeIndent}}%
 %      \item[]\raggedright%
 % }{\unskip\end{list}\vspace{-3ex}}
+
 
 \newcommand\FortexSettings{%
 \setlength{\FortressCodeIndent}{0em}%
@@ -119,8 +144,8 @@
 \newif\iffortresspng  \fortresspngtrue
 
 
-\newcommand\FortressCode{\lineskip 0pt
-  \setbox\fortresssavedtabstack=\box\fortresstabstack
+\newcommand\FortressCode{\lineskip=1.5pt\lineskiplimit=1.5pt
+ \setbox\fortresssavedtabstack=\box\fortresstabstack
   \global\setbox\fortresstabstack=\hbox{\hbox{}}\relax
   \FortressInnerMacros
   \let\+=\fortresspushtab
@@ -220,7 +245,8 @@
 %%% within a \begingroup, and returning to vertical mode must always end that group.
 
 \newcommand\fortressblockcomment[2]{\fortresscancelline
-  \begingroup\setbox\fortresscommentbox=\vbox\bgroup
+  \begingroup\lineskip=1pt\lineskiplimit=1pt
+  \setbox\fortresscommentbox=\vbox\bgroup
   \advance\hsize by -\fortresscurindent
   \setbox\fortresstempbox=\hbox{\tt (*~}\leftskip=\wd\fortresstempbox
   \setbox\fortresstempbox=\hbox{\tt ~*)}\rightskip=\wd\fortresstempbox
@@ -229,6 +255,7 @@
   \let\item=\fortressitem
   \let\enum=\fortressenum
   \let\desc=\fortressdesc
+  \let\lind=\fortressleftindent
   \def~{\penalty10000\ }
   \let\\=\fortressendcommentparagraph
   \let\fortressdocommentrule=\relax
@@ -237,11 +264,11 @@
   \def\leftrightrule{\def\fortressdocommentrule{\fortresscommentrule{\fortresspositionleftrightrule}}}\relax
   \fortresstopcommentlinefalse
   \fortressbottomcommentlinefalse
-  \def\topcommentline{\fortresscommentline{\rightskip}{0pt}{0pt}\fortresstopcommentlinetrue\endgroup\par}\relax
-  \def\bottomcommentline{\ifhmode\endgroup\par\fi\begingroup\leavevmode
+  \def\topcommentline{\fortresscommentline{\rightskip}{0pt}{0pt}\fortresstopcommentlinetrue\par\endgroup}\relax
+  \def\bottomcommentline{\ifhmode\par\endgroup\fi\begingroup\leavevmode
     \fortresscommentline{\leftskip}{0pt}{0pt}\fortressbottomcommentlinetrue}\relax
-  \def\toprightcommentline{\fortresscommentline{\rightskip}{0pt}{\fortresscommentrulemargin}\fortresstopcommentlinetrue\endgroup\par}\relax
-  \def\bottomleftcommentline{\ifhmode\endgroup\par\fi\begingroup\leavevmode
+  \def\toprightcommentline{\fortresscommentline{\rightskip}{0pt}{\fortresscommentrulemargin}\fortresstopcommentlinetrue\par\endgroup}\relax
+  \def\bottomleftcommentline{\ifhmode\par\endgroup\fi\begingroup\leavevmode
     \fortresscommentline{\leftskip}{\fortresscommentrulemargin}{0pt}\fortressbottomcommentlinetrue}\relax
   \setbox\fortresstempbox=\hbox{99.$\mskip 7mu$}\relax
   \fortressleftindentincrement=\wd\fortresstempbox
@@ -267,6 +294,7 @@
         \fortressendblockcomment}
 
 \newcommand\FortressTaggedEndCommentLeft[1]{\ifhmode\par\fortressendcommentendgroup\fi\leavevmode
+%\newcommand\FortressTaggedEndCommentLeft[1]{\ifhmode\par\endgroup\fi\fortressendcommentendgroup\leavevmode
   \hbox{\hskip -\leftskip \hskip-\fortresscommentparensoffset{\tt ~#1*)}\hskip\fortresscommentparensoffset}\relax
   \fortressendblockcomment}
 
@@ -306,8 +334,8 @@
   \advance\leftskip by #1\fortressleftindentincrement
   \leavevmode\ignorespaces}
 
-\newcommand\fortressitem[1]{\fortressleftindent{#1}%
-  \hbox to 0pt{\hss\csname fortressitem\romannumeral#1\endcsname$\mskip 7mu$}\ignorespaces}
+\newcommand\fortressitem[2]{\fortressleftindent{#1}%
+  \hbox to 0pt{\hss\csname fortressitem\romannumeral#2\endcsname$\mskip 7mu$}\ignorespaces}
   
 \newcommand\fortressitemi{\raise 0.2ex\hbox{$\scriptstyle\bullet$}}
 \newcommand\fortressitemii{\raise 0.2ex\hbox{$\scriptstyle\circ$}}
@@ -318,13 +346,13 @@
 \newcommand\fortressitemvii{$\sim$}
 \newcommand\fortressitemviii{$\cdot$}
 
-\newcommand\fortressenum[2]{\fortressleftindent{#1}%
-  \hbox to 0pt{\hss\csname fortressenum\romannumeral#1\endcsname{#2}$\mskip 7mu$}\ignorespaces}
+\newcommand\fortressenum[3]{\fortressleftindent{#1}%
+  \hbox to 0pt{\hss\csname fortressenum\romannumeral#2\endcsname{#3}$\mskip 7mu$}\ignorespaces}
 
 \newcommand\fortressenumi[1]{(\number #1)}
-\newcommand\fortressenumii[1]{(\Romanletter{#1})}
+\newcommand\fortressenumii[1]{(\romanletter{#1})}
 \newcommand\fortressenumiii[1]{(\romannumeral #1)}
-\newcommand\fortressenumiv[1]{(\romanletter{#1})}
+\newcommand\fortressenumiv[1]{(\Romanletter{#1})}
 \newcommand\fortressenumv[1]{\number #1.}
 \newcommand\fortressenumvi[1]{\Romanletter{#1}.}
 \newcommand\fortressenumvii[1]{\romannumeral #1.}
@@ -336,12 +364,13 @@
 \makeatother
 
 % \FortressDescription{level}{labeltext}{leftindent}
-\newcommand\fortressdesc[3]{\par\begingroup
+\newcommand\fortressdesc[3]{\ifhmode\par\endgroup\fi\begingroup
   \advance\leftskip by #1\fortressleftindentincrement
   \advance\leftskip by #3\fortressleftindentincrement
-  \setbox\fortresstempbox=\hbox{\hskip-\fortressleftindentincrement
-                                \hskip-#3\fortressleftindentincrement
-                               #2$\;$}\relax
+  \advance\leftskip by -\fortressleftindentincrement
+ \setbox\fortresstempbox=\hbox{\hskip-#3\fortressleftindentincrement
+                               \hbox{#2}\relax   % This inner \hbox makes \FortressMathsurroundFixup work properly
+                               \quad}\relax
   \leavevmode\copy\fortresstempbox
   \ifdim \wd\fortresstempbox < 0pt \hskip-\wd\fortresstempbox \fi
   \ignorespaces}
@@ -497,6 +526,18 @@
   \hbox to 0pt{\hss#1\hskip\fortresscommentrulemargin}\hskip-\leftskip
   \hskip\hsize \hskip-\rightskip \hskip\fortresscommentrulemargin{#2}\hss}}
 
-  
-  
-  
+\newcommand\FortressTable[1]{\ifhmode\par\endgroup\fi
+  \leavevmode\begingroup
+  \advance\leftskip by #1\fortressleftindentincrement
+  \begin{tabular}}
+\newcommand\FortressEndTable{\end{tabular}\par\endgroup}
+
+\newcommand\FortressImage[3]{\ifhmode\par\endgroup\fi
+  \leavevmode\begingroup
+  \advance\leftskip by #1\fortressleftindentincrement
+  \advance\rightskip by #2\fortressleftindentincrement
+  \fortresstempdimen=\hsize
+  \advance\fortresstempdimen by -\leftskip
+  \advance\fortresstempdimen by -\rightskip
+  \edef\fortresstemp{[width=\the\fortresstempdimen]}
+  \expandafter\includegraphics\fortresstemp{#3}\par\endgroup}
