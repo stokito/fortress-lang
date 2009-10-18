@@ -87,16 +87,6 @@
 
 \newcommand\FortressUnknownCharacter[1]{{\fboxsep=0.166666em\fbox{\small\tt#1}}}
 
-
-
-\newenvironment{FortressDoc}[1]{\vspace{0.5ex}%
-\begin{list}{}{%
-  \setlength{\parskip}{\FortressParSkip}
-  \settowidth{\leftmargin}{{\tt {#1}}}%
-  \addtolength{\leftmargin}{\FortressCodeIndent}}%
-     \item[]\raggedright%
-}{\unskip\end{list}\vspace{-3ex}}
-
 %% The old FortressDoc (introduced in r1437) is not working any more.
 %% It is going to be replaced by the new fortify tool soon.
 %% We'll not adjust the indentation of the Fortress documentation
