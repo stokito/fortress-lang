@@ -16,14 +16,34 @@
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.overloading
-/**
- * Tasks:
- * 1) Make sure that I can tell what tuples are bottom
- * 2) Make sure I can tell when two parameters have to be the same
- * 3) Do constraint stuff
- */
 
-class OverloadingOracle() {
+import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.index._
+import com.sun.fortress.compiler.Types.ANY
+import com.sun.fortress.compiler.Types.BOTTOM
+import com.sun.fortress.compiler.Types.OBJECT
+import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.NodeFactory._
+import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.ScalaConstraint
+import com.sun.fortress.scala_src.typechecker.CnFalse
+import com.sun.fortress.scala_src.typechecker.CnTrue
+import com.sun.fortress.scala_src.typechecker.CnAnd
+import com.sun.fortress.scala_src.typechecker.CnOr
+import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
+import com.sun.fortress.scala_src.typechecker.TraitTable
+import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.useful.ErrorLog
+import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Maps._
+import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.STypesUtil._
+import com.sun.fortress.useful.NI
 
 
+class OverloadingOracle(val compilationUnit: CompilationUnitIndex,
+                        val globalEnv: GlobalEnvironment,
+                        val kindEnv: KindEnv) {
 }

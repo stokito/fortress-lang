@@ -48,9 +48,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def lteq(x: Type, y: Type): Boolean =  subtype(x, y).isTrue
   def meet(x: Type, y: Type): Type = meet(List(x, y))
-  def meet(x: Iterable[Type]): Type = normalize(makeIntersectionType(x.toList))
+  def meet(x: Iterable[Type]): Type = normalize(makeIntersectionType(x))
   def join(x: Type, y: Type): Type = meet(List(x, y))
-  def join(x: Iterable[Type]): Type = normalize(makeUnionType(x.toList))
+  def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
   def subtype(x: Type, y: Type): ScalaConstraint = sub(normalize(x), normalize(y))
 
@@ -75,7 +75,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
       val index = typeCons(n).asInstanceOf[TraitIndex]
       val supers = toList(index.extendsTypes).
-	map(tw => substitute(a, toList(index.staticParameters), tw.getBaseType))
+      map(tw => substitute(a, toList(index.staticParameters), tw.getBaseType))
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
     //Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
@@ -89,10 +89,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       sub(s, disjunctFromTuple(t, e1.size))
     case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2))
       if (e1.size == e2.size) =>
-	List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
+        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
     case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2))
       if (e1.size == e2.size) =>
-	List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
+        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
     //Intersection types
     case (s, SIntersectionType(_,ts)) =>
       ts.map(sub(s, _)).foldLeft(TRUE)(and)
@@ -165,22 +165,22 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val sExcludes = excludesClause(s)
       val tExcludes = excludesClause(t)
       if (sExcludes.exists(sub(t, _).isTrue))
-	return true
+        return true
       if (tExcludes.exists(sub(s, _).isTrue))
-	return true
+        return true
       val sIndex = typeCons(n1).asInstanceOf[TraitIndex]
       val tIndex = typeCons(n2).asInstanceOf[TraitIndex]
       (sIndex, tIndex) match {
-	case (si: ProperTraitIndex, ti: ProperTraitIndex) =>
-	  val sComprises = comprisesClause(s)
-	  val tComprises = comprisesClause(t)
-	  if (!sComprises.isEmpty && sComprises.forall(exc(t, _)))
-	    return true
-	  if (!tComprises.isEmpty && tComprises.forall(exc(s, _)))
-	    return true
-	  false
-	case _ =>
-	  or(sub(s, t), sub(t, s)).isFalse
+        case (si: ProperTraitIndex, ti: ProperTraitIndex) =>
+          val sComprises = comprisesClause(s)
+          val tComprises = comprisesClause(t)
+          if (!sComprises.isEmpty && sComprises.forall(exc(t, _)))
+            return true
+          if (!tComprises.isEmpty && tComprises.forall(exc(s, _)))
+            return true
+          false
+        case _ =>
+          or(sub(s, t), sub(t, s)).isFalse
       }
     //Arrow types
     case (s: ArrowType, t: ArrowType) => false
@@ -190,12 +190,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
       val excludes = List.exists2(e1, e2)((a, b) => exc(a, b))
       val different = (mv1, mv2) match {
-	case (Some(v1), _) if (e1.size < e2.size) =>
-	  e2.drop(e1.size).exists(exc(_, v1))
-	case (_, Some(v2)) if (e1.size > e2.size) =>
-	  e1.drop(e2.size).exists(exc(_, v2))
-	case _ if (e1.size!=e2.size) => true
-	case _ => false
+        case (Some(v1), _) if (e1.size < e2.size) =>
+          e2.drop(e1.size).exists(exc(_, v1))
+        case (_, Some(v2)) if (e1.size > e2.size) =>
+          e1.drop(e2.size).exists(exc(_, v2))
+        case _ if (e1.size!=e2.size) => true
+        case _ => false
       }
       different || excludes
     case (s: TupleType, _) => true
@@ -224,7 +224,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     val params = toList(ti.staticParameters)
     val excludes = ti match{
       case ti : ProperTraitIndex =>
-	toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
+      toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
       case _ => Set[TraitType]()
     }
     val supers = toList(ti.extendsTypes).map(tw => substitute(args, params, tw.getBaseType))
@@ -238,26 +238,26 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def normalize(x: Type): Type = {
     object normalizer extends Walker {
       override def walk(y: Any): Any = y match {
-	case t@STraitType(_, n, a, _) =>
-	  val index = typeCons(n)
-	  index match {
-	    case ti: TypeAliasIndex =>
-	      val params = toList(ti.staticParameters)
-	      walk(substitute(a, params, ti.ast.getTypeDef))
-	    case _ => super.walk(t)
-	  }
-	// ToDo: Keywords
-	case t@STupleType(_, e, None, _) => t
-	case a: ArrowType => a
-	case e: Effect => e
-	case u@SUnionType(_, e) =>
-	  val ps = e.flatMap(y => disjuncts(normalize(y)))
-	  makeUnionType(reduceSum(ps))
-	case i@SIntersectionType(_, e) =>
-	  val sop = cross(e.map(y => disjuncts(normalize(y))))
-	  val ps = sop.map(y => makeIntersectionType(reduceProduct(y.flatMap(disjuncts))))
-	  makeUnionType(reduceSum(ps))
-	case _ => super.walk(y)
+    case t@STraitType(_, n, a, _) =>
+      val index = typeCons(n)
+      index match {
+        case ti: TypeAliasIndex =>
+          val params = toList(ti.staticParameters)
+          walk(substitute(a, params, ti.ast.getTypeDef))
+        case _ => super.walk(t)
+      }
+    case t:TupleType => super.walk(t) match {
+      case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
+      case _ => t
+    }
+    case u@SUnionType(_, e) =>
+      val ps = e.flatMap(y => disjuncts(normalize(y)))
+      makeUnionType(reduceSum(ps))
+    case i@SIntersectionType(info, e) =>
+      val sop = cross(e.map(y => disjuncts(normalize(y))))
+      val ps = sop.map(y => makeIntersectionType(reduceProduct(y.flatMap(disjuncts))))
+      makeUnionType(reduceSum(ps))
+    case _ => super.walk(y)
       }
     }
     normalizer(x).asInstanceOf[Type]
@@ -267,19 +267,39 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     if(x.exists(y => x.exists(z => exc(y, z))))
       List(BOTTOM)
     else {
-      x.foldLeft(List[Type]())((l, a) => {
-	val l2 = l.filter(!sub(a,_).isTrue)
-	l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
+      val ds = x.foldLeft(List[Type]())((l, a) => {
+        val l2 = l.filter(!sub(a,_).isTrue)
+        l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
       })
+      if (!ds.isEmpty && ds.forall(_.isInstanceOf[TupleType]))
+        List(ds.reduceLeft((a,b) => mergeTuples(a.asInstanceOf[TupleType], b.asInstanceOf[TupleType])))
+      else
+        ds
     }
   }
+  
   private def reduceSum(x: Iterable[Type]): List[Type] = {
       x.foldLeft(List[Type]())((l, a) => {
-	val l2 = l.filter(!sub(_,a).isTrue)
-	l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
+        val l2 = l.filter(!sub(_,a).isTrue)
+        l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
       })
   }
-
+  
+  private def mergeTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
+    //We already know that these tuples do not exclude one another
+    case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
+      STupleType(makeInfo(e1), List.map2(e1, e2)(meet), None, Nil)
+    case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
+      mergeTuples(x, disjunctFromTuple(y, e1.size).asInstanceOf[TupleType])
+    case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
+      mergeTuples(disjunctFromTuple(x, e2.size).asInstanceOf[TupleType], y)
+    case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
+      val ee1 = e1 ++ List.make(e2.size - e1.size, v1)
+      val ee2 = e2 ++ List.make(e1.size - e2.size, v2)
+      STupleType(makeInfo(e1), List.map2(ee1, ee2)(meet), Some(meet(v1, v2)), Nil)
+    }
+  }
+  
   private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
     x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
   }
@@ -304,17 +324,17 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       case SUnitArg(_, _, v) => v
     }
     val subst = Map(List.map2(params, args)
-		    ((p, a) => (p.getName, a)):_*)
+                    ((p, a) => (p.getName, a)):_*)
 
     object replacer extends Walker {
       override def walk(node: Any) = node match {
-	case n:VarType => subst.get(n.getName).map(getVal).getOrElse(n)
-	case n:OpArg => subst.get(n.getName.getOriginalName).getOrElse(n)
-	case n:IntRef => subst.get(n.getName).map(getVal).getOrElse(n)
-	case n:BoolRef => subst.get(n.getName).map(getVal).getOrElse(n)
-	case n:DimRef => subst.get(n.getName).map(getVal).getOrElse(n)
-	case n:UnitRef => subst.get(n.getName).map(getVal).getOrElse(n)
-	case _ => super.walk(node)
+        case n:VarType => subst.get(n.getName).map(getVal).getOrElse(n)
+        case n:OpArg => subst.get(n.getName.getOriginalName).getOrElse(n)
+        case n:IntRef => subst.get(n.getName).map(getVal).getOrElse(n)
+        case n:BoolRef => subst.get(n.getName).map(getVal).getOrElse(n)
+        case n:DimRef => subst.get(n.getName).map(getVal).getOrElse(n)
+        case n:UnitRef => subst.get(n.getName).map(getVal).getOrElse(n)
+        case _ => super.walk(node)
       }
     }
 
@@ -326,36 +346,38 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
    * (A,B ...) = BOTTOM UNION A UNION (A,B) UNION (A,B,B) ...
    * This method gets the ith disjunct
    */
-  private def disjunctFromTuple(t: TupleType, i: Int): Type = t match {
-    case STupleType(_, elts, Some(varg), keys) if (i >= elts.size) =>
-      makeTupleType(elts ++ List.make(i-elts.size, varg), keys)
-    case STupleType(_, elts, _, _) if (i == elts.size)=> t
+  private def disjunctFromTuple(tuple: TupleType, size: Int): Type = tuple match {
+    case STupleType(i, e, Some(v), k) if (size >= e.size) =>
+      makeTupleType(i, e ++ List.make(size-e.size, v), k)
+    case STupleType(_, e , _, _) if (size == e.size)=> tuple
     case _ => BOTTOM
   }
 
-  private def makeTupleType(types: List[Type]): Type = makeTupleType(types, Nil)
+  private def makeTupleType(info: TypeInfo, types: List[Type]): Type = makeTupleType(info, types, Nil)
 
-  private def makeTupleType(types: List[Type], keys: List[KeywordType]): Type = types match {
+  private def makeTupleType(info: TypeInfo, types: List[Type], keys: List[KeywordType]): Type = types match {
     case t::Nil if (keys.isEmpty) => t
-    case _ => STupleType(makeInfo(types), types, None, keys)
+    case _ => STupleType(info, types, None, keys)
   }
 
-  private def makeIntersectionType(types: List[Type]) = types match {
+  private def makeIntersectionType(types: Iterable[Type]) = types.toList match {
     case Nil => ANY
     case t::Nil => t
-    case _ => SIntersectionType(makeInfo(types), types)
+    case ts@_ => SIntersectionType(makeInfo(ts), ts)
   }
 
-  private def makeUnionType(types: List[Type]) = types match {
+  private def makeUnionType(types: Iterable[Type]) = types.toList match {
     case Nil => BOTTOM
     case t::Nil => t
-    case _ => SUnionType(makeInfo(types), types)
+    case ts@_ => SUnionType(makeInfo(ts), ts)
   }
 
   //ToDo: Make a better span
-  private def makeInfo(types: List[Type]): TypeInfo = {
-    STypeInfo(typeSpan, false ,Nil, None)
+  private def makeInfo(types: Iterable[Type]): TypeInfo = {
+    typeInfo
   }
+  
+  private def typeInfo = STypeInfo(typeSpan, false ,Nil, None)
 
   //Todo: Constraint Utilities
   private val TRUE: ScalaConstraint = CnTrue
@@ -370,12 +392,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     CnAnd(Map(), Map((i,t)), this.lteq)
   private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
 
-  def extend(params: List[StaticParam], where: Option[WhereClause])
-    = new TypeAnalyzer(traits, env.extend(params, where))
+  def extend(params: List[StaticParam], where: Option[WhereClause]) = 
+    new TypeAnalyzer(traits, env.extend(params, where))
 
 }
 
 object TypeAnalyzer {
   def make(traits: TraitTable) = new TypeAnalyzer(traits, KindEnv.makeFresh)
-
 }
