@@ -32,6 +32,11 @@ class TypeAnalyzerJUTest extends TestCase {
     assert(ta.normalize(typ("&&{Tt, ||{Oo, Pp}}")) == typ("||{Oo, Pp}"))
   }
   
+  def testMeet() = {
+    val ta = typeAnalyzer("{trait Aa, trait Bb extends {Aa}}")
+    assert(ta.meet(typ("(Aa, Bb)"), typ("(Bb, Aa)")) == typ("(Bb, Bb)"))
+  }
+  
   def testExcludes() = {
     val ta = typeAnalyzer("{trait Tt excludes {Ss}, trait Ss, trait Uu extends {Tt}, trait Vv extends {Uu, Ss}}")
     assert(ta.excludes(typ("Vv"), typ("Uu")))
