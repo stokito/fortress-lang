@@ -52,4 +52,12 @@ if [ -z "$ANT_OPTS" ] ; then
   echo Using ANT_OPTS="\"$ANT_OPTS\""
 fi
 
+if [ "$FORTRESS_HOME" == "" ] ; then
+  echo "FORTRESS_HOME needs to be set to build the spec."
+  echo "It should refer to the root (directory containing bin, ProjectFortress, etc)"
+  echo "of a checked-out, compiled, Fortress source tree."
+  exit 1
+fi
+export PATH="$FORTRESS_HOME/bin":"$PATH"
+
 "$ant_exec" -noclasspath -lib ../../ProjectFortress/third-party/ant "$@"
