@@ -56,7 +56,7 @@
     </exec>
   </target>
 
-  <target name="tex" depends="genSource, texExs, bib">
+  <target name="tex" depends="makeReservedWordsFiles, bib">
     <exec executable="pdflatex" failonerror="true">
       <arg value="fortress"/>
       <env key="TEXINPUTS" value="${texinputs}" />
@@ -84,6 +84,10 @@
       <env key="TEXINPUTS" value="${texinputs}" />
     </exec>
     <exec executable="bibtex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
       <arg value="fortress"/>
       <env key="TEXINPUTS" value="${texinputs}" />
     </exec>
