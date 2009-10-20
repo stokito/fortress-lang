@@ -24,7 +24,9 @@ end Object
 nanoTime(): RR64
 
 trait String
+    getter isEmpty(): Boolean
     getter asString(): String
+    opr |self| : ZZ32
     opr || (self, b:String):String
     opr juxtaposition(self, b:String): String
 end
@@ -95,5 +97,12 @@ end
 
 true : Boolean
 false : Boolean
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+random(i:RR64): RR64
+randomZZ32(x:ZZ32): ZZ32
 
 end
