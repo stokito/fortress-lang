@@ -127,6 +127,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
          * ours, not the system loader. But some classes (java.*, etc) must be
          * loaded with the system loader.
          */
+        // Verify suspicious class isn't being loaded.
+        // if (("com.sun.fortress.nativeHelpers.LocalRandom").equals(name)) {
+        //     throw new Error("HEY!!! LOADING LocalRandom!!!!!");
+        // }
         if (_classLoadChecker.mustUseSystemLoader(name)) {
             clazz = findSystemClass(name);
         } else {
@@ -277,7 +281,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static void closureClassPrefix(String name, ManglingClassWriter cw, String staticClass) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
-        
+
         String api = name.substring(0,last_dot);
         String suffix = name.substring(last_dot+1);
         env_loc = suffix.indexOf(Naming.ENVELOPE); // followed by $

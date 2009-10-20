@@ -2347,6 +2347,7 @@ printTime(dummy: Any): ()
 fromRawBits(a:ZZ64):RR64
 
 random(a:Number):RR64
+randomZZ32(x:ZZ32): ZZ32
 
 match(regex:FlatString,some:FlatString):Boolean
 
