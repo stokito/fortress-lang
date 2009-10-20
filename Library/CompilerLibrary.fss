@@ -16,6 +16,10 @@
  ******************************************************************************)
 
 component CompilerLibrary
+(*
+import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
+                                            LocalRandom.localRandomInt => jRandomInt }
+*)
 import CompilerBuiltin.{...}
 (*) import java com.sun.fortress.nativeHelpers.equality.SEQV => jSEQV
 export CompilerLibrary
@@ -344,6 +348,15 @@ end
 
 (*
 opr BIG ||(): StringConcatenation = StringConcatenation
+*)
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+(*
+random(i:RR64): RR64 = jRandomDouble(i)
+randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
 *)
 
 end

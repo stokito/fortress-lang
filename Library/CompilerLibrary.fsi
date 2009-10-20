@@ -100,4 +100,13 @@ opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
 opr BIG ||(): ReductionString
 *)
 
+(************************************************************
+* Random numbers
+************************************************************)
+
+(*
+random(i:RR64): RR64
+randomZZ32(x:ZZ32): ZZ32
+*)
+
 end
