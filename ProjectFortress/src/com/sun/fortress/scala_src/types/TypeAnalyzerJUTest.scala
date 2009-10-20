@@ -33,14 +33,33 @@ class TypeAnalyzerJUTest extends TestCase {
   }
   
   def testMeet() = {
-    val ta = typeAnalyzer("{trait Aa, trait Bb extends {Aa}}")
+    val ta = typeAnalyzer("{trait Aa, trait Bb extends {Aa}, trait Cc excludes {Aa}}")
     assert(ta.meet(typ("(Aa, Bb)"), typ("(Bb, Aa)")) == typ("(Bb, Bb)"))
+    assert(ta.meet(typ("(Aa, Bb, Bb)"), typ("(Aa, Bb)")) == typ("BOTTOM"))
+    assert(ta.meet(typ("Bb"), typ("Cc")) == typ("BOTTOM"))
+    assert(ta.meet(typ("((Aa, Bb), Cc)"), typ("((Bb, Aa), Cc)")) == typ("((Bb, Bb), Cc)"))
   }
   
   def testExcludes() = {
-    val ta = typeAnalyzer("{trait Tt excludes {Ss}, trait Ss, trait Uu extends {Tt}, trait Vv extends {Uu, Ss}}")
+    val ta = typeAnalyzer("""{
+      trait Tt excludes {Ss},
+      trait Ss,
+      trait Uu extends {Tt},
+      trait Vv extends {Uu, Ss}}""")
     assert(ta.excludes(typ("Vv"), typ("Uu")))
     assert(ta.excludes(typ("Vv"), typ("Ss")))
+  }
+  
+  def testCovering() = {
+    val ta = typeAnalyzer("""{
+      trait Aa comprises {Bb, Cc},
+      trait Bb extends {Aa} comprises {Dd},
+      object Cc extends {Aa},
+      object Dd extends {Bb, Ff},
+      trait Ee comprises {Ff, Gg},
+      trait Ff extends {Ee},
+      object Gg extends {Ee}}""")
+    assert(ta.minimalCover(typ("&&{Aa, Ee}")) == typ("Dd"))
   }
   
 }
