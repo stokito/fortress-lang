@@ -45,7 +45,48 @@
            classname="com.sun.fortress.ant_tasks.ForegTask"
            classpath="${compiler.classpath}"/>
 
-  <target name="spec" depends="genSource">
+  <target name="spec" depends="genSource, makeExs, bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="tex" depends="genSource, texExs, bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="onlyTex">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="bibtex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
   </target>
 
   <target name="genSource" depends="makeReservedWordsFiles, texExs"/>
@@ -100,6 +141,38 @@
     </move>
   </target>
 
+  <target name="makeExs" depends="texExs, evalExs, compileApis, evalLibExs"/>
+
+  <target name="evalExs">
+    <fortress>
+      <env key="JAVA_FLAGS" value="-Xmx768m" />
+      <fileset dir="${example.home}">
+        <include name="**/*.fss"/>
+        <exclude name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="compileApis">
+    <fortress compile="yes">
+      <fileset dir="${example.home}">
+        <include name="**/*.fsi"/>
+        <include name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="evalLibExs">
+    <fortress parse="yes">
+      <fileset dir="${library.example.home}">
+        <include name="**/*.fss"/>
+        <include name="**/*.fsi"/>
+      </fileset>
+    </fortress>
+  </target>
+
   <target name="clean"
           description="Delete the generated files.">
     <delete file="fortress-keywords.tex"/>
@@ -126,8 +199,3 @@
   </target>
 
 </project>
-
-<!--
-todo:
-spec
--->
