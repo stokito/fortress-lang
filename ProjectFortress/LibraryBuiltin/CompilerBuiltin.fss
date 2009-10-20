@@ -17,7 +17,8 @@
 
 component CompilerBuiltin
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
-import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate}
+import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate,
+                                            simpleConcatenate.nativeStrlen => jStrlen}
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
                                             simpleIntArith.intAdd => jIntAdd,
                                             simpleIntArith.intSub => jIntSub,
@@ -47,6 +48,8 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => 
                                             simpleDoubleArith.doubleAbs => jDoubleAbs,
                                             simpleDoubleArith.doublePow => jDoublePow,
                                             simpleDoubleArith.doubleNanoTime => jNanoTime}
+import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
+                                            LocalRandom.localRandomInt => jRandomInt }
 import AnyType.{Any}
 export CompilerBuiltin
 
@@ -56,7 +59,9 @@ trait Object extends Any
 end Object
 
 trait String
+    getter isEmpty(): Boolean = (jStrlen(self) = 0)
     getter asString(): String = self
+    opr |self| : ZZ32 = jStrlen(self)
     opr ||(self, b:String): String =  jConcatenate(self, b)
     opr juxtaposition(self, b:String): String = jConcatenate(self, b)
 end
@@ -139,5 +144,12 @@ end
 
 true : Boolean = (0=0)
 false : Boolean = (0=1)
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+random(i:RR64): RR64 = jRandomDouble(i)
+randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
 
 end

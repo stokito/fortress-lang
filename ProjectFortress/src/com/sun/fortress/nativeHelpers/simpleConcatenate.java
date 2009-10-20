@@ -23,4 +23,8 @@ public class simpleConcatenate {
         return s1 + s2;
     }
 
+    public static int nativeStrlen(String s1) {
+        return s1.length();
+    }
+
 }

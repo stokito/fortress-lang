@@ -48,7 +48,12 @@ public class ManglingClassWriter extends ClassWriter {
     @Override
     protected String getCommonSuperClass(String type1, String type2) {
         // We may need to do something interesting here.
-        return super.getCommonSuperClass(type1, type2);
+        // [added try/catch wrapper to get useful information out on failure - JWM]
+        try {
+            return super.getCommonSuperClass(type1, type2);
+        } catch (Throwable e) {
+            throw new Error("Couldn't getCommonSuperClass("+type1+", "+type2+")",e);
+        }
     }
 
     @Override
