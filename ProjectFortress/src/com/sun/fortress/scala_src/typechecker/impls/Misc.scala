@@ -291,7 +291,7 @@ trait Misc { self: STypeChecker with Common =>
         case last::rest =>
           val allButLast = rest.map((e: Expr) => checkExpr(e, Types.VOID,
                                                            errorString("Non-last expression in a block")))
-          val lastExpr = checkExpr(last)
+          val lastExpr = checkExpr(last, expected)
           val newExprs = (lastExpr::allButLast).reverse
           SBlock(SExprInfo(span,parenthesized,getType(lastExpr)),
                  newLoc, false, withinDo, newExprs)
@@ -362,7 +362,7 @@ trait Misc { self: STypeChecker with Common =>
     }
 
     case SDo(SExprInfo(span,parenthesized,_), fronts) => {
-      val fs = fronts.map(checkExpr).asInstanceOf[List[Block]]
+      val fs = fronts.map(checkExpr(_, expected)).asInstanceOf[List[Block]]
       if ( haveTypes(fs) ) {
           // In a do-also expression (i.e., one in which also appears),
           // each block expression must have type ().
@@ -811,6 +811,9 @@ trait Misc { self: STypeChecker with Common =>
     }
 
     case expr:DummyExpr => expr
+
+    // Coercions will always be typed.
+    case c:CoercionInvocation => c
 
     case _ => throw new Error(errorMsg("Not yet implemented: ", expr.getClass))
   }

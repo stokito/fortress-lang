@@ -22,7 +22,7 @@ export Executable
   run():() = do
 
     atomic do
-      spawn true
+      ignore(spawn true)
     end
 
   end
