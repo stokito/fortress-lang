@@ -77,37 +77,56 @@ List<BaseType> TraitTypes =
        NodeUtil.validTraitTypes(writer, yyValue);
      };
 
-/*    Comprises ::= comprises w TraitTypes */
-/* AbsComprises ::= comprises w ComprisingTypes */
-/* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
+/*    Comprises ::= comprises w ComprisingTypes */
+/* AbsComprises ::= comprises w AbsComprisingTypes */
+/* AbsComprisingTypes ::= ComprisingType | { w AbsComprisingTypeList w } */
 Comprises Comprises =
-     comprises w a1:TraitTypeWithError
-     { yyValue = new Comprises(createSpan(yyStart,yyCount), Useful.list(a1));
+     comprises w a1:ComprisingTypes
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1);
        NodeUtil.validTraitTypes(writer, Useful.list(a1));
      }
-   / comprises w opencurly a1:(w ComprisingTypeList)? w closecurly
+   / comprises w opencurly a1:(w AbsComprisingTypeList)? w closecurly
      { if (a1 == null) {
            Span span = createSpan(yyStart,yyCount);
            log(span, "Comprises clauses should not be empty.");
-           yyValue = new Comprises(span, Collections.<BaseType>emptyList(), false);
+           yyValue = new Comprises(span, Collections.<NamedType>emptyList(), false);
        } else yyValue = a1;
      };
 
-/* ComprisingTypeList ::=
+/* AbsComprisingTypeList ::=
      ...
-   | TraitType (w , w TraitType)* (w , w ...)?
+   | ComprisingTypeList (w , w ...)?
  */
-private Comprises ComprisingTypeList =
+private Comprises AbsComprisingTypeList =
      ellipses
      { yyValue = new Comprises(createSpan(yyStart,yyCount),
-                               Collections.<BaseType>emptyList(), true);
+                               Collections.<NamedType>emptyList(), true);
      }
-   / a1:TraitTypeWithError a2s:(w comma w TraitTypeWithError)* a3:(w comma w ellipses)?
-     { List<BaseType> types = Useful.cons(a1, a2s.list());
-       yyValue = new Comprises(createSpan(yyStart,yyCount),
-                               types, a3 != null);
-       NodeUtil.validTraitTypes(writer, types);
+   / a1:ComprisingTypeList a2:(w comma w ellipses)?
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1, a2 != null);
+       NodeUtil.validTraitTypes(writer, a1);
      };
+
+/* ComprisingTypes ::= ComprisingType | { w ComprisingTypeList w } */
+List<NamedType> ComprisingTypes =
+     a1:ComprisingTypeWithError
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypes(writer, yyValue);
+     }
+   / void:opencurly w yyValue:ComprisingTypeList w void:closecurly;
+
+/* ComprisingTypeList ::= ComprisingType (w , w ComprisingType)* */
+List<NamedType> ComprisingTypeList =
+     a1:ComprisingTypeWithError a2s:(w comma w ComprisingTypeWithError)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypes(writer, yyValue);
+     };
+
+/* ComprisingType ::= TraitType | Id */
+NamedType ComprisingTypeWithError =
+     TraitTypeWithError
+   / a1:Id
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); };
 
 /* Where ::=
      where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?

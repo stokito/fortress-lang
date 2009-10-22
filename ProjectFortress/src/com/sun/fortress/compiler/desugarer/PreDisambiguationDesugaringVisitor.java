@@ -86,7 +86,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         public Node forTraitDecl(TraitDecl that) {
         TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
         List<BaseType> excludesClause_result = recurOnListOfBaseType(that.getExcludesClause());
-        Option<List<BaseType>> comprisesClause_result = recurOnOptionOfListOfBaseType(that.getComprisesClause());
+        Option<List<NamedType>> comprisesClause_result = recurOnOptionOfListOfNamedType(that.getComprisesClause());
 
         if (!NodeUtil.getName(that).equals(anyTypeId)) {
             header_result = NodeFactory.makeTraitTypeHeader(header_result,

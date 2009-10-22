@@ -357,7 +357,10 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
           STypesUtil.getTypes(name, globalEnv, compilation_unit) match {
             case ti:ProperTraitIndex =>
               var comprises = List[TraitType]()
-              for ( s <- toSet(ti.comprisesTypes) ) comprises = s::comprises
+              for ( s <- toSet(ti.comprisesTypes) ) {
+                if (!s.isInstanceOf[TraitType]) return None
+                else comprises = s.asInstanceOf[TraitType]::comprises
+              }
               allComprises = (name, comprises)::allComprises
               if ( ! comprises.isEmpty ) {
                 if ( meets == null ) meets = comprises

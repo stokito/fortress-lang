@@ -212,7 +212,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case ti: ProperTraitIndex =>
       val args = toList(t.getArgs)
       val params = toList(ti.staticParameters)
-      toSet(ti.comprisesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
+      toSet(ti.comprisesTypes).map(nt => if (!nt.isInstanceOf[TraitType]) return Set()
+                                         else substitute(args, params, nt).asInstanceOf[TraitType])
     case _ => Set()
   }
 
@@ -328,7 +329,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     env.staticParam(x).getOrElse(bug(x, x + " is not in the kind env."))
 
   //Type utilites
-  private def substitute(args: List[StaticArg], params: List[StaticParam], typ: Type): Type = {
+  def substitute(args: List[StaticArg], params: List[StaticParam], typ: Type): Type = {
 
     def getVal(x: StaticArg): Node = x match {
       case STypeArg(_, _, v) => v

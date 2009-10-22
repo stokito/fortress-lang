@@ -251,11 +251,14 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       else {
         var result = true
         for ( t <- comprises ; if result ) {
-          toOption(typeAnalyzer.traitTable.typeCons(t.getName)) match {
-            case None =>
-              errors.signal("Unrecognized name: " + t.getName, NodeUtil.getSpan(t))
-            case Some(ind) =>
-              if ( ! isClosedType(ind) ) result = false
+          if (t.isInstanceOf[VarType]) result = false
+          else {
+            toOption(typeAnalyzer.traitTable.typeCons(t.getName)) match {
+              case None =>
+                errors.signal("Unrecognized name: " + t.getName, NodeUtil.getSpan(t))
+              case Some(ind) =>
+                if ( ! isClosedType(ind) ) result = false
+            }
           }
         }
         result

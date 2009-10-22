@@ -892,7 +892,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         List<FType> extl = et.getFTypeListFromList(extends_);
         List<FType> excl = et.getFTypeListFromList(NodeUtil.getExcludesClause(x));
         ftt.setExtendsAndExcludes(extl, excl, interior);
-        Option<List<BaseType>> comprs = NodeUtil.getComprisesClause(x);
+        Option<List<NamedType>> comprs = NodeUtil.getComprisesClause(x);
         if (!comprs.isNone()) {
             List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));

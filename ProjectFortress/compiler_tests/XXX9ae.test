@@ -19,10 +19,10 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled9.ae.fss:21:3-43:\n\
 \ Invalid comprises clause: CompilerLibrary.Exception has a comprises clause\n\
-\ but its immediate subtype SomethingElse is not included in the comprises clause.\n\
+\ but its immediate subtype SomethingElse is not eligible to extend it.\n\
 ${STATIC_TESTS_DIR}/Compiled9.ae.fss:22:3-36:\n\
 \ Invalid comprises clause: CompilerLibrary.Exception has a comprises clause\n\
-\ but its immediate subtype FooExn is not included in the comprises clause.\n\
+\ but its immediate subtype FooExn is not eligible to extend it.\n\
 ${STATIC_TESTS_DIR}/Compiled9.ae.fss:30:7-31:6:\n\
 \ Catch clauses must catch subtypes of Exception, but Something is not.\n\
 File Compiled9.ae.fss has 3 errors.\n
