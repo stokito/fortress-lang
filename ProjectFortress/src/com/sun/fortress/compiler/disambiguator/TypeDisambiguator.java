@@ -102,7 +102,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                 header,
                                 v.recurOnOptionOfType(that.getSelfType()),
                                 v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
-                                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
+                                v.recurOnOptionOfListOfNamedType(NodeUtil.getComprisesClause(that)));
     }
 
     /**

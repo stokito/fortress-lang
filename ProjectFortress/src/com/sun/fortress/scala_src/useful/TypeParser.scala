@@ -67,6 +67,8 @@ object TypeParser extends RegexParsers {
   
   def baseType: Parser[BaseType] = anyType | bottomType | traitType | varType
   
+  def namedType: Parser[NamedType] = traitType | varType
+
   def anyType: Parser[AnyType] = literal("ANY") ^^ {x => ANY}
   
   def bottomType: Parser[BottomType] = literal("BOTTOM") ^^ {x => BOTTOM}
@@ -89,7 +91,7 @@ object TypeParser extends RegexParsers {
   def traitIndex: Parser[TraitIndex] = "trait" ~> traitSchema ~ 
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ~
     opt("excludes {" ~> repsep(baseType, ",") <~ "}") ~
-    opt("comprises {" ~> repsep(baseType, ",") <~ "}") ^^
+    opt("comprises {" ~> repsep(namedType, ",") <~ "}") ^^
     {case tType~mSupers~mExcludes~mComprises => 
       val supers = mSupers.getOrElse(Nil)
       val excludes = mExcludes.getOrElse(Nil)
@@ -103,7 +105,7 @@ object TypeParser extends RegexParsers {
                                     CollectUtil.emptyRelation[IdOrOpOrAnonymousName,DeclaredMethod],
                                     CollectUtil.emptyRelation[IdOrOpOrAnonymousName,FunctionalMethod])
      excludes.map(x => ti.addExcludesType(x.asInstanceOf[TraitType]))
-     mComprises.map(x => x.map(y => ti.addComprisesType(y.asInstanceOf[TraitType])))
+     mComprises.map(x => x.map(y => ti.addComprisesType(y.asInstanceOf[NamedType])))
      ti
   }
 

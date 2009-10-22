@@ -283,7 +283,7 @@ public class NodeFactory {
     public static TraitDecl makeTraitDecl(TraitType selfType,
                                           List<TraitTypeWhere> extendsC,
                                           List<BaseType> excludesC,
-                                          Option<List<BaseType>> comprisesC) {
+                                          Option<List<NamedType>> comprisesC) {
         return makeTraitDecl(NodeUtil.getSpan(selfType),
                              Modifiers.None,
                              selfType.getName(),
@@ -305,7 +305,7 @@ public class NodeFactory {
                              sparams, extendsC, Option.<WhereClause>none(),
                              Collections.<Decl>emptyList(),
                              Collections.<BaseType>emptyList(),
-                             Option.<List<BaseType>>none(),selfType);
+                             Option.<List<NamedType>>none(),selfType);
     }
 
     public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
@@ -314,7 +314,7 @@ public class NodeFactory {
                                           Option<WhereClause> whereC,
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
-                                          Option<List<BaseType>> comprisesC,
+                                          Option<List<NamedType>> comprisesC,
                                           Option<Type> selfType) {
         return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
                              excludesC, comprisesC, false, selfType);
@@ -326,7 +326,7 @@ public class NodeFactory {
                                           Option<WhereClause> whereC,
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
-                                          Option<List<BaseType>> comprisesC,
+                                          Option<List<NamedType>> comprisesC,
                                           boolean comprisesEllipses,
                                           Option<Type> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
@@ -339,7 +339,7 @@ public class NodeFactory {
 
     public static TraitDecl makeTraitDecl(ASTNodeInfo info, TraitTypeHeader header,
                                           List<BaseType> excludesC,
-                                          Option<List<BaseType>> comprisesC,
+                                          Option<List<NamedType>> comprisesC,
                                           boolean comprisesEllipses,
                                           Option<Type> selfType) {
         return new TraitDecl(info, header, selfType, excludesC, comprisesC, comprisesEllipses);

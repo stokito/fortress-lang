@@ -387,7 +387,7 @@ public class ForeignJava {
         Modifiers mods = Modifiers.None;
         Option<WhereClause> whereC = Option.none();
         List<BaseType> excludesC = Collections.emptyList();
-        Option<List<BaseType>> comprisesC = Option.none();
+        Option<List<NamedType>> comprisesC = Option.none();
         TraitDecl td = NodeFactory.makeTraitDecl(span(imported_class),
                                                  mods,
                                                  name,

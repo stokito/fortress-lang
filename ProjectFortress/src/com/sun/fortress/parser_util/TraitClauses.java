@@ -23,6 +23,7 @@ package com.sun.fortress.parser_util;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.useful.MagicNumbers;
 import edu.rice.cs.plt.tuple.Option;
@@ -33,7 +34,7 @@ import java.util.List;
 public class TraitClauses {
 
     private List<BaseType> excludes = Collections.<BaseType>emptyList();
-    private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
+    private Option<List<NamedType>> comprises = Option.<List<NamedType>>none();
     private Option<WhereClause> where = Option.<WhereClause>none();
     private boolean hasEllipses = false;
     private boolean setExcludes = false;
@@ -47,7 +48,7 @@ public class TraitClauses {
         return excludes;
     }
 
-    public Option<List<BaseType>> getComprises() {
+    public Option<List<NamedType>> getComprises() {
         return comprises;
     }
 

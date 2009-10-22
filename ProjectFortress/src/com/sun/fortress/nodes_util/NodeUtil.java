@@ -217,7 +217,7 @@ public class NodeUtil {
 	    return bug("TraitDecl expected, but got " + t);
     }
 
-    public static Option<List<BaseType>> getComprisesClause(TraitObjectDecl t) {
+    public static Option<List<NamedType>> getComprisesClause(TraitObjectDecl t) {
 	if ( t instanceof TraitDecl )
 	    return ((TraitDecl)t).getComprisesClause();
 	else
@@ -245,7 +245,7 @@ public class NodeUtil {
 	return t.getExcludesClause();
     }
 
-    public static Option<List<BaseType>> getComprisesClause(TraitDecl t) {
+    public static Option<List<NamedType>> getComprisesClause(TraitDecl t) {
 	return t.getComprisesClause();
     }
 
@@ -1030,7 +1030,7 @@ public class NodeUtil {
 
     /* for Type and StaticExpr **********************************************/
     public static void validTraitTypes(BufferedWriter writer,
-				       List<BaseType> types) {
+				       List<? extends BaseType> types) {
 	for (BaseType ty: types) {
 	    if ( ty instanceof NamedType &&
 		 validOp(((NamedType)ty).getName().getText()) )

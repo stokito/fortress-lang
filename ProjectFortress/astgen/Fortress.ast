@@ -220,7 +220,7 @@ interface Node() extends HasAt;
                      *       end
                      */
                     TraitDecl(List<BaseType> excludesClause,
-                              Option<List<BaseType>> comprisesClause,
+                              Option<List<NamedType>> comprisesClause,
                               boolean comprisesEllipses);
                     /**
                      * object declaration in components or APIs

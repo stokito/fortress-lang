@@ -13,12 +13,15 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled5.br
+tests=Compiled10.f
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.br.A.fsi:20:1-21:\n\
-\ Invalid comprises clause: Compiled5.br.A.P is included in the comprises clause of T\n\
-\ but Compiled5.br.A.P is not declared in the same compilation unit.\n\
-File Compiled5.br.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled10.f.fss:36:18-24:\n\
+\ Ill-formed type: T[\\O,P\\]\n\
+\ The static argument P does not satisfy the corresponding bound T[\\O,P\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.f.fss:37:18-24:\n\
+\ Ill-formed type: T[\\P,O\\]\n\
+\ The static argument O does not satisfy the corresponding bound T[\\P,O\\].\n\
+File Compiled10.f.fss has 2 errors.\n
 compile_out_equals=

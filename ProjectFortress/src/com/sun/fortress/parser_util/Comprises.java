@@ -21,29 +21,29 @@
  */
 package com.sun.fortress.parser_util;
 
-import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes_util.Span;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.util.List;
 
 public class Comprises extends TraitClause {
-    private Option<List<BaseType>> comprises = Option.none();
+    private Option<List<NamedType>> comprises = Option.none();
     private boolean ellipses = false;
 
-    public Comprises(Span span, List<BaseType> comprises, boolean ellipses) {
+    public Comprises(Span span, List<NamedType> comprises, boolean ellipses) {
         super(span);
         this.comprises = Option.some(comprises);
         this.ellipses = ellipses;
     }
 
-    public Comprises(Span span, List<BaseType> comprises) {
+    public Comprises(Span span, List<NamedType> comprises) {
         super(span);
         this.comprises = Option.some(comprises);
         this.ellipses = false;
     }
 
-    public Option<List<BaseType>> getComprises() {
+    public Option<List<NamedType>> getComprises() {
         return comprises;
     }
 

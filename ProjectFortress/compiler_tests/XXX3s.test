@@ -19,6 +19,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled3.s.fss:25:1-21:\n\
 \ Invalid comprises clause: T has a comprises clause\n\
-\ but its immediate subtype Q is not included in the comprises clause.\n\
+\ but its immediate subtype Q is not eligible to extend it.\n\
 File Compiled3.s.fss has 1 error.\n
 compile_out_equals=

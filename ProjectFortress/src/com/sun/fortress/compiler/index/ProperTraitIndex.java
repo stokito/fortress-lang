@@ -30,7 +30,7 @@ import java.util.*;
 public class ProperTraitIndex extends TraitIndex {
 
     Set<TraitType> _excludes = new HashSet<TraitType>();
-    Set<TraitType> _comprises = new HashSet<TraitType>();
+    Set<NamedType> _comprises = new HashSet<NamedType>();
 
     public ProperTraitIndex(TraitDecl ast, Map<Id, Method> getters, Map<Id, Method> setters, Set<Coercion> coercions, Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods, Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         super(ast, getters, setters, coercions, dottedMethods, functionalMethods);
@@ -40,7 +40,7 @@ public class ProperTraitIndex extends TraitIndex {
         return _excludes;
     }
 
-    public Set<TraitType> comprisesTypes() {
+    public Set<NamedType> comprisesTypes() {
         return _comprises;
     }
 
@@ -48,7 +48,7 @@ public class ProperTraitIndex extends TraitIndex {
         _excludes.add(t);
     }
 
-    public void addComprisesType(TraitType t) {
+    public void addComprisesType(NamedType t) {
         _comprises.add(t);
     }
 

@@ -1,0 +1,39 @@
+(********************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+********************************************************************************)
+export Executable
+
+(* (3) Eligibility to extend *)
+
+(*  A trait 'T' is eligible to extend trait 'U' if either:
+ *   1) the declaration of trait 'U' has no 'comprises' clause, or
+ *   2) trait 'T' is a subtype of (and perhaps the same as) some trait
+ *      mentioned in the 'comprises' clause of 'U', or
+ *   3) trait 'T' has a 'comprises' clause, and every trait mentioned
+ *      in the 'comprises' clause of 'T' is eligible to extend 'U'.
+ *)
+trait U end
+trait T extends U end
+
+trait Uu comprises Ttt end
+trait TT extends Uu end  (* No *)
+trait Ttt extends Uu end
+trait Tttt extends Ttt end
+trait S extends Ttt comprises { O, P } end
+object O extends S end
+object P extends S end
+
+run() = ()

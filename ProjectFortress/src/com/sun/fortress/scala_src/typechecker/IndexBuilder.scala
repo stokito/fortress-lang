@@ -234,19 +234,11 @@ object IndexBuilder {
                                 dName: IdOrOpOrAnonymousName,
                                 staticParams: JavaList[StaticParam],
                                 excludes: List[BaseType],
-                                comprises: Option[List[BaseType]],
+                                comprises: Option[List[NamedType]],
                                 self: Option[Type]) = {
     val dIndex = typeConses.get(dName).asInstanceOf[ProperTraitIndex]
     if ( comprises.isDefined ) {
-      for ( t <- comprises.get )
-        if ( t.isInstanceOf[NamedType] ) {
-          val typ = t match {
-            case STraitType(_,_,_,_) => t.asInstanceOf[TraitType]
-            case _ => NF.makeTraitType(t.asInstanceOf[NamedType].getName)
-          }
-          dIndex.addComprisesType(typ)
-        } else bug("TraitType is expected in the comprises clause of " + dName +
-                   " but found " + t + " " + t.getClass + ".")
+      for ( t <- comprises.get ) dIndex.addComprisesType(t)
     }
     for (t <- excludes) {
       if ( t.isInstanceOf[NamedType] ) {

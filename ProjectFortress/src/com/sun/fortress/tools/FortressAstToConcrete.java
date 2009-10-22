@@ -405,7 +405,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
             Option<String> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
             List<String> excludes_result = recurOnListOfBaseType(NodeUtil.getExcludesClause(that));
-            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that));
+            Option<List<String>> comprises_result = recurOnOptionOfListOfNamedType(NodeUtil.getComprisesClause(that));
             List<String> decls_result = myRecurOnListOfDecl(NodeUtil.getDecls(that));
             return forTraitDeclOnly(that,
                                     name_result,

@@ -101,11 +101,11 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 }
                 @Override
                 public Node forTraitDecl(TraitDecl that) {
-                    Option<List<BaseType>> comprisesClause = that.getComprisesClause();
+                    Option<List<NamedType>> comprisesClause = that.getComprisesClause();
                     boolean comprisesEllipses = that.isComprisesEllipses();
                     if ( comprisesClause.isSome() ) {
-                        List<BaseType> comprises = new ArrayList<BaseType>();
-                        for ( BaseType t : comprisesClause.unwrap() ) {
+                        List<NamedType> comprises = new ArrayList<NamedType>();
+                        for ( NamedType t : comprisesClause.unwrap() ) {
                             if ( t instanceof NamedType ) {
                                 if ( privates.contains( ((NamedType)t).getName().getText() ) )
                                     comprisesEllipses = true;

@@ -4119,7 +4119,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         return assertTrait(arg0.getBaseType(), that, "Traits can only extend traits.", arg0);
                     }}));
 
-        Option<List<TypeCheckerResult>> comprisesResult =  checker_with_sparams.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that));
+        Option<List<TypeCheckerResult>> comprisesResult =  checker_with_sparams.recurOnOptionOfListOfNamedType(NodeUtil.getComprisesClause(that));
 
         TypeChecker method_checker = checker_with_sparams;
         TypeChecker field_checker = method_checker;
@@ -4177,7 +4177,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               where,
                                               (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
                                               (List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
-                                              (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult),
+                                              (Option<List<NamedType>>)TypeCheckerResult.astFromResults(comprisesResult),
                                               that.getSelfType());
 
         return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
