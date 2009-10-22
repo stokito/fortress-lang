@@ -34,6 +34,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._
 import com.sun.fortress.scala_src.useful.Errors._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -200,9 +201,9 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                     case _ =>
                   }
                   val subst_comprises =
-                    comprises.map(new_analyzer.substitute(toList(st.getArgs),
-                                                          toList(si.staticParameters),
-                                                          _).asInstanceOf[NamedType])
+                    comprises.map(substitute(toList(st.getArgs),
+                                             toList(si.staticParameters),
+                                             _).asInstanceOf[NamedType])
                   if (! comprises.isEmpty &&
                       ! isEligibleToExtend(tt, subst_comprises, new_analyzer, errors) &&
                       ! NodeUtil.isComprisesEllipses(si.ast) )

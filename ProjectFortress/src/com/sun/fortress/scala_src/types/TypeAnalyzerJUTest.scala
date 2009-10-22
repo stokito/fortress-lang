@@ -59,7 +59,9 @@ class TypeAnalyzerJUTest extends TestCase {
       trait Ee comprises {Ff, Gg},
       trait Ff extends {Ee},
       object Gg extends {Ee}}""")
-    assert(ta.minimalCover(typ("&&{Aa, Ee}")) == typ("Dd"))
+    
+    val ca = new CoveringAnalyzer(ta)
+    assert(ca.minimalCover(typ("&&{Aa, Ee}")) == typ("Dd"))
   }
   
 }
