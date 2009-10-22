@@ -23,7 +23,7 @@ import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.NodeFactory._
+import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ScalaConstraint
 import com.sun.fortress.scala_src.typechecker.CnFalse
@@ -32,6 +32,7 @@ import com.sun.fortress.scala_src.typechecker.CnAnd
 import com.sun.fortress.scala_src.typechecker.CnOr
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
+import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
@@ -55,6 +56,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def subtype(x: Type, y: Type): ScalaConstraint = sub(normalize(x), normalize(y))
 
   private def sub(x: Type, y: Type): ScalaConstraint = (x,y) match {
+    case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
     case (s, t: AnyType) => TRUE
     //Inference variables
@@ -63,7 +65,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s: _InferenceVarType, t) => upperBound(s,t)
     case (s, t: _InferenceVarType) => lowerBound(t,s)
     //Type variables
-    case (s: VarType, t: VarType) if (s==t) => TRUE
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
       val supers = toList(sParam.getExtendsClause)
@@ -208,7 +209,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => false
   }
 
-  private def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
+  def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
     case ti: ProperTraitIndex =>
       val args = toList(t.getArgs)
       val params = toList(ti.staticParameters)
@@ -217,7 +218,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => Set()
   }
 
-  private def excludesClause(t: TraitType): Set[TraitType] = {
+  def excludesClause(t: TraitType): Set[TraitType] = {
     val ti = typeCons(t.getName).asInstanceOf[TraitIndex]
     val args = toList(t.getArgs)
     val params = toList(ti.staticParameters)
@@ -304,96 +305,17 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
   }
   
-  def minimalCover(x: Type): Type = normalize(x) match {
-    case SIntersectionType(_, e)
-      if e.forall(_.isInstanceOf[TraitType]) =>
-        meet(e.map(x => makeUnionType(comprisesLeaves(x.asInstanceOf[TraitType]))))
-    case SIntersectionType(_, e) => meet(e.map(minimalCover))
-    case SUnionType(_, e) => join(e.map(minimalCover))
-    //ToDo: Handle keywords
-    case STupleType(i, e, mv, _) => STupleType(i, e.map(minimalCover), mv.map(minimalCover), Nil)
-    case _ => x
-  }
-  
-  private def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
-    case ts if ts.isEmpty => Set(x)
-    case ts => ts.flatMap(comprisesLeaves)
-  }
-  
   // Accessor method for trait table
-  private def typeCons(x: Id): TypeConsIndex =
+  def typeCons(x: Id): TypeConsIndex =
     toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
 
   // Accessor method for kind env
-  private def staticParam(x: Id): StaticParam =
+  def staticParam(x: Id): StaticParam =
     env.staticParam(x).getOrElse(bug(x, x + " is not in the kind env."))
 
-  //Type utilites
-  def substitute(args: List[StaticArg], params: List[StaticParam], typ: Type): Type = {
-
-    def getVal(x: StaticArg): Node = x match {
-      case STypeArg(_, _, v) => v
-      case SIntArg(_, _, v) => v
-      case SBoolArg(_, _, v) => v
-      case SOpArg(_, _, v) => v
-      case SDimArg(_, _, v) => v
-      case SUnitArg(_, _, v) => v
-    }
-    val subst = Map(List.map2(params, args)
-                    ((p, a) => (p.getName, a)):_*)
-    object replacer extends Walker {
-      override def walk(node: Any) = node match {
-        case n:VarType => subst.get(n.getName).map(getVal).getOrElse(n)
-        case n:OpArg => subst.get(n.getName.getOriginalName).getOrElse(n)
-        case n:IntRef => subst.get(n.getName).map(getVal).getOrElse(n)
-        case n:BoolRef => subst.get(n.getName).map(getVal).getOrElse(n)
-        case n:DimRef => subst.get(n.getName).map(getVal).getOrElse(n)
-        case n:UnitRef => subst.get(n.getName).map(getVal).getOrElse(n)
-        case _ => super.walk(node)
-      }
-    }
-    replacer(typ).asInstanceOf[Type]
-  }
-
-  /**
-   * A tuple with var args is equivalent to an infinite union of tuples.
-   * (A,B ...) = BOTTOM UNION A UNION (A,B) UNION (A,B,B) ...
-   * This method gets the ith disjunct
-   */
-  private def disjunctFromTuple(tuple: TupleType, size: Int): Type = tuple match {
-    case STupleType(i, e, Some(v), k) if (size >= e.size) =>
-      makeTupleType(i, e ++ List.make(size-e.size, v), k)
-    case STupleType(_, e , _, _) if (size == e.size)=> tuple
-    case _ => BOTTOM
-  }
-
-  private def makeTupleType(info: TypeInfo, types: List[Type]): Type = makeTupleType(info, types, Nil)
-
-  private def makeTupleType(info: TypeInfo, types: List[Type], keys: List[KeywordType]): Type = types match {
-    case t::Nil if (keys.isEmpty) => t
-    case _ => STupleType(info, types, None, keys)
-  }
-
-  private def makeIntersectionType(types: Iterable[Type]) = types.toList match {
-    case Nil => ANY
-    case t::Nil => t
-    case ts@_ => SIntersectionType(makeInfo(ts), ts)
-  }
-
-  private def makeUnionType(types: Iterable[Type]) = types.toList match {
-    case Nil => BOTTOM
-    case t::Nil => t
-    case ts@_ => SUnionType(makeInfo(ts), ts)
-  }
-
-  //ToDo: Make a better span
-  private def makeInfo(types: Iterable[Type]): TypeInfo = {
-    typeInfo
-  }
+  def extend(params: List[StaticParam], where: Option[WhereClause]) = 
+    new TypeAnalyzer(traits, env.extend(params, where))
   
-  private def typeInfo = STypeInfo(typeSpan, false ,Nil, None)
-
-  //Todo: Constraint Utilities
   private val TRUE: ScalaConstraint = CnTrue
   private val FALSE: ScalaConstraint = CnFalse
   private def and(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint =
@@ -405,10 +327,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   private def lowerBound(i: _InferenceVarType, t: Type): ScalaConstraint =
     CnAnd(Map(), Map((i,t)), this.lteq)
   private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
-
-  def extend(params: List[StaticParam], where: Option[WhereClause]) = 
-    new TypeAnalyzer(traits, env.extend(params, where))
-
+  
 }
 
 object TypeAnalyzer {

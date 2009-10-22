@@ -363,13 +363,3 @@ case class CnOr(conjuncts: List[CnAnd], subtype: Subtype) extends ScalaConstrain
     result.toString
   }
 }
-
-object ScalaConstraint {
-  private val TRUE: ScalaConstraint = CnTrue
-  private val FALSE: ScalaConstraint = CnFalse
-  private def and(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint = TRUE
-  private def or(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint = TRUE
-  private def upperBound(i: _InferenceVarType, t: Type): ScalaConstraint = TRUE
-  private def lowerBound(i: _InferenceVarType, t: Type): ScalaConstraint = TRUE
-  private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
-}
