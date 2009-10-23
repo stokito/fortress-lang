@@ -254,7 +254,7 @@ public class NodeUtil {
 	return o.getParams();
     }
 
-    public static Option<List<BaseType>> getThrowsClause(ObjectDecl o) {
+    public static Option<List<Type>> getThrowsClause(ObjectDecl o) {
 	return o.getHeader().getThrowsClause();
     }
 
@@ -336,7 +336,7 @@ public class NodeUtil {
 	return f.getHeader().getReturnType();
     }
 
-    public static Option<List<BaseType>> getThrowsClause(FnDecl f) {
+    public static Option<List<Type>> getThrowsClause(FnDecl f) {
 	return f.getHeader().getThrowsClause();
     }
 
@@ -365,7 +365,7 @@ public class NodeUtil {
 	return f.getHeader().getReturnType();
     }
 
-    public static Option<List<BaseType>> getThrowsClause(FnExpr f) {
+    public static Option<List<Type>> getThrowsClause(FnExpr f) {
 	return f.getHeader().getThrowsClause();
     }
 

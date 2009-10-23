@@ -464,7 +464,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
             Option<String> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
             Option<List<String>> params_result = recurOnOptionOfListOfParam(NodeUtil.getParams(that));
-            Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
+            Option<List<String>> throwsClause_result = recurOnOptionOfListOfType(NodeUtil.getThrowsClause(that));
             Option<String> contract_result = recurOnOptionOfContract(NodeUtil.getContract(that));
             List<String> decls_result = myRecurOnListOfDecl(NodeUtil.getDecls(that));
             return forObjectDeclOnly(that,
@@ -592,7 +592,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         List<String> params_result = recurOnListOfParam(header.getParams());
         Option<String> returnType_result = recurOnOptionOfType(header.getReturnType());
         Option<String> whereClause_result = recurOnOptionOfWhereClause(header.getWhereClause());
-        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        Option<List<String>> throwsClause_result = recurOnOptionOfListOfType(header.getThrowsClause());
         Option<String> contract_result = recurOnOptionOfContract(header.getContract());
         String unambiguousName_result = recur(that.getUnambiguousName());
         Option<String> body_result = recurOnOptionOfExpr(that.getBody());
@@ -1535,7 +1535,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         List<String> params_result = recurOnListOfParam(header.getParams());
         Option<String> returnType_result = recurOnOptionOfType(header.getReturnType());
         Option<String> whereClause_result = recurOnOptionOfWhereClause(header.getWhereClause());
-        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        Option<List<String>> throwsClause_result = recurOnOptionOfListOfType(header.getThrowsClause());
         String body_result = recur(that.getBody());
         return forFnExprOnly(that,
                              "",

@@ -97,7 +97,7 @@ public class DeclaredFunction extends Function {
     }
 
     @Override
-    public List<BaseType> thrownTypes() {
+    public List<Type> thrownTypes() {
         if (NodeUtil.getThrowsClause(_ast).isNone()) return Collections.emptyList();
         else return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
     }

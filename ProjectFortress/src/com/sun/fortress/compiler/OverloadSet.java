@@ -76,7 +76,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return false;
         }
 
-        public List<BaseType> thrownTypes() {
+        public List<Type> thrownTypes() {
             return tagF.thrownTypes();
         }
 
@@ -788,7 +788,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public String[] getExceptions() {
         HashSet<Type> exceptions = new HashSet<Type>();
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            List<BaseType> f_exceptions = f.thrownTypes();
+            List<Type> f_exceptions = f.thrownTypes();
             exceptions.addAll(f_exceptions);
         }
         String[] string_exceptions = new String[exceptions.size()];

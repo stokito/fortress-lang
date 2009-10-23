@@ -335,7 +335,7 @@ public class Transform extends TemplateUpdateVisitor {
             List<Param> params_result = Useful.applyToAll(NodeUtil.getParams(that), renameParam);
             Option<Type> returnType_result = recurOnOptionOfType(NodeUtil.getReturnType(that));
             Option<WhereClause> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
-            Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
+            Option<List<Type>> throwsClause_result = recurOnOptionOfListOfType(NodeUtil.getThrowsClause(that));
             Expr body_result = (Expr) recur(that.getBody());
             FnHeader header = (FnHeader) forFnHeaderOnly(that.getHeader(),
                                                          staticParams_result,
@@ -448,7 +448,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                             List<StaticParam> staticParams_result,
                                                             IdOrOpOrAnonymousName name_result,
                                                             Option<WhereClause> whereClause_result,
-                                                            Option<List<BaseType>> throwsClause_result,
+                                                            Option<List<Type>> throwsClause_result,
                                                             Option<Contract> contract_result,
                                                             List<Param> params_result,
                                                             Option<Type> returnType_result) {

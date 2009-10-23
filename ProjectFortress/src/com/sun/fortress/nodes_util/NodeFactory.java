@@ -330,7 +330,7 @@ public class NodeFactory {
                                           boolean comprisesEllipses,
                                           Option<Type> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
-                                                     Option.<List<BaseType>>none(),
+                                                     Option.<List<Type>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
         return makeTraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
@@ -353,7 +353,7 @@ public class NodeFactory {
                               Collections.<StaticParam>emptyList(),
                               extendsC, Option.<WhereClause>none(), decls,
                               Option.<List<Param>>none(),
-                              Option.<List<BaseType>>none(),
+                              Option.<List<Type>>none(),
                               Option.<Contract>none(),
                               selfType);
     }
@@ -366,7 +366,7 @@ public class NodeFactory {
                               Collections.<TraitTypeWhere>emptyList(),
                               Option.<WhereClause>none(),
                               Collections.<Decl>emptyList(), params,
-                              Option.<List<BaseType>>none(),
+                              Option.<List<Type>>none(),
                               Option.<Contract>none(),
                               selfType);
     }
@@ -381,7 +381,7 @@ public class NodeFactory {
                               sparams, extendsC,
                               Option.<WhereClause>none(), decls,
                               params,
-                              Option.<List<BaseType>>none(),
+                              Option.<List<Type>>none(),
                               Option.<Contract>none(),selfType);
     }
     
@@ -395,7 +395,7 @@ public class NodeFactory {
                 Option.<WhereClause>none(),
                 Collections.<Decl>emptyList(),
                 Option.<List<Param>>none(),
-                Option.<List<BaseType>>none(),
+                Option.<List<Type>>none(),
                 Option.<Contract>none(),
                 Option.<Type>some(selfType));
     }
@@ -406,7 +406,7 @@ public class NodeFactory {
                                             Option<WhereClause> whereC,
                                             List<Decl> decls,
                                             Option<List<Param>> params,
-                                            Option<List<BaseType>> throwsC,
+                                            Option<List<Type>> throwsC,
                                             Option<Contract> contract,
                                             Option<Type> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
@@ -417,7 +417,7 @@ public class NodeFactory {
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   FnHeaderFront fhf, FnHeaderClause fhc) {
-        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<List<Type>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
         return makeFnDecl(span, mods, fhf.getName(),
@@ -431,7 +431,7 @@ public class NodeFactory {
                                   IdOrOpOrAnonymousName name, List<StaticParam> sparams,
                                   List<Param> params,
                                   FnHeaderClause fhc) {
-        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<List<Type>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
         return makeFnDecl(span, mods, name, sparams, params,
@@ -449,7 +449,7 @@ public class NodeFactory {
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   FnHeaderFront fhf,
                                   FnHeaderClause fhc, Expr expr) {
-        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<List<Type>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
         return makeFnDecl(span, mods, fhf.getName(),
@@ -461,7 +461,7 @@ public class NodeFactory {
     public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
                                   List<StaticParam> sparams, List<Param> params,
                                   FnHeaderClause fhc, Option<Expr> expr) {
-        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<List<Type>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
         return makeFnDecl(span, mods, name,
@@ -475,7 +475,7 @@ public class NodeFactory {
                                     List<Param> params,
                                     Option<Type> returnType) {
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
-                          Option.<List<BaseType>>none(),
+                          Option.<List<Type>>none(),
                           Option.<WhereClause>none(),
                           Option.<Contract>none());
     }
@@ -488,7 +488,7 @@ public class NodeFactory {
         return makeFnDecl(span, mods, name,
                           Collections.<StaticParam>emptyList(),
                           params, returnType,
-                          Option.<List<BaseType>>none(),
+                          Option.<List<Type>>none(),
                           Option.<WhereClause>none(),
                           Option.<Contract>none(),
                           body);
@@ -499,7 +499,7 @@ public class NodeFactory {
                                     List<StaticParam> staticParams,
                                     List<Param> params,
                                     Option<Type> returnType,
-                                    Option<List<BaseType>> throwsC,
+                                    Option<List<Type>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract) {
     	IdOrOp unambiguousName;
@@ -518,7 +518,7 @@ public class NodeFactory {
                                     List<StaticParam> staticParams,
                                     List<Param> params,
                                     Option<Type> returnType,
-                                    Option<List<BaseType>> throwsC,
+                                    Option<List<Type>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract,
                                     Option<Expr> body) {
@@ -537,7 +537,7 @@ public class NodeFactory {
                                         IdOrOpOrAnonymousName name,
                                         List<StaticParam> staticParams,
                                         Option<WhereClause> whereClause,
-                                        Option<List<BaseType>> throwsClause,
+                                        Option<List<Type>> throwsClause,
                                         Option<Contract> contract,
                                         List<Param> params,
                                         Option<Type> returnType) {
@@ -550,7 +550,7 @@ public class NodeFactory {
                                     List<StaticParam> staticParams,
                                     List<Param> params,
                                     Option<Type> returnType,
-                                    Option<List<BaseType>> throwsC,
+                                    Option<List<Type>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract,
                                     IdOrOp unambiguousName,
@@ -1173,10 +1173,10 @@ public class NodeFactory {
     }
 
     public static Effect makeEffect(Span span) {
-        return makeEffect(span, Option.<List<BaseType>>none(), false);
+        return makeEffect(span, Option.<List<Type>>none(), false);
     }
 
-    public static Effect makeEffect(List<BaseType> throwsClause) {
+    public static Effect makeEffect(List<Type> throwsClause) {
         Span span;
         if ( throwsClause.isEmpty() ) {
             span = typeSpan;
@@ -1187,12 +1187,12 @@ public class NodeFactory {
         }
     }
 
-    public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
+    public static Effect makeEffect(SourceLoc defaultLoc, List<Type> throwsClause) {
         return makeEffect(NodeUtil.spanAll(defaultLoc, throwsClause),
                           Option.some(throwsClause), false);
     }
 
-    public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
+    public static Effect makeEffect(Option<List<Type>> throwsClause) {
         Span span;
         if ( throwsClause.isNone() )
             span = typeSpan;
@@ -1205,18 +1205,18 @@ public class NodeFactory {
         return makeEffect(span, throwsClause, false);
     }
 
-    public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
+    public static Effect makeEffect(SourceLoc defaultLoc, Option<List<Type>> throwsClause) {
         Span span = NodeUtil.spanAll(defaultLoc,
-                                         throwsClause.unwrap(Collections.<BaseType>emptyList()));
+                                         throwsClause.unwrap(Collections.<Type>emptyList()));
         return makeEffect(span, throwsClause, false);
     }
 
     public static Effect makeEffect(Span span, boolean ioEffect) {
-        return makeEffect(span, Option.<List<BaseType>>none(), ioEffect);
+        return makeEffect(span, Option.<List<Type>>none(), ioEffect);
     }
 
 
-    public static Effect makeEffect(Span span, Option<List<BaseType>> throwsC,
+    public static Effect makeEffect(Span span, Option<List<Type>> throwsC,
                                     boolean ioEffect) {
         return new Effect(makeSpanInfo(span), throwsC, ioEffect);
     }
@@ -1544,7 +1544,7 @@ public class NodeFactory {
         return makeTraitTypeHeader(Modifiers.None, name,
                                    Collections.<StaticParam>emptyList(),
                                    Option.<WhereClause>none(),
-                                   Option.<List<BaseType>>none(), Option.<Contract>none(),
+                                   Option.<List<Type>>none(), Option.<Contract>none(),
                                    extendsClause, decls);
     }
 
@@ -1552,7 +1552,7 @@ public class NodeFactory {
                                                       IdOrOpOrAnonymousName name,
                                                       List<StaticParam> staticParams,
                                                       Option<WhereClause> whereClause,
-                                                      Option<List<BaseType>> throwsClause,
+                                                      Option<List<Type>> throwsClause,
                                                       Option<Contract> contract,
                                                       List<TraitTypeWhere> extendsClause,
                                                       List<Decl> decls) {
@@ -2405,7 +2405,7 @@ public class NodeFactory {
 
     public static FnHeaderClause makeFnClauses(BufferedWriter writer, Span span,
                                                List<FnHeaderClause> clauses) {
-        Option<List<BaseType>> throwsC = Option.<List<BaseType>>none();
+        Option<List<Type>> throwsC = Option.<List<Type>>none();
         Option<WhereClause> whereC = Option.<WhereClause>none();
         Option<List<Expr>> requiresC = Option.<List<Expr>>none();
         Option<List<EnsuresClause>> ensuresC = Option.<List<EnsuresClause>>none();
@@ -2472,18 +2472,18 @@ public class NodeFactory {
         return makeFnHeaderClause(throwsC, whereC, contractC, Option.<Type>none());
     }
 
-    public static FnHeaderClause makeThrowsClause(Option<List<BaseType>> throwsC) {
+    public static FnHeaderClause makeThrowsClause(Option<List<Type>> throwsC) {
         return makeFnHeaderClause(throwsC, Option.<WhereClause>none(),
                                   Option.<Contract>none(), Option.<Type>none());
     }
 
     public static FnHeaderClause makeWhereClause(Option<WhereClause> whereC) {
-        return makeFnHeaderClause(Option.<List<BaseType>>none(), whereC,
+        return makeFnHeaderClause(Option.<List<Type>>none(), whereC,
                                   Option.<Contract>none(), Option.<Type>none());
     }
 
     public static FnHeaderClause makeRequiresClause(Option<List<Expr>> requiresC) {
-        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+        return makeFnHeaderClause(Option.<List<Type>>none(),
                                   Option.<WhereClause>none(),
                                   Option.<Contract>some(makeContract(parserSpan, requiresC,
                                                                      Option.<List<EnsuresClause>>none(),
@@ -2492,7 +2492,7 @@ public class NodeFactory {
     }
 
     public static FnHeaderClause makeEnsuresClause(Option<List<EnsuresClause>> ensuresC) {
-        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+        return makeFnHeaderClause(Option.<List<Type>>none(),
                                   Option.<WhereClause>none(),
                                   Option.<Contract>some(makeContract(parserSpan, Option.<List<Expr>>none(),
                                                                      ensuresC, Option.<List<Expr>>none())),
@@ -2500,7 +2500,7 @@ public class NodeFactory {
     }
 
     public static FnHeaderClause makeInvariantsClause(Option<List<Expr>> invariantsC) {
-        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+        return makeFnHeaderClause(Option.<List<Type>>none(),
                                   Option.<WhereClause>none(),
                                   Option.<Contract>some(makeContract(parserSpan,
                                                                      Option.<List<Expr>>none(),
@@ -2509,7 +2509,7 @@ public class NodeFactory {
                                   Option.<Type>none());
     }
 
-    public static FnHeaderClause makeFnHeaderClause(Option<List<BaseType>> throwsC,
+    public static FnHeaderClause makeFnHeaderClause(Option<List<Type>> throwsC,
                                                     Option<WhereClause> whereC,
                                                     Option<Contract> contractC,
                                                     Option<Type> ty) {

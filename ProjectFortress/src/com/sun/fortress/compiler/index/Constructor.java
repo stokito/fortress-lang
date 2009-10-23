@@ -34,10 +34,10 @@ public class Constructor extends Function {
     private final Id _declaringTrait;
     private final List<StaticParam> _staticParams;
     private final Option<List<Param>> _params;
-    private final Option<List<BaseType>> _throwsClause;
+    private final Option<List<Type>> _throwsClause;
     private final Option<WhereClause> _where;
 
-    public Constructor(Id declaringTrait, List<StaticParam> staticParams, Option<List<Param>> params, Option<List<BaseType>> throwsClause, Option<WhereClause> where) {
+    public Constructor(Id declaringTrait, List<StaticParam> staticParams, Option<List<Param>> params, Option<List<Type>> throwsClause, Option<WhereClause> where) {
         _declaringTrait = declaringTrait;
         _staticParams = staticParams;
         _params = params;
@@ -58,7 +58,7 @@ public class Constructor extends Function {
         _declaringTrait = that._declaringTrait;
         _staticParams = visitor.recurOnListOfStaticParam(that._staticParams);
         _params = visitor.recurOnOptionOfListOfParam(that._params);
-        _throwsClause = visitor.recurOnOptionOfListOfBaseType(that._throwsClause);
+        _throwsClause = visitor.recurOnOptionOfListOfType(that._throwsClause);
         _where = visitor.recurOnOptionOfWhereClause(that._where);
 
         _thunk = that._thunk;
@@ -116,7 +116,7 @@ public class Constructor extends Function {
     }
 
     @Override
-    public List<BaseType> thrownTypes() {
+    public List<Type> thrownTypes() {
         if (_throwsClause.isNone()) return Collections.emptyList();
         else return Collections.unmodifiableList(_throwsClause.unwrap());
     }

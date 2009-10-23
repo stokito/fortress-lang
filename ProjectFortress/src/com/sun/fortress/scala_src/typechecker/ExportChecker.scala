@@ -757,7 +757,7 @@ object Constructor {
           function.where))
   def apply(id:Id, staticParams: JavaList[StaticParam],
             params: JavaOption[JavaList[Param]],
-            throwsClause: JavaOption[JavaList[BaseType]],
+            throwsClause: JavaOption[JavaList[Type]],
             where: JavaOption[WhereClause]) =
     new JavaConstructor(id, staticParams, params, throwsClause, where)
 }

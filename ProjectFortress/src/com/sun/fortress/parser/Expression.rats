@@ -57,13 +57,13 @@ Expr ExprFront =
      { yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount),
                                         Useful.list(NodeFactory.makeParam(a1)),
                                         Option.<Type>none(),
-                                        Option.<List<BaseType>>wrap(a2), a3);
+                                        Option.<List<Type>>wrap(a2), a3);
      }
    / <Fn2> fn w openparen a1:(w Params)? w closeparen a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { if (a1 == null) a1 = Collections.<Param>emptyList();
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1,
                                         Option.<Type>wrap(a2),
-                                        Option.<List<BaseType>>wrap(a3), a4);
+                                        Option.<List<Type>>wrap(a3), a4);
      }
    / <ErrorProduction1> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
      { Span span = createSpan(yyStart,yyCount);

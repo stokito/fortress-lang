@@ -67,7 +67,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
         IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(header.getName());
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(header.getStaticParams());
         Option<WhereClause> where_result = recurOnOptionOfWhereClause(header.getWhereClause());
-        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        Option<List<Type>> throwsClause_result = recurOnOptionOfListOfType(header.getThrowsClause());
         Option<Contract> contract_result = recurOnOptionOfContract(header.getContract());
         List<Param> params_result = recurOnListOfParam(header.getParams());
         Option<Type> returnType_result = recurOnOptionOfType(header.getReturnType());
@@ -85,7 +85,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
                               IdOrOpOrAnonymousName name_result,
                               List<StaticParam> staticParams_result, List<Param> params_result,
                               Option<Type> returnType_result,
-                              Option<List<BaseType>> throwsClause_result,
+                              Option<List<Type>> throwsClause_result,
                               Option<WhereClause> where_result,
                               Option<Contract> contract_result,
                               IdOrOp unambiguousName_result,

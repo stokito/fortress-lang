@@ -173,11 +173,11 @@ public class TypeAnalyzerUtil {
                          _d.getVarargs().unwrap().accept(this)) ||
                         recurOnKeywords(_d.getKeywords()) ||
                         t.getRange().accept(this) ||
-                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
+                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<Type>emptyList()));
                 } else
                     return d.accept(this) ||
                         t.getRange().accept(this) ||
-                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
+                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<Type>emptyList()));
             }
             @Override public Boolean forTupleType(TupleType t) {
                 if ( ! NodeUtil.hasVarargs(t) )

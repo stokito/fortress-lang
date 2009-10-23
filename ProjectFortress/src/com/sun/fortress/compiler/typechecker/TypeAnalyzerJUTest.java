@@ -648,13 +648,10 @@ public class TypeAnalyzerJUTest extends TestCase {
         List<String> elts;
         if (s.startsWith("{")) { elts = splitList(s, "{", "}"); }
         else { elts = Collections.singletonList(s); }
-        List<BaseType> ts = new LinkedList<BaseType>();
+        List<Type> ts = new LinkedList<Type>();
         for (String elt : elts) {
             Type t = parseType(elt);
-            if (!(t instanceof BaseType)) {
-                throw new IllegalArgumentException("Non-BaseType in throws: " + t);
-            }
-            ts.add((BaseType) t);
+            ts.add( t);
         }
         return NodeFactory.makeEffect(span, Option.some(ts), io);
     }
