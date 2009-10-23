@@ -30,11 +30,11 @@ import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
 
 public class ManglingMethodVisitor extends MethodAdapter {
-  
+
 
     public ManglingMethodVisitor(MethodVisitor mvisitor) {
         super(mvisitor);
-     
+
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
@@ -45,7 +45,7 @@ public class ManglingMethodVisitor extends MethodAdapter {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
-        
+
         owner = Naming.mangleFortressIdentifier(owner);
         name = Naming.mangleMemberName(name);
         desc = Naming.mangleFortressDescriptor(desc);
@@ -56,7 +56,7 @@ public class ManglingMethodVisitor extends MethodAdapter {
     @Override
     public void visitLocalVariable(String name, String desc, String signature,
             Label start, Label end, int index) {
-        
+
         signature = Naming.mangleFortressIdentifier(signature);
         name = Naming.mangleMemberName(name);
         desc = Naming.mangleFortressDescriptor(desc);
