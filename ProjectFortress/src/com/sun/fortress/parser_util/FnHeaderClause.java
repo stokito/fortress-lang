@@ -32,12 +32,12 @@ import java.util.List;
 
 public class FnHeaderClause {
 
-    private Option<List<BaseType>> throwsClause;
+    private Option<List<Type>> throwsClause;
     private Option<WhereClause> whereClause;
     private Option<Contract> contractClause;
     private Option<Type> returnType;
 
-    public FnHeaderClause(Option<List<BaseType>> throwsClause,
+    public FnHeaderClause(Option<List<Type>> throwsClause,
                           Option<WhereClause> whereClause,
                           Option<Contract> contractClause,
                           Option<Type> returnType) {
@@ -47,7 +47,7 @@ public class FnHeaderClause {
         this.returnType = returnType;
     }
 
-    public Option<List<BaseType>> getThrowsClause() {
+    public Option<List<Type>> getThrowsClause() {
         return throwsClause;
     }
 

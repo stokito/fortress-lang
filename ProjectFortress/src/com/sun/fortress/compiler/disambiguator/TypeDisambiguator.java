@@ -93,7 +93,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                                          v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
                                                          (Id) NodeUtil.getName(that).accept(v),
                                                          v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-                                                         Option.<List<BaseType>>none(),
+                                                         Option.<List<Type>>none(),
                                                          Option.<Contract>none(),
                                                          v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
                                                          v.recurOnListOfDecl(NodeUtil.getDecls(that)));
@@ -117,7 +117,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                                          v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
                                                          (Id) NodeUtil.getName(that).accept(v),
                                                          v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-                                                         Option.<List<BaseType>>none(),
+                                                         Option.<List<Type>>none(),
                                                          Option.<Contract>none(),
                                                          v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
                                                          v.recurOnListOfDecl(NodeUtil.getDecls(that)));
@@ -141,7 +141,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                                      v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
                                                      (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                                                      v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-                                                     v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                                                     v.recurOnOptionOfListOfType(NodeUtil.getThrowsClause(that)),
                                                      v.recurOnOptionOfContract(NodeUtil.getContract(that)),
                                                      v.recurOnListOfParam(NodeUtil.getParams(that)),
                                                      v.recurOnOptionOfType(NodeUtil.getReturnType(that)));

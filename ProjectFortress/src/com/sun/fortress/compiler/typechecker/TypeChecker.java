@@ -2391,7 +2391,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
 
-        Option<List<TypeCheckerResult>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
+        Option<List<TypeCheckerResult>> throwsClause_result = recurOnOptionOfListOfType(NodeUtil.getThrowsClause(that));
 
 
         List<TypeCheckerResult> params_result = recurOnListOfParam(NodeUtil.getParams(that));
@@ -2457,7 +2457,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         // All throws types must be a subtype of exception
         if( NodeUtil.getThrowsClause(that).isSome() ) {
-            for( BaseType exn : NodeUtil.getThrowsClause(that).unwrap() ) {
+            for( Type exn : NodeUtil.getThrowsClause(that).unwrap() ) {
                 all_results.add(this.checkSubtype(exn, Types.CHECKED_EXCEPTION, that,
                         "Types in throws clause must be subtypes of CheckedException, but "+
                         exn + " is not."));
@@ -2474,7 +2474,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 NodeUtil.getParams(that),
                 (Option<Type>)TypeCheckerResult.astFromResult(returnType_result),
                 NodeUtil.getWhereClause(that),
-                (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClause_result),
+                (Option<List<Type>>)TypeCheckerResult.astFromResults(throwsClause_result),
                 (Expr)body_result.ast() );
 
         return TypeCheckerResult.compose(new_node, arr,
@@ -3547,7 +3547,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             where = Option.<WhereClause>none();
         }
         Option<List<TypeCheckerResult>> paramsResult = checker_with_sparams.recurOnOptionOfListOfParam(NodeUtil.getParams(that));
-        Option<List<TypeCheckerResult>> throwsClauseResult = checker_with_sparams.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
+        Option<List<TypeCheckerResult>> throwsClauseResult = checker_with_sparams.recurOnOptionOfListOfType(NodeUtil.getThrowsClause(that));
 
         TypeChecker method_checker = checker_with_sparams;
         TypeChecker field_checker = method_checker;
@@ -3622,7 +3622,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 where,
                 (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
                 (Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
-                (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
+                (Option<List<Type>>)TypeCheckerResult.astFromResults(throwsClauseResult),
                 contract,
                 that.getSelfType());
 

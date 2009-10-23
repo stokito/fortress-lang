@@ -35,7 +35,7 @@ public abstract class Functional extends InferredTypeIndex {
 
     public abstract List<Param> parameters();
 
-    public abstract List<BaseType> thrownTypes();
+    public abstract List<Type> thrownTypes();
 
     public abstract Modifiers mods();
 

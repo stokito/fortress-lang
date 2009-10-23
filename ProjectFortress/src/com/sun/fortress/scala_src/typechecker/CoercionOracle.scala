@@ -269,8 +269,8 @@ class CoercionOracle(traits: TraitTable,
 
     val (SArrowType(_, a, b, teff, _, _), SArrowType(_, d, e, ueff, _, _)) = (t, u)
     // Get throws types.
-    val c = toOption(teff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())
-    val f = toOption(ueff.getThrowsClause).map(toList[BaseType]).getOrElse(List[BaseType]())
+    val c = toOption(teff.getThrowsClause).map(toList[Type]).getOrElse(List[Type]())
+    val f = toOption(ueff.getThrowsClause).map(toList[Type]).getOrElse(List[Type]())
 
     // 1. A -> B throws C is not a subtype of D -> E throws F
     if (analyzer.subtype(t, u).isTrue) return None

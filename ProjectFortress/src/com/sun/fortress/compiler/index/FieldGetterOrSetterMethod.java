@@ -97,7 +97,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     }
 
     @Override
-    public List<BaseType> thrownTypes() {
+    public List<Type> thrownTypes() {
         return Collections.emptyList();
     }
 

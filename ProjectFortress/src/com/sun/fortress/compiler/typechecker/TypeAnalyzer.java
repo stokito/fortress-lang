@@ -398,10 +398,10 @@ public class TypeAnalyzer {
 
             @Override public Effect forEffectOnly(Effect e,
                                                   ASTNodeInfo info_result,
-                                                  Option<List<BaseType>> normalThrows) {
+                                                  Option<List<Type>> normalThrows) {
                 if (normalThrows.isNone()) { return e; }
                 else {
-                    List<BaseType> reduced = reduceDisjuncts(normalThrows.unwrap(),
+                    List<Type> reduced = reduceDisjuncts(normalThrows.unwrap(),
                                                              _emptyHistory);
                     if (reduced.isEmpty()) { return NodeFactory.makeEffect(NodeFactory.makeSpan(e), e.isIoEffect()); }
                     else if (reduced.equals(e.getThrowsClause().unwrap())) {
@@ -1163,9 +1163,9 @@ public class TypeAnalyzer {
     /** Subtyping for Effects. */
     private ConstraintFormula sub(Effect s, Effect t, SubtypeHistory h) {
         if (!s.isIoEffect() || t.isIoEffect()) {
-            List<BaseType> empty = Collections.<BaseType>emptyList();
-            Type sThrows = makeUnion(IterUtil.<Type>relax(s.getThrowsClause().unwrap(empty)));
-            Type tThrows = makeUnion(IterUtil.<Type>relax(s.getThrowsClause().unwrap(empty)));
+            List<Type> empty = Collections.<Type>emptyList();
+            Type sThrows = makeUnion(s.getThrowsClause().unwrap(empty));
+            Type tThrows = makeUnion(s.getThrowsClause().unwrap(empty));
             return sub(sThrows, tThrows, h);
         }
         else { return falseFormula(); }

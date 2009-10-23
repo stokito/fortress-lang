@@ -767,18 +767,18 @@ public class ExprFactory {
                                     List<Param> params,
                                     Expr body) {
         return makeFnExpr(span, params, Option.<Type>none(),
-                          Option.<List<BaseType>>none(), body);
+                          Option.<List<Type>>none(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
                                     Option<Type> returnType, Expr body) {
         return makeFnExpr(span, params, returnType,
-                          Option.<List<BaseType>>none(), body);
+                          Option.<List<Type>>none(), body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
                                     Option<Type> returnType,
-                                    Option<List<BaseType>> throwsClause,
+                                    Option<List<Type>> throwsClause,
                                     Expr body) {
         return makeFnExpr(span, false, Option.<Type>none(),
                           makeAnonymousFnName(span, Option.<APIName>none()),
@@ -795,7 +795,7 @@ public class ExprFactory {
                                     List<Param> params,
                                     Option<Type> returnType,
                                     Option<WhereClause> whereClause,
-                                    Option<List<BaseType>> throwsClause,
+                                    Option<List<Type>> throwsClause,
                                     Expr body) {
         FnHeader header = NodeFactory.makeFnHeader(Modifiers.None, name, staticParams,
                                                    whereClause, throwsClause,
@@ -1017,7 +1017,7 @@ public class ExprFactory {
                                                                  NodeFactory.makeId(span,genSymName),
                                                                  staticParams,
                                                                  Option.<WhereClause>none(),
-                                                                 Option.<List<BaseType>>none(),
+                                                                 Option.<List<Type>>none(),
                                                                  Option.<Contract>none(),
                                                                  extendsC, decls);
         return make_RewriteObjectExpr(span, parenthesized, ty, header,

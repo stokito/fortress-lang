@@ -201,7 +201,7 @@ FnHeaderClause FnClauses = a1s:FnClause*
                                            a1s.list()); };
 FnHeaderClause FnClause =
      w a1:Throws
-     { yyValue = NodeFactory.makeThrowsClause(Option.<List<BaseType>>some(a1)); }
+     { yyValue = NodeFactory.makeThrowsClause(Option.<List<Type>>some(a1)); }
    / w a1:Where
      { yyValue = NodeFactory.makeWhereClause(Option.<WhereClause>some(a1)); }
    / w a1:Requires
@@ -218,9 +218,9 @@ FnHeaderClause FnClause =
 
 /* Throws ::= throws w MayTraitTypes */
 /* MayTraitTypes ::= { w } | TraitTypes  */
-List<BaseType> Throws =
+List<Type> Throws =
      throws w opencurly w closecurly
-     { yyValue = Collections.<BaseType>emptyList(); }
+     { yyValue = Collections.<Type>emptyList(); }
    / throws w TraitTypes ;
 
 /* Mods ::= (Mod w)+ */

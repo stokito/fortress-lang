@@ -1349,7 +1349,7 @@ interface Node() extends HasAt;
              * effect on arrow types
              * e.g.) throws FailCalled
              */
-            Effect(Option<List<BaseType>> throwsClause, boolean ioEffect);
+            Effect(Option<List<Type>> throwsClause, boolean ioEffect);
             /**
              * where clause used in trait, object, and functional declarations
              * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?
@@ -1909,7 +1909,7 @@ interface Node() extends HasAt;
                     abstract DeclHeader(Modifiers mods, // except FnExpr
                                         IdOrOpOrAnonymousName name,
                                         Option<WhereClause> whereClause,
-                                        Option<List<BaseType>> throwsClause, // except TraitDecl
+                                        Option<List<Type>> throwsClause, // except TraitDecl
                                         Option<Contract> contract); // except TraitDecl / FnExpr
                         /**
                          * common header for trait/object declaration/expression
