@@ -13,15 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled5.bq
+tests=Compiled3.q
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.bq.A.fsi:20:1-21:\n\
+${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled3.q.fsi:20:3-23:\n\
 \ Invalid comprises clause: a trait with a comprises ...,\n\
-\ such as Compiled5.bq.T, should not be extended.\n\
-${STATIC_TESTS_DIR}/Compiled5.bq.fsi:21:1-21:\n\
-\ Invalid comprises clause: a trait with a comprises ...,\n\
-\ such as Compiled5.bq.T, should not be extended.\n\
-File Compiled5.bq.fss has 2 errors.\n
+\ such as Compiled3.q.T, should not be extended.\n\
+File Compiled3.q.fss has 1 error.\n
 compile_out_equals=

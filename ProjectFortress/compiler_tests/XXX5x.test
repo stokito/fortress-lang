@@ -18,7 +18,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.x.fsi:21:1-21:\n\
-\ Invalid comprises clause: Compiled5.x.T has a comprises ...\n\
-\ but its immediate subtype O is exposed in the API.\n\
+\ Invalid comprises clause: a trait with a comprises ...,\n\
+\ such as Compiled5.x.T, should not be extended.\n\
 File Compiled5.x.fsi has 1 error.\n
 compile_out_equals=
