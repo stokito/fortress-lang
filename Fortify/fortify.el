@@ -1770,9 +1770,10 @@
   ;; the region delimited by *fortify-region-start* and *fortify-region-end*.
   ;; If we fail, we simply hand back the string with the trailing backquotes removed.
   (goto-char *fortify-region-start*)
-  (cond ((search-forward str *fortify-region-end* t)
-	 (newfortify-region (- (point) (length str)) (- (point) 1)))
-	(t (substring str 0 (+ 1 (or (position-if '(lambda (c) (not (= c ?\`))) str :from-end t) -1))))))
+  (let ((epos (+ 1 (or (position-if '(lambda (c) (not (= c ?\`))) str :from-end t) -1))))
+    (cond ((search-forward str *fortify-region-end* t)
+	   (newfortify-region (- (point) (length str)) (- (point) (- (length str) epos))))
+	  (t (substring str 0 epos)))))
 
 ;;; ****************************************************************
 ;;; ***** (4) Do a lightweight, error-correcting parse that matches
@@ -2201,21 +2202,25 @@
 					      (let ((begin-indent (position ?\{ raw-line)))
 						(push "" result)
 						(setq lns (cdr lns))
-						(while (and lns
-							    (or (not (string= (car lns) "}}}"))
-								(> (position ?\} (car lns)) begin-indent)))
-						  (push (concat "\\lind{" (number-to-string (or curindent 0)) "}{\\tt"
+						(do ((prefix (concat "\\lind{" (number-to-string (or curindent 0)) "}")
+							     "\\hfil\\break\\null"))
+						    ((or (null lns)
+							 (and (string= (fortress-trim-string (car lns)) "}}}")
+							      (not (> (position ?\} (car lns)) begin-indent)))))
+						  (push (concat prefix
+								"{\\tt "
 								(fortress-render-string-contents
 								 (fortress-trim-string-right
 								  (substring (car lns) 
-									     (if (string= (car lns) "}}}")
+									     (if (string= (fortress-trim-string (car lns)) "}}}")
 										 (+ begin-indent 1)
 									       (min begin-indent
-										    (or (position-if '(lambda (c) (not (= c ?\s))) (car lns))
+										    (or (position-if-not '(lambda (c) (= c ?\s)) (car lns))
 											(length (car lns))))))))
 								"}")
 							result) 
 						  (setq lns (cdr lns)))
+						(push (concat (pop result) " \\\\") result)
 						(setq hrule-last nil)
 						(setq continue-previous-line nil)
 						(setq indented-par-last nil)
@@ -2415,7 +2420,7 @@
 	((every 'null rpl)
 	 (assert (every '(lambda (x) (= x (car pipes))) pipes))
 	 (let* ((ncols (- col-from-right))
-		(header-seps (cons (make-string (- min-initial-pipe-count 1) ?\|) most-header-seps))
+		(header-seps (cons (if (> min-initial-pipe-count 1) (make-string (- min-initial-pipe-count 1) ?\|) "@{}") most-header-seps))
 		(semi-final-rows (fortress-convert-neutral-table-cells row-types rows))
 		(best-column-types (fortress-best-column-types row-types semi-final-rows ncols))
 		(almost-final
