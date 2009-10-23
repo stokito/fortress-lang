@@ -19,6 +19,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.g.fss:31:1-11:\n\
 \ Invalid comprises clause: Q is included in the comprises clause of T\n\
-\ but Q does not extend T.\n\
+\ but Q does not extend T[\\U,S\\].\n\
 File Compiled10.g.fss has 1 error.\n
 compile_out_equals=
