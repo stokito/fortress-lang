@@ -161,6 +161,8 @@ public class FortressMethodAdapter extends ClassAdapter {
 
         SignatureParser sp = new SignatureParser(desc);
         String fsig = sp.getFortressifiedSignature();
+
+        // FORWARDING METHOD, only with type conversions on the way in/out!
         MethodVisitor mv = cv.visitMethod(access, name, fsig, signature,
                 exceptions);
         mv.visitCode();

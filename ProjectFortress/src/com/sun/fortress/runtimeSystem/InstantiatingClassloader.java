@@ -353,24 +353,72 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 staticClass = api.replaceAll("[.]", "/");
 
             if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
-            mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD, sig, null, null);
-            mv.visitCode();
-            // Is this right?  What about a 2-arg function that takes a void as its second arg?
-            // This can happen with generic instantiations of various sorts (esp the default
-            // seq implementation!).
-            for (int i = 1; i < parameters.size();i++) {
-                String param = parameters.get(i-1);
-                if (! param.equals(Naming.INTERNAL_SNOWMAN))
-                    mv.visitVarInsn(ALOAD, i);
 
+            int sz = parameters.size();
+            // Last parameter is actually result type!
+            // But we need to include an extra arg in sz to represent the closure itself (this).
+            if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
+                // Arity 1 (sz 2) with void parameter should actually be arity 0 (sz 1).
+                sz = 1;
             }
-            mv.visitMethodInsn(INVOKESTATIC, staticClass, fn, sig);
-            // ARETURN if not void...
-            mv.visitInsn(ARETURN);
 
-            mv.visitMaxs(2, 3);
-            mv.visitEnd();
+            forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
+                             staticClass, fn, INVOKESTATIC,
+                             sig, sz, false);
         }
+    }
+
+    /** Create forwarding method that re-pushes its arguments and
+     * chains to another method in another class.
+     * When selfIndex == -1, all arguments are pushed exactly in the order given,
+     * and the input and output signatures are assumed to be the same (so this can
+     * also be used to pass along a self parameter without mucking about).
+     * Otherwise selfIndex indicates the index of a self parameter; when pushSelf
+     * is true this index is pushed first.
+     *
+     * How do we determine incoming and outgoing signatures?
+     */
+    public static void forwardingMethod(ClassWriter cw,
+                                        String thisName, int thisModifiers, int selfIndex,
+                                        String fwdClass, String fwdName, int fwdOp,
+                                        String maximalSig,
+                                        int nparamsIncludingSelf, boolean pushSelf) {
+        String thisSig = maximalSig;
+        String fwdSig = maximalSig;
+        String selfSig = null;
+        if (pushSelf) {
+            selfSig = Naming.nthSigParameter(maximalSig, selfIndex);
+            selfSig = selfSig.substring(1, selfSig.length()-1);
+            if ((thisModifiers & ACC_STATIC) != 0) {
+                if (fwdOp != INVOKESTATIC) {
+                    // receiver has explicit self, fwd is dotted.
+                    fwdSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+                }
+            } else if (fwdOp == INVOKESTATIC) {
+                thisSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+            }
+        } else if (selfIndex >= 0 && (thisModifiers & ACC_STATIC) != 0) {
+            // Dropping explicit self parameter, so remove from signature.
+            fwdSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+        }
+        // System.err.println("Forwarding "+thisName+":"+thisSig+
+        //                    " arity "+nparamsIncludingSelf+"\n"+
+        //                    "  to       "+fwdClass+"."+fwdName+":"+fwdSig);
+        MethodVisitor mv = cw.visitMethod(thisModifiers, thisName, thisSig, null, null);
+        mv.visitCode();
+        if (pushSelf) {
+            mv.visitVarInsn(ALOAD, selfIndex);
+            mv.visitTypeInsn(CHECKCAST, selfSig);
+        }
+        for (int i = 0; i < nparamsIncludingSelf; i++) {
+            if (i==selfIndex) continue;
+            mv.visitVarInsn(ALOAD, i);
+        }
+        mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
+        mv.visitInsn(ARETURN);
+
+        mv.visitMaxs(2, 3);
+        mv.visitEnd();
     }
 
     /**

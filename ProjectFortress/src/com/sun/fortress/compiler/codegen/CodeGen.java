@@ -628,7 +628,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private void generateGenericMethodClass(FnDecl x, IdOrOp name,
-                                            
                                             int selfIndex) {
         /*
          * Different plan for static parameter decls;
@@ -755,49 +754,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * for our primitive type story.
          */
 
-        modifiers = Opcodes.ACC_PUBLIC;
-
-        cg = new CodeGen(this);
-
-        String osig = sig;
-
-        String selfSig =  Naming.nthSigParameter(osig,0);
-        selfSig = Useful.substring(selfSig, 1, -1);
-        // Get rid of explicit self parameter.
-        sig = Naming.removeNthSigParameter(sig, 0);
-
-        // TODO different collision rules for top-level and for
-        // methods.
-        // SAME MNAME
-
-        // trait default OR top level.
-
-        cg.mv = cw.visitCGMethod(modifiers, mname, sig, null, null);
-        cg.mv.visitCode();
-
-        // We received "self" in parameter 0
-        cg.mv.visitVarInsn(ALOAD, 0);
-        // Need to downcast, maybe. this may only matter for weird primitive types.
-        cg.mv.visitTypeInsn(Opcodes.CHECKCAST, selfSig);//NamingCzar.jvmTypeDesc(ty, ifNone, false));
-
-        for (int i = 0; i < params.size(); i++) {
-            // 0 1 2
-            // a self b
-            // self a b
-            if (i < selfIndex) {
-                cg.mv.visitVarInsn(ALOAD, i+1);
-            } else if (i > selfIndex) {
-                cg.mv.visitVarInsn(ALOAD, i);
-            }
-
-        }
-        cg.mv.visitMethodInsn(INVOKESTATIC,
-                              springBoardClass,
-                              mname,
-                              osig);
-
-
-        methodReturnAndFinish(cg);
+        // Dotted method; downcast self and
+        // forward to static method in springboard class
+        // with explicit self parameter.
+        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+                                                  springBoardClass, mname, INVOKESTATIC,
+                                                  sig, params.size(), true);
     }
 
     private void generateFunctionalBody(FnDecl x, IdOrOp name,
@@ -877,7 +839,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Compile the body in the parameter environment
 
         body.accept(this);
-        exitMethodScope(selfIndex, this, selfVar, paramsGen);
+        exitMethodScope(selfIndex, selfVar, paramsGen);
     }
 
     public void forFnDecl(FnDecl x) {
@@ -1192,18 +1154,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param selfVar
      * @param paramsGen
      */
-    private void exitMethodScope(int selfIndex, CodeGen cg, VarCodeGen selfVar,
-            List<VarCodeGen> paramsGen) {
+    private void exitMethodScope(int selfIndex, VarCodeGen selfVar, List<VarCodeGen> paramsGen) {
         for (int i = paramsGen.size() - 1; i >= 0; i--) {
             if (i != selfIndex) {
                 VarCodeGen v = paramsGen.get(i);
-                v.outOfScope(cg.mv);
+                v.outOfScope(mv);
             }
         }
         if (selfVar != null)
-            selfVar.outOfScope(cg.mv);
+            selfVar.outOfScope(mv);
 
-        methodReturnAndFinish(cg);
+        methodReturnAndFinish();
     }
 
     /**
@@ -1219,61 +1180,31 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                          int selfIndex,
                                          com.sun.fortress.nodes.Type returnType,
                                          boolean savedInATrait) {
-        int modifiers = Opcodes.ACC_PUBLIC;
-
-        CodeGen cg = new CodeGen(this);
-        // Just a wrapper around the body itself
-        modifiers |= Opcodes.ACC_STATIC;
+        int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
         String sig =
             NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x), returnType,
                                        component.getName());
-
-        String dottedSig = Naming.removeNthSigParameter(sig, selfIndex);
 
         // TODO different collision rules for top-level and for methods.
         String mname = nonCollidingSingleName(name, sig);
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
-        cg.mv = cw.visitCGMethod(modifiers, mname, sig, null, null);
-        cg.mv.visitCode();
+        int invocation = savedInATrait ? INVOKEINTERFACE : INVOKEVIRTUAL;
 
-        // Now inside method body. Generate code for the method body.
-        // Start by binding the parameters and setting up the initial
-        // locals.
-        VarCodeGen selfVar = null;
-        List<VarCodeGen> paramsGen =
-            new ArrayList<VarCodeGen>(params.size());
+        InstantiatingClassloader.forwardingMethod(cw,
+                         mname, modifiers, selfIndex,
+                         traitOrObjectName, dottedName, invocation,
+                         sig, params.size(), true);
 
-        // Invoke the dotted method, thank you very much.
-        // -----------
-
-        // TODO will have to get smarter with unboxing
-        cg.mv.visitVarInsn(ALOAD, selfIndex);
-        for (int i = 0; i < params.size(); i++) {
-            if (i != selfIndex)
-                cg.mv.visitVarInsn(ALOAD, i);
-
-        }
-        cg.mv.visitMethodInsn(savedInATrait ? INVOKEINTERFACE
-                : INVOKEVIRTUAL, traitOrObjectName, dottedName,
-                dottedSig);
-
-        // -----------
-        // Method body is complete except for returning final result if any.
-        // TODO: Fancy footwork here later on if we need to return a
-        // non-pointer; for now every fortress functional returns a single
-        // pointer result.
-        methodReturnAndFinish(cg);
-        // Method body complete, cg now invalid.
     }
 
     /**
      * @param cg
      */
-    private void methodReturnAndFinish(CodeGen cg) {
-        cg.mv.visitInsn(Opcodes.ARETURN);
-        cg.mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-        cg.mv.visitEnd();
+    private void methodReturnAndFinish() {
+        mv.visitInsn(Opcodes.ARETURN);
+        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitEnd();
     }
 
     /**
@@ -1339,7 +1270,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         body.accept(cg);
 
-        methodReturnAndFinish(cg);
+        cg.methodReturnAndFinish();
         cg.dumpClass(className);
 
         constructWithFreeVars(className, freeVars, init);
