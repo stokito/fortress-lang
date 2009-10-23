@@ -1414,6 +1414,8 @@
       ""
     (concat "\\underline{" (fortress-render-string-contents str) "}")))
 
+;;; The result of this function is suitable for \tt environments.
+
 (defun fortress-render-string-contents (str)
   (let ((result ""))
     (dotimes (k (length str))
@@ -1424,6 +1426,7 @@
 			    ((= c ?\\) "{\\char'134}")
 			    ((= c ?\{) "{\\char'173}")
 			    ((= c ?\}) "{\\char'175}")
+			    ((= c ?\|) "{\\char'174}")
 			    ((= c ?\#) "{\\char'43}")
 			    ((= c ?\$) "{\\char'44}")
 			    ((= c ?\%) "{\\char'45}")
@@ -1435,11 +1438,46 @@
 			    ((= c ?\_) "{\\char'137}")
 			    ((and (> c #x20) (< c #x7f))
 			     (substring str k (+ k 1)))
-			    (t (or (gethash c *fortress-operator-codepoint-hashtable*)
-				   (gethash c *fortress-honorary-letter-codepoint-hashtable*)
-				   (gethash c *fortress-identifier-codepoint-hashtable*)
-				   (gethash c *fortress-control-character-hashtable*)
-				   (fortress-render-unknown-character c))))))))
+			    (t (concat "{$"
+				       (or (gethash c *fortress-operator-codepoint-hashtable*)
+					   (gethash c *fortress-honorary-letter-codepoint-hashtable*)
+					   (gethash c *fortress-identifier-codepoint-hashtable*)
+					   (gethash c *fortress-control-character-hashtable*)
+					   (fortress-render-unknown-character c))
+				       "$}")))))))
+    result))
+
+;;; The result of this function is suitable for \rm, \it, \bf environments.
+
+(defun fortress-render-text (str)
+  (let ((result ""))
+    (dotimes (k (length str))
+      (let ((c (elt str k)))
+	(setq result
+	      (concat result
+		      (cond ((= c ?\s) "~")
+			    ((= c ?\\) "{$\\backslash$}")
+			    ((= c ?\{) "{$\\{$}")
+			    ((= c ?\}) "{$\\}}")
+			    ((= c ?\|) "{$|$}")
+			    ((= c ?\#) "\\#")
+			    ((= c ?\$) "\\$")
+			    ((= c ?\%) "\\%")
+			    ((= c ?\&) "\\&")
+			    ((= c ?\') "{'}")
+			    ((= c ?^) "{\\char'136}")
+			    ((= c ?\`) "{`}")
+			    ((= c ?\~) "{\\char'176}")
+			    ((= c ?\_) "{\\_}")
+			    ((and (> c #x20) (< c #x7f))
+			     (substring str k (+ k 1)))
+			    (t (concat "{$"
+				       (or (gethash c *fortress-operator-codepoint-hashtable*)
+					   (gethash c *fortress-honorary-letter-codepoint-hashtable*)
+					   (gethash c *fortress-identifier-codepoint-hashtable*)
+					   (gethash c *fortress-control-character-hashtable*)
+					   (fortress-render-unknown-character c))
+				       "}")))))))
     result))
 
 (defun fortress-render-unknown-character (c)
@@ -1552,6 +1590,21 @@
 				      (next (or (position-if '(lambda (c) (not (= c ?\}))) str :start pos) (length str))))
 				 (setq k next)
 				 (concat "\\hbox{\\tt " (fortress-render-string-contents (substring str start (- next 3))) "}")))
+			      ((and (= c ?\{)
+				    (= d ?\{)
+				    (search "}}" str :start2 k))
+			       (let* ((m (search "}}" str :start2 k))
+				      (filename (substring str (+ k 2) m))
+				      (z (cond ((every '(lambda (c) (find c "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ./-_"))
+						       filename)
+						(cond ((and multiline-p
+							    (= k (position-if-not '(lambda (c) (= c ?\s)) str))
+							    (= (+ m 1) (position-if-not '(lambda (c) (= c ?\s)) str :from-end t)))
+						       (concat "\\FortressParagraphImage{" filename "}"))
+						      (t (concat "\\FortressInlineImage{" filename "}"))))
+					       (t (concat "\\hbox{\tt " (fortress-render-string-contents (substring str k (+ m 2))) "}")))))
+				 (setq k (+ m 2))
+				 z))
 			      ((and (= c ?\\) (= d ?\\) multiline-p)
 			       (setq k (+ k 2))
 			       "\\hfil\\break ")
@@ -1602,10 +1655,11 @@
 				      "~")
 				     (t (setq k (+ k 1))
 					;; Add braces to defeat later character-stripping operation for, e.g., headings
-					(concat "{" (fortress-render-string-contents (substring str (- k 1) k)) "}"))))
+					(concat "{" (fortress-render-text (substring str (- k 1) k)) "}"))))
 			      ((= c ?\|)
 			       (cond (table-p
 				      (when (> k 0) 
+					(unless table-result (push "" table-result))
 					(push (cond (blank (list result 'BLANK))
 						    (sep (list result 'SEP))
 						    (sepsep (list result 'SEPSEP))
@@ -2150,7 +2204,7 @@
 						(while (and lns
 							    (or (not (string= (car lns) "}}}"))
 								(> (position ?\} (car lns)) begin-indent)))
-						  (push (concat "\\lind{" (number-to-string (or curindent 0)) "}"
+						  (push (concat "\\lind{" (number-to-string (or curindent 0)) "}{\\tt"
 								(fortress-render-string-contents
 								 (fortress-trim-string-right
 								  (substring (car lns) 
@@ -2158,7 +2212,8 @@
 										 (+ begin-indent 1)
 									       (min begin-indent
 										    (or (position-if '(lambda (c) (not (= c ?\s))) (car lns))
-											(length (car lns)))))))))
+											(length (car lns))))))))
+								"}")
 							result) 
 						  (setq lns (cdr lns)))
 						(setq hrule-last nil)
@@ -2166,35 +2221,6 @@
 						(setq indented-par-last nil)
 						(setq par-in-progress nil)
 						(when lns (push "" result)))
-					      t)
-					     ((and (or (= (elt line 0) ?\{)
-						       (and (= (elt line 0) ?\>)
-							    (let ((pos1 (position-if-not '(lambda (c) (= c ?\>)) line)))
-							      (and pos1
-								   (= (elt line pos1) ?\s)
-								   (let ((pos2 (position-if-not '(lambda (c) (= c ?\s)) line :start pos1)))
-								     (and pos2 (= (elt line pos2) ?\{)))))))
-						   (let ((pos3 (position ?\{ line))
-							 (n (length line)))
-						     (and (= (elt line (- n 1)) ?\})
-							  (= (elt line (- n 2)) ?\})
-							  (= (elt line (+ pos3 1)) ?\{)
-							  (every '(lambda (c) (find c "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ./-_"))
-								 (substring line (+ pos3 2) (- n 2))))))
-					      ;; Okay, the line begins with optional >'s and then {{ and ends with }}.
-					      ;; (This is kind of quick-and-dirty for now.)
-					      (push (concat "\\FortressImage{"
-							    (number-to-string (position-if-not '(lambda (c) (= c ?\>)) line))
-							    "}{0}{"
-							    (fortress-trim-string-left
-							     (fortress-trim-string-left
-							      (fortress-trim-string-left
-							       (fortress-trim-string-right line ?\})
-							       ?\>)
-							      ?\s)
-							     ?\{)
-							    "}")
-						    result)
 					      t)
 					;		       ((and (= (elt line 0) ?\`) (not pos))
 					;                       (setq continue-previous-line nil)
@@ -2249,19 +2275,49 @@
 					      t)
 					     (t nil)))))
 		   ;; The default case: just process the line as ordinary Wiki material.
-		   (when table
-		     (setq result (append (reverse (fortress-multiline-table (reverse table) table-indent)) result))
-		     (setq table '()))
-		   (multiple-value-bind (processed-line newstate ends-with-tilde)
-		       (fortress-render-wiki-creole-line-and-state line wikistate t nil nil)
-		     (setq wikistate newstate)
-		     (setq hrule-last nil)
-		     (setq continue-previous-line ends-with-tilde)
-		     (unless par-in-progress
-		       (setq indented-par-last nil)
-		       (setq par-kinds-and-counters (list 'DUMMY)))
-		     (push (if par-in-progress processed-line (concat "\\lind{0} " processed-line)) result)
-		     (setq par-in-progress t)))))))))
+		   (cond (continue-previous-line
+			  (cond (table
+				 (multiple-value-bind (processed-line newstate ends-with-tilde)
+				     (fortress-render-wiki-creole-line-and-state line wikistate t nil t)
+				   (setq wikistate newstate)
+				   (setq continue-previous-line ends-with-tilde)
+				   (push (fortress-glue-two-table-lines (pop table) processed-line) table)
+				   (push (list "%") table)))
+				(t (multiple-value-bind (processed-line newstate ends-with-tilde)
+				       (fortress-render-wiki-creole-line-and-state line wikistate t nil nil)
+				     (setq wikistate newstate)
+				     (setq continue-previous-line ends-with-tilde)
+				     (push (concat (pop result) "%") result)
+				     (push processed-line result)))))
+			 (t (when table
+			      (setq result (append (reverse (fortress-multiline-table (reverse table) table-indent)) result))
+			      (setq table '()))
+			    (multiple-value-bind (processed-line newstate ends-with-tilde)
+				(fortress-render-wiki-creole-line-and-state line wikistate t nil nil)
+			      (setq wikistate newstate)
+			      (setq hrule-last nil)
+			      (setq continue-previous-line ends-with-tilde)
+			      (unless par-in-progress
+				(setq indented-par-last nil)
+				(setq par-kinds-and-counters (list 'DUMMY)))
+			      (push (if par-in-progress processed-line (concat "\\lind{0} " processed-line)) result)
+			      (setq par-in-progress t)))))))))))
+
+(defun fortress-glue-two-table-lines (line1 line2)
+  (let ((revline1 (reverse line1)))
+    (cond ((or (> (length (first revline1)) 0)
+	       (> (length (first line2)) 0))
+	   (append (reverse (rest revline1))
+		   (cons (concat (first revline1) (first line2))
+			 (rest line2))))
+	  (t (append (rest (rest revline1))
+		     (cons (let ((item1 (second revline1))
+				 (item2 (second line2)))
+			     (list (concat (first item1) (first item2))
+				   (cond ((eq (second item1) 'HEADING) 'HEADING)
+					 ((eq (second item1) (second item2)) (second item1))
+					 (t 'NORMAL))))
+			   (rest (rest line2))))))))
 
 ;;; The basic rules for tables are:
 ;;; (1) A table line that is not a continuation line must begin with "|".
@@ -2282,19 +2338,23 @@
 ;;;     (This causes two or more cell separator sequences to look like
 ;;;     a single separator sequence.  Undoing this requires a very
 ;;;     interesting algorithm that works from right to left.)
-;;; (6) A cell is blank if it consists entirely of space characters.
-;;;     A cell is right-justified if it has no spaces on the right and at least
+;;; (6) A cell is //blank// if it consists entirely of space characters.
+;;;     A cell is //right-justified// if it has no spaces on the right and at least
 ;;;     one space to the left, or one space to the right and at least two spaces
-;;;     to the left.  A cell is left-justified if it has no spaces on the left
+;;;     to the left.  A cell is //left-justified// if it has no spaces on the left
 ;;;     and at least one space to the right, or one space to the left and at least
-;;;     two spaces to the right.  A cell is centered if it has at least two
+;;;     two spaces to the right.  A cell is //centered// if it has at least two
 ;;;     spaces on each side.  Otherwise (no space on each side, or exactly one
-;;;     space on each side), it is neutral.  Neutral cells are converted to
+;;;     space on each side), it is //neutral//.  Neutral cells are converted to
 ;;;     left-justified, right-justified, or centered by examining all other
 ;;;     cells that begin in the same column and span the same number of columns;
-;;;     neutral cells are converted to the same type as the earliest (highest)
-;;;     non-neutral cell in that set.  If all cells in the set are neutral,
-;;;     they are made centered.
+;;;     neutral cells are converted to the same type as the latest (lowest)
+;;;     non-neutral, non-blank cell in that set that precedes all neutral cells,
+;;;     but if the first non-blank cell of the set is neutral, then all neutral cells
+;;;     in the set are made centered.  (The idea behind neutral cells is that you can specify
+;;;     the justification for each column injust  the column headings or the first row
+;;;     of data cells, and then just use no space, or one space, next to each pipe
+;;;     in all other rows of the table.)
 ;;; (7) If every cell in a row is either all blank or all "-" characters,
 ;;;     then it is not really a table row, but a set of horizontal lines
 ;;;     spanning the indicated columns.
@@ -2308,7 +2368,8 @@
 			      table-lines))
 	 (max-pipe-count (reduce 'max pipe-counts))
 	 (row-types (mapcar '(lambda (line)
-			       (cond ((every '(lambda (item) (or (stringp item) (eq (second item) 'SEPSEP))) line)
+			       (cond ((string= (first line) "%") 'CONTINUATION)
+				     ((every '(lambda (item) (or (stringp item) (eq (second item) 'SEPSEP))) line)
 				      'HLINEHLINE)
 				     ((every '(lambda (item) (or (stringp item) (eq (second item) 'SEP))) line)
 				      'HLINE)
@@ -2360,6 +2421,7 @@
 		(almost-final
 		 (mapcar* '(lambda (rtype row)
 			     (ecase rtype
+			       ((CONTINUATION) "%")
 			       ((HLINEHLINE) "\\hline\\hline")
 			       ((HLINE) "\\hline")
 			       ((CLINE)
@@ -2395,12 +2457,11 @@
 			 (car almost-final))
 		 (let ((rev-cdr-almost-final (reverse (cdr almost-final))))
 		   (reverse (cons (concat (car rev-cdr-almost-final) "\n\\FortressEndTable")
-				  (cdr rev-cdr-almost-final)))))))
-      )))
+				  (cdr rev-cdr-almost-final))))))))))
 
 (defun fortress-analyze-table-cell (rtype col-from-right span str)
   (ecase rtype
-    ((HLINEHLINE HLINE) nil)
+    ((HLINEHLINE HLINE CONTINUATION) nil)
     ((CLINE) (and (= (elt str 0) ?\-) (list col-from-right span)))
     ((NORMAL)
      (let ((lpad (position-if-not '(lambda (c) (= c ?\s)) str)))
@@ -2416,29 +2477,37 @@
 
 (defun fortress-convert-neutral-table-cells (row-types rows)
   (let ((ht (make-hash-table :test 'equal)))
-    (mapc '(lambda (rtype-and-row)
-	     (let ((rtype (first rtype-and-row))
-		   (row (second rtype-and-row)))
-	       (ecase rtype
-		 ((NORMAL)
-		  (mapc '(lambda (cell-data)
-			   (unless (memq (first cell-data) '(NEUTRAL BLANK))
-			     (puthash (list (third cell-data) (fourth cell-data)) (first cell-data) ht)))
-			row))
-		 ((HLINEHLINE HLINE CLINE)))))
-	  (reverse (mapcar* 'list row-types rows)))
     (mapcar '(lambda (rtype-and-row)
 	       (let ((rtype (first rtype-and-row))
 		     (row (second rtype-and-row)))
 		 (ecase rtype
 		   ((NORMAL)
-		    (mapcar '(lambda (cell-data) (if (eq (first cell-data) 'NEUTRAL)
-						     (cons (or (gethash (list (third cell-data) (fourth cell-data)) ht)
-							       'CENTERED)
-							   (cdr cell-data))
-						   cell-data))
+		    (mapc '(lambda (cell-data)
+			     (ecase (first cell-data)
+			       ((BLANK))
+			       ((NEUTRAL)
+				(let ((z (gethash (list (third cell-data) (fourth cell-data)) ht)))
+				  (when (or (null z) (null (first z)))
+				    (puthash (list (third cell-data) (fourth cell-data)) (list t (if z (second z) 'CENTERED)) ht))))
+			       ((LEFT-JUSTIFIED RIGHT-JUSTIFIED CENTERED)
+				(let ((z (gethash (list (third cell-data) (fourth cell-data)) ht)))
+				  (unless (and z (first z))
+				    (puthash (list (third cell-data) (fourth cell-data)) (list nil (first cell-data)) ht))))))
+			  row))
+		   ((HLINEHLINE HLINE CLINE CONTINUATION)))))
+	    (mapcar* 'list row-types rows))
+    (mapcar '(lambda (rtype-and-row)
+	       (let ((rtype (first rtype-and-row))
+		     (row (second rtype-and-row)))
+		 (ecase rtype
+		   ((NORMAL)
+		    (mapcar '(lambda (cell-data)
+			       (if (eq (first cell-data) 'NEUTRAL)
+				   (cons (second (gethash (list (third cell-data) (fourth cell-data)) ht))
+					 (cdr cell-data))
+				 cell-data))
 			    row))
-		   ((HLINEHLINE HLINE CLINE) row))))
+		   ((HLINEHLINE HLINE CLINE CONTINUATION) row))))
 	    (mapcar* 'list row-types rows))))
 
 (defun fortress-best-column-types (row-types rows ncols)
@@ -2458,7 +2527,7 @@
 			       ((RIGHT-JUSTIFIED) (incf (elt right col-minus-one)))
 			       ((CENTERED) (incf (elt center col-minus-one))))))
 			row))
-		 ((HLINEHLINE HLINE CLINE)))))
+		 ((HLINEHLINE HLINE CLINE CONTINUATION)))))
 	  (mapcar* 'list row-types rows))
     (let ((result '()))
       (dotimes (j ncols)

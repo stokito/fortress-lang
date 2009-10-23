@@ -240,6 +240,7 @@
   \advance\hsize by -\fortresscurindent
   \setbox\fortresstempbox=\hbox{\tt (*~}\leftskip=\wd\fortresstempbox
   \setbox\fortresstempbox=\hbox{\tt ~*)}\rightskip=\wd\fortresstempbox
+  \sloppy
   #1\relax
   \FortressOuterMacros
   \let\item=\fortressitem
@@ -522,12 +523,11 @@
   \begin{tabular}}
 \newcommand\FortressEndTable{\end{tabular}\par\endgroup}
 
-\newcommand\FortressImage[3]{\ifhmode\par\endgroup\fi
-  \leavevmode\begingroup
-  \advance\leftskip by #1\fortressleftindentincrement
-  \advance\rightskip by #2\fortressleftindentincrement
+\newcommand\FortressParagraphImage[1]{%
   \fortresstempdimen=\hsize
   \advance\fortresstempdimen by -\leftskip
   \advance\fortresstempdimen by -\rightskip
   \edef\fortresstemp{[width=\the\fortresstempdimen]}
-  \expandafter\includegraphics\fortresstemp{#3}\par\endgroup}
+  \expandafter\includegraphics\fortresstemp{#1}}
+
+\newcommand\FortressInlineImage[1]{\includegraphics[width=1in]{#1}}
