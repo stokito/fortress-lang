@@ -19,6 +19,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.y.fsi:21:1-11:\n\
 \ Invalid comprises clause: Compiled5.y.O is included in the comprises clause of T\n\
-\ but Compiled5.y.O does not extend T.\n\
+\ but Compiled5.y.O does not extend Compiled5.y.T.\n\
 File Compiled5.y.fss has 1 error.\n
 compile_out_equals=

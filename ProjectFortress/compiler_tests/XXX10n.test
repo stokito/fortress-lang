@@ -13,15 +13,12 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Compiled9.z.fss
+tests=Compiled10.n
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled9.z.fss:21:1-40:\n\
-\ Invalid comprises clause: Bar[\\U,T\\] is included in the comprises clause of Foo\n\
-\ but Bar does not extend Foo[\\T,U\\].\n\
-${STATIC_TESTS_DIR}/Compiled9.z.fss:21:1-40:\n\
-\ Invalid comprises clause: Foo has a comprises clause\n\
-\ but its immediate subtype Bar is not eligible to extend it.\n\
-File Compiled9.z.fss has 2 errors.\n
+${STATIC_TESTS_DIR}/Compiled10.n.fss:22:1-41:\n\
+\ Invalid comprises clause: Hoo is included in the comprises clause of Foo\n\
+\ but Hoo does not extend Foo[\\T\\].\n\
+File Compiled10.n.fss has 1 error.\n
 compile_out_equals=

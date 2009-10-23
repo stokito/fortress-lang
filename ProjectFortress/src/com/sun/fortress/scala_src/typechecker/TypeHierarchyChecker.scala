@@ -225,14 +225,18 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	  case si:ProperTraitIndex =>
 	    for (ty <- toSet(si.comprisesTypes)) {
 	      ty match {
-		case tty@STraitType(_,name,_,_) =>
+		case tty@STraitType(_, name, args, _) =>
 		  getTypes(name, errors) match {
 		    case tti:TraitIndex =>
-		      if ( ! extendsContains(tty, toList(tti.extendsTypes), decl,
+                      val subst_extends =
+                        toList(tti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
+                                                     toList(tti.staticParameters) zip args,
+                                                     tw.getBaseType)(new_analyzer))
+                      if ( ! extendsContains(tt, subst_extends,
 					     new_analyzer, errors) )
 			error(errors, "Invalid comprises clause: " + ty +
 			      " is included in the comprises clause of " + decl +
-			      "\n    but " + name + " does not extend " + decl + ".", tti.ast)
+			      "\n    but " + name + " does not extend " + tt + ".", tti.ast)
 		    }
 		case _ =>
 	      }
@@ -277,43 +281,28 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
   }
 
   /** Whether 'comprises' is a supertype of any type in 'extendsC'
-   *  If any type in 'extendsC' is a subtype of 'comprises', then OK
-   *  Otherwise, for each type T in 'extendsC',
-   *  check extendsContains(comprises, substituted_extendsC_of_T, analyzer)
+   *  If any type in 'extendsC' is a subtype of 'comprises', then OK.
+   *  Otherwise, check the supertypes of the types in 'extendsC'.
    */
-
-  private def extendsContains(comprised: TraitType, extendsC: List[TraitTypeWhere],
-			      decl:Id, analyzer: TypeAnalyzer,
+  private def extendsContains(comprises: TraitType, extendsC: List[Option[Type]],
+                              analyzer: TypeAnalyzer,
 			      errors:JavaList[StaticError]): Boolean = {
-    for (ty <- extendsC) {
-      ty match {
-	case STraitTypeWhere(_,SAnyType(_),_) =>
-	  if ( decl.getText.equals("Any") ) return true
-	case STraitTypeWhere(_,STraitType(_,name,sargs,_),_) =>
-	  if ( name.getText.equals(decl.getText) ) {
-	    val sparams = compilation_unit.typeConses.get(decl).staticParameters
-	    STypesUtil.staticInstantiation(toList(sparams) zip sargs, comprised)(analyzer) match {
-	      case Some(STraitType(_,n1,s1@hd::_,_)) =>
-		val s2 = toList(compilation_unit.typeConses.get(n1).staticParameters)
-		return (s1 zip s2).forall(pair =>
-					  (pair._1, STypesUtil.staticParamToArg(pair._2)) match {
-					    case (STypeArg(_,_,t1), STypeArg(_,_,t2)) =>
-					      t1 == t2
-					    case (SOpArg(_,_,t1), SOpArg(_,_,t2)) =>
-					      t1 == t2
-					    case _ => false
-					  })
-	      case _ => return true
-	    }
-	  }
+    for (ty <- extendsC if ty.isDefined)
+      if (analyzer.subtype(ty.get, comprises).isTrue) return true
+    extendsC.map(ty => ty match {
+      case Some(tty) => tty match {
+        case STraitType(_, name, args, _) =>
+          getTypes(name, errors) match {
+            case ti:TraitIndex =>
+              val subst_extends =
+                toList(ti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
+                                            toList(ti.staticParameters) zip args,
+                                            tw.getBaseType)(analyzer))
+              extendsContains(comprises, subst_extends, analyzer,
+                              errors)
+          }
+        case _ => false
       }
-    }
-    extendsC.map(ty => ty.getBaseType match {
-	case STraitType(_, name, _, _) =>
-		 getTypes(name, errors) match {
-		   case ti:TraitIndex =>
-		     extendsContains(comprised, toList(ti.extendsTypes),
-				     decl, analyzer, errors)}
-	case _ => false}).foldLeft(false)((a,b) => a || b)
+      case _ => false}).foldLeft(false)((a,b) => a || b)
   }
 }
