@@ -272,12 +272,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val l2 = l.filter(!sub(a,_).isTrue)
         l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
       })
-      if (!ds.isEmpty && ds.forall(_.isInstanceOf[TupleType]))
-        List(ds.reduceLeft((a,b) => mergeTuples(a.asInstanceOf[TupleType], b.asInstanceOf[TupleType])))
-      else
-        ds
+      val (ts, ss) = List.separate(ds.map(_ match {
+        case t:TupleType => Left(t)
+        case s => Right(s)
+      }))
+      ss ++ mergeTuples(ts)
     }
   }
+  
+  private def mergeTuples(ts: List[TupleType]): List[TupleType] = ts match {
+    case Nil => Nil
+    case _ => List(ts.reduceLeft(mergeTuples)) 
+  } 
   
   //ToDo: Keywords
   private def mergeTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
