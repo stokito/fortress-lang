@@ -486,6 +486,7 @@ object STypesUtil {
                              sparamsAndSargs.map(_._1)))
   }
 
+
   /**
    * Instantiate only the unlifted static parameters with the given static args
    * in the given body type.
@@ -522,9 +523,7 @@ object STypesUtil {
     def argMatchesParam(paramAndArg: (StaticParam, StaticArg)): Boolean = {
       val (param, arg) = paramAndArg
       (arg, param.getKind) match {
-        case (STypeArg(_, _, argType), _:KindType) =>
-          toList(param.getExtendsClause).
-            forall(!analyzer.subtype(argType, _).isFalse)
+        case (_:TypeArg, _:KindType) => true
         case (_:IntArg, _:KindInt) => true
         case (_:BoolArg, _:KindBool) => true
         case (_:DimArg, _:KindDim) => true
