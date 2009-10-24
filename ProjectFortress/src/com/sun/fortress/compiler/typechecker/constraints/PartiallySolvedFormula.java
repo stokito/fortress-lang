@@ -28,7 +28,7 @@ import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.lambda.Lambda;
-import static com.sun.fortress.compiler.typechecker.constraints.JavaConstraintUtil.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 /**
  * A constraint that is open, and yet contains solved inference variables.

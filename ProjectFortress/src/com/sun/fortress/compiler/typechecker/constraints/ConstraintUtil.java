@@ -17,45 +17,55 @@
 
 package com.sun.fortress.compiler.typechecker.constraints;
 
-import com.sun.fortress.Shell;
-import com.sun.fortress.compiler.typechecker.constraints.JavaConstraintUtil;
-import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil;
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.compiler.typechecker.*;
+import static com.sun.fortress.compiler.Types.ANY;
+import static com.sun.fortress.compiler.Types.BOTTOM;
+import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
-/**
- * Temporary Factory that can produce both Java and Scala
- * constraint formulas
- */
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.sun.fortress.compiler.typechecker.SubtypeHistory;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.UsefulPLT;
+
 public class ConstraintUtil {
 
-	public static ConstraintFormula trueFormula() {
-		if(!Shell.getScala())
-			return JavaConstraintUtil.trueFormula();
-		else
-			return ScalaConstraintUtil.TRUE_FORMULA();
-	}
-	public static ConstraintFormula falseFormula() {
-		if(!Shell.getScala())
-			return JavaConstraintUtil.falseFormula();
-		else
-			return ScalaConstraintUtil.FALSE_FORMULA();
+	static protected class TypeExpander extends NodeUpdateVisitor{
+		Map<_InferenceVarType,Type> bounds;
+		Set<_InferenceVarType> context;
+		TypeExpander(Map<_InferenceVarType,Type> _bounds){
+			bounds=_bounds;
+			context= new HashSet<_InferenceVarType>();
+		}
+		TypeExpander extend(_InferenceVarType t){
+			TypeExpander temp = new TypeExpander(bounds);
+			temp.context.addAll(context);
+			temp.context.add(t);
+			return temp;
+		}
+
+		@Override
+		public Type for_InferenceVarType(_InferenceVarType that) {
+			if(context.contains(that)){
+				return that;
+			}
+			else{
+				Type bound=bounds.get(that);
+				TypeExpander v = this.extend(that);
+				//return NodeFactory.makeFixedPointType(that,(Type)bound.accept(v));
+				return (Type)bound.accept(v);
+			}
+		}
+
 	}
 
-	public static ConstraintFormula upperBound(_InferenceVarType ivar, Type type, SubtypeHistory h) {
-		if(!Shell.getScala())
-			return JavaConstraintUtil.upperBound(ivar,type,h);
-		else
-			return ScalaConstraintUtil.upperBound(ivar,type,h);
-	}
-
-	public static ConstraintFormula lowerBound(_InferenceVarType ivar, Type type, SubtypeHistory h) {
-		if(!Shell.getScala())
-			return JavaConstraintUtil.lowerBound(ivar,type,h);
-		else
-			return ScalaConstraintUtil.lowerBound(ivar,type,h);
-	}
-
+	/**
+	 * AND together all of the given constraints.
+	 */
 	public static ConstraintFormula bigAnd(Iterable<? extends ConstraintFormula> constraints,
 			SubtypeHistory hist) {
 		ConstraintFormula result = trueFormula();
@@ -65,11 +75,44 @@ public class ConstraintUtil {
 		return result;
 	}
 
-	public static ConstraintFormula fromBoolean(Boolean bool){
-		if(!Shell.getScala())
-			return JavaConstraintUtil.fromBoolean(bool);
-		else
-			return ScalaConstraintUtil.fromBoolean(bool);
+	public static ConstraintFormula falseFormula(){return FalseConstraint.FALSE;}
+
+	public static ConstraintFormula trueFormula(){return TrueConstraint.TRUE;}
+
+	public static ConstraintFormula fromBoolean(boolean b) {
+		return b ? falseFormula() : trueFormula();
+	}
+
+	public static ConstraintFormula lowerBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
+		debug.logStart(new String[]{"var","lowerBound"}, var, bound);
+		if (history.subtypeNormal(bound, BOTTOM).isTrue()) {
+			debug.logEnd("result", trueFormula());
+			return trueFormula();
+		}
+		else {
+			//            IMultiMap<_InferenceVarType,Type> lowers = new MultiMap<_InferenceVarType,Type>();
+			//            lowers.putItem(var, bound);
+			ConstraintFormula result =
+				new ConjunctiveFormula(UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(),
+						UsefulPLT.singletonMultiMap(var, bound), history);
+			debug.logEnd("result", result);
+			return result;
+		}
+	}
+
+	public static ConstraintFormula upperBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
+		debug.logStart(new String[]{"var","upperBound"}, var, bound);
+		if (history.subtypeNormal(ANY, bound).isTrue()) {
+			debug.logEnd("result", trueFormula());
+			return trueFormula();
+		}
+		else{
+			ConstraintFormula result =
+				new ConjunctiveFormula(UsefulPLT.singletonMultiMap(var, bound),
+						UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(), history);
+			debug.logEnd("result", result);
+			return result;
+		}
 	}
 
 }

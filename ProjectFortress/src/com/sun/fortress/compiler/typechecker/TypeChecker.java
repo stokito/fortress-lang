@@ -24,7 +24,7 @@ import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static edu.rice.cs.plt.tuple.Option.wrap;
-import static com.sun.fortress.compiler.typechecker.constraints.JavaConstraintUtil.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
