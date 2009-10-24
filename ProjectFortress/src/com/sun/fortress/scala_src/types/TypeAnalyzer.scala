@@ -25,7 +25,7 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ScalaConstraint
+import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
 import com.sun.fortress.scala_src.typechecker.CnAnd
@@ -53,9 +53,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = meet(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
-  def subtype(x: Type, y: Type): ScalaConstraint = sub(normalize(x), normalize(y))
+  def subtype(x: Type, y: Type): ConstraintFormula = sub(normalize(x), normalize(y))
 
-  private def sub(x: Type, y: Type): ScalaConstraint = (x,y) match {
+  private def sub(x: Type, y: Type): ConstraintFormula = (x,y) match {
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
     case (s, t: AnyType) => TRUE
@@ -108,7 +108,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => FALSE
   }
 
-  private def sub(x: List[KeywordType], y: List[KeywordType]): ScalaConstraint = {
+  private def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
     val xmap = Map(x.map(toPair):_*)
     val ymap = Map(y.map(toPair):_*)
@@ -120,7 +120,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     xmap.keys.map(compare).foldLeft(TRUE)(and)
   }
 
-  private def sub(x: Effect, y: Effect): ScalaConstraint = {
+  private def sub(x: Effect, y: Effect): ConstraintFormula = {
     val (SEffect(_, tc1, io1), SEffect(_, tc2, io2)) = (x,y)
     if (!io1 || io2)
       sub(makeUnionType(tc1.getOrElse(Nil)), makeUnionType(tc2.getOrElse(Nil)))
@@ -129,17 +129,17 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
 
-  def equivalent(x: Type, y: Type): ScalaConstraint = {
+  def equivalent(x: Type, y: Type): ConstraintFormula = {
     val s = normalize(x)
     val t = normalize(y)
     eq(s,t)
   }
 
-  private def eq(x: Type, y:Type): ScalaConstraint  = {
+  private def eq(x: Type, y:Type): ConstraintFormula  = {
     and(sub(x, y), sub(x, y))
   }
 
-  private def eq(x: StaticArg, y: StaticArg): ScalaConstraint = (x,y) match {
+  private def eq(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => eq(s, t)
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
     case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
@@ -322,16 +322,16 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def extend(params: List[StaticParam], where: Option[WhereClause]) = 
     new TypeAnalyzer(traits, env.extend(params, where))
   
-  private val TRUE: ScalaConstraint = CnTrue
-  private val FALSE: ScalaConstraint = CnFalse
-  private def and(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint =
-    x.scalaAnd(y, this.lteq)
-  private def or(x: ScalaConstraint, y: ScalaConstraint): ScalaConstraint =
-    x.scalaOr(y, this.lteq)
-  private def upperBound(i: _InferenceVarType, t: Type): ScalaConstraint =
-    CnAnd(Map((i,t)), Map(), this.lteq)
-  private def lowerBound(i: _InferenceVarType, t: Type): ScalaConstraint =
-    CnAnd(Map(), Map((i,t)), this.lteq)
+  private val TRUE: ConstraintFormula = CnTrue
+  private val FALSE: ConstraintFormula = CnFalse
+  private def and(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
+    x.and(y, this)
+  private def or(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
+    x.or(y, this)
+  private def upperBound(i: _InferenceVarType, t: Type): ConstraintFormula =
+    CnAnd(Map((i,t)), Map(), this)
+  private def lowerBound(i: _InferenceVarType, t: Type): ConstraintFormula =
+    CnAnd(Map(), Map((i,t)), this)
   private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
   
 }

@@ -33,8 +33,9 @@ import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ScalaConstraint
-import com.sun.fortress.scala_src.typechecker.ScalaConstraintUtil._
+import com.sun.fortress.scala_src.typechecker.ConstraintFormula
+import com.sun.fortress.scala_src.typechecker.CnFalse
+import com.sun.fortress.scala_src.typechecker.CnTrue
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -161,8 +162,7 @@ object STypesUtil {
 
     // Get the substitution resulting from params :> expectedDomain
     val paramsDomain = makeDomainType(params).get
-    val subst = analyzer.subtype(expectedDomain, paramsDomain).
-                asInstanceOf[ScalaConstraint].scalaSolve(Map())
+    val subst = analyzer.subtype(expectedDomain, paramsDomain).solve(Map())
     subst.map(s =>
       params.map(p => p match {
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
@@ -404,12 +404,12 @@ object STypesUtil {
 
   /** Return the [Scala-based] conditions for subtype <: supertype to hold. */
   def checkSubtype(subtype: Type, supertype: Type)
-                  (implicit analyzer: TypeAnalyzer): ScalaConstraint = {
+                  (implicit analyzer: TypeAnalyzer): ConstraintFormula = {
     val constraint = analyzer.subtype(subtype, supertype)
-    if (!constraint.isInstanceOf[ScalaConstraint]) {
-      bug("Not a ScalaConstraint.")
+    if (!constraint.isInstanceOf[ConstraintFormula]) {
+      bug("Not a ConstraintFormula.")
     }
-    constraint.asInstanceOf[ScalaConstraint]
+    constraint.asInstanceOf[ConstraintFormula]
   }
 
   /** Determine if subtype <: supertype. */
@@ -659,15 +659,15 @@ object STypesUtil {
     val sparams = getStaticParams(fnType).filter(!_.isLifted)
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): ScalaConstraint = {
+    def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
       
       // argType <:? dom(infArrow) yields a constraint, C1
       val domainConstraint = checkSubtype(argType, infArrow.getDomain)
 
       // if context given, C := C1 AND range(infArrow) <:? context
       val rangeConstraint = context.map(t =>
-        checkSubtype(infArrow.getRange, t)).getOrElse(TRUE_FORMULA)
-      domainConstraint.scalaAnd(rangeConstraint, isSubtype)
+        checkSubtype(infArrow.getRange, t)).getOrElse(CnTrue)
+      domainConstraint.and(rangeConstraint, analyzer)
     }
 
     // Do the inference.
@@ -677,7 +677,7 @@ object STypesUtil {
   /** Helper that performs the inference. */
   def inferStaticParamsHelper(fnType: ArrowType,
                               sparams: List[StaticParam],
-                              constraintMaker: ArrowType => ScalaConstraint)
+                              constraintMaker: ArrowType => ConstraintFormula)
                              (implicit analyzer: TypeAnalyzer)
                               : Option[(ArrowType, List[StaticArg])] = {
 
@@ -699,11 +699,11 @@ object STypesUtil {
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
     val sparamBounds = sparams.flatMap(staticParamBoundType).
-                               map(t => insertStaticParams(t, sparams))
+      map(t => staticInstantiation(sparams zip sargs, insertStaticParams(t, sparams)).get)
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
-    val subst = constraint.scalaSolve(boundsMap).getOrElse(return None)
+    val subst = constraint.solve(boundsMap).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val resultArrow =
@@ -731,13 +731,13 @@ object STypesUtil {
     if (sparams.isEmpty || fnType.getMethodInfo.isNone) return Some((fnType, Nil))
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): ScalaConstraint = {
+    def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
     
       // Get the type of the `self` arg and form selfArg <:? selfType
       val SMethodInfo(selfType, selfPosition) = infArrow.getMethodInfo.unwrap
       getTypeAt(argType, selfPosition) match {
         case Some(selfArgType) => checkSubtype(selfArgType, selfType)
-        case None => FALSE_FORMULA
+        case None => CnFalse
       }
     }
 

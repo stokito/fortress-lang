@@ -26,7 +26,7 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ScalaConstraint
+import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
 import com.sun.fortress.scala_src.typechecker.CnAnd
