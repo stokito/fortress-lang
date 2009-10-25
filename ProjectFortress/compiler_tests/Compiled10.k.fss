@@ -1,0 +1,54 @@
+(********************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+********************************************************************************)
+export Executable
+
+(* (2) Modification to syntax of `comprises` clauses. *)
+
+(*  b) For each trait T
+ *     for each naked type variable V in T's comprises clause
+ *     the instance of T by using all its static parameter names as
+ *     corresponding static arguments to the trait is implicitly
+ *     regarded as one of the bounds on that static parameter V
+ *     (in addition to any other bounds it might have).
+ *)
+trait T[\U\] comprises U
+  g(self, x:T[\U\], y:U, z:Q) = do
+    h(self) (* Yes *)
+    i(self) (* Yes *)
+    j(self) (* Yes *)
+    k(self) (* No *)
+    h(x)    (* No *)
+    i(x)    (* Yes *)
+    j(x)    (* No *)
+    k(x)    (* No *)
+    h(y)    (* Yes *)
+    i(y)    (* Yes *)
+    j(y)    (* Yes *)
+    k(y)    (* No *)
+    h(y)    (* Yes *)
+    i(z)    (* No *)
+    j(z)    (* No *)
+    k(z)    (* Yes *)
+  end
+  h(self) = ()
+  i(x:T[\U\]) = ()
+  j(x:U) = ()
+  k(x:Q) = ()
+end
+object Q extends T[\Q\] end
+
+run() = ()

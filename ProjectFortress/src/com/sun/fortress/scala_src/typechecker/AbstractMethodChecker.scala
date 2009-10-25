@@ -66,7 +66,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-        val inherited = inheritedMethods(extendsC)
+        val inherited = inheritedMethods(traits, extendsC).map(t => t.first.asInstanceOf[IdOrOp].getText)
         for ( d <- decls ; if d.isInstanceOf[FnDecl] ) {
           if ( NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl])) &&
                ! inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp].getText.equals(_)) )
@@ -100,50 +100,6 @@ class AbstractMethodChecker(component: ComponentIndex,
        }
     }
     typeAnalyzer = oldTypeAnalyzer
-  }
-
-  def inheritedMethods(extendedTraits: List[TraitTypeWhere]) = {
-    // Return all of the methods from super-traits
-    def inheritedMethodsHelper(history: HierarchyHistory,
-                               extended_traits: List[TraitTypeWhere])
-                               : Set[String] = {
-      var methods = new HashSet[String]()
-      var done = false
-      var h = history
-      for ( trait_ <- extended_traits ; if (! done) ) {
-        val type_ = trait_.getBaseType
-        if ( ! h.hasExplored(type_) ) {
-          h.explore(type_)
-          type_ match {
-            case ty@STraitType(_, name, _, params) =>
-              toOption(traits.typeCons(name)) match {
-                case Some(ti) =>
-                  if ( ti.isInstanceOf[TraitIndex] ) {
-                    val trait_params = ti.staticParameters
-                    val trait_args = ty.getArgs
-                    // Instantiate methods with static args
-                    var collected = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => t.first)
-                    collected ++= toSet(ti.asInstanceOf[TraitIndex].functionalMethods).map(t => t.first)
-                    for ( pair <- collected ; if pair.isInstanceOf[IdOrOp] ) {
-                      methods += pair.asInstanceOf[IdOrOp].getText
-                    }
-                    val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
-                    val instantiated_extends_types =
-                      toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
-                            t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
-                    val old_hist = h
-                    methods ++= inheritedMethodsHelper(h, instantiated_extends_types)
-                    h = old_hist
-                  } else done = true
-                case _ => done = true
-              }
-            case _ => done = true
-          }
-        }
-      }
-      methods
-    }
-    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
   }
 
   private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) =
