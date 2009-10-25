@@ -18,6 +18,8 @@
 package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.ArrayList
+import scala.collection.{Set => CSet}
+import edu.rice.cs.plt.tuple.Pair
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.Types.ANY
@@ -36,6 +38,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
+import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -869,4 +872,52 @@ object STypesUtil {
     // Just add the arrow type if the applicand is not a FunctionalRef.
     case _ => addType(fn, arrow)
   }
+
+  def inheritedMethods(traits: TraitTable,
+                       extendedTraits: List[TraitTypeWhere]) = {
+    // Return all of the methods from super-traits
+    def inheritedMethodsHelper(history: HierarchyHistory,
+                               extended_traits: List[TraitTypeWhere])
+                              : Set[Pair[IdOrOpOrAnonymousName, Function]] = {
+      var methods = Set[Pair[IdOrOpOrAnonymousName, Function]]()
+      var done = false
+      var h = history
+      for ( trait_ <- extended_traits ; if (! done) ) {
+        val type_ = trait_.getBaseType
+        if ( ! h.hasExplored(type_) ) {
+          h.explore(type_)
+          type_ match {
+            case ty@STraitType(_, name, _, params) =>
+              toOption(traits.typeCons(name)) match {
+                case Some(ti) =>
+                  if ( ti.isInstanceOf[TraitIndex] ) {
+                    val trait_params = ti.staticParameters
+                    val trait_args = ty.getArgs
+                    // Instantiate methods with static args
+                    var collected: Collection[Pair[IdOrOpOrAnonymousName, Function]] =
+                      toSet(ti.asInstanceOf[TraitIndex].dottedMethods).asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Function]]]
+                    collected ++=
+                      toSet(ti.asInstanceOf[TraitIndex].functionalMethods).asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Function]]]
+                    for ( pair <- collected ; if pair.first.isInstanceOf[IdOrOp] ) {
+                      methods += pair
+                    }
+                    val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
+                    val instantiated_extends_types =
+                      toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
+                            t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+                    val old_hist = h
+                    methods ++= inheritedMethodsHelper(h, instantiated_extends_types)
+                    h = old_hist
+                  } else done = true
+                case _ => done = true
+              }
+            case _ => done = true
+          }
+        }
+      }
+      methods
+    }
+    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
+  }
+
 }
