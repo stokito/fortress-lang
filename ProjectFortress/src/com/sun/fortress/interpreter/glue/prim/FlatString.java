@@ -26,7 +26,7 @@ import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 import java.util.List;
-
+import java.util.regex.Pattern;
 
 public class FlatString extends NativeConstructor {
 
@@ -117,6 +117,16 @@ public class FlatString extends NativeConstructor {
         }
     }
 
+    private static abstract class ssI2s extends NativeMeth2 {
+        protected abstract java.lang.String f(java.lang.String s1, java.lang.String s2, int i);
+
+        @Override
+            public final FString applyMethod(FObject self, FValue s, FValue i) {
+            return FString.make(f(((FString) self).getString(), ((FString) s).getString(), ((FInt) i).getInt()));
+        }
+    }
+
+
     public static final class Size extends s2I {
         @Override
         protected int f(java.lang.String s) {
@@ -180,4 +190,18 @@ public class FlatString extends NativeConstructor {
         }
     }
 
+    public static final class javaRegExpMatches extends ss2B {
+        @Override
+        protected boolean f(java.lang.String self, java.lang.String match) {
+            return Pattern.matches(match, self);
+        }
+    }
+    
+    public static final class javaRegExpSplit extends ssI2s {
+        protected String f(java.lang.String self, java.lang.String match, int index) {
+            Pattern p = Pattern.compile(match);
+            java.lang.String[] temp = p.split(self);
+            return temp[index];
+        }
+    }
 }
