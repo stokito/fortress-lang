@@ -24,6 +24,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.StaticError
@@ -66,7 +67,8 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-        val inherited = inheritedMethods(traits, extendsC).map(t => t.first.asInstanceOf[IdOrOp].getText)
+        val inherited = inheritedMethods(traits, extendsC, Set(), typeAnalyzer)
+                        .map(t => t.first.asInstanceOf[IdOrOp].getText)
         for ( d <- decls ; if d.isInstanceOf[FnDecl] ) {
           if ( NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl])) &&
                ! inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp].getText.equals(_)) )

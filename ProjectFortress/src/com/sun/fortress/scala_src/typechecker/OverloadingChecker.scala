@@ -473,28 +473,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     /* Returns the type of the given list of parameters. */
     private def paramsToType(params: JavaList[Param], span: Span): Type =
-        params.size match {
-            case 0 => NodeFactory.makeVoidType(span)
-            case 1 => paramToType(params.get(0))
-            case _ =>
-            NodeFactory.makeTupleType(NodeUtil.spanAll(params),
-                                      Lists.toJavaList(Lists.toList(params).map(p => paramToType(p))))
-        }
-
-    /* Returns the type of the given parameter. */
-    private def paramToType(param: Param): Type =
-        toOption(param.getIdType) match {
-            case Some(ty) => ty
-            case _ =>
-                toOption(param.getVarargsType) match {
-                    case Some(ty) => ty
-                    case _ =>
-                        val span = NodeUtil.getSpan(param)
-                        error(span,
-                              "Type checking couldn't infer the type of " + param)
-                        NodeFactory.makeVoidType(span)
-                }
-        }
+      STypesUtil.paramsToType(toList(params), span) match {
+        case Some(ty) => ty
+        case _ =>
+          val span = NodeUtil.spanAll(params)
+          error(span,
+                "Type checking couldn't infer the type of " + params)
+          NodeFactory.makeVoidType(span)
+      }
 
     private def error(loc: Span, msg: String) =
         errors = errors ::: List(TypeError.make(msg, loc))
