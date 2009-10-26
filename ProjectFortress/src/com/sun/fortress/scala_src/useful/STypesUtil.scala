@@ -34,6 +34,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.ExprFactory
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
@@ -873,51 +874,106 @@ object STypesUtil {
     case _ => addType(fn, arrow)
   }
 
+  // Invariant: Parameter types of all the methods should exist.
   def inheritedMethods(traits: TraitTable,
-                       extendedTraits: List[TraitTypeWhere]) = {
+                       extendedTraits: List[TraitTypeWhere],
+                       initial: Set[Pair[IdOrOpOrAnonymousName, Functional]],
+                       analyzer: TypeAnalyzer) = {
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,
-                               extended_traits: List[TraitTypeWhere])
-                              : Set[Pair[IdOrOpOrAnonymousName, Function]] = {
-      var methods = Set[Pair[IdOrOpOrAnonymousName, Function]]()
-      var done = false
+                               extended_traits: List[TraitTypeWhere],
+                               given: Set[Pair[IdOrOpOrAnonymousName, Functional]])
+                              : Set[Pair[IdOrOpOrAnonymousName, Functional]] = {
+      var allMethods = given
+      var methods = Set[Pair[IdOrOpOrAnonymousName, Functional]]()
       var h = history
-      for ( trait_ <- extended_traits ; if (! done) ) {
+      for (trait_ <- extended_traits) {
         val type_ = trait_.getBaseType
         if ( ! h.hasExplored(type_) ) {
           h.explore(type_)
           type_ match {
-            case ty@STraitType(_, name, _, params) =>
+            case ty@STraitType(_, name, trait_args, params) =>
               toOption(traits.typeCons(name)) match {
                 case Some(ti) =>
                   if ( ti.isInstanceOf[TraitIndex] ) {
-                    val trait_params = ti.staticParameters
-                    val trait_args = ty.getArgs
                     // Instantiate methods with static args
-                    var collected: Collection[Pair[IdOrOpOrAnonymousName, Function]] =
-                      toSet(ti.asInstanceOf[TraitIndex].dottedMethods).asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Function]]]
+                    val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
+                                                              toJavaList(trait_args))
+                    var collected: Collection[Pair[IdOrOpOrAnonymousName, Functional]] =
+                      toSet(ti.asInstanceOf[TraitIndex].dottedMethods)
+                      .asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Functional]]]
                     collected ++=
-                      toSet(ti.asInstanceOf[TraitIndex].functionalMethods).asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Function]]]
+                      toSet(ti.asInstanceOf[TraitIndex].functionalMethods)
+                      .asInstanceOf[CSet[Pair[IdOrOpOrAnonymousName, Functional]]]
                     for ( pair <- collected ; if pair.first.isInstanceOf[IdOrOp] ) {
-                      methods += pair
+                      val fname = pair.first.asInstanceOf[IdOrOp].getText
+                      val span = NU.getSpan(pair.first)
+                      val paramTy = paramsToType(toList(pair.second.parameters),
+                                                 span) match {
+                        case Some(t) => paramsToArgs.replaceIn(t)
+                        case _ => NF.makeVoidType(span)
+                      }
+                      if (!isOverride(fname, paramTy, allMethods, analyzer)) {
+                        methods += pair
+                        allMethods += pair
+                      }
                     }
-                    val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
                     val instantiated_extends_types =
                       toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                             t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
                     val old_hist = h
-                    methods ++= inheritedMethodsHelper(h, instantiated_extends_types)
+                    val inherited = inheritedMethodsHelper(h, instantiated_extends_types,
+                                                           allMethods)
+                    methods ++= inherited
+                    allMethods ++= inherited
                     h = old_hist
-                  } else done = true
-                case _ => done = true
+                  } else return methods
+                case _ => return methods
               }
-            case _ => done = true
+            case _ => return methods
           }
         }
       }
       methods
     }
-    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
+    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits, initial)
   }
 
+  private def isOverride(fname: String, paramTy: Type,
+                         allMethods: Set[Pair[IdOrOpOrAnonymousName, Functional]],
+                         analyzer: TypeAnalyzer): Boolean = {
+    for (f <- allMethods;
+         if fname.equals(f.first.asInstanceOf[IdOrOp].getText)) {
+      val span = NU.getSpan(f.first)
+      val otherParamTy = paramsToType(toList(f.second.parameters), span) match {
+        case Some(t) => t
+        case _ => NF.makeVoidType(span)
+      }
+      if (analyzer.equivalent(paramTy, otherParamTy).isTrue) return true
+    }
+    false
+  }
+
+  /* Returns the type of the given list of parameters. */
+  def paramsToType(params: List[Param], span: Span): Option[Type] =
+    params.size match {
+      case 0 => Some(NF.makeVoidType(span))
+      case 1 => paramToType(params.head)
+      case _ =>
+        val elems = params.map(paramToType)
+        if (elems.forall(_.isDefined))
+          Some(NF.makeTupleType(NU.spanAll(toJavaList(params)),
+                                Lists.toJavaList(elems.map(_.get))))
+        else None
+    }
+
+  /* Returns the type of the given parameter. */
+  def paramToType(param: Param): Option[Type] =
+    toOption(param.getIdType) match {
+      case Some(ty) => Some(ty)
+      case _ => toOption(param.getVarargsType) match {
+        case Some(ty) => Some(ty)
+        case _ => None
+      }
+  }
 }
