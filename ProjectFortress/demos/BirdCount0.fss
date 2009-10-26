@@ -1,0 +1,298 @@
+(*******************************************************************************
+Copyright 2009 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software, and Michael Zody is the developer of the algorithm which this software implements and the Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc. has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+
+ ******************************************************************************)
+
+component BirdCount0
+import File.{...}
+import FileSupport.{...}
+import FlatString.{...}
+import List.{...}
+import Map.{...}
+import Set.{...}
+import System.{getProperty}
+
+export Executable
+
+N:ZZ32 = 4
+
+conversion:Map[\String,ZZ32\] = 
+    {[\String,ZZ32\]
+         "AA"   |->0  ,
+         "CA"   |->1  ,
+         "GA"   |->2  ,
+         "TA"   |->3  ,
+         "AC"   |->1  ,
+         "CC"   |->0  ,
+         "GC"   |->3  ,
+         "TC"   |->2  ,
+         "AG"   |->2  ,
+         "CG"   |->3  ,
+         "GG"   |->0  ,
+         "TG"   |->1  ,
+         "AT"   |->3  ,
+         "CT"   |->2  ,
+         "GT"   |->1  ,
+         "TT"   |->0  ,
+         "AN"  |->N  , 
+         "CN"  |->N  , 
+         "GN"  |->N  , 
+         "TN"  |->N  , 
+         "NA"  |->N  , 
+         "NC"  |->N  , 
+         "NG"  |->N  , 
+         "NT"  |->N  , 
+         "NN"  |->N  
+      }
+
+validTransitions:Set[\String\] = {[\String\] 
+    "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
+    "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
+    "2002","2013","2031","2103","2112","2130","2200","2211","2233","2301","2310","2332",
+    "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
+}
+
+referenceChickenFile:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
+sampleFilesDir:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/test_data"
+sampleFilesFileName:String = "chr10.csfasta.ma.sorted.head"
+
+sampleChickens:List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*    "17_LA_Frag35_20080909_high_grow_line",
+    "18_LA_Frag35_20080909_low_grow_line",
+    "17.1_LA_Frag35_20080925_high_grow_line",
+    "18.1_LA_Frag35_20080925_low_grow_line",
+    "16_LA_Frag35_20080829_broiler",
+    "22_LA_Frag35_20081016_RJF",
+    "16.1_LA_Frag35_20080925_broiler",
+    "22.1_LA_Frag35_20081114_RJF" *)
+|>
+
+convert(c:(Char, Char)):String = do
+    (c1:Char,c2:Char) = c
+   conversion.member("" || c1 || c2).get()
+end
+
+object Pairs[\T\](g: Generator[\T\]) extends Generator[\(T,T)\]
+    generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
+    if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(T,R,T)\](t, red.empty(), t))
+        then v else red.empty() end
+end
+
+object PairReduction[\T,R\](red: Reduction[\R\], m:(T,T)->R)
+        extends Reduction[\Maybe[\(T,R,T)\]\]
+    empty():Maybe[\(T,R,T)\] = Nothing[\(T,R,T)\]
+    join(left:Maybe[\(T,R,T)\], right:Maybe[\(T,R,T)\]) : Maybe[\(T,R,T)\]=
+    if (l, v_l, m_l) <- left then
+        if (m_r, v_r, r) <- right then
+            Just[\(T,R,T)\](l, red.join(red.join(v_l, m(m_l, m_r)), v_r), r)
+        else left end
+    else right end
+end 
+
+
+trait dna comprises {dnaSequence, EmptySequence}
+       getter colorSequence(): String
+       opr OPLUS(self, other: dna) : dna
+end
+
+
+(* left and right are ACGT encoded, middle is color encoded *)
+
+object dnaSequence(left:Char, middle:String, right:Char) extends dna
+   getter colorSequence():String = middle
+   opr OPLUS(self, other:dnaSequence):dnaSequence =
+       dnaSequence(left, middle || convert(right, other.left) || other.middle(), other.right)
+   opr OPLUS(self, other:EmptySequence) = self
+end
+
+object EmptySequence() extends dna
+    getter colorSequence():String = ""
+    opr OPLUS(self, other:dna) = other
+end
+
+object dnaSequenceReduction extends { MonoidReduction[\dna\],
+                               ReductionWithZeroes[\dna,dna\] }
+    getter asString() = "dnaSequenceReduction"
+    empty(): dna = EmptySequence()
+    join(a: dna, b: dna): dna = a OPLUS b
+end
+
+opr BIG OPLUS[\T\](): BigReduction[\dna, dna\] =
+   BigReduction[\dna,dna\](dnaSequenceReduction)
+
+opr BIG OPLUS[\T\](g:Generator[\dna\]) = 
+   __bigOperatorSugar[\dna,dna,dna,dna\](BIG OPLUS[\T\](), g)
+
+processReferenceFileLine(input:String):dna = do
+    if input.get(0) = '>' 
+        then EmptySequence()
+    else 
+        size = |input|
+        println input " has " size " characters "  
+        dnaSequence(input.get(0), BIG || [p<- Pairs(input)](convert(p)), input.get(size-1)) 
+    end
+end
+
+processReferenceFile(name:String):String=do
+   var rs:FileReadStream = FileReadStream(name)
+   var res:dna  = BIG OPLUS [l<-rs.lines()] processReferenceFileLine(l)
+   colors = res.colorSequence()
+   println "result has " |colors| " characters which should be 1 less than input ACGT colors."
+   colors
+end
+
+readReferenceFile(name:String):String=do
+   var rs:FileReadStream = FileReadStream(name)
+   var res:String = BIG || [l<-rs.lines()] l
+   res
+end
+
+object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, seqend:ZZ32, 
+            referenceChickenColorsSnip:String, sequenceChickenColorsSnip:String,
+            referenceChickenAGCTSnip:String) 
+    getter header():String = header
+    getter sequence():String = sequence
+    getter name():String = name
+    getter pos():ZZ32 = pos
+    getter length():ZZ32 = length
+    getter seqend():ZZ32 = seqend
+    getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
+    getter sequenceChickenColorsSnip():String = sequenceChickenColorsSnip
+    getter referenceChickenAGCTSnip():String = referenceChickenAGCTSnip    
+end
+
+object Event(fileName:String, refSeq:String, sampleSeq:String, startPos:ZZ32, endPos:ZZ32)
+    getter fileName():String = fileName
+    getter refSeq():String = refSeq
+    getter sampleSeq():String = sampleSeq
+    getter startPos():ZZ32 = startPos
+    getter endPos():ZZ32 = endPos
+
+    isValid():Boolean = true
+
+    compare(other:Event):Boolean = true
+    check_valid():Boolean = true
+end
+
+reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
+
+negativeOrientation(header:String):Boolean =  do
+   pattern:String = ">\\w*,\\d*_-.*"
+   header.javaRegExpMatches(pattern)
+end
+
+readASnip(r:ReadStream):Snip = do
+   header:String = r.uncheckedReadLine()
+   var sequence:String = r.uncheckedReadLine()
+
+   if sequence = "" then Snip(header, sequence,"", 0, 0, 0) else
+      name:String = header.asFlatString().javaRegExpSplit(",",0)
+      rest:String = header.asFlatString().javaRegExpSplit(",",1)
+      temp:String = rest.asFlatString().javaRegExpSplit("_", 1)
+      loc:String  = temp.asFlatString().javaRegExpSplit("\\.", 0)
+      length:ZZ32 = sequence.asFlatString().size() - 1
+      var adjustedLoc:ZZ32 := 0   
+      var adjustedSeq:FlatString := sequence.asFlatString().javaSubstr(1)
+      var referenceChickenColorsSnip:FlatString
+      var seqEnd:ZZ32 := 0
+      
+      if negativeOrientation(header) then
+           adjustedLoc := strToInt(loc.asFlatString().javaSubstr(1), 10) - length + 1
+           adjustedSeq := (reverse(adjustedSeq)).asFlatString()
+           seqEnd := adjustedLoc + length - 1
+           referenceChickenColorsSnip := 
+              referenceChickenColors.asFlatString().javaSubstr(adjustedLoc, seqEnd + 1)   
+           println("neg adjustedSeq before: " adjustedSeq)
+           adjustedSeq := (adjustedSeq.javaSubstr(0, |adjustedSeq| - 1) ||  referenceChickenColorsSnip.asFlatString().javaSubstr(|adjustedSeq| - 1,|adjustedSeq| )).asFlatString()
+           println("neg adjustedSeq after: " adjustedSeq)
+      else
+           adjustedLoc := strToInt(loc) - 1
+           seqEnd := adjustedLoc + length - 1
+           referenceChickenColorsSnip := 
+               referenceChickenColors.asFlatString().javaSubstr(adjustedLoc, seqEnd + 1)   
+           println("pos adjustedSeq before: " adjustedSeq)
+           adjustedSeq := (referenceChickenColorsSnip.asFlatString().javaSubstr(0,1) ||
+ adjustedSeq.asFlatString().javaSubstr(1)).asFlatString()
+           println("pos adjustedSeq after: " adjustedSeq)
+      end
+   
+      seqChickenColorsSnip:String = adjustedSeq
+      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLoc, seqEnd + 6)
+           
+      println("ReadASnipName = " name " pos = " adjustedLoc " length " length " end = " seqEnd)
+      Snip(header, adjustedSeq, name, adjustedLoc, length, seqEnd, referenceChickenColorsSnip, seqChickenColorsSnip, referenceChickenAGCTSnip)
+   end
+end
+
+
+ChunkSize:ZZ32 = 10000
+
+(* Given two samples, this creates a list of the positions where they differ *)
+
+sampleCompare(ref:FlatString, sample:FlatString):String = do
+   last:ZZ32 = |ref| MIN |sample|
+   var result:String = ""
+   var index:ZZ32 = 0
+   while (index < last) do
+       if (ref.get(index) =/= sample.get(index)) then
+             result := result || 'X'
+       else result := result || '.'
+       end
+       index:= index + 1
+   end
+   result
+end
+
+(* Given two samples this creates events *)
+
+eventGenerator(ref:FlatString, sample:FlatString):List[\Event\] = do
+    diffs = sampleCompare(ref, sample)
+    println(diffs)
+end
+
+processSampleChicken(name:String):() = do
+    max:ZZ32 = referenceChickenColors.size()
+    var rs:FileReadStream = 
+        FileReadStream(sampleFilesDir || "/" || name || "/" || sampleFilesFileName)
+    fg:FileGenerator[\Snip\]  = FileGenerator[\Snip\](rs,60,readASnip)
+    label reachedEnd  
+
+    for s <- seq(fg) do
+        println("sequence:  " s.sequenceChickenColorsSnip())
+        println("reference: " s.referenceChickenColorsSnip())
+        println(s.referenceChickenAGCTSnip)
+
+        eventGenerator(s.referenceChickenColorsSnip().asFlatString(),
+                      s.sequenceChickenColorsSnip().asFlatString())
+
+
+        if s.pos() > ChunkSize then
+            println("foo")
+            println("bar")
+            exit reachedEnd    
+        end
+    end 
+    end reachedEnd   
+end
+
+var referenceChickenColors:String := ""
+var referenceChickenAGCT:String := ""
+run() = do
+    referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
+    referenceChickenColors := processReferenceFile(referenceChickenFile) 
+    for sampleChicken <- sampleChickens do
+        processSampleChicken(sampleChicken)
+    end 
+
+end  
+end
+
+

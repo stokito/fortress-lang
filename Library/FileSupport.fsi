@@ -115,4 +115,9 @@ trait ReadStream extends { Closeable, Consumable }
     chunks(): Generator[\String\]
 end
 
+object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
+                          readOne:ReadStream -> S)
+        extends { Consumable, Generator[\S\] }
+end
+
 end

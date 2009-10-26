@@ -92,12 +92,17 @@ object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$CICmp")
     javaSubstr(lo:ZZ32,hi:ZZ32): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Substr")
+    javaSubstr(lo:ZZ32): String = javaSubstr(lo, self.size())
     javaIndexOf(c:Char): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$IndexOf")
     flatConcat(self, b:FlatString):String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Concat")
     flatConcat(self, b:Char):String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Concat")
+    javaRegExpMatches(m:FlatString): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$javaRegExpMatches")
+    javaRegExpSplit(m:FlatString, i:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$javaRegExpSplit")
 
     indexOf(c:Char): Maybe⟦ZZ32⟧ = do
         i = javaIndexOf(c)
