@@ -29,7 +29,6 @@ import com.sun.fortress.compiler.index.ObjectTraitIndex
 import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
@@ -38,6 +37,7 @@ import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.repository.FortressRepository
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
@@ -73,8 +73,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case (SAnyType(_), _) => false
       case (_, SAnyType(_)) => false
       case (f@SVarType(_,_,_), s@SVarType(_,_,_)) =>
-        ( toOption(typeAnalyzer.kindEnv.staticParam(f.getName)),
-          toOption(typeAnalyzer.kindEnv.staticParam(s.getName)) ) match {
+        ( toOption(typeAnalyzer.env.staticParam(f.getName)),
+          toOption(typeAnalyzer.env.staticParam(s.getName)) ) match {
           case (Some(fp), Some(sp)) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
@@ -104,7 +104,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
             false
         }
       case (f@SVarType(_,_,_), _) =>
-        toOption(typeAnalyzer.kindEnv.staticParam(f.getName)) match {
+        toOption(typeAnalyzer.env.staticParam(f.getName)) match {
           case Some(fp) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
@@ -119,7 +119,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
             false
         }
       case (_, s@SVarType(_,_,_)) =>
-        toOption(typeAnalyzer.kindEnv.staticParam(s.getName)) match {
+        toOption(typeAnalyzer.env.staticParam(s.getName)) match {
           case Some(sp) =>
             var result = false
             if ( NodeUtil.isTypeParam( sp ) ) {
@@ -147,8 +147,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case (_:TupleType ,_) => true
       case (_, _:TupleType) => true
       case (f:TraitType, s:TraitType) =>
-        ( toOption(typeAnalyzer.traitTable.typeCons(f.getName)),
-          toOption(typeAnalyzer.traitTable.typeCons(s.getName)) ) match {
+        ( toOption(typeAnalyzer.traits.typeCons(f.getName)),
+          toOption(typeAnalyzer.traits.typeCons(s.getName)) ) match {
           case (Some(fi), Some(si)) =>
             ( NodeUtil.isTraitOrObject(fi), NodeUtil.isTraitOrObject(si) ) match {
               case (true, true) =>
@@ -181,7 +181,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
     var result = toSet(tIndex.excludesTypes)
     for ( t <- toList(tIndex.extendsTypes) ) {
       if ( t.getBaseType.isInstanceOf[NamedType] ) {
-        result ++= transitivelyExcludes(typeAnalyzer.traitTable.typeCons(t.getBaseType.asInstanceOf[NamedType].getName).unwrap.asInstanceOf[ProperTraitIndex])
+        result ++= transitivelyExcludes(typeAnalyzer.traits.typeCons(t.getBaseType.asInstanceOf[NamedType].getName).unwrap.asInstanceOf[ProperTraitIndex])
       }
     }
     result
@@ -253,7 +253,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
         for ( t <- comprises ; if result ) {
           if (t.isInstanceOf[VarType]) result = false
           else {
-            toOption(typeAnalyzer.traitTable.typeCons(t.getName)) match {
+            toOption(typeAnalyzer.traits.typeCons(t.getName)) match {
               case None =>
                 errors.signal("Unrecognized name: " + t.getName, NodeUtil.getSpan(t))
               case Some(ind) =>

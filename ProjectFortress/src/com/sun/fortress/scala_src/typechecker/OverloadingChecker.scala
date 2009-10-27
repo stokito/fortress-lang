@@ -22,6 +22,7 @@ import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
+import edu.rice.cs.plt.tuple.{Pair => JavaPair}
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -32,7 +33,7 @@ import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.compiler.index.{Variable => JavaVariable}
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
@@ -42,6 +43,7 @@ import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -70,7 +72,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     private def getFunctions(index: CompilationUnitIndex,
                              f: IdOrOpOrAnonymousName)
                             : Set[((JavaList[StaticParam],Type,Type), Span)] = {
-      val fns = toSig(toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
+      val fns = toFunctionSig(toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
       if ( index.variables.keySet.contains(f) )
         index.variables.get(f) match {
           case DeclaredVariable(lvalue)
@@ -83,14 +85,36 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       else fns
     }
 
-    private def toSig(set: Set[JavaFunctional])
-                     : Set[((JavaList[StaticParam],Type,Type), Span)] =
-      set.filter(isDeclaredFunctional(_))
-         .map((f: JavaFunctional) =>
+    // for functions
+    private def toFunctionSig(set: Set[JavaFunctional])
+                             : Set[((JavaList[StaticParam],Type,Type), Span)] =
+      set.filter(isDeclaredFunction(_))
+         .map(f => ((f.staticParameters,
+                     paramsToType(f.parameters, f.getSpan),
+                     f.getReturnType.unwrap),
+                    f.getSpan))
+
+    // for functional methods
+    private def toFunctionalMethodSig(set: Set[(JavaFunction, StaticTypeReplacer)])
+                                     : Set[((JavaList[StaticParam],Type,Type), Span)] =
+      set.filter(p => isFunctionalMethod(p._1))
+         .map(p => {
+              val (f, replacer) = p
               ((f.staticParameters,
-                paramsToType(f.parameters, f.getSpan),
-                f.getReturnType.unwrap),
-               f.getSpan))
+                replacer.replaceIn(paramsToType(f.parameters, f.getSpan)),
+                replacer.replaceIn(f.getReturnType.unwrap)),
+               f.getSpan)})
+
+    // for dotted methods
+    private def toMethodSig(set: Set[(JavaMethod, StaticTypeReplacer)])
+                           : Set[((JavaList[StaticParam],Type,Type), Span)] =
+      set.filter(p => isDeclaredMethod(p._1))
+         .map(p => {
+              val (f, replacer) = p
+              ((f.staticParameters,
+                replacer.replaceIn(paramsToType(f.selfType.unwrap, f.parameters, f.getSpan)),
+                replacer.replaceIn(f.getReturnType.unwrap)),
+               f.getSpan)})
 
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
      *       and com.sun.fortress.compiler.StaticChecker.checkApi
@@ -128,7 +152,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
-          checkOverloading(f, set)
+          checkFunctionOverloading(f, set)
         }
         /* All inherited abstract methods in object expressions should be defined,
          * with compatible signatures and modifiers.
@@ -143,10 +167,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             val traitOrObject = typesInComp.get(t).asInstanceOf[TraitIndex]
             // Extend the type analyzer with the collected static parameters
             val oldTypeAnalyzer = typeAnalyzer
-            val staticParameters = new ArrayList[StaticParam]()
             // Add static parameters of the enclosing trait or object
-            staticParameters.addAll( traitOrObject.staticParameters )
-            typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+            typeAnalyzer = typeAnalyzer.extend(toList(traitOrObject.staticParameters),
+                                               None)
             /* The parameter type of a setter must be the same as the return type
              * of a getter with the same name, if any.
              */
@@ -165,18 +188,51 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                               "with the same name, if any.")
                 }
             }
-            val methods = traitOrObject.dottedMethods
-            for ( f <- toSet(methods.firstSet) ; if isDeclaredName(f) ) {
-              checkOverloading(f, toSig(toSet(methods.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]))
+            val identity = new StaticTypeReplacer(new ArrayList[StaticParam](),
+                                                  new ArrayList[StaticArg]())
+            var methods = toSet(traitOrObject.dottedMethods)
+                          .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, JavaFunctional]]]
+                          .map(p => new JavaPair(p.first, (p.second, identity)))
+            methods ++=
+              STypesUtil.inheritedMethods(typeAnalyzer.traits,
+                                          toList(traitOrObject.extendsTypes),
+                                          methods, typeAnalyzer)
+              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer)]]]
+
+            for ( f <- methods.map(x => x.first) ; if isDeclaredName(f) ) {
+              var ss = Set[(JavaMethod, StaticTypeReplacer)]()
+              methods.filter(p => (p.first == f && p.second._1.isInstanceOf[JavaMethod]) &&
+                             p.second._1.asInstanceOf[JavaMethod].selfType.isSome)
+                     .foreach(ss += _.second.asInstanceOf[(JavaMethod, StaticTypeReplacer)])
+              checkMethodOverloading(f, toMethodSig(ss))
+            }
+            for ( f <- methods.map(x => x.first) ; if isDeclaredName(f) ) {
+              var ss = Set[(JavaFunction, StaticTypeReplacer)]()
+              methods.filter(p => p.first == f && p.second._1.isInstanceOf[JavaFunction])
+                     .foreach(ss += _.second.asInstanceOf[(JavaFunction, StaticTypeReplacer)])
+              checkFunctionOverloading(f, toFunctionalMethodSig(ss))
             }
             typeAnalyzer = oldTypeAnalyzer
         }
         toJavaList(errors)
     }
 
+    /* Checks the validity of the overloaded method declarations. */
+    private def checkMethodOverloading(name: IdOrOpOrAnonymousName,
+                                       set: Set[((JavaList[StaticParam],Type,Type), Span)])
+                                      : Unit =
+      checkOverloading(name, set, true)
+
+    /* Checks the validity of the overloaded function declarations. */
+    private def checkFunctionOverloading(name: IdOrOpOrAnonymousName,
+                                         set: Set[((JavaList[StaticParam],Type,Type), Span)])
+                                        : Unit =
+      checkOverloading(name, set, false)
+
     /* Checks the validity of the overloaded function declarations. */
     private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: Set[((JavaList[StaticParam],Type,Type), Span)])
+                                 set: Set[((JavaList[StaticParam],Type,Type), Span)],
+                                 isMethod: Boolean)
                                 : Unit = set.size match {
       case 0 =>
       case 1 =>
@@ -188,7 +244,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               error(mergeSpan(sp, span),
                     "There are multiple declarations of " +
                     name + " with the same type: " +
-                    param + " -> " + result)
+                    (if (isMethod) dropReceiver(param) else param) +
+                    " -> " + result)
             case _ =>
               // A functional which takes a single parameter of a parametric type
               // bound by Any cannot be overloaded.
@@ -248,7 +305,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(sub_type._1._1)
         staticParameters.addAll(super_type._1._1)
-        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
         val result = subtype(super_type._1._2, sub_type._1._2) &&
                      subtype(sub_type._1._3, super_type._1._3)
         typeAnalyzer = oldTypeAnalyzer
@@ -272,7 +329,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(first._1._1)
         staticParameters.addAll(second._1._1)
-        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
         val result = new ExclusionOracle(typeAnalyzer,
                                          new ErrorLog()).excludes(first._1._2,
                                                                   second._1._2)
@@ -290,7 +347,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(first._1._1)
         staticParameters.addAll(second._1._1)
-        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
         var result = false
         val exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog())
         val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2), exclusionOracle),
@@ -332,7 +389,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     var elems = List[Type]()
                     var i = 0
                     while ( i < size ) {
-                        elems = elems ::: List(typeAnalyzer.meet(toJavaList(tuples.map(ty => NodeUtil.getTupleTypeElem(ty, i)))))
+                        elems = elems ::: List(typeAnalyzer.meet(tuples.map(ty => NodeUtil.getTupleTypeElem(ty, i))))
                         i += 1
                     }
                     val mt = NodeFactory.makeTupleType(NodeUtil.getSpan(t), toJavaList(elems))
@@ -418,7 +475,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         // If "f" is a functional method,
         // add static parameters of "f"'s enclosing trait or object
         if ( NodeUtil.isFunctionalMethod(f) ) {
-            val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(f))
+            val ind = typeAnalyzer.traits.typeCons(NodeUtil.getDeclaringTrait(f))
             if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
                 staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
             }
@@ -426,7 +483,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         // If "g" is a functional method,
         // add static parameters of "g"'s enclosing trait or object
         if ( NodeUtil.isFunctionalMethod(g) ) {
-            val ind = typeAnalyzer.traitTable.typeCons(NodeUtil.getDeclaringTrait(g))
+            val ind = typeAnalyzer.traits.typeCons(NodeUtil.getDeclaringTrait(g))
             if ( ind.isSome && NodeUtil.isTraitOrObject(ind.unwrap) ) {
                 staticParameters.addAll( NodeUtil.getStaticParameters(ind.unwrap) )
             }
@@ -437,12 +494,20 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val oldTypeAnalyzer = typeAnalyzer
         // Whether "g"'s parameter type is a subtype of "f"'s parameter type
         // and "f"'s return type is a subtype of "g"'s return type
-        typeAnalyzer = typeAnalyzer.extend(staticParameters, none[WhereClause])
+        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
         val result = subtype(paramsToType(g.parameters, g.getSpan),
                              paramsToType(f.parameters, f.getSpan)) &&
                      subtype(f.getReturnType.unwrap, g.getReturnType.unwrap)
         typeAnalyzer = oldTypeAnalyzer
         result
+    }
+
+    /* Drop the first element denoting the receiver type of the given type. */
+    private def dropReceiver(param: Type) = param match {
+      case STupleType(info, _::ty::Nil, None, Nil) => ty
+      case STupleType(info, elements, varargs, keywords) =>
+        STupleType(info, elements.takeRight(elements.size-1), varargs, keywords)
+      case _ => NodeFactory.makeVoidType(NodeUtil.getSpan(param))
     }
 
     def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
@@ -451,9 +516,18 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         case _ => false
     }
 
-    def isDeclaredFunctional(f: JavaFunctional) = f match {
-        case DeclaredFunction(_) => true
+    def isDeclaredMethod(f: JavaFunctional) = f match {
         case DeclaredMethod(_,_) => true
+        case _ => false
+    }
+
+    def isDeclaredFunction(f: JavaFunctional) = f match {
+        case DeclaredFunction(_) => true
+        case _ => false
+    }
+
+    def isFunctionalMethod(f: JavaFunctional) = f match {
+        case FunctionalMethod(_,_) => true
         case _ => false
     }
 
@@ -481,6 +555,22 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                 "Type checking couldn't infer the type of " + params)
           NodeFactory.makeVoidType(span)
       }
+
+    /* Returns the type of the given self type and a list of parameters. */
+    private def paramsToType(self: Type, params: JavaList[Param], span: Span): Type = {
+      val span = params.size match {
+        case 0 => NodeUtil.getSpan(self)
+        case _ => NodeUtil.spanAll(params)
+      }
+      val elems = toList(params).map(paramToType)
+      if (elems.forall(_.isDefined))
+        NodeFactory.makeTupleType(span, toJavaList(List(self) ++ elems.map(_.get)))
+      else {
+        error(span,
+              "Type checking couldn't infer the type of " + params)
+        NodeFactory.makeVoidType(span)
+      }
+    }
 
     private def error(loc: Span, msg: String) =
         errors = errors ::: List(TypeError.make(msg, loc))
