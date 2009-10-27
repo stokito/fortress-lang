@@ -633,6 +633,10 @@ public class Naming {
                 if (!(mangledString.charAt(0) == '\\'))
                 mangledString = "\\=" + mangledString;
 
+            // debugging check for double-mangling
+            if (mangledString.startsWith("\\-"))
+                mangledString = mangledString;
+            
             return mangledString;
         }
 

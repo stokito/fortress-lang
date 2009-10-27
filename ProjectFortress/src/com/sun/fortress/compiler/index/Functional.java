@@ -44,6 +44,8 @@ public abstract class Functional extends InferredTypeIndex {
     public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 
     public abstract IdOrOp name();
+    
+    public abstract IdOrOp unambiguousName();
 
     public String toString() {
         StringBuffer sb = new StringBuffer();

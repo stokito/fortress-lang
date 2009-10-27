@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.ByteCodeWriter;
+import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
@@ -44,7 +45,7 @@ public class FortressTransformer {
             TypeAnalyzer ta) {
         try {
             ClassReader cr = new ClassReader(inputClassName);
-            ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            CodeGenClassWriter cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
             String outputClassName = Naming.NATIVE_PREFIX_DOT + inputClassName;
             
             FortressMethodAdapter fa = new FortressMethodAdapter(cw,

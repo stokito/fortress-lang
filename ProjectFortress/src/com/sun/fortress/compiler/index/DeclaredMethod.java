@@ -122,6 +122,10 @@ public class DeclaredMethod extends Method {
         // Declared methods cannot have anonymous names.
         return (IdOrOp) NodeUtil.getName(_ast);
     }
+    
+    public IdOrOp unambiguousName() {
+        return (IdOrOp) _ast.getUnambiguousName();
+    }
 
     @Override
     public boolean hasDeclaredReturnType() {

@@ -117,6 +117,10 @@ public class Coercion extends Function {
         // Coercions cannot have anonymous names.
         return (IdOrOp) ast().getHeader().getName();
     }
+    
+    public IdOrOp unambiguousName() {
+        return (IdOrOp) ast().getUnambiguousName();
+    }
 
     public Id declaringTrait() {
         return _declaringTrait;

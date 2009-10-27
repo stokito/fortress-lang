@@ -30,8 +30,8 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
-import com.sun.fortress.scala_src.useful.STypesUtil
-import com.sun.fortress.scala_src.useful.STypesUtil.TypeThunk
+import com.sun.fortress.scala_src.useful.SNodeUtil._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 import edu.rice.cs.plt.collect.Relation
 
 /**
@@ -100,6 +100,10 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
 
   /** Get the modifiers for the given name, if it exists. */
   def getMods(x: Name): Option[Modifiers] = lookup(x).map(_.mods)
+  
+  /** Get the functional indices for this name, if any. */
+  def getFnIndices(x: Name): Option[List[Functional]] =
+    lookup(x).map(_.fnIndices)
 }
 
 /** The single empty type environment. */
@@ -150,8 +154,9 @@ object STypeEnv extends StaticEnvCompanion[Type] {
   protected def makeBinding(name: Name,
                             typeThunk: TypeThunk,
                             mods: Modifiers,
-                            mutable: Boolean): TypeBinding =
-    TypeBinding(name, typeThunk, mods, mutable)
+                            mutable: Boolean,
+                            functions: Collection[Functional]): TypeBinding =
+    TypeBinding(name, typeThunk, mods, mutable, functions.toList)
 
   /**
    * Create a binding with the given information, where the type thunk simply
@@ -162,7 +167,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                             mods: Modifiers,
                             mutable: Boolean): TypeBinding = {
     val typeThunk = new TypeThunk { def apply: Option[Type] = Some(typ) }
-    TypeBinding(name, typeThunk, mods, mutable)
+    TypeBinding(name, typeThunk, mods, mutable, Nil)
   }
 
   /** Extract out the bindings in node. */
@@ -210,15 +215,15 @@ object STypeEnv extends StaticEnvCompanion[Type] {
               // Arrow type for basic constructor.
               NF.makeArrowType(NU.getSpan(qualifiedName),
                                // Constructors must have all param types.
-                               STypesUtil.makeDomainType(toList(params)).get,
+                               makeDomainType(toList(params)).get,
                                NF.makeTraitType(qualifiedName))
             case Some(params) =>
               // Generic arrow type for constructor.
-              val sargs = toList(sparams).map(STypesUtil.staticParamToArg)
+              val sargs = toList(sparams).map(staticParamToArg)
               NF.makeArrowType(NU.getSpan(decl),
                                false,
                                // Constructors must have all param types.
-                               STypesUtil.makeDomainType(toList(params)).get,
+                               makeDomainType(toList(params)).get,
                                NF.makeTraitType(qualifiedName,
                                                 toJavaList(sargs)),
                                NF.emptyEffect, // TODO: Change this?
@@ -241,7 +246,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         val lazyTypeEvaluation: TypeThunk = new TypeThunk {
           def apply: Option[Type] = v.getInferredType
         }
-        makeBinding(x, lazyTypeEvaluation, v.modifiers, v.mutable)
+        makeBinding(x, lazyTypeEvaluation, v.modifiers, v.mutable, Nil)
       })
     }
 
@@ -258,26 +263,59 @@ object STypeEnv extends StaticEnvCompanion[Type] {
   protected def extractFunctionBindings[S <: Name, T <: Functional]
                                        (functions: Iterable[(S,Set[T])],
                                         api: Option[APIName]): Iterable[TypeBinding] = {
-    functions.map{ tuple =>
-      val (x,fns) = tuple
-      // Lazily compute the type for this function binding at the time of
-      // lookup.
-      val lazyTypeEvaluation: TypeThunk = new TypeThunk {
+                                         
+    // Collect all bindings found among all these functions.
+    functions.flatMap { nameAndFunctions =>
+      val (f, fnsSet) = nameAndFunctions
+      val fns = fnsSet.toList
+      
+      // Create the binding for each overloading of the function named f.
+      val unambiguousBindings = fns.map { fn =>
+        
+        // Create a lazy computation for the type of this overloading.
+        val lazyType = new TypeThunk {
+          def apply: Option[Type] = makeArrowFromFunctional(fn)
+        }
+        
+        // Bind the unambiguous name of this overloading to its type.
+        makeBinding(unqualifiedName(fn.unambiguousName),
+                    lazyType,
+                    fn.mods,
+                    false,
+                    List(fn))
+      }
+      
+      // Create a lazy computation for the type of the whole overloaded
+      // function named x.
+      val ambiguousThunk = new TypeThunk {
         def apply: Option[Type] = {
-          // TODO: Currently ignoring any errors from makeArrowFromFunctional
-          val oTypes = fns.flatMap[Type](STypesUtil.makeArrowFromFunctional)
+          val oTypes = fns.flatMap[Type](makeArrowFromFunctional)
           if (oTypes.isEmpty)
             None
           else
             Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
         }
       }
-      val mods = if ( fns.isEmpty ) Modifiers.None
-                 else fns.find(_.mods != Modifiers.None) match {
-                   case Some(f) => f.mods
-                     case _ => Modifiers.None
-                   }
-      makeBinding(x, lazyTypeEvaluation, mods, false)
+      
+      // Create the modifiers for the whole binding.
+      val ambiguousMods =
+        if (fns.isEmpty)
+          Modifiers.None
+        else fns.find(_.mods != Modifiers.None) match {
+          case Some(f) => f.mods
+          case _ => Modifiers.None
+        }
+      
+      // Bind the ambiguous, plain name of this function to the intersection
+      // of all its overloadings' types.
+      val ambiguousBinding = makeBinding(unqualifiedName(f),
+                                         ambiguousThunk,
+                                         ambiguousMods,
+                                         false,
+                                         fns)
+      
+      // Return all the bindings.
+      ambiguousBinding :: unambiguousBindings
     }
   } 
 }
@@ -292,11 +330,14 @@ object STypeEnv extends StaticEnvCompanion[Type] {
  *                  binding.
  * @param mods Any modifiers for the binding.
  * @param mutable Whether or not the binding is mutable.
+ * @param fnIndices A list of Functional indices, if any, to which this name
+ *                  refers.
  */
 case class TypeBinding(name: Name,
                        typeThunk: TypeThunk,
                        mods: Modifiers,
-                       mutable: Boolean)
+                       mutable: Boolean,
+                       fnIndices: List[Functional])
 
 /**
  * A special type environment that conceals the given names from its children.

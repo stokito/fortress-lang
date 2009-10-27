@@ -31,6 +31,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.GraphNode;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.*;
 
@@ -171,10 +172,6 @@ public class ForeignJava {
 
     private static Span span() {
         return NodeFactory.internalSpan;
-    }
-
-    private static Span span(MethodNode m) {
-        return NodeFactory.makeSpan(methodName(m));
     }
 
     private static Span span(APIName a) {
@@ -412,7 +409,7 @@ public class ForeignJava {
     static Comparator<MethodNode> methodNodeComparator = new Comparator<MethodNode>() {
 
         public int compare(MethodNode o1, MethodNode o2) {
-            return methodName(o1).compareTo(methodName(o2));
+            return justMethodName(o1).compareTo(justMethodName(o2));
         }
 
     };
@@ -488,7 +485,7 @@ public class ForeignJava {
     }
 
     private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
-        String methodKey = methodName(m);
+        String methodKey = methodName(cl, m);
         if (methodToDecl.containsKey(methodKey)) return methodToDecl.get(methodKey);
 
         Type rt = returnType(m);
@@ -500,22 +497,33 @@ public class ForeignJava {
         int i = 0;
         for (Type pt : pts) {
             com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt);
-            Span param_span = NodeFactory.makeSpan(span(m) + " p#" + i);
+            Span param_span = NodeFactory.makeSpan(span(methodKey) + " p#" + i);
             Id id = NodeFactory.makeId(param_span, "p" + (i++));
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
 
-        Span fn_span = span(m);
+        Span fn_span = span(methodKey);
         Id id = is_static ? NodeFactory.makeId(fn_span, getSimpleName(cl) + "." + getName(m)) : NodeFactory.makeId(
                 fn_span,
                 getName(m));
+        
+        String uan = Naming.FOREIGN_TAG + methodKey ;
+        
         FnDecl fndecl = NodeFactory.makeFnDecl(fn_span,
                                                Modifiers.None,
-                                               id,
+                                               (IdOrOpOrAnonymousName) id,
+                                               Collections.<StaticParam>emptyList(),
                                                params,
                                                Option.some(return_type),
-                                               Option.<Expr>none());
+                                               Option.<List<com.sun.fortress.nodes.Type>>none(),
+                                               Option.<WhereClause>none(),
+                                               Option.<Contract>none(),
+                                               (IdOrOp) NodeFactory.makeId(fn_span, uan),
+                                               Option.<Expr>none(),
+                                               Option.<IdOrOp>none()
+                                               );
+        
         methodToDecl.put(methodKey, fndecl);
         return fndecl;
     }
@@ -524,7 +532,14 @@ public class ForeignJava {
      * @param m
      * @return
      */
-    private static String methodName(MethodNode m) {
+    private static String methodName(ClassNode cl, MethodNode m) {
+        String s = cl.name;
+        int i = s.lastIndexOf("/");
+        s = s.substring(i+1);
+        return s + Naming.FOREIGN_TAG + m.name + m.desc;
+    }
+    
+    private static String justMethodName(MethodNode m) {
         return m.name + m.desc;
     }
 

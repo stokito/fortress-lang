@@ -445,21 +445,40 @@ public class TopLevelEnv extends NameEnv {
 
     public Set<IdOrOp> unambiguousFunctionNames(final IdOrOp name) {
 
-        // Function that gets an unambiguous name out of a Function. If it is
-        // not a DeclaredFunction or FunctionalMethod, the original name will
-        // be returned.
+        // Function that gets an unambiguous name out of a Function.
         Lambda<Function, IdOrOp> unambiguousNameFromFunction = new Lambda<Function, IdOrOp>() {
+            @Override public IdOrOp value(Function fn) {
+                return fn.unambiguousName();
+            }
+        };
+
+        // Qualifies the given name with the given API. Create normal Lambdas
+        // by binding an API.
+        Lambda2<APIName, IdOrOp, IdOrOp> addApi = new Lambda2<APIName, IdOrOp, IdOrOp>() {
             @Override
-            public IdOrOp value(Function fn) {
-                if (fn instanceof DeclaredFunction) {
-                    return ((DeclaredFunction) fn).ast().getUnambiguousName();
-                } else if (fn instanceof FunctionalMethod) {
-                    return ((FunctionalMethod) fn).ast().getUnambiguousName();
+            public IdOrOp value(APIName api, IdOrOp name) {
+                if (name instanceof Id) {
+                    return NodeFactory.makeId(Option.some(api), (Id) name);
                 } else {
-                    return name;
+                    return NodeFactory.makeOp(Option.some(api), (Op) name);
                 }
             }
         };
+        
+        // If this name is qualified, then lookup names only in that API.
+        if (name.getApiName().isSome()) {
+            APIName api = name.getApiName().unwrap();
+            
+            // Get the functions from this api with this name.
+            Set<? extends Function> functions =
+                _onDemandImportedApis.get(api).functions().matchFirst(name);
+            
+            // Return their unambiguous names, qualified.
+            Lambda<IdOrOp, IdOrOp> addThisApi = LambdaUtil.bindFirst(addApi, api);
+            return CollectUtil.asSet(IterUtil.map(functions,
+                                                  LambdaUtil.compose(unambiguousNameFromFunction,
+                                                                     addThisApi)));
+        }
 
         // First get all the declarations from this compilation unit.
         Set<? extends Function> functions = _current.functions().matchFirst(name);
@@ -467,24 +486,23 @@ public class TopLevelEnv extends NameEnv {
 
         // Loop over all the imported APIs.
         for (final ApiIndex api : _onDemandImportedApis.values()) {
-
-            // Qualifies the names with this API.
-            Lambda<IdOrOp, IdOrOp> addApi = new Lambda<IdOrOp, IdOrOp>() {
-                @Override
-                public IdOrOp value(IdOrOp name) {
-                    if (name instanceof Id) {
-                        return NodeFactory.makeId(api.ast().getName(), (Id) name, NodeUtil.getSpan(name));
-                    } else {
-                        return NodeFactory.makeOp(api.ast().getName(), (Op) name);
-                    }
-                }
-            };
+            Lambda<IdOrOp, IdOrOp> addThisApi = LambdaUtil.bindFirst(addApi, api.ast().getName());
 
             // Get all the declarations from this API and qualify the names.
             functions = api.functions().matchFirst(name);
-            results = IterUtil.compose(results, IterUtil.map(functions, LambdaUtil.compose(unambiguousNameFromFunction,
-                                                                                           addApi)));
+            results = IterUtil.compose(results,
+                                       IterUtil.map(functions,
+                                                    LambdaUtil.compose(unambiguousNameFromFunction,
+                                                                       addThisApi)));
         }
+
+        // Add in the unambiguous names from the alias.
+        // TODO: Correct behavior?
+        if (_aliases.containsKey(name)) {
+            results = IterUtil.compose(results,
+                                       unambiguousFunctionNames((IdOrOp) _aliases.get(name)));
+        }
+
         return CollectUtil.asSet(results);
     }
 

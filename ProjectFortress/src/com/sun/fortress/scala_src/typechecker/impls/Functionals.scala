@@ -20,6 +20,7 @@ package com.sun.fortress.scala_src.typechecker.impls
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.exceptions._
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -465,11 +466,15 @@ trait Functionals { self: STypeChecker with Common =>
 
   def checkFunctionals(node: Node): Node = node match {
 
-    case SOverloading(info, name, _) => {
-      val checkedName = check(name).asInstanceOf[IdOrOp]
+    case SOverloading(info, unambigName, _) => {
+      val checkedName = check(unambigName).asInstanceOf[IdOrOp]
+
+      // Should have one arrow type for this unambiguous name.
       getTypeFromName(checkedName) match {
-        case Some(checkedType) =>
-          SOverloading(info, checkedName, Some(normalize(checkedType)))
+        case Some(arrow: ArrowType) =>
+          SOverloading(info, checkedName, Some(arrow))
+        case Some(typ) =>
+          bug("type env binds unambiguous name %s to non-arrow type %s".format(unambigName, typ))
         case None => node
       }
     }
@@ -556,7 +561,7 @@ trait Functionals { self: STypeChecker with Common =>
         case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
         case SOverloading(info, name, Some(ty)) =>
           instantiateStaticParams(sargs, ty).
-            map(t => SOverloading(info, name, Some(t)))
+            map(t => SOverloading(info, name, Some(t.asInstanceOf[ArrowType])))
         case _ => hadNoType = true; None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)

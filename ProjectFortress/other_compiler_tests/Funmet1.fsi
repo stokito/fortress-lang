@@ -18,7 +18,7 @@
 api Funmet1
 
 trait T
-  me(self, x:ZZ32):ZZ32
+   me(self, x:ZZ32):ZZ32
 end
 
 f1() : T

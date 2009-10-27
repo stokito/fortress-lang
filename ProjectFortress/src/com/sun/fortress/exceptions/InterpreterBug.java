@@ -70,7 +70,7 @@ public class InterpreterBug extends FortressException {
     }
 
     public static <T> T bug(String msg) {
-        throw new InterpreterBug(msg);
+        throw new InterpreterBug("** bug! " + msg);
     }
 
     public static <T> T bug(HasAt loc, Environment env, String arg0) {
