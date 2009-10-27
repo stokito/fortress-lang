@@ -795,47 +795,32 @@ object STypesUtil {
                               liftedInfSargs: List[StaticArg])
                              (implicit analyzer: TypeAnalyzer)
                               : Option[Overloading] = {
-    // Is this arrow type applicable.
-    def arrowTypeIsApplicable(ovType: ArrowType): Option[Type] = {
-    
-      // If static args, then instantiate the unlifted static params.
-      val typ1 =
-        if (!sargs.isEmpty)
-          instantiateStaticParams(sargs, ovType).getOrElse(return None)
-        else
-          ovType
-      
-      // If there were lifted, inferred static args, then instantiate those.
-      val typ2 =
-        if (!liftedInfSargs.isEmpty)
-          instantiateLiftedStaticParams(liftedInfSargs, typ1).getOrElse(return None)
-        else
-          typ1
+    val SOverloading(ovInfo, ovName, Some(ovType)) = overloading
 
-      // If there are still some static params in it, then we can't infer them
-      // so it's not applicable.
-      val typ = typ2.asInstanceOf[ArrowType]
-      if (!hasStaticParams(typ) && isSubtype(typ.getDomain, smaArrow.getDomain))
-        Some(typ)
+    // If static args, then instantiate the unlifted static params.
+    val typ1 =
+      if (!sargs.isEmpty)
+        instantiateStaticParams(sargs, ovType).getOrElse(return None)
       else
-        None
-    }
+        ovType
 
-    // If overloading type is an intersection, check that any of its
-    // constituents is applicable.
-    val applicableArrows = conjuncts(toOption(overloading.getType).get).
-      map(_.asInstanceOf[ArrowType]).
-      flatMap(arrowTypeIsApplicable).
-      toList
+    // If there were lifted, inferred static args, then instantiate those.
+    val typ2 =
+      if (!liftedInfSargs.isEmpty)
+        instantiateLiftedStaticParams(liftedInfSargs, typ1).getOrElse(return None)
+      else
+        typ1
 
-    val overloadingType = applicableArrows match {
-      case Nil => return None
-      case t::Nil => t
-      case _ => NF.makeIntersectionType(toJavaList(applicableArrows))
-    }
-    Some(SOverloading(overloading.getInfo,
-                      overloading.getUnambiguousName,
-                      Some(overloadingType)))
+    // If there are still some static params in it, then we can't infer them
+    // so it's not applicable.
+    val typ = typ2.asInstanceOf[ArrowType]
+    val newOvType =
+      if (!hasStaticParams(typ) && isSubtype(typ.getDomain, smaArrow.getDomain))
+        typ
+      else
+        return None
+
+    Some(SOverloading(ovInfo, ovName, Some(newOvType)))
   }
 
   /**

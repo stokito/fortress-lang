@@ -97,6 +97,10 @@ public class FunctionalMethod extends Function implements HasSelfType {
         // Functional methods cannot have anonymous names.
         return (IdOrOp) NodeUtil.getName(_ast);
     }
+    
+    public IdOrOp unambiguousName() {
+        return (IdOrOp) _ast.getUnambiguousName();
+    }
 
     public Id declaringTrait() {
         return _declaringTrait;

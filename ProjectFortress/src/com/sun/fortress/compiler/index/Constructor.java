@@ -90,6 +90,10 @@ public class Constructor extends Function {
     public Id name() {
         return _declaringTrait;
     }
+    
+    public IdOrOp unambiguousName() {
+        return name();
+    }
 
     //    public List<StaticParam> staticParams() { return _staticParams; }
     //    public Option<List<Param>> params() { return _params; }

@@ -336,6 +336,17 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
       case _ => None
     }
 
+  /**
+   * Lookup the functional indices for the given name in the proper type
+   * environment.
+   */
+  protected def getFnIndicesFromName(name: Name): Option[List[Functional]] =
+    getRealName(name, toList(current.ast.getImports)) match {
+      case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getFnIndices(id)
+      case id:IdOrOp => env.getFnIndices(id)
+      case _ => None
+    }
+
   def getErrors(): List[StaticError] = errors.errors
 
   /**

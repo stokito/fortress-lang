@@ -396,12 +396,13 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                     return vref
                   } else result = Some(SVarRef(info, newName, sargs, depth))
                 case (0, f, _) if f > 0 =>
-                  var new_fns = setToList[IdOrOp](toSet(fns))
+                  val new_fns = setToList[IdOrOp](toSet(fns))
+                  val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(name)))
                   // Create a list of overloadings for this FnRef from the
                   // matching function names.
                   // TODO: insert correct number of to-infer arguments?
                   result = Some(SFnRef(info, sargs, depth, name, new_fns, None,
-                                       new_fns.map(new Overloading(info, _, None)),
+                                       unambiguous_fns.map(new Overloading(info, _, None)),
                                        None))
                 case (1, 0, 1) =>
                   result = Some(SVarRef(info, objs.iterator.next, sargs, depth))
@@ -442,11 +443,12 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             case _ => node
           }
         else {
-          var new_fns = setToList[IdOrOp](toSet(fns))
+          val new_fns = setToList[IdOrOp](toSet(fns))
+          val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(fn_name)))
           SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns, ovl,
                  // Create a list of overloadings for this FnRef from the matching
                  // function names.
-                 new_fns.map(new Overloading(info, _, None)), ovlType)
+                 unambiguous_fns.map(new Overloading(info, _, None)), ovlType)
         }
 
       case opref@SOpRef(info, sargs, depth, name, names, ovl, newOvl, ovlType) =>
@@ -800,11 +802,12 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       val ops: JSet[IdOrOp] = env.explicitFunctionNames(op_name)
       if (ops.isEmpty) None
       else {
-        var new_ops = setToList[IdOrOp](toSet(ops))
+        val new_ops = setToList[IdOrOp](toSet(ops))
+        val unambiguous_ops = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(op_name)))
         // Create a list of overloadings for this OpRef from the matching
         // operator names.
         Some(SOpRef(info, sargs, depth, op_name, new_ops, oldOvl,
-                    new_ops.map(new Overloading(info, _, None)), ovlType))
+                    unambiguous_ops.map(new Overloading(info, _, None)), ovlType))
       }
     case _ => None
   }

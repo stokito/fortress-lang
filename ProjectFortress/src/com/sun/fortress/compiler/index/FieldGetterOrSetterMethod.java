@@ -113,4 +113,8 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     public Id name() {
         return _ast.getName();
     }
+    
+    public IdOrOp unambiguousName() {
+        return name();
+    }
 }

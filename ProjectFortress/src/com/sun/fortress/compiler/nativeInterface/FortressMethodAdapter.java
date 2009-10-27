@@ -23,6 +23,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 import com.sun.fortress.compiler.codegen.CodeGen;
+import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
@@ -69,7 +70,7 @@ public class FortressMethodAdapter extends ClassAdapter {
     private APIName apiName;
     private Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> sizePartitionedOverloads;
     private TypeAnalyzer ta;
-    private ClassWriter cw;
+    private CodeGenClassWriter cw;
     private Set<String> overloadedNamesAndSigs;
 
     private void initializeEntry(String fortressRuntimeType,
@@ -111,7 +112,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         return "L" + prefix + s + ";" ;
     }
 
-    public FortressMethodAdapter(ClassWriter cv,
+    public FortressMethodAdapter(CodeGenClassWriter cv,
             String inputClassName,
             String outputClassName,
             APIName api_name,
@@ -128,12 +129,21 @@ public class FortressMethodAdapter extends ClassAdapter {
     }
 
     public void visit(int version, int access, String name, String signature,
-                      String superName, String[] interfaces) {
-        Debug.debug( Debug.Type.COMPILER, 1,
-                     "visit:" + name + " generate " + inputClassName);
-        cv.visit(version, access, outputClassName, signature, superName, interfaces);
+            String superName, String[] interfaces) {
+        Debug.debug(Debug.Type.COMPILER, 1, "visit:" + name + " generate "
+                + inputClassName);
+        cv.visit(version, access, outputClassName, signature, superName,
+                interfaces);
 
-        overloadedNamesAndSigs = CodeGen.generateTopLevelOverloads(apiName, sizePartitionedOverloads, ta, cw);
+        /*
+         * TODO there may be more work be done in the method called below.
+         * cg=null allows a bunch of code reuse, but does not deal with the
+         * possibility of unambiguous reference to one of these
+         * adapter-generated overloaded (?) native methods.
+         */
+
+        overloadedNamesAndSigs = CodeGen.generateTopLevelOverloads(apiName,
+                sizePartitionedOverloads, ta, cw, /* cg= */null);
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc,

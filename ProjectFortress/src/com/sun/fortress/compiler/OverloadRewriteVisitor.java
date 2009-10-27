@@ -68,8 +68,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             int rc = NodeComparator.idOrOpComparer.compare(o1.getUnambiguousName(), o2.getUnambiguousName());
             if (rc != 0)
                 return rc;
-            Option<Type> ot1 = o1.getType();
-            Option<Type> ot2 = o2.getType();
+            Option<ArrowType> ot1 = o1.getType();
+            Option<ArrowType> ot2 = o2.getType();
             if (ot1.isNone()) {
                 if (ot2.isNone()) {
                     return 0;
@@ -79,8 +79,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             } else if (ot2.isNone()) {
                 return 1;
             } else {
-                Type t1 = ot1.unwrap();
-                Type t2 = ot2.unwrap();
+                ArrowType t1 = ot1.unwrap();
+                ArrowType t2 = ot2.unwrap();
                 return NodeComparator.typeComparer.compare(t1, t2);
             }
         }

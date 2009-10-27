@@ -153,7 +153,7 @@ class HygienicRenamer(constituent: APIName,
          case SOptionalSymbol(getInfo, getSymbol) =>
              SOptionalSymbol(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getSymbol).asInstanceOf[com.sun.fortress.nodes.SyntaxSymbol])
          case SOverloading(getInfo, getUnambiguousName, getType) =>
-             SOverloading(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getUnambiguousName).asInstanceOf[com.sun.fortress.nodes.IdOrOp], walk(getType).asInstanceOf[Option[com.sun.fortress.nodes.Type]])
+             SOverloading(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getUnambiguousName).asInstanceOf[com.sun.fortress.nodes.IdOrOp], walk(getType).asInstanceOf[Option[com.sun.fortress.nodes.ArrowType]])
          case SParam(getInfo, getName, getMods, getIdType, getDefaultExpr, getVarargsType) =>
              SParam(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getMods).asInstanceOf[com.sun.fortress.nodes_util.Modifiers], walk(getIdType).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(getDefaultExpr).asInstanceOf[Option[com.sun.fortress.nodes.Expr]], walk(getVarargsType).asInstanceOf[Option[com.sun.fortress.nodes.Type]])
          case SParenthesisDelimitedMI(getInfo, getExpr) =>

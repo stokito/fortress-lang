@@ -47,9 +47,8 @@ public abstract class NameEnv extends TypeNameEnv {
     public abstract Set<IdOrOp> explicitFunctionNames(IdOrOp name);
 
     /**
-     * Produce the set of unqualified, unambiguous names corresponding to the
-     * given function name.  Imported names are included. An undefined reference
-     * produces an empty set.
+     * Produce the set of qualified, unambiguous names corresponding to the
+     * given, possibly qualified function name.  
      */
     public abstract Set<IdOrOp> unambiguousFunctionNames(IdOrOp name);
 

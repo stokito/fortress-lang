@@ -485,7 +485,9 @@ public class NodeFactory {
                                     List<Param> params,
                                     Option<Type> returnType,
                                     Option<Expr> body) {
-        return makeFnDecl(span, mods, name,
+        return makeFnDecl(span,
+                          mods,
+                          name,
                           Collections.<StaticParam>emptyList(),
                           params, returnType,
                           Option.<List<Type>>none(),
@@ -493,7 +495,13 @@ public class NodeFactory {
                           Option.<Contract>none(),
                           body);
     }
-
+    
+    private static String uaName(String tag, Span span ) {
+        String s = span.toString();
+        s = s.replaceAll("/", "|");
+        return s;
+    }
+    
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
@@ -504,9 +512,9 @@ public class NodeFactory {
                                     Option<Contract> contract) {
     	IdOrOp unambiguousName;
     	if (name instanceof Op) {
-    		unambiguousName = makeOp((Op)name, "OP$"+span.toString());
+    		unambiguousName = makeOp((Op)name, uaName("OP", span));
     	} else {
-    		unambiguousName = makeId(span, "FN$"+span.toString());
+    		unambiguousName = makeId(span, uaName("FN", span));
     	}
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
                           throwsC, whereC, contract, unambiguousName,
@@ -524,9 +532,9 @@ public class NodeFactory {
                                     Option<Expr> body) {
     	IdOrOp unambiguousName;
     	if (name instanceof Op) {
-    		unambiguousName = makeOp((Op)name, "OP$"+span.toString());
+    		unambiguousName = makeOp((Op)name, uaName("OP", span));
     	} else {
-    		unambiguousName = makeId(span, "FN$"+span.toString());
+    		unambiguousName = makeId(span, uaName("FN", span));
     	}
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
                           throwsC, whereC, contract, unambiguousName,
@@ -545,7 +553,8 @@ public class NodeFactory {
                             throwsClause, contract, params, returnType);
     }
 
-    public static FnDecl makeFnDecl(Span span, Modifiers mods,
+    public static FnDecl makeFnDecl(Span span,
+                                    Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -1766,6 +1775,11 @@ public class NodeFactory {
      */
     public static Op makeOp(final APIName api, Op op) {
         return makeOp(NodeUtil.getSpan(op), Option.some(api),
+                      op.getText(), op.getFixity(), op.isEnclosing() );
+    }
+
+    public static Op makeOp(Option<APIName> api, Op op) {
+        return makeOp(NodeUtil.getSpan(op), api,
                       op.getText(), op.getFixity(), op.isEnclosing() );
     }
 

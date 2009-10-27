@@ -61,6 +61,9 @@ import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.Relation;
+
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
 // solution than writing out their entire types, please
@@ -79,6 +82,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
+    private final MultiMap<String, Function> exportedToUnambiguous;
     private Set<String> overloadedNamesAndSigs;
 
     // lexEnv does not include the top level or object right now, just
@@ -115,6 +119,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.pa = c.pa;
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
+        this.exportedToUnambiguous = c.exportedToUnambiguous;
         this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
 
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
@@ -141,11 +146,45 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.pa = pa;
         this.fv = fv;
         this.ci = ci;
+        this.exportedToUnambiguous = new MultiMap<String, Function> ();
+
+        /*
+         * Find every exported name, and make an entry mapping name to
+         * API declarations, so that unambiguous names from APIs can
+         * also be emitted.
+         */
+        List<APIName> exports = c.getExports();
+        for (APIName apiname:exports) {
+            ApiIndex api_index = env.api(apiname);
+            Relation<IdOrOpOrAnonymousName, Function> fns = api_index.functions();
+            for (IdOrOpOrAnonymousName name : fns.firstSet()) {
+                if (name instanceof IdOrOp) {
+                    Set<Function> defs = fns.matchFirst(name);
+                    for (Function def : defs) {
+                        IdOrOpOrAnonymousName ua_name = def.unambiguousName();
+                        if (ua_name instanceof IdOrOp) {
+                            IdOrOp ioo_name = (IdOrOp) name;
+                            IdOrOp ioo_ua_name = (IdOrOp) ua_name;
+                            if (! ioo_name.equals(ioo_ua_name)) {
+                                // Add mapping ioo_name -> def to MultiMap
+                                exportedToUnambiguous.putItem(
+                                        ioo_name.getText(),
+                                        def);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
+
         this.overloadedNamesAndSigs = new HashSet<String>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         this.env = env;
+        
+        
         debug( "Compile: Compiling ", packageAndClassName );
     }
 
@@ -393,13 +432,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO should this be non-colliding single name instead?
             // answer depends upon how intersection types are normalized.
             // conservative answer is "no".
-            methodName = Naming.mangleIdentifier(methodName);
+            // methodName = Naming.mangleIdentifier(methodName);
             signature = NamingCzar.jvmMethodDesc(arrow, component.getName());
 
         } else if (arrow instanceof IntersectionType) {
             IntersectionType it = (IntersectionType) arrow;
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
-                    OverloadSet.oMangle(methodName) : Naming.mangleIdentifier(methodName);
+                    OverloadSet.oMangle(methodName) : methodName;
 
             signature = OverloadSet.getSignature(it, paramCount, ta);
 
@@ -565,8 +604,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
-        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw);
+        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw, this);
 
+        /* Need wrappers for the API, too. */
+        generateUnambiguousWrappersForApi();
+        
         // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
@@ -754,6 +796,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * for our primitive type story.
          */
 
+
         // Dotted method; downcast self and
         // forward to static method in springboard class
         // with explicit self parameter.
@@ -807,6 +850,93 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         CodeGen cg = new CodeGen(this);
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     inAMethod, body);
+        
+        generateAllWrappersForFn(x, params, sig, modifiers, mname);
+    }
+
+
+    /**
+     * @param x
+     * @param params
+     * @param selfIndex
+     * @param sig
+     * @param modifiers
+     * @param mname
+     */
+    private void generateAllWrappersForFn(FnDecl x, List<Param> params,
+            String sig, int modifiers,
+            String mname) {
+        CodeGen cg = new CodeGen(this);
+        /* This code generates forwarding wrappers for 
+         * the (local) unambiguous name of the function.
+         */
+                
+        // unambiguous within component
+        String wname = idOrOpToString(x.getUnambiguousName());
+        cg.generateWrapperMethodCode(modifiers, mname, wname, sig, params);
+    }
+
+
+    /**
+     * @param params
+     * @param sig
+     * @param modifiers
+     * @param mname
+     * @param cg
+     * @param sf
+     */
+    private void generateUnambiguousWrappersForApi() {
+
+        for (Map.Entry<String, Set<Function>> entry : exportedToUnambiguous
+                .entrySet()) {
+            Set<Function> sf = entry.getValue();
+            for (Function function : sf) {
+                List<Param> params = function.parameters();
+
+                String sig = NamingCzar.jvmSignatureFor(
+                        NodeUtil.getParamType(params, function.getSpan()),
+                        function.getReturnType().unwrap(),
+                        component.getName());
+                
+                String mname = idOrOpToString(function.name()); // entry.getKey();
+
+                String function_ua_name = idOrOpToString(function.unambiguousName());
+                generateWrapperMethodCode(
+                        Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, mname,
+                        function_ua_name, sig, params);
+            }
+        }
+    }
+
+    /** Generate an actual Java method and body code from an Expr.
+     *  Should be done within a nested codegen as follows:
+     *  new CodeGen(this).generateActualMethodCode(...);
+     */
+    private void generateWrapperMethodCode(int modifiers, String mname, String wname, String sig,
+                                          List<Param> params) {
+
+        // ignore virtual, now.
+        if (0 == (Opcodes.ACC_STATIC & modifiers))
+            return;
+        
+        mv = cw.visitCGMethod(modifiers, wname, sig, null, null);
+        mv.visitCode();
+
+        // Need to copy the parameter across for the wrapper call.
+        // Modifiers should tell us how to do the call, maybe?
+        // Invokestatic, for now.
+
+        int i = 0;
+        
+        for (Param p : params) {
+            // Type ty = p.getIdType().unwrap();
+            mv.visitVarInsn(Opcodes.ALOAD, i);
+            i++;
+        }
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, packageAndClassName, mname, sig);
+        
+        methodReturnAndFinish();
     }
 
     /** Generate an actual Java method and body code from an Expr.
@@ -1196,11 +1326,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                          traitOrObjectName, dottedName, invocation,
                          sig, params.size(), true);
 
+        
+        generateAllWrappersForFn(x, params, sig, modifiers, mname);
+        
     }
 
     /**
      * @param cg
      */
+
     private void methodReturnAndFinish() {
         mv.visitInsn(Opcodes.ARETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
@@ -1301,7 +1435,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private String singleName(IdOrOpOrAnonymousName name) {
         String nameString = idOrOpToString((IdOrOp)name);
-        String mname = Naming.mangleIdentifier(nameString);
+        String mname = nameString; // Naming.mangleIdentifier(nameString);
         return mname;
     }
 
@@ -1470,7 +1604,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // Cheating by assuming class is everything before the dot.
                 int lastDot = n.lastIndexOf(".");
                 calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
-                method = n.substring(lastDot+1);
+                method = n.substring(lastDot+2);
+                int foreign_tag = method.indexOf(Naming.FOREIGN_TAG);
+                calleePackageAndClass = calleePackageAndClass + "/" + method.substring(0, foreign_tag);
+                method = method.substring(foreign_tag+1);
+                int paren_tag = method.indexOf("(");
+                if (paren_tag != -1)
+                    method = method.substring(0, paren_tag);
             }
         }
         Pair<String, String> calleeInfo =
@@ -1935,7 +2075,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(Opcodes.DUP);
-            int taskVar = mv.createCompilerLocal(Naming.mangleIdentifier(task),
+            int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
                     NamingCzar.internalToDesc(task));
             taskVars[i] = taskVar;
             mv.visitVarInsn(Opcodes.ASTORE, taskVar);
@@ -2044,7 +2184,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         addLineNumberInfo(x);
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
-                           Naming.mangleIdentifier(opToString(op)),
+                           // Naming.mangleIdentifier(opToString(op)),
+                           opToString(op),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 
@@ -2387,7 +2528,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public static Set<String> generateTopLevelOverloads(APIName api_name,
             Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
             TypeAnalyzer ta,
-            ClassWriter cw
+            CodeGenClassWriter cw, CodeGen cg
             ) {
 
         Set<String> overloaded_names_and_sigs = new HashSet<String>();
@@ -2412,6 +2553,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
 
                os.generateAnOverloadDefinition(s2, cw);
+               if (cg != null) {
+                   /* Need to check if the overloaded function happens to match
+                    * a name in an API that this component exports; if so, 
+                    * generate a forwarding wrapper from the 
+                    */
+               }
 
                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                    String ss = o_entry.getKey();
