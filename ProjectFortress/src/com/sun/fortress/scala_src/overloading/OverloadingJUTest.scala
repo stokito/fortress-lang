@@ -18,13 +18,13 @@
 package com.sun.fortress.scala_src.overloading
 
 import _root_.junit.framework.TestCase
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ExclusionOracle
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.TypeParser
 import com.sun.fortress.scala_src.useful.STypesUtil
