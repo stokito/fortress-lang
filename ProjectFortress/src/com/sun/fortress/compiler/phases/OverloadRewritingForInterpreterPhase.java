@@ -24,9 +24,9 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;
 
-public class OverloadRewritingPhase extends Phase {
+public class OverloadRewritingForInterpreterPhase extends Phase {
 
-    public OverloadRewritingPhase(Phase parentPhase) {
+    public OverloadRewritingForInterpreterPhase(Phase parentPhase) {
         super(parentPhase);
     }
 
@@ -36,7 +36,7 @@ public class OverloadRewritingPhase extends Phase {
         AnalyzeResult previous = parentPhase.getResult();
 
         OverloadRewriter.ComponentResult results =
-                OverloadRewriter.rewriteComponents(previous.components(), env, false);
+                OverloadRewriter.rewriteComponents(previous.components(), env, true);
 
         if (!results.isSuccessful()) {
             throw new MultipleStaticError(results.errors());

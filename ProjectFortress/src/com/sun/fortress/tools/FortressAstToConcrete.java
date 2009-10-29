@@ -1705,7 +1705,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                List<String> staticArgs_result,
                                String originalName_result,
                                List<String> fns_result,
-                               Option<List<String>> overloadings_result,
+                               List<String> interpOverloadings_result,
                                List<String> newOverloadings_result,
                                Option<String> type_result) {
         StringBuilder s = new StringBuilder();
@@ -1735,7 +1735,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                List<String> staticArgs_result,
                                String originalName_result,
                                List<String> ops_result,
-                               Option<List<String>> overloadings_result,
+                               List<String> interpOverloadings_result,
                                List<String> newOverloadings_result,
                                Option<String> type_result) {
         return handleParen(canonicalOp(originalName_result), NodeUtil.isParenthesized(that));
@@ -1745,6 +1745,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String forOverloadingOnly(Overloading that,
                                      String info,
                                      String unambiguousName_result,
+                                     String originalName_result,
                                      Option<String> type_result) {
         StringBuilder s = new StringBuilder();
 

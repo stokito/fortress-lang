@@ -41,6 +41,13 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
             if (fv != null) {
                 bindInto.putValueRaw(fname, fv);
+                // Attempted fix for bug post-r4291
+            //    IdOrOp ua_name = x.getUnambiguousName();
+            //    if (ua_name != null) {
+            //        String s = ua_name.stringName();
+            //        if (! s.equals(fname))
+            //            bindInto.putValueRaw(s, fv);
+            //    }
                 change = Boolean.TRUE;
             } else {
                 api.unresolvedExports.add(x);

@@ -181,7 +181,8 @@ class CoercionOracle(traits: TraitTable,
       val coercionNameSpan = NU.getSpan(caa._1.ast.getUnambiguousName)
       val overloadingId = setSpan(coercionId, coercionNameSpan).asInstanceOf[Id]
       
-      SOverloading(SSpanInfo(coercionNameSpan), coercionId, Some(caa._2))
+      // Use coercionId as originalName -- no idea what the real name should be
+      SOverloading(SSpanInfo(coercionNameSpan), coercionId, coercionId, Some(caa._2))
     }
 
     // Make a dummy functional ref.
@@ -189,8 +190,8 @@ class CoercionOracle(traits: TraitTable,
     val fnRef = EF.makeFnRef(argSpan,
                              false,
                              coercionId,
-                             toJavaList(Nil),
                              toJavaList(sargs),
+                             toJavaList(overloadings),
                              toJavaList(overloadings))
 
     // Rewrite the FnRef so that it filters out dynamically unapplicable arrows.

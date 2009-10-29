@@ -88,20 +88,31 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     public final static Comparator<List<? extends Overloading>> overloadListComparator = new AnyListComparer<Overloading>(overloadComparator);
 
+    
+    
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedFunctions = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedOperators = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
+
+    final private boolean forInterpreter;
+
+    public OverloadRewriteVisitor(boolean forInterpreter) {
+        this.forInterpreter = forInterpreter;
+    }
+
 
     @Override
     public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
-                             Option<List<FunctionalRef>> opt_overloadings,
+                             List<Overloading> interp_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
 
-        Collections.<Overloading>sort(newOverloadings, overloadComparator);
-        fns = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
+        List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
+        
+        Collections.<Overloading>sort(the_overloads, overloadComparator);
+        fns = Useful.applyToAll(the_overloads, overloadingToIdOrOp);
 
-        if (newOverloadings.size() > 1) {
+        if (the_overloads.size() > 1) {
             // Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
             buffer.append(NodeUtil.nameString(originalName));
@@ -115,31 +126,34 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedFunctions.containsKey(overloadingName)) {
-                overloadedFunctions.put(newOverloadings, new TypedIdOrOpList(overloadingName, fns, that.getInfo().getExprType()));
+                overloadedFunctions.put(the_overloads, new TypedIdOrOpList(overloadingName, fns, that.getInfo().getExprType()));
             }
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
-        } else if (newOverloadings.size() == 1 ){
-            IdOrOp thename = newOverloadings.get(0).getUnambiguousName();
+        } else if (the_overloads.size() == 1 ){
+            IdOrOp thename = the_overloads.get(0).getUnambiguousName();
             fns = Collections.unmodifiableList(Collections.singletonList(thename));
         } else {
             fns = Collections.unmodifiableList(Collections.singletonList(originalName));
         }
 
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
-                opt_overloadings, Collections.<Overloading>emptyList(), type_result);
+                Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(), type_result);
     }
 
 
     @Override
     public Node forOpRefOnly(OpRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
-                             Option<List<FunctionalRef>> opt_overloadings,
+                             List<Overloading>  interp_overloadings,
                              List<Overloading> newOverloadings,
                              Option<Type> type_result) {
         Op originalOp = (Op)originalName;
-        Collections.<Overloading>sort(newOverloadings, overloadComparator);
-        ops = Useful.applyToAll(newOverloadings, overloadingToIdOrOp);
+        
+        List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
+
+        Collections.<Overloading>sort(the_overloads, overloadComparator);
+        ops = Useful.applyToAll(the_overloads, overloadingToIdOrOp);
         List<IdOrOp> newOps = new ArrayList<IdOrOp>();
         List<Overloading> newNewOverloadings = new ArrayList<Overloading>();
 
@@ -147,16 +161,16 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             Op op_i = (Op)ops.get(i);
             if (OprUtil.equal(op_i.getFixity(), originalOp.getFixity())) {
                 newOps.add(op_i);
-                newNewOverloadings.add(newOverloadings.get(i));
+                newNewOverloadings.add(the_overloads.get(i));
             }
         }
 
         ops = new ArrayList<IdOrOp>();
-        newOverloadings = new ArrayList<Overloading>();
+        the_overloads = new ArrayList<Overloading>();
         ops.addAll(newOps);
-        newOverloadings.addAll(newNewOverloadings);
+        the_overloads.addAll(newNewOverloadings);
 
-       if (newOverloadings.size() > 1) {
+       if (the_overloads.size() > 1) {
             // Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
 
             StringBuffer buffer = new StringBuffer();
@@ -171,13 +185,15 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedOperators.containsKey(overloadingName)) {
-                overloadedOperators.put(newOverloadings, new TypedIdOrOpList(overloadingName, ops, that.getInfo().getExprType()));
+                overloadedOperators.put(the_overloads, new TypedIdOrOpList(overloadingName, ops, that.getInfo().getExprType()));
             }
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
        }
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
-                                  opt_overloadings, newOverloadings, type_result);
+                                  // interp_overloadings, newOverloadings,
+                                  Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(),
+                                  type_result);
     }
 
 

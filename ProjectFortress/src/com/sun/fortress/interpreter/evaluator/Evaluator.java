@@ -1498,6 +1498,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         //        }
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
+            res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
             Iterable<Id> names = NodeUtil.getIds(x.getVarId());
             error(x, e, errorMsg("undefined variable ", names));
         }

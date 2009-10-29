@@ -254,15 +254,7 @@ public class StaticChecker {
                 ComponentIndex componentIndex = (ComponentIndex)index;
                 Component component_ast = (Component)ast;
                 if ( ! Shell.getScala() ) {
-                    // typecheck...
-                    result = typeCheck(componentIndex, env, traitTable, component_ast, false);
-                    // then replace inference variables...
-                    InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
-                    ast = (Component)result.ast().accept(rep);
-                    componentIndex = (ComponentIndex)buildIndex(ast, isApi);
-                    // then typecheck again!!!
-                    result = typeCheck(componentIndex, env, traitTable,
-                                       component_ast, true);
+                    throw new Error("The Java version of the type checker is gone now.");
                 } else {
                     STypeEnv typeEnv = STypeEnv$.MODULE$.make(componentIndex);
                     ErrorLog log = new ErrorLog();
@@ -316,17 +308,6 @@ public class StaticChecker {
         } else {
             return new TypeCheckerResult(index.ast(), IterUtil.<StaticError>empty());
         }
-    }
-
-    private static TypeCheckerResult typeCheck(ComponentIndex component,
-                                               GlobalEnvironment env,
-                                               TraitTable traitTable,
-                                               Node component_ast,
-                                               boolean postInference) {
-        TypeEnv typeEnv = typeCheckEnv(component, env);
-        TypeChecker typeChecker = new TypeChecker(traitTable, typeEnv,
-                                                  component, postInference);
-        return component_ast.accept(typeChecker);
     }
 
     private static TypeEnv typeCheckEnv(ComponentIndex component,

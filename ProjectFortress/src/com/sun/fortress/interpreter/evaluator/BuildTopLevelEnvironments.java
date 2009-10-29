@@ -156,6 +156,15 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                     }
 
                     if (oapi_val == null) {
+                        
+                        if (fn instanceof Id) {
+                            oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
+                        } else if (fn instanceof Op) {
+                            oapi_val = bindInto.getValueNull((Op) fn, Environment.TOP_LEVEL); // top-level reference
+                        } else {
+                            bug("Unexpected change to AST node hierarchy");
+                        }
+                        
                         bug("Failed to find overload member " + fn + " for " + x);
                     }
 

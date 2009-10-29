@@ -55,13 +55,13 @@ public class OverloadRewriter {
     /** Statically check the given components. */
     public static ComponentResult
         rewriteComponents(Map<APIName, ComponentIndex> components,
-                          GlobalEnvironment env)
+                          GlobalEnvironment env, boolean forInterpreter)
     {
         HashSet<Component> rewrittenComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (APIName componentName : components.keySet()) {
-            Component rewrite = rewriteComponent(components.get(componentName), env);
+            Component rewrite = rewriteComponent(components.get(componentName), env, forInterpreter);
             rewrittenComponents.add(rewrite);
         }
         return new ComponentResult
@@ -70,10 +70,10 @@ public class OverloadRewriter {
                  components(), errors);
     }
 
-    public static Component rewriteComponent(ComponentIndex component,
-                                             GlobalEnvironment env) {
+    private static Component rewriteComponent(ComponentIndex component,
+                                             GlobalEnvironment env, boolean forInterpreter) {
         Component comp = (Component) component.ast();
-        OverloadRewriteVisitor visitor = new OverloadRewriteVisitor();
+        OverloadRewriteVisitor visitor = new OverloadRewriteVisitor(forInterpreter);
         comp = (Component) comp.accept(visitor);
         List<Decl> decls = comp.getDecls();
         Span span = NodeUtil.getSpan(comp);
