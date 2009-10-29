@@ -115,7 +115,7 @@ public class GenericNumberer extends NodeUpdateVisitor {
         List<IdOrOp> names_result = Useful.<IdOrOp>applyToAllPossiblyReusing(that.getNames(), xlator);
         
         // what about overloadings?
-        Option<List<FunctionalRef>> overloadings_result = recurOnOptionOfListOfFunctionalRef(that.getOverloadings());
+        List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
         List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
         
         Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());

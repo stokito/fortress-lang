@@ -129,6 +129,26 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 ;//+ "@" + NodeUtil.getAt(NodeUtil.getFnName(node));
     }
 
+    public String forApiName(APIName node) {
+        String s = node.getText();
+        return s;
+    }
+    
+    public String forOptApiNameDot(Option<APIName> onode) {
+        if (onode.isNone())
+            return "";
+        return forApiName(onode.unwrap()) + ".";
+    }
+    
+    public String forOverloading(Overloading node) {
+        // String oa = forOptApiNameDot(node.getOriginalName().getApiName());
+        String ua = forOptApiNameDot(node.getUnambiguousName().getApiName());
+        String o = forIdOrOp(node.getOriginalName());
+        String u = forIdOrOp(node.getUnambiguousName());
+        String a = " at " + NodeFactory.terseSpan(NodeUtil.getSpan(node));
+        return "Overloading of " + o + " (" + ua+u +  ")" + a;
+    }
+    
     public String forIdOrOp(IdOrOp node) {
         if ( node instanceof Id )
             return forId((Id)node);

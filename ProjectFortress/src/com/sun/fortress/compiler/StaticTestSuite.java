@@ -33,6 +33,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
@@ -333,6 +334,7 @@ public final class StaticTestSuite extends TestSuite {
 
         private Iterable<? extends StaticError> compile(File f)
                 throws IOException, UserError {
+            Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
             return Shell.compilerPhases(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
                                         f.getName());
         }

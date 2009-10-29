@@ -466,13 +466,13 @@ trait Functionals { self: STypeChecker with Common =>
 
   def checkFunctionals(node: Node): Node = node match {
 
-    case SOverloading(info, unambigName, _) => {
+    case SOverloading(info, unambigName, origName, _) => {
       val checkedName = check(unambigName).asInstanceOf[IdOrOp]
 
       // Should have one arrow type for this unambiguous name.
       getTypeFromName(checkedName) match {
         case Some(arrow: ArrowType) =>
-          SOverloading(info, checkedName, Some(arrow))
+          SOverloading(info, checkedName, origName, Some(arrow))
         case Some(typ) =>
           bug("type env binds unambiguous name %s to non-arrow type %s".format(unambigName, typ))
         case None => node
@@ -558,10 +558,10 @@ trait Functionals { self: STypeChecker with Common =>
       // number or kind of static parameters.
       var hadNoType = false
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
-        case ov@SOverloading(_, _, Some(ty)) if sargs.isEmpty => Some(ov)
-        case SOverloading(info, name, Some(ty)) =>
+        case ov@SOverloading(_, _, _, Some(ty)) if sargs.isEmpty => Some(ov)
+        case SOverloading(info, name, origName, Some(ty)) =>
           instantiateStaticParams(sargs, ty).
-            map(t => SOverloading(info, name, Some(t.asInstanceOf[ArrowType])))
+            map(t => SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType])))
         case _ => hadNoType = true; None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)

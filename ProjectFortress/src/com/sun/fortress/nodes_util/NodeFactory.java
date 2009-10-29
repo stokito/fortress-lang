@@ -23,6 +23,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.parser_util.FnHeaderClause;
 import com.sun.fortress.parser_util.FnHeaderFront;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.scala_src.useful.Sets;
 import com.sun.fortress.useful.Useful;
 
@@ -497,8 +498,20 @@ public class NodeFactory {
     }
     
     private static String uaName(String tag, Span span ) {
-        String s = span.toString();
+        String s = terseSpan(span);
         s = s.replaceAll("/", "|");
+        return s;
+    }
+
+    /**
+     * @param span
+     * @return
+     */
+    public static String terseSpan(Span span) {
+        String s = span.toString();
+        if (s.startsWith(ProjectProperties.FORTRESS_AUTOHOME)) {
+            s = "_" + s.substring(ProjectProperties.FORTRESS_AUTOHOME.length());
+        }
         return s;
     }
     

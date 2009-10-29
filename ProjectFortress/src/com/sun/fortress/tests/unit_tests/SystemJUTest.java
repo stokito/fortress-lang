@@ -17,6 +17,8 @@
 
 package com.sun.fortress.tests.unit_tests;
 
+import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.repository.ProjectProperties;
 import junit.framework.Test;
 
@@ -31,6 +33,7 @@ public class SystemJUTest {
     }
 
     public static Test suite() throws IOException {
+        Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
         String testDir = ProjectProperties.BASEDIR + "tests";
         String s = System.getProperty("tests");
         boolean failsOnly = !("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));

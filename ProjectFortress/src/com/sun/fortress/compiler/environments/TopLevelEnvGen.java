@@ -228,6 +228,7 @@ public class TopLevelEnvGen {
         idStringSet.clear();
         for (IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
             String idString = NodeUtil.nameString(id);
+            Set<Function> fns = compUnitIndex.functions().matchFirst(id);
             idStringSet.add(idString);
         }
         namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);

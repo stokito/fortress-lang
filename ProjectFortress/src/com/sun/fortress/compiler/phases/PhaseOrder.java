@@ -61,6 +61,8 @@ public enum PhaseOrder {
      * More details in com.sun.fortress.compiler.OverloadRewriter
      */
     OVERLOADREWRITE("Overloading Rewriting"),
+    
+    OVERLOADREWRITE_FOR_INTERPRETER("Overloading Rewriting For Interpreter"),
     /* Generate top level environments
      * Generates a Java bytecode compiled environment.
      * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
@@ -81,46 +83,120 @@ public enum PhaseOrder {
         this.phaseName = phaseName;
     }
 
-    public Phase makePhase(FortressRepository repository,
-                           GlobalEnvironment env, Iterable<Api> apis,
-                           Iterable<Component> components, long lastModified)
-            throws StaticError {
-        Phase empty = new EmptyPhase(env, apis, components, lastModified);
-        switch (this) {
-            case EMPTY:
-                return empty;
-            default:
-                return makePhaseHelper(empty);
+//    public Phase makePhase(FortressRepository repository,
+//                           GlobalEnvironment env, Iterable<Api> apis,
+//                           Iterable<Component> components, long lastModified)
+//            throws StaticError {
+//        Phase empty = new EmptyPhase(env, apis, components, lastModified);
+//        switch (this) {
+//            case EMPTY:
+//                return empty;
+//            default:
+//                return makePhaseHelper(empty);
+//        }
+//    }
+
+    static public PhaseOrder[] disambiguatePhaseOrder = {
+        PREDISAMBIGUATEDESUGAR,
+        DISAMBIGUATE
+    };
+    
+    static public PhaseOrder[] grammarPhaseOrder = {
+        PREDISAMBIGUATEDESUGAR,
+        DISAMBIGUATE,
+        GRAMMAR
+    };
+
+     static public PhaseOrder[] typecheckPhaseOrder = {
+        PREDISAMBIGUATEDESUGAR,
+        DISAMBIGUATE,
+        GRAMMAR,
+        PRETYPECHECKDESUGAR,
+        TYPECHECK
+    };
+     
+     static public PhaseOrder[] desugarPhaseOrder = {
+         PREDISAMBIGUATEDESUGAR,
+         DISAMBIGUATE,
+         GRAMMAR,
+         PRETYPECHECKDESUGAR,
+         TYPECHECK,
+         DESUGAR,
+     };
+ 
+    static public PhaseOrder[] interpreterPhaseOrder = {
+            PREDISAMBIGUATEDESUGAR,
+            DISAMBIGUATE,
+            GRAMMAR,
+            PRETYPECHECKDESUGAR,
+            TYPECHECK,
+            DESUGAR,
+            OVERLOADREWRITE_FOR_INTERPRETER,
+            ENVGEN
+    };
+    
+   static public PhaseOrder[] compilerPhaseOrder = {
+        PREDISAMBIGUATEDESUGAR,
+        DISAMBIGUATE,
+        GRAMMAR,
+        PRETYPECHECKDESUGAR,
+        TYPECHECK,
+        DESUGAR,
+        OVERLOADREWRITE,
+        CODEGEN
+    };
+    
+
+  
+ 
+
+    public static Phase makePhaseOrder(PhaseOrder[] order,
+            FortressRepository repository,
+            GlobalEnvironment env,
+            Iterable<Api> apis,
+            Iterable<Component> components,
+            long lastModified) {
+        Phase phase = new EmptyPhase(env, apis, components, lastModified);
+        
+        for (int i = 0; i < order.length; i++) {
+            phase = order[i].makePhaseOrderHelper(phase);
         }
+        
+        return phase;
     }
 
-    private Phase makePhaseHelper(Phase phase) {
+    private Phase makePhaseOrderHelper(Phase phase) {
         switch (this) {
             case EMPTY:
                 return phase;
             case PREDISAMBIGUATEDESUGAR:
-                return new PreDisambiguationDesugarPhase(EMPTY.makePhaseHelper(phase));
+                return new PreDisambiguationDesugarPhase(phase);
             case DISAMBIGUATE:
-                return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
+                return new DisambiguatePhase(phase);
             case GRAMMAR:
-                return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
+                return new GrammarPhase(phase);
             case PRETYPECHECKDESUGAR:
-                return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
+                return new PreTypeCheckDesugarPhase(phase);
             case TYPECHECK:
-                return new TypeCheckPhase(PRETYPECHECKDESUGAR.makePhaseHelper(phase));
+                return new TypeCheckPhase(phase);
             case DESUGAR:
-                return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
+                return new DesugarPhase(phase);
             case OVERLOADREWRITE:
-                return new OverloadRewritingPhase(DESUGAR.makePhaseHelper(phase));
+                return new OverloadRewritingPhase(phase);
+                
+            case OVERLOADREWRITE_FOR_INTERPRETER:
+                return new OverloadRewritingForInterpreterPhase(phase);
             case ENVGEN:
-                return new EnvGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
+                return new EnvGenerationPhase(phase);
             case CODEGEN:
-                return new CodeGenerationPhase(ENVGEN.makePhaseHelper(phase));
+                return new CodeGenerationPhase(phase);
             default:
                 return InterpreterBug.bug("Unknown static analysis phase: "
                         + phaseName);
         }
     }
+    
+
 
     @Override
     public String toString() {

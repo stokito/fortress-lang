@@ -808,7 +808,7 @@ interface Node() extends HasAt;
                                                int lexicalDepth,
                                                IdOrOp originalName,
                                                List<IdOrOp> names,
-                                               Option<List<FunctionalRef>> overloadings,
+                                               List<Overloading> interpOverloadings,
                                                List<Overloading> newOverloadings,
                                                Option<Type> overloadingType);
                             /**
@@ -1672,6 +1672,7 @@ interface Node() extends HasAt;
              * One of possibly many overloadings for some function application.
              */
             Overloading(IdOrOp unambiguousName,
+                        IdOrOp originalName,
                         Option<ArrowType> type);
 
             /** syntactic abstraction nodes ************************************/

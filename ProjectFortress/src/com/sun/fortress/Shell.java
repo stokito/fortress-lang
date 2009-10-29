@@ -39,6 +39,7 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.phases.Phase;
 import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -74,7 +75,7 @@ public final class Shell {
     private static CompileProperties compileProperties = new CompileProperties();
 
     /* set this statically if you only want to run up to a certain phase */
-    private static PhaseOrder finalPhase = PhaseOrder.ENVGEN;
+    private static PhaseOrder[] finalPhaseOrder = null;
 
     private static final String defaultRepositoryDir = ProjectProperties.ANALYZED_CACHE_DIR;
     private static final CacheBasedRepository defaultCache = new CacheBasedRepository(defaultRepositoryDir);
@@ -90,9 +91,9 @@ public final class Shell {
     public FortressRepository getRepository() {
         return _repository;
     }
-
-    public static void setPhase( PhaseOrder phase ){
-        finalPhase = phase;
+   
+    public static void setPhaseOrder( PhaseOrder[] order ){
+        finalPhaseOrder = order;
     }
 
     /**
@@ -370,24 +371,24 @@ public final class Shell {
             if (what.equals("compile")) {
                 useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase( PhaseOrder.CODEGEN );
+                setPhaseOrder( PhaseOrder.compilerPhaseOrder );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("junit")) {
                 return_code = junit(args);
             } else if (what.equals("link")) {
                 useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase( PhaseOrder.CODEGEN );
+                setPhaseOrder( PhaseOrder.compilerPhaseOrder );
                 return_code = link(args);
             } else if (what.equals("build")) {
                 useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase( PhaseOrder.CODEGEN );
+                setPhaseOrder( PhaseOrder.compilerPhaseOrder );
                 return_code = link(args);
             } else if (what.equals("walk")) {
                 useFortressLibraries();
                 setScala(false);
-                setPhase( PhaseOrder.ENVGEN );
+                setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walk(args);
             } else if ( what.equals("api" ) ){
                 useCompilerLibraries();
@@ -403,43 +404,48 @@ public final class Shell {
                 unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
                 useCompilerLibraries();
-                setPhase( PhaseOrder.DISAMBIGUATE );
+                setPhaseOrder( PhaseOrder.disambiguatePhaseOrder );
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
                 useCompilerLibraries();
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
-                setPhase( PhaseOrder.DESUGAR );
+                setPhaseOrder( PhaseOrder.desugarPhaseOrder );
+
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "grammar" ) ){
                 useCompilerLibraries();
-                setPhase( PhaseOrder.GRAMMAR );
+                setPhaseOrder( PhaseOrder.grammarPhaseOrder );
+
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase( PhaseOrder.TYPECHECK );
+                setPhaseOrder( PhaseOrder.typecheckPhaseOrder );
+
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test-coercion")) {
                 useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase(PhaseOrder.TYPECHECK);
+                setPhaseOrder( PhaseOrder.typecheckPhaseOrder );
+
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
                 useFortressLibraries();
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
-                setPhase( PhaseOrder.TYPECHECK );
+                setPhaseOrder( PhaseOrder.typecheckPhaseOrder );
+
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
                 useCompilerLibraries();
-                setPhase( PhaseOrder.ENVGEN );
+                setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 useFortressLibraries();
                 setScala(false);
-                setPhase( PhaseOrder.ENVGEN );
+                setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walk(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 useCompilerLibraries();
@@ -564,7 +570,7 @@ public final class Shell {
 
     public static FValue eval( String file, List<String> args, boolean unCacheWhenDone )
         throws Throwable {
-        setPhase( PhaseOrder.ENVGEN );
+        setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
         if ( ! isComponent(file) )
             throw new UserError(file + " is not a component file.");
         APIName name = NodeUtil.apiName( file );
@@ -1211,7 +1217,9 @@ public final class Shell {
                                         Iterable<Api> apis,
                                         Iterable<Component> components,
                                         final long lastModified) throws StaticError {
-        AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
+        Phase ph = 
+            PhaseOrder.makePhaseOrder(finalPhaseOrder, repository, env, apis, components, lastModified);
+        AnalyzeResult result = ph.run();
         return result;
     }
 

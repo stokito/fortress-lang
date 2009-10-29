@@ -366,7 +366,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   else result = Some(SVarRef(info, newId, sargs, depth))
                 } else if (env.hasQualifiedFunction(newId)) {
                   result = Some(SFnRef(info, sargs, depth, name, List(name),
-                                       None, List(), None))
+                                       List(), List(), None))
                   // TODO: insert correct number of to-infer arguments?
                 } else {
                   error("Unrecognized name: " + NU.nameString(name), vref)
@@ -401,8 +401,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   // Create a list of overloadings for this FnRef from the
                   // matching function names.
                   // TODO: insert correct number of to-infer arguments?
-                  result = Some(SFnRef(info, sargs, depth, name, new_fns, None,
-                                       unambiguous_fns.map(new Overloading(info, _, None)),
+                  result = Some(SFnRef(info, sargs, depth, name, new_fns,
+                                       new_fns.map(new Overloading(info, _, name, None)),
+                                       unambiguous_fns.map(new Overloading(info, _, name, None)),
                                        None))
                 case (1, 0, 1) =>
                   result = Some(SVarRef(info, objs.iterator.next, sargs, depth))
@@ -445,10 +446,11 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         else {
           val new_fns = setToList[IdOrOp](toSet(fns))
           val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(fn_name)))
-          SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns, ovl,
+          SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns, 
                  // Create a list of overloadings for this FnRef from the matching
                  // function names.
-                 unambiguous_fns.map(new Overloading(info, _, None)), ovlType)
+                 new_fns.map(new Overloading(info, _, fn_name, None)),
+                 unambiguous_fns.map(new Overloading(info, _, fn_name, None)), ovlType)
         }
 
       case opref@SOpRef(info, sargs, depth, name, names, ovl, newOvl, ovlType) =>
@@ -806,8 +808,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val unambiguous_ops = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(op_name)))
         // Create a list of overloadings for this OpRef from the matching
         // operator names.
-        Some(SOpRef(info, sargs, depth, op_name, new_ops, oldOvl,
-                    unambiguous_ops.map(new Overloading(info, _, None)), ovlType))
+        Some(SOpRef(info, sargs, depth, op_name, new_ops,
+                    new_ops.map(new Overloading(info, _, op_name, None)),
+                    unambiguous_ops.map(new Overloading(info, _, op_name, None)), ovlType))
       }
     case _ => None
   }
