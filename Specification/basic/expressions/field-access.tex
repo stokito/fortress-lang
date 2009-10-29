@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Dotted Field Accesses}
+\seclabel{field-access}
+
+\begin{Grammar}
+\emph{Primary} &::=& \emph{Primary}\EXP{.}\emph{Id}\\
+\end{Grammar}
+
+An expression consisting of a single subexpression (called the
+\emph{receiver expression}), followed by `\txt{.}', followed by an
+identifier, not immediately followed by a parenthesis or a white
+square bracket, is a
+\emph{field access}.
+The receiver expression must denote an object
+(called the \emph{receiver}) and the field access is evaluated to a call
+to a getter mapped from that identifier by the receiver.
+The type of the field access is the return type of its getter.
+The static type of
+the receiver indicates whether a getter mapped from that identifier is
+provided by the denoted object.  If a getter is not provided, it is a
+static error.  See \secref{methods} for a discussion of getters.
+The evaluation of the receiver must complete normally before the body of
+the getter is evaluated.

@@ -32,10 +32,10 @@ g() = do
 a = array1[\ZZ32,2\](1)
 i = 1
 (t,u,v) = (2,3,4)
-(a[i],b.x,c) += f(t,u,v)
 (** EXAMPLE **)
-(a[i],c) += f(t,u)
+(a[i],b.x,c) += f(t,u,v)
 (** END EXAMPLE **)
+(a[i],c) += f(t,u)
 end
 
 run() = ()
