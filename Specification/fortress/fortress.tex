@@ -46,8 +46,10 @@
 %\marginnote{Some text that gets put into the margin} places the text in
 %the margin, pretty much vertically centered on the line where the marginnote
 %occurs in the input.
-\newcommand{\marginnote}[1]{\marginpar{\begin{minipage}{\marginparwidth}%
-\footnotesize\raggedright\noindent\tolerance=1000{#1}\end{minipage}}}
+\renewcommand{\marginparwidth}{.7in}
+\newcommand{\marginnote}[1]{%
+\marginpar{\footnotesize\raggedright\noindent\tolerance=1000{%
+\framebox[\marginparwidth][t]{\parbox[t]{\marginparwidth}{#1}}}}}
 \fi
 
 % Joe 8/4/06: added the following line for the proofs in overloading section
@@ -128,7 +130,7 @@
 \input{\home/advanced/advanced}
 % \input{\home/library/library}
 % \input{\home/basic-lib/basic-lib}
-% \input{\home/advanced-lib/advanced-lib}
+\input{\home/advanced-lib/advanced-lib}
 \input{\home/appendices/appendices}
 
 \bibliographystyle{plain}

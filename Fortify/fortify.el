@@ -7674,7 +7674,7 @@ extension '.tex'."
 (defun fortify-if-not-blank-space ()
   "Checks that the region isn't empty before calling fortify."
   (if (not (all-blank-spacep (region-beginning) (region-end)))
-      (newfortify 4)))
+      (fortify 4)))
 
 (defun fortify-example ()
   "Fortifies example code delimited by special doc comments

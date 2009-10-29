@@ -30,3 +30,69 @@
 \newcommand{\figlabel}[1]{\label{fig:#1}}
 \newcommand{\see}[1]{see \secref{#1}}
 \newcommand{\See}[1]{See \secref{#1}}
+
+%Literal text
+\newcommand{\txt}[1]{\mbox{\ttfamily\small{#1}}}
+% \newcommand{\A}[1]{\underline{\texttt{#1}}}
+% \newcommand{\txtr}[1]{\mbox{\ttfamily{#1}}}
+% \newcommand{\csdot}{\thinspace\cdot\thinspace}
+% \newcommand{\scap}[1]{\textsc{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\unicode}{Unicode 5.0}
+%% shell command rendering used in the Overview chapter
+\newcommand{\shellcommand}[1]{\txt{#1}}
+\newcommand{\library}{the Fortress standard libraries}
+\newcommand{\Library}{The Fortress standard libraries}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Stuff for the grammar excerpt %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\option}[1]{#1?}
+\newcommand{\options}[1]{(#1)?}
+
+\def\Grammar{\list{}{\leftmargin 2em
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}
+\item[{\sf Syntax:}]
+\item
+                      \begingroup\tabbing\begin{tabular}{llll}}
+\makeatletter
+\def\endGrammar{\end{tabular}\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+
+\def\GrammarTwo{\list{}{\leftmargin 2em
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}
+\item
+                      \begingroup\tabbing\begin{tabular}{llll}}
+\makeatletter
+\def\endGrammarTwo{\end{tabular}\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Sectioning commands for libraries %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\newcommand\librarysection{\@ifstar{\vskip-\lastskip  \vskip-\parskip
+   \@startsection{section}{1}{\z@}{\z@}%
+                 {2.3ex \@plus .2ex}{\normalfont\Large\bfseries}}{%
+   \vskip 0pt plus .00001fil\nobreak\null
+   \@startsection{section}{1}{\z@}{-3.5ex\@plus -1ex \@minus -.2ex}%
+                 {2.3ex \@plus .2ex}{\normalfont\Large\bfseries}}}
+\newcommand\librarysubsection{\@ifstar{\vskip-\lastskip  \vskip-\parskip
+   \@startsection{subsection}{2}{\z@}{\z@}%
+                 {0.5ex \@plus .2ex}{\normalfont\bfseries}}{%
+   \vskip 0pt plus .00001fil\nobreak\null
+   \@startsection{subsection}{2}{\z@}{-3.25ex\@plus -1ex \@minus -.2ex}%
+                 {0.5ex \@plus .2ex}{\normalfont\bfseries}}}
+\makeatother
+\newcommand\Trait[1]{\librarysection{The Trait #1}}
+\newcommand\Object[1]{\librarysection{The Object #1}}
+\newcommand\Method{\librarysubsection}
+\newcommand\Function{\librarysubsection}
+\newcommand\Variable{\librarysubsection}
