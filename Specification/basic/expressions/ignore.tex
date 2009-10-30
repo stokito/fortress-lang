@@ -15,28 +15,30 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Types}
-\chaplabel{types}
+\subsection{Ignoring Values}
+\seclabel{ignore}
 
-\section{Kinds of Types}
-\seclabel{type-kinds}
-\section{Relationships between Types}
-\seclabel{type-relations}
-\section{Trait Types}
-\seclabel{trait-types}
-\section{Object Expression Types}
-\seclabel{object-exp-types}
-\section{Tuple Types}
-\seclabel{tuple-types}
-\section{Arrow Types}
-\seclabel{arrow-types}
-\section{Function Types}
-\seclabel{function-types}
-\section{Special Types}
-\seclabel{bottom-type}
-\section{Types in the Fortress Standard Libraries}
-\seclabel{types-libraries}
-\section{Intersection and Union Types}
-\seclabel{internal-types}
-\section{Type Aliases}
-\seclabel{type-alias}
+For convenience, the function \VAR{ignore} (equivalent to the
+\texttt{ignore} function in the Objective Caml programming language) is
+included in \library:
+%% ignore(x: Any) = ()
+\begin{Fortress}
+\(\VAR{ignore}(x\COLON \TYP{Any}) = ()\)
+\end{Fortress}
+The function discards the value of its argument and
+returns \EXP{()}.  For example, the following:
+\marginnote{
+I manually added space between $f$ and $x$
+-- Sukyoung}
+%ignore(f x)
+\begin{Fortress}
+\(\VAR{ignore}(f\ x)\)
+\end{Fortress}
+is equivalent to:
+\marginnote{
+I manually added space between $f$ and $x$
+-- Sukyoung}
+%do f x; () end
+\begin{Fortress}
+\(\KWD{do} f\ x; () \KWD{end}\)
+\end{Fortress}

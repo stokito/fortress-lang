@@ -15,28 +15,18 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Types}
-\chaplabel{types}
+\section{Expression-like Functions}
+\seclabel{other-expressions}
 
-\section{Kinds of Types}
-\seclabel{type-kinds}
-\section{Relationships between Types}
-\seclabel{type-relations}
-\section{Trait Types}
-\seclabel{trait-types}
-\section{Object Expression Types}
-\seclabel{object-exp-types}
-\section{Tuple Types}
-\seclabel{tuple-types}
-\section{Arrow Types}
-\seclabel{arrow-types}
-\section{Function Types}
-\seclabel{function-types}
-\section{Special Types}
-\seclabel{bottom-type}
-\section{Types in the Fortress Standard Libraries}
-\seclabel{types-libraries}
-\section{Intersection and Union Types}
-\seclabel{internal-types}
-\section{Type Aliases}
-\seclabel{type-alias}
+\note{Some functions are not yet supported.
+Even for the supported functions, they are not run by the interpreter yet.}
+
+For convenience, \library\ provide functions such as
+\VAR{cast} and \VAR{instanceOf} that are often provided by other programming
+languages.
+
+\input{\home/basic/expressions/casting}
+\input{\home/basic/expressions/instanceof}
+\input{\home/basic/expressions/ignore}
+\input{\home/basic/expressions/identity}
+\input{\home/basic/expressions/coerce}
