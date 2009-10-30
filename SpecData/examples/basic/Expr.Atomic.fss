@@ -24,7 +24,7 @@ export Executable
 (** EXAMPLE **)
 sum: ZZ32 := 0
 accumArray[\N extends Number, nat x\](a: Array1[\N,0,x\]): () =
-  for i <- a.indices() do
+  for i <- a.indices do
     atomic sum += a[i]
   end
 (** END EXAMPLE **)

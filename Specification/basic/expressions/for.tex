@@ -17,3 +17,26 @@
 
 \section{For Loops}
 \seclabel{for-expr}
+
+\note{Reduction variables are not yet supported.}
+
+\begin{Grammar}
+\emph{DelimitedExpr} &::=&
+\KWD{for} \emph{GeneratorClauseList} \emph{DoFront} \KWD{end}\\
+
+\emph{DoFront} &::=& \options{\KWD{at} \emph{Expr}} \option{\KWD{atomic}} \KWD{do} \option{\emph{BlockElems}}\\
+
+\end{Grammar}
+
+A \KWD{for} loop consists of \KWD{for}
+followed by a generator clause list (discussed in \secref{generators}),
+followed by a non-parallel \KWD{do} expression (the loop \emph{body};
+see \secref{block-expr}).  Parallelism in \KWD{for} loops is specified
+by the generators used (see \secref{generators}); in general the
+programmer must assume that each loop iteration will occur
+independently in parallel unless every generator is explicitly
+\VAR{sequential}.  For each iteration, the body expression is
+evaluated in the scope of the values bound by the generators.
+The body of a \KWD{for} expression can make use of reduction variables as
+dscribed in \secref{reduction-vars}.
+The value and type of a \KWD{for} loop is \EXP{()}.

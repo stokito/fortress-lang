@@ -15,28 +15,16 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Types}
-\chaplabel{types}
+\section{Tuple Expressions}
+\seclabel{tuple-expr}
 
-\section{Kinds of Types}
-\seclabel{type-kinds}
-\section{Relationships between Types}
-\seclabel{type-relations}
-\section{Trait Types}
-\seclabel{trait-types}
-\section{Object Expression Types}
-\seclabel{object-exp-types}
-\section{Tuple Types}
-\seclabel{tuple-types}
-\section{Arrow Types}
-\seclabel{arrow-types}
-\section{Function Types}
-\seclabel{function-types}
-\section{Special Types}
-\seclabel{bottom-type}
-\section{Types in the Fortress Standard Libraries}
-\seclabel{types-libraries}
-\section{Intersection and Union Types}
-\seclabel{internal-types}
-\section{Type Aliases}
-\seclabel{type-alias}
+\begin{Grammar}
+\emph{TupleExpr} &::=& \texttt( (\emph{Expr}\EXP{,})$^+$ \emph{Expr} \texttt)\\
+\end{Grammar}
+
+A tuple expression is an ordered sequence of expressions separated by commas
+and enclosed in parentheses.  There must be at least two element expressions.
+The type of a tuple expression
+is a tuple type (as discussed in \secref{tuple-types}).
+Each element of a tuple is evaluated in parallel in a separate implicit thread (see
+\secref{threads-parallelism}).

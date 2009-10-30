@@ -1,0 +1,44 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{While Loops}
+\seclabel{while-expr}
+
+\begin{Grammar}
+\emph{DelimitedExpr} &::=&
+\KWD{while} \emph{GeneratorClause} \emph{Do} \\
+
+\end{Grammar}
+
+A \KWD{while} loop consists of a generator clause
+(discussed in \secref{generators}) followed by a simple \KWD{do} expression
+(see \secref{block-expr}).
+An iteration of a \KWD{while} loop evaluates the expression of its generator
+clause (\emph{condition expression}).  If the generator clause is a generator
+binding, the type of the condition expression must be a subtype of
+\EXP{\TYP{Condition}\llbracket{}E\rrbracket} for some \VAR{E}
+and the type of the identifiers bound in the clause must be a subtype of \VAR{E}.
+A \TYP{Condition} is a generator that generates 0 or 1 element.
+Otherwise, the generator clause must be an expression of type \TYP{Boolean}.
+Note in particular that \VAR{true} is a \TYP{Boolean} value yielding \EXP{()}
+exactly once, while \VAR{false} is a \TYP{Boolean} value that yields no elements.
+If the evaluation of the condition expression completes normally and generates
+exactly one element, the body expression is evaluated.
+When one iteration completes a new one is run until either an iteration
+completes abruptly (in which case the evaluation of the \KWD{while} expression
+completes abruptly), or the condition expression generates no elements
+(in which case the \KWD{while} loop completes normally with value \EXP{()}).

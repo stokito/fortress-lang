@@ -15,28 +15,12 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Types}
-\chaplabel{types}
+\subsection{Identity}
+\seclabel{identity}
 
-\section{Kinds of Types}
-\seclabel{type-kinds}
-\section{Relationships between Types}
-\seclabel{type-relations}
-\section{Trait Types}
-\seclabel{trait-types}
-\section{Object Expression Types}
-\seclabel{object-exp-types}
-\section{Tuple Types}
-\seclabel{tuple-types}
-\section{Arrow Types}
-\seclabel{arrow-types}
-\section{Function Types}
-\seclabel{function-types}
-\section{Special Types}
-\seclabel{bottom-type}
-\section{Types in the Fortress Standard Libraries}
-\seclabel{types-libraries}
-\section{Intersection and Union Types}
-\seclabel{internal-types}
-\section{Type Aliases}
-\seclabel{type-alias}
+An identity function \VAR{identity} is defined in \library:
+%% identity[\T extends Any\](x: T) = x
+\begin{Fortress}
+\(\VAR{identity}\llbracket{}T \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\rrbracket(x\COLON T) = x\)
+\end{Fortress}
+The function returns its argument as it is.
