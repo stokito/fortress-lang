@@ -100,7 +100,7 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
 
   /** Get the modifiers for the given name, if it exists. */
   def getMods(x: Name): Option[Modifiers] = lookup(x).map(_.mods)
-  
+
   /** Get the functional indices for this name, if any. */
   def getFnIndices(x: Name): Option[List[Functional]] =
     lookup(x).map(_.fnIndices)
@@ -259,24 +259,24 @@ object STypeEnv extends StaticEnvCompanion[Type] {
     val map = fns.map(x => (x, toSet(r.matchFirst(x).asInstanceOf[JSet[Functional]])))
     extractFunctionBindings(map,api)
   }
-  
+
   protected def extractFunctionBindings[S <: Name, T <: Functional]
                                        (functions: Iterable[(S,Set[T])],
                                         api: Option[APIName]): Iterable[TypeBinding] = {
-                                         
+
     // Collect all bindings found among all these functions.
     functions.flatMap { nameAndFunctions =>
       val (f, fnsSet) = nameAndFunctions
       val fns = fnsSet.toList
-      
+
       // Create the binding for each overloading of the function named f.
       val unambiguousBindings = fns.map { fn =>
-        
+
         // Create a lazy computation for the type of this overloading.
         val lazyType = new TypeThunk {
           def apply: Option[Type] = makeArrowFromFunctional(fn)
         }
-        
+
         // Bind the unambiguous name of this overloading to its type.
         makeBinding(unqualifiedName(fn.unambiguousName),
                     lazyType,
@@ -284,7 +284,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                     false,
                     List(fn))
       }
-      
+
       // Create a lazy computation for the type of the whole overloaded
       // function named x.
       val ambiguousThunk = new TypeThunk {
@@ -296,7 +296,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
             Some(NF.makeMaybeIntersectionType(toJavaSet(oTypes)))
         }
       }
-      
+
       // Create the modifiers for the whole binding.
       val ambiguousMods =
         if (fns.isEmpty)
@@ -305,7 +305,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
           case Some(f) => f.mods
           case _ => Modifiers.None
         }
-      
+
       // Bind the ambiguous, plain name of this function to the intersection
       // of all its overloadings' types.
       val ambiguousBinding = makeBinding(unqualifiedName(f),
@@ -313,11 +313,11 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                                          ambiguousMods,
                                          false,
                                          fns)
-      
+
       // Return all the bindings.
       ambiguousBinding :: unambiguousBindings
     }
-  } 
+  }
 }
 
 

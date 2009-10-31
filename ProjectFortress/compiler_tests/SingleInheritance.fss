@@ -16,22 +16,20 @@
  ******************************************************************************)
 export Executable
 
-trait T
-  m(x:ZZ32, y:String):String = y
-end
-
 trait S
-  m(z:String, t:String):String = (z t)
+  m(z:String, t:String) = (z t)
 end
 
 object O(x:ZZ32,y:ZZ32) extends S
-  n():String = O(" x.asString "," y.asString ").n " self.m("a","b")
-  p():String = O(" x.asString "," y.asString ").p " m("e","f")
+  n():String = "O(" x.asString "," y.asString ").n " self.m("a","b")
+  p():String = "O(" x.asString "," y.asString ").p " m("e","f")
+  q():String = n()
 end
 
 run() = do
   o = O(1,2)
+  println(o.m("c","d"))
   println(o.n())
   println(o.p())
-  println(o.m("c","d"))
+  println(o.q())
 end

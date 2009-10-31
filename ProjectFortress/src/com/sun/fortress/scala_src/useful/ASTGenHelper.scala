@@ -20,14 +20,25 @@ package com.sun.fortress.scala_src.useful
 import _root_.java.util.{HashMap => JHashMap}
 import _root_.java.util.{HashSet => JHashSet}
 import _root_.java.util.{List => JList}
-import _root_.java.util.{LinkedList => JLinkedList}
-import edu.rice.cs.plt.tuple.{Option => JOption}
+import _root_.java.util.{ArrayList => JArrayList}
 import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
+import _root_.java.util.{Collections => JCollections}
 import _root_.java.lang.{Integer => JInteger}
+import edu.rice.cs.plt.tuple.{Option => JOption}
+import com.sun.fortress.nodes
 import scala.collection.jcl.Conversions
 
 object ASTGenHelper {
+  def needsScalafication(o: Any): Boolean = o match {
+    case o: JOption[_]  => true
+    case o: JList[_]    => true
+    case o: JMap[_, _]  => true
+    case o: JSet[_]     => true
+    case o: JInteger[_] => true
+    case _ => false
+  }
+
   def scalaify(typ: Any): Any = typ match {
     case o: JOption[_] => {
       if (o.isSome)
@@ -37,11 +48,16 @@ object ASTGenHelper {
     }
 
     case l: JList[_] => {
-      var accum = List[Any]()
-      for (e <- (List() ++ Conversions.convertList(l))) {
-        accum = accum ::: List(scalaify(e))
+      if (l.isEmpty) {
+        Nil
+      } else {
+        val r = List.fromArray( l.toArray )
+        if (needsScalafication(r.head)) {
+          r.map(scalaify)
+        } else {
+          r
+        }
       }
-      accum
     }
 
     case m: JMap[_, _] => {
@@ -65,16 +81,25 @@ object ASTGenHelper {
     case _ => typ
   }
 
+  def needsJavafication(o: Any): Boolean = o match {
+    case o: Option[_] => true
+    case o: List[_]   => true
+    case o: Map[_,_]  => true
+    case o: Set[_]    => true
+    case o: Int       => true
+    case _ => false
+  }
+
   def javaify(typ: Any): Object = typ match {
     case Some(t) => JOption.some(javaify(t))
     case None => JOption.none
 
     case l: List[_] => {
-      val accum = new JLinkedList[Object]()
-      for (e <- l) {
-        accum.addLast(javaify(e))
+      val m = l match {
+        case head::_ if needsJavafication(l.head) => l.map(javaify)
+        case _ => l
       }
-      accum
+      Lists.toJavaList(m)
     }
 
     case m: Map[_, _] => {

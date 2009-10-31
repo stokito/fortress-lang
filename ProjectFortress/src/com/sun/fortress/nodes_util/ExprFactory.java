@@ -466,8 +466,8 @@ public class ExprFactory {
                                           Option<Type> overloadingType) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new OpRef(info, staticArgs, lexicalDepth, name, names,
-                interp_overloadings, newOverloadings,
-        				 overloadingType);
+                         interp_overloadings, newOverloadings,
+                         overloadingType);
     }
 
     public static _RewriteObjectExprRef make_RewriteObjectExprRef(_RewriteObjectExpr rwoe) {
@@ -1994,9 +1994,9 @@ public class ExprFactory {
     }
 
     //Span in_span, boolean in_parenthesized, Id in_obj, List<StaticArg> in_staticArgs
-	public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj) {
-		return make_RewriteObjectRef(parenthesized, in_obj, Collections.<StaticArg>emptyList());
-	}
+    public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj) {
+        return make_RewriteObjectRef(parenthesized, in_obj, Collections.<StaticArg>emptyList());
+    }
 
     public static NonParenthesisDelimitedMI makeNonParenthesisDelimitedMI(Span span,
                                                                           Expr expr) {

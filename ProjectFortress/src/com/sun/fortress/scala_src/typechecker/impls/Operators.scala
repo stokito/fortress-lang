@@ -38,10 +38,10 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 /**
  * Provides the implementation of cases representing some sort of operator
  * expression.
- * 
+ *
  * This trait must be mixed in with an `STypeChecker with Common` instance
  * in order to provide the full type checker implementation.
- * 
+ *
  * (The self-type annotation at the beginning declares that this trait must be
  * mixed into STypeChecker along with the Common helpers. This is what
  * allows this trait to implement abstract members of STypeChecker and to
@@ -51,7 +51,7 @@ trait Operators { self: STypeChecker with Common =>
 
   // ---------------------------------------------------------------------------
   // CHECK IMPLEMENTATION ------------------------------------------------------
-  
+
   def checkOperators(node: Node): Node = node match {
 
     case op@SOp(info,api,name,fixity,enclosing) => {
@@ -72,7 +72,7 @@ trait Operators { self: STypeChecker with Common =>
 
     case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
   }
-  
+
   // ---------------------------------------------------------------------------
   // CHECKEXPR IMPLEMENTATION --------------------------------------------------
 
@@ -96,7 +96,7 @@ trait Operators { self: STypeChecker with Common =>
       case 1 => checkExpr(S_RewriteFnApp(info, front, rest.head))
       case n => // Make sure it is just two exprs.
         signal(expr, errorMsg("TightJuxt denoted as function application but has ",
-                              n + "(!= 2) expressions."))
+                              int2Integer(n), "(!= 2) expressions."))
         expr
     }
 
@@ -416,19 +416,19 @@ trait Operators { self: STypeChecker with Common =>
       }
       val fnRefs = conjuncts.flatMap(checkBoolean)
       if (conjuncts.size != fnRefs.size) return expr
-      
+
       // For each link, insert the corresponding checked FnRef and check it.
       val newLinks = List.map2(links, fnRefs) {
         case (SLink(info, _, expr), fnRef) =>
           SLink(info, fnRef, checkExpr(expr)).asInstanceOf[Link]
       }
-      
+
       // Check a dummy OpExpr for the AND operation.
       val andExpr = EF.makeOpExpr(NF.typeSpan,
                                   andOp,
                                   makeDummyFor(Types.BOOLEAN),
                                   makeDummyFor(Types.BOOLEAN))
-      
+
       // Check it and pull out the checked AND op.
       val checkedAndOp = checkExpr(andExpr).asInstanceOf[OpExpr].getOp
 

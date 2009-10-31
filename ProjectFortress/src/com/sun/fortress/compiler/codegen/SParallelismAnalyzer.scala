@@ -58,16 +58,16 @@ class SParallelismAnalyzer extends Walker {
             debug("Parallelizable table has entry " + node)
     }
 
-    override def walk(x: Any) = { 
-        x match { 
-          case sop@SOpExpr(_, op, args) => { 
+    override def walk(x: Any) = {
+        x match {
+          case sop@SOpExpr(_, op, args) => {
                if (tallyArgs(args)) worthy += sop
                walk(args)
           }
-          case fnApp@S_RewriteFnApp(_, fun, STupleExpr(_, exprs, varargs, keywords, _)) => { 
+          case fnApp@S_RewriteFnApp(_, fun, STupleExpr(_, exprs, varargs, keywords, _)) => {
                if (tallyArgs(exprs)) worthy += fnApp
           }
           case _ => super.walk(x)
         }
-    }      
+    }
 }

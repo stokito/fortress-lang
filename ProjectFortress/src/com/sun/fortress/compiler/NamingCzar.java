@@ -894,7 +894,7 @@ public class NamingCzar {
                 return descFortressAny;
             }
             public String forVarType (VarType t) {
-                // 
+                //
                 String s = t.getName().getText();
                 s = internalToDesc(s);
                 return s;

@@ -61,7 +61,7 @@ object STypesUtil {
       h
     }
   }
-  
+
   /** A function that when applied yields an option type. */
   type TypeThunk = Function0[Option[Type]]
 
@@ -609,7 +609,7 @@ object STypesUtil {
     val first = elts.next
     if (!elts.hasNext)
       Iterator.single((first, dom))
-    else 
+    else
       (Iterator.single(first) ++ elts) zip typeIterator(dom)
   }
 
@@ -664,7 +664,7 @@ object STypesUtil {
 
     // Builds a constraint given the arrow with inference variables.
     def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
-      
+
       // argType <:? dom(infArrow) yields a constraint, C1
       val domainConstraint = checkSubtype(argType, infArrow.getDomain)
 
@@ -736,7 +736,7 @@ object STypesUtil {
 
     // Builds a constraint given the arrow with inference variables.
     def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
-    
+
       // Get the type of the `self` arg and form selfArg <:? selfType
       val SMethodInfo(selfType, selfPosition) = infArrow.getMethodInfo.unwrap
       getTypeAt(argType, selfPosition) match {
@@ -835,7 +835,7 @@ object STypesUtil {
     case fn: FunctionalRef =>
       // Get the unlifted static args.
       val (liftedSargs, unliftedSargs) = sargs.partition(_.isLifted)
-      
+
       // Use original static args if any were given.
       // Otherwise use the unlifted inferred static args, if any.
       val newSargs =

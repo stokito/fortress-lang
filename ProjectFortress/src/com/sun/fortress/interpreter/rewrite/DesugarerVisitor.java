@@ -1030,7 +1030,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
         List<Param> params = Collections.emptyList();
         FnExpr fnExpr = ExprFactory.makeFnExpr(sp, params, (Expr) rewrittenExpr);
 
-        return visitNode(ExprFactory.makeTightJuxt(NodeUtil.getSpan(s), fn, fnExpr));
+        return visitNode(ExprFactory.make_RewriteFnApp(NodeUtil.getSpan(s), fn, fnExpr));
     }
 
     @Override
