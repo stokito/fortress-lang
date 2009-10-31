@@ -48,6 +48,9 @@ import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.tuple.Option;
 
+/** Generate object to hold hoisted mutable variables that are shared by
+ *  an object expression and its enclosing context.
+ */
 public class VarRefContainer {
     private VarRef origVar;
     private ASTNode origDeclNode;

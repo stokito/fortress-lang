@@ -151,7 +151,7 @@ trait Functionals { self: STypeChecker with Common =>
         checkApplicableWithInference(liftedArrow, arrow, context, args)
       else
         checkApplicableWithoutInference(liftedArrow, arrow, args)
-    
+
     // If applicable, then inject the lifted static args into the result.
     candidateOrError match {
       case Left((arrow, sargs, args)) => Left((arrow, liftedSargs ++ sargs, args))
@@ -595,7 +595,34 @@ trait Functionals { self: STypeChecker with Common =>
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
       val newFn = rewriteApplicand(checkedFn, smaArrow, infSargs)
-      S_RewriteFnApp(SExprInfo(span, paren, Some(smaArrow.getRange)), newFn, checkedArg)
+      val info = SExprInfo(span, paren, Some(smaArrow.getRange))
+
+      newFn match {
+        // Detect FnApp that is really method application with implicit self,
+        // and rewrite it to a MethodInvocation.  We do this *after* typechecking
+        // to work around a certain amount of bogosity in the treatment of self
+        // in object expressions [self refers to the intersection of supertypes,
+        // and therefore doesn't include any locally-defined methods unless they
+        // implement or override superclass methods].
+        // TODO: is method overloading going to cause this pattern match to fail?
+        case SFnRef(exprInfo@
+               SExprInfo(span, paren,
+                         Some(SArrowType(typeInfo, dom, rng, effect, io,
+                                         Some(mi@SMethodInfo(selfType, selfPos))))),
+               staticArgs, _, origName: Id,
+               names, iOverloadings, newOverloadings, overloadingType) if selfPos == -1 =>
+          val selfRef = checkExpr(EF.makeVarRef(span, "self"))
+          val res : MethodInvocation =
+              SMethodInvocation(info, selfRef, origName, staticArgs, checkedArg,
+                                overloadingType)
+          // System.err.println(span+": app of "+checkedFn+
+          //                    "\n  selfType="+selfType+
+          //                    "\n  self: "+getType(selfRef)+
+          //                    "\n  REWRITTEN TO: "+res.toStringReadable())
+          res
+        case _ =>
+          S_RewriteFnApp(info, newFn, checkedArg)
+      }
     }
 
     case SOpExpr(SExprInfo(span, paren, _), op, args) => {
@@ -683,14 +710,14 @@ trait Functionals { self: STypeChecker with Common =>
               def checkOp(op: FunctionalRef): FunctionalRef = {
                 val opType = getType(op).getOrElse(return op)
                 val arrows = getArrowsForFunction(opType, expr).getOrElse(return op)
-                
+
                 // Type check the application without reporting an error.
                 implicit val errorFactory = DummyApplicationErrorFactory
                 val checker = STypeCheckerFactory.makeDummyChecker(this)
                 val (smaArrow, infSargs, checkedArgs) =
                   checker.checkApplication(arrows, args, Some(Types.BOOLEAN))
                          .getOrElse(return op)
-                
+
                 // Rewrite the applicand to include the arrow and static args
                 // and update the application.
                 rewriteApplicand(op, smaArrow, infSargs).asInstanceOf[FunctionalRef]

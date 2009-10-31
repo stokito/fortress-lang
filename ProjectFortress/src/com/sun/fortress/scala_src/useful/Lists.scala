@@ -23,25 +23,18 @@ import _root_.junit.framework.TestCase
 import scala.collection.jcl.Conversions
 
 object Lists {
-//  def toJavaList[T](xs: List[T]): JLinkedList[T] = {
-//    xs match {
-//      case List() => new JLinkedList[T]
-//      case y :: ys => {
-//        val result = toJavaList(ys)
-//        result.addFirst(y)
-//        result
-//      }
-//    }
-//  }
-  
+
   /** Convert any collection to a Java list. */
-  def toJavaList[T](elts: Collection[T]): JArrayList[T] = {
+  def toJavaList[T](elts: Collection[T]): JList[T] = {
     val result = new JArrayList[T](elts.size)
     elts.foreach(result.add(_))
     result
   }
 
-  def toList[T](xs: JList[T]) = List() ++ Conversions.convertList(xs)
+  /* Conversion recommended by Martin Odersky, with some type trickery
+     that's a bit annoying. */
+  def toList[T](xs: JList[T]): List[T] =
+    List.fromArray[T]( xs.toArray(List[T]().toArray) )
 
   def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toList(list).map(fun))
 

@@ -16,8 +16,6 @@
  ******************************************************************************/
 package com.sun.fortress.compiler
 
-import _root_.java.util.Arrays
-import _root_.java.util.LinkedList
 import junit.framework.TestCase
 import junit.framework.TestSuite
 import edu.rice.cs.plt.tuple.Option
