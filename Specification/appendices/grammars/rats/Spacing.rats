@@ -15,21 +15,36 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\begin{verbatim}
+EndOfFile       = !_
+Whitespace =
+     Space
+   / "\t"       // Error production
+   / Newline
+Space =
+     " "
+   / "\f"
+   / "\t"       // Error production
+   / NoNewlineComment
+Newline         = "\r\n" / "\r" / "\n" / NewlineComment
+Comment         = "(*" CommentContents "*)"
+CommentContents = CommentContent*
+CommentContent  = Comment / '*' !')' / c:_ &{c != '*'}
+NewlineComment = Comment
+NoNewlineComment =
+     Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r") || yyValue.contains("\n")) }
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+w  = Whitespace*
+wr = Whitespace+
+
+s  = Space*
+sr = Space+
+
+nl = s Newline w
+br = nl / s ";" w
+
+RectSeparator =
+     (w ";")+ w
+   / nl
+   / sr
+\end{verbatim}

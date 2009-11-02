@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) }
+idstart = UnicodeIdStart / "_"
+idrest  = UnicodeIdStart / "'" / UnicodeIdRest
+IdText  = a1:id &{ !FortressUtil.validOp(a1) && !a1.equals("_") }
+
+Id = IdText
+
+BindId =
+     Id
+   / "_"
+
+BindIdList = BindId (w "," w BindId)*
+
+BindIdOrBindIdTuple =
+     BindId
+   / "(" w BindId w "," w BindIdList w ")"
+
+SimpleName =
+     Id
+   / "opr" (w "BIG")? w (Encloser / Op)
+   / "opr" (w "BIG")? w EncloserPair
+
+String idOrKeyword = s:(idstart idrest*) &{ true }
+
+APIName = // Reject Fortress keywords and operator names
+     idOrKeyword &(w ellipses)
+   / idOrKeyword (dot idOrKeyword)* &(w ellipses)
+   / idOrKeyword (dot idOrKeyword)*
+
+QualifiedName =
+     Id &(w "...")
+   / Id ("." Id)* &(w "...")
+   / Id ("." Id)*
+\end{verbatim}

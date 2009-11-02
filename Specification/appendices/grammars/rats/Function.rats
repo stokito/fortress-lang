@@ -15,21 +15,27 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\begin{verbatim}
+FnDecl =
+     FnMods? FnHeaderFront FnHeaderClause w "=" w NoNewlineExpr
+   / FnMods? AbsFnHeaderFront FnHeaderClause
+   / FnSig
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+FnSig = SimpleName w ":" w NoNewlineType
+
+AbsFnDecl =
+     AbsFnMods? AbsFnHeaderFront FnHeaderClause
+   / FnSig
+
+FnHeaderFront =
+     NamedFnHeaderFront
+   / OpHeaderFront
+
+AbsFnHeaderFront =
+     AbsNamedFnHeaderFront
+   / AbsOpHeaderFront
+
+NamedFnHeaderFront = Id (w StaticParams)? w ValParam
+
+AbsNamedFnHeaderFront = Id (w StaticParams)? w AbsValParam
+\end{verbatim}

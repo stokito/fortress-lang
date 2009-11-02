@@ -1,0 +1,68 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+MdDecl =
+     MdDef
+   / ("abstract" w)? MdMods? AbsMdHeaderFront FnHeaderClause
+
+MdDef = MdMods? MdHeaderFront FnHeaderClause w "=" w NoNewlineExpr
+
+AbsMdDecl = ("abstract" w)? AbsMdMods? AbsMdHeaderFront FnHeaderClause
+
+MdHeaderFront =
+     NamedMdHeaderFront
+   / OpHeaderFront
+
+AbsMdHeaderFront =
+     AbsNamedMdHeaderFront
+   / AbsOpHeaderFront
+
+NamedMdHeaderFront = Id (w StaticParams)? w ValParam
+
+AbsNamedMdHeaderFront = Id (w StaticParams)? w AbsValParam
+
+GetterSetterDecl =
+     GetterSetterDef
+   / (abstract w)? FnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
+
+GetterSetterDef =
+     FnMods? GetterSetterMod MdHeaderFront FnHeaderClause w "=" w NoNewlineExpr
+
+GetterSetterMod =
+     "getter" w
+   / "setter" w
+
+AbsGetterSetterDecl = (abstract w)? AbsFnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
+
+Coercion = "coerce" (w StaticParams)? w "(" w BindId w IsType w ")" CoercionClauses w
+           ("widens" w)? "=" w NoNewlineExpr
+
+AbsCoercion = "coerce" (w StaticParams)? w "(" w BindId w IsType w ")" CoercionClauses (w "widens")?
+
+CoercionClauses = (w CoercionWhere)? (w Ensures)? (w Invariant)?
+
+CoercionWhere =
+     "where" w "[\" w WhereBindingList w "\]" (w "{" w CoercionWhereConstraintList w "}")?
+   / "where" w "{" w CoercionWhereConstraintList w "}"
+
+CoercionWhereConstraintList = CoercionWhereConstraint (w "," w CoercionWhereConstraint)*
+
+CoercionWhereConstraint =
+     WhereConstraint
+   / Type w "widens" w "or" w "coerces" w Type
+\end{verbatim}

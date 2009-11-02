@@ -1,0 +1,1673 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Proposed Features (for Internal Uses)}
+\applabel{future}
+
+\note{This chapter is not up to date.}
+
+\section{Not Yet Implemented Features for the Next Release}
+
+\begin{itemize}
+\item Incorporate Stix fonts
+
+\item Unicode canonicalization
+% :
+%  \pageref{pgmUnicodeSyn},
+%  \secref{characters},
+%  \secref{preprocessing-character-literals},
+%  \secref{preprocessing-string-literals},
+%  \appref{app-rendering},
+%  \appref{operators}
+
+\item ASCII conversion
+% :
+%  ``ASCII Conversion'',
+%  \pageref{nutshellAscii}, \pageref{overviewAscii}, \pageref{pgmAscii},
+%  \secref{characters}, \secref{position}, \secref{scanning},
+%  \secref{whitespace},
+% \secref{preprocessing-character-literals},
+% \secref{preprocessing-string-literals},
+%  \secref{multichar-enclosers},
+% \pageref{components-ascii-conversion},
+%  \appref{operators}, \pageref{compOthers}
+
+\item \secref{position} Lines, Pages and Position
+  \begin{itemize}
+  \item
+A character is on page $n$
+(respectively line $n$) of a program
+if exactly $n-1$ page terminators (respectively line terminators)
+precede that character in the program.
+Thus, for example,
+the $n$th line terminator of a program
+is the last character on line $n$.
+A character is on line $k$ of page $n$
+if it is on page $n$
+and is preceded by exactly $k-1$ line terminators on page $n$.
+A character is at line position $k$ on line $n$
+if it is preceded by exactly $k-1$ characters on line $n$
+other than page terminators.
+Note that a page terminator does \emph{not} terminate a line;
+thus, the character immediately following a page terminator
+need not be at line position 1.
+
+  \item
+Before any other processing,
+a Fortress program undergoes \emph{ASCII conversion}
+(see \secref{ascii-conversion}),
+which may replace chunks of ASCII characters
+with single (typically non-ASCII) characters
+and remove some other characters.
+We expect that IDEs will typically display a program
+by rendering the converted sequence of characters
+rather than the actual input sequence.
+Thus, a program may appear to have fewer (and different) characters
+than it actually does.
+Nonetheless,
+the page, line and position of a character
+is based on the program before conversion.\footnote{Of course,
+an IDE may actually do the conversion
+and manipulate the converted program,
+in which case,
+the page, line and position of characters will reflect the conversion.
+}
+  \end{itemize}
+
+\item \secref{preprocessing-character-literals} Character Literals
+
+The sequence of enclosed characters may be
+a sequence of four or more hexadecimal digits
+identifying the code point of a Unicode character
+(e.g., `\txt{001C}', \txt{`FBAB'}, `\txt{1D11E}'),
+one of \txt{TAB}, \txt{NEWLINE} or \txt{RETURN},
+a sequence of ASCII characters
+that would be converted by the second step of ASCII conversion
+to a single Unicode character or
+the official \unicode\ name or an alternative name
+of a Unicode character
+with spaces and hyphens intact
+(e.g., `\txt{PLUS-MINUS SIGN}').
+
+\item Bug fixes with the rendering tool
+
+\secref{numerals}
+
+\end{itemize}
+
+
+\section{Not Yet Implemented Features}
+\begin{itemize}
+\item Syntax abstraction:
+\secref{scanning}
+
+\item Fix citations:
+
+Victor's email titled ``Re: Fortress 1.0 spec (revision 4793)'' sent on
+31 Mar 2008
+
+\item \txt{a''}, \txt{a'\_prime}, \txt{a\_prime'}, \txt{a\_prime\_prime} are rendered identically and they are meant to denote the same identifier.
+Victor proposed to treat them as we treat synonym operators: a single definition for one is for all the other names.
+
+\item Jan's short note \#82: ``Unboxed Types: the design space'' (07/24/07)
+ \begin{itemize}
+\item Only heap objects have a notion of object identity, and for heap objects
+\TYP{SEQUIV} is object identity. All types have a notion of strict equivalence, which can be based upon content.
+\item What do we mean by the \KWD{value} modifier? Do we mean an ``unboxed type'' with the \KWD{value} modifier? Do we mean an ``immutable object'' with the \KWD{value} modifier? We mean an ``unboxed type'' with the \KWD{value} modifier.
+\item Flattened representation
+\item Copying semantics
+\item A fixed-size representation
+\item Header-freedom: If we have a field or array of unboxed object type, the representation should not need to carry around header or type information as part of the representation.
+\item Immutability: It is not necessary for unboxed objects to be immutable.
+\item Object identity: No object identity. Strict equivalence is defined recursively for value objects, based upon content.
+\item Unboxed traits: What happens when we have a field or an array element whose type is a trait type, one of whose instances is an unboxed type? Box the object or similar techniques.
+\item Size of an unboxed object which is recursively defined with unboxed traits. Forbid recursive definitions in value objects.
+\item Do we want to permit arrays of fixed bounds to be unboxed? No. Unboxed arrays are a different other thing. Among other things, an array of fixed bounds may be a segment of another array.
+\item What happens if we mutate a LinearSequence? Only initializing writes are permitted and the sequence is then frozen.
+ \end{itemize}
+
+\item Mutual recursion in value objects (08/02)
+ \begin{itemize}
+\item Eric: There's a technical problem with our decision to forbid recursive definitions in value objects. What if there is mutual recursion spanning component boundaries, and the recursion isn't evident via the APIs? If there's an error for recursive value objects in components but no error for recursive value objects spanning component boundaries, it doesn't look like consistent.
+\item Jan: Module recursion is a bad idea.
+\item David: Would it make sense, after all, to mandate some ordering of APIs?
+\item Dan: How about just forcing a value object to declare its contents explicitly in the API?
+\item Eric: Value objects should be layed out in APIs.
+\item David: Link-time error.
+\item If there is no cycle in value objects spanning component boundaries, the programmers can get precise size information. If there is a cycle, linker will have a way to break the cycle but, in this case, there is no size guarantee.
+Contingent upon Eric's agreement.
+ \end{itemize}
+
+\item Thread fairness guarantee (Jan's email titled ``Re: Clarifying fairness guarantees'' sent on 14 Mar 2007)
+
+\item \secref{scope} Reach and Scope of a Declaration
+
+It is a static error for a reference to a name
+to occur at any point in a program
+at which the name is not in scope in the appropriate namespace
+(as defined below),
+except immediately after the `.'
+of a dotted field access or dotted method invocation
+when the name is the name of the field or dotted method
+of the static type of the receiver expression
+(see Sections~\ref{sec:field-access}
+and~\ref{sec:dotted-method-calls}). (???)
+
+It is a static error
+for two (explicit) declarations with overlapping reaches
+to declare the same name,
+\marginnote{other than \KWD{self},}
+\emph{even if the name is declared in different namespaces},
+unless one of the following (disjoint) conditions holds:
+... (???)
+
+\item Getters and setters (with help from the static front end)
+% :
+%  ``Abstract Field Declarations'',
+%  \pageref{overviewGetter},
+%  \pageref{overviewGetterTwo},
+%  \pageref{overviewGetterThree},
+%  \pageref{memGetter}, ``Providing the Appearance of a Single Object'',
+%  \pageref{compGetters}, \chapref{declarations}, \secref{trait-decls},
+% \secref{value-traits},
+%  \secref{methods}, \secref{field-access}, \secref{assignment},
+%  \secref{generators}
+
+ A getter is required to have a type consistent with a setter.
+
+Scott: 11.2 in the spec (Field Declarations) says ``Fields are variables local to an object. They must not be referred to outside their enclosing object declarations.'' I think this should be phrased differently. When I originally read that, I took it to mean that fields were always ``private.''
+
+\item Modifiers
+ \begin{itemize}
+ \item \KWD{abstract}%: \secref{methods}, \pageref{compMod}
+ \item \KWD{atomic}%: \secref{atomic}, \chapref{functions}
+ \item \KWD{getter}%: \secref{methods}
+ \item \KWD{hidden}%: \pageref{overviewMod}
+ \item \KWD{io}%: \pageref{decl-io}, \pageref{evalModTwo}, \chapref{functions},
+%Because IO clauses are statically checked, they should be part of an arrow type.
+ \item \KWD{override}
+ \item \KWD{private}%: \pageref{compModThree}
+ \item \KWD{settable}%: \pageref{overviewMod}, \pageref{evalMod},
+% \secref{value-traits}
+ \item \KWD{setter}%: \secref{methods}
+ \item \KWD{test}
+ \item \KWD{widens}
+ \item \KWD{wrapped}%: \secref{type-param}
+ \end{itemize}
+
+\item \TYP{Object}:
+ \begin{itemize}
+\item %\secref{overview-objects-traits}
+ Objects and Traits
+
+a multiple inheritance hierarchy rooted at trait \TYP{Object} (???)
+
+\item \secref{trait-decls} Trait Declarations
+
+In addition, every trait implicitly extends the trait \TYP{Object}
+if it does not do so explicitly.
+We define the extension relation to be the transitive closure
+of implicit and explicit extension.
+That is, trait \VAR{T} \emph{extends} trait \VAR{U}
+if and only if \VAR{T} explicitly or implicitly
+extends \VAR{U} or if there is some trait \VAR{S}
+that \VAR{T} explicitly extends and that extends \VAR{U}.
+The extension relation induced by a program is the smallest
+relation satisfying these conditions.
+This relation must form an acyclic hierarchy
+rooted at trait \TYP{Object}.
+
+\item %\secref{object-decls}
+ Object Declarations
+
+If an object declaration has no \KWD{extends} clause,
+the object implicitly extends only trait \TYP{Object}.
+
+\item \secref{type-param} Type Parameters
+
+If a type parameter does not have an \KWD{extends} clause, it has an
+implicit ``\EXP{\KWD{extends} \TYP{Object}}'' clause.
+
+ \end{itemize}
+
+\item Fortress libraries:
+ \TYP{LinearSequence} and \TYP{HeapSequence}
+% :
+%   \pageref{evalHeapSequence}, \secref{arrays}, \chapref{functions},
+%   \pageref{tuple-expr}
+
+ \item Acyclic type hierarchy: \chapref{types},
+ ``Acyclic Core Fortress with Field Definitions''
+
+
+\item Type aliases
+% :
+%  \pageref{compOthers}, ``Type Aliases'', \chapref{declarations}
+
+\item \TYP{Stopped} exception in early termination of threads:
+ \secref{threads-parallelism}
+
+\item Deferred exception thrown from a spawned thread
+% :
+% \pageref{deferred-exception}
+
+\item Value types%: \secref{value-objects}, \secref{immutability}
+
+\item Unpasting
+% : ``Matrix Unpasting'', \pageref{unpasting},
+% \secref{extremum-expr}, \secref{aggregate-expr}, \appref{concrete-syntax}
+
+\item ``Types in the Fortress Standard Libraries'' and ``Literals'':
+\TYP{Numeral}, \EXP{\mathbb{Z}}, \EXP{\mathbb{N}}, \EXP{\mathbb{Q}},
+\EXP{\mathbb{N}32} (\secref{natparams}),
+\TYP{Interval}, \TYP{Polar},
+   \TYP{BooleanLiteral}, \TYP{NaturalNumeral}, \TYP{Literal},
+ \TYP{NaturalNumeralWithExplicitRadix},
+   \TYP{RadixPointNumeral}, \TYP{RadixPointNumeralWithExplicitRadix},
+   \TYP{IntegerConstant}, \TYP{RationalValueTimesPi}, \TYP{NaturalStatic}
+
+\item Covariant list with \KWD{comprises} clause (Victor's email titled
+``Problem with covariant List?'' on 10/27/07)
+
+\item \secref{local-var-decls} Local Variable Declarations
+
+It is a static error if such a variable is referred to before it has been
+given a value; an immutable variable is initialized by another variable
+declaration and a mutable variable is initialized by assignment.
+It is also a static error if an immutable variable is initialized
+more than once.
+
+\item \secref{label-expr} Label and Exit
+
+It is a static error if the target is not in scope
+    in the label namespace at the \KWD{exit} expression.
+    That is, the target must be the name of a statically enclosing \KWD{label}
+    expression, and the \KWD{exit} expression must not be within a \KWD{spawn}
+    expression that is contained in the \KWD{label} expression.
+    If no target is specified, the target is implicitly the name
+    of the smallest statically enclosing \KWD{label} expression;
+    it is a static error if there is no such expression.
+
+\item \secref{typecase} Typecase Expressions
+
+If no matched clause is found, a \TYP{MatchFailure} exception is thrown
+(\TYP{MatchFailure} is an unchecked exception).
+{\bf We want to make a nonexhaustive typecase an error.}
+
+For a \KWD{typecase} expression with an identifier rather than a binding,
+the identifier must be an immutable variable in scope at that point.
+...
+the first matching typecase clause is evaluated,
+and within that clause,
+the static type of the variable
+is the intersection of its original type and the guarding type.
+Otherwise, it is a static error.
+
+\item \secref{case-expr} Case Expressions
+
+It is a static error if the specified operator is not defined for these types
+or if the operator's return type is not \TYP{Boolean}.
+
+ \item Types of branch expressions
+
+The current spec says that the type of a branch expression is the least upper bound of the types of all the branches. This may lose too much precision. We agreed to revise the story as follows: If there exists a branch with type \VAR{T} that the type of every other branch is either subtype of \VAR{T} or is coerced to \VAR{T}, then the type of the branch expression is \VAR{T}; otherwise, the type of the branch expression is the least upper bound of the types of all the branches.
+
+\item Ranges: ``Ranges''
+   \begin{itemize}
+   \item strided ranges
+   \item \TYP{RangeOfStaticSize} and \TYP{StaticRange}
+   \item operators: \EXP{\subset}, \EXP{\subseteq}, \EXP{=}, \EXP{\supseteq},
+\EXP{\supset}, \EXP{\cap}, \EXP{\left|\ldots\right|}
+   \end{itemize}
+
+\item \EXP{\subseteq} in \TYP{Set}: \secref{aggregate-expr}
+
+\item Array expressions:
+Section 13.27.4 in Fortress 1.0 beta says that ``The element expressions in an array expression may be either scalars or array expressions themselves. If an element is an array expression, it  (pasted) into the enclosing expression. This pasting works because arrays never contain other arrays as elements.''
+ \begin{itemize}
+ \item Do we agree?
+ \item Consider how it is related to matrix unpasting.
+ \item Consider Guy's tensor proposal.
+ \item We want both matrix pasting and nested arrays.
+ \end{itemize}
+
+\item Array Comprehensions%: \pageref{overviewComp}, \secref{arrays}
+ \begin{itemize}
+ \item Array comprehensions do not have to be comprehensive -- may not define a value for every cell. What is the value of an unitialized array cell?
+Uncaught exception.
+ \end{itemize}
+
+\item Reduction variables with \TYP{Monoid}
+% :
+%  \pageref{evalRedTwo}, \pageref{redexpr-redvar},
+%  \pageref{evalMonoid}, \secref{also-block}, \secref{for-expr}, \pageref{caseRed}
+
+\item Keyword parameters and keyword expressions
+% :
+%  \pageref{nutshellKwd},
+%  \pageref{overviewKwd},
+%  \pageref{overloadKwd}, \pageref{overloadKwdTwo},
+%  \secref{applicability-with-special-params},
+%  \pageref{adv-over-kwd}, \secref{subscripting-ops},
+%  \secref{subscripted-assignment}, \chapref{types}, \chapref{declarations},
+%  \chapref{functions}, \pageref{tuple-expr}
+
+\item \TYP{ReadOnlyHeapSequence} to implement varargs parameters.
+
+\item Varargs expressions%: \pageref{tuple-expr}
+
+\item Case expressions%: \pageref{caseRed}
+
+ \item Abstract function declarations
+% :
+%  ``Abstract Function Declarations'',
+%  \pageref{compAnalysis}, \pageref{compAnalysisTwo}, \chapref{declarations},
+%  \secref{methods}
+
+\item Overloaded function contracts: \secref{contracts}
+
+\item Method contracts: \secref{method-contracts}
+
+\item Total coverage of types
+ \begin{itemize}
+ \item Meet rule
+ \item \KWD{typecase} expressions
+ \item abstract function declarations
+ \item \KWD{throws} clauses
+ \item Victor's email titled ``Type relationships: subtyping, exclusion, equivalence, covering, coextension'' on 10/25/07
+ \item Victor's email titled ``Revised write-up, plus related issues'' on 10/30/07
+ \item Type equivalence
+%% trait T comprises{ U, V } end
+%% trait U extends T
+%%   g():()
+%%   h(self):()
+%% end
+%% trait V extends T
+%%   g():()
+%%   h(self):()
+%% end
+%% f(u:U):()
+%% f(v:V):()
+
+%% f(t)
+%% t.g()
+%% h(t)
+\begin{Fortress}
+\(\KWD{trait}\:T \KWD{comprises}\{\,U, V\,\} \KWD{end}\)\\
+\(\KWD{trait}\:U \KWD{extends}\:T\)\\
+{\tt~~}\pushtabs\=\+\(  g()\COLONOP()\)\\
+\(  h(\KWD{self})\COLONOP()\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{trait}\:V \KWD{extends}\:T\)\\
+{\tt~~}\pushtabs\=\+\(  g()\COLONOP()\)\\
+\(  h(\KWD{self})\COLONOP()\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(f(u\COLONOP{}U)\COLONOP()\)\\
+\(f(v\COLONOP{}V)\COLONOP()\)\\[4pt]
+\(f(t)\)\\
+\(t.g()\)\\
+\(h(t)\)
+\end{Fortress}
+All rejected.
+ \end{itemize}
+
+\item Type relations:
+ \begin{itemize}
+ \item Victor's email titled ``Type relationships: subtyping, exclusion, equivalence, covering, coextension'' on 10/25/07
+ \item Victor's email titled ``Revised write-up, plus related issues'' on 10/30/07
+ \item
+The concept of type equivalence (``$S \& T = T \& S$'', for example, or
+``$V = S \& T$'') ought to be made more explicit and upfront.
+When it's stated that subtypingis reflexive, for example, it's implied that
+``reflexive'' is defined in terms of syntactic equality.
+ But now we're defining equivalences between different syntactic types,
+and ``reflexive'' is actually with respect to these equivalences.  I think
+there are also holes in the definition of equivalence -- do we have anywhere,
+for example, that ``$S = T \Rightarrow
+\EXP{\TYP{Foo}\llbracket{}S\rrbracket} = \EXP{\TYP{Foo}\llbracket{}T\rrbracket}$''?
+ \item
+If we have a notion of type equivalence, there's no reason to use the earlier
+language like ``the intersection of A and B is ...'', implying that
+intersection is an operation that produces some canonical representation.
+We might as well just state the equivalence ``$A \& B = \dots$'',
+making the two freely interchangeable.
+ \item
+I don't see any reason not to cover fixed-point types here, given that unions
+and intersections are similarly unexpressible but are included anyway.
+  \item We want the property that type equivalence means the same thing as bidirectional subtyping.
+ \end{itemize}
+
+\item Exceptions
+\begin{itemize}
+\item Chained exceptions: \secref{try-expr}
+\end{itemize}
+
+\item Overloading
+\begin{itemize}
+\item Overloading with static parameters
+\begin{itemize}
+\item David's ``nice'' overloading proposal (His email titled ``Comparison of generic overloading rules'' sent on 05/18/07)
+\item Victor's email titled ``Re: Overloading and the open world assumption''
+sent on 11/08/07
+\item What is the exclusion rule for a pair of overloaded declarations with different static parameters?
+\item Do we want to consider only the exclusion between ground types or also the exclusion between the bounds of static parameters?
+
+\end{itemize}
+
+\item %\secref{overview-function-overloading}
+ Function Overloading
+
+Of course, function applications are
+statically checked to ensure that \emph{some} definition will be
+applicable at run time, and that the definition to apply will
+be unambiguous.
+
+  \item A functional which takes a single parameter of type \TYP{Any}
+ (or parametric type of bound \TYP{Any}) cannot be overloaded.
+% (\pageref{adv-over-any})
+\end{itemize}
+
+\item Coercions
+% :
+%  ``Conversions and Coercions'',
+%  ``Overloaded Functional Declarations'' (Appendix),
+%  \secref{resolving-overloading}, \chapref{overloaded-declarations},
+%  \chapref{types}, \chapref{declarations}, \secref{opr-ident},
+%  \secref{trait-decls}, \secref{aggregate-expr}, \secref{principles-overloading}
+\begin{itemize}
+ \item ``has a type'' vs ``is a subtype of the type or could be coerced to the type''
+\item Coercion between tuple types (Victor's email titled ``Coercion between tuple types'' on 07/16/07) and arrow types
+
+\item Vectors and matrices: \secref{aggregate-expr}
+
+\item Do we allow coercion declarations in object expressions?
+
+\item \secref{literals}
+
+The Fortress Standard Library defines coercions
+from numerals to integers (for simple numerals)
+and rational numbers (for compound numerals).
+
+\item \emph{Future versions of this specification will include a table of
+  coercions supported by the standard libraries.}
+
+\item \emph{Future versions of this specification will include a table of
+  widening coercions supported by the standard libraries.}
+
+\item If tests and coercion
+
+Suppose a test in an expression has a type that is not \TYP{Boolean}
+(or a subtype of \TYP{Boolean}) but is coercible to \TYP{Boolean}.
+Presumably, that is not a static error? But note that F1.0 beta
+makes no mention of this case; all tests in an if expression must be of
+type \TYP{Boolean}. There are similar problems with other expression types;
+we need to revisit them all in light of the coercion facility...
+
+\end{itemize}
+
+\item Where clauses and conditional extension
+% :
+%  ``Where Clauses'', \chapref{declarations}, \chapref{functions},
+%  \secref{trait-decls}, \secref{methods}, \secref{func-expr}
+
+
+\item Intersection and union types: ``Intersection and Union Types'',
+
+  \item Multifix Operators
+% : ``Chained and Multifix Operators'',
+%   \pageref{opr-intro}, \chapref{operatordefs}, \pageref{opr-multifix}
+
+  \item Synonym Operators: Victor's email titled ``Synonyms [Fwd: Re: What the heck are 0-width spaces for?]'' on 09/12/07
+
+\item Enclosing operator parameters
+
+\item Static Expressions
+% : ``Static Expressions'', \pageref{staticParamExpr}
+
+\item Type inference
+% :
+%  ``Type Inference'',
+%  \pageref{arrayAInf},
+%  \pageref{arrayBInf},
+%  \pageref{arrayCInf},
+%  \pageref{setInf}, \pageref{var-inf}, \secref{function-decls}, \secref{idn-ref},
+%  \secref{dotted-method-calls}
+ \begin{itemize}
+ \item
+ There seems to be a circular dependency between inference and juxtaposition
+ disambiguation -- you have to know if the subexpressions have arrow types
+ to disambiguate, but you can't do that without using inference, which
+ requires knowing how the variable of unknown type is used.
+\item Type Inference (Dan's email titled ``Comments on a first reading of the spec'' on 06/05/07)
+\item Do we want to forbid such cases where type inference infers
+\TYP{BottomType}s for static parameters?
+ \end{itemize}
+
+\item Tests and properties
+% :
+%  ``Tests and Properties'',
+%  \pageref{overviewTest},
+%  \pageref{compTest}, \pageref{compOthers}, \chapref{declarations},
+%  \secref{trait-decls}
+
+\item Components and APIs
+  \begin{itemize}
+
+\item Component system
+% :
+%  ``Components and APIs'', ``Components and APIs'' (Appendix),
+%  ``Imported Declarations and Qualified Names'', \chapref{names},
+%  \pageref{philosophyComponent},
+%  \pageref{nutshellComponent},
+%  \pageref{overviewComponent},
+%  \pageref{pgmComponent},
+%  \pageref{evalComponet}
+
+\item %\secref{components}
+ Components
+ \begin{itemize}
+\item
+It is a static error if
+a name specified by an import %%-unqualified
+statement
+is also declared by a top-level or functional method declaration
+in the importing component or API,
+or if it is also specified by another import %%-unqualified
+statement,
+unless all top-level or functional declarations for that name
+in the importing component or any of APIs
+imported by an import %%-unqualified
+statement that specifies that name
+form a valid set of overloaded declarations.
+It is also a static error if any specified name
+is not declared by a declaration imported from the API.
+\item
+In addition, it is a static error if in a set of overloaded declarations,
+any of the following are true:
+\begin{enumerate}
+\item Any declaration imported on demand is more specific than any explicit declaration.
+\item Any top-level function declaration is more specific than any functional method declaration.
+(This rule actually applies to declarations in a single component as well.)
+\item
+Any top-level function declaration imported on demand is more specific than any other declaration not in the same API as the top-level function declaration.
+\end{enumerate}
+It is also a static error to explicitly import a name from an API
+that does not declare it, or to have multiple import-on-demand statements
+with the same API.
+
+ \end{itemize}
+
+\item Import statements and qualified names%: \pageref{juxt-qualified}
+
+\item Resolve ambiguity in favor of longest API name.
+
+ \item ``\EXP{\KWD{import}\:A.f}'' does not imply
+ ``\EXP{\KWD{import}\;\;\KWD{api}\:A}''.
+
+\item Component/API names with the URL of the development team and the time stamp
+
+ \item API integration
+  \begin{itemize}
+\item
+We agreed to extend Fortress to allow APIs to extend other APIs.  If an API A extends another API B, then every declaration of B is also a declaration of A.  It is a static error if a name declared in B is also declared in A unless both declarations are of top-level functions or functional methods, in which case, the declarations are overloaded.
+
+The extension relation among APIs must be acyclic.
+\item Selective extension of specific types
+%% api FortressLibrary
+%%   extends Whatever.{Boolean}
+%%   extends Whatever2.{Thread}
+%%   ...
+%% end
+\begin{Fortress}
+\(\KWD{api}\:\TYP{FortressLibrary}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{extends}\:\TYP{Whatever}.\{\TYP{Boolean}\}\)\\
+\(  \KWD{extends}\:\TYP{Whatever2}.\{\TYP{Thread}\}\)\\
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+  \end{itemize}
+
+ \item ``\EXP{\KWD{api}\:A; \KWD{import}\;\;\KWD{api}\:B; \KWD{end}}''
+ does not export \VAR{B}.
+\item How can I re-export stuff I
+imported without having to maintain cut-and-pasted declarations in my api?
+
+%% api A
+%%   trait T
+%%   f(T)
+%% end
+
+%% component C
+%%   import A.{...}
+%%   object O extends T
+%%   f(O)
+%% end
+
+%% component D
+%%   import A.{T}
+%%   object O extends T
+%%   f(O)
+%% end
+\begin{Fortress}
+\(\KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{trait}\:T\)\\
+\(  f(T)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{\ldots\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:D\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{T\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+  \end{itemize}
+
+\item Domain specific languages
+% :
+%  ``Support for Domain-Specific Languages'',
+%  \pageref{nutshellDsl},
+%  \pageref{overviewDsl},
+%  \secref{scanning},
+%  \pageref{otherRendering}
+
+\item Automatic Generation of APIs
+% :
+%  \pageref{overviewAutoAPI}
+
+\item \VAR{copy}: \secref{threadlocal}
+
+\item Distributions
+% :
+%  \pageref{nutshellDist},
+%  \pageref{overviewDist},
+%  \pageref{parallel-intro},
+%  \secref{regions}, \secref{arrays}, \secref{generators}
+
+\item Extra supports from the parser:
+  \begin{itemize}
+    \item Lines, pages, and position
+% :
+%       \secref{position}
+
+    \item Unicode characters for character and string quotation marks
+% :
+%       \secref{preprocessing-character-literals},
+%       \secref{preprocessing-string-literals}
+
+    \item Digit-group separator
+% :
+%       \pageref{overviewDigit},
+%       \secref{characters}, \secref{whitespace}, \secref{numerals},
+%       \secref{lexical-operators}
+
+    \item Radix specifier
+% :
+%       \secref{numerals}, \pageref{numeralsRadix}
+  \end{itemize}
+
+\item Tail-call Optimization: \secref{function-app}
+
+
+\item Static checking: \chapref{types}
+ \begin{itemize}
+ \item Subtyping and coercion relationships between tuple types and arrow types:
+ \chapref{types}
+
+ \item \KWD{comprises}
+% :  \pageref{adv-over-comprises}, \chapref{types}
+%  \pageref{compComprises}, \secref{trait-decls}
+ \begin{itemize}
+ \item Are we willing to have type analysis to derive exclusion relationships from object trait types and comprises clauses? For example,
+%% trait List[\T\] comprises {Empty, Cons[\T\]} end
+%% object Empty extends List[\T\] where {T extends Object} end
+%% object Cons[\T\] extends List[\T\] end
+%% trait Set[\T\] end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{List}\llbracket{}T\rrbracket \KWD{comprises} \{\TYP{Empty}, \TYP{Cons}\llbracket{}T\rrbracket\} \KWD{end}\)\\
+\(\KWD{object}\:\TYP{Empty} \KWD{extends}\:\TYP{List}\llbracket{}T\rrbracket \KWD{where} \{T \KWD{extends}\:\TYP{Object}\} \KWD{end}\)\\
+\(\KWD{object}\:\TYP{Cons}\llbracket{}T\rrbracket \KWD{extends}\:\TYP{List}\llbracket{}T\rrbracket \KWD{end}\)\\
+\(\KWD{trait}\:\TYP{Set}\llbracket{}T\rrbracket \KWD{end}\)
+\end{Fortress}
+can we derive that \EXP{\TYP{List}\llbracket{}T\rrbracket}
+and \EXP{\TYP{Set}\llbracket{}T\rrbracket} are exclusive from the above code?
+ {\bf YES}
+\item Or do we require excludes clauses for them to be exclusive? {\bf NO}
+\item If we are willing to have such an analysis, Victor argued that the semantics that comprises clauses imply exclusion is less compelling. What do others think?
+{\bf We infer exclusion relationships based on comprises clauses and objet trait types. comprises clauses do not imply exclusion.}
+ \end{itemize}
+
+ \item Definite assignment: ``Definite Assignment''
+
+
+\item %\secref{overview-aggregate}
+ Aggregate Expressions
+
+Whether an array aggregate expression evaluates to an array, a vector, or a
+matrix is inferred from context
+(e.g., the static type of a variable that such an expression is bound to).
+
+\item %\secref{memory-ops}
+ Memory and Memory Operations
+
+The type system and memory model in Fortress guarantee that an
+\emph{initializing write} is performed to every location if it is ever read,
+and that this write occurs before any read of the location.
+
+\item %\secref{overloading-terms}
+ Terminology and Notation
+
+Although there may be multiple declarations with the same functional name,
+it is a static error for their static parameters to differ
+(up to $\alpha$-equivalence),
+or for one declaration to have static parameters and another to not have them.
+
+\item %\secref{functional-applicability}
+ Applicability to Named Functional Calls
+
+Note that the static
+type of the self parameter is the trait or object trait type in which
+the declaration $\f(\Ps):\Us$ occurs.
+
+\item \chapref{tests} Tests and Properties
+
+Tests can refer to non-tests but
+it is a static error for a non-test to refer to any test.
+
+
+\item Dimensions and units
+% :
+%  ``Dimensions and Units'', ``Dimension and Unit Declarations'',
+%  \pageref{nutshellExample},
+%  \pageref{overviewDim},
+%  \pageref{movingDim},
+%  \pageref{fastDim},
+%  \pageref{particleDim}, \pageref{compOthers}, \chapref{declarations}
+ \begin{itemize}
+ \item Dimension and unit parameters
+% :
+%   ``Dimension and Unit Parameters'', \pageref{overviewDimParam},
+%   \secref{type-param}
+ \item Dimension and unit operators
+% :
+%   \secref{reserved-words}, \secref{multichar-enclosers},
+%   \pageref{otherRendering}, \pageref{opr-intro}
+\item Dimensions and units (Dan's email titled ``Clarifying dimension/unit semantics'' on 08/24/07)
+ \end{itemize}
+
+\item %\secref{components}
+ Components
+ \begin{itemize}
+\item
+It is a static error if
+a name specified by an import %%-unqualified
+statement
+is also declared by a top-level or functional method declaration
+in the importing component or API,
+or if it is also specified by another import %%-unqualified
+statement,
+unless all top-level or functional declarations for that name
+in the importing component or any of APIs
+imported by an import %%-unqualified
+statement that specifies that name
+form a valid set of overloaded declarations.
+It is also a static error if any specified name
+is not declared by a declaration imported from the API.
+\item
+In addition, it is a static error if in a set of overloaded declarations,
+any of the following are true:
+\begin{enumerate}
+\item Any declaration imported on demand is more specific than any explicit declaration.
+\item Any top-level function declaration is more specific than any functional method declaration.
+(This rule actually applies to declarations in a single component as well.)
+\item
+Any top-level function declaration imported on demand is more specific than any other declaration not in the same API as the top-level function declaration.
+\end{enumerate}
+It is also a static error to explicitly import a name from an API
+that does not declare it, or to have multiple import-on-demand statements
+with the same API.
+
+ \end{itemize}
+
+\item \chapref{overloaded-declarations} Overloaded Functional Declarations
+ \begin{itemize}
+\item Furthermore, these rules are checked statically.
+\item As a result, these two declarations are statically rejected.
+\item These declarations would be statically rejected as ...
+ \end{itemize}
+
+ \end{itemize}
+
+\item Library refactoring
+ \begin{itemize}
+ \item
+There are two implicitly imported APIs:
+  \begin{itemize}
+  \item
+\TYP{FortressBuiltin}:
+functionality that must not be overridden by the programmer;
+referred by unqualified names; \EXP{()}, \EXP{\rightarrow}, tuples,
+\TYP{Object}, \TYP{IntLiteral}, \TYP{FloatLiteral}, \TYP{StringLiteral},
+\TYP{Boolean}, \EXP{\mathbb{Z}32}, \EXP{\mathbb{Z}64}, \EXP{\mathbb{R}64},
+\TYP{Integral}, \TYP{Number}, \TYP{String}, \TYP{Exception},
+\TYP{CheckedException}, \TYP{UncheckedException}, \EXP{\sequiv},
+\EXP{\TYP{BinaryWord}\llbracket{}n\rrbracket}, ...
+  \item
+\TYP{FortressLibrary}:
+may be hidden or overridden using an explicit import statement
+If there's no explicit import statement,
+referred by both unqualified and qualifed names; used names are imported
+If there are explicit import statements,
+it overrides implicitly imported APIs.
+  \end{itemize}
+ \item
+In particular, \TYP{FortressBuiltin} is implicitly imported in \TYP{FortressLibrary}.
+ \item
+The compiler knows these names even though actual definitions are in libraries. We're using massive recursive imports.
+ \item
+Types defined in \TYP{FortressBuiltin}, such as \TYP{Any} and \TYP{Object}, are not reserved but they are in the namespace by default.
+ \item
+Does \TYP{FortressBuiltin} depend only on entities in \TYP{FortressBuiltin}? We hope so.
+ \end{itemize}
+
+\item FAQ
+
+\end{itemize}
+
+\section{Syntax}
+\begin{itemize}
+\item Mathematical notation for alternatives
+
+Victor's email from 03/27/07 15:34
+titled ``More mathematical syntax''
+
+\end{itemize}
+
+\section{Types}
+\begin{itemize}
+\item Guy's proposal for making tensors the principal user-level indexed aggregate type in Fortress
+(Guy's email titled ``Arrays, matrices, and tensors (short)'' on 12/15/06)
+We discussed the ``story \#1: Arrays''.  Among others,
+we discussed how we would require that ``it is forbidden for a subscript on the left-hand-side of an assignment to generate the same integer twice.''
+There were three options: 1) require extending a \TYP{NoDuplicate} trait;
+2) give an undefined semantics; and 3) give some operational semantics.
+Jan and Guy were for the option 3).
+We decided to continue the discussion of the ``story \#1: Arrays'' after Guy's detailed write up.
+Meanwhile Jan may work on a semantics for the option 3) and all may discuss syntax issues via emails.  Other stories will be discussed after story \#1.
+
+
+\item Dependent types
+  \begin{itemize}
+  \item static expressions that are ranges
+  \end{itemize}
+\item Type inference
+\item Conditional extension
+\item Selftypes (Eric's email titled ``self types (was Re: isLeftZero: duh)'' sent on 14 Mar 2007)
+\item Arrow types with contracts
+
+Function contracts consist of three parts: a \KWD{requires} part,
+an \KWD{ensures} part, and an \KWD{invariant} part.
+All three parts are evaluated in the scope of the function body
+extended with a special variable \emph{arg}, bound to an immutable
+array of all function arguments. (This array is useful for describing
+contracts in the presence of higher-order functions;
+see \secref{arrow-types}).
+
+Is the special variable \emph{arg} reserved?
+What if one of the function's parameters is named \VAR{arg}?
+
+At runtime, when a function is bound to a variable or parameter
+$f$ whose type includes a contract,
+the contract is evaluated when the function is called through a reference to $f$.
+(Note that this contract is distinct from the contract attached to the function
+bound to $f$, which is also evaluated upon a call to $f$).
+This contract is evaluated in the enclosing scope of the arrow type,
+extended with any keyword argument names provided in the arrow type,
+and the special variable $arg$
+bound to an immutable array containing the arguments provided at the call site
+(in the order provided at the call site).
+If the \KWD{requires} clauses stipulated in the type of $f$ are not satisfied,
+a \TYP{CallerViolation} exception is thrown.
+Otherwise, if the \KWD{requires} clauses attached to the function bound to $f$ is not satisfied,
+a \TYP{ContractBinding} exception is thrown.
+If any other part of the contract of the function bound to $f$ is not satisfied,
+a \TYP{CalleeViolation} exception is thrown.
+Otherwise, if any part of the contract stipulated in the type of $f$ is not satisfied,
+a \TYP{ContractBinding} exception is thrown.
+
+  \begin{itemize}
+\item Function expressions with contracts
+
+We want to allow function expressions to carry contracts; we need to work
+out how these contracts are evaluated, and what the implications are on
+variable scoping. -- Eric
+  \end{itemize}
+
+\item Functions as objects
+  \begin{itemize}
+  \item A supertype, say Function, of all arrow types.
+
+  \item Arrow types are traits that can be extended by other traits.
+    Subtraits of arrow types should define or declare a method with the
+    name ``apply'' (or ``call'', as you wish).  More details from Sam's
+    proposal here.
+
+Is the method called ``opr juxtaposition''??  Or would that just mess  up
+operator precedence?
+-- Jan
+
+  \end{itemize}
+
+\item \ignore
+
+We're considering supporting \ignore\ (pronounced ``whatever'') not only for
+variables but also for type variables.
+
+We have several use cases for this:
+ \begin{enumerate}
+ \item Eric doesn't need to define extra trait \TYP{List} in addition to
+        \EXP{\TYP{List}\llbracket{}T\rrbracket}.
+ \item Jan can use \EXP{\TYP{List}\llbracket\,\_\,\rrbracket} in a
+     \KWD{typecase} expression.
+ \item Jan can use \ignore\ for redundant static parameters (required by
+     overloading restrictions) for overloaded methods.
+ \item We have several proposals for supporting some forms of pattern
+        matching including David and Sam's and Eric's.
+ \end{enumerate}
+
+   This requires extending the left-hand-sides of \KWD{typecase} clauses to
+   be binding places of type variables.
+
+   There are several problems:
+ \begin{enumerate}
+     \item It's unclear whether
+     \EXP{\TYP{List}\llbracket\TYP{String}\rrbracket} is a binding place or
+     a     reference        of \TYP{String} in a \KWD{typecase} expression.
+     \item Using \ignore in any place where a type variable can occur would
+        have
+        the same power with ``wildcards'' in Java.
+     \item Restricting occurences of \ignore\ seems to be ad hoc.
+ \end{enumerate}
+
+Jan's new example:
+
+% g(x:A[\T\]) where { T extends Object } =
+%     typecase x of
+%       A[\U\] where { U extends Object } => ...
+%       ...
+%     end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( g(x\COLONOP{}A\llbracket{}T\rrbracket) \KWD{where} \{\,T \KWD{extends}\:\TYP{Object}\,\} =\)\\
+{\tt~~~~}\pushtabs\=\+\(     \KWD{typecase}\:x \KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(       A\llbracket{}U\rrbracket \KWD{where} \{\,U \KWD{extends}\:\TYP{Object}\,\} \Rightarrow \ldots\)\\
+\(       \ldots\)\-\\\poptabs
+\(     \KWD{end}\)\-\-\\\poptabs\poptabs
+\end{Fortress}
+And the interesting question is to what extent we're allowed to use \VAR{U}
+(or not) given the existence of stuff like \TYP{Empty}.
+My hope had been that we could do stuff like type-equality tests this way,
+but that hope may have been a vain one.  And this syntax is just a pipe dream
+which I'm faking using overloading (and the dreaded \TYP{\_\_Proxy} type)
+for the moment.
+
+  \item \secref{where-clauses} Where Clauses
+    \begin{itemize}
+    \item
+It must be possible to infer which method is referred to at the call site.
+If there is not enough information to infer which method is called,
+type checking rejects the
+program and requires more type information from the programmer.
+Programmers always can provide more type information by using type
+ascription as described in \secref{type-ascription}.
+    \item
+Where can a where-clauses type variable occur?
+    \end{itemize}
+
+\end{itemize}
+
+\section{Declarations}
+\begin{itemize}
+\item Tuples
+\begin{itemize}
+\item Variable declarations with ``...''
+
+%(x: ZZ, rest: ZZ...) = f(z)
+\begin{Fortress}
+\((x\COLON \mathbb{Z}, \VAR{rest}\COLON \mathbb{Z}\ldots) = f(z)\)
+\end{Fortress}
+where \VAR{f} has type %ZZ -> (ZZ, ZZ...)
+\EXP{\mathbb{Z} \rightarrow (\mathbb{Z}, \mathbb{Z}\ldots)}.
+
+\item I don't think the current syntax permits me to write:
+
+%f : ((A,B),C) -> D
+%f((a : A, b : B), c : C) = ...
+\begin{Fortress}
+\(f \mathrel{\mathtt{:}} ((A,B),C) \rightarrow D\)\\
+\(f((a \mathrel{\mathtt{:}} A, b \mathrel{\mathtt{:}} B), c \mathrel{\mathtt{:}} C) = \ldots\)
+\end{Fortress}
+
+Is this desirable? Right now there's a bit of ruler-across-the-knuckles
+going on with complex desugarings of generator lists. Minor tweaks to
+\emph{ValParams} might accomplish this.
+\end{itemize}
+
+\item More powerful type aliases
+
+For floating-point numbers, Fortress supports types {$\mathbb{R}$32} and
+{$\mathbb{R}$64}
+to be 32 and 64-bit IEEE 754 floating-point numbers respectively,
+and defines two functions on types:
+\EXP{\TYP{Double}\bsTP{F}} is a floating-point type twice the size of the
+floating-point type \EXP{F}, and \EXP{\TYP{Extended}\bsTP{F}} is a
+floating-point
+type sufficiently larger than the floating-point type \EXP{F} to
+perform summations of ``reasonable'' size.\footnote{
+This formulation of floating-point types follows a proposal under
+consideration by the IEEE 754 committee.}
+
+% type Double[\F extends FloatNumber[\e, s, ...\]\] where { nat e, nat s, ... }
+%    = FloatNumber[\e+3, 2 s - 6, ... \]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{type}\:\TYP{Double}\llbracket{}F \KWD{extends}\:\TYP{FloatNumber}\llbracket{}e, s, \ldots\rrbracket\rrbracket \KWD{where} \{\,\KWD{nat}\:e, \KWD{nat}\:s, \ldots\,\}\)\\
+{\tt~~~}\pushtabs\=\+\(    = \TYP{FloatNumber}\llbracket{}e+3, 2 s - 6, \ldots\,\rrbracket\)\-\-\\\poptabs\poptabs
+\end{Fortress}
+
+\end{itemize}
+
+\section{Traits}
+\begin{itemize}
+\item Do we want to allow object trait types to appear in \KWD{extends} clauses?
+(Jan's email titled ``Re: Question about not\_passing\_yet/extendsParam.fss'' sent
+on 14 Nov 2007)
+\item Type variables in \KWD{excludes} clauses
+
+%% trait Indexed [\I extends Equality\] excludes Indexed[\U\] where [\U\]{I excludes U}
+%%   ...
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Indexed} \llbracket{}I \KWD{extends}\:\TYP{Equality}\rrbracket \KWD{excludes}\:\TYP{Indexed}\llbracket{}U\rrbracket \KWD{where} \llbracket{}U\rrbracket\{I \KWD{excludes}\:U\}\)\\
+{\tt~~}\pushtabs\=\+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\end{itemize}
+
+\section{Functions}
+\begin{itemize}
+\item %% \secref{functional-applicability}
+Applicability to Named Functional Calls
+
+whether a ``named functional call'' is rewritten to a ``dotted method call''
+only if the function name is the name of a method provided by the enclosing
+trait/object declaration or object expression (this requires a slight rewriting
+of the relevant paragraph).
+%% in \secref{functional-applicability}).
+
+\item Relaxing restrictions on static parameters of overloaded functionals
+ or replace static parameters with where clauses as much as possible
+  \begin{itemize}
+  \item Jan's email titled ``Re: Issues related to ``spec'' vs ``nice'' overloading of generics'' on 05/21/07
+  \item Jan's email titled ``Another overloading conundrum'' on 04/06/07
+  \item Jan's example
+%% array1[\T extends Object, nat s0\]():Array1[\T,0,s0\] = __DefaultArray1[\T,0,s0\]()
+%% array1[\T extends Number, nat s0\]():Vector[\T,s0\] = vector[\T,s0\]()
+\begin{Fortress}
+\({array}_{1}\llbracket{}T \KWD{extends}\:\TYP{Object}, \KWD{nat}\:s_{0}\rrbracket()\COLONOP\TYP{Array1}\llbracket{}T,0,s_{0}\rrbracket = \_\_DefaultArray1\llbracket{}T,0,s_{0}\rrbracket()\)\\
+\({array}_{1}\llbracket{}T \KWD{extends}\:\TYP{Number}, \KWD{nat}\:s_{0}\rrbracket()\COLONOP\TYP{Vector}\llbracket{}T,s_{0}\rrbracket = \VAR{vector}\llbracket{}T,s_{0}\rrbracket()\)
+\end{Fortress}
+
+  \item Marc's example
+%% conjugate[\T extends Number\](x:Complex[\T\]):Complex[\T\]
+%% conjugate[\T extends RealNumber\](x:T):T
+\begin{Fortress}
+\(\VAR{conjugate}\llbracket{}T \KWD{extends}\:\TYP{Number}\rrbracket(x\COLONOP\TYP{Complex}\llbracket{}T\rrbracket)\COLONOP\TYP{Complex}\llbracket{}T\rrbracket\)\\
+\(\VAR{conjugate}\llbracket{}T \KWD{extends}\:\TYP{RealNumber}\rrbracket(x\COLONOP{}T)\COLONOP{}T\)
+\end{Fortress}
+  \end{itemize}
+\item Overloaded functionals with different \KWD{throws} clauses
+\end{itemize}
+
+\section{Expressions}
+\begin{itemize}
+\item Exiting from a function expression
+
+Jan's email from 06/05/08 12:01
+titled ``Re: cleaning up exceptions hierarchy''
+
+Eric proposed to statically disallow it.
+
+\item Types of branch expressions:
+We discussed propagation of the type information around the expression to the subexpressions of a branch expression. We may want to include this propagation later.
+%% z: ZZ32
+%% if p then z else 0 end
+%% if p then z else Identity[\+\] end
+%% if p then 0 else Identity[\+\] end
+
+%% a: ZZ32 = if p then z else FFFF0000FFFF_16 end
+\begin{Fortress}
+\(z\COLON \mathbb{Z}32\)\\
+\(\KWD{if}\:p \KWD{then}\:z \KWD{else} 0 \KWD{end}\)\\
+\(\KWD{if}\:p \KWD{then}\:z \KWD{else}\:\TYP{Identity}\llbracket+\rrbracket \KWD{end}\)\\
+\(\KWD{if}\:p \KWD{then} 0 \KWD{else}\:\TYP{Identity}\llbracket+\rrbracket \KWD{end}\)\\[4pt]
+\(a\COLON \mathbb{Z}32 = \;\KWD{if}\:p \KWD{then}\:z \KWD{else} \mathtt{FFFF0000FFFF}_{16} \KWD{end}\)
+\end{Fortress}
+
+\item IO within \KWD{atomic} expressions
+
+\secref{spawn},
+Jan's email from 07/31/06 15:51
+titled ``Trial balloon: I/O for Fortress?''
+
+\item Definite assignments (Victor's email titled ``Committed revision 4582, variable initialization questions'' on 08/02/07)
+\item Static checking for MatchFailure (Dan's email titled ``Re: Typecase questions'' on 08/07/07)
+\item Variation of for loop:
+
+% for generators do
+%     body1
+% else
+%     body2
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{for}  \null\)\pushtabs\=\+\(\VAR{generators} \KWD{do}\)\\
+\(     {body}_{1}\)\-\\\poptabs
+\( \KWD{else}\)\\
+{\tt~~~~}\pushtabs\=\+\(     {body}_{2}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+The \emph{body}$_1$ is executed once for each iteration generated by the \emph{generators}, but if the \emph{generators} generate no iterations, then \emph{body}$_2$ is executed once.
+\end{itemize}
+
+\section{Exceptions}
+\begin{itemize}
+\item Exception behavior of atomic expressions in Fortress
+  \begin{itemize}
+  \item Checked exceptions must be caught before they escape from the atomic expression, or it is a static error.  If necessary, programmers can be wrap a checked exception in an unchecked exception to get it out of the transaction.
+  \item There is some syntax which says which checked exceptions are allowed to escape from an atomic expression.
+  \item They propagate to the context of the atomic, as above.  This is the de facto behavior in the absence of a story about checked exceptions, since it's the same as the behavior for unchecked exceptions. (the status quo)
+  \end{itemize}
+\item Naked type variables in a throws clause or in a catch clause.
+
+Since a \KWD{throws} clause is a set, for full generality, we would
+probably need expressible union types at the call site,
+or a variable representing a ``set'' of types.
+
+\item When we have our \TYP{StackTraceElement} trait,
+add the following methods to the \TYP{Exception} trait:
+\begin{itemize}
+\item \EXP{\VAR{fillInStackTrace}()\COLON \TYP{Exception}}:
+Called to initialize the stack trace data in a newly created exception.
+This method can be called more than once.
+\item \EXP{\VAR{getStackTrace}()\COLON \TYP{StackTraceElement}[]}
+\item \EXP{\VAR{setStackTrace}(\VAR{stackTrace}\COLON \TYP{StackTraceElement}[])\COLON ()}:
+\end{itemize}
+
+\item light-weight exceptions
+\item interaction between exceptions and transactions
+\item interaction between exceptions and multithreads
+
+\item syntactic sugar for expand/wrap/catch/unwrap idiom
+
+It occurs to me that we could have a very concise form of syntactic  sugar
+for this expand/wrap/catch/unwrap idiom via a syntax expander  (or maybe
+just primitive syntactic sugar if necessary), which I'll  call ``handle''.
+This expander eta expands every function argument  (promoting every checked
+exception of the function that is not  anticipated by the callee), and
+wraps the whole function call in a  \KWD{try}/\KWD{catch} block that
+unwraps the exceptions. For example, with the  above definition of \VAR{f},
+and the following function \VAR{g}:
+
+% g(ZZ):ZZ throws {IOFailure, SQLError} = ...
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( g(\mathbb{Z})\COLONOP\mathbb{Z} \KWD{throws} \{\TYP{IOFailure}, \TYP{SQLError}\} = \ldots\)\-\\\poptabs
+\end{Fortress}
+
+the expression:
+
+% handle[ f[\ZZ,ZZ,3\](g) ]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \VAR{handle}\llbracket,f\llbracket\mathbb{Z},\mathbb{Z},3\rrbracket(g)\,]\)\-\\\poptabs
+\end{Fortress}
+
+expands to:
+
+% try
+%   f[\ZZ,ZZ,3\]
+%     (fn n =>
+%       try g n
+%       catch e
+%         SQLError => throw WrappedException(e)
+%       end)
+% catch e
+%   WrappedException[\SQLError\] => throw e.inner
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(   f\llbracket\VAR{null}\)\pushtabs\=\+\(\ZZ,\mathbb{Z},3\rrbracket\)\\
+\(     (\KWD{fn} n \Rightarrow\)\\
+{\tt~~}\pushtabs\=\+\(       \KWD{try} g n\)\\
+\(       \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(         \TYP{SQLError} \Rightarrow \KWD{throw} \TYP{WrappedException}(e)\)\-\\\poptabs
+\(       \KWD{end})\)\-\-\-\\\poptabs\poptabs\poptabs
+\( \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{WrappedException}\llbracket\TYP{SQLError}\rrbracket \Rightarrow \KWD{throw} e.\VAR{inner}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Now, the context of the call site must deal with a thrown
+\TYP{SQLError}, or
+a static error is signaled. Moreover, without  ``handle'' the call
+
+% f[\ZZ,ZZ,3\](g)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f\llbracket\mathbb{Z},\mathbb{Z},3\rrbracket(g)\)\-\\\poptabs
+\end{Fortress}
+
+will result in a static error.
+
+-- Eric
+
+\item \KWD{throws} clauses with naked type variables
+
+\item Inference for \KWD{throws} clauses
+
+No, and we shouldn't. \KWD{throws} clauses are documentation that a
+programmer should provide in a function's header.  -- Eric
+
+Okay, but I thought Jan wanted to do this.  I thought Sukyoung did too,
+actually.  Only for ``internal'' functions though.  Probably I
+misunderstood what they were saying--it was related to that talk at OOPSLA
+last year.  Anyway, I don't think we should worry about this too much until
+we get type inference for function/method calls worked out. -- Victor
+
+\end{itemize}
+
+\section{Overloading}
+\begin{itemize}
+\item Identifying the intersection of any two types with \KWD{comprises} clauses with the union of their common subtypes
+
+%% trait S comprises {U, V} end
+%% trait T comprises {V, W} end
+%% trait U extends S excludes W end
+%% trait V extends {S, T} end
+%% trait W extends T end
+\begin{Fortress}
+\(\KWD{trait}\:S \KWD{comprises} \{U, V\} \KWD{end}\)\\
+\(\KWD{trait}\:T \KWD{comprises} \{V, W\} \KWD{end}\)\\
+\(\KWD{trait}\:U \KWD{extends}\:S \KWD{excludes}\:W \KWD{end}\)\\
+\(\KWD{trait}\:V \KWD{extends} \{S, T\} \KWD{end}\)\\
+\(\KWD{trait}\:W \KWD{extends}\:T \KWD{end}\)
+\end{Fortress}
+
+\txt{S\&T} \verb+~~+ \txt{V}
+We agreed to revise the Meet rule to address this with the coverage check.
+
+  \item overloading in multiple scopes
+  \item overloading with different static parameters
+  \item exporting partial overloading
+
+I'm hoping we export all of an overloading, or none of it. -- Jan
+
+This a reasonable restriction that I'm happy to back, unless someone
+has both a use case and a soundness proof for a less restrictive
+rule. :-) -- Eric
+
+The use case I have in mind is that within a component, you might
+manipulate internal data types, and use overloading on those types
+with methods that are also exported.  I don't have a specific example
+in mind, but this seems like a useful and natural feature to have.  So
+I'd like to revisit this issue sometime, but not before 1.0. :) -- Victor
+
+\end{itemize}
+
+\section{Operators}
+\begin{itemize}
+\item Restricted fixity operators (Victor's email titled ``Re: Magic factorial'' on 09/10/07)
+
+\item \appref{operator-precedence}
+
+(In the future,
+we may allow tokens with mixtures of `\texttt{/}' and `\texttt{\char'134}',
+in which case the left and right brackets should match from outside in.
+But for now, such tokens are simply illegal.)
+
+(As in case %\ref{multicharacter brackets, case 2} 
+above,
+we may allow tokens with mixtures of `\texttt{/}' and `\texttt{\char'134}'
+in the future.)
+\end{itemize}
+
+\section{Tests and Properties}
+\begin{itemize}
+\item Properties (Eric's email titled ``Properties, concurrency'' on 07/30/07)
+\end{itemize}
+
+\section{Components and APIs}
+\begin{itemize}
+\item %\secref{apis} 
+APIs (Victor)
+
+Jan's email ``Re: Correct API syntax for object type without constructor''
+July 9, 2007 8:14:09 AM
+
+\item Namespace of APIs (Victor)
+
+Because API names consist of one or more identifiers separated by dots, and ``field access'' (i.e., getter and setter invocations) may produce similar sequences, we need some rule here. One possibility is to forbid the declaration of any (simple) name in a component from being the same as the first identifier of any name of an imported API.
+
+% api A.B
+%  f():()
+% end
+
+% component C
+%  export Executable
+%  import A.B
+%  object O
+%    f() = ()
+%  end
+%  object A
+%    B: T = O
+%  end
+%  run(args) = A.B.f()
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A.B\)\\
+{\tt~}\pushtabs\=\+\(  f()\COLONOP()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~}\pushtabs\=\+\(  \KWD{export}\:\TYP{Executable}\)\\
+\(  \KWD{import}\:A.B\)\\
+\(  \KWD{object}\:O\)\\
+{\tt~~}\pushtabs\=\+\(    f() = ()\)\-\\\poptabs
+\(  \KWD{end}\)\\
+\(  \KWD{object}\:A\)\\
+{\tt~~}\pushtabs\=\+\(    B\COLON T = O\)\-\\\poptabs
+\(  \KWD{end}\)\\
+\(  \VAR{run}(\VAR{args}) = A.B.f()\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+We agreed on the high-level idea but the details should be worked out more.
+%Refer \secref{qualified-names}.
+
+\item API evolution / subtyping
+\item Automatically imported APIs (Victor's email titled
+``Automatically imported APIs (was: Dan's unresolved issues)'' on 08/31/07)
+
+  \item \secref{basicops} {\bf Extract and Install}
+
+``The set of APIs must be closed under imports.'' What if standard
+  lib APIs are imported?
+  \item \secref{advancedops} {\bf Constrain}
+
+ ``If we constrain an
+  API that is used by any other API exported by the component, then we must
+  also constrain that other API.'' This seems problematic. Suppose that two
+  components both export a standard lib. Is there any way to link them?
+
+(Possible solution: Perhaps we should provide a facility for ``flipping''
+an API export to an import. A flipped API, when linked, could upgrade its
+constituent.)
+
+  \item Exact matching between components and APIs
+    \begin{itemize}
+    \item
+% api A
+%   trait T end
+%   trait V extends T end
+% end
+%
+% component C
+% export A
+%   trait T end
+%   trait U extends T end
+%   trait V extends U end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api} A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait} T \KWD{end}\)\\
+\(   \KWD{trait} V \KWD{extends} T \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component} C\)\\
+\( \KWD{export} A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait} T \KWD{end}\)\\
+\(   \KWD{trait} U \KWD{extends} T \KWD{end}\)\\
+\(   \KWD{trait} V \KWD{extends} U \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+    \item
+% trait A end
+% private trait B end
+% trait C extends {A,B} end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait} A \KWD{end}\)\\
+\( \KWD{private}\;\;\KWD{trait} B \KWD{end}\)\\
+\( \KWD{trait} C \KWD{extends} \{A,B\} \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+    \end{itemize}
+
+  \item Exporting multiple APIs with overlapping names
+% api A
+%   e():ZZ32
+%   trait T
+%     f(): T
+%   end
+% end
+% api B
+%   e():ZZ32
+%   trait T
+%     g(): ZZ32
+%   end
+% end
+% component G
+%   export {A, B}
+%   e() = 42
+%   trait A.T
+%     f() = self
+%   end
+%   trait B.T
+%     g() = 13
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api} A\)\\
+{\tt~~}\pushtabs\=\+\(   e()\COLONOP\mathbb{Z}32\)\\
+\(   \KWD{trait} T\)\\
+{\tt~~}\pushtabs\=\+\(     f()\COLON T\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{api} B\)\\
+{\tt~~}\pushtabs\=\+\(   e()\COLONOP\mathbb{Z}32\)\\
+\(   \KWD{trait} T\)\\
+{\tt~~}\pushtabs\=\+\(     g()\COLON \mathbb{Z}32\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{component} G\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{export} \{A, B\}\)\\
+\(   e() = 42\)\\
+\(   \KWD{trait} A.T\)\\
+{\tt~~}\pushtabs\=\+\(     f() = \mathord{\KWD{self}}\)\-\\\poptabs
+\(   \KWD{end}\)\\
+\(   \KWD{trait} B.T\)\\
+{\tt~~}\pushtabs\=\+\(     g() = 13\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+
+  \item Why not allow components to import and export the same API, but
+  prevent cyclic component linking (except for a special
+  \shellcommand{linkCyclic} command)?
+
+  \item Subtyping of APIs  (Is this just imports?  No.)
+%component C extends A (* an API *)
+\begin{Fortress}
+\(\KWD{component} C \KWD{extends} A \mathtt{(*}\;\hbox{\rm  an API \unskip}\;\mathtt{*)}\)
+\end{Fortress}
+  \item Coercion of APIs?  Widening?
+  \item Deprecation of API members in new versions?
+\end{itemize}
+
+\section{Parallelism}
+\begin{itemize}
+\item Generators with natural order
+
+it seems like there's still a question about whether every generator really does have a ``natural order''.  I guess that if some generators don't have a natural order, then either you can't call sequential on them, or else different calls to sequential may get a different order.
+
+\item \secref{distributions}
+
+In future versions of this specification, we may
+distinguish \VAR{local} and \VAR{sequential} distributions for this
+purpose.
+\end{itemize}
+
+\section{Libraries}
+\begin{itemize}
+\item %\secref{opr-lattices} 
+Lattices
+
+If a lattice has both meet and join bounds, then the
+identity (the bound) for either is a zero for the other, and therefore
+THE zero for the other, because meet and join are commutative.
+I'll add this.
+
+\secref{advanced-rationals} The Trait Fortress.Standard.RationalQuantity
+
+I found that the trait \TYP{RationalQuantity} declares a coercion from
+\TYP{IntegerQuantity} but \EXP{\mathbb{Q}} does not.
+\TYP{RationalQuantity}, \EXP{\mathbb{Q}}, and \EXP{\mathbb{Z}} don't
+declare coercions from corresponding literals either.
+
+\item \EXP{\mathbb{Q}} and \EXP{\mathbb{Z}}
+%% \chapref{lib:numbers-basic}
+
+\emph{Future versions of this specification will include trait declarations
+  definitions for the other numeric quantities.}
+
+  \item Define a top-level function `$:\sim:$' and make a refernce.
+%% from \secref{conditional-operators-impl}.
+\end{itemize}
+
+\section{Others}
+\begin{itemize}
+\item Native stuff (Victor's email titled ``Re: Thinking about native stuff some more'' on 08/21/07)
+  \begin{itemize}
+  \item foreign function interface
+  \item reflection mechanism
+  \end{itemize}
+
+\item Purity and ``sandbox''
+  \begin{itemize}
+  \item How about a ``sandbox'' function that executes a function for its
+  value, throwing away all effects?  It is a call site annotation to call
+  a non-pure function in a pure context.
+  \item What do we want we purity?  What semantics can programmers exploit?
+  \item Is purity a part of the type?
+  \item purity for enabling CSE?
+  \item purity for David's example?
+  \end{itemize}
+
+\item \KWD{idiom}
+
+Guy's email titled ``Notes on today's meeting'' on 12/12/05
+
+Idioms are like properties but they are hints to compilers.  Like
+properties, idioms describe that the left-hand-side and right-hand-side of
+$\Rightarrow$ are same.  Unlike properties, idioms instruct compilers to
+replace any occurrence of the left-hand-side of $\Rightarrow$ to the
+right-hand-side of $\Rightarrow$.  For example,
+%idiom FORALL (x: ZZ, y : ZZ) floor(x/y) => floordiv(x,y)
+%idiom x/N (log2 N=k) => x >> k
+%idiom floor(x/(MAXINT-1)) => 0
+%test data[] = { -MAXINT-1, -MAXINT, -MAXINT+1, -2, -1, 0, 1, 2, MAXINT-1, MAXINT, 43 }
+\begin{Fortress}
+\(\KWD{idiom} \forall (x\COLON \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z})\; \VAR{floor}(x/y) \Rightarrow \VAR{floordiv}(x,y)\)\\
+\(\KWD{idiom} x/N ({log}_{2} N=k) \Rightarrow x \gg k\)\\
+\(\KWD{idiom} \VAR{floor}(x/(\OPR{MAXINT}-1)) \Rightarrow 0\)\\
+\(\KWD{test} \VAR{data}[] = \{\,-\OPR{MAXINT}-1, -\OPR{MAXINT}, -\OPR{MAXINT}+1, -2, -1, 0, 1, 2, \OPR{MAXINT}-1, \OPR{MAXINT}, 43\,\} \)
+\end{Fortress}
+[The last two idioms were by David, intended as illustrations
+of screw cases.]
+a unit testing framework should check that
+$floor(x/y)$ and $floordiv(x,y)$ are same and the compiler should replace
+any occurrence of $floor(x/y)$ to $floordiv(x,y)$.
+
+\item Pattern matching mechanism
+
+\item Chapter Compliant Implementation
+
+I suppose it might help clarify things if we include a new chapter  that
+states the properties that must hold for a ``compliant  implementation''.
+For example, we could say things like ``A compliant  implementation
+provides a ``compile'' procedure that takes a sequence  of Unicode
+characters as input.  If this input is not a valid Fortress  program, it is
+a static error.  Otherwise...'' -- Eric
+
+\item Rewriting inheritance in terms of implicit declarations so that they
+  are not parts of the "inner theory core".
+
+\item Equivalence and equality:
+  Equivalence $\equiv$ ought to be built in (ie automagically overridden by every trait / object declaration).
+  Equality $=$ is overridable and should be for apples-to-apples comparisons.  By default equality is equivalence.  It may be its own trait, with equivalence as the default definition.
+  Right now equivalence on reference objects is pointer equality, and equivalence on value objects is equality of content.  Equality on functions (and thus on value objects with function-typed fields) throws an exception.  The first bone of contention is equivalence on immutable reference objects, with the following options:
+  \begin{itemize}
+     \item Always return False.  This makes the default definition of equality junk, and is strictly less expressive than equivalence on mutable reference objects.  It seems bad, but was considered.
+     \item As any mutable reference object, using pointer equality (current semantics).  This explicitly rules out combining indistinguishable instances of immutable reference objects---they can still be distinguished by $\equiv$ and thus must be kept distinct.  Thus, for example, a string constant mentioned in the body of a loop must be copied at each loop iteration.  This permits us to give a deterministic semantics.
+     \item If mutable reference objects would be considered equivalent, immutable reference objects would be considered equivalent.  If immutable reference objects are equivalent, they must be otherwise semantically indistinguishable.  This is \emph{ad hoc} and lies between the previous solution and the next one.
+     \item By content, except that if any field has function type (or perhaps if equivalence checking of fields throws that exception, since subtyping may make this ambiguous) we treat it like a mutable reference object.  This would rule out pointer equality unless we did hash consing, so immutable reference objects would become more expensive than their mutable counterparts (either equivalence checks would get more expensive, or allocation would become more expensive).
+     \item By content.  This causes equivalence on immutable reference objects to fail if they contain functions, even when an equivalent mutable reference object would not.  This may encourage programmers to throw in gratuitous unused mutable fields, and is thus probably a bad idea.
+  \end{itemize}
+  The second bone of contention is function equality.  Note that changing the definition of function equality may make some of the choices above more or less usable.
+  \begin{itemize}
+     \item Always return false.  Less bad than for objects, but still deceptive.  Would mean that equality on value objects with function-typed fields always returns false, too.
+     \item Always throw an exception (current semantics).  Equality on value objects with function-typed fields always throws the same exception.
+     \item When $f\equiv g$ the functions must be semantically interchangeable.  Otherwise the functions may or may not be semantically interchangeable.  Note that always returning false is a valid implementation of this semantics, and that there is non-determinism here.
+  \end{itemize}
+A final issue to settle is what happens when we compare functions to other objects.  Do we throw an exception, or just return ``false''?
+
+\item Embedding figures and links into Fortress code?
+ \begin{itemize}
+ \item
+How does one embed figures into Fortress code? E.g., GIF, JPG, ODF, etc. (Maybe this is an IDE question rather than a languages question... dunno.) I think it's sufficient to be able to embed figures into comments.
+ \item
+How does one embed links into Fortress code? E.g., to URLs, to other parts of the source code, etc. (Maybe this is an IDE question rather than a languages question... dunno.) It may be sufficient to be able to embed links into comments... dunno. I guess it's a matter of (sudokode here)
+%    (* <a href=mylink> *) v_max := blahblahblah
+\begin{Fortress}
+{\tt~~~~}\pushtabs\=\+\(    \mathtt{(*}\;\hbox{\rm  <a href=mylink> \unskip}\;\mathtt{*)} v_{\mathrm{max}} \ASSIGN \VAR{blahblahblah}\)\-\\\poptabs
+\end{Fortress}
+versus
+%    <a href=mylink> v_max := blahblahblah
+\begin{Fortress}
+{\tt~~~~}\pushtabs\=\+\(    <a\:\VAR{href}=\VAR{mylink}> v_{\mathrm{max}} \ASSIGN \VAR{blahblahblah}\)\-\\\poptabs
+\end{Fortress}
+or something. (I actually have no idea how I would want this done. I'm just not crazy about embedding a comment when its only purpose is to host a link.)
+ \item
+We agreed that it would be nice to have a such a thing, and only within comments. I don't think we decided on a particular marker to indicate such things though.
+ \end{itemize}
+
+\item What are the chances of being able to comment out the rest of a line simply by adding a single character?
+ \begin{itemize}
+ \item
+One thing cool about Fortran is the ability to add comments with a single character.
+ \item
+Having ``left-hand'' comments would be nice as well.
+ \item
+We agreed to leave this alone until it actually hurts.
+ \end{itemize}
+
+\end{itemize}

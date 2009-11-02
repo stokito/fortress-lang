@@ -1,0 +1,105 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+LiteralExpr =
+     "(" w ")"
+   / NumericLiteralExpr
+   / CharLiteralExpr
+   / StringLiteralExpr
+
+ArrayExpr = "[" StaticArgs? w RectElements w "]"
+
+RectElements = NoSpaceExpr MultiDimCons*
+
+MultiDimCons = RectSeparator NoSpaceExpr
+
+/* RectSeparator is defined in Spacing.rats */
+
+NumericLiteralExpr =
+     NumericWord RestNumericWord+ "_" RadixSpecifier
+   / NumericWord RestNumericWord+
+   / FloatLiteralExpr
+   / IntLiteralExpr
+
+RestNumericWord = NumericSeparator NumericWord
+
+FloatLiteralExpr = DigitString "." DigitString
+
+transient IntLiteralExpr IntLiteralExpr =
+    NumericWord "_" RadixSpecifier
+  / NumericWord
+  / DigitString
+
+NumericCharacter = [0-9a-zA-Z]
+
+NumericWord = NumericCharacter+ ("'" / NumericCharacter)*
+
+NumericSeparator = "."
+
+RadixSpecifier =
+     RadixDigits
+   / RadixNames
+
+RadixDigits =
+     "16"
+   / "15"
+   / "14"
+   / "13"
+   / "12"
+   / "11"
+   / "10"
+   / "9"
+   / "8"
+   / "7"
+   / "6"
+   / "5"
+   / "4"
+   / "3"
+   / "2"
+
+RadixNames =
+     "SIXTEEN"
+   / "FIFTEEN"
+   / "FOURTEEN"
+   / "THIRTEEN"
+   / "TWELVE"
+   / "ELEVEN"
+   / "TEN"
+   / "NINE"
+   / "EIGHT"
+   / "SEVEN"
+   / "SIX"
+   / "FIVE"
+   / "FOUR"
+   / "THREE"
+   / "TWO"
+
+DigitString = [0-9]+
+
+CharLiteralExpr = "'" CharLiteralContent "'"
+
+StringLiteralExpr = ["] StringLiteralContent* ["]
+StringLiteralContent =
+     EscapeSequence
+   / !["\\] _
+EscapeSequence = '\\' [btnfr"\\]
+
+CharLiteralContent =
+     EscapeSequence
+   / ![\\] _
+\end{verbatim}

@@ -1,0 +1,142 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Type = !("1") TypePrimary (w "in" w Expr)?
+
+OpType =
+     TypePrimary
+   / TypePrefix
+
+TypePrimary =
+     TypePrimaryFront TightInfixPostfix
+   / <LooseJuxt> TypePrimaryFront wr TypePrimary
+   / <LooseInfix> TypePrimaryFront wr LooseInfix
+   / TypePrimaryFront
+
+TypePrefix =
+     DimPrefixOp TypePrimary
+   / DimPrefixOp TypePrefix
+   / <Prefix> DimPrefixOp wr TypePrimary
+   / <PrePrefix> DimPrefixOp wr TypePrefix
+
+TightInfixPostfix =
+     <Arrow> TypeInfixOp TypePrimary (w Throws)?
+   / <ArrowPrefix> TypeInfixOp TypePrefix (w Throws)?
+   / DimInfixOp TypePrimary
+   / DimInfixOp TypePrefix
+   / <Postfix> DimPostfixOp wr TypePrimary
+   / <PostPrefix> DimPostfixOp wr TypePrefix
+   / DimPostfixOp
+
+LooseInfix =
+     <Arrow> TypeInfixOp wr TypePrimary (w Throws)?
+   / <ArrowPrefix> TypeInfixOp wr TypePrefix (w Throws)?
+   / <Infix> DimInfixOp wr TypePrimary
+   / <InPrefix> DimInfixOp wr TypePrefix
+
+TypePrimaryFront =
+     TypeFront TypeTail+
+   / TypeFront
+
+TypeFront =
+     ParenthesizedType
+   / Domain
+   / TupleType
+   / TypeRef
+   / VoidType
+   / "1"
+
+ParenthesizedType = "(" w Type w ")"
+
+Domain =
+     "(" w (Type w "," w)* (Type w "..." w "," w)? KeywordType (w "," w KeywordType)* w ")"
+   / "(" w (Type w "," w)* Type w "..." w ")"
+
+KeywordType = BindId w "=" w Type
+
+TupleType = "(" w Type w "," w TypeList w ")"
+
+TypeList = Type (w "," w Type)*
+
+TypeRef =
+     Id wr StaticArgs // Error production
+   / "Unity"
+   / Id StaticArgs?
+
+VoidType = "(" w ")"
+
+TypeTail =
+     ArrayTypeSize
+   / Exponentiation
+   / ParenthesizedTypeLeft
+   / IdLeft
+   ;
+
+ArrayTypeSize = "[" (w ArraySize)? w "]"
+
+ArraySize = ExtentRange (w "," w ExtentRange)*
+
+ExtentRange =
+     (StaticArg w)? "#" (w StaticArg)?
+   / (StaticArg w)? ":" (w StaticArg)?
+   / StaticArg
+
+Exponentiation =
+     "^" wr IntExpr // Error production
+   / "^" IntExpr
+   / "^" wr "(" w ExtentRange (w "BY" w ExtentRange)* w ")" // Error production
+   / "^" "(" w ExtentRange (w "BY" w ExtentRange)* w ")"
+
+MayParenthesizedOpType =
+     "(" w OpType w ")"
+   / OpType
+
+ParenthesizedTypeLeft = "(" w MayParenthesizedOpType w ")"
+
+IdLeft = Id
+
+TypeInfixOp = "->"
+
+DimInfixOp = "DOT" / "/" / "per"
+
+DimPrefixOp = "square" / "cubic" / "inverse"
+
+DimPostfixOp = "squared" / "cubed"
+
+TraitType =
+     TraitTypeFront TraitTypeTail+
+   / TypeRef
+
+TraitTypeFront =
+     ParenthesizedType
+   / TupleType
+   / TypeRef
+   / VoidType
+
+TraitTypeTail =
+     ArrayTypeSizeTrait
+   / ExponentiationTrait
+
+ArrayTypeSizeTrait = "[" (w ArraySize)? w "]"
+
+ExponentiationTrait =
+     "^" wr IntExpr // Error production
+     "^" IntExpr
+   / "^" wr "(" w ExtentRange (w "BY" w ExtentRange)* w ")" // Error production
+   / "^" "(" w ExtentRange (w "BY" w ExtentRange)* w ")"
+\end{verbatim}

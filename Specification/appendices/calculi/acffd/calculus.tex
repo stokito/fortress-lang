@@ -15,21 +15,15 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\section{\acffdcore}\label{acffd-calculus}
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+In this section, we define a Fortress core calculus with
+acyclic type hierarchy and field definitions inside object definitions.
+We call this calculus \emph{\acffdcore}.
+\acffdcore\ is an extension of \basiccore\ with 
+acyclic type hierarchy and field definitions inside object definitions.
+
+\input{\macros/acffd-calculus-macros}
+\input{\calculi/acffd/syntax}
+\input{\calculi/acffd/dynamic}
+\input{\calculi/acffd/static}
