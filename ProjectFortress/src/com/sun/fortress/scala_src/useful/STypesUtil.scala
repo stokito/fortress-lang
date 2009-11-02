@@ -871,12 +871,12 @@ object STypesUtil {
                                extended_traits: List[TraitTypeWhere],
                                given: Set[(String, Type)])
                               : Set[Pair[IdOrOpOrAnonymousName,
-                                         (Functional, StaticTypeReplacer)]] = {
+                                         (Functional, StaticTypeReplacer, TraitType)]] = {
       var allMethods = given
       // a set of inherited methods:
       // a set of pairs of method names and
-      //                   pairs of Functionals and static parameters substitutions
-      var methods = Set[Pair[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer)]]()
+      //                   triples of Functionals, static parameters substitutions, and declaring trait
+      var methods = Set[Pair[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)]]()
       var h = history
       for (trait_ <- extended_traits) {
         val type_ = trait_.getBaseType
@@ -901,7 +901,7 @@ object STypesUtil {
                       val fname = new_pair._1
                       val paramTy = paramsToArgs.replaceIn(new_pair._2)
                       if (!isOverride(fname, paramTy, allMethods, analyzer)) {
-                        methods += new Pair(method_name, (method_func, paramsToArgs))
+                        methods += new Pair(method_name, (method_func, paramsToArgs, ty))
                         allMethods += ((fname, paramTy))
                       }
                     }

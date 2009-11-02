@@ -197,7 +197,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               STypesUtil.inheritedMethods(typeAnalyzer.traits,
                                           toList(traitOrObject.extendsTypes),
                                           methods, typeAnalyzer)
-              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer)]]]
+              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer, TraitType)]]]
+              .map(p => { val t = p.second
+                          new JavaPair(p.first, (t._1, t._2)) })
 
             for ( f <- methods.map(x => x.first) ; if isDeclaredName(f) ) {
               var ss = Set[(JavaMethod, StaticTypeReplacer)]()

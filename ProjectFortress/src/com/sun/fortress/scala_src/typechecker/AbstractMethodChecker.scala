@@ -25,6 +25,7 @@ import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
+import com.sun.fortress.compiler.index.HasSelfType
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.StaticError
@@ -104,32 +105,18 @@ class AbstractMethodChecker(component: ComponentIndex,
     typeAnalyzer = oldTypeAnalyzer
   }
 
-  private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) =
-    inheritedAbstractMethodsHelper(new HierarchyHistory(), extended_traits)
-
-  private def inheritedAbstractMethodsHelper(hist: HierarchyHistory,
-                                             extended_traits: List[TraitTypeWhere]):
-                                            Map[IdOrOp, (TraitType, Set[FnDecl])] = {
-    var h = hist
-    var map = new HashMap[IdOrOp, (TraitType, Set[FnDecl])]()
-    for ( trait_ <- extended_traits ; if ! h.hasExplored(trait_.getBaseType) ) {
-      trait_.getBaseType match {
-        case ty@STraitType(info, name, args, params) =>
-          h.explore(ty)
-          val tci = typeAnalyzer.traits.typeCons(name)
-          if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
-            val ti = tci.unwrap.asInstanceOf[TraitIndex]
-            map.put(name, (ty, collectAbstractMethods(name, toList(NU.getDecls(ti.ast)))))
-            val old_hist = h
-            map ++= inheritedAbstractMethodsHelper(h, toList(ti.extendsTypes))
-            h = old_hist
-          } else error(NU.getSpan(trait_),
-                       "Trait types are expected in an extends clause but found "
-                       + ty.toStringVerbose + "\n" + tci.getClass)
-        case SAnyType(_) =>
-        case ty => error(NU.getSpan(trait_),
-                         "Trait types are expected in an extends clause but found "
-                         + ty.toStringVerbose)
+  private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) = {
+    val inherited = inheritedMethods(typeAnalyzer.traits, extended_traits,
+                                     Set(), typeAnalyzer)
+    val map = new HashMap[IdOrOp, (TraitType, Set[FnDecl])]()
+    for (pair <- inherited) {
+      val (_, ftn) = (pair.first, pair.second)
+      val name = ftn._1.asInstanceOf[HasSelfType].declaringTrait
+      val tci = typeAnalyzer.traits.typeCons(name)
+      if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
+        val ti = tci.unwrap.asInstanceOf[TraitIndex]
+        map.put(name, (ftn._3,
+                       collectAbstractMethods(name, toList(NU.getDecls(ti.ast)))))
       }
     }
     map
@@ -143,7 +130,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                        if ( ! body.isDefined ) set += fd
                      } else if ( mods.isAbstract ) set += fd
                    case _ => })
-      set
+    set
   }
 
   /* Returns true if any of the concrete method declarations in "decls"
@@ -151,7 +138,7 @@ class AbstractMethodChecker(component: ComponentIndex,
    */
   private def implement(d: FnDecl, decls: List[Decl], ast: TraitType): Boolean =
     decls.exists( (decl: Decl) => decl match {
-                  case fd@SFnDecl(_,_,_,_,_) => implement(d, fd, ast)
+                  case fd:FnDecl => implement(d, fd, ast)
                   case _ => false
                 } )
 
