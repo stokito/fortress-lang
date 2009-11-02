@@ -22,7 +22,9 @@
 \usepackage{amssymb} %maths
 \usepackage{amsmath} %maths
 \usepackage{stmaryrd}
+\usepackage{graphicx}
 \usepackage[utf8]{inputenc} %useful to type directly accentuated characters
+
 \newlength{\FortressCodeIndent}
 \setlength{\FortressCodeIndent}{1em}
 \newlength{\FortressParSkip}
@@ -135,7 +137,7 @@
 
 
 \newcommand\FortressCode{\lineskip=1.5pt\lineskiplimit=1.5pt
- \setbox\fortresssavedtabstack=\box\fortresstabstack
+  \setbox\fortresssavedtabstack=\box\fortresstabstack
   \global\setbox\fortresstabstack=\hbox{\hbox{}}\relax
   \FortressInnerMacros
   \let\+=\fortresspushtab
@@ -149,8 +151,11 @@
   \let\]=\fortressendcommentalignblock
   \def\digitblank{{\setbox0=\hbox{0}\hbox to \wd0{\hss}}}%
   \fortresscommentalignblockfalse
+  \topsep=4pt plus 2pt   \parsep=\parskip  \partopsep=1pt plus 1pt
+  \trivlist
+  \item[]
   \fortressbeginline\ignorespaces}
-\def\endFortressCode{\fortressendline
+\def\endFortressCode{\fortressendline\endtrivlist
   \global\setbox\fortresstabstack=\box\fortresssavedtabstack}
 
 \newcommand\fortressbeginline{\fortressretrievenewindent
