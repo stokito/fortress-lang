@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+export Executable
+
+trait T (* comprises { U, V } *)
+  abstract getter asString(): String
+  abstract m(t:T): T
+  abstract mv(v:V): T
+end
+
+object U extends T
+  getter asString(): String = "U"
+  m(t:T): T = t
+  mv(v:V): T = v
+end
+
+trait V extends T (* comprises { W, X } *)
+  m(t:T): T = t.mv(self)
+  mv(v:V): T = self
+end
+
+object W extends V
+  getter asString(): String = "W"
+end
+
+object X extends V
+  getter asString(): String = "X"
+end
+
+run() = do
+    println("U" U.m(U).asString)
+    println("W" U.m(W).asString)
+    println("X" U.m(X).asString)
+    println("W" W.m(U).asString)
+    println("W" W.m(W).asString)
+    println("X" W.m(X).asString)
+    println("X" X.m(U).asString)
+    println("W" X.m(W).asString)
+    println("X" X.m(X).asString)
+  end
