@@ -40,7 +40,7 @@ public class ManglingClassWriter extends ClassWriter {
     }
 
     public MethodVisitor visitCGMethod(int access, String name, String desc, String signature, String[] exceptions) {
-       
+
         return new ManglingMethodVisitor(super.visitMethod(access, name, desc, signature, exceptions));
     }
 
@@ -48,11 +48,21 @@ public class ManglingClassWriter extends ClassWriter {
     @Override
     protected String getCommonSuperClass(String type1, String type2) {
         // We may need to do something interesting here.
-        // [added try/catch wrapper to get useful information out on failure - JWM]
+        // Consider doing it pre-emptively rather than copping out on failure.
         try {
             return super.getCommonSuperClass(type1, type2);
         } catch (Throwable e) {
-            throw new Error("Couldn't getCommonSuperClass("+type1+", "+type2+")",e);
+            // [added try/catch wrapper to get useful information out on failure - JWM]
+            // throw new Error("Couldn't getCommonSuperClass("+type1+", "+type2+")",e);
+
+            // Note: the following apparent cop-out was gleaned by perusing:
+            //   http://www.java2s.com/Open-Source/Java-Document/Byte-Code/asm/org/objectweb/asm/ClassWriterComputeFramesTest.java.htm
+            // This returns java.lang.Object as the CommonSuperClass of anything involving an interface
+            // type.  Since all Fortress traits correspond to interface types, we ought to be able to
+            // do the same.
+            //
+            // That said, it still feels wrong.
+            return Naming.javaObject;
         }
     }
 
@@ -62,7 +72,7 @@ public class ManglingClassWriter extends ClassWriter {
         signature = Naming.mangleFortressIdentifier(signature);
         name = Naming.mangleFortressIdentifier(name);
         superName = Naming.mangleFortressIdentifier(superName);
-        
+
         String[] _interfaces =
             interfaces == null ? null : new String[interfaces.length];
         if (interfaces != null)
@@ -109,5 +119,4 @@ public class ManglingClassWriter extends ClassWriter {
     }
 
 }
-            
-            
+

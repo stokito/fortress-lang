@@ -96,9 +96,6 @@ public class NamingCzar {
                                               WellKnownNames.anyTypeLibrary() +
                                              "$" + WellKnownNames.anyTypeName;
 
-    // java.lang.Object correctly formatted for asm generation
-    public static final String javaObject = "java/lang/Object";
-
     // Base class for all executable Fortress Components
     public static final String fortressExecutable = "com/sun/fortress/runtimeSystem/FortressExecutable";
     public static final String fortressExecutableRun = "runExecutable";
@@ -108,7 +105,7 @@ public class NamingCzar {
     public static final String fortressBaseTask = "com/sun/fortress/runtimeSystem/BaseTask";
 
     // Base class for non-executable Fortress Components
-    public static final String fortressComponent = javaObject;
+    public static final String fortressComponent = Naming.javaObject;
 
     public static final String primordialTask    = "com/sun/fortress/runtimeSystem/PrimordialTask";
 

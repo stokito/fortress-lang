@@ -17,7 +17,7 @@
 
 export Executable
 
-trait T (* comprises { U, V } *)
+trait T comprises { U, V }
   abstract getter asString(): String
   abstract m(t:T): T
   abstract mv(v:V): T
@@ -29,7 +29,7 @@ object U extends T
   mv(v:V): T = v
 end
 
-trait V extends T (* comprises { W, X } *)
+trait V extends T comprises { W, X }
   m(t:T): T = t.mv(self)
   mv(v:V): T = self
 end

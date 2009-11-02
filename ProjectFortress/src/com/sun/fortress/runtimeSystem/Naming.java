@@ -34,7 +34,7 @@ public class Naming {
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
- 
+
     public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
     public static final String SCALES = "\u2696"; // dimension static param
     public static final String MUSIC_SHARP = "\u266f"; // int static param
@@ -42,8 +42,8 @@ public class Naming {
     public static final String HAMMER_AND_PICK = "\u2692"; // opr static param
     public static final String YINYANG = "\u262f"; // type static param
     public static final String ATOM = "\u269b"; // unit static param
-    
-    public static final String GENERIC_TAGS = 
+
+    public static final String GENERIC_TAGS =
         BALLOT_BOX_WITH_CHECK + SCALES + MUSIC_SHARP +
         HAMMER_AND_PICK + YINYANG + ATOM;
 
@@ -75,6 +75,9 @@ public class Naming {
     public final static String APPLY_METHOD = "apply";
 
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
+
+    // java.lang.Object correctly formatted for asm generation
+    public static final String javaObject = "java/lang/Object";
 
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
@@ -354,7 +357,7 @@ public class Naming {
             case 'S':
             case 'Z':
             case 'V': // should only appear in return if well-formed
-                
+
             case '[': // eat array indicator
             case '(': // eat intro and outro, assume well-formed
             case ')':
@@ -370,8 +373,8 @@ public class Naming {
             }
         }
         return sb.toString();
-    }   
-    
+    }
+
     public static String demangleMethodSignature(String s) {
         StringBuffer sb = new StringBuffer();
         int l = s.length();
@@ -388,7 +391,7 @@ public class Naming {
             case 'S':
             case 'Z':
             case 'V': // should only appear in return if well-formed
-                
+
             case '[': // eat array indicator
             case '(': // eat intro and outro, assume well-formed
             case ')':
@@ -405,14 +408,14 @@ public class Naming {
         }
         return sb.toString();
     }
-    
+
     /**
      * Mangles the chunks of a fortress identifier, where the chunks are
      * delimited by $, /, and ; appearing outside of Oxford brackets.
-     * 
+     *
      * Returns either when the string is exhausted,
      * or after a semicolon is processed.
-     *  
+     *
      * @param s  the string to mangle
      * @param i  the index to begin at
      * @param sb the stringbuffer to which the transformed string is appended.
@@ -421,7 +424,7 @@ public class Naming {
     private static int mangleFortressIdentifier(String s, int start, StringBuffer sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,true);
     }
-    
+
     public static String mangleFortressIdentifier(String s) {
         if (s == null)
             return null;
@@ -436,7 +439,7 @@ public class Naming {
              throw new Error("AHA!");
          return t;
     }
-    
+
     /**
      * Expects a type, surrounded by L;, or one of the descriptor type characters.
      * @param s
@@ -459,7 +462,7 @@ public class Naming {
      * Mangling includes / and $.
      * Names beginning and end with less-than and greater-than are left along
      * (init, clinit)
-     * 
+     *
      * @param s
      * @return
      */
@@ -476,10 +479,10 @@ public class Naming {
     /**
      * DE-mangles the chunks of a fortress identifier, where the chunks are
      * delimited by $, /, and ; appearing outside of Oxford brackets.
-     * 
+     *
      * Returns either when the string is exhausted,
      * or after a semicolon is processed.
-     * 
+     *
      * @param s  the string to mangle
      * @param i  the index to begin at
      * @param sb the stringbuffer to which the transformed string is appended.
@@ -488,12 +491,12 @@ public class Naming {
     private static int demangleFortressIdentifier(String s, int start, StringBuffer sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,false);
     }
-    
+
     public static String demangleFortressIdentifier(String s) {
         if (s == null)
             return null;
         int l = s.length();
-        
+
         // Special case of <init> and <clinit>
         if (pointyDelimitedInitMethod(s))
             return s;
@@ -513,11 +516,11 @@ public class Naming {
         return s.charAt(0) == '<' && s.endsWith("init>");
     }
 
-    
+
     private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
         int l = s.length();
         int nesting = 0;
-        
+
         for (int i = start; i < l; i++) {
             char ch = s.charAt(i);
             if (ch == LEFT_OXFORD_CHAR) {
@@ -550,7 +553,7 @@ public class Naming {
             sb.append(mangleOrNot ? mangleIdentifier(s) : deMangle(s));
         }
     }
-    
+
 
     /**
          * Convert a string identifier into something that will be legal in a
@@ -636,7 +639,7 @@ public class Naming {
             // debugging check for double-mangling
             if (mangledString.startsWith("\\-"))
                 mangledString = mangledString;
-            
+
             return mangledString;
         }
 
