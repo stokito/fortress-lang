@@ -1,0 +1,195 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+ExtendsWhere = "extends" w TraitTypeWheres
+
+TraitTypeWheres =
+     TraitTypeWhere
+   / "{" w TraitTypeWhereList w "}"
+
+TraitTypeWhereList = TraitTypeWhere (w "," w TraitTypeWhere)*
+
+TraitTypeWhere = TraitType (w Where)?
+
+Extends = "extends" w TraitTypes
+
+Excludes = "excludes" w TraitTypes
+
+Comprises = "comprises" w TraitTypes
+
+AbsComprises = "comprises" w ComprisingTypes
+
+TraitTypes =
+     TraitType
+   / "{" w TraitTypeList w "}"
+
+TraitTypeList = TraitType (w "," w TraitType)*
+
+ComprisingTypes =
+     TraitType
+   / "{" w ComprisingTypeList w "}"
+
+ComprisingTypeList =
+     "..."
+   / TraitType (w "," w TraitType)* (w "," w "...")?
+
+Where =
+     "where" w "[\" w WhereBindingList w "\]" (w "{" w WhereConstraintList w "}")?
+   / "where" w "{" w WhereConstraintList w "}"
+
+WhereBindingList = WhereBinding (w "," w WhereBinding)*
+
+WhereBinding =
+     "nat" w Id
+   / "nat" w OpName // Error production
+   / "int" w Id
+   / "int" w OpName // Error production
+   / "bool" w Id
+   / "bool" w OpName // Error production
+   / "unit" w Id
+   / "unit" w OpName // Error production
+   / OpName w Extends // Error production
+   / Id (w Extends)?
+   / "[\"       // Error production
+
+FnHeaderClause = (w NoNewlineIsType)? FnClauses
+
+FnClauses =
+     w Throws w ExtendsWhere (w Where)? Contract    // Error production
+   / w Throws w Where w ExtendsWhere Contract    // Error production
+   / w Where w ExtendsWhere Contract // Error production
+   / w Where w Throws Contract // Error production
+   / (w Throws)? (w Where)? Contract
+
+Throws = "throws" w MayTraitTypes
+
+MayTraitTypes =
+     "{" w "}"
+   / TraitTypes
+
+/* Each modifier cannot appear more than once. */
+TraitMods = (TraitMod w)+
+
+TraitMod =
+     AbsTraitMod
+   / "private"
+
+/* Each modifier cannot appear more than once. */
+AbsTraitMods = (AbsTraitMod w)+
+
+AbsTraitMod =
+     "value"
+   / "test"
+
+/* Each modifier cannot appear more than once. */
+ObjectMods = TraitMods
+
+/* Each modifier cannot appear more than once. */
+AbsObjectMods = AbsTraitMods
+
+/* Each modifier cannot appear more than once. */
+MdMods = (MdMod w)+
+
+MdMod =
+     FnMod
+   / "override"
+
+/* Each modifier cannot appear more than once. */
+AbsMdMods = (AbsMdMod w)+
+
+AbsMdMod =
+     AbsFnMod
+   / "override"
+
+/* Each modifier cannot appear more than once. */
+FnMods = (FnMod w)+
+
+FnMod =
+     AbsFnMod
+   / "private"
+
+/* Each modifier cannot appear more than once. */
+AbsFnMods = (AbsFnMod w)+
+
+AbsFnMod =
+     LocalFnMod
+   / "test"
+
+/* Each modifier cannot appear more than once. */
+LocalFnMods = (LocalFnMod w)+
+
+LocalFnMod =
+     "atomic"
+   / "io"
+
+/* Each modifier cannot appear more than once. */
+ParamFldMods = (ParamFldMod w)+
+
+ParamFldMod =
+     "hidden"
+   / "settable"
+   / "wrapped"
+
+/* Each modifier cannot appear more than once. */
+FldMods = (FldMod w)+
+
+/* Each modifier cannot appear more than once. */
+FldImmutableMods = (FldImmutableMod w)+
+
+FldMod =
+     "var"
+   / AbsFldMod
+
+FldImmutableMod = AbsFldMod
+
+/* Each modifier cannot appear more than once. */
+AbsFldMods = (AbsFldMod w)+
+
+AbsFldMod =
+     ApiFldMod
+   / "wrapped"
+   / "private"
+
+/* Each modifier cannot appear more than once. */
+ApiFldMods = (ApiFldMod w)+
+
+ApiFldMod =
+     "hidden"
+   / "settable"
+   / "test"
+
+StaticParams = "[\" w StaticParamList w "\]"
+
+StaticParamList = StaticParam (w "," w StaticParam)*
+
+StaticParam =
+     "nat"  w Id
+   / "nat"  w OpName // Error production
+   / "int"  w Id
+   / "int"  w OpName // Error production
+   / "bool" w Id
+   / "bool" w OpName // Error production
+   / "dim"  w Id
+   / "dim"  w OpName // Error production
+   / "unit" w Id (w ":" w NoNewlineType)? (w "absorbs" w "unit")?
+   / "unit" w OpName (w ":" w NoNewlineType)? (w "absorbs" w "unit")? // Error production
+   / "opr"  w Op
+   / OpName w Extends (w "absorbs" w "unit")? // Error production
+   / Id (w Extends)? (w "absorbs" w "unit")?
+   / "[\"       // Error production
+\end{verbatim}

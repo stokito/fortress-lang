@@ -15,21 +15,28 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\begin{verbatim}
+Type Type := ...
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+NoNewlineType = !("1") TypePrimary (w "in" w NoNewlineExpr)?
+
+TypePrimary := ...
+   / <LooseJuxt> TypePrimaryFront sr TypePrimary
+   / <LooseInfix> TypePrimaryFront sr LooseInfix
+
+TypePrefix := ...
+   / <Prefix> DimPrefixOp sr TypePrimary
+   / <PrePrefix> DimPrefixOp sr TypePrefix
+
+TightInfixPostfix := ...
+   / <Arrow> TypeInfixOp TypePrimary (s Throws)?
+   / <ArrowPrefix> TypeInfixOp TypePrefix (s Throws)?
+   / <Postfix> DimPostfixOp sr TypePrimary
+   / <PostPrefix> DimPostfixOp sr TypePrefix
+
+LooseInfix := ...
+   / <Arrow> TypeInfixOp sr TypePrimary (s Throws)?
+   / <ArrowPrefix> TypeInfixOp sr TypePrefix (s Throws)?
+   / <Infix> DimInfixOp sr TypePrimary
+   / <InPrefix> DimInfixOp sr TypePrefix
+\end{verbatim}

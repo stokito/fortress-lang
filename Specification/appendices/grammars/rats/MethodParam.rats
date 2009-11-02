@@ -15,21 +15,34 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\begin{verbatim}
+ValParam := "(" (w Params)? w ")"
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+AbsValParam := "(" (w AbsParams)? w ")"
+
+Param :=
+     PlainParam
+   / "self"
+
+AbsParam :=
+     "self"
+   / AbsPlainParam
+
+OpHeaderFront :=
+     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w Params)? w
+       (RightEncloser / Encloser) (w ":=" w "(" w SubscriptAssignParam w ")")?
+   / ...
+
+AbsOpHeaderFront :=
+     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w AbsParams)? w
+       (RightEncloser / Encloser) (w ":=" w "(" w AbsSubscriptAssignParam w ")")?
+   / ...
+
+SubscriptAssignParam =
+     Varargs
+   / Param
+
+AbsSubscriptAssignParam =
+     Varargs
+   / AbsParam
+\end{verbatim}

@@ -15,21 +15,15 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\section{\basiccore}\label{basic-calculus}
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+In this section, we define a basic core calculus for Fortress.
+We call this calculus \emph{\basiccore}.
+Following the precedent set by prior core calculi such as Featherweight
+Generic Java~\cite{fgj},
+we have abided by the restriction that all valid \basiccore\ programs are
+valid Fortress programs.
+
+\input{\calculi/basic/syntax}
+\input{\calculi/basic/dynamic}
+\input{\calculi/basic/static}

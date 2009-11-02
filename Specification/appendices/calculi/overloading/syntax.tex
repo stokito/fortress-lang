@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Syntax}
+\seclabel{overloading-syntax}
+
+The syntax for \overloadingcore\ is provided in \figref{overloading-syntax}.  
+
+\begin{figure*}[htbp!]
+\[
+\begin{array}{llll}
+\tvone, \tvtwo&& &  \mbox{type variables}\\
+\fname&& &  \mbox{function or method name}\\
+\vname&& &  \mbox{field name}\\
+\tname&& &  \mbox{trait name}\\
+\oname&& &  \mbox{object name}\\
+\ty, \prm\ty, \prm{\prm\tau} &::=& \tvone&\mbox{type}\\
+         &|& \tynontv \\
+\tynontv&::=& \tappone& \mbox{type that is not a type variable}\\
+         &|& \oapp \\
+\tappone, \tapptwo, \tappthree &::=& \tapp 
+& \mbox{type that can be a type bound}\\
+         &|& \obj\\
+\exp   &::=& \vname & \mbox{expression}\\
+         &|& \self\\
+         &|& \objexp\\
+         &|& \fldacc\\
+         &|& \mthinvk\\
+         &|& \fncall\\
+\fd &::=& \fdsyntax& \mbox{function or method definition}\\
+\td &::=& \tdsyntax& \mbox{trait definition}\\
+\od &::=& \odsyntax& \mbox{object definition}\\
+\d &::=& \fd & \mbox{definition}\\
+   &|  & \td \\
+   &|  & \od \\
+\pgm &::=& \pd & \mbox{program}\\
+\end{array}
+\]
+\caption{Syntax of \overloadingcore}
+\figlabel{overloading-syntax}
+\end{figure*}

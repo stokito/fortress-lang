@@ -15,21 +15,20 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
-\partlabel{appendices}
+\newpage
+\section{\overloadingcore}
+\applabel{overloading-calculus}
 
-\appendix
-\input{\home/appendices/calculi/calculi}
-\input{\home/appendices/overloading}
-\input{\home/appendices/components}
-\input{\home/appendices/rendering}
-\input{\home/appendices/ascii-to-unicode}
-\input{\home/appendices/operators}
-\input{\home/appendices/grammars/grammars}
-\input{\home/appendices/changes}
-\ifrelease
-\else
-\input{\home/appendices/FAQ}
-\input{\home/appendices/future}
-\input{\home/appendices/internal-document}
-\fi
+In this section, we define a Fortress core calculus with overloading
+for dotted methods and first-order functions.
+We call this calculus \emph{\overloadingcore}.
+\overloadingcore\ is an extension of \basiccore\ with overloading.
+
+\renewcommand{\tappone}{\ensuremath{N}}
+\renewcommand{\tapptwo}{\ensuremath{M}}
+\renewcommand{\tappthree}{\ensuremath{L}}
+\renewcommand{\tappfour}{\ensuremath{K}}
+\input{\macros/overloading-calculus-macros}
+\input{\calculi/overloading/syntax}
+\input{\calculi/overloading/dynamic}
+\input{\calculi/overloading/static}

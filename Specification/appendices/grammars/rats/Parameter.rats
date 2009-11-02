@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+ValParam =
+     BindId
+   / "(" (w Params)? w ")"
+
+AbsValParam =
+     "(" (w AbsParams)? w ")"
+   / Type
+
+Params =
+     (Param w "," w)+ (Keyword w "," w)+ Varargs // Error production
+   / Varargs w "," w (Keyword w "," w)+ Param (w "," w Param)* // Error production
+   / Varargs (w "," w Param)+ (w "," w Keyword)* // Error production
+   / (Param w "," w)* (Varargs w "," w)? Keyword (w "," w Keyword)*
+   / (Param w "," w)*  Varargs
+   / Param (w "," w Param)*
+
+AbsParams =
+     (AbsParam w "," w)+ (Keyword w "," w)+ Varargs // Error production
+   / Varargs w "," w (Keyword w "," w)+ AbsParam (w "," w AbsParam)* // Error production
+   / Varargs (w "," w AbsParam)+ (w "," w Keyword)* // Error production
+   / (AbsParam w "," w)* (Varargs w "," w)? Keyword (w "," w Keyword)*
+   / (AbsParam w "," w)*  Varargs
+   / AbsParam (w "," w AbsParam)*
+
+VarargsParam = BindId w ":" w Type w "..."
+
+Varargs = VarargsParam
+
+Keyword = Param w "=" w Expr
+
+PlainParam =
+     BindId w IsType
+   / !(BindId (w "\]" / w "]" / w "[\" / w "[" / w "->")) BindId
+   / Type
+
+Param = PlainParam
+
+AbsPlainParam =
+     BindId w IsType
+   / Type
+
+AbsParam = AbsPlainParam
+
+OpHeaderFront =
+     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w Params)? w
+     (RightEncloser / Encloser)
+   / "opr" w ValParam w (Op / ExponentOp) (w StaticParams)?
+   / "opr" (w "BIG")? w (Op / "^" / Encloser / SUM / PROD) (w StaticParams)? w ValParam
+
+AbsOpHeaderFront =
+     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w AbsParams)? w
+     (RightEncloser / Encloser)
+   / "opr" w AbsValParam w (Op / ExponentOp) (w StaticParams)?
+   / "opr" (w "BIG")? w (Op / "^" / Encloser / SUM / PROD) (w StaticParams)? w AbsValParam
+\end{verbatim}

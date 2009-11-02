@@ -1,0 +1,69 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+BlockElems =
+     BlockElem br BlockElems
+   / BlockElem
+     &(w Elifs / w Else / br CaseClause / br TypecaseTypes / br CaseElse
+     / w "also" / w "end" / w Catch / w "forbid" / w "finally" / w ")")
+   / BlockElem w ";"
+     &(w Elifs / w Else / w CaseClause / w TypecaseTypes / w CaseElse
+     / w "also" / w "end" / w Catch / w "forbid" / w "finally" / w ")")
+
+BlockElem =
+     LocalVarFnDecl
+   / NoNewlineExpr (s "," w NoNewlineGeneratorClauseList)?
+
+LocalVarFnDecl =
+     LocalFnDecl (br LocalFnDecl)*
+   / LocalVarDecl
+
+LocalFnDecl = LocalFnMods? NamedFnHeaderFront FnHeaderClause w "=" w NoNewlineExpr
+
+LocalVarDecl =
+     ("var" w)? NoNewlineVarWTypes s InitVal
+   / ("var" w)? NoNewlineVarWTypes
+   /            VarWoTypes s "=" w NoNewlineExpr
+   / ("var" w)? VarWoTypes s ":" s Type s "..." (s InitVal)?
+   / ("var" w)? VarWoTypes s ":" s TupleType (s InitVal)?
+   /  "var" w   VarWoTypes s "=" w NoNewlineExpr // Error production
+
+VarWType := BindId s ":" s Type
+
+VarWoTypes =
+     VarWoType
+   / "(" w VarWoType (w "," w VarWoType)+ w ")"
+
+VarWoType =
+     BindId
+   / Unpasting
+
+Unpasting = "[" w UnpastingElems w "]"
+
+UnpastingElems =
+     UnpastingElem RectSeparator UnpastingElems
+   / UnpastingElem
+
+UnpastingElem =
+     BindId ("[" w UnpastingDim w "]")?
+   / Unpasting
+
+UnpastingDim = ExtentRange (w "BY" w ExtentRange)+
+
+CaseClause = NoNewlineExpr w match w BlockElems
+\end{verbatim}

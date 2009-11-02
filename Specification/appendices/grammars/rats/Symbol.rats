@@ -1,0 +1,155 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Encloser = encloser
+
+LeftEncloser = !(opendoublesquare) leftEncloser
+
+RightEncloser = rightEncloser
+
+ExponentOp = exponentOp
+
+EncloserPair = (LeftEncloser / Encloser) (w DOT)? w (RightEncloser / Encloser)
+
+bar = &("|" wr GeneratorClauseList closingComprehension) "|"
+closingComprehension =
+     w "}"
+   / w "|>"
+   / br ArrayComprehensionClause
+   / w "]"
+sd = [*.]?
+bars = "|" (sd "|")*
+slashes = "/" (sd "/")*
+        / "\\" (sd "\\")*
+lesses = "<" (sd "<")*
+greaters = ">" (sd ">")*
+
+encloser = !(bar) bars !([*.>/\\] / "->")
+
+leftEncloser =
+     leftEncloserMulti
+   / !('|') _
+
+leftEncloserMulti =
+     "(." ("/"+ / "\\"+)
+   / "[/\\/\\/" / "[/\\/"
+   / "[" (sd slashes)
+   / "{" (sd slashes)
+   / lesses sd (slashes / bars)
+   / bars sd slashes
+   / "{*" /  "[*"
+   / "((.>" / "(.<"
+
+rightEncloser =
+     rightEncloserMulti
+   / !('|') _
+
+rightEncloserMulti =
+     "/"+ ".)"
+   / "\\"+ ".)"
+   / slashes sd (greaters / bars / [\]}])
+   / bars sd greaters
+   / "*]" / "*}"
+   / "]" / "}"
+   / ">.)" / "<.))"
+   / "/\\/\\/]" / "/\\/]"
+
+exponentOp =
+     "^T"
+   / "^" (encloser / op)
+
+OpName = opn:id &{FortressUtil.validOp(opn) }
+
+Op = condOp / op !(equalsOp) / compOp
+
+compOp =
+     "==="
+   / "=/="
+   / "<="
+   / ">="
+
+condOp =
+     ":::"      // Error production
+   / ":" (encloser / op) ":"
+   / (encloser / op) ":"
+
+multiOp =
+     "-/->"
+   / "<-/-"
+   / "-->"
+   / "==>"
+   / ">>>"
+   / mapstoOp
+   / "<<<"
+   / "<->"
+   / leftarrow
+   / "<=>"
+   / "->"
+   / doublerightarrow
+   / ">>"
+   / "<<"
+   / "!!"
+   / "::"
+   / !(rightEncloserMulti) "///"
+   / !(rightEncloserMulti) "//"
+
+singleOp = !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match) _ !("*")
+
+op = OpName
+   / multiOp
+   / singleOp
+
+CompoundOp = (encloser / op) equalsOp
+
+/* The operator "=>" should not be in the left-hand sides of case/typecase expressions. */
+doublerightarrow = "=>" &(w BlockElems w match)
+match = "=>"
+
+/* The operator "BY" should not be used with ExtentRange. */
+crossOp = "BY":OpName &(w ExtentRange)
+
+leftarrow = "<-"
+caret = "^" !("T")
+
+lessthanequal    = "<=":op / "LE":op
+lessthan         = "<":op  / "LT":op
+greaterthanequal = ">=":op / "GE":op
+greaterthan      = ">":op  / "GT":op
+
+NOT     = "NOT":op
+OR      = "OR":op
+AND     = "AND":op
+IMPLIES = "IMPLIES":op
+
+equalsOp = "=":singleOp
+
+AssignOp =
+     ":="
+   / CompoundOp
+
+SUM = "SUM"
+
+PROD = "PROD"
+
+Accumulator =
+     SUM
+   / PROD
+   / "BIG" w (Encloser / Op)
+
+ArrayComprehensionClause = ArrayComprehensionLeft wr bar wr GeneratorClauseList
+\end{verbatim}

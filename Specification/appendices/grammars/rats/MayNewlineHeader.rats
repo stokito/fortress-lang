@@ -1,0 +1,185 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009 Sun Microsystems, Inc.,
+%   4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%   All rights reserved.
+%
+%   U.S. Government Rights - Commercial software.
+%   Government users are subject to the Sun Microsystems, Inc. standard
+%   license agreement and applicable provisions of the FAR and its supplements.
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+IsType = ":" w Type
+
+WhereConstraintList = WhereConstraint (w "," w WhereConstraint)*
+
+WhereConstraint =
+     Id w Extends
+   / OpName w Extends // Error production
+   / TypeAlias
+   / Type w "coerces" w Type
+   / Type w "widens" w Type
+   / UnitConstraint
+   / QualifiedName w "=" w QualifiedName
+   / IntConstraint
+   / BoolConstraint
+
+UnitConstraint =
+     "dimensionless" w "=" w Id
+   / Id w "=" w "dimensionless"
+   / "dimensionless" w "=" w OpName // Error production
+   / OpName w "=" w "dimensionless" // Error production
+
+IntConstraint =
+     IntExpr w lessthanequal w IntExpr
+   / IntExpr w lessthan w IntExpr
+   / IntExpr w greaterthanequal w IntExpr
+   / IntExpr w greaterthan w IntExpr
+   / IntExpr w equals w IntExpr
+
+IntVal =
+     IntLiteralExpr
+   / QualifiedName
+
+IntExpr = IntExprFront IntExprTail*
+
+IntExprFront =
+     IntVal
+   / "(" w IntExpr w ")"
+
+IntExprTail =
+     SumIntExpr
+   / MinusIntExpr
+   / ProductIntExpr
+   / ExponentIntExpr
+
+SumIntExpr = w "+" w IntExpr
+
+MinusIntExpr = w "-" w IntExpr
+
+ProductIntExpr = (w "DOT" w / sr) IntExpr
+
+ExponentIntExpr = "^" IntVal
+
+BoolConstraint = BoolConstraintFront BoolConstraintTail*
+
+BoolConstraintFront =
+     NOT w BoolExpr
+   / BoolConstraintHead w OR w BoolExpr
+   / BoolConstraintHead w AND w BoolExpr
+   / BoolConstraintHead w IMPLIES w BoolExpr
+   / BoolConstraintHead w "=" w BoolExpr
+
+BoolConstraintHead =
+     BoolVal
+   / "(" w BoolExpr w ")"
+
+BoolConstraintTail =
+     OrBoolConstraint
+   / AndBoolConstraint
+   / ImpliesBoolConstraint
+   / EqualsBoolConstraint
+
+OrBoolConstraint = w OR w BoolExpr
+
+AndBoolConstraint = w AND w BoolExpr
+
+ImpliesBoolConstraint = w IMPLIES w BoolExpr
+
+EqualsBoolConstraint = w "=" w BoolExpr
+
+BoolVal =
+     "true"
+   / "false"
+   / QualifiedName
+
+BoolExpr = BoolExprFront BoolExprTail*
+
+BoolExprFront =
+     BoolVal
+   / "(" w BoolExpr w ")"
+   / NOT w BoolExpr
+
+BoolExprTail =
+     OrBoolExpr
+   / AndBoolExpr
+   / ImpliesBoolExpr
+   / EqualsBoolExpr
+
+OrBoolExpr = w OR w BoolExpr
+
+AndBoolExpr = w AND w BoolExpr
+
+ImpliesBoolExpr = w IMPLIES w BoolExpr
+
+EqualsBoolExpr = w "=" w BoolExpr
+
+UnitExpr = UnitExprFront UnitExprTail*
+
+UnitExprFront =
+     "dimensionless"
+   / QualifiedName
+   / "(" w UnitExpr w ")"
+
+UnitExprTail =
+     ProductUnitExpr
+   / QuotientUnitExpr
+   / ExponentUnitExpr
+
+ProductUnitExpr = (w "DOT" w / sr) UnitExpr
+
+QuotientUnitExpr = ("/" / "per") UnitExpr
+
+ExponentUnitExpr = "^" UnitExpr
+
+Contract =
+     w Requires w (ExtendsWhere / Throws / Where) (w Ensures)? (w Invariant)? // Error production
+   / w Requires w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
+   / w Requires w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
+   / w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
+   / w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
+   / w Invariant w (ExtendsWhere / Throws / Where) // Error production
+   / w Requires w Invariant w Ensures // Error production
+   / w Invariant w Ensures w Requires // Error production
+   / w Invariant w Requires (w Ensures)? // Error production
+   / w Ensures w Invariant w Requires // Error production
+   / w Ensures w Requires (w Invariant)? // Error production
+   / w Invariant w Ensures // Error production
+   / (w Requires)? (w Ensures)? (w Invariant)?
+
+Requires = "requires" w "{" (w ExprList)? w "}"
+
+Ensures = "ensures" w "{" (w EnsuresClauseList)? w "}"
+
+EnsuresClauseList = EnsuresClause (w "," w EnsuresClause)*
+
+EnsuresClause = Expr (w "provided" w Expr)?
+
+Invariant = "invariant" w "{" (w ExprList)? w "}"
+
+StaticArgs = "[\" w StaticArgList w "\]"
+
+StaticArgList = StaticArg (w "," w StaticArg)*
+
+StaticArg =
+     Op
+   / !(QualifiedName (w "\]" / w "]" / w "," / w "[\" / w "[" / w "->" /
+                      w "OR" / w "AND" / w "IMPLIES" / w "=") /
+       "Unity" / "dimensionless" / "true" / "false")
+     IntExpr
+   / !(QualifiedName (w "\]" / w "]" / w "," / w "[\" / w "[" / w "->") /
+       "Unity" / "dimensionless")
+     BoolExpr
+   / "true"
+   / "false"
+   / !(QualifiedName (w "DOT" / w "/" / w "per" / w DimPostfixOp) / "dimensionless")
+     Type
+   / UnitExpr
+\end{verbatim}
