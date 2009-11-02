@@ -970,8 +970,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Compile the body in the parameter environment
 
         body.accept(this);
-        exitMethodScope(selfIndex, selfVar, paramsGen);
+        try {
+            exitMethodScope(selfIndex, selfVar, paramsGen);
+        } catch (Throwable t) {
+            throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.",t);
+        }
     }
+
+    private static final Modifiers fnDeclCompilableModifiers =
+        Modifiers.GetterSetter.combine(Modifiers.IO).combine(
+            Modifiers.Private).combine(Modifiers.Abstract);
 
     public void forFnDecl(FnDecl x) {
         /*
@@ -1042,7 +1050,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         header.getWhereClause().isNone() && // no where clause
         header.getThrowsClause().isNone() && // no throws clause
         header.getContract().isNone() && // no contract
-        header.getMods().isEmpty() && // no modifiers
+            header.getMods().remove(fnDeclCompilableModifiers).isEmpty() && // no unhandled modifiers
         !inABlock; // no local functions
 
         if (!canCompile)
