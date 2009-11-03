@@ -192,26 +192,25 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                                   new ArrayList[StaticArg]())
             var methods = toSet(traitOrObject.dottedMethods)
                           .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, JavaFunctional]]]
-                          .map(p => new JavaPair(p.first, (p.second, identity)))
+                          .map(p => (p.first, (p.second, identity)))
             methods ++=
               STypesUtil.inheritedMethods(typeAnalyzer.traits,
                                           toList(traitOrObject.extendsTypes),
                                           methods, typeAnalyzer)
-              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer, TraitType)]]]
-              .map(p => { val t = p.second
-                          new JavaPair(p.first, (t._1, t._2)) })
+              .asInstanceOf[Set[(IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer, TraitType))]]
+              .map(p => (p._1,(p._2._1, p._2._2)))
 
-            for ( f <- methods.map(x => x.first) ; if isDeclaredName(f) ) {
+            for ( f <- methods.map(_._1) ; if isDeclaredName(f) ) {
               var ss = Set[(JavaMethod, StaticTypeReplacer)]()
-              methods.filter(p => (p.first == f && p.second._1.isInstanceOf[JavaMethod]) &&
-                             p.second._1.asInstanceOf[JavaMethod].selfType.isSome)
-                     .foreach(ss += _.second.asInstanceOf[(JavaMethod, StaticTypeReplacer)])
+              methods.filter(p => (p._1 == f && p._2._1.isInstanceOf[JavaMethod]) &&
+                             p._2._1.asInstanceOf[JavaMethod].selfType.isSome)
+                     .foreach(ss += _._2.asInstanceOf[(JavaMethod, StaticTypeReplacer)])
               checkMethodOverloading(f, toMethodSig(ss))
             }
-            for ( f <- methods.map(x => x.first) ; if isDeclaredName(f) ) {
+            for ( f <- methods.map(_._1) ; if isDeclaredName(f) ) {
               var ss = Set[(JavaFunction, StaticTypeReplacer)]()
-              methods.filter(p => p.first == f && p.second._1.isInstanceOf[JavaFunction])
-                     .foreach(ss += _.second.asInstanceOf[(JavaFunction, StaticTypeReplacer)])
+              methods.filter(p => p._1 == f && p._2._1.isInstanceOf[JavaFunction])
+                     .foreach(ss += _._2.asInstanceOf[(JavaFunction, StaticTypeReplacer)])
               checkFunctionOverloading(f, toFunctionalMethodSig(ss))
             }
             typeAnalyzer = oldTypeAnalyzer

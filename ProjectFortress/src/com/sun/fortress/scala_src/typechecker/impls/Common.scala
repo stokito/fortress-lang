@@ -61,8 +61,7 @@ trait Common { self: STypeChecker =>
       var h = history
       for ( trait_ <- extended_traits if (! done) ) {
         val type_ = trait_.getBaseType
-        if ( ! h.hasExplored(type_) ) {
-          h.explore(type_)
+        if ( h.explore(type_) ) {
           type_ match {
             case ty@STraitType(_, name, _, _) =>
               toOption(traits.typeCons(name)) match {
