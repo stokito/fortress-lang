@@ -910,8 +910,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
     extended_traits.foldLeft((Set[Id](), Set[FnDecl]()))
       {(res, t) => (res, t) match {
          case ((accessors, methods), STraitTypeWhere(_, base, where))
-              if ! hist.hasExplored(base) =>
-           hist.explore(base)
+              if hist.explore(base) =>
            // Trait types or VarTypes can represent traits at this phase of compilation.
            base match {
              case nt: NamedType =>

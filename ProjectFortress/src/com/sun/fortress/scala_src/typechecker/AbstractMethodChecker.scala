@@ -24,7 +24,10 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.{DeclaredMethod => JavaDeclaredMethod}
+import com.sun.fortress.compiler.index.FieldGetterOrSetterMethod
 import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
+import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.HasSelfType
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
@@ -69,7 +72,7 @@ class AbstractMethodChecker(component: ComponentIndex,
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
         val inherited = inheritedMethods(traits, extendsC, Set(), typeAnalyzer)
-                        .map(t => t.first.asInstanceOf[IdOrOp].getText)
+                        .map(t => t._1.asInstanceOf[IdOrOp].getText)
         for ( d <- decls ; if d.isInstanceOf[FnDecl] ) {
           if ( NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl])) &&
                ! inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp].getText.equals(_)) )
@@ -91,42 +94,43 @@ class AbstractMethodChecker(component: ComponentIndex,
     // Add static parameters of the enclosing trait or object
     typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
-    for ( t <- toCheck.keySet ) {
-      for ( (owner, ds) <- toCheck.get(t) ) {
-        for ( d <- ds ) {
-          if ( ! implement(d, decls, owner) )
-            error(span,
-                  "The inherited abstract method " + d + " from the trait " + t +
-                  "\n    in the object " + name +
-                  " is not defined in the component " + componentName + ".")
-         }
-       }
+    for ( (owner, d) <- toCheck ) {
+      if ( ! implement(d, decls, owner) ) {
+        error(span,
+              "The inherited abstract method " + d + " from the trait " + owner +
+              "\n    in the object " + name +
+              " is not defined in the component " + componentName + ".")
+      }
     }
     typeAnalyzer = oldTypeAnalyzer
   }
 
-  private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]) = {
+  private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]):
+      List[(TraitType, FnDecl)] = {
     val inherited = inheritedMethods(typeAnalyzer.traits, extended_traits,
                                      Set(), typeAnalyzer)
-    val map = new HashMap[IdOrOp, (TraitType, Set[FnDecl])]()
-    for (pair <- inherited) {
-      val (_, ftn) = (pair.first, pair.second)
-      val name = ftn._1.asInstanceOf[HasSelfType].declaringTrait
-      val tci = typeAnalyzer.traits.typeCons(name)
-      if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] ) {
-        val ti = tci.unwrap.asInstanceOf[TraitIndex]
-        map.put(name, (ftn._3,
-                       collectAbstractMethods(name, toList(NU.getDecls(ti.ast)))))
+    var res = List[(TraitType, FnDecl)]()
+    for {
+      (_,(meth : HasSelfType, _, tt)) <- inherited
+      decl <- meth match {
+        case f : JavaFunctionalMethod => Some(f.ast())
+        case m : JavaDeclaredMethod => Some(m.ast())
+        case gs : FieldGetterOrSetterMethod if gs.fnDecl.isSome =>
+            Some(gs.fnDecl.unwrap)
+        case o => System.err.println("inheritedAbstractMethods: skipped "+o)
+            None
       }
-    }
-    map
+      SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- Some(decl)
+      if (mods.isAbstract || ! body.isDefined)
+    } res = ((tt,decl)) :: res
+    res
   }
 
   private def collectAbstractMethods(name: IdOrOp, decls: List[Decl]) = {
     val set = new HashSet[FnDecl]
     decls.foreach( (d: Decl) => d match {
                    case fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) =>
-                     if ( component.typeConses.keySet.contains(name) ) {
+                     if ( component.typeConses.containsKey(name) ) {
                        if ( ! body.isDefined ) set += fd
                      } else if ( mods.isAbstract ) set += fd
                    case _ => })
@@ -146,6 +150,14 @@ class AbstractMethodChecker(component: ComponentIndex,
    * implements the abstract method declaration "d".
    */
   private def implement(d: FnDecl, decl: FnDecl, t: TraitType): Boolean = {
+    // Quickly reject unmatched decls.  Note that we're still doing an O(n^2) search here.
+    if (!NU.getName(d).asInstanceOf[IdOrOp].getText.equals(
+         NU.getName(decl).asInstanceOf[IdOrOp].getText))
+      return false;
+    // Quickly reject unmatched modifiers.
+    if (!NU.getMods(d).containsAll(NU.getMods(decl)))
+      return false;
+
     val tci = typeAnalyzer.traits.typeCons(t.getName)
     var sparams = List[StaticParam]()
     if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] )
@@ -156,8 +168,6 @@ class AbstractMethodChecker(component: ComponentIndex,
     def subst(ty: Type) =
       staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
     val result =
-      NU.getName(d).asInstanceOf[IdOrOp].getText.equals(NU.getName(decl).asInstanceOf[IdOrOp].getText) &&
-      NU.getMods(d).containsAll(NU.getMods(decl)) &&
       ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type]),
                                 subst(NU.getParamType(decl))).isTrue ||
         implement(toList(NU.getParams(d)), toList(NU.getParams(decl))) ) &&

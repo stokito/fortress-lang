@@ -22,14 +22,14 @@ import _root_.java.util.{Set => JavaSet}
 import scala.collection.jcl.Conversions
 
 object Sets {
-  
+
   /** Takes in any kind of collection. */
   def toJavaSet[T](elts: Collection[T]): JavaSet[T] = {
     val temp = new JHashSet[T]()
     elts.foreach(temp.add)
     temp
   }
-  
+
   /** Creates an immutable set. */
   def toSet[T](jset: JavaSet[T]): Set[T] =
     Set(Conversions.convertSet(jset).toSeq: _*)

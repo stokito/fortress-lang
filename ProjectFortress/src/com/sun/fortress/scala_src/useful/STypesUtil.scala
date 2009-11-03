@@ -18,6 +18,7 @@
 package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.ArrayList
+import _root_.java.util.{Map => JMap}
 import scala.collection.{Set => CSet}
 import edu.rice.cs.plt.tuple.Pair
 import com.sun.fortress.compiler.GlobalEnvironment
@@ -53,8 +54,14 @@ object STypesUtil {
   // Make sure we don't infinitely explore supertraits that are cyclic
   class HierarchyHistory {
     var explored = Set[Type]()
-    def explore(t: Type) = explored += t
-    def hasExplored(t: Type) = explored.exists(_ == t)
+    def explore(t: Type): Boolean =
+      if (explored(t))
+        false
+      else {
+        explored += t
+        true
+      }
+    def hasExplored(t: Type): Boolean = explored(t)
     def copy = {
       val h = new HierarchyHistory
       h.explored = this.explored
@@ -863,45 +870,46 @@ object STypesUtil {
   //            either given or inferred.
   def inheritedMethods(traits: TraitTable,
                        extendedTraits: List[TraitTypeWhere],
-                       initial: Set[Pair[IdOrOpOrAnonymousName,
-                                         (Functional, StaticTypeReplacer)]],
+                       initial: Set[(IdOrOpOrAnonymousName,
+                                         (Functional, StaticTypeReplacer))],
                        analyzer: TypeAnalyzer) = {
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,
                                extended_traits: List[TraitTypeWhere],
                                given: Set[(String, Type)])
-                              : Set[Pair[IdOrOpOrAnonymousName,
-                                         (Functional, StaticTypeReplacer, TraitType)]] = {
+                              : Set[(IdOrOpOrAnonymousName,
+                                         (Functional, StaticTypeReplacer, TraitType))] = {
       var allMethods = given
       // a set of inherited methods:
       // a set of pairs of method names and
       //                   triples of Functionals, static parameters substitutions, and declaring trait
-      var methods = Set[Pair[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)]]()
+      var methods = Set[(IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType))]()
       var h = history
       for (trait_ <- extended_traits) {
         val type_ = trait_.getBaseType
-        if ( ! h.hasExplored(type_) ) {
-          h.explore(type_)
+        if ( h.explore(type_) ) {
           type_ match {
             case ty@STraitType(_, name, trait_args, params) =>
               toOption(traits.typeCons(name)) match {
-                case Some(ti) =>
-                  if ( ti.isInstanceOf[TraitIndex] ) {
+                case Some(ti : TraitIndex) =>
                     val tindex = ti.asInstanceOf[TraitIndex]
                     // Instantiate methods with static args
                     val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
                                                               toJavaList(trait_args))
-                    var collected = toSet(tindex.dottedMethods)
-                      .asInstanceOf[Collection[Pair[IdOrOpOrAnonymousName, Functional]]]
-                    collected ++= toSet(tindex.functionalMethods)
-                      .asInstanceOf[Collection[Pair[IdOrOpOrAnonymousName, Functional]]]
-                    for ( pair <- collected ; if pair.first.isInstanceOf[IdOrOp] ) {
-                      val (method_name, method_func) = (pair.first, pair.second)
+                    var collected = toSet(tindex.dottedMethods).map(p => (p.first, p.second))
+                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
+                    collected ++= toSet(tindex.functionalMethods).map(p => (p.first, p.second))
+                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
+                    collected ++= toSet(tindex.getters.entrySet).map(e => (e.getKey, e.getValue))
+                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
+                    collected ++= toSet(tindex.setters.entrySet).map(e => (e.getKey, e.getValue))
+                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
+                    for ( (method_name : IdOrOp, method_func) <- collected ) {
                       val new_pair = toNameParamTy(method_name, method_func)
                       val fname = new_pair._1
                       val paramTy = paramsToArgs.replaceIn(new_pair._2)
                       if (!isOverride(fname, paramTy, allMethods, analyzer)) {
-                        methods += new Pair(method_name, (method_func, paramsToArgs, ty))
+                        methods += ((method_name, (method_func, paramsToArgs, ty)))
                         allMethods += ((fname, paramTy))
                       }
                     }
@@ -911,9 +919,8 @@ object STypesUtil {
                     val inherited = inheritedMethodsHelper(h, instantiated_extends_types,
                                                            allMethods)
                     methods ++= inherited
-                    allMethods ++= inherited.map(p => toNameParamTy(p.first, p.second._1))
+                    allMethods ++= inherited.map(p => toNameParamTy(p._1, p._2._1))
                     h = old_hist
-                  } else return methods
                 case _ => return methods
               }
             case _ => return methods
@@ -923,7 +930,7 @@ object STypesUtil {
       methods
     }
     inheritedMethodsHelper(new HierarchyHistory(), extendedTraits,
-                           initial.map(p => toNameParamTy(p.first, p.second._1)))
+                           initial.map(p => toNameParamTy(p._1, p._2._1)))
   }
 
   private def toNameParamTy(name: IdOrOpOrAnonymousName, func: Functional) = {
@@ -932,7 +939,7 @@ object STypesUtil {
       case Some(t) => t
       case _ => NF.makeVoidType(span)
     }
-   (name.asInstanceOf[IdOrOp].getText, ty)
+    (name.asInstanceOf[IdOrOp].getText, ty)
   }
 
   private def isOverride(fname: String, paramTy: Type,
