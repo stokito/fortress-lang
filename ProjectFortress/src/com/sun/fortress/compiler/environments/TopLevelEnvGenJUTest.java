@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.environments;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.env.WorseEnv;
@@ -49,6 +50,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
+        Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
         Shell.setScala(false);
         fssFiles = new String[4];
         fsiFiles = new String[3];
