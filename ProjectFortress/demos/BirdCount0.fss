@@ -131,6 +131,7 @@ opr BIG OPLUS[\T\](): BigReduction[\dna, dna\] =
 opr BIG OPLUS[\T\](g:Generator[\dna\]) = 
    __bigOperatorSugar[\dna,dna,dna,dna\](BIG OPLUS[\T\](), g)
 
+
 processReferenceFileLine(input:String):dna = do
     if input.get(0) = '>' 
         then EmptySequence()
@@ -167,19 +168,6 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
     getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
     getter sequenceChickenColorsSnip():String = sequenceChickenColorsSnip
     getter referenceChickenAGCTSnip():String = referenceChickenAGCTSnip    
-end
-
-object Event(fileName:String, refSeq:String, sampleSeq:String, startPos:ZZ32, endPos:ZZ32)
-    getter fileName():String = fileName
-    getter refSeq():String = refSeq
-    getter sampleSeq():String = sampleSeq
-    getter startPos():ZZ32 = startPos
-    getter endPos():ZZ32 = endPos
-
-    isValid():Boolean = true
-
-    compare(other:Event):Boolean = true
-    check_valid():Boolean = true
 end
 
 reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
@@ -233,27 +221,51 @@ end
 
 ChunkSize:ZZ32 = 10000
 
+
 (* Given two samples, this creates a list of the positions where they differ *)
 
-sampleCompare(ref:FlatString, sample:FlatString):String = do
-   last:ZZ32 = |ref| MIN |sample|
-   var result:String = ""
-   var index:ZZ32 = 0
-   while (index < last) do
-       if (ref.get(index) =/= sample.get(index)) then
-             result := result || 'X'
-       else result := result || '.'
-       end
-       index:= index + 1
+object Event(fileName:String, refSeq:String, sampleSeq:String, startPos:ZZ32, endPos:ZZ32)
+    getter fileName():String = fileName
+    getter refSeq():String = refSeq
+    getter sampleSeq():String = sampleSeq
+    getter startPos():ZZ32 = startPos
+    getter endPos():ZZ32 = endPos
+end
+
+(* This code is a little obtuse.  The idea is that if the sample differs from the reference 
+   chicken in more than one consecutive location it may be an interesting mutation.  We look
+   for these potential interesting mutations and return a list of them.
+ *)
+
+makeTuple(loc:ZZ32, diffs:String):(ZZ32,ZZ32) = do
+    temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
+    (loc, |temp|)
+end
+
+isInteresting(loc:ZZ32, diffs:String):Boolean = do
+   if loc = 0 OR: diffs.get(loc) = '.'  OR: loc = (|diffs| - 1) OR: (diffs.get(loc - 1) = 'X') OR: (|diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)| < 2) then
+      false
+   else true
    end
-   result
+end
+
+sampleCompare(ref:String, sample:String):String = do
+   BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
 end
 
 (* Given two samples this creates events *)
 
-eventGenerator(ref:FlatString, sample:FlatString):List[\Event\] = do
+eventGenerator(ref:FlatString, sample:FlatString):() = do
     diffs = sampleCompare(ref, sample)
-    println(diffs)
+    println("ref     :" ref)
+    println("sample  :" sample)
+    println("diffs   :" diffs)
+
+    stop = |diffs| - 1
+
+    interestingRegions = <| makeTuple(x,diffs) | x<-0:stop, isInteresting(x,diffs) |>
+    println("interestingRegions = " interestingRegions) 
+        
 end
 
 processSampleChicken(name:String):() = do
