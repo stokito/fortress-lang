@@ -48,7 +48,7 @@ TraitDecl TraitDecl =
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
                                            a3.getComprises(), a3.getEllipses(),
-                                           Option.<Type>none());
+                                           Option.<SelfType>none());
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
@@ -140,7 +140,7 @@ ObjectDecl ObjectDecl =
                                             a3, a2.getParams(),
                                             fhc.getThrowsClause(),
                                             fhc.getContractClause(),
-                                            Option.<Type>none());
+                                            Option.<SelfType>none());
      };
 
 /* ObjectHeader ::=
@@ -226,7 +226,7 @@ TraitDecl AbsTraitDecl =
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
                                            a3.getComprises(), a3.getEllipses(),
-                                           Option.<Type>none());
+                                           Option.<SelfType>none());
      };
 
 /* Each trait clause cannot appear more than once. */
@@ -292,7 +292,7 @@ ObjectDecl AbsObjectDecl =
                                             fhc.getWhereClause(), a3, params,
                                             fhc.getThrowsClause(),
                                             fhc.getContractClause(),
-                                            Option.<Type>none());
+                                            Option.<SelfType>none());
      };
 
 /* AbsGoInAnObject ::=

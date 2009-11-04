@@ -354,7 +354,8 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   protected def assertTrait(t: BaseType,
                             msg: String,
-                            error_loc: Node) = t match {
+                            error_loc: Node): Unit = t match {
+    case tt:TraitSelfType => assertTrait(tt.getNamed, msg, error_loc)
     case tt:TraitType => toOption(traits.typeCons(tt.getName)) match {
       case Some(ti) if ti.isInstanceOf[ProperTraitIndex] =>
       case _ => signal(error_loc, msg)

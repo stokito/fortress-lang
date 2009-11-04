@@ -235,7 +235,7 @@ object IndexBuilder {
                                 staticParams: JavaList[StaticParam],
                                 excludes: List[BaseType],
                                 comprises: Option[List[NamedType]],
-                                self: Option[Type]) = {
+                                self: Option[SelfType]) = {
     val dIndex = typeConses.get(dName).asInstanceOf[ProperTraitIndex]
     if ( comprises.isDefined ) {
       for ( t <- comprises.get ) dIndex.addComprisesType(t)
@@ -251,10 +251,9 @@ object IndexBuilder {
         dIndex.addExcludesType(typ)
         // add d to t's excludes clause
         typ = toOption(self) match {
-          case Some(ty) if (ty.isInstanceOf[TraitType]) =>
-            ty.asInstanceOf[TraitType]
-          case Some(ty) if (ty.isInstanceOf[IntersectionType]) =>
-            ty.asInstanceOf[IntersectionType].getElements.get(0).asInstanceOf[TraitType]
+          case Some(ty) if (ty.isInstanceOf[TraitSelfType] &&
+                            ty.asInstanceOf[TraitSelfType].getNamed.isInstanceOf[TraitType]) =>
+            ty.asInstanceOf[TraitSelfType].getNamed.asInstanceOf[TraitType]
           case _ =>
             NF.makeTraitType(dName.asInstanceOf[Id],
                              TypeEnv.staticParamsToArgs(staticParams))

@@ -294,14 +294,14 @@ public class NodeFactory {
                              Collections.<Decl>emptyList(),
                              excludesC,
                              comprisesC,
-                             Option.<Type>some(selfType));
+                             Option.<SelfType>some(makeSelfType(selfType)));
     }
     
     
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,
-                                          Option<Type> selfType) {
+                                          Option<SelfType> selfType) {
         return makeTraitDecl(span, Modifiers.None, name,
                              sparams, extendsC, Option.<WhereClause>none(),
                              Collections.<Decl>emptyList(),
@@ -316,7 +316,7 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<NamedType>> comprisesC,
-                                          Option<Type> selfType) {
+                                          Option<SelfType> selfType) {
         return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
                              excludesC, comprisesC, false, selfType);
     }
@@ -329,7 +329,7 @@ public class NodeFactory {
                                           List<BaseType> excludesC,
                                           Option<List<NamedType>> comprisesC,
                                           boolean comprisesEllipses,
-                                          Option<Type> selfType) {
+                                          Option<SelfType> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      Option.<List<Type>>none(),
                                                      Option.<Contract>none(),
@@ -342,14 +342,14 @@ public class NodeFactory {
                                           List<BaseType> excludesC,
                                           Option<List<NamedType>> comprisesC,
                                           boolean comprisesEllipses,
-                                          Option<Type> selfType) {
+                                          Option<SelfType> selfType) {
         return new TraitDecl(info, header, selfType, excludesC, comprisesC, comprisesEllipses);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               extendsC, Option.<WhereClause>none(), decls,
@@ -361,7 +361,7 @@ public class NodeFactory {
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             Option<List<Param>> params,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               Collections.<TraitTypeWhere>emptyList(),
@@ -377,7 +377,7 @@ public class NodeFactory {
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
                                             Option<List<Param>> params,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         return makeObjectDecl(span, Modifiers.None, name,
                               sparams, extendsC,
                               Option.<WhereClause>none(), decls,
@@ -389,16 +389,16 @@ public class NodeFactory {
     public static ObjectDecl makeObjectDecl(TraitType selfType,
                                             List<TraitTypeWhere> extendsC) {
         return makeObjectDecl(NodeUtil.getSpan(selfType),
-                Modifiers.None,
-                selfType.getName(),
-                NodeUtil.getStaticParams(selfType),
-                extendsC,
-                Option.<WhereClause>none(),
-                Collections.<Decl>emptyList(),
-                Option.<List<Param>>none(),
-                Option.<List<Type>>none(),
-                Option.<Contract>none(),
-                Option.<Type>some(selfType));
+                              Modifiers.None,
+                              selfType.getName(),
+                              NodeUtil.getStaticParams(selfType),
+                              extendsC,
+                              Option.<WhereClause>none(),
+                              Collections.<Decl>emptyList(),
+                              Option.<List<Param>>none(),
+                              Option.<List<Type>>none(),
+                              Option.<Contract>none(),
+                              Option.<SelfType>some(makeSelfType(selfType)));
     }
     
     public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,
@@ -409,7 +409,7 @@ public class NodeFactory {
                                             Option<List<Param>> params,
                                             Option<List<Type>> throwsC,
                                             Option<Contract> contract,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
                                                      decls);
@@ -872,6 +872,31 @@ public class NodeFactory {
                                                   Option<Expr> unit) {
         TypeInfo info = makeTypeInfo(span, parenthesized);
         return new TaggedDimType(info, elem, dim, unit);
+    }
+
+    public static ObjectExprType makeObjectExprType(List<BaseType> extended) {
+        return makeObjectExprType(NodeUtil.spanAll(extended), false, extended);
+    }
+
+    public static ObjectExprType makeObjectExprType(Span span, boolean parenthesized,
+                                                    List<BaseType> extended) {
+        TypeInfo info = makeTypeInfo(span, parenthesized);
+        return new ObjectExprType(info, extended);
+    }
+
+    public static SelfType makeSelfType(TraitType self) {
+        return makeTraitSelfType(NodeUtil.getSpan(self), false,
+                                 self, Collections.<NamedType>emptyList());
+    }
+
+    public static SelfType makeSelfType(TraitType self, List<NamedType> comprised) {
+        return makeTraitSelfType(NodeUtil.getSpan(self), false, self, comprised);
+    }
+
+    public static SelfType makeTraitSelfType(Span span, boolean parenthesized,
+                                             BaseType self, List<NamedType> comprised) {
+        TypeInfo info = makeTypeInfo(span, parenthesized);
+        return new TraitSelfType(info, self, comprised);
     }
 
     public static TraitType makeTraitType(TraitType original) {
@@ -2143,6 +2168,13 @@ public class NodeFactory {
             public Type forMatrixType(MatrixType t) {
                 return makeMatrixType(NodeUtil.getSpan(t), true, t.getElemType(),
                                       t.getDimensions());
+            }
+            public Type forTraitSelfType(TraitSelfType t) {
+                return  makeTraitSelfType(NodeUtil.getSpan(t), true,
+                                          t.getNamed(), t.getComprised());
+            }
+            public Type forObjectExprType(ObjectExprType t) {
+                return  makeObjectExprType(NodeUtil.getSpan(t), true, t.getExtended());
             }
             public Type forTraitType(TraitType t) {
                 return makeTraitType(NodeUtil.getSpan(t), true, t.getName(),

@@ -37,22 +37,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Effect;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.KeywordType;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -495,12 +480,12 @@ public class TypeAnalyzerJUTest extends TestCase {
         if (absDecl) {
             ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause, Option.<Type>none());
+                                            extendsClause, Option.<SelfType>none());
         }
         else {
             ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause, Option.<Type>none());
+                                            extendsClause, Option.<SelfType>none());
         }
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),

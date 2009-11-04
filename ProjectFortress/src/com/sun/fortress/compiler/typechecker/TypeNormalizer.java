@@ -55,7 +55,7 @@ public class TypeNormalizer extends NodeUpdateVisitor {
     public Node forTraitDeclOnly(TraitDecl that,
 				 ASTNodeInfo info,
 				 TraitTypeHeader header,
-				 Option<Type> selfType,
+				 Option<SelfType> selfType,
 				 List<BaseType> excludesClause,
 				 Option<List<NamedType>> comprises) {
 	Id name = (Id)header.getName();

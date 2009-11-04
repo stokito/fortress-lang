@@ -146,6 +146,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
         }
       case (_:TupleType ,_) => true
       case (_, _:TupleType) => true
+      case (f:TraitSelfType, s:TraitSelfType) => excludes(f.getNamed, s.getNamed)
+      case (f:ObjectExprType, s:ObjectExprType) => true
       case (f:TraitType, s:TraitType) =>
         ( toOption(typeAnalyzer.traits.typeCons(f.getName)),
           toOption(typeAnalyzer.traits.typeCons(s.getName)) ) match {
@@ -223,6 +225,11 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           tau
         }
       case STraitType(i,n,a,p) => STraitType(i, n, a.map(saSubst), p.map(spSubst))
+      case STraitSelfType(i,n,ts) =>
+        STraitSelfType(i, tySubst(n).asInstanceOf[BaseType],
+                       ts.map(tySubst).asInstanceOf[List[NamedType]])
+      case SObjectExprType(i,ts) =>
+        SObjectExprType(i, ts.map(tySubst).asInstanceOf[List[TraitType]])
       case STupleType(i,e,v,k) => STupleType(i, e.map(tySubst), v, k)
       case SArrowType(i,d,r,e,b,m) => SArrowType(i, tySubst(d), tySubst(r), e, b, m.map(miSubst))
       case _ => tau

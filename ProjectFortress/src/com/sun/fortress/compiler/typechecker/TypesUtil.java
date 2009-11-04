@@ -31,36 +31,7 @@ import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.ArrayType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BottomType;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IntersectionType;
-import com.sun.fortress.nodes.KindBool;
-import com.sun.fortress.nodes.KindDim;
-import com.sun.fortress.nodes.KindInt;
-import com.sun.fortress.nodes.KindNat;
-import com.sun.fortress.nodes.KindOp;
-import com.sun.fortress.nodes.KindType;
-import com.sun.fortress.nodes.KindUnit;
-import com.sun.fortress.nodes.MatrixType;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OutAfterTypeChecking;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeAbstractVisitor;
-import com.sun.fortress.nodes.UnionType;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -473,23 +444,6 @@ public class TypesUtil {
     			}
     		});
     	}
-    }
-
-    /**
-     * Given an ObjectExpr, returns the Type of the expression.
-     * @return
-     */
-    public static Type getObjectExprType(ObjectExpr obj) {
-    	List<Type> extends_types = CollectUtil.makeList(IterUtil.map(NodeUtil.getExtendsClause(obj),
-    			new Lambda<TraitTypeWhere,Type>(){
-    		public Type value(TraitTypeWhere arg0) {
-    			return arg0.getBaseType();
-    		}}));
-    	Type self_type =
-    		extends_types.isEmpty() ?
-    				Types.OBJECT :
-    				Types.makeIntersection(extends_types);
-    	return self_type;
     }
 
     /**

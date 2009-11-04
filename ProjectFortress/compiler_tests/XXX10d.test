@@ -19,6 +19,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.d.fss:20:13-17:\n\
 \ Could not check call to function g\n\
-\ - O->() is not applicable to an argument of type AND(T,OR(O,P)).\n\
+\ - O->() is not applicable to an argument of type T.\n\
 File Compiled10.d.fss has 1 error.\n
 compile_out_equals=

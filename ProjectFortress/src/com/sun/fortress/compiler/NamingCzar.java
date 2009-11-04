@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
@@ -871,13 +872,14 @@ public class NamingCzar {
             public String defaultCase(Node x) {
                 throw new CompilerError(x,"emitDesc of type "+x+" failed");
             }
+            @Override
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
 
                 if (withLSemi) res = internalToDesc(res);
                 return res;
             }
-
+            @Override
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
@@ -887,15 +889,22 @@ public class NamingCzar {
                     throw new CompilerError(t,"Can't compile Keyword args yet");
                 return jvmTypeDescs(t.getElements(), ifNone);
             }
+            @Override
             public String forAnyType (AnyType t) {
                 return descFortressAny;
             }
+            @Override
             public String forVarType (VarType t) {
                 //
                 String s = t.getName().getText();
                 s = internalToDesc(s);
                 return s;
             }
+            @Override
+            public String forTraitSelfType(TraitSelfType t) {
+                return t.getNamed().accept(this);
+            }
+            @Override
             public String forTraitType(TraitType t) {
                 // I think this is wrong!  What about API names?
                 // What about foreign-implemented types?
@@ -928,10 +937,11 @@ public class NamingCzar {
     public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone)  {
         return type.accept(new NodeAbstractVisitor<String>() {
+            @Override
             public String defaultCase(Node x) {
                 throw new CompilerError(x,"methodDesc of type "+x+" failed");
             }
-
+            @Override
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
                     return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
@@ -940,6 +950,7 @@ public class NamingCzar {
             }
 
             // TODO CASES BELOW OUGHT TO JUST FAIL, WILL TEST SOON.
+            @Override
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
@@ -953,9 +964,15 @@ public class NamingCzar {
                 }
                 return res;
             }
+            @Override
             public String forAnyType (AnyType t) {
                 return descFortressAny;
             }
+            @Override
+            public String forTraitSelfType(TraitSelfType t) {
+                return t.getNamed().accept(this);
+            }
+            @Override
             public String forTraitType(TraitType t) {
                 String result = specialFortressDescriptors.get(t);
                 if (result != null) {

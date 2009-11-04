@@ -20,7 +20,7 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33:\n\
 ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33:\n\
 \ Invalid overloading of f:\n\
-\ (AND(Bar[\\O,P\\],OR(O,P)), Bar[\\O,P\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
-\ and (AND(Bar[\\P,O\\],OR(P,O)), Bar[\\P,O\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
+\ (Bar[\\O,P\\], Bar[\\O,P\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
+\ and (Bar[\\P,O\\], Bar[\\P,O\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
 File Compiled10.s.fss has 1 error.\n
 compile_out_equals=

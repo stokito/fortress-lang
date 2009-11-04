@@ -175,7 +175,7 @@ interface Node() extends HasAt;
                  * selfType is introduced in r3713;
                  * it is initialized by compiler.disambiguator.SelfParamDisambiguator.
                  */
-                abstract TraitObjectDecl(TraitTypeHeader header, Option<Type> selfType) implements Generic;
+                abstract TraitObjectDecl(TraitTypeHeader header, Option<SelfType> selfType) implements Generic;
                     /**
                      * trait declaration in components or APIs
                      *
@@ -561,7 +561,7 @@ interface Node() extends HasAt;
                      *          append (xs) = xs
                      *        end
                      */
-                    ObjectExpr(Option<Type> selfType);
+                    ObjectExpr(Option<SelfType> selfType);
                     /**
                      * object expression rewritten by interpreter.rewrite.Disambiguate
                      */
@@ -1031,6 +1031,21 @@ interface Node() extends HasAt;
                      * internal node
                      */
                     UnknownType();
+                    /**
+                     * the type of "self" in a trait or object
+                     * internal node
+                     */
+                    abstract SelfType();
+                        /**
+                         * the type of "self" in a trait or object declaration
+                         * internal node
+                         */
+                        TraitSelfType(BaseType named, List<NamedType> comprised);
+                        /**
+                         * the type of "self" in an object expression
+                         * internal node
+                         */
+                        ObjectExprType(List<BaseType> extended);
                     /**
                      * named type
                      */

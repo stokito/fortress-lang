@@ -35,6 +35,11 @@ public class BaseTypeCollector extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
+    public String forTraitSelfType(TraitSelfType that) {
+        return that.getNamed().accept(this);
+    }
+
+    @Override
     public String forTraitTypeOnly(TraitType that,
                                    String info,
                                    String name_result,

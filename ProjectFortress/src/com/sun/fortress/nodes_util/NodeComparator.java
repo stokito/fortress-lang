@@ -355,6 +355,18 @@ public class NodeComparator {
 	return compare(left.getName().getOriginalName(), right.getName().getOriginalName());
     }
 
+    static int compare(TraitSelfType left, TraitSelfType right) {
+	int c = compare(left.getNamed(), right.getNamed());
+	if (c != 0) return c;
+        return typeListComparer.compare(left.getComprised(),
+                                        right.getComprised());
+    }
+
+    static int compare(ObjectExprType left, ObjectExprType right) {
+        return typeListComparer.compare(left.getExtended(),
+                                        right.getExtended());
+    }
+
     static int compare(TraitType left, TraitType right) {
 	int c = compare(left.getName(), right.getName());
 	if (c != 0) return c;
@@ -409,6 +421,13 @@ public class NodeComparator {
 
 	if (left instanceof TraitType) {
 	    return compare((TraitType) left, (TraitType) right);
+	} else if (left instanceof TraitSelfType) {
+            return subtypeCompareTo(((TraitSelfType)left).getNamed(),
+                                    ((TraitSelfType)right).getNamed());
+	} else if (left instanceof ObjectExprType) {
+            int x = typeListComparer.compare(((ObjectExprType)left).getExtended(),
+                                             ((ObjectExprType)right).getExtended());
+            return x;
 	} else if (left instanceof TupleType) {
 	    if ( NodeUtil.isVoidType((TupleType)left) )
 		return 0;

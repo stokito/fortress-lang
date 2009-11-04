@@ -267,6 +267,20 @@ public class TypeAnalyzer {
         debug.logStart("t", outer_t);
         Type outer_result = (Type) outer_t.accept(new NodeUpdateVisitor() {
 
+            @Override public BaseType forTraitSelfTypeOnly(TraitSelfType t,
+                                                           TypeInfo i,
+                                                           BaseType named,
+                                                           List<NamedType> comprised) {
+                return (BaseType) named.accept(this);
+            }
+
+            @Override public Type forObjectExprTypeOnly(ObjectExprType t,
+                                                        TypeInfo i,
+                                                        List<BaseType> extended) {
+                Type result = mt(extended, history);
+                return t.equals(result) ? t : result;
+            }
+
             @Override public BaseType forTraitTypeOnly(TraitType t,
                                                        TypeInfo i,
                                                        Id name, List<StaticArg> normalArgs,
@@ -606,6 +620,13 @@ public class TypeAnalyzer {
             if (result == null) {
                 result = sub_type.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                     @Override public ConstraintFormula forType(Type s) { return falseFormula(); }
+                    @Override public ConstraintFormula forTraitSelfType(TraitSelfType s) {
+                        return s.getNamed().accept(this);
+                    }
+                    @Override public ConstraintFormula forObjectExprType(ObjectExprType s) {
+                        return intersectionSub(NodeFactory.makeIntersectionType(s.getExtended()),
+                                               super_type, h);
+                    }
                     @Override public ConstraintFormula forTraitType(TraitType s) {
                         if (super_type instanceof TraitType) {
                             return traitSubTrait(s, (TraitType) super_type, h);

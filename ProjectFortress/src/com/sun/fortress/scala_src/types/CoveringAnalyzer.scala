@@ -43,6 +43,8 @@ class CoveringAnalyzer(ta: TypeAnalyzer) {
       }))
       ta.meet(ts)
     case SUnionType(_, e) => ta.join(e.map(minimize))
+    case t:TraitSelfType => minimize(t.getNamed)
+    case t:ObjectExprType => t
     case t:TraitType => ta.join(comprisesLeaves(t))
     //ToDo: Handle keywords
     case STupleType(i, e, mv, _) => STupleType(i, e.map(minimize), mv.map(minimize), Nil)

@@ -34,7 +34,7 @@ public class DeclaredMethod extends Method {
 
     private final FnDecl _ast;
     private final Id _declaringTrait;
-    private final Option<Type> _selfType;
+    private final Option<SelfType> _selfType;
 
     public DeclaredMethod(FnDecl ast, TraitObjectDecl traitDecl) {
         _ast = ast;
@@ -51,7 +51,7 @@ public class DeclaredMethod extends Method {
     public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
-        _selfType = visitor.recurOnOptionOfType(that._selfType);
+        _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
@@ -108,7 +108,7 @@ public class DeclaredMethod extends Method {
         return this._declaringTrait;
     }
 
-    public Option<Type> selfType() {
+    public Option<SelfType> selfType() {
         return _selfType;
     }
 

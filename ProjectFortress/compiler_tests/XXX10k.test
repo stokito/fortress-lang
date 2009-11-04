@@ -19,10 +19,10 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:33:5-9:\n\
 \ Could not check call to function k\n\
-\ - Q->() is not applicable to an argument of type AND(T[\\U\\],U).\n\
+\ - Q->() is not applicable to an argument of type T[\\U\\].\n\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:34:5-7:\n\
 \ Could not check call to function h\n\
-\ - AND(T[\\U\\],U)->() is not applicable to an argument of type T[\\U\\].\n\
+\ - T[\\U\\]->() is not applicable to an argument of type T[\\U\\].\n\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:36:5-7:\n\
 \ Could not check call to function j\n\
 \ - U->() is not applicable to an argument of type T[\\U\\].\n\

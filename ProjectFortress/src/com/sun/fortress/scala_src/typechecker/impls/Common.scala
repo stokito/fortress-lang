@@ -144,6 +144,8 @@ trait Common { self: STypeChecker =>
    * that this type could be used as for the purposes of calling methods and fields.
    */
   protected def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
+    case t:TraitSelfType => traitTypesCallable(t.getNamed)
+
     case t:TraitType => Set(t)
 
     // Combine all the trait types callable from constituents.

@@ -67,6 +67,12 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
         super.forVarType(that);
     }
 
+    @Override
+    public void forTraitSelfType(TraitSelfType that) {
+        // TODO Auto-generated method stub
+        super.forTraitSelfType(that);
+    }
+
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitType(com.sun.fortress.nodes.TraitType)
      */

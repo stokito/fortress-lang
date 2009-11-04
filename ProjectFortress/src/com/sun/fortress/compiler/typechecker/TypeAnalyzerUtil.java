@@ -190,6 +190,9 @@ public class TypeAnalyzerUtil {
             @Override public Boolean forVarType(VarType t) {
                 return t.getName().getApiName().isNone() && names.contains(t.getName());
             }
+            @Override public Boolean forTraitSelfType(TraitSelfType t) {
+                return t.getNamed().accept(this);
+            }
             @Override public Boolean forTraitType(TraitType t) {
                 for (StaticArg arg : t.getArgs()) {
                     if (arg.accept(this)) { return true; }

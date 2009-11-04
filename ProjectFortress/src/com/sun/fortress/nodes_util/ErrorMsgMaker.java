@@ -309,6 +309,21 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return sb.toString();
     }
 
+    public String forTraitSelfType(TraitSelfType node) {
+        //return "SelfType " + node.getNamed().accept(this);
+        return node.getNamed().accept(this);
+    }
+
+    public String forObjectExprType(ObjectExprType node) {
+        // Could use U+2227 = AND if we supported Unicode output
+        //return "AND" + Useful.listInParens(mapSelf(node.getExtended()));
+        List<BaseType> extended = node.getExtended();
+        if (extended.size() == 1)
+            return extended.get(0).accept(this);
+        else
+            return "AND" + Useful.listInParens(mapSelf(node.getExtended()));
+    }
+
     public String forTraitType(TraitType node) {
         String constructorName = NodeUtil.shortNameString(node.getName());
         if (node.getArgs().isEmpty()) {

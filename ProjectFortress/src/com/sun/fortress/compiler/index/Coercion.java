@@ -64,7 +64,12 @@ public class Coercion extends Function {
     public Coercion(FnDecl ast, Option<APIName> apiName) {
         
         // Return type always a TraitType inserted by CoercionLifter.
-        final TraitType returnType = (TraitType) NodeUtil.getReturnType(ast).unwrap();
+        Type returnTy = NodeUtil.getReturnType(ast).unwrap();
+        final TraitType returnType;
+        if (returnTy instanceof TraitSelfType)
+            returnType = (TraitType)((TraitSelfType)returnTy).getNamed();
+        else returnType = (TraitType) returnTy;
+
         
         _lifted = true;
         _ast = ast;

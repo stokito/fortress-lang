@@ -14,10 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-/*
- * Created on Sep 22, 2009
- *
- */
+
 package com.sun.fortress.compiler.codegen;
 
 import java.util.List;
@@ -37,6 +34,7 @@ import com.sun.fortress.nodes.Overloading;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StaticParamKind;
+import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeInfo;
@@ -120,6 +118,11 @@ public class GenericNumberer extends NodeUpdateVisitor {
         
         Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
         return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result);
+    }
+
+    @Override
+    public Node forTraitSelfType(TraitSelfType that) {
+        return that.getNamed().accept(this);
     }
 
     @Override

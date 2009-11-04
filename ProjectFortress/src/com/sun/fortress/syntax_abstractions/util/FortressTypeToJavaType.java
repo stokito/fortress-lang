@@ -37,6 +37,11 @@ public class FortressTypeToJavaType {
             }
 
             @Override
+            public String forTraitSelfType(TraitSelfType that) {
+                return that.getNamed().accept(this);
+            }
+
+            @Override
             public String forTraitType(TraitType that) {
                 if (that.getArgs().size() == 0) {
                     return that.getName().getText();
