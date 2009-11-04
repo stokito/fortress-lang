@@ -270,6 +270,8 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                                                Set<String> tp_set,
                                                BoundingMap<String, FType, TypeLatticeOps> abm,
                                                Type val) {
+        if (val instanceof TraitSelfType)
+            val = ((TraitSelfType)val).getNamed();
         if (DUMP_UNIFY) System.out.println("unify GT/O  " + this + " and " + val + " abm= " + abm);
         if (!(val instanceof TraitType)) {
             if (DUMP_UNIFY) System.out.println("   not TraitType");

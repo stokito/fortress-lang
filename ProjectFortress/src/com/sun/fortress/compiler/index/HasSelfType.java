@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.Id;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -27,6 +27,6 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public interface HasSelfType {
     public Id declaringTrait();
-    public Option<Type> selfType();
+    public Option<SelfType> selfType();
     public int selfPosition();
 }

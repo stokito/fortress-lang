@@ -2416,7 +2416,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(expr, "Missing type information for " + expr);
         }
 
-        return exprType.unwrap();
+        Type ty = exprType.unwrap();
+        if (ty instanceof TraitSelfType)
+            ty = ((TraitSelfType)ty).getNamed();
+
+        return ty;
     }
     private Option<Type> exprOptType(Expr expr) {
         Option<Type> exprType = expr.getInfo().getExprType();

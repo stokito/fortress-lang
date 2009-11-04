@@ -54,6 +54,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 	return t.accept(this);
     }
 
+    public FType evalType(TraitSelfType t) {
+        return evalType(t.getNamed());
+    }
+
     // Returns the type that has the same name as the trait, in this
     // environment (used in unification).
     // Done this way to ensure that getType is only applied to top-level names.
@@ -516,6 +520,17 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forAnyType(AnyType a) {
 	return FTypeTop.ONLY;
+    }
+
+    public FType forTraitSelfType(TraitSelfType x) {
+        return x.getNamed().accept(this);
+    }
+
+    public FType forObjectExprType(ObjectExprType x) {
+        List<BaseType> extended = x.getExtended();
+        if (!extended.isEmpty())
+            return extended.get(0).accept(this);
+        else return NI.nyi("Can't interpret an empty intersection type.");
     }
 
     public FType forTraitType(TraitType x) {

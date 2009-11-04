@@ -56,7 +56,8 @@ Expr DelimitedExpr =
    / object a1:(w ExtendsWhere)? a2:(w GoInAnObject)? w end
      { if (a1 == null) a1 = Collections.<TraitTypeWhere>emptyList();
        if (a2 == null) a2 = Collections.<Decl>emptyList();
-       yyValue = ExprFactory.makeObjectExpr(createSpan(yyStart,yyCount), a1, a2, Option.<Type>none());
+       yyValue = ExprFactory.makeObjectExpr(createSpan(yyStart,yyCount),
+                                            a1, a2, Option.<SelfType>none());
      }
    / Do
    / label w a1:IdOrOpName w a2:BlockElems w end w a3:IdOrOpName

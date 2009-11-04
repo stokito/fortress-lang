@@ -394,7 +394,7 @@ public class ForeignJava {
                                                  decls,
                                                  excludesC,
                                                  comprisesC,
-                                                 Option.<com.sun.fortress.nodes.Type>none());
+                                                 Option.<com.sun.fortress.nodes.SelfType>none());
         // Need to fake up an API for this class, too.
         classToTraitDecl.put(imported_class, td);
         apiToStaticDecls.putItem(api_name, td);

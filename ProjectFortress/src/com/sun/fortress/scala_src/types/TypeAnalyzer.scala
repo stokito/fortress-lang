@@ -24,6 +24,7 @@ import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
@@ -53,9 +54,24 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = meet(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
-  def subtype(x: Type, y: Type): ConstraintFormula = sub(normalize(x), normalize(y))
+  private def removeSelf(x: Type) = {
+    object remover extends Walker {
+      override def walk(y: Any): Any = y match {
+        case t:TraitSelfType =>
+          if (t.getComprised.isEmpty) t.getNamed
+          else NF.makeIntersectionType(t.getNamed,
+                                       NF.makeMaybeUnionType(t.getComprised))
+        case t:ObjectExprType => NF.makeIntersectionType(t.getExtended)
+        case _ => super.walk(y)
+      }
+    }
+    remover(x).asInstanceOf[Type]
+  }
 
-  private def sub(x: Type, y: Type): ConstraintFormula = (x,y) match {
+  def subtype(x: Type, y: Type): ConstraintFormula =
+    sub(normalize(removeSelf(x)), normalize(removeSelf(y)))
+
+  private def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
     case (s, t: AnyType) => TRUE
@@ -150,9 +166,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
 
-  def excludes(x: Type, y: Type) = exc(normalize(x), normalize(y))
+  def excludes(x: Type, y: Type) =
+    exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
-  private def exc(x: Type, y: Type): Boolean = (x,y) match {
+  private def exc(x: Type, y: Type): Boolean = (x, y) match {
     case (s: BottomType, _) => true
     case (_, t: BottomType) => true
     case (s: AnyType, _) => false

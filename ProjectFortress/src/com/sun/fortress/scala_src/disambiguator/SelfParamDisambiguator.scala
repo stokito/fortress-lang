@@ -51,8 +51,8 @@ class SelfParamDisambiguator extends Walker {
   override def walk(node: Any): Any = node match {
     case SObjectDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_), _, _) =>
       // Add a type to self parameters of methods
-      val self_type = NF.makeTraitType(name.asInstanceOf[Id],
-                                       TypeEnv.staticParamsToArgs(toJavaList(sparams)))
+      val self_type = NF.makeSelfType(NF.makeTraitType(name.asInstanceOf[Id],
+                                                       TypeEnv.staticParamsToArgs(toJavaList(sparams))))
       replaceSelfParamsWithType(node, self_type).asInstanceOf[ObjectDecl] match {
         case SObjectDecl(info, header, _, params) =>
           super.walk(SObjectDecl(info, header, some(self_type), params))
@@ -70,13 +70,12 @@ class SelfParamDisambiguator extends Walker {
     case STraitDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_),
                     _, _, comprisesC, _) =>
       // Add a type to self parameters of methods
-      var self_type: Type = NF.makeTraitType(name.asInstanceOf[Id],
-                                             TypeEnv.staticParamsToArgs(toJavaList(sparams)))
-      comprisesC match {
-        case Some(comprises@_::_) =>
-          self_type = NF.makeIntersectionType(self_type,
-                                              NF.makeMaybeUnionType(toJavaList(comprises)))
-        case _ =>
+      val type_name = NF.makeTraitType(name.asInstanceOf[Id],
+                                       TypeEnv.staticParamsToArgs(toJavaList(sparams)))
+      val self_type = comprisesC match {
+        case Some(comprises@_::_) => NF.makeSelfType(type_name, toJavaList(comprises))
+        case _ => NF.makeSelfType(type_name)
+       
       }
       replaceSelfParamsWithType(node, self_type).asInstanceOf[TraitDecl] match {
         case STraitDecl(info, header, _, excludes, comprises, ellipses) =>
@@ -86,7 +85,7 @@ class SelfParamDisambiguator extends Walker {
 
     case oe@SObjectExpr(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_), _) =>
       // Add a type to self parameters of methods
-      val self_type = TypesUtil.getObjectExprType(oe)
+      val self_type = getObjectExprType(oe)
       replaceSelfParamsWithType(oe, self_type) match {
         case SObjectExpr(info, header, _) =>
           super.walk(SObjectExpr(info, header, some(self_type)))
@@ -102,7 +101,7 @@ class SelfParamDisambiguator extends Walker {
    * @param thatNode
    * @param self_type
    */
-  def replaceSelfParamsWithType(that_node: Any, self_type: Type): Node = {
+  def replaceSelfParamsWithType(that_node: Any, self_type: SelfType): Node = {
     object replacer extends Walker {
       var traitNestingDepth = 0
 

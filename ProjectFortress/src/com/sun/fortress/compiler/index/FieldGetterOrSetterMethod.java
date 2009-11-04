@@ -35,7 +35,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     
     protected final Binding _ast;
     protected final Id _declaringTrait;
-    protected final Option<Type> _selfType;
+    protected final Option<SelfType> _selfType;
     protected final Option<FnDecl> _fnDecl;
 
     /** Create an implicit getter/setter from a variable binding. */
@@ -60,7 +60,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     public FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, NodeUpdateVisitor visitor) {
         _ast = (Binding) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
-        _selfType = visitor.recurOnOptionOfType(that._selfType);
+        _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         if (that._fnDecl.isSome()) {
             _fnDecl = Option.some((FnDecl) that._fnDecl.unwrap().accept(visitor));
         } else {
@@ -105,7 +105,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         return this._declaringTrait;
     }
 
-    public Option<Type> selfType() {
+    public Option<SelfType> selfType() {
         return _selfType;
     }
 

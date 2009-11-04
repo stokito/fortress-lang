@@ -21,25 +21,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.fortress.nodes.ASTNode;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -100,7 +82,7 @@ public class VarRefContainer {
 
         ObjectDecl container =
             NodeFactory.makeObjectDecl( NodeUtil.getSpan(origDeclNode), containerDeclId(),
-                                        Option.<List<Param>>some(params), Option.<Type>none() );
+                                        Option.<List<Param>>some(params), Option.<SelfType>none() );
 
         return container;
     }

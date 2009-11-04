@@ -183,7 +183,7 @@ object SNodeUtil {
 
   def getTraitType(ty: Type): Option[TraitType] = ty match {
     case tt:TraitType => Some(tt)
-    case tt:IntersectionType => getTraitType(tt.getElements.get(0))
+    case tt:TraitSelfType => getTraitType(tt.getNamed)
     case _ => None
   }
 }

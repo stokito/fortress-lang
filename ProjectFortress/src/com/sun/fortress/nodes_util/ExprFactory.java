@@ -947,7 +947,7 @@ public class ExprFactory {
     public static ObjectExpr makeObjectExpr(Span span,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         return makeObjectExpr(span, false, Option.<Type>none(),
                               extendsC, decls, selfType);
     }
@@ -957,7 +957,7 @@ public class ExprFactory {
                                             Option<Type> exprType,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span, "_"),
                                                                  extendsC, decls);
         return makeObjectExpr(span, parenthesized, exprType, header,selfType);
@@ -967,7 +967,7 @@ public class ExprFactory {
                                             boolean parenthesized,
                                             Option<Type> ty,
                                             TraitTypeHeader header,
-                                            Option<Type> selfType) {
+                                            Option<SelfType> selfType) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new ObjectExpr(info, header, selfType);
     }

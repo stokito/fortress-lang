@@ -2121,6 +2121,21 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
+    public String forTraitSelfTypeOnly(TraitSelfType that,
+                                       String info,
+                                       String named_result,
+                                       List<String> comprised_result) {
+        return named_result;
+    }
+
+    @Override
+    public String forObjectExprTypeOnly(ObjectExprType that,
+                                        String info,
+                                        List<String> extended_result) {
+        return "ObjectExprType";
+    }
+
+    @Override
     public String forArrayTypeOnly(ArrayType that, String info, String type_result, String indices_result) {
         StringBuilder s = new StringBuilder();
 

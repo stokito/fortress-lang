@@ -87,7 +87,13 @@ class CoercionOracle(traits: TraitTable,
     getCoercionsTo(t).forall(ca => analyzer.excludes(ca._2.getDomain, u))
 
   /** The set of all arrow types for coercions from types T to U. */
-  def getCoercionsTo(u: Type): Set[LiftedCoercion] = {
+  def getCoercionsTo(uu: Type): Set[LiftedCoercion] = {
+    val u =
+      if (uu.isInstanceOf[TraitSelfType] &&
+          uu.asInstanceOf[TraitSelfType].getNamed.isInstanceOf[TraitType])
+        uu.asInstanceOf[TraitSelfType].getNamed.asInstanceOf[TraitType]
+      else uu
+
     if (!u.isInstanceOf[TraitType]) return Set()
 
     // Get name and possible static args out of the type.
@@ -143,6 +149,7 @@ class CoercionOracle(traits: TraitTable,
                             expr: Option[Expr])
                             : Option[Option[CoercionInvocation]] = (t, u) match {
     case (_, u:TraitType) => checkCoercionTrait(t, u, expr)
+    case (_, u:TraitSelfType) => checkCoercion(t, u.getNamed, expr)
     case (t:TupleType, u:TupleType) => checkCoercionTuple(t, u, expr)
     case (t:ArrowType, u:ArrowType) => checkCoercionArrow(t, u, expr)
     case _ => None

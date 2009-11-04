@@ -97,6 +97,8 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
       case t@SVarType(_, name, _) =>
 	if ( ! analyzer.env.contains(name) )
 	  error("Unbound type: " + name, t)
+      case t@STraitSelfType(_, named, tys) => walk(named); tys.foreach(walk)
+      case t@SObjectExprType(_, tys) => tys.foreach(walk)
       case t@STraitType(_, name, sargs, _) =>
 	getTypes(name) match {
 	  case si:TraitIndex => // Trait name should be defined.
@@ -122,15 +124,15 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
 	}
       // Keyword parameters are not yet supported...
       case STupleType(_, elements, varargs, keywords) =>
-	elements.foreach((t:Type) => walk(t))
+	elements.foreach(walk)
 	varargs match {
 	  case Some(ty) => walk(ty)
 	  case _ =>
 	}
       // Effects are not yet supported...
       case SArrowType(_, domain, range, effect, io, _) => walk(domain); walk(range)
-      case SIntersectionType(_, elements) => elements.foreach((t:Type) => walk(t))
-      case SUnionType(_, elements) => elements.foreach((t:Type) => walk(t))
+      case SIntersectionType(_, elements) => elements.foreach(walk)
+      case SUnionType(_, elements) => elements.foreach(walk)
       case _:LabelType => // OK
       case _:DimBase => // OK
 

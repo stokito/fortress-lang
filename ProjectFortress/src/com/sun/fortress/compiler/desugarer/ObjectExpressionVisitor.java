@@ -646,7 +646,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         ObjectDecl lifted = NodeFactory.makeObjectDecl(span, liftedObjId,
                                                        staticParams,
                                                        extendsClauses,
-                                                       decls, params, Option.<Type>none());
+                                                       decls, params, Option.<SelfType>none());
         if(enclosingSelf != null) {
             VarRef receiver = makeVarRefFromParam(enclosingSelf);
             DottedMethodRewriteVisitor rewriter =

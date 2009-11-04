@@ -416,7 +416,9 @@ object STypesUtil {
   /** Return the [Scala-based] conditions for subtype <: supertype to hold. */
   def checkSubtype(subtype: Type, supertype: Type)
                   (implicit analyzer: TypeAnalyzer): ConstraintFormula = {
+
     val constraint = analyzer.subtype(subtype, supertype)
+
     if (!constraint.isInstanceOf[ConstraintFormula]) {
       bug("Not a ConstraintFormula.")
     }
@@ -973,4 +975,16 @@ object STypesUtil {
         case _ => None
       }
   }
+
+  /**
+   * Given an ObjectExpr, returns the Type of the expression.
+   * @return
+   */
+  def getObjectExprType(obj: ObjectExpr): SelfType = {
+    var extends_types =
+      toList(NU.getExtendsClause(obj)).map(_.getBaseType)
+    if (extends_types.isEmpty) extends_types = List(Types.OBJECT)
+    NF.makeObjectExprType(toJavaList(extends_types))
+  }
+
 }

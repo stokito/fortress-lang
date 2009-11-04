@@ -117,6 +117,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	  // 3) it should explicitly declare its parameter type.
 	  c.parameters.get(0).getIdType.unwrap match {
 	    case STraitType(_,name,_,_) => kids = name::kids
+            case STraitSelfType(_,STraitType(_,name,_,_),_) => kids = name::kids
 	    case _ =>
 	  }
 	}

@@ -27,21 +27,7 @@ import java.util.regex.*;
 import junit.framework.TestCase;
 
 import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -89,7 +75,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitDecl ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name), sparams,
-                                                  extendsClause, Option.<Type>none());
+                                                  extendsClause, Option.<SelfType>none());
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),

@@ -432,6 +432,12 @@ object ExportChecker {
       case (SBottomType(_), SBottomType(_)) => true
       case (SVarType(_, nameL, _), SVarType(_, nameR, _)) =>
         equalIds(nameL, nameR)
+      case (STraitSelfType(_, namedL, tysL),
+            STraitSelfType(_, namedR, tysR)) =>
+        equalTypes(namedL, namedR) &&
+        equalListTypes(tysL, tysR)
+      case (SObjectExprType(_, tysL), SObjectExprType(_, tysR)) =>
+        equalListTypes(tysL, tysR)
       case (STraitType(_, nameL, argsL, paramsL),
             STraitType(_, nameR, argsR, paramsR)) =>
         equalIds(nameL, nameR) &&

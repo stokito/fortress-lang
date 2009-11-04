@@ -41,7 +41,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
-    protected final Option<Type> _selfType;
+    protected final Option<SelfType> _selfType;
     protected final int _selfPosition;
 
     public FunctionalMethod(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
@@ -67,7 +67,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _traitParams = visitor.recurOnListOfStaticParam(that._traitParams);
-        _selfType = visitor.recurOnOptionOfType(that._selfType);
+        _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         _selfPosition = that._selfPosition;
 
         _thunk = that._thunk;
@@ -168,7 +168,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
         return String.format("%s.%s", _declaringTrait.getText(), super.toString());
     }
 
-    public Option<Type> selfType() {
+    public Option<SelfType> selfType() {
         return _selfType;
     }
 

@@ -56,11 +56,11 @@ public abstract class TraitIndex extends TypeConsIndex {
         return _ast;
     }
 
-    public Option<Type> typeOfSelf() {
+    public Option<SelfType> typeOfSelf() {
         if (this.ast() instanceof TraitObjectDecl) {
             return ((TraitObjectDecl) this.ast()).getSelfType();
         }
-        return Option.<Type>none();
+        return Option.<SelfType>none();
     }
 
     public List<StaticParam> staticParameters() {
