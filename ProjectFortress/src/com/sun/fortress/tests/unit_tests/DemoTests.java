@@ -17,6 +17,8 @@
 
 package com.sun.fortress.tests.unit_tests;
 
+import com.sun.fortress.Shell; 
+import com.sun.fortress.compiler.phases.PhaseOrder; 
 import com.sun.fortress.repository.ProjectProperties;
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -40,6 +42,8 @@ public class DemoTests {
     }
 
     public static Test suite() throws IOException {
+        Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
+
         String testDir = ProjectProperties.BASEDIR + "demos";
         String s = System.getProperty("demos");
         if (s != null) {
