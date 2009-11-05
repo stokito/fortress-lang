@@ -17,6 +17,9 @@
 
 package com.sun.fortress.syntax_abstractions;
 
+import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.phases.PhaseOrder;
+
 import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.tests.unit_tests.FileTests;
@@ -33,6 +36,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "syntax_abstraction_tests";
 
     public static TestSuite suite() throws IOException {
+        Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith("Use.fss");
