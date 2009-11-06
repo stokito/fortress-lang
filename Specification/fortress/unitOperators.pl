@@ -47,7 +47,7 @@ my $nlines = 0;
 
 while ( $line = <IN> ) {
     $nlines += 1;
-    print OUT "\\TYP";
+    print OUT "\\TYP{";
     chomp $line;
     $line =~ s/_/\\_/;
     print OUT $line;

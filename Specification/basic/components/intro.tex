@@ -14,3 +14,24 @@
 %   Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{This chapter is out of date.}
+
+Fortress programs
+are developed, compiled, and deployed as
+\emph{encapsulated upgradable components}
+that exist not only as programming language features, but also as
+self-contained run-time entities that are managed
+throughout the life of the software.
+The imported and exported references of a component
+are described with explicit \emph{\apisN}.
+With components and \apisN, Fortress
+provides the stability benefits of
+static linking with the sharing and upgrading benefits of
+dynamic linking.
+\footnote{The system described in this chapter is based on that
+described in \cite{allen-05-components}.}
+In addition to an informal description of the component system in this
+chapter, we also formally specify key functionality of the system,
+and illustrate how we can reason about the correctness of the system
+in \appref{components}.
