@@ -16,10 +16,14 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.jar.JarOutputStream;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
@@ -100,6 +104,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     final Component component;
     private final ComponentIndex ci;
     private GlobalEnvironment env;
+    private final JarOutputStream jos;
 
     private static final int NO_SELF = -1;
 
@@ -129,6 +134,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.inABlock = c.inABlock;
         this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
+        this.jos = c.jos;
 
         this.component = c.component;
         this.ci = c.ci;
@@ -142,6 +148,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    ComponentIndex ci, GlobalEnvironment env) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName());
+        String dotted = NamingCzar.javaPackageClassForApi(c.getName(), ".");
+        try {
+            this.jos = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(NamingCzar.cache + dotted + ".jar")));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.ta = ta;
         this.pa = pa;
         this.fv = fv;
@@ -355,7 +369,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
             CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
 
-        ByteCodeWriter.writeClass(NamingCzar.cache, file, cw.toByteArray());
+        ByteCodeWriter.writeJarredClass(jos, file, cw.toByteArray());
         debug( "Writing class ", file);
     }
 
@@ -636,6 +650,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         dumpClass( packageAndClassName );
+        
+        try {
+            jos.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void forDecl(Decl x) {
