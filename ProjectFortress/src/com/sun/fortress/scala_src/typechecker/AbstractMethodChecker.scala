@@ -73,12 +73,14 @@ class AbstractMethodChecker(component: ComponentIndex,
                     walk(decls).asInstanceOf[List[Decl]])
         val inherited = inheritedMethods(traits, extendsC, Set(), typeAnalyzer)
                         .map(t => t._1.asInstanceOf[IdOrOp].getText)
-        for ( d <- decls ; if d.isInstanceOf[FnDecl] ) {
-          if ( NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl])) &&
-               ! inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp].getText.equals(_)) )
-            error(span, "Object expressions should not define any new " +
-                  "functional methods.")
-        }
+        for {
+          d <- decls;
+          if d.isInstanceOf[FnDecl];
+          if NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl]));
+          if !inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp]
+                               .getText.equals(_))
+        } error(span, "Object expressions should not define any new " +
+                      "functional methods.")
 
       case _ => super.walk(node)
     }
@@ -94,13 +96,11 @@ class AbstractMethodChecker(component: ComponentIndex,
     // Add static parameters of the enclosing trait or object
     typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
-    for ( (owner, d) <- toCheck ) {
-      if ( ! implement(d, decls, owner) ) {
+    for ( (owner, d) <- toCheck; if (!implement(d, decls, owner)) ) {
         error(span,
               "The inherited abstract method " + d + " from the trait " + owner +
               "\n    in the object " + name +
               " is not defined in the component " + componentName + ".")
-      }
     }
     typeAnalyzer = oldTypeAnalyzer
   }
@@ -128,12 +128,11 @@ class AbstractMethodChecker(component: ComponentIndex,
 
   private def collectAbstractMethods(name: IdOrOp, decls: List[Decl]) = {
     val set = new HashSet[FnDecl]
-    decls.foreach( (d: Decl) => d match {
-                   case fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) =>
-                     if ( component.typeConses.containsKey(name) ) {
-                       if ( ! body.isDefined ) set += fd
-                     } else if ( mods.isAbstract ) set += fd
-                   case _ => })
+    for ( fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- decls ) {
+      if ( component.typeConses.containsKey(name) ) {
+        if ( ! body.isDefined ) set += fd
+      } else if ( mods.isAbstract ) set += fd
+    }
     set
   }
 

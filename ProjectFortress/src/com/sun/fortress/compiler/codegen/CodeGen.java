@@ -523,6 +523,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void doStatements(List<Expr> stmts) {
         int onStack = 0;
+        if (stmts.isEmpty()) {
+            pushVoid();
+            return;
+        }
         for ( Expr e : stmts ) {
             popAll(onStack);
             e.accept(this);
@@ -554,6 +558,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         doStatements(x.getExprs());
         inABlock=oldInABlock;
     }
+
     public void forChainExpr(ChainExpr x) {
         debug( "forChainExpr", x);
         Expr first = x.getFirst();
@@ -650,7 +655,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         dumpClass( packageAndClassName );
-        
+
         try {
             jos.close();
         } catch (IOException e) {
@@ -2409,7 +2414,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Type receiverType = exprType(obj);
         if (!(receiverType instanceof TraitType)) {
-            sayWhat(x, "receiver type is not TraitType in " + x);
+            sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
         }
 
         int savedParamCount = paramCount;
@@ -2481,7 +2486,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void for_RewriteFnApp(_RewriteFnApp x) {
         debug("for_RewriteFnApp ", x,
-                     " args = ", x.getArgument(), " function = ", x.getFunction(), 
+                     " args = ", x.getArgument(), " function = ", x.getFunction(),
               " function class = ", x.getFunction());
         // This is a little weird.  If a function takes no arguments the parser gives me a void literal expr
         // however I don't want to be putting a void literal on the stack because it gets in the way.
