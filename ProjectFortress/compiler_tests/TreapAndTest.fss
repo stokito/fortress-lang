@@ -83,9 +83,9 @@ end
 
 singleton(key:ZZ32, val:String): Treap = Treap(leaf1(key,val))
 
-empty: Treap = Treap(TEmpty)
+empty: Treap = Treap(Empty)
 
-trait TreapNode comprises { NonEmpty, TEmpty }
+trait TreapNode comprises { NonEmpty, Empty }
     getter isEmpty(): Boolean
     getter hk(): ZZ32
     getter min(): TreapNode
@@ -98,7 +98,7 @@ trait TreapNode comprises { NonEmpty, TEmpty }
     *)
     (* Left subtree of split at key *)
     splitL(key:ZZ32): TreapNode
-    (* Node with given key, or TEmpty *)
+    (* Node with given key, or Empty *)
     nodeWithKey(key:ZZ32): TreapNode
     (* Right subtree of split at key *)
     splitR(key:ZZ32): TreapNode
@@ -118,7 +118,7 @@ trait TreapNode comprises { NonEmpty, TEmpty }
     rootValue(defaultValue: String): String
 end
 
-object TEmpty extends TreapNode
+object Empty extends TreapNode
     getter isEmpty(): Boolean = true
     getter hk(): ZZ32 = Min_HK
     getter min(): TreapNode = self
@@ -132,7 +132,7 @@ object TEmpty extends TreapNode
     *)
     (* Left subtree of split at key *)
     splitL(key:ZZ32): TreapNode = self
-    (* Node with given key, or TEmpty *)
+    (* Node with given key, or Empty *)
     nodeWithKey(key:ZZ32): TreapNode = self
     (* Right subtree of split at key *)
     splitR(key:ZZ32): TreapNode = self
@@ -179,32 +179,32 @@ object Leaf1(hk0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
     (* Split tree at key. *)
     split(key: ZZ32): (TreapNode, TreapNode, TreapNode) =
         if key < k0 then
-            (TEmpty, TEmpty, self)
+            (Empty, Empty, self)
         elif key > k0 then
-            (self, TEmpty, TEmpty)
+            (self, Empty, Empty)
         else
-            (TEmpty, self, TEmpty)
+            (Empty, self, Empty)
         end
     *)
     (* Left subtree of split at key *)
     splitL(key:ZZ32): TreapNode =
-        if key > k0 then self else TEmpty end
-    (* Node with given key, or TEmpty *)
+        if key > k0 then self else Empty end
+    (* Node with given key, or Empty *)
     nodeWithKey(key:ZZ32): TreapNode =
-        if key = k0 then self else TEmpty end
+        if key = k0 then self else Empty end
     (* Right subtree of split at key *)
     splitR(key:ZZ32): TreapNode =
-        if key < k0 then self else TEmpty end
+        if key < k0 then self else Empty end
 
     join(r: TreapNode): TreapNode = r.joinNE(self)
     joinNE(l: NonEmpty): NonEmpty =
         if hk0 > l.hk then
-            Node(l, hk0, k0, v0, TEmpty)
+            Node(l, hk0, k0, v0, Empty)
         else
             l.joinNEH(self)
         end
     joinNEH(r: NonEmpty): NonEmpty =
-        Node(TEmpty, hk0, k0, v0, r)
+        Node(Empty, hk0, k0, v0, r)
 
     combine(c: CombiningOp, r: TreapNode): TreapNode =
         r.combineNE(self,c)
@@ -274,7 +274,7 @@ object Node(left: TreapNode, hk0: ZZ32, k0: ZZ32, v0: String, right: TreapNode)
         else
             left
         end
-    (* Node with given key, or TEmpty *)
+    (* Node with given key, or Empty *)
     nodeWithKey(key:ZZ32): TreapNode =
         if key < k0 then
             left.nodeWithKey(key)
@@ -337,19 +337,19 @@ object UnionOp extends CombiningOp
 end
 
 object IntersectionOp extends CombiningOp
-    leftEmpty(right: TreapNode): TreapNode = TEmpty
-    rightEmpty(left: TreapNode): TreapNode = TEmpty
+    leftEmpty(right: TreapNode): TreapNode = Empty
+    rightEmpty(left: TreapNode): TreapNode = Empty
     combine(leftArg: Leaf1, rightArg: Leaf1): TreapNode = leftArg
 end
 
 object DifferenceOp extends CombiningOp
-    leftEmpty(right: TreapNode): TreapNode = TEmpty
+    leftEmpty(right: TreapNode): TreapNode = Empty
     rightEmpty(left: TreapNode): TreapNode = left
-    combine(leftArg: Leaf1, rightArg: Leaf1): TreapNode = TEmpty
+    combine(leftArg: Leaf1, rightArg: Leaf1): TreapNode = Empty
 end
 
 object SymdiffOp extends CombiningOp
     leftEmpty(right: TreapNode): TreapNode = right
     rightEmpty(left: TreapNode): TreapNode = left
-    combine(leftArg: Leaf1, rightArg: Leaf1): TreapNode = TEmpty
+    combine(leftArg: Leaf1, rightArg: Leaf1): TreapNode = Empty
 end
