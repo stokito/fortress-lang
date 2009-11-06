@@ -19,11 +19,27 @@ package com.sun.fortress.compiler;
 
 import com.sun.fortress.repository.ProjectProperties;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
 
 public class ByteCodeWriter {
     static Character dot = '.';
     static Character slash = '/';
 
+    public static void writeJarredClass(JarOutputStream jos, String file, byte[] bytes) {
+        String fileName = file.replace(dot, slash) + ".class";
+        ZipEntry ze = new ZipEntry(fileName);
+        try {
+            jos.putNextEntry(ze);
+            jos.write(bytes);
+            jos.closeEntry();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+   
+    }
+    
     public static void writeClass(String repository, String file, byte[] bytes) {
         String fileName = repository + file.replace(dot, slash) + ".class";
         writeClass(bytes, fileName);

@@ -571,7 +571,7 @@ public class NamingCzar {
         return javaPackageClassForApi(api, "/");
     }
 
-    private static String javaPackageClassForApi(APIName api, String sep) {
+    public static String javaPackageClassForApi(APIName api, String sep) {
         return javaPackageClassForApi(api.getText(), sep);
     }
 
