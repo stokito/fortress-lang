@@ -561,8 +561,12 @@ public class NamingCzar {
             Id name = ((TraitType)parentType).getName();
             Option<APIName> apiName = name.getApiName();
             APIName api = apiName.unwrap(ifMissing);
-
-            result[i] = makeInnerClassName(api,name);
+            String s1 =  makeInnerClassName(api,name);
+            String s2 = jvmTypeDesc(parentType, ifMissing, false);
+            if (! s1.equals(s2)) {
+                System.err.println(s1 + " MISMATCH " + s2);
+            }
+            result[i] = s2;
         }
         return result;
     }
@@ -1083,12 +1087,20 @@ public class NamingCzar {
      * TODO: call this from code above when referencing types by name.
      */
     // Called from CodeGen
-    public static String jvmTypeForToplevelDecl(IdOrOp x, String api) {
+    public static String jvmClassForToplevelDecl(IdOrOp x, String api) {
         Option<APIName> actualApiOpt = x.getApiName();
         if (actualApiOpt.isSome()) {
             api = javaPackageClassForApi(actualApiOpt.unwrap());
         }
         return makeInnerClassName(api, x.getText());
+    }
+
+    public static String jvmClassForToplevelTypeDecl(IdOrOp x, String sparams_part, String api) {
+        Option<APIName> actualApiOpt = x.getApiName();
+        if (actualApiOpt.isSome()) {
+            api = javaPackageClassForApi(actualApiOpt.unwrap());
+        }
+        return makeInnerClassName(api, x.getText()+sparams_part);
     }
 
     /**

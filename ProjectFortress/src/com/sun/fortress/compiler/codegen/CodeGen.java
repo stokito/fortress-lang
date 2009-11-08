@@ -1277,6 +1277,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private String genericDecoration(FnDecl x, Map<String, String> xlation) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
+        return genericDecoration(sparams, xlation);
+    }
+
+
+    /**
+     * @param xlation
+     * @param sparams
+     * @return
+     */
+    private String genericDecoration(List<StaticParam> sparams,
+            Map<String, String> xlation
+            ) {
         if (sparams.size() == 0)
             return "";
 
@@ -1809,7 +1821,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         boolean canCompile =
             // x.getParams().isNone() &&             // no parameters
-            header.getStaticParams().isEmpty() && // no static parameter
+            // header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
@@ -1820,6 +1832,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if ( !canCompile ) sayWhat(x);
 
+        Map<String, String> xlation = new HashMap<String, String>();
+        String sparams_part = genericDecoration(header.getStaticParams(), xlation);
+
+        // Rewrite the generic.
+        if (sparams_part.length() > 0 ) {
+            ObjectDecl y = x;
+            x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
+        }
+        
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         String [] superInterfaces =
@@ -1832,7 +1853,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         Id classId = NodeUtil.getName(x);
         String classFile =
-            NamingCzar.jvmTypeForToplevelDecl(classId,packageAndClassName);
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
         traitOrObjectName = classFile;
         String classDesc = NamingCzar.internalToDesc(classFile);
         debug("forObjectDeclPrePass ",x," classFile = ", classFile);
@@ -2343,7 +2364,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Id var = lv.getName();
         Type ty = lv.getIdType().unwrap();
         Expr exp = oinit.unwrap();
-        String classFile = NamingCzar.jvmTypeForToplevelDecl(var, packageAndClassName);
+        String classFile = NamingCzar.jvmClassForToplevelDecl(var, packageAndClassName);
         String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
         debug("VarDeclPrePass ", var, " : ", ty, " = ", exp);
         new CodeGen(this).generateVarDeclInnerClass(v, classFile, tyDesc, exp);
@@ -2363,7 +2384,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             debug("forVarRef fresh import ", v);
             Type ty = NodeUtil.getExprType(v).unwrap();
             String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
-            String className = NamingCzar.jvmTypeForToplevelDecl(id, packageAndClassName);
+            String className = NamingCzar.jvmClassForToplevelDecl(id, packageAndClassName);
             vcg = new VarCodeGen.StaticBinding(id, ty,
                                                className,
                                                NamingCzar.SINGLETON_FIELD_NAME,
