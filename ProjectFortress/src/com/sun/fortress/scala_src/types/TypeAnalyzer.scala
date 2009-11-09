@@ -179,6 +179,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val supers = toList(sParam.getExtendsClause)
       supers.exists(exc(_, t))
     case (s, t:VarType) => exc(t, s)
+    // ToDo: Make sure that two traits with the same exclude each other
+    // if their parameters are definitely different
     case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) =>
       val sExcludes = excludesClause(s)
       val tExcludes = excludesClause(t)
@@ -225,8 +227,144 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s, t: UnionType) => exc(t, s)
     case _ => false
   }
+  
+  def normalize(x: Type): Type = {
+    object normalizer extends Walker {
+      override def walk(y: Any): Any = y match {
+        case t@STraitType(_, n, a, _) =>
+          val index = typeCons(n)
+          index match {
+            case ti: TypeAliasIndex =>
+              val params = toList(ti.staticParameters)
+              walk(substitute(a, params, ti.ast.getTypeDef))
+            case _ => super.walk(t)
+          }
+        //ToDo: Handle keywords
+        //ToDo: Make sure that a tuple of bottom is bottom
+        case t:TupleType => super.walk(t) match {
+          case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
+          case _ => t
+        }
+        case u@SUnionType(_, e) =>
+          val ps = e.flatMap(y => disjuncts(walk(y).asInstanceOf[Type]))
+          makeUnionType(normDisjunct(ps))
+        case i@SIntersectionType(info, e) =>
+          val sop = cross(e.map(y => disjuncts(walk(y).asInstanceOf[Type])))
+          val ps = sop.map(y => makeIntersectionType(normConjunct(y.flatMap(disjuncts))))
+          makeUnionType(normDisjunct(ps))
+        case _ => super.walk(y)
+      }
+    }
+    normalizer(x).asInstanceOf[Type]
+  }
 
-  def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
+  private def normConjunct(x: Iterable[Type]): List[Type] = {
+    if(x.exists(y => x.exists(z => exc(y, z))))
+      List(BOTTOM)
+    else {
+      val ds = x.foldLeft(List[Type]())((l, a) => {
+        val l2 = l.filter(!sub(a,_).isTrue)
+        l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
+      })
+      val (ts, ss) = List.separate(ds.map(_ match {
+        case t:TupleType => Left(t)
+        case s => Right(s)
+      }))
+      ss ++ normTuples(ts)
+    }
+  }
+  
+  private def normTuples(ts: List[TupleType]): List[TupleType] = ts match {
+    case Nil => Nil
+    case _ => List(ts.reduceLeft(normTuples)) 
+  } 
+  
+  //ToDo: Keywords
+  private def normTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
+    case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
+      STupleType(makeInfo(e1), List.map2(e1, e2)(meet), None, Nil)
+    case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
+      normTuples(x, disjunctFromTuple(y, e1.size).asInstanceOf[TupleType])
+    case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
+      normTuples(disjunctFromTuple(x, e2.size).asInstanceOf[TupleType], y)
+    case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
+      val ee1 = e1 ++ List.make(e2.size - e1.size, v1)
+      val ee2 = e2 ++ List.make(e1.size - e2.size, v2)
+      STupleType(makeInfo(e1), List.map2(ee1, ee2)(meet), Some(meet(v1, v2)), Nil)
+    }
+  }
+  
+  private def normDisjunct(x: Iterable[Type]): List[Type] = {
+      x.foldLeft(List[Type]())((l, a) => {
+        val l2 = l.filter(!sub(_,a).isTrue)
+        l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
+      })
+  }
+  
+  private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
+    x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
+  }
+  
+  def coveringEquivalent(x: Type, y: Type) = (lteq(minimalCovering(y), x) && lteq(minimalCovering(x), y))
+  
+  def minimalCovering(x: Type): Type = normalize(x) match {
+    case SIntersectionType(_, e) => 
+      val (as, ts) = List.separate(e.map(_ match {
+        case a:ArrowType => Left(a)
+        case t => Right(minimalCovering(t))
+      }))
+      meet(minimalArrows(as) ++ ts)
+    case SUnionType(_, e) => join(e.map(minimalCovering))
+    case t:TraitType => join(comprisesLeaves(t))
+    //ToDo: Handle keywords
+    case STupleType(i, e, mv, _) => STupleType(i, e.map(minimalCovering), mv.map(minimalCovering), Nil)
+    case SArrowType(i, d, r, e, io, m) =>
+      // ToDo: Go into domain but flip to only decrease contravariant positions
+      SArrowType(i, d, minimalCovering(r), e, io, m)
+    case _ => x
+  }
+  
+  private def minimalArrows(x: ArrowType, y: ArrowType): ArrowType = {
+    val SArrowType(i1, d1, r1, e1, io1, mi1) = x
+    val SArrowType(i2, d2, r2, e2, io2, mi2) = y
+    //merge methodInfo?
+    SArrowType(minimalTypeInfo(i1, i2),
+               join(d1, d2),
+               minimalCovering(meet(r1, r2)), 
+               minimalEffect(e1, e2),
+               io1 || io2,
+               mi1)
+  }
+  
+  private def minimalArrows(x: List[ArrowType]): List[ArrowType] = x match {
+    case Nil => Nil
+    case _ => List(x.reduceLeft(minimalArrows))
+  }
+  
+  private def minimalTypeInfo(x: TypeInfo, y: TypeInfo) = x
+  
+  private def minimalEffect(x: Effect, y: Effect) = {
+    val SEffect(i1, t1, io1) = x
+    val SEffect(i2, t2, io2) = y
+    val tc = minimalCovering(meet(join(t1.getOrElse(Nil)), join(t2.getOrElse(Nil)))) match {
+      case t:BottomType => None
+      case SUnionType(_, elts) => Some(elts)
+      case t => Some(List(t))
+    }
+    //merge ASTNodeInfo?
+    SEffect(i1, tc, io1 || io2)
+  }
+  
+  private def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
+    case ts if ts.isEmpty => Set(x)
+    case ts => ts.flatMap(comprisesLeaves)
+  }
+  
+  // Accessor methods for trait table
+  def typeCons(x: Id): TypeConsIndex =
+    toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
+  
+    def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
     case ti: ProperTraitIndex =>
       val args = toList(t.getArgs)
       val params = toList(ti.staticParameters)
@@ -252,86 +390,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     excludes ++ transitively
   }
   
-  def normalize(x: Type): Type = {
-    object normalizer extends Walker {
-      override def walk(y: Any): Any = y match {
-        case t@STraitType(_, n, a, _) =>
-          val index = typeCons(n)
-          index match {
-            case ti: TypeAliasIndex =>
-              val params = toList(ti.staticParameters)
-              walk(substitute(a, params, ti.ast.getTypeDef))
-            case _ => super.walk(t)
-          }
-        //Handle keywords
-        case t:TupleType => super.walk(t) match {
-          case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
-          case _ => t
-        }
-        case u@SUnionType(_, e) =>
-          val ps = e.flatMap(y => disjuncts(walk(y).asInstanceOf[Type]))
-          makeUnionType(reduceSum(ps))
-        case i@SIntersectionType(info, e) =>
-          val sop = cross(e.map(y => disjuncts(walk(y).asInstanceOf[Type])))
-          val ps = sop.map(y => makeIntersectionType(reduceProduct(y.flatMap(disjuncts))))
-          makeUnionType(reduceSum(ps))
-        case _ => super.walk(y)
-      }
-    }
-    normalizer(x).asInstanceOf[Type]
-  }
-
-  private def reduceProduct(x: Iterable[Type]): List[Type] = {
-    if(x.exists(y => x.exists(z => exc(y, z))))
-      List(BOTTOM)
-    else {
-      val ds = x.foldLeft(List[Type]())((l, a) => {
-        val l2 = l.filter(!sub(a,_).isTrue)
-        l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
-      })
-      val (ts, ss) = List.separate(ds.map(_ match {
-        case t:TupleType => Left(t)
-        case s => Right(s)
-      }))
-      ss ++ mergeTuples(ts)
-    }
-  }
-  
-  private def mergeTuples(ts: List[TupleType]): List[TupleType] = ts match {
-    case Nil => Nil
-    case _ => List(ts.reduceLeft(mergeTuples)) 
-  } 
-  
-  //ToDo: Keywords
-  private def mergeTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
-    case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
-      STupleType(makeInfo(e1), List.map2(e1, e2)(meet), None, Nil)
-    case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
-      mergeTuples(x, disjunctFromTuple(y, e1.size).asInstanceOf[TupleType])
-    case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
-      mergeTuples(disjunctFromTuple(x, e2.size).asInstanceOf[TupleType], y)
-    case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
-      val ee1 = e1 ++ List.make(e2.size - e1.size, v1)
-      val ee2 = e2 ++ List.make(e1.size - e2.size, v2)
-      STupleType(makeInfo(e1), List.map2(ee1, ee2)(meet), Some(meet(v1, v2)), Nil)
-    }
-  }
-  
-  private def reduceSum(x: Iterable[Type]): List[Type] = {
-      x.foldLeft(List[Type]())((l, a) => {
-        val l2 = l.filter(!sub(_,a).isTrue)
-        l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
-      })
-  }
-  
-  private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
-    x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
-  }
-  
-  // Accessor method for trait table
-  def typeCons(x: Id): TypeConsIndex =
-    toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
-
   // Accessor method for kind env
   def staticParam(x: Id): StaticParam =
     env.staticParam(x).getOrElse(bug(x, x + " is not in the kind env."))

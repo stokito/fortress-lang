@@ -502,7 +502,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              IdOrOp fnResult, List<IdOrOp> fns_result,
                              List<Overloading> interpOverloadings_result,
                              List<Overloading> newOverloadings_result,
-                             Option<Type> type_result) {
+                             Option<Type> type_result,
+                             Option<Type> schema_result) {
         // After disambiguation, the Id in a FnRef should have an empty API.
         assert(fnResult.getApiName().isNone());
         if ( ! (fnResult instanceof Id) )
@@ -519,7 +520,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
             return ExprFactory.makeFnRef(that, NodeUtil.getExprType(that),
                                          mangleName(name), newFns,
-                                         staticArgs_result, interpOverloadings_result, newOverloadings_result);
+                                         staticArgs_result, interpOverloadings_result, newOverloadings_result,
+                                         type_result, schema_result);
         } else {
             return that;
         }

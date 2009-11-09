@@ -39,9 +39,9 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import scala.util.parsing.combinator._
 
 object TypeParser extends RegexParsers {
-  val ID = """[A-Z]([a-zA-Z0-9]|_[a-zA-Z0-9])+"""r
+  val TRAIT = """[A-Z]([a-zA-Z0-9]|_[a-zA-Z0-9])+"""r
   val VAR = """[A-Z]"""r
-  
+
   def typeSchema: Parser[Type] = opt(staticParams) ~ typ ^^
     {case ps~t => insertStaticParams(t, ps.getOrElse(Nil))}
 
@@ -82,7 +82,7 @@ object TypeParser extends RegexParsers {
   def varType: Parser[VarType] = regex(VAR) ^^ 
     {id => makeVarType(typeSpan, id)}
   
-  def traitType: Parser[TraitType] = regex(ID) ~ opt(staticArgs) ^^ 
+  def traitType: Parser[TraitType] = regex(TRAIT) ~ opt(staticArgs) ^^ 
     {case id~args => makeTraitType(typeSpan, id, toJavaList(args.getOrElse(Nil)))}
   def staticArgs: Parser[List[StaticArg]] = "[" ~> repsep(staticArg, ",") <~ "]"
   def staticArg: Parser[StaticArg] = typ ^^ 

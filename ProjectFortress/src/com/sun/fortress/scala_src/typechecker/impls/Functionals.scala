@@ -466,13 +466,13 @@ trait Functionals { self: STypeChecker with Common =>
 
   def checkFunctionals(node: Node): Node = node match {
 
-    case SOverloading(info, unambigName, origName, _) => {
+    case SOverloading(info, unambigName, origName, _, _) => {
       val checkedName = check(unambigName).asInstanceOf[IdOrOp]
 
       // Should have one arrow type for this unambiguous name.
       getTypeFromName(checkedName) match {
         case Some(arrow: ArrowType) =>
-          SOverloading(info, checkedName, origName, Some(arrow))
+          SOverloading(info, checkedName, origName, Some(arrow), Some(arrow))
         case Some(typ) =>
           bug("type env binds unambiguous name %s to non-arrow type %s".format(unambigName, typ))
         case None => node
@@ -511,7 +511,7 @@ trait Functionals { self: STypeChecker with Common =>
                      newSargs)
     }
 
-    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _) =>{
+    case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _, _) =>{
       val checkedObj = checkExpr(obj)
       val recvrType = getType(checkedObj).getOrElse(return expr)
       val arrows = getArrowsForMethod(recvrType, method, sargs, expr).getOrElse(return expr)
@@ -532,10 +532,11 @@ trait Functionals { self: STypeChecker with Common =>
                         method,
                         newSargs,
                         checkedArg,
-                        Some(smaArrow))
+                        Some(smaArrow),
+                        None)
     }
 
-    case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _) => {
+    case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _, _) => {
       // Error if this is a getter
       val thisEnv = getRealName(name, toList(current.ast.getImports)) match {
         case id@SIdOrOpOrAnonymousName(_, Some(api)) => getEnvFromApi(api)
@@ -558,10 +559,10 @@ trait Functionals { self: STypeChecker with Common =>
       // number or kind of static parameters.
       var hadNoType = false
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
-        case ov@SOverloading(_, _, _, Some(ty)) if sargs.isEmpty => Some(ov)
-        case SOverloading(info, name, origName, Some(ty)) =>
+        case ov@SOverloading(_, _, _, Some(ty), _) if sargs.isEmpty => Some(ov)
+        case SOverloading(info, name, origName, Some(ty), schema) =>
           instantiateStaticParams(sargs, ty).
-            map(t => SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType])))
+            map(t => SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType]), schema))
         case _ => hadNoType = true; None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
@@ -610,11 +611,11 @@ trait Functionals { self: STypeChecker with Common =>
                          Some(SArrowType(typeInfo, dom, rng, effect, io,
                                          Some(mi@SMethodInfo(selfType, selfPos))))),
                staticArgs, _, origName: Id,
-               names, iOverloadings, newOverloadings, overloadingType) if selfPos == -1 =>
+               names, iOverloadings, newOverloadings, overloadingType, overloadingSchema) if selfPos == -1 =>
           val selfRef = checkExpr(EF.makeVarRef(span, "self"))
           val res : MethodInvocation =
               SMethodInvocation(info, selfRef, origName, staticArgs, checkedArg,
-                                overloadingType)
+                                overloadingType, overloadingSchema)
           // System.err.println(span+": app of "+checkedFn+
           //                    "\n  selfType="+selfType+
           //                    "\n  self: "+getType(selfRef)+

@@ -105,7 +105,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
                              List<Overloading> interp_overloadings,
                              List<Overloading> newOverloadings,
-                             Option<Type> type_result) {
+                             Option<Type> type_result,
+                             Option<Type> schema_result) {
 
         List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
         
@@ -138,7 +139,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         }
 
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
-                Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(), type_result);
+                Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(), type_result, schema_result);
     }
 
 
@@ -147,7 +148,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
                              List<Overloading>  interp_overloadings,
                              List<Overloading> newOverloadings,
-                             Option<Type> type_result) {
+                             Option<Type> type_result,
+                             Option<Type> schema_result) {
         Op originalOp = (Op)originalName;
         
         List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
@@ -193,7 +195,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
                                   // interp_overloadings, newOverloadings,
                                   Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(),
-                                  type_result);
+                                  type_result, schema_result);
     }
 
 

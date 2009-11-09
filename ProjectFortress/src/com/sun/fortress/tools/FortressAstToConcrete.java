@@ -1707,7 +1707,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                List<String> fns_result,
                                List<String> interpOverloadings_result,
                                List<String> newOverloadings_result,
-                               Option<String> type_result) {
+                               Option<String> type_result,
+                               Option<String> schema_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(originalName_result);
@@ -1737,7 +1738,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                List<String> ops_result,
                                List<String> interpOverloadings_result,
                                List<String> newOverloadings_result,
-                               Option<String> type_result) {
+                               Option<String> type_result,
+                               Option<String> schema_result) {
         return handleParen(canonicalOp(originalName_result), NodeUtil.isParenthesized(that));
     }
 
@@ -1746,7 +1748,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                      String info,
                                      String unambiguousName_result,
                                      String originalName_result,
-                                     Option<String> type_result) {
+                                     Option<String> type_result,
+                                     Option<String> schema_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(unambiguousName_result);
@@ -1976,7 +1979,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                           String method_result,
                                           List<String> staticArgs_result,
                                           String arg_result,
-                                          Option<String> overloading_result) {
+                                          Option<String> overloading_result,
+                                          Option<String> schema_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(obj_result).append(".").append(method_result);
