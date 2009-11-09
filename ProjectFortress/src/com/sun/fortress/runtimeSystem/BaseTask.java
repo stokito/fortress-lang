@@ -35,7 +35,7 @@ import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
  *    ... use tmp.result (compiler-inserted field) if desired ...
  */
 public abstract class BaseTask extends RecursiveAction {
-    public static int spawnThreshold = numThreads + 3;
+    public static int spawnThreshold = 5;
 
     // Could get this by hacking ForkJoinTask's status field, but
     // not touching that for now as it's too changeable
@@ -46,7 +46,7 @@ public abstract class BaseTask extends RecursiveAction {
     private int actuallyForked = UNFORKED;
 
     private static boolean unsafeWorthSpawning() {
-        return (numThreads > 1 && getQueuedTaskCount() < spawnThreshold);
+        return (numThreads > 1 && getSurplusQueuedTaskCount() <= spawnThreshold);
     }
 
     public static boolean worthSpawning() {
