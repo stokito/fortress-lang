@@ -55,8 +55,50 @@ implemented reliably.
 This specification includes descriptions of unimplemented features in boxes
 at the beginning of sections,
 and informal comments and notes in boxes in the margin.
+\end{figure}
 
 
+\begin{figure}[p]
+The not-yet-supported features include:
+\begin{itemize}
+\item widening coercion
+\item multifix operators
+\item type coverage check
+\item generic overloading check
+\item definite assignment check
+\item keyword and varargs parameters
+\item varargs expressions
+\item some modifiers (\KWD{override}, \KWD{io}, \KWD{atomic}, \KWD{value}, ...)
+\item qualified names
+\item identifiers including connecting punctuations
+\item ASCII conversion
+\item Uicode canonicalization
+\item array comprehensions
+\item reduction variables
+\item object copy
+\item unboxed types
+\item mutual recursion in value objects
+\item thread fairness guarantee
+\item distributions
+\item matrix unpasting
+\item Non-type static parameters
+\item dimensions and units
+\item tests and properties
+\item type aliases
+\item where clauses
+\item abstract function declarations
+\item checked exceptions, deferred exceptions, and chained exceptions
+\item contract checking
+\item static expressions, static range types, and some range operations
+\item some types (HeapSequence, LinearSequence, $\mathbb{Q}$
+\item some operators on aggregate expressions
+\item some functions in \secref{other-expressions}
+\item tail-call optimization
+\item compound APIs check
+\item import API names
+\item components linking
+\end{itemize}
+\end{figure}
 
 %% Description in F1.0
 %% -- Sukyoung
@@ -115,4 +157,3 @@ and informal comments and notes in boxes in the margin.
 % long-standing goal of constructing a new programming language with high
 % performance and high programmer productivity, owned by the community that
 % uses it, and able to grow gracefully with the tasks it is applied to.
-\end{figure}

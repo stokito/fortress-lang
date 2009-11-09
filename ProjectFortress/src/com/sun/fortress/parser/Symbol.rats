@@ -247,7 +247,7 @@ transient void comma = ",";
 transient void commaOrNot = "," / w ;
 transient void dot   = ".";
 
-/* AssignOp ::= := | Op= */
+/* AssignOp ::= := | CompoundOp */
 transient Option<FunctionalRef> AssignOp =
      colonequals   { yyValue = Option.<FunctionalRef>none(); }
    / a1:CompoundOp { yyValue = Option.<FunctionalRef>some(a1); };
