@@ -47,7 +47,6 @@ import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
-import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
@@ -352,7 +351,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private VarCodeGen getLocalVarOrNull( IdOrOp nm ) {
         debug("getLocalVar: ", nm);
-        VarCodeGen r = lexEnv.get(idOrOpToString(nm));
+        VarCodeGen r = lexEnv.get(NamingCzar.idOrOpToString(nm));
         if (r != null)
             debug("getLocalVar:", nm, " VarCodeGen = ", r, " of class ", r.getClass());
         else
@@ -898,7 +897,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
 
         // unambiguous within component
-        String wname = idOrOpToString(x.getUnambiguousName());
+        String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
         cg.generateWrapperMethodCode(modifiers, mname, wname, sig, params);
     }
 
@@ -924,9 +923,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         function.getReturnType().unwrap(),
                         component.getName());
 
-                String mname = idOrOpToString(function.name()); // entry.getKey();
+                String mname = NamingCzar.idOrOpToString(function.name()); // entry.getKey();
 
-                String function_ua_name = idOrOpToString(function.unambiguousName());
+                String function_ua_name = NamingCzar.idOrOpToString(function.unambiguousName());
                 generateWrapperMethodCode(
                         Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, mname,
                         function_ua_name, sig, params);
@@ -1482,7 +1481,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return
      */
     private String singleName(IdOrOpOrAnonymousName name) {
-        String nameString = idOrOpToString((IdOrOp)name);
+        String nameString = NamingCzar.idOrOpToString((IdOrOp)name);
         String mname = nameString; // Naming.mangleIdentifier(nameString);
         return mname;
     }
@@ -1627,45 +1626,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private Pair<String, String> idToPackageClassAndName(IdOrOp fnName) {
-        Option<APIName> possibleApiName = fnName.getApiName();
-
-        /* Note that after pre-processing in the overload rewriter,
-         * there is only one name here; this is not an overload check.
-         */
-        String calleePackageAndClass = "";
-        String method = idOrOpToString(fnName);
-
-        if (!possibleApiName.isSome()) {
-            // NOT Foreign, calls same component.
-            // Nothing special to do.
-            calleePackageAndClass = packageAndClassName;
-        } else {
-            APIName apiName = possibleApiName.unwrap();
-            if (!ForeignJava.only.definesApi(apiName)) {
-                // NOT Foreign, calls other component.
-                calleePackageAndClass =
-                    NamingCzar.javaPackageClassForApi(apiName);
-            } else {
-                // Foreign function call
-                // TODO this prefix op belongs in naming czar.
-                String n = Naming.NATIVE_PREFIX_DOT + fnName;
-                // Cheating by assuming class is everything before the dot.
-                int lastDot = n.lastIndexOf(".");
-                calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
-                method = n.substring(lastDot+2);
-                int foreign_tag = method.indexOf(Naming.FOREIGN_TAG);
-                calleePackageAndClass = calleePackageAndClass + "/" + method.substring(0, foreign_tag);
-                method = method.substring(foreign_tag+1);
-                int paren_tag = method.indexOf("(");
-                if (paren_tag != -1)
-                    method = method.substring(0, paren_tag);
-            }
-        }
-        Pair<String, String> calleeInfo =
-            new Pair<String, String>(calleePackageAndClass, method);
-        return calleeInfo;
+        return NamingCzar.idToPackageClassAndName(fnName, thisApi());
     }
-
     public void forIf(If x) {
         Debug.debug( Debug.Type.CODEGEN, 1,"forIf ", x);
         List<IfClause> clauses = x.getClauses();
@@ -1806,7 +1768,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         TraitTypeHeader header = x.getHeader();
         emittingFunctionalMethodWrappers = true;
         String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                                                         idToString(NodeUtil.getName(x)));
+                                                         NamingCzar.idToString(NodeUtil.getName(x)));
         debug("forObjectDecl ",x," classFile = ", classFile);
         traitOrObjectName = classFile;
         dumpTraitDecls(header.getDecls());
@@ -2236,7 +2198,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         debug("ForSubscriptExpr  ", x, "obj = ", obj,
               " subs = ", subs, " op = ", op, " static args = ", staticArgs,
-              " varRef = ", idToString(id));
+              " varRef = ", NamingCzar.idToString(id));
 
         var.accept(this);
 
@@ -2248,7 +2210,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
                            // Naming.mangleIdentifier(opToString(op)),
-                           opToString(op),
+                           NamingCzar.opToString(op),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 
@@ -2757,43 +2719,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
         }
-    }
-
-    /**
-     * @param fnName
-     * @return
-     */
-    private String idOrOpToString(IdOrOp fnName) {
-        if (fnName instanceof Op)
-            return opToString((Op) fnName);
-        else if (fnName instanceof Id)
-            return idToString((Id) fnName);
-        else
-            return fnName.getText();
-
-    }
-
-    /**
-     * @param op
-     * @return
-     */
-    private String opToString(Op op) {
-        Fixity fixity = op.getFixity();
-        if (fixity instanceof PreFixity) {
-            return op.getText() + Naming.BOX;
-        } else if (fixity instanceof PostFixity) {
-            return Naming.BOX + op.getText();
-        } else {
-          return op.getText();
-        }
-    }
-
-    /**
-     * @param method
-     * @return
-     */
-    private String idToString(Id id) {
-        return id.getText();
     }
 
 }

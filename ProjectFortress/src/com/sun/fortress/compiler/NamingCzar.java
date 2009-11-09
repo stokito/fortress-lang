@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.optimization.Unbox.Contains;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -40,7 +41,11 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.PostFixity;
+import com.sun.fortress.nodes.PreFixity;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -56,6 +61,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -611,6 +617,10 @@ public class NamingCzar {
         return makeInnerClassName(javaPackageClassForApi(api), id.getText());
     }
 
+    public static String makeInnerClassName(APIName api, Id id, String sparams_part) {
+        return makeInnerClassName(javaPackageClassForApi(api), id.getText() + sparams_part);
+    }
+
     // forSubscriptExpr
     public static String makeInnerClassName(Id id) {
         return makeInnerClassName(jvmClassForSymbol(id), id.getText());
@@ -924,13 +934,35 @@ public class NamingCzar {
                 if (api == null) {
                     throw new CompilerError(id,"no api name given for id");
                 }
-                result = makeInnerClassName(api,id);
+                List<StaticParam> sparams = t.getStaticParams();
+                result = makeInnerClassName(api,id, forStaticParams(sparams));
                 if (withLSemi)
                     result = internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
             }
+            
+            private String forStaticParams(List<StaticParam> sparams) {
+                if (sparams.size() == 0)
+                    return "";
+                StringBuffer sparams_part = new StringBuffer();
+                String pfx = Naming.LEFT_OXFORD;
+                for (StaticParam p : sparams) {
+                    sparams_part.append(pfx);
+                    pfx = ";";
+                    sparams_part.append(p.getName().accept(this));
+                }
+                sparams_part.append(Naming.RIGHT_OXFORD);
+                return sparams_part.toString();
+            }
+            @Override
+            public String forIdOrOp(IdOrOp that) {
+                // TODO This is not going to work, need to figure out what we do with oprefs.
+                Pair<String, String> p = idToPackageClassAndName(that, ifNone);
+                return makeInnerClassName(p.getA(), p.getB());
+            }
+            
             });
     }
 
@@ -1108,5 +1140,83 @@ public class NamingCzar {
      */
     public static String makeLiftedCoercionName(Id traitName) {
         return LIFTED_COERCION_PREFIX + traitName.getText();
+    }
+
+    /**
+     * @param fnName
+     * @return
+     */
+    public static String idOrOpToString(IdOrOp fnName) {
+        if (fnName instanceof Op)
+            return NamingCzar.opToString((Op) fnName);
+        else if (fnName instanceof Id)
+            return NamingCzar.idToString((Id) fnName);
+        else
+            return fnName.getText();
+    
+    }
+
+    /**
+     * @param op
+     * @return
+     */
+    public static String opToString(Op op) {
+        Fixity fixity = op.getFixity();
+        if (fixity instanceof PreFixity) {
+            return op.getText() + Naming.BOX;
+        } else if (fixity instanceof PostFixity) {
+            return Naming.BOX + op.getText();
+        } else {
+          return op.getText();
+        }
+    }
+
+    /**
+     * @param method
+     * @return
+     */
+    public static String  idToString(Id id) {
+        return id.getText();
+    }
+    
+    // This might generalize beyond functions
+    public static Pair<String, String> idToPackageClassAndName(IdOrOp fnName, APIName ifMissingApi) {
+        Option<APIName> possibleApiName = fnName.getApiName();
+    
+        /* Note that after pre-processing in the overload rewriter,
+         * there is only one name here; this is not an overload check.
+         */
+        String calleePackageAndClass = "";
+        String method = idOrOpToString(fnName);
+    
+        if (!possibleApiName.isSome()) {
+            // NOT Foreign, calls same component.
+            // Nothing special to do.
+            calleePackageAndClass = javaPackageClassForApi(ifMissingApi);
+        } else {
+            APIName apiName = possibleApiName.unwrap();
+            if (!ForeignJava.only.definesApi(apiName)) {
+                // NOT Foreign, calls other component.
+                calleePackageAndClass =
+                    javaPackageClassForApi(apiName);
+            } else {
+                // Foreign function call
+                // TODO this prefix op belongs in naming czar.
+                String n = Naming.NATIVE_PREFIX_DOT + fnName;
+                // Cheating by assuming class is everything before the dot.
+                int lastDot = n.lastIndexOf(".");
+                calleePackageAndClass = n.substring(0, lastDot).replace(".", "/");
+                method = n.substring(lastDot+2);
+                int foreign_tag = method.indexOf(Naming.FOREIGN_TAG);
+                calleePackageAndClass = calleePackageAndClass + "/" + method.substring(0, foreign_tag);
+                method = method.substring(foreign_tag+1);
+                int paren_tag = method.indexOf("(");
+                if (paren_tag != -1)
+                    method = method.substring(0, paren_tag);
+            }
+        }
+        Pair<String, String> calleeInfo =
+            new Pair<String, String>(calleePackageAndClass, method);
+        return calleeInfo;
     }
 }
