@@ -42,10 +42,18 @@ public abstract class FortressExecutable extends RecursiveAction {
     }
 
     public final void runExecutable(String args[]) {
-        systemHelper.registerArgs(args);
-        //group.invoke(this);
-        group.execute(this);
-        this.join();
+        try {
+            systemHelper.registerArgs(args);
+            //group.invoke(this);
+            group.execute(this);
+            this.join();
+        } finally {
+            String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
+            if (printOnOutput != null && printOnOutput.length() > 0 &&
+                printOnOutput.substring(0,1).matches("[TtYy]")) {
+                System.err.println(group);
+            }
+        }
     }
 
     /**
