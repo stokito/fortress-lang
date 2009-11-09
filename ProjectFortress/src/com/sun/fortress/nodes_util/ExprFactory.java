@@ -397,6 +397,17 @@ public class ExprFactory {
                 name, ids, interp_overloadings, newOverloadings, Option
                         .<Type> none());
     }
+    
+    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
+            List<IdOrOp> ids, List<StaticArg> sargs,
+            List<Overloading> interp_overloadings,
+            List<Overloading> newOverloadings,
+            Option<Type> type,
+            Option<Type> schema) {
+        return makeFnRef(NodeUtil.getSpan(that),
+                NodeUtil.isParenthesized(that), ty, sargs, defaultLexicalDepth,
+                name, ids, interp_overloadings, newOverloadings, type, schema);
+    }
 
     public static FnRef makeFnRef(Span span, boolean isParenthesized,  Id name,
             List<StaticArg> sargs,
@@ -409,6 +420,17 @@ public class ExprFactory {
                         .<Type> none());
     }
 
+    public static FnRef makeFnRef(Span span, boolean parenthesized,
+            Option<Type> ty,
+            List<StaticArg> staticArgs,
+            int lexicalDepth,
+            IdOrOp name, List<IdOrOp> names,
+            List<Overloading> interp_overloadings,
+            List<Overloading> newOverloadings,
+            Option<Type> overloadingType){
+        return makeFnRef(span, parenthesized, ty, staticArgs, lexicalDepth, name, names, interp_overloadings, newOverloadings, overloadingType, Option.<Type>none());
+    }
+
    public static FnRef makeFnRef(Span span, boolean parenthesized,
                                   Option<Type> ty,
                                   List<StaticArg> staticArgs,
@@ -416,10 +438,11 @@ public class ExprFactory {
                                   IdOrOp name, List<IdOrOp> names,
                                   List<Overloading> interp_overloadings,
                                   List<Overloading> newOverloadings,
-                                  Option<Type> overloadingType) {
+                                  Option<Type> overloadingType,
+                                  Option<Type> overloadingSchema) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new FnRef(info, staticArgs, lexicalDepth, name, names,
-                interp_overloadings, newOverloadings, overloadingType);
+                interp_overloadings, newOverloadings, overloadingType, overloadingSchema);
     }
 
     public static FunctionalRef make_RewriteOpRefOverloading(Span span,

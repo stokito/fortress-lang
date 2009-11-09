@@ -124,8 +124,8 @@ object SExprUtil {
    */
   def addOverloadings(fnRef: FunctionalRef,
                       overs: List[Overloading]): FunctionalRef = fnRef match {
-    case SFnRef(a, b, c, d, e, f, _, h) => SFnRef(a, b, c, d, e, f, overs, h)
-    case SOpRef(a, b, c, d, e, f, _, h) => SOpRef(a, b, c, d, e, f, overs, h)
+    case SFnRef(a, b, c, d, e, f, _, h, i) => SFnRef(a, b, c, d, e, f, overs, h, i)
+    case SOpRef(a, b, c, d, e, f, _, h, i) => SOpRef(a, b, c, d, e, f, overs, h, i)
     case _ => NI.nyi()
   }
 
@@ -134,8 +134,8 @@ object SExprUtil {
    */
   def addStaticArgs(fnRef: FunctionalRef,
                     sargs: List[StaticArg]): FunctionalRef = fnRef match {
-    case SFnRef(a, _, c, d, e, f, g, h) => SFnRef(a, sargs, c, d, e, f, g, h)
-    case SOpRef(a, _, c, d, e, f, g, h) => SOpRef(a, sargs, c, d, e, f, g, h)
+    case SFnRef(a, _, c, d, e, f, g, h, i) => SFnRef(a, sargs, c, d, e, f, g, h, i)
+    case SOpRef(a, _, c, d, e, f, g, h, i) => SOpRef(a, sargs, c, d, e, f, g, h, i)
     case _ => NI.nyi()
   }
 

@@ -366,7 +366,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   else result = Some(SVarRef(info, newId, sargs, depth))
                 } else if (env.hasQualifiedFunction(newId)) {
                   result = Some(SFnRef(info, sargs, depth, name, List(name),
-                                       List(), List(), None))
+                                       List(), List(), None, None))
                   // TODO: insert correct number of to-infer arguments?
                 } else {
                   error("Unrecognized name: " + NU.nameString(name), vref)
@@ -404,7 +404,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   result = Some(SFnRef(info, sargs, depth, name, new_fns,
                                        new_fns.map(new Overloading(info, _, name, None)),
                                        unambiguous_fns.map(new Overloading(info, _, name, None)),
-                                       None))
+                                       None, None))
                 case (1, 0, 1) =>
                   result = Some(SVarRef(info, objs.iterator.next, sargs, depth))
                 case (v, f, o) if v == 0 && f == 0 && o == 0 =>
@@ -427,7 +427,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
           new_node
         }
 
-      case fnref@SFnRef(info, sargs, depth, name, names, ovl, newOvl, ovlType) =>
+      case fnref@SFnRef(info, sargs, depth, name, names, ovl, newOvl, _, _) =>
         // Many FnRefs will be covered by the VarRef case, since many functions
         // are parsed as variables.  FnRefs can be parsed if, for example,
         // explicit static arguments are provided.  These function references
@@ -450,15 +450,15 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                  // Create a list of overloadings for this FnRef from the matching
                  // function names.
                  new_fns.map(new Overloading(info, _, fn_name, None)),
-                 unambiguous_fns.map(new Overloading(info, _, fn_name, None)), ovlType)
+                 unambiguous_fns.map(new Overloading(info, _, fn_name, None)), None, None)
         }
 
-      case opref@SOpRef(info, sargs, depth, name, names, ovl, newOvl, ovlType) =>
+      case opref@SOpRef(info, sargs, depth, name, names, ovl, newOvl, _, _) =>
         opRefHelper(opref) match {
           case Some(op) => op
           case None =>
             // Make sure to populate the 'originalName' field.
-            SOpRef(info, sargs, depth, names.head, names, ovl, newOvl, ovlType)
+            SOpRef(info, sargs, depth, names.head, names, ovl, newOvl, None, None)
         }
 
       // OpExpr checks to make sure its OpRef can be disambiguated, since
@@ -799,7 +799,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * if they want to report an error.
    */
   private def opRefHelper(op: FunctionalRef) = op match {
-    case SOpRef(info, sargs, depth, _, names, oldOvl, overloadings, ovlType) =>
+    case SOpRef(info, sargs, depth, _, names, oldOvl, overloadings, _, _) =>
       val op_name = names.head.asInstanceOf[Op]
       val ops: JSet[IdOrOp] = env.explicitFunctionNames(op_name)
       if (ops.isEmpty) None
@@ -810,7 +810,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         // operator names.
         Some(SOpRef(info, sargs, depth, op_name, new_ops,
                     new_ops.map(new Overloading(info, _, op_name, None)),
-                    unambiguous_ops.map(new Overloading(info, _, op_name, None)), ovlType))
+                    unambiguous_ops.map(new Overloading(info, _, op_name, None)), None, None))
       }
     case _ => None
   }

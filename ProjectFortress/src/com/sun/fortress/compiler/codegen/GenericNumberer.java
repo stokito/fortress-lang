@@ -115,9 +115,9 @@ public class GenericNumberer extends NodeUpdateVisitor {
         // what about overloadings?
         List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
         List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
-        
+        Option<Type> schema_result = recurOnOptionOfType(that.getOverloadingSchema());
         Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
-        return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result);
+        return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result, schema_result);
     }
 
     @Override

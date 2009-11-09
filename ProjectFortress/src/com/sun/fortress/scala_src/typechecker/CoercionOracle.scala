@@ -42,7 +42,7 @@ class CoercionOracle(traits: TraitTable,
                     (implicit analyzer: TypeAnalyzer) {
   
   /** A coercion index and its arrow type with lifted params instantiated. */
-  type LiftedCoercion = (Coercion, ArrowType)
+  type LiftedCoercion = (Coercion, ArrowType, ArrowType)
 
   /**
    * Create the Id for an invocation of a coercion to trait U. If the trait's
@@ -109,7 +109,7 @@ class CoercionOracle(traits: TraitTable,
     def instantiateArrow(c: Coercion): Option[LiftedCoercion] = {
       makeArrowFromFunctional(c).flatMap(arrow =>
         instantiateLiftedStaticParams(sargs, arrow).map(instArrow =>
-          (c, instArrow.asInstanceOf[ArrowType])))
+          (c, instArrow.asInstanceOf[ArrowType], arrow)))
     }
 
     // Get all the arrows that were found.
@@ -166,7 +166,7 @@ class CoercionOracle(traits: TraitTable,
     val allLiftedCoercions = getCoercionsTo(u)
     val coercionsAndArgs = allLiftedCoercions flatMap { liftedCoercion =>
       inferStaticParams(liftedCoercion._2, t, None) map { arrowAndSargs =>
-        (liftedCoercion._1, arrowAndSargs._1, arrowAndSargs._2)
+        (liftedCoercion._1, arrowAndSargs._1, arrowAndSargs._2, liftedCoercion._3)
       }
     }
     if (coercionsAndArgs.isEmpty) return None
@@ -189,7 +189,7 @@ class CoercionOracle(traits: TraitTable,
       val overloadingId = setSpan(coercionId, coercionNameSpan).asInstanceOf[Id]
       
       // Use coercionId as originalName -- no idea what the real name should be
-      SOverloading(SSpanInfo(coercionNameSpan), coercionId, coercionId, Some(caa._2))
+      SOverloading(SSpanInfo(coercionNameSpan), coercionId, coercionId, Some(caa._2), Some(caa._4))
     }
 
     // Make a dummy functional ref.

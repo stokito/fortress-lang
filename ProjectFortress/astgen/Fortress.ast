@@ -810,7 +810,8 @@ interface Node() extends HasAt;
                                                List<IdOrOp> names,
                                                List<Overloading> interpOverloadings,
                                                List<Overloading> newOverloadings,
-                                               Option<Type> overloadingType);
+                                               Option<Type> overloadingType,
+                                               Option<Type> overloadingSchema = Option.<Type>none());
                             /**
                              * expression with static instantiations
                              * list of ids allows cross-API overloading
@@ -974,7 +975,8 @@ interface Node() extends HasAt;
                         MethodInvocation(Expr obj, Id method,
                                          List<StaticArg> staticArgs,
                                          Expr arg,
-                                         Option<Type> overloadingType = Option.<Type>none());
+                                         Option<Type> overloadingType = Option.<Type>none(),
+                                         Option<Type> overloadingSchema = Option.<Type>none());
                         /**
                          * primary expression without any dots
                          * MathPrimary ::= PrimaryFront MathItem*
@@ -1688,7 +1690,8 @@ interface Node() extends HasAt;
              */
             Overloading(IdOrOp unambiguousName,
                         IdOrOp originalName,
-                        Option<ArrowType> type);
+                        Option<ArrowType> type,
+                        Option<ArrowType> schema = Option.<ArrowType>none());
 
             /** syntactic abstraction nodes ************************************/
 

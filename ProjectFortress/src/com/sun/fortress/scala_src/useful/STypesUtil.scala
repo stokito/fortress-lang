@@ -804,7 +804,7 @@ object STypesUtil {
                               liftedInfSargs: List[StaticArg])
                              (implicit analyzer: TypeAnalyzer)
                               : Option[Overloading] = {
-    val SOverloading(ovInfo, ovName, origName, Some(ovType)) = overloading
+    val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
 
     // If static args, then instantiate the unlifted static params.
     val typ1 =
@@ -829,7 +829,7 @@ object STypesUtil {
       else
         return None
 
-    Some(SOverloading(ovInfo, ovName, origName, Some(newOvType)))
+    Some(SOverloading(ovInfo, ovName, origName, Some(newOvType), schema))
   }
 
   /**
