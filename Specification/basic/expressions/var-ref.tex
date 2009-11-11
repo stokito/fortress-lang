@@ -27,14 +27,15 @@
 
 \end{Grammar}
 
-A name that is not an operator appearing in an expression context is called
+A name that is not an operator name appearing in an expression context is called
   an \emph{identifier reference}.
 It evaluates to the value of the name in the enclosing scope in the value
   namespace.  The type of an identifier reference is the declared type of
   the name.
 See \chapref{names} for a discussion of names.
 An identifier reference performs a memory read operation.
-Note in particular that if a name is not in scope,
+\marginnote{Is this true even for immutable variables?}
+If a name is not in scope,
 it is a static error (as described in \secref{shadowing}).
 
 An identifier reference which denotes a polymorphic function
@@ -57,6 +58,14 @@ When a functional method is invoked, the corresponding argument is bound to
 the \KWD{self} parameter; the value of \KWD{self} is the argument passed to it.
 The type of \KWD{self} is the type of the trait or object being declared by
 the innermost enclosing trait or object declaration or object expression.
+\marginnote{I thought that for object expressions, the type of \EXP{\mathord{\KWD{self}}}
+was the intersection of the traits it lists in its \KWD{extends} clause.
+In particular, if it includes a ``method declaration'' with a new name \VAR{m}
+(not one inherited from one of its supertypes), we cannot invoke \EXP{\mathord{\KWD{self}}.m},
+because \VAR{m} isn't really a new method--just a local function declaration.
+(There are other distinctions between the type of an object expression and
+the intersection of the traits it extends, so we should think about this issue more carefully.)
+}
 % The new self-type idiom
 If the innermost enclosing such construct is a trait declaration (for a trait called,
 say, `\EXP{T}'), and that trait declaration has a \KWD{comprises} clause,

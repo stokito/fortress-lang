@@ -18,6 +18,8 @@
 \section{Literals}
 \seclabel{literals}
 
+\note{We need to check whether the various types and values defined in this section are still correct.}
+
 \begin{Grammar}
 \emph{LiteralExpr} &::=& \texttt{(} \texttt{)}\\
 &$|$& \emph{NumericLiteralExpr}\\
@@ -35,6 +37,7 @@ The literal \VAR{false} has type
 \EXP{\TYP{BooleanLiteral}\llbracket\VAR{false}\rrbracket}.
 The literal \VAR{true} has type
 \EXP{\TYP{BooleanLiteral}\llbracket\VAR{true}\rrbracket}.
+\note{And these are the only values of those types.}
 
 The literal \EXP{()} is the only value with type \TYP{()}.
 Whether any given occurrence of \TYP{()} refers to the value \EXP{()} or
@@ -45,7 +48,13 @@ Each character literal consists of an abstract character in
 \unicode~\cite{Unicode},
 enclosed in single quotation marks (for example, `\txt{a}', `\txt{A}',
 `\txt{\$}', `\txt{$\alpha$}', `\txt{$\oplus$}').
-For convenience, the single quotes may be either true typographical ``curly'' single quotation marks
+\marginnote{This is not true: Character literals include ``\b'' and
+``LATIN CAPITAL A'', which do not ``consist of'' an abstract character enclosed in
+single quotation marks.  I think it's better to remove most of this discussion and
+direct the reader to the relevant section of Lexical Structure.
+This section should be about {\bf semantics} of literals:
+their values and types.}
+The single quotes may be either true typographical ``curly'' single quotation marks
 or a pair of ordinary apostrophe characters (for example, \txt{'a'}, \txt{'A'}, \txt{'\$'}, \txt{'$\alpha$'}, \txt{'$\oplus$'}).
 See \secref{preprocessing-character-literals} for a description of how names of
 characters may be used rather than actual characters within character literals,
@@ -55,7 +64,11 @@ A string literal has type \TYP{String}.
 Each string literal is a sequence of \unicode\ characters enclosed in double
 quotation marks (for example,
 ``\txt{Hello, world!}'' or ``\txt{$\pi\thinspace r^2$}'').
-For convenience, the double quotes may be either true typographical ``curly'' double  quotation marks
+\marginnote{Again, I think this paragraph should mostly be eliminated and replaced with a pointer to the relevant section of Lexical Structure.
+
+Here's a sentence I wrote as a replacement:
+``A string literal (i.e., a sequence of characters enclosed in double quotation marks---see Section 5.10 for details) has type String.''}
+The double quotes may be either true typographical ``curly'' double  quotation marks
 or a pair of ``neutral'' double-quote characters (for example,
 \txt{"Hello, world!"} or \txt{"$\pi\thinspace r^2$"}).
 \secref{preprocessing-string-literals} also describes how names of
@@ -64,6 +77,10 @@ One may also use the escape sequences \txt{{\char'134}b} and \txt{{\char'134}t}
 and \txt{{\char'134}n} and \txt{{\char'134}f} and \txt{{\char'134}r} as described in \cite{JLS}.
 
 
+\note{We may want to eliminate the distinction between simple and compound numerals,
+and just distinguish them by whether they have a radix point or not, when necessary
+(i.e., ``Numerals may have a radix point.'').  Again,
+that distinction is primarily a syntactic one, and can be discussed there if appropriate.}
 Numeric literals in Fortress are referred to as \emph{numerals},
 corresponding to various expressible numbers.
 Numerals may be either \emph{simple} or \emph{compound}
@@ -73,6 +90,22 @@ A numeral containing only digits (let $n$ be the number of digits)
 has type \EXP{\TYP{NaturalNumeral}\llbracket{}n,10,v\rrbracket} where $v$ is the value of the numeral
 interpreted in radix ten.  If the numeral has no leading zeros, or is
 the literal \EXP{0}, then it also has type \EXP{\TYP{Literal}\llbracket{}v\rrbracket}.
+\note{Can the type \EXP{\TYP{NaturalNumeral}\llbracket{}n, 10, v\rrbracket}
+have any value other than what you get from evaluating the corresponding literal?
+
+What is the relationship between \EXP{\TYP{Literal}\llbracket{}v\rrbracket}
+and \EXP{\TYP{NaturalNumeral}\llbracket{}n, 10, v\rrbracket}?
+
+We need to describe the \TYP{Numeral} type hierarchy.
+All the numeric/numeral types should be defined and their relations to each other given.
+And a reference to where that is done should be appear in this section (probably at the beginning of the section).
+}
+
+\note{Ought we discuss digit-group separators here?
+Or is that just part of lexical structure?
+(I think we intend that a numeral consisting of digits and digit-group separators has
+type \EXP{\TYP{NaturalNumeral}\llbracket{}n,10,v\rrbracket}
+for appropriate values of \VAR{n} and \VAR{v}.)}
 
 A numeral containing only digits (let $n$ be the number of
 digits) then an underscore, then a radix indicator (let $r$ be the
@@ -121,14 +154,17 @@ from numerals to integers (for simple numerals)
 and rational numbers (for compound numerals).
 
 
+\marginnote{What is an ``integer'' in this context?}
 In Fortress, dividing two integers using the $/$ operator produces
-a \emph{rational number}; this is true regardless of whether
+a \emph{rational number};\marginnote{Not if the second integer is 0.}
+this is true regardless of whether
 the integers are of type $\mathbb{Z}$ (or \txt{ZZ}),
 $\mathbb{Z}64$ (or \txt{ZZ64}), $\mathbb{N}32$ (or \txt{NN32}), or
 whatever.  Addition, subtraction, multiplication, and division of rationals
 are always exact; thus values such as \EXP{1/3} are represented exactly in
 Fortress.
 
+\note{We should give an example with a radix specifier.}
 Numerals containing a radix point are actually rational
 literals; thus \EXP{3.125} has the rational value \EXP{3125/1000}.
 The quotient of two integer literals is a static expression
@@ -143,6 +179,11 @@ converts the result to a floating-point value, thus incurring
 at most one floating-point rounding error.
 But in general rational computations may also be performed at run time,
 not just at compile time.
+\note{This specifies too much about the implementation:
+I don't think we should mention a compiler at all, except perhaps as informal discussion.
+In particular, wouldn't it be correct if this arithmetic were actually deferred and
+performed exactly at run time?}
+
 
 A rational number can be thought of as a pair of integers $p$ and $q$
 that have been reduced to ``standard form in lowest terms'';
@@ -155,6 +196,11 @@ The type $\mathbb{Q}$ includes all such rational numbers.
 The type $\mathbb{Q}^*$ relaxes the requirement $q>0$ to $q \geq 0$ and
 includes two extra values, \EXP{1/0} and \EXP{-1/0} (sometimes called ``the
 infinite rational'' and ``the indefinite rational'').
+\marginnote{Is there any subtyping or coercion relationship between \EXP{\mathbb{Q}} and
+\EXP{\mathbb{Q}*}?
+If \EXP{\mathbb{Q}} is a subtype of \EXP{\mathbb{Q}*}
+then static checking would normally disallow the assignment,
+so is this a relaxation to that rule?  If so, the static checker needs to know about it.}
 If a value of type $\mathbb{Q}^*$ is assigned to a
 variable of type $\mathbb{Q}$, a \TYP{DivisionByZero} is thrown
 at run time if the value is \EXP{1/0} or \EXP{-1/0}.
@@ -187,6 +233,7 @@ computation, it becomes an interval of the appropriate precision.
 The object named \EXP{\infty} has type \EXP{\TYP{ExtendedIntegerValue}\llbracket\VAR{true},0,\VAR{true}\rrbracket}.
 One can negate \EXP{\infty} to get a negative infinity.
 
+\note{What about spaces?  That is, is ``- 0'' treated the same as ``-0'', for example?}
 Negating the literal \EXP{0} produces a special negative-zero object,
 which refuses to participate in static arithmetic
 (discussed in \secref{static-expr}).  It

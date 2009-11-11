@@ -18,6 +18,8 @@
 \section{Naked Method Invocations}
 \seclabel{naked-method-calls}
 
+\note{Should be a static check that there is an applicable declaration.}
+
 \begin{Grammar}
 \emph{Primary} &::=& \emph{Id} \emph{Primary}\\
 
@@ -40,6 +42,8 @@ of the method body.
 
 \section{Function Calls}
 \seclabel{function-calls}
+
+\note{Should be a static check that there is an applicable declaration.}
 
 \begin{Grammar}
 \emph{Primary} &::=& \emph{Primary} \emph{Primary}\\
