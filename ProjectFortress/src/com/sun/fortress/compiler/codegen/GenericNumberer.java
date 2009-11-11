@@ -120,10 +120,11 @@ public class GenericNumberer extends NodeUpdateVisitor {
         return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result, schema_result);
     }
 
-    @Override
-    public Node forTraitSelfType(TraitSelfType that) {
-        return that.getNamed().accept(this);
-    }
+// Do nothing here.
+//    @Override
+//    public Node forTraitSelfType(TraitSelfType that) {
+//        return that.getNamed().accept(this);
+//    }
 
     @Override
     public Node forTraitType(TraitType that) {

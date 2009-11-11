@@ -16,6 +16,8 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import java.util.List;
+
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.MethodVisitor;
@@ -56,6 +58,13 @@ public abstract class VarCodeGen {
     /** Generate code to push the value of this variable onto the Java stack.
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
+    
+    public void pushValue(CodeGenMethodVisitor mv, List<String> static_args) {
+        if (static_args.size() == 0)
+            pushValue(mv);
+        else
+            throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args)); 
+    }
 
     /** Generate code to prepare to assign the value of this variable;
      *  this might push stuff on the stack.  The value can then be
@@ -152,6 +161,11 @@ public abstract class VarCodeGen {
 
         public void pushValue(CodeGenMethodVisitor mv) {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv, List<String> static_args) {
+            // TODO work in progress.
+            mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, classDesc);
         }
 
         public void prepareAssignValue(CodeGenMethodVisitor mv) {

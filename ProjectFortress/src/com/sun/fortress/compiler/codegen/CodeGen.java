@@ -742,10 +742,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
                                        returnType, component.getName());
 
-        ArrowType at = fndeclToType(x);
-        String arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
+        /* TODO Really, the canonicalization of the type names should occur
+         * in static analysis.  This has to use names that will be known
+         * at the reference site, so for now we are using the declared
+         * names.  In rare cases, this might lead to a problem.
+         */
+        ArrowType at = fndeclToType(y); // use the pre-rewritten type.
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
         String mname;
-
+        at = fndeclToType(x); // Use the new name now.
+        
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
@@ -757,16 +763,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         String PCN = packageAndClassName + Naming.GEAR +"$" +
-                        mname + sparams_part + Naming.ENVELOPE + "$" + arrow_type;
+                        mname + sparams_part + Naming.ENVELOPE + "$" + generic_arrow_type;
 
-        System.err.println(PCN);
+        // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
 
         String staticClass = PCN.replaceAll("[.]", "/");
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass);
+        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass, sig);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
@@ -1038,7 +1044,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Param> params = header.getParams();
         int selfIndex = selfParameterIndex(params);
 
-        IdOrOpOrAnonymousName name = header.getName();
+        // Someone had better get rid of anonymous names before they get to CG.
+        IdOrOp name = (IdOrOp) header.getName();
+        IdOrOp uaname = (IdOrOp) x.getUnambiguousName();
 
         if (emittingFunctionalMethodWrappers) {
             if (selfIndex==NO_SELF)
@@ -1103,8 +1111,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // class files for one Fortress component
 
             if (! sparams.isEmpty()) {
-                generateGenericMethodClass(x, (IdOrOp)name,
-                                           selfIndex);
+                generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
+                if (!name.getText().equals(uaname.getText()))
+                    generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
             } else if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, (IdOrOp)name,
                                         params, selfIndex, returnType, savedInATrait);
@@ -1600,6 +1609,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              */
 
             String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
+            
             pkgClass = pkgClass + Naming.GEAR + "$" +
                     calleeInfo.getB() +
                     decoration +
@@ -2337,9 +2347,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forVarRef(VarRef v) {
-        if (v.getStaticArgs().size() > 0) {
-            sayWhat(v,"varRef with static args!  That requires non-local VarRefs.  We can't deal for now.");
-        }
+        List<StaticArg> sargs = v.getStaticArgs();
         Id id = v.getVarId();
         VarCodeGen vcg = getLocalVarOrNull(id);
         if (vcg == null) {

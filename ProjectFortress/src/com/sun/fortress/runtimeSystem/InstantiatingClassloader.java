@@ -267,7 +267,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
-        closureClassPrefix(name, cw, null);
+        closureClassPrefix(name, cw, null, null);
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -278,7 +278,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param name
      * @param cw
      */
-    public static void closureClassPrefix(String name, ManglingClassWriter cw, String staticClass) {
+    public static void closureClassPrefix(String name, ManglingClassWriter cw, String staticClass, String sig) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
 
@@ -291,8 +291,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         String stem = ft.substring(0,left);
-        ArrayList<String> parameters = extractStringParameters(
-                                                               ft, left, right);
+        ArrayList<String> parameters = extractStringParameters(ft, left, right);
+        
+        if (sig == null)
+            sig = arrowParamsToJVMsig(parameters);
 
         /*
          * Recipe:
@@ -347,7 +349,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();
         }
         {
-            String sig = arrowParamsToJVMsig(parameters);
             // What if staticClass is compiler builtin?  How do we know?
             if (staticClass == null)
                 staticClass = api.replaceAll("[.]", "/");
