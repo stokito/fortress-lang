@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.TraitType;
@@ -935,6 +936,10 @@ public class NamingCzar {
                     throw new CompilerError(id,"no api name given for id");
                 }
                 List<StaticParam> sparams = t.getStaticParams();
+                List<StaticArg> sargs = t.getArgs();
+                
+                // TODO work in progress -- need to expand with StaticArg if those are available.
+
                 result = makeInnerClassName(api,id, forStaticParams(sparams));
                 if (withLSemi)
                     result = internalToDesc(result);

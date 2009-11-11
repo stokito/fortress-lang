@@ -59,8 +59,8 @@ public abstract class VarCodeGen {
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
     
-    public void pushValue(CodeGenMethodVisitor mv, List<String> static_args) {
-        if (static_args.size() == 0)
+    public void pushValue(CodeGenMethodVisitor mv, String static_args) {
+        if (static_args.length() == 0)
             pushValue(mv);
         else
             throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args)); 
@@ -163,7 +163,7 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void pushValue(CodeGenMethodVisitor mv, List<String> static_args) {
+        public void pushValue(CodeGenMethodVisitor mv,String static_args) {
             // TODO work in progress.
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, classDesc);
         }

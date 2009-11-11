@@ -217,18 +217,33 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return clazz;
     }
 
-    private String functionTemplateName(String dename, Map<String, String> xlation) {
-        // We have a mangling problem here.
-        int mangleBegin = dename.indexOf(Naming.GEAR)+1; // A mangled string follows
-        String firstPart = dename.substring(0, mangleBegin);
-        String name = dename.substring(mangleBegin);
+    private String functionTemplateName(String name, Map<String, String> xlation) {
+        int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
+        int right_oxford = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
+        
+        String s = canonicalizeStaticParameters(name, left_oxford,
+                right_oxford, xlation);
+        
+        return Naming.mangleFortressIdentifier(s);
+    }
 
-        int genericBegin = name.indexOf(Naming.LEFT_OXFORD) + 1;
-        int genericEnd = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
-        String template_start = name.substring(0,genericBegin);
-        String template_end = name.substring(genericEnd);
+    /**
+     * 
+     * 
+     * 
+     * @param name
+     * @param left_oxford
+     * @param right_oxford
+     * @param xlation
+     * @return
+     * @throws Error
+     */
+    public String canonicalizeStaticParameters(String name, int left_oxford,
+            int right_oxford, Map<String, String> xlation) throws Error {
+        String template_start = name.substring(0,left_oxford+1);
+        String template_end = name.substring(right_oxford);
         // Note include trailing oxford to simplify loop termination.
-        String generics = name.substring(genericBegin, genericEnd);
+        String generics = name.substring(left_oxford+1, right_oxford);
         String template_middle = "";
         int i = 1;
         while (generics.length() > 0) {
@@ -260,8 +275,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             generics = generics.substring(end+1);
             i++;
         }
-        return Naming.mangleFortressIdentifier(firstPart +  template_start + template_middle + template_end);
-        // return firstPart +  template_start + template_middle + template_end;
+        String s = template_start + template_middle + template_end;
+        return s;
     }
 
     private static byte[] instantiateClosure(String name) {
