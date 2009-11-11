@@ -50,16 +50,55 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 trait Common { self: STypeChecker =>
 
   // TODO: Rewrite this method!
-  def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere]) = {
-
+  def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere])
+                      : Relation[IdOrOpOrAnonymousName, Method] = {
     // Return all of the methods from super-traits
+    // def inheritedMethodsHelper(history: HierarchyHistory,
+
+    //                            extended_traits: Iterable[TraitTypeWhere])
+    //                            : scala.Unit = {
+    //   for ( STraitTypeWhere(_, ty: TraitType, _) <- extended_traits;
+    //         if history.explore(ty)) {
+    //     val name = ty.getName
+    //     toOption(traits.typeCons(name)) match {
+    //       case ti : TraitIndex =>
+    //         val trait_args = ty.getArgs
+    //         val trait_params = ti.staticParameters
+    //         // Instantiate methods with static args
+    //         for ( pair <- toSet(ti.dottedMethods) ) {
+    //             methods.add(pair.first,
+    //                         pair.second.instantiate(trait_params,trait_args)
+    //                         .asInstanceOf[Method])
+    //         }
+    //         for ( kv <- toSet(ti.getters.entrySet) ) {
+    //             methods.add(kv.getKey,
+    //                         kv.getValue.instantiate(trait_params,trait_args)
+    //                         .asInstanceOf[Method])
+    //         }
+    //         for ( kv <- toSet(ti.setters.entrySet) ) {
+    //             methods.add(kv.getKey,
+    //                         kv.getValue.instantiate(trait_params,trait_args)
+    //                         .asInstanceOf[Method])
+    //         }
+    //         val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
+    //         val instantiated_extends_types =
+    //           toList(ti.extendsTypes).map( (t:TraitTypeWhere) =>
+    //                 t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+    //         // remove history.copy below.
+    //         inheritedMethodsHelper(history.copy, methods, instantiated_extends_types)
+    //       case _ =>
+    //     }
+    //   }
+    // }
+    // val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
+    // inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
+    // methods
     def inheritedMethodsHelper(history: HierarchyHistory,
+                               methods: Relation[IdOrOpOrAnonymousName, Method],
                                extended_traits: Iterable[TraitTypeWhere])
-                               : Relation[IdOrOpOrAnonymousName, Method] = {
-      val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
-      var done = false
+                               : scala.Unit = {
       var h = history
-      for ( trait_ <- extended_traits if (! done) ) {
+      for ( trait_ <- extended_traits) {
         val type_ = trait_.getBaseType
         if ( h.explore(type_) ) {
           type_ match {
@@ -90,18 +129,19 @@ trait Common { self: STypeChecker =>
                       toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                             t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
                     val old_hist = h.copy
-                    methods.addAll(inheritedMethodsHelper(h, instantiated_extends_types))
+                    inheritedMethodsHelper(h, methods, instantiated_extends_types)
                     h = old_hist
-                  } else done = true
-                case _ => done = true
+                  }
+                case _ =>
               }
-            case _ => done = true
+            case _ =>
           }
         }
       }
-      methods
     }
-    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits)
+    val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
+    inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
+    methods
   }
 
   protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,

@@ -939,6 +939,35 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        }}
   }
 
+  // private def inheritedMethodsHelper(hist: HierarchyHistory,
+  //                                    extended_traits: List[TraitTypeWhere])
+  //                                   : (Set[Id], Set[FnDecl]) = {
+  //   extended_traits.foldLeft((Set[Id](), Set[FnDecl]()))
+  //     {(res, t) => (res, t) match {
+  //        case ((accessors, methods), STraitTypeWhere(_, base: NamedType, _))
+  //             if hist.explore(base) =>
+  //          // Trait types or VarTypes can represent traits at this phase of compilation.
+  //          val trait_name = base.getName
+  //          env.typeConsIndex(trait_name) match {
+  //            case ti:TraitIndex =>
+  //              val (my_acc, my_meth) =
+  //                  (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
+  //                   methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
+  //              // Now recursively add methods from trait's extends clause
+  //              val (inherited_acc, inherited_meth) =
+  //                  inheritedMethodsHelper(hist.copy, toList(ti.extendsTypes))
+  //              (my_acc ++ inherited_acc, my_meth ++ inherited_meth)
+  //            case tci =>
+  //              if (tci == null)
+  //                error("Type variable " + trait_name + " must not appear " +
+  //                      "in the extends clause of a trait or object declaration.",
+  //                      trait_name)
+  //              res // Probably ANY
+  //          }
+  //        case _ => res
+  //      }}
+  // }
+
   private def setToList[T](set: Set[T]): List[T] = {
     var list = List[T]()
     for (x <- set.elements) { list = x :: list }

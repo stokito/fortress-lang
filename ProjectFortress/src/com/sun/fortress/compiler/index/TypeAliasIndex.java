@@ -29,23 +29,23 @@ public class TypeAliasIndex extends TypeConsIndex {
     private final TypeAlias _ast;
 
     public TypeAliasIndex(TypeAlias ast) {
-	_ast = ast;
+        _ast = ast;
     }
 
     public TypeAlias ast() {
-	return _ast;
+        return _ast;
     }
 
     public List<StaticParam> staticParameters() {
-	return _ast.getStaticParams();
+        return _ast.getStaticParams();
     }
 
     public Type type() {
-	return _ast.getTypeDef();
+        return _ast.getTypeDef();
     }
 
     @Override
     public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-	return new TypeAliasIndex((TypeAlias) _ast.accept(visitor));
+        return new TypeAliasIndex((TypeAlias) _ast.accept(visitor));
     }
 }

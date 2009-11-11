@@ -54,45 +54,45 @@ object TypeParser extends RegexParsers {
   def staticParams: Parser[List[StaticParam]] = "[" ~> repsep(staticParam, ",") <~ "]"
   def staticParam: Parser[StaticParam] = regex(VAR) ~ opt("<:" ~> baseType) ^^
     {case id~bounds => makeTypeParam(typeSpan, makeId(typeSpan, id), toJavaList(List(bounds.getOrElse(OBJECT))), none[Type], false)}
-  
+
   def typ: Parser[Type] = arrowType | nonArrowType
-  
+
   def arrowType: Parser[ArrowType] = nonArrowType ~ "->" ~ typ ^^
     {case dom~_~ran => makeArrowType(typeSpan,dom, ran)}
-    
+
   def nonArrowType: Parser[Type] = baseType | tupleType | intersectionType | unionType
-  
+
   def tupleType: Parser[Type] = "(" ~> repsep(typ, ",") <~ ")" ^^
     {typs => makeMaybeTupleType(typeSpan, toJavaList(typs))}
-  
+
   def baseType: Parser[BaseType] = anyType | bottomType | traitType | varType
-  
+
   def namedType: Parser[NamedType] = traitType | varType
 
   def anyType: Parser[AnyType] = literal("ANY") ^^ {x => ANY}
-  
+
   def bottomType: Parser[BottomType] = literal("BOTTOM") ^^ {x => BOTTOM}
-  
-  def intersectionType: Parser[Type] = "&&" ~> "{" ~> repsep(typ, ",") <~ "}" ^^ 
+
+  def intersectionType: Parser[Type] = "&&" ~> "{" ~> repsep(typ, ",") <~ "}" ^^
     {x => makeMaybeIntersectionType(toJavaList(x))}
-  
+
   def unionType: Parser[Type] = "||" ~> "{" ~> repsep(typ, ",") <~ "}" ^^
     { x => makeMaybeUnionType(toJavaList(x))}
-  
-  def varType: Parser[VarType] = regex(VAR) ^^ 
+
+  def varType: Parser[VarType] = regex(VAR) ^^
     {id => makeVarType(typeSpan, id)}
-  
-  def traitType: Parser[TraitType] = regex(TRAIT) ~ opt(staticArgs) ^^ 
+
+  def traitType: Parser[TraitType] = regex(TRAIT) ~ opt(staticArgs) ^^
     {case id~args => makeTraitType(typeSpan, id, toJavaList(args.getOrElse(Nil)))}
   def staticArgs: Parser[List[StaticArg]] = "[" ~> repsep(staticArg, ",") <~ "]"
-  def staticArg: Parser[StaticArg] = typ ^^ 
+  def staticArg: Parser[StaticArg] = typ ^^
     {t => makeTypeArg(typeSpan, t)}
-  
-  def traitIndex: Parser[TraitIndex] = "trait" ~> traitSchema ~ 
+
+  def traitIndex: Parser[TraitIndex] = "trait" ~> traitSchema ~
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ~
     opt("excludes {" ~> repsep(baseType, ",") <~ "}") ~
     opt("comprises {" ~> repsep(namedType, ",") <~ "}") ^^
-    {case tType~mSupers~mExcludes~mComprises => 
+    {case tType~mSupers~mExcludes~mComprises =>
       val supers = mSupers.getOrElse(Nil)
       val excludes = mExcludes.getOrElse(Nil)
       val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
@@ -109,9 +109,9 @@ object TypeParser extends RegexParsers {
      ti
   }
 
-  def objectIndex: Parser[TraitIndex] = "object" ~> traitSchema ~ 
+  def objectIndex: Parser[TraitIndex] = "object" ~> traitSchema ~
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ^^
-    {case tType~mSupers => 
+    {case tType~mSupers =>
       val supers = mSupers.getOrElse(Nil)
       val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
       val ast = makeObjectDecl(tType, toJavaList(superWheres))
@@ -125,15 +125,15 @@ object TypeParser extends RegexParsers {
                            CollectUtil.emptyRelation[IdOrOpOrAnonymousName,DeclaredMethod],
                            CollectUtil.emptyRelation[IdOrOpOrAnonymousName,FunctionalMethod])
   }
-    
+
   def typeAnalyzer: Parser[TypeAnalyzer] = "{" ~> repsep(traitIndex | objectIndex, ",") <~ "}" ^^
-    {traits => 
+    {traits =>
       val component = makeComponentIndex("OverloadingTest", traits)
       TypeAnalyzer.make(new TraitTable(component, GLOBAL_ENV))
     }
-  
+
   def overloadingSet: Parser[List[ArrowType]] = "{" ~> repsep(arrowTypeSchema, ",") <~ "}"
-  
+
   def makeComponentIndex(name: String, traits: List[TraitIndex]): ComponentIndex = {
     val traitDecls = traits.map(_.ast.asInstanceOf[Decl])
     val traitMap = Map(traits.map(t=> (getName(t.ast),t)):_*)
@@ -149,7 +149,7 @@ object TypeParser extends RegexParsers {
                        toJavaMap(Map()),
                        0)
   }
-  
+
   def makeApiIndex(name: String, traits: List[TraitIndex]): ApiIndex = {
     val traitDecls = traits.map(_.ast.asInstanceOf[Decl])
     val traitMap = Map(traits.map(t=> (getName(t.ast),t)):_*)
@@ -165,11 +165,11 @@ object TypeParser extends RegexParsers {
                         toJavaMap(Map()),
                         0);
   }
-  
+
   val GLOBAL_ENV = {
     val any = makeApiIndex(anyTypeLibrary, List(parse(traitIndex, "trait Any").get))
     val obj = makeApiIndex(fortressBuiltin, List(parse(traitIndex, "trait Object").get))
     new GlobalEnvironment.FromMap(toJavaMap(Map((any.ast.getName, any), (obj.ast.getName, obj))))
   }
-  
+
 }

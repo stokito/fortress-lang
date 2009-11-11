@@ -20,7 +20,10 @@ package com.sun.fortress.scala_src.useful
 import _root_.java.util.ArrayList
 import _root_.java.util.{Map => JMap}
 import scala.collection.{Set => CSet}
+import scala.collection.jcl.MutableIterator.Wrapper
 import edu.rice.cs.plt.tuple.Pair
+import edu.rice.cs.plt.collect.Relation
+import edu.rice.cs.plt.collect.IndexedRelation
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.Types.ANY
@@ -47,10 +50,15 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
+import com.sun.fortress.useful.MultiMap
 import com.sun.fortress.useful.NI
 
 
 object STypesUtil {
+
+  private implicit def asIterable[A](it : _root_.java.lang.Iterable[A]) =
+    new Wrapper(it.iterator)
+
   // Make sure we don't infinitely explore supertraits that are cyclic
   class HierarchyHistory {
     var explored = Set[Type]()
@@ -874,66 +882,88 @@ object STypesUtil {
                        extendedTraits: List[TraitTypeWhere],
                        initial: Set[(IdOrOpOrAnonymousName,
                                          (Functional, StaticTypeReplacer))],
-                       analyzer: TypeAnalyzer) = {
+                       analyzer: TypeAnalyzer)
+                       : Relation[IdOrOpOrAnonymousName,
+                                  (Functional, StaticTypeReplacer, TraitType)] = {
+    val methods =
+        new IndexedRelation[IdOrOpOrAnonymousName,
+                            (Functional, StaticTypeReplacer, TraitType)](false)
+    val emptySet = Set[Type]()
     // Return all of the methods from super-traits
     def inheritedMethodsHelper(history: HierarchyHistory,
                                extended_traits: List[TraitTypeWhere],
-                               given: Set[(String, Type)])
-                              : Set[(IdOrOpOrAnonymousName,
-                                         (Functional, StaticTypeReplacer, TraitType))] = {
+                               given: Map[String, Set[Type]]) : scala.Unit = {
       var allMethods = given
+      def addToAllMethods(fname: String, paramTy: Type) = {
+          val newSet = allMethods.getOrElse(fname, emptySet) + paramTy
+          allMethods = allMethods.update(fname, newSet)
+      }
+
       // a set of inherited methods:
       // a set of pairs of method names and
       //                   triples of Functionals, static parameters substitutions, and declaring trait
-      var methods = Set[(IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType))]()
-      var h = history
-      for (trait_ <- extended_traits) {
+      for (trait_ <- extended_traits ) {
         val type_ = trait_.getBaseType
-        if ( h.explore(type_) ) {
+        if ( history.explore(type_) ) {
           type_ match {
-            case ty@STraitType(_, name, trait_args, params) =>
+            case ty@STraitType(_, name, trait_args, _) =>
               toOption(traits.typeCons(name)) match {
                 case Some(ti : TraitIndex) =>
                     val tindex = ti.asInstanceOf[TraitIndex]
                     // Instantiate methods with static args
                     val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
                                                               toJavaList(trait_args))
-                    var collected = toSet(tindex.dottedMethods).map(p => (p.first, p.second))
-                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
-                    collected ++= toSet(tindex.functionalMethods).map(p => (p.first, p.second))
-                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
-                    collected ++= toSet(tindex.getters.entrySet).map(e => (e.getKey, e.getValue))
-                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
-                    collected ++= toSet(tindex.setters.entrySet).map(e => (e.getKey, e.getValue))
-                      .asInstanceOf[Collection[(IdOrOpOrAnonymousName, Functional)]]
-                    for ( (method_name : IdOrOp, method_func) <- collected ) {
-                      val new_pair = toNameParamTy(method_name, method_func)
-                      val fname = new_pair._1
-                      val paramTy = paramsToArgs.replaceIn(new_pair._2)
+                    def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
+                      val (fname, paramTy0) = toNameParamTy(methodName, methodFunc)
+                      val paramTy = paramsToArgs.replaceIn(paramTy0)
                       if (!isOverride(fname, paramTy, allMethods, analyzer)) {
-                        methods += ((method_name, (method_func, paramsToArgs, ty)))
-                        allMethods += ((fname, paramTy))
+                        methods.add(methodName, (methodFunc, paramsToArgs, ty))
+                        addToAllMethods(fname, paramTy)
                       }
                     }
+                    def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
+                      t.first match {
+                        case id : IdOrOp => oneMethod(id, t.second)
+                        case _ => ()
+                      }
+                    def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
+                    ti.dottedMethods.foreach(onePair)
+                    ti.functionalMethods.foreach(onePair)
+                    ti.getters.entrySet.foreach(oneMapping)
+                    ti.setters.entrySet.foreach(oneMapping)
                     val instantiated_extends_types =
-                      toList(tindex.extendsTypes).map(_.accept(paramsToArgs).asInstanceOf[TraitTypeWhere])
-                    val old_hist = h
-                    val inherited = inheritedMethodsHelper(h, instantiated_extends_types,
-                                                           allMethods)
-                    methods ++= inherited
-                    allMethods ++= inherited.map(p => toNameParamTy(p._1, p._2._1))
-                    h = old_hist
-                case _ => return methods
+                      toList(ti.extendsTypes).map(_.accept(paramsToArgs)
+                                                       .asInstanceOf[TraitTypeWhere])
+                    inheritedMethodsHelper(history, instantiated_extends_types, allMethods)
+                case _ =>
               }
-            case _ => return methods
+            case _ =>
           }
         }
       }
-      methods
+      ()
     }
-    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits,
-                           initial.map(p => toNameParamTy(p._1, p._2._1)))
+    var initialMap = Map[String, Set[Type]]()
+    for ( (id, (fnl, _)) <- initial ) {
+        val (fname, ty) = toNameParamTy(id,fnl)
+        val newSet = initialMap.getOrElse(fname, emptySet) + ty
+        initialMap = initialMap.update(fname, newSet)
+    }
+    inheritedMethodsHelper(new HierarchyHistory(), extendedTraits, initialMap)
+    methods
   }
+
+  // def inheritedMethods(traits: TraitTable,
+  //                      extendedTraits: List[TraitTypeWhere],
+  //                      initial: Set[(IdOrOpOrAnonymousName,
+  //                                        (Functional, StaticTypeReplacer))],
+  //                      analyzer: TypeAnalyzer)
+  //                      : Relation[IdOrOpOrAnonymousName,
+  //                                 (Functional, StaticTypeReplacer,
+  //                      TraitType)] = {
+  //   types = extendedTraits.map((t
+  //   inheritedMethods(traits, types, initial, analyzer)
+  // }
 
   private def toNameParamTy(name: IdOrOpOrAnonymousName, func: Functional) = {
     val span = NU.getSpan(name)
@@ -945,10 +975,10 @@ object STypesUtil {
   }
 
   private def isOverride(fname: String, paramTy: Type,
-                         allMethods: Set[(String, Type)],
+                         allMethods: Map[String, Set[Type]],
                          analyzer: TypeAnalyzer): Boolean = {
-    for (f <- allMethods; if fname.equals(f._1)) {
-      if (analyzer.equivalent(paramTy, f._2).isTrue) return true
+    for (tys <- allMethods.get(fname); t <- tys) {
+      if (analyzer.equivalent(paramTy, t).isTrue) return true
     }
     false
   }
