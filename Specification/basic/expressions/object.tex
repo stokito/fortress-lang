@@ -18,7 +18,15 @@
 \section{Object Expressions}
 \seclabel{object-expr}
 
-\note{Property declarations and \KWD{where} clauses are not yet supported.}
+\note{Property declarations and \KWD{where} clauses are not yet supported.
+
+No naked type variables in \KWD{extends} clause.
+
+The type (tag?) of the {\bf object} resulting from evaluating an object expression is
+this anonymous object trait type, but is the static type of the object expression that?
+
+No new functional methods within object expressions.
+}
 
 \begin{Grammar}
 \emph{DelimitedExpr} &::=&

@@ -34,6 +34,12 @@ The type of the field access is the return type of its getter.
 The static type of
 the receiver indicates whether a getter mapped from that identifier is
 provided by the denoted object.  If a getter is not provided, it is a
-static error.  See \secref{methods} for a discussion of getters.
+static error.
+\marginnote{Not exactly: An object (i.e., the actual value at run time)
+may provide a getter but if the static type of the receiver expression doesn't
+provide the getter, then the getter can't be called in this context.  So just say that
+it is a static error if the static type of the receiver doesn't provide the getter,
+without making any claim about whether the denoted object provides the getter.}
+See \secref{methods} for a discussion of getters.
 The evaluation of the receiver must complete normally before the body of
 the getter is evaluated.
