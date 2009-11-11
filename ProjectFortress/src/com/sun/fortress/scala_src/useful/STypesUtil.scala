@@ -855,19 +855,19 @@ object STypesUtil {
 
       // Use original static args if any were given.
       // Otherwise use the unlifted inferred static args, if any.
-      val newSargs =
-        if (fn.getStaticArgs.isEmpty) unliftedSargs else toList(fn.getStaticArgs)
+//      val newSargs =
+//        if (fn.getStaticArgs.isEmpty) unliftedSargs else toList(fn.getStaticArgs)
 
       // Get the dynamically applicable overloadings.
       val overloadings =
         toList(fn.getNewOverloadings).
-        flatMap(o => isDynamicallyApplicable(o, arrow, newSargs, liftedSargs))
+        flatMap(o => isDynamicallyApplicable(o, arrow, unliftedSargs, liftedSargs))
 
       // Add in the filtered overloadings, the inferred static args,
       // and the statically most applicable arrow to the fn.
       addType(
         addStaticArgs(
-          addOverloadings(fn, overloadings), newSargs), arrow)
+          addOverloadings(fn, overloadings), unliftedSargs), arrow)
 
     case _ if !sargs.isEmpty =>
       NI.nyi("No place to put inferred static args in application.")

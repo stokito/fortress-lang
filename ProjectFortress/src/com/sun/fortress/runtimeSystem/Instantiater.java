@@ -175,6 +175,9 @@ public class Instantiater extends ClassAdapter {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
+        // necessary?
+        name = xlation.getCompletely(name);
+        desc = xlation.getDesc(desc);
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
 
         return new MethodInstantiater(mv, xlation);

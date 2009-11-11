@@ -130,12 +130,15 @@ object SExprUtil {
   }
 
   /**
-   * Replaces the static args in a FunctionalRef with the given ones.
+   * Replaces the static args in a FunctionalRef with the given ones, but only
+   * if the FunctionalRef didn't already have any.
    */
   def addStaticArgs(fnRef: FunctionalRef,
                     sargs: List[StaticArg]): FunctionalRef = fnRef match {
-    case SFnRef(a, _, c, d, e, f, g, h, i) => SFnRef(a, sargs, c, d, e, f, g, h, i)
-    case SOpRef(a, _, c, d, e, f, g, h, i) => SOpRef(a, sargs, c, d, e, f, g, h, i)
+    case SFnRef(a, Nil, c, d, e, f, g, h, i) => SFnRef(a, sargs, c, d, e, f, g, h, i)
+    case SOpRef(a, Nil, c, d, e, f, g, h, i) => SOpRef(a, sargs, c, d, e, f, g, h, i)
+    case f:FnRef => f
+    case f:OpRef => f
     case _ => NI.nyi()
   }
 
