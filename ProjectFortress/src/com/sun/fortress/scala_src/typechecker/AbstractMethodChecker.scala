@@ -71,16 +71,16 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-        val inherited = inheritedMethods(traits, extendsC, Set(), typeAnalyzer)
-                        .map(t => t._1.asInstanceOf[IdOrOp].getText)
+        val inherited = toSet(inheritedMethods(traits, extendsC, Set(), typeAnalyzer).firstSet)
+                        .map(t => t.asInstanceOf[IdOrOp].getText)
         for {
           d <- decls;
           if d.isInstanceOf[FnDecl];
           if NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl]));
           if !inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp]
                                .getText.equals(_))
-        } error(span, "Object expressions should not define any new " +
-                      "functional methods.")
+        } error(NU.getSpan(d),
+                "Object expressions should not define any new functional methods.")
 
       case _ => super.walk(node)
     }
@@ -111,7 +111,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                                      Set(), typeAnalyzer)
     var res = List[(TraitType, FnDecl)]()
     for {
-      (_,(meth : HasSelfType, _, tt)) <- inherited
+      (meth : HasSelfType, _, tt) <- toSet(inherited.secondSet)
       decl <- meth match {
         case f : JavaFunctionalMethod => Some(f.ast())
         case m : JavaDeclaredMethod => Some(m.ast())

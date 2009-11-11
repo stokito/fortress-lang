@@ -49,7 +49,7 @@ class HygienicRenamer(constituent: APIName,
 
   def findImportedNames(comp: ComponentIndex) = findNames(comp, false)
   def findExportedNames(comp: ComponentIndex) = findNames(comp, true)
-  
+
   def findNames(comp: ComponentIndex, exported: Boolean) = {
     val result = new HashMap[IdOrOpOrAnonymousName, APIName]()
     var apis = List[APIName]()
@@ -294,6 +294,6 @@ class HygienicRenamer(constituent: APIName,
          case xs:List[_] => xs.map(walk _)
          case xs:Option[_] => xs.map(walk _)
          case _ => node
-      
+
     }
 }
