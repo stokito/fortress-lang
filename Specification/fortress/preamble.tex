@@ -72,7 +72,7 @@ The not-yet-supported features include:
 \item qualified names
 \item identifiers including connecting punctuations
 \item ASCII conversion
-\item Uicode canonicalization
+\item Unicode canonicalization
 \item array comprehensions
 \item reduction variables
 \item object copy
@@ -85,12 +85,14 @@ The not-yet-supported features include:
 \item dimensions and units
 \item tests and properties
 \item type aliases
-\item where clauses
+\item where clauses and conditional extension
 \item abstract function declarations
 \item checked exceptions, deferred exceptions, and chained exceptions
-\item contract checking
+\item contract checking (overloaded functionals and method overriding)
 \item static expressions, static range types, and some range operations
-\item some types (HeapSequence, LinearSequence, $\mathbb{Q}$
+\item some types (\TYP{HeapSequence},
+\TYP{LinearSequence}, $\mathbb{Q}$,
+\TYP{Numeral}, \EXP{\mathbb{Z}}, \EXP{\mathbb{N}}, \EXP{\mathbb{Q}}, ...)
 \item some operators on aggregate expressions
 \item some functions in \secref{other-expressions}
 \item tail-call optimization

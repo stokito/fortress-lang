@@ -23,6 +23,40 @@ connecting punctuation, \txt{LINE SEPARATOR}, \txt{PARAGRAPH SEPARATOR},
 most of the ASCII Conversion,
 and dimensions and units are not yet supported.}
 
+\note{
+\begin{itemize}
+\item Towards eliminating transformation expressions in the syntax abstraction mechanism (07/14/08)
+  \begin{itemize}
+\item Jan's desugaring generated expressions requires a non-Fortress syntax: invoking a big operator declaration with a usual functional call syntax (\txt{BIG OPLUS()}) instead of a usual big-operator application syntax ( reductions or comprehensions ).
+\item It is ambiguous because \txt{BIG Op Expr} is a syntactic sugar for \txt{BIG Op [x <- Expr] x}.
+\item In order to eliminate transformation expressions from the syntax abstraction mechanism, we need to be able to write the desugaring in Fortress.
+\item So, we are proposing to eliminate that syntactic sugar and allow a usual functional call syntax for invoking a big operator declaration.
+\item {\bf Fortress syntax for using big operators}:
+  \begin{itemize}
+\item \txt{BIG Op [ GeneratorClauseList ] Expr}:
+reduction; desugared into the call to the \txt{BIG Op} declaration
+\item \txt{BIG Op Expr}: call to the \txt{BIG Op} declaration; not desugared
+\item \txt{BIG? LeftEncloser Expr | GeneratorClauseList RightEncloser}: comprehension; desugared into the call to the \txt{BIG LeftEncloser RightEncloser} declaration
+\item \txt{BIG LeftEncloser RightEncloser Expr}: call to the \txt{BIG LeftEncloser RightEncloser} declaration; not desugared
+  \end{itemize}
+
+\item {\bf Syntactic sugar}: \txt{BIG Op Expr} ( for \txt{BIG Op [x <- Expr] x} )
+Supports it as a call to yet another \txt{BIG Op} declaration. The body of the declaration would be a call to the usual \txt{BIG Op} declaration.
+
+  \end{itemize}
+\item Incorporate Stix fonts
+\end{itemize}
+}
+
+\note{
+  \begin{itemize}
+\item Identifier rendering (12/10/07)
+\txt{a''}, \txt{a'\_prime}, \txt{a\_prime'}, \txt{a\_prime\_prime} are rendered identically and they are meant to denote the same identifier.
+Victor proposed to treat them as we treat synonym operators: a single definition for one is for all the other names.
+\item No special rendering after the keyword \KWD{opr}. (06/18/07)
+  \end{itemize}
+}
+
 \note{Victor:
   \begin{itemize}
 \item  NEXT LINE (0085)?  (Is this a line terminator?)
@@ -671,6 +705,8 @@ or an operator token.
 
 \section{Comments}
 \seclabel{comments}
+
+\note{Describe to-the-end-of-line comments. (06/23/08)}
 
 When not within string literals,
 occurrences of ``\EXP{(*}'' and ``\EXP{*)}''

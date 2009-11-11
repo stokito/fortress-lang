@@ -69,6 +69,19 @@ functions are equivalent returns an approximate result.
 \section{Object Declarations}
 \seclabel{object-decls}
 
+\note{The \KWD{transient} modifier and varargs parameters are eliminated.}
+
+\note{What does it mean to have an invariant on an object?
+
+Christine: The easy answer is that on entrance and exit of every method the invariant is true. Unfortunately I could be in the middle of a method with the invariant violated and want to call another method.
+
+Guy: One might argue that invariants should hold on entry and exit of methods that appear in the API. This can be approximated as: invariants must hold before and after every method that is not marked private.
+
+Need a more concrete proposal.
+
+Does the modifier \KWD{atomic} on a functional check its contract also?
+}
+
 \begin{Grammar}
 \emph{ObjectDecl}  &::=& \option{\emph{ObjectMods}}
 \emph{ObjectHeader} \option{\emph{GoInAnObject}} \KWD{end}
@@ -256,6 +269,9 @@ object constructor with functions.  For example:
 \end{Grammar}
 
 
+\note{I think this should be phrased differently.
+When I originally read that, I took it to mean
+that fields were always ``private.'' -- Scott}
 Fields are variables local to an object.
 They must not be referred to outside their enclosing object declarations.
 Each field is either a non-transient value parameter of a constructor

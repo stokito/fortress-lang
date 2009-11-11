@@ -18,6 +18,9 @@
 \chapter{Types}
 \chaplabel{types}
 
+\note{This chapter should be revised according to Victor's tuple story
+(his email titled ``Tuple story'' on 12/07/07).}
+
 \note{Dimensions and units, type aliases, and some types in \secref{types-libraries}
 are not yet supported.}
 
@@ -288,6 +291,41 @@ and \VAR{Y}.  Note that intersection of any exclusive types is
 
 \section{Arrow Types}
 \seclabel{arrow-types}
+
+\note{Arrow types should include \KWD{io}-ness.}
+
+\note{Arrow types with contracts
+
+Function contracts consist of three parts: a \KWD{requires} part,
+an \KWD{ensures} part, and an \KWD{invariant} part.
+All three parts are evaluated in the scope of the function body
+extended with a special variable \emph{arg}, bound to an immutable
+array of all function arguments. (This array is useful for describing
+contracts in the presence of higher-order functions;
+see \secref{arrow-types}).
+
+Is the special variable \emph{arg} reserved?
+What if one of the function's parameters is named \VAR{arg}?
+
+At runtime, when a function is bound to a variable or parameter
+$f$ whose type includes a contract,
+the contract is evaluated when the function is called through a reference to $f$.
+(Note that this contract is distinct from the contract attached to the function
+bound to $f$, which is also evaluated upon a call to $f$).
+This contract is evaluated in the enclosing scope of the arrow type,
+extended with any keyword argument names provided in the arrow type,
+and the special variable $arg$
+bound to an immutable array containing the arguments provided at the call site
+(in the order provided at the call site).
+If the \KWD{requires} clauses stipulated in the type of $f$ are not satisfied,
+a \TYP{CallerViolation} exception is thrown.
+Otherwise, if the \KWD{requires} clauses attached to the function bound to $f$ is not satisfied,
+a \TYP{ContractBinding} exception is thrown.
+If any other part of the contract of the function bound to $f$ is not satisfied,
+a \TYP{CalleeViolation} exception is thrown.
+Otherwise, if any part of the contract stipulated in the type of $f$ is not satisfied,
+a \TYP{ContractBinding} exception is thrown.
+}
 
 \begin{Grammar}
 \emph{Type} &::=&

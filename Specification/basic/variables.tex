@@ -153,6 +153,30 @@ The following three declarations are equivalent:
 
 \section{Local Variable Declarations}
 \seclabel{local-var-decls}
+
+\note{Delayed initialization of local variable declarations:
+
+We want to disallow type annotation for delayed initialization of local variable declarations:
+% do
+%   i: ZZ32
+%   _ = if b
+%       then i: ZZ32 = 1
+%       else i: ZZ32 = 0
+%       end
+%   println i
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   i\COLON \mathbb{Z}32\)\\
+\(   {\tt\_} =  \null\)\pushtabs\=\+\(\KWD{if}\:b\)\\
+\(       \KWD{then}\:i\COLON \mathbb{Z}32 = 1\)\\
+\(       \KWD{else}\:i\COLON \mathbb{Z}32 = 0\)\\
+\(       \KWD{end}\)\-\\\poptabs
+\(   \VAR{println}\:i\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+}
+
 \begin{Grammar}
 \emph{LocalVarDecl}
 &::=& \option{\KWD{var}} \emph{LocalVarWTypes} \emph{InitVal} \\

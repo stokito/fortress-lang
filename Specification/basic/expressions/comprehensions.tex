@@ -18,7 +18,11 @@
 \section{Comprehensions}
 \seclabel{comprehensions}
 
-\note{Array comprehensions are not yet supported.}
+\note{Array comprehensions are not yet supported.
+
+Array comprehensions do not have to be comprehensive --
+may not define a value for every cell.
+When an unitialized array cell is accessed, an uncaught exception is raised.}
 
 \begin{Grammar}
 \emph{Comprehension}

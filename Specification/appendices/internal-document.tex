@@ -17,63 +17,297 @@
 
 \chapter{Internal Document}
 
-\section{Things to Check for Consistency}
-
-\begin{itemize}
-\item For each section in the Expressions chapter, describe the following:
-  \begin{itemize}
-  \item syntax
-  \item how it is reduced / how we evaluate it
-  \item value
-  \item type
-  \end{itemize}
-
-\item Avoid the following words:
- must > should > may / might
- avoid "may not"
- use "might not" or "need not"
-  \item AVOID global, top-level (except top-level within components/APIs)
-  \item AVOID statement (except import/export statements)
-  \item AVOID compliant compilers (We may have a meta circular API for
-  compliant compilers.)
-  \item Three levels of Fortress libraries
-    \begin{itemize}
-    \item the Fortress core language
-    \item the Fortress core APIs (implicitly imported libraries)
-    \item the Fortress standard libraries
-    \end{itemize}
-  \item execute: programs, components, Fortress applications, functions,
-  threads, tests
-  \item evaluate: expressions,
-  \item should $\Rightarrow$ shall, must
-  \item may not $\Rightarrow$ might not, need not
-  \item . $\Rightarrow$ `.'
-  \item ``...,'' $\Rightarrow$ ``...'',
-  \item api $\Rightarrow$ API
-  \item iff $\Rightarrow$ if and only if
-  \item reduction $\Rightarrow$ evaluation
-  \item compile-time $\Rightarrow$ static
-  \item object type, object trait  $\Rightarrow$ \objecttype
-  \item ``scope over'' $\Rightarrow$ ``in scope''
-  \item ``a static error is signaled'' $\Rightarrow$ ``it is a static error''
-  \item ``a runtime error is signaled'' $\Rightarrow$ ``an exception is thrown''
-  \item Boolean (as an adjective) $\Rightarrow$ boolean
-  \item greatest lower bound $\Rightarrow$ intersection types
-  \item least upper bound $\Rightarrow$ union types
-  \item built-in types $\Rightarrow$ simple standard types
-  \item topmost, uppermost $\Rightarrow$ leftmost (define leftmost early on)
-  \item atomic block $\Rightarrow$ atomic expression
-  \item function and/or method $\Rightarrow$ functional
-  \item visible $\Rightarrow$ in scope (cf. scope defined in the Names chapter)
-  \item \OPR{in} $\Rightarrow$ \KWD{in}
-  \item \EXP{\VAR{indices}()} $\Rightarrow$ \VAR{indices}
-  \item \EXP{\mathord{\KWD{self}}} vs \VAR{self}
-  \item What errors do we want to catch?
-  \item What codes would be rejected that we'd like to reject?
-\end{itemize}
-
+\input{\home/appendices/FAQ}
+\input{\home/appendices/future}
 
 \section{Examples}
+\subsection{Scope of inherited method declarations}
+% f(x: ZZ) = x+1
+% trait T
+%   f(x: ZZ): ZZ = x+2
+% end
+% object O extends T
+%   g(x: ZZ) = f(x) + 3
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(x\COLON \mathbb{Z}) = x+1\)\\
+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON \mathbb{Z})\COLON \mathbb{Z} = x+2\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:O \KWD{extends}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   g(x\COLON \mathbb{Z}) = f(x) + 3\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Allow this and \EXP{O.g(4) = 9}.
+
+\subsection{Scope of \KWD{self}}
+% trait T
+%   getter y(): ZZ
+% end
+% object O(x: ZZ)
+%   n() = object extends T
+%           y: ZZ = self.x
+%         end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{getter}\:y()\COLON \mathbb{Z}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:O(x\COLON \mathbb{Z})\)\\
+{\tt~~}\pushtabs\=\+\(   n() =  \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends}\:T\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(           y\COLON \mathbb{Z} = \mathord{\KWD{self}}.x\)\-\\\poptabs
+\(         \KWD{end}\)\-\-\\\poptabs\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Note that the reference to \EXP{\mathord{\KWD{self}}} in the initialization expression for
+\VAR{y} cannot refer to the object being constructed, so if this is allowed, then that
+\EXP{\mathord{\KWD{self}}} must refer to the object \VAR{O}.
+
+\subsection{Object name shadowed by methods}
+% object O(x: ZZ)
+%   O(y: ZZ) = y+3
+%   m(z: ZZ) = O(z)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{object}\:O(x\COLON \mathbb{Z})\)\\
+{\tt~~}\pushtabs\=\+\(   O(y\COLON \mathbb{Z}) = y+3\)\\
+\(   m(z\COLON \mathbb{Z}) = O(z)\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Allow this and \EXP{O(1).m(2) = 5}.
+
+\subsection{Function name shadowed by keyword parameters}
+% f(f: ZZ = 0) = f+1
+% g(g: ZZ->ZZ = fn x => x) = g(2)       (* this is not a recursive function *)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(f\COLON \mathbb{Z} = 0) = f+1\)\\
+\( g(g\COLON \mathbb{Z}\rightarrow\mathbb{Z} = \;\KWD{fn}\:x \Rightarrow x) = g(2)       \mathtt{(*}\;\hbox{\rm  this is not a recursive function \unskip}\;\mathtt{*)}\)\-\\\poptabs
+\end{Fortress}
+
+Allowed because the names of keyword parameters, unlike the names of other parameters,
+are part of the ``interface'' of the functional.
+
+\subsection{Type names referred by imported entities in a component implementing the types}
+
+A fully qualified type, \EXP{\TYP{APIName}.\VAR{typeName}}, ``available'' in a component,
+\TYP{ComponentName}, that implements the API, \TYP{APIName},
+denotes the same type \VAR{typeName}, which should be defined in the component,
+\TYP{ComponentName}.  For example:
+
+% api A
+%   trait T
+%     m(): T
+%   end
+% end
+
+% api B
+%   import A.T
+%   f(): T
+% end
+
+% component C
+%   import B.f
+%   export A
+%   trait T
+%     m(): T
+%     private n(): ()
+%   end
+%   g() = f().n()
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m()\COLON T\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{api}\:B\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:A.T\)\\
+\(   f()\COLON T\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:B.f\)\\
+\(   \KWD{export}\:A\)\\
+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m()\COLON T\)\\
+\(     \KWD{private}\:n()\COLON ()\)\-\\\poptabs
+\(   \KWD{end}\)\\
+\(   g() = f().n()\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+the method call \EXP{f().n()} is valid.
+
+However, a fully qualified type, \EXP{\TYP{APIName}.\VAR{typeName}},
+``occurring'' in a component, \TYP{ComponentName}, that implements the API, \TYP{APIName}
+is not allowed because \TYP{APIName} is not imported to the component.
+
+\subsection{Overloaded operators}
+
+\begin{itemize}
+\item Are we allowed to say:
+% trait Foo[\opr OP\]
+%   f(x: T[\OP\], y: ZZ32) = ...
+%   f(x: T[\OTIMES\], y: ZZ32) = ...
+%   opr OP(self, other: FOO[\OP\]) = ...
+%   opr OTIMES(self, other: FOO[\OP\]) = ...
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{opr} \mathord{\OPR{OP}}\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket\OPR{OP}\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket\otimes\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   \KWD{opr} \mathord{\OPR{OP}}(\KWD{self}, \VAR{other}\COLON \OPR{FOO}\llbracket\OPR{OP}\rrbracket) = \ldots\)\\
+\(   \KWD{opr} \mathord{\otimes}(\KWD{self}, \VAR{other}\COLON \OPR{FOO}\llbracket\OPR{OP}\rrbracket) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \OPR{OP} is forbidden to be \EXP{\otimes},
+so maybe it's okay???
+
+If \VAR{T} is a trait, it is not allowed because \EXP{T\llbracket\OPR{OP}\rrbracket}
+may not exclude \EXP{T\llbracket\otimes\rrbracket}.
+
+No. We don't want to allow this. The static checker does not take the implicit constraint from the body of the trait.
+
+\item Are we allowed to say:
+% trait Foo[\nat n\]
+%   f(x: T[\n+1\], y: ZZ32) = ...
+%   f(x: T[\0\], y: ZZ32) = ...
+% end
+% object T[\nat n\]( ... ) end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{nat}\:n\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket{}n+1\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:T\llbracket\KWD{nat}\:n\rrbracket( \ldots ) \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \EXP{n+1} is necessarily nonzero, so maybe it's okay???
+
+Not allowed.
+\item Are we allowed to say:
+% trait Foo[\nat n\]
+%   f(x: T[\1\], y: ZZ32) = ...
+%   f(x: T[\0\], y: ZZ32) = ...
+% end
+% object T[\nat n\]( ... ) end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{nat}\:n\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket{}1\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:T\llbracket\KWD{nat}\:n\rrbracket( \ldots ) \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \KWD{nat} parameters are all instantiated, so maybe it's okay???
+
+Allowed.
+\item Are we even allowed to say this simpler case:
+% f(x: ZZ32, y: ZZ32) = ...
+% f(x: T[\0\], y: ZZ32) = ...
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(x\COLON \mathbb{Z}32, y\COLON \mathbb{Z}32) = \ldots\)\\
+\( f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\end{Fortress}
+if our implementation strategy for \KWD{nat} parameters is ``don't instantiate''?
+
+Allowed.
+
+\item Do we allow this:
+% trait F[\nat n\] extends G[\n\] end
+% trait G[\nat n\] extends F[\n+1\] end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:F\llbracket\KWD{nat}\:n\rrbracket \KWD{extends}\:G\llbracket{}n\rrbracket \KWD{end}\)\\
+\( \KWD{trait}\:G\llbracket\KWD{nat}\:n\rrbracket \KWD{extends}\:F\llbracket{}n+1\rrbracket \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Not allowed by the type acyclicity restriction.
+
+\end{itemize}
+
+\subsection{Implicitly Imported Types}
+When a component imports a functional \VAR{f}
+(either a top-level function or a functional method) by an import statement,
+the imported \VAR{f} may be overloaded with a functional \VAR{f} declared by the component.
+When a component imports a top-level declaration \VAR{f} from an API \VAR{A},
+all the relevant types to type check the uses of \VAR{f} are implicitly imported from \VAR{A}.
+However, these implicitly imported types for type checking are not expressible by programmers;
+programmers must import the types by import statements to use them.
+For example, the two functional calls in the following component \VAR{C} are valid:
+% api A
+%   trait T
+%     m() : ()
+%   end
+% end
+
+% api B
+%   import A.{...}
+%   f(): T
+%   g(T): ()
+% end
+
+% component C
+%   import B.{f, g}
+%   export Executable
+%   run (args) = do f().m(); g(f()) end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m() \mathrel{\mathtt{:}} ()\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{api}\:B\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:A.\{\ldots\}\)\\
+\(   f()\COLON T\)\\
+\(   g(T)\COLON ()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:B.\{f, g\}\)\\
+\(   \KWD{export}\:\TYP{Executable}\)\\
+\(   \VAR{run} (\VAR{args}) = \;\KWD{do}\:f().m(); g(f()) \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+because \VAR{T} is implicitly imported from \VAR{B} to type check the functional calls.
+However, the programmers cannot write \VAR{T} in \VAR{C}
+because \VAR{T} is not imported by an import statement.
+
+\subsection{Component and Value Namespace}
+% component Surprise
+% import api Foo
+% export Executable
+
+% object Foo
+%   foo():String = "foo"
+%   bar():String = "foo"
+%   baz():String = "foo"
+% end
+
+% run(args:String...) = do
+%   Foo.foo()
+%   Foo.bar()
+%   Foo.baz()
+% end
+
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{component}\:\TYP{Surprise}\)\\
+\( \KWD{import}\;\;\KWD{api}\:\TYP{Foo}\)\\
+\( \KWD{export}\:\TYP{Executable}\)\\[4pt]
+\( \KWD{object}\:\TYP{Foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \VAR{foo}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{bar}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{baz}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots) = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{Foo}.\VAR{foo}()\)\\
+\(   \TYP{Foo}.\VAR{bar}()\)\\
+\(   \TYP{Foo}.\VAR{baz}()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Static error for the declaration of the object \TYP{Foo} in the above example.
+
 \subsection{Disjunctive Constraints}
 
 Here is a program that will only typecheck correctly if the fortress typechecker supports these disjunctions:
@@ -412,3 +646,60 @@ What are the values of the last two expressions?
 \( f\llbracket\mathbb{R}\rrbracket(1) = f\llbracket\mathbb{Z}\rrbracket(1)\)\\
 \( f\llbracket\mathbb{R}\rrbracket(1) = f\llbracket\mathbb{R}\rrbracket(1)\)\-\\\poptabs
 \end{Fortress}
+
+
+\section{Things to Check for Consistency}
+
+\begin{itemize}
+\item For each section in the Expressions chapter, describe the following:
+  \begin{itemize}
+  \item syntax
+  \item how it is reduced / how we evaluate it
+  \item value
+  \item type
+  \end{itemize}
+
+\item Avoid the following words:
+ must > should > may / might
+ avoid "may not"
+ use "might not" or "need not"
+  \item AVOID global, top-level (except top-level within components/APIs)
+  \item AVOID statement (except import/export statements)
+  \item AVOID compliant compilers (We may have a meta circular API for
+  compliant compilers.)
+  \item Three levels of Fortress libraries
+    \begin{itemize}
+    \item the Fortress core language
+    \item the Fortress core APIs (implicitly imported libraries)
+    \item the Fortress standard libraries
+    \end{itemize}
+  \item execute: programs, components, Fortress applications, functions,
+  threads, tests
+  \item evaluate: expressions,
+  \item should $\Rightarrow$ shall, must
+  \item may not $\Rightarrow$ might not, need not
+  \item . $\Rightarrow$ `.'
+  \item ``...,'' $\Rightarrow$ ``...'',
+  \item api $\Rightarrow$ API
+  \item iff $\Rightarrow$ if and only if
+  \item reduction $\Rightarrow$ evaluation
+  \item compile-time $\Rightarrow$ static
+  \item object type, object trait  $\Rightarrow$ \objecttype
+  \item ``scope over'' $\Rightarrow$ ``in scope''
+  \item ``a static error is signaled'' $\Rightarrow$ ``it is a static error''
+  \item ``a runtime error is signaled'' $\Rightarrow$ ``an exception is thrown''
+  \item Boolean (as an adjective) $\Rightarrow$ boolean
+  \item greatest lower bound $\Rightarrow$ intersection types
+  \item least upper bound $\Rightarrow$ union types
+  \item built-in types $\Rightarrow$ simple standard types
+  \item topmost, uppermost $\Rightarrow$ leftmost (define leftmost early on)
+  \item atomic block $\Rightarrow$ atomic expression
+  \item function and/or method $\Rightarrow$ functional
+  \item visible $\Rightarrow$ in scope (cf. scope defined in the Names chapter)
+  \item \OPR{in} $\Rightarrow$ \KWD{in}
+  \item \EXP{\VAR{indices}()} $\Rightarrow$ \VAR{indices}
+  \item \EXP{\mathord{\KWD{self}}} vs \VAR{self}
+  \item What errors do we want to catch?
+  \item What codes would be rejected that we'd like to reject?
+\end{itemize}
+

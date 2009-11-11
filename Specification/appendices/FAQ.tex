@@ -15,7 +15,8 @@
 %   trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Frequently Asked Questions}
+\section{Frequently Asked Questions}
+
 \begin{itemize}
 \item Are spaces by tabulation allowed?
 
@@ -145,5 +146,96 @@ not for overloading checking.
   \item we can enjoy nice property of objects being leaves of type
   hierarchy such as excluding each other.
   \end{itemize}
+
+\item Meaning of extension: how is it different from subtyping?
+
+Extension means there exists an \KWD{extends} clause.
+
+\item \TYP{BottomType}
+  \begin{itemize}
+\item Can a programmer write \TYP{BottomType}?  No.
+\item \EXP{(\TYP{BottomType}\ldots)} is not \TYP{BottomType}.
+  \end{itemize}
+
+\item Spaces
+
+We allow spaces between enclosing operators and static arguments: \verb+<| [\ZZ32\] 3 |>+.
+Also for the functional names and static arguments.
+
+\item Abstract methods in a trait and implementing concrete methods in an object
+
+An abstract method can be implemented by concrete methods whose return types are
+subtypes of the abstract method.
+
+\item \KWD{label} / \KWD{exit} across object / function expressions (07/28/08)
+  \begin{itemize}
+\item one-shot continuation semantics
+\item How to do the closure conversion?
+% label foo
+%   object extends Bar
+%     m() = exit foo with 5
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{label}\:\VAR{foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{object}\;\;\KWD{extends}\:\TYP{Bar}\)\\
+{\tt~~}\pushtabs\=\+\(     m() = \;\KWD{exit}\:\VAR{foo} \KWD{with} 5\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+is desugared to
+% object Bar'(xit: ZZ32 -> BottomType) extends Bar
+%   m() = xit(5)
+% end
+% label foo
+%   Bar'(fn (e:ZZ32): BottomType => exit foo with e)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{object}\:\TYP{Bar}'(\VAR{xit}\COLON \mathbb{Z}32 \rightarrow \TYP{BottomType}) \KWD{extends}\:\TYP{Bar}\)\\
+{\tt~~}\pushtabs\=\+\(   m() = \VAR{xit}(5)\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{label}\:\VAR{foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{Bar}'(\KWD{fn} (e\COLONOP\mathbb{Z}32)\COLON \TYP{BottomType} \Rightarrow\;\KWD{exit}\:\VAR{foo} \KWD{with}\:e)\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Even though Fortress programmers are not allowed to write \TYP{BottomType},
+the desugarer can use it internally.
+  \end{itemize}
+
+\item How can I re-export stuff I
+imported without having to maintain cut-and-pasted declarations in my api?
+
+%% api A
+%%   trait T
+%%   f(T)
+%% end
+
+%% component C
+%%   import A.{...}
+%%   object O extends T
+%%   f(O)
+%% end
+
+%% component D
+%%   import A.{T}
+%%   object O extends T
+%%   f(O)
+%% end
+\begin{Fortress}
+\(\KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{trait}\:T\)\\
+\(  f(T)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{\ldots\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:D\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{T\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
 
 \end{itemize}

@@ -27,6 +27,11 @@ are not supported yet.
 Varargs and keyword examples and abstract function declarations examples
 are not run by the interpreter.}
 
+\note{Guy's email titled ``Re: Function equality issues'' on 02/13/08
+
+Yes with returning false for overloaded functions (with the implementation-dependent features).
+(03/03/08)}
+
 A \emph{function} is a value that has a function type
 (described in \secref{function-types}).
 Each function takes exactly one argument, which may be a tuple, and returns
@@ -193,6 +198,15 @@ polymorphic function for creating lists:
 \section{Function Applications}
 \seclabel{function-app}
 
+\note{varargs arguments (10/30/07)
+
+Is there any reason to use \TYP{HeapSequence} which is mutable to implement varargs tuples?
+How about implementing them in terms of some covariant data type?
+
+We agreed to implement varargs tuples using \TYP{ReadOnlyHeapSequence} which is immutable and
+invariant. We'll add \TYP{MakeReadOnlyHeapSequence} into the core library.
+}
+
 Fortress allows functions to be overloaded; there may be multiple function
 declarations with the same function name in a single lexical scope.
 Thus, we need to determine which functional declarations are applicable to
@@ -344,6 +358,7 @@ Here are a few varargs and keyword examples:
 
 \section{Abstract Function Declarations}
 \seclabel{abstractFunctionDeclarations}
+
 \begin{Grammar}
 \emph{AbsFnDecl} &::=& \option{\emph{AbsFnMods}} \emph{FnHeaderFront}
 \emph{FnHeaderClause}\\
@@ -358,9 +373,9 @@ Here are a few varargs and keyword examples:
 \emph{FnSig} &::=& \emph{Name} \EXP{\mathrel{\mathtt{:}}} \emph{ArrowType}\\
 \end{Grammar}
 
-In a component, a function with a single principal type may be declared separately from its
-definitions using an \emph{abstract function declaration}.  It is a static
-error if there are two abstract function declarations with the same name.
+In a component, overloaded functions may be declared separately from their
+definitions using \emph{abstract function declarations}.
+Abstract function declarations themselves may be overloaded.
 For an abstract function declaration with name \VAR{f}, argument type
 \VAR{T}, and return type \VAR{U} (\VAR{T} and \VAR{U} may be tuple types),
 any concrete declaration for \VAR{f} must be for a function whose argument
@@ -407,6 +422,8 @@ it is a static error.
 
 \section{Function Contracts}
 \seclabel{contracts}
+
+\note{For nested contracts, the inner \KWD{outcome} shadows the outer \KWD{outcome}.}
 
 \begin{Grammar}
 \emph{Contract} &::=& \option{\emph{Requires}} \option{\emph{Ensures}} \option{\emph{Invariant}}\\

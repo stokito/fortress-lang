@@ -21,6 +21,9 @@
 \note{Where clauses, the \KWD{override} modifier, value traits,
 method contracts, and abstract functional declarations are not yet supported.}
 
+\note{Covariant list with \KWD{comprises} clause (Victor's email titled
+``Problem with covariant List?'' on 10/27/07)}
+
 \emph{Traits} are declared by trait declarations.
 Traits define new named types.
 A trait specifies a collection of \emph{methods}
@@ -312,8 +315,14 @@ not  within objects !!!
 
 \note{Accessing a field by a ``naked'' identifier reference
 within trait declarations are not allowed.
-We require a dotted field access by a ``self.'' prefix.
+We require a dotted field access by a ``self.'' prefix. (08/11/08)
 -- Sukyoung}
+
+\note{Getters must always be called with the special syntax:
+\EXP{\VAR{receiver}.\VAR{getterName}
+}
+
+A getter is required to have a type consistent with a corresponding setter.}
 
 \begin{Grammar}
 \emph{MdDecl} &::=& \emph{MdDef} \\
