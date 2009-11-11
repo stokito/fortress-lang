@@ -1157,7 +1157,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
 
-    NodeAbstractVisitor<String> spkTagger = new NodeAbstractVisitor<String> () {
+  
+    private String genericDecoration(FnDecl x, Map<String, String> xlation) {
+        List<StaticParam> sparams = x.getHeader().getStaticParams();
+        return genericDecoration(sparams, xlation, thisApi());
+    }
+
+
+    public static NodeAbstractVisitor<String> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<String> () {
 
         @Override
         public String forKindBool(KindBool that) {
@@ -1270,7 +1277,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         public String forTypeArg(TypeArg that) {
             Type arg = that.getTypeArg();
             // Pretagged with type information
-            String s =  NamingCzar.makeArrowDescriptor(arg, thisApi());
+            String s =  NamingCzar.makeArrowDescriptor(arg, ifMissing);
             return s;
         }
 
@@ -1280,26 +1287,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             return Naming.ATOM;
         }
 
-
     };
-
-    private String genericDecoration(FnDecl x, Map<String, String> xlation) {
-        List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return genericDecoration(sparams, xlation);
     }
 
-
+    
     /**
      * @param xlation
      * @param sparams
      * @return
      */
-    private String genericDecoration(List<StaticParam> sparams,
-            Map<String, String> xlation
+    private static String genericDecoration(List<StaticParam> sparams,
+            Map<String, String> xlation,
+            APIName ifMissing
             ) {
         if (sparams.size() == 0)
             return "";
 
+        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+        
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticParam sp : sparams) {
@@ -1315,10 +1320,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
     }
 
-    private String genericDecoration(List<StaticArg> sargs) {
+    private static String genericDecoration(List<StaticArg> sargs,
+            APIName ifMissing) {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)
             return "";
+        
+        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticArg sp : sargs) {
@@ -1327,9 +1336,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             frag += ";";
             index++;
         }
-        // TODO Why are we mangling this?
-        // return Naming.mangleFortressIdentifier(Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD);
-        return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
+       return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
     }
 
     /**
@@ -1589,7 +1596,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         List<StaticArg> sargs = x.getStaticArgs();
 
-        String decoration = genericDecoration(sargs);
+        String decoration = genericDecoration(sargs, thisApi());
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
@@ -1805,7 +1812,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
-        String sparams_part = genericDecoration(header.getStaticParams(), xlation);
+        String sparams_part = genericDecoration(header.getStaticParams(), xlation, thisApi());
 
         // Rewrite the generic.
         if (sparams_part.length() > 0 ) {
@@ -2347,7 +2354,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forVarRef(VarRef v) {
-        List<StaticArg> sargs = v.getStaticArgs();
+        String sargs = genericDecoration(v.getStaticArgs(), thisApi());
         Id id = v.getVarId();
         VarCodeGen vcg = getLocalVarOrNull(id);
         if (vcg == null) {
@@ -2363,7 +2370,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         debug("forVarRef ", v , " Value = ", vcg);
         addLineNumberInfo(v);
-        vcg.pushValue(mv);
+        vcg.pushValue(mv, sargs);
     }
 
     private void pushVoid() {
