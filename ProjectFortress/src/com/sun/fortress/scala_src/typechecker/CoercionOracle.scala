@@ -148,12 +148,42 @@ class CoercionOracle(traits: TraitTable,
                             u: Type,
                             expr: Option[Expr])
                             : Option[Option[CoercionInvocation]] = (t, u) match {
+    case (t:UnionType, _) => checkCoercionUnion(t, u, expr)
     case (_, u:TraitType) => checkCoercionTrait(t, u, expr)
     case (_, u:TraitSelfType) => checkCoercion(t, u.getNamed, expr)
     case (t:TupleType, u:TupleType) => checkCoercionTuple(t, u, expr)
     case (t:ArrowType, u:ArrowType) => checkCoercionArrow(t, u, expr)
     case _ => None
   }
+
+
+  /*
+   * The union of {T_i} coerces to U if all of the following hold:
+   * - any of the T_i can be coerced to U
+   * - the remaining T_i are substitutable for U
+   * - the T_i all exclude each other
+   */
+  private def checkCoercionUnion(t: UnionType,
+                                 u: Type,
+                                 maybeArg: Option[Expr])
+                                 : Option[Option[CoercionInvocation]] = {
+    val SUnionType(_, telts) = t
+
+    // Check that all of the T_i exclude.
+    if (!analyzer.excludes(telts)) return None
+
+    // Get all the possible coercions from T_i to U.
+    val tiCoercions = telts.map(checkSubstitutable(_, u, maybeArg))
+
+    // Check that all of them were at least substitutable.
+    if (tiCoercions.exists(_.isNone)) return None
+
+    // If there's an arg, build the coercion. Otherwise just say yes: Some(None).
+    val arg = maybeArg.getOrElse(return Some(None))
+    val info = SExprInfo(NU.getSpan(arg), false, Some(u))
+    Some(Some(SUnionCoercionInvocation(info, u, arg, telts, tiCoercions.map(_.get))))
+  }
+
 
   private def checkCoercionTrait(t: Type,
                                  u: TraitType,
