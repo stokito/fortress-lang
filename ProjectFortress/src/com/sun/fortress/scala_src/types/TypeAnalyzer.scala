@@ -169,6 +169,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def excludes(x: Type, y: Type) =
     exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
+  /** Determine if a collection of types all exclude each other. */
+  def excludes(tsCollection: Collection[Type]): Boolean = {
+
+    // Cache as array for faster lookups.
+    val ts = tsCollection.toArray
+    
+    // Check that each symmetric, irreflexive pair excludes.
+    for (i <- ts.indices; j <- ts.indices if i < j)
+      if (!excludes(ts(i), ts(j)))
+        return false
+    true
+  }
+
   private def exc(x: Type, y: Type): Boolean = (x, y) match {
     case (s: BottomType, _) => true
     case (_, t: BottomType) => true

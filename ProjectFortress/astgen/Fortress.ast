@@ -964,6 +964,14 @@ interface Node() extends HasAt;
                                 ArrowType toType,
                                 Option<CoercionInvocation> domainCoercion,
                                 Option<CoercionInvocation> rangeCoercion);
+                            /**
+                             * Coercion invocation from a union type. Some non-
+                             * empty subset of the constituent types must each
+                             * coerce to the desired type.
+                             */
+                            UnionCoercionInvocation(
+                                List<Type> fromTypes,
+                                List<Option<CoercionInvocation>> fromCoercions);
                         /**
                          * a method invocation
                          * some are created by parsing, while others require later

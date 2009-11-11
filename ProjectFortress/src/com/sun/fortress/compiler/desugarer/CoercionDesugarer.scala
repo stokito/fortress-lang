@@ -51,6 +51,7 @@ class CoercionDesugarer extends Walker {
     case c:TraitCoercionInvocation => desugarTraitCoercion(c, arg)
     case c:TupleCoercionInvocation => desugarTupleCoercion(c, arg)
     case c:ArrowCoercionInvocation => desugarArrowCoercion(c, arg)
+    case c:UnionCoercionInvocation => desugarUnionCoercion(c, arg)
   }
 
   /** Desugar the given coercion, using its own arg. */
@@ -152,6 +153,40 @@ class CoercionDesugarer extends Walker {
                                some(toType.getRange),
                                body)
     addType(fnExpr, toType)
+  }
+
+  /**
+   * Desugars a coercion from a union type into a Typecase. For each constituent
+   * type of the union, there is a typecase clause that evaluates to either
+   * the name (which is bound to the coerced expr) if that type is a subtype of
+   * the target, or to a desugared coercion expression if that type coerces to
+   * the target.
+   */
+  protected def desugarUnionCoercion(coercion: UnionCoercionInvocation, e: Expr): Expr = {
+    val SUnionCoercionInvocation(SExprInfo(span, _, _), toType, _, fromTypes, fromCoercions) = coercion
+
+    // A fresh Id for the bound name of the typecase.
+    val boundVarName = naming.makeId
+
+    // Create the clauses, one for each constituent type of the union.
+    val clauses = List.map2(fromTypes, fromCoercions) {
+
+      // Subtype, so no coercion.
+      case (t, None) =>
+        val typedBoundVar = EF.makeVarRef(span, Some(t), boundVarName)
+        STypecaseClause(SSpanInfo(span), List(t), EF.makeBlock(typedBoundVar))
+
+      // Coerce the bound variable to this type.
+      case (t, Some(c)) =>
+        val typedBoundVar = EF.makeVarRef(span, Some(t), boundVarName)
+        val coercedVar = desugarCoercion(copyCoercion(c, typedBoundVar))
+        STypecaseClause(SSpanInfo(span), List(t), EF.makeBlock(coercedVar))
+    }
+    STypecase(SExprInfo(span, true, Some(toType)),
+              List(boundVarName),
+              Some(e),
+              clauses,
+              None)
   }
 
 }
