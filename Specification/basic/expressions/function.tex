@@ -18,6 +18,12 @@
 \section{Function Expressions}
 \seclabel{func-expr}
 
+\note{Syntax is not up to date.}
+
+\note{We want to allow function expressions to carry contracts; we need to work
+out how these contracts are evaluated, and what the implications are on
+variable scoping. -- Eric}
+
 \begin{Grammar}
 \emph{Expr} &::=&
 \KWD{fn} \emph{ValParam} \option{\emph{IsType}} \option{\emph{Throws}} \EXP{\Rightarrow} \emph{Expr}\\

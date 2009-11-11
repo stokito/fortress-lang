@@ -19,11 +19,11 @@
 \seclabel{type-ascription}
 
 \begin{Grammar}
-\emph{Expr} &::=& \emph{Expr} \KWD{as} \emph{Type}
+\emph{Expr} &::=& \emph{Expr} \KWD{typed} \emph{Type}
 \end{Grammar}
 
 An expression consisting of a single subexpression, followed by
-\KWD{as}, followed by a type, is a \emph{type ascription}.  The value
+\KWD{typed}, followed by a type, is a \emph{type ascription}.  The value
 of the expression is the value of the subexpression.  The static type
 of the expression is the ascribed type.
 The type of the subexpression must be a subtype of the ascribed type.

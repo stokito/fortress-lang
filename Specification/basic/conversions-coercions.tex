@@ -22,6 +22,27 @@
 
 The examples in this chapter are not tested nor run by the interpreter.}
 
+\note{
+\begin{itemize}
+ \item ``has a type'' vs ``is a subtype of the type or could be coerced to the type''
+\item Coercion between tuple types (Victor's email titled ``Coercion between tuple types'' on 07/16/07) and arrow types
+
+\item Vectors and matrices: \secref{aggregate-expr}
+
+\item Do we allow coercion declarations in object expressions?
+
+\item If tests and coercion
+
+Suppose a test in an expression has a type that is not \TYP{Boolean}
+(or a subtype of \TYP{Boolean}) but is coercible to \TYP{Boolean}.
+Presumably, that is not a static error? But note that F1.0 beta
+makes no mention of this case; all tests in an if expression must be of
+type \TYP{Boolean}. There are similar problems with other expression types;
+we need to revisit them all in light of the coercion facility...
+
+\end{itemize}
+}
+
 Fortress provides a mechanism, called \emph{coercion}, to allow a
 value of one type to be automatically converted to a value of another
 type.  Programmers can define coercions (described in
