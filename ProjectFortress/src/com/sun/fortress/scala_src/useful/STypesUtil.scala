@@ -853,11 +853,6 @@ object STypesUtil {
       // Get the unlifted static args.
       val (liftedSargs, unliftedSargs) = sargs.partition(_.isLifted)
 
-      // Use original static args if any were given.
-      // Otherwise use the unlifted inferred static args, if any.
-//      val newSargs =
-//        if (fn.getStaticArgs.isEmpty) unliftedSargs else toList(fn.getStaticArgs)
-
       // Get the dynamically applicable overloadings.
       val overloadings =
         toList(fn.getNewOverloadings).

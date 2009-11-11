@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Modifiers
@@ -378,29 +379,78 @@ trait Misc { self: STypeChecker with Common =>
       } else { expr }
     }
 
-    case SIf(SExprInfo(span,parenthesized,_), clauses, elseC) => {
-      val newClauses = clauses.map( handleIfClause )
-      val types = newClauses.flatMap(c => getType(c.getBody))
-      val (newElse, newType) = elseC match {
-        case None => {
-          // Check that each if/elif clause has void type
-          types.foreach( (ty: Type) =>
-                         isSubtype(ty, Types.VOID, expr,
-                                   errorMsg("An 'if' clause without corresponding 'else' has type ",
-                                            normalize(ty), " instead of type ().")) )
-          (None, Some(Types.VOID))
-        }
-        case Some(b) => {
-          val newBlock = checkExpr(b).asInstanceOf[Block]
-          getType(newBlock) match {
-            case None => { (None, None) }
-            case Some(ty) =>
-              // Get union of all clauses' types
-              (Some(newBlock), Some(normalize(analyzer.join(ty::types))))
-          }
-        }
+    // An if expression with an else.
+    case SIf(SExprInfo(span,parenthesized,_), clauses, Some(elseClause)) => {
+      // Check all the clauses.
+      val checkedClauses = clauses.map( handleIfClause )
+      val clauseTypes = checkedClauses.flatMap(c => getType(c.getBody))
+      val checkedElse = checkExpr(elseClause).asInstanceOf[Block]
+      val elseType = getType(checkedElse).getOrElse(return expr)
+
+      val allClauses = checkedElse :: checkedClauses.map(_.getBody)
+      val allTypes = elseType :: clauseTypes
+
+      // Find the clause with type T s.t. T_i is substitutable for T,
+      // for all clause types T_i.
+      def findWinningClause(clauseTypes: List[Type]): Option[Type] = {
+        for (candidate <- clauseTypes)
+          if (clauseTypes.forall(coercions.substitutableFor(_, candidate)))
+            return Some(candidate)
+        None
       }
-      SIf(SExprInfo(span,parenthesized, newType), newClauses, newElse)
+      findWinningClause(allTypes) match {
+
+        // If no winning type, get union of all clauses' types.
+        case None =>
+          val resultType = normalize(analyzer.join(allTypes))
+          SIf(SExprInfo(span,parenthesized, Some(resultType)),
+              checkedClauses,
+              Some(checkedElse))
+
+        // If a winning type, coerce all the clauses to that type.
+        case Some(winner) =>
+
+          // Get the coercions on all the clauses.
+          val maybeCoercions = List.map2(allClauses, allTypes) { (e, t) =>
+            // .get works because we know each clause is indeed subst.
+            // for the winner
+            coercions.checkSubstitutable(t, winner, Some(e)).get
+          }
+
+          // Merge the coerced clauses and the original clauses.
+          val (newElseBlock :: newClauseBlocks) =
+            List.map2(allClauses, maybeCoercions) {
+              case (e1, None) => e1
+              case (e1, Some(e2)) => EF.makeBlock(e2)
+            }
+          
+          // Reconstruct IfClauses with their new blocks.
+          val newIfClauses = List.map2(checkedClauses, newClauseBlocks) {
+            case (SIfClause(a, b, _), newBlock) => SIfClause(a, b, newBlock)
+          }
+          SIf(SExprInfo(span,parenthesized, Some(winner)),
+              newIfClauses,
+              Some(newElseBlock))
+      }
+
+    }
+
+    // An if expression without an else.
+    case SIf(SExprInfo(span,parenthesized,_), clauses, None) => {
+      val checkedClauses = clauses.map( handleIfClause )
+      val clauseTypes = checkedClauses.flatMap(c => getType(c.getBody))
+      
+      // Check that each if/elif clause has void type
+      clauseTypes.foreach { ty =>
+        isSubtype(ty,
+                  Types.VOID,
+                  expr,
+                  errorMsg("An 'if' clause without corresponding 'else' has type ",
+                           normalize(ty), " instead of type ()."))
+      }
+      SIf(SExprInfo(span, parenthesized, Some(Types.VOID)),
+          checkedClauses,
+          None)
     }
 
     case SWhile(SExprInfo(span,parenthesized,_), testExpr, body) => {
