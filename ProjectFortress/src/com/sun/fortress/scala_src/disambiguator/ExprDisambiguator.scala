@@ -130,7 +130,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
-        val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
+        val (_, inheritedMs) = inheritedMethods(extendsClause)
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
         extendWithVars(Set(NF.makeId(span, "self")))
@@ -215,7 +215,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val params = extractParamNames(old_params)
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, params)
-        val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
+        val (_, inheritedMs) = inheritedMethods(extendsClause)
         val fields = params ++ vars
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
@@ -303,7 +303,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
-        val (inheritedGettersAndSetters, inheritedMs) = inheritedMethods(extendsClause)
+        val (_, inheritedMs) = inheritedMethods(extendsClause)
         val old_env = env
         extendWithVars(Set(NF.makeId(span, "self")))
         extendWithFields(vars)
@@ -903,70 +903,34 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
 
   // For now we won't add functional methods.
   // They are not received through inheritance.
-  private def inheritedMethodsHelper(h: HierarchyHistory,
+  private def inheritedMethodsHelper(hist: HierarchyHistory,
                                      extended_traits: List[TraitTypeWhere])
                                     : (Set[Id], Set[FnDecl]) = {
-    var hist = h
     extended_traits.foldLeft((Set[Id](), Set[FnDecl]()))
       {(res, t) => (res, t) match {
-         case ((accessors, methods), STraitTypeWhere(_, base, where))
+         case ((accessors, methods), STraitTypeWhere(_, base: NamedType, _))
               if hist.explore(base) =>
            // Trait types or VarTypes can represent traits at this phase of compilation.
-           base match {
-             case nt: NamedType =>
-               val trait_name = nt.getName
-               env.typeConsIndex(trait_name) match {
-                 case ti:TraitIndex =>
-                   val (my_acc, my_meth) =
-                       (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
-                        methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
-                   val old_hist = hist.copy
-                   // Now recursively add methods from trait's extends clause
-                   val (inherited_acc, inherited_meth) =
-                       inheritedMethodsHelper(hist, toList(ti.extendsTypes))
-                   hist = old_hist
-                   (my_acc ++ inherited_acc, my_meth ++ inherited_meth)
-                 case tci =>
-                   if (tci == null)
-                     error("Type variable " + trait_name + " must not appear " +
-                           "in the extends clause of a trait or object declaration.",
-                           trait_name)
-                   res // Probably ANY
-               }
-             case _ => res // Probably ANY
+           val trait_name = base.getName
+           env.typeConsIndex(trait_name) match {
+             case ti:TraitIndex =>
+               val (my_acc, my_meth) =
+                   (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
+                    methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
+               // Now recursively add methods from trait's extends clause
+               val (inherited_acc, inherited_meth) =
+                   inheritedMethodsHelper(hist.copy, toList(ti.extendsTypes))
+               (my_acc ++ inherited_acc, my_meth ++ inherited_meth)
+             case tci =>
+               if (tci == null)
+                 error("Type variable " + trait_name + " must not appear " +
+                       "in the extends clause of a trait or object declaration.",
+                       trait_name)
+               res // Probably ANY
            }
          case _ => res
        }}
   }
-
-  // private def inheritedMethodsHelper(hist: HierarchyHistory,
-  //                                    extended_traits: List[TraitTypeWhere])
-  //                                   : (Set[Id], Set[FnDecl]) = {
-  //   extended_traits.foldLeft((Set[Id](), Set[FnDecl]()))
-  //     {(res, t) => (res, t) match {
-  //        case ((accessors, methods), STraitTypeWhere(_, base: NamedType, _))
-  //             if hist.explore(base) =>
-  //          // Trait types or VarTypes can represent traits at this phase of compilation.
-  //          val trait_name = base.getName
-  //          env.typeConsIndex(trait_name) match {
-  //            case ti:TraitIndex =>
-  //              val (my_acc, my_meth) =
-  //                  (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
-  //                   methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
-  //              // Now recursively add methods from trait's extends clause
-  //              val (inherited_acc, inherited_meth) =
-  //                  inheritedMethodsHelper(hist.copy, toList(ti.extendsTypes))
-  //              (my_acc ++ inherited_acc, my_meth ++ inherited_meth)
-  //            case tci =>
-  //              if (tci == null)
-  //                error("Type variable " + trait_name + " must not appear " +
-  //                      "in the extends clause of a trait or object declaration.",
-  //                      trait_name)
-  //              res // Probably ANY
-  //          }
-  //        case _ => res
-  //      }}
-  // }
 
   private def setToList[T](set: Set[T]): List[T] = {
     var list = List[T]()
