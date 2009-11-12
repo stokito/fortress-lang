@@ -193,9 +193,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             var methods = toSet(traitOrObject.dottedMethods)
                           .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, JavaFunctional]]]
                           .map(p => (p.first, (p.second, identity)))
+            // TODO!!!!!
             methods ++=
-              toSet(STypesUtil.inheritedMethods(typeAnalyzer.traits,
-                                                toList(traitOrObject.extendsTypes),
+              toSet(STypesUtil.inheritedMethods(toList(traitOrObject.extendsTypes),
                                                 methods, typeAnalyzer))
               .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer, TraitType)]]]
               .map(p => (p.first,(p.second._1, p.second._2)))

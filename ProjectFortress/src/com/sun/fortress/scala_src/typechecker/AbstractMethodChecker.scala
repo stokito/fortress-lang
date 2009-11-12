@@ -50,8 +50,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 class AbstractMethodChecker(component: ComponentIndex,
                             globalEnv: GlobalEnvironment)
     extends Walker {
-  val traits = new TraitTable(component, globalEnv)
-  implicit var typeAnalyzer = TypeAnalyzer.make(traits)
+  implicit var typeAnalyzer = TypeAnalyzer.make(new TraitTable(component, globalEnv))
   var errors = List[StaticError]()
   val componentName = component.ast.getName
   private def error(loc: Span, msg: String) =
@@ -71,7 +70,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-        val inherited = toSet(inheritedMethods(traits, extendsC, Set(), typeAnalyzer).firstSet)
+        val inherited = toSet(inheritedMethods(extendsC, typeAnalyzer).firstSet)
                         .map(t => t.asInstanceOf[IdOrOp].getText)
         for {
           d <- decls;
@@ -107,8 +106,7 @@ class AbstractMethodChecker(component: ComponentIndex,
 
   private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]):
       List[(TraitType, FnDecl)] = {
-    val inherited = inheritedMethods(typeAnalyzer.traits, extended_traits,
-                                     Set(), typeAnalyzer)
+    val inherited = inheritedMethods(extended_traits, typeAnalyzer)
     var res = List[(TraitType, FnDecl)]()
     for {
       (meth : HasSelfType, _, tt) <- toSet(inherited.secondSet)

@@ -873,8 +873,7 @@ object STypesUtil {
 
   // Invariant: Parameter types of all the methods should exist,
   //            either given or inferred.
-  def inheritedMethods(traits: TraitTable,
-                       extendedTraits: List[TraitTypeWhere],
+  def inheritedMethods(extendedTraits: List[TraitTypeWhere],
                        initial: Set[(IdOrOpOrAnonymousName,
                                          (Functional, StaticTypeReplacer))],
                        analyzer: TypeAnalyzer)
@@ -897,12 +896,13 @@ object STypesUtil {
       // a set of inherited methods:
       // a set of pairs of method names and
       //                   triples of Functionals, static parameters substitutions, and declaring trait
+      // TODO!!!!
       for (trait_ <- extended_traits ) {
         val type_ = trait_.getBaseType
         if ( history.explore(type_) ) {
           type_ match {
             case ty@STraitType(_, name, trait_args, _) =>
-              toOption(traits.typeCons(name)) match {
+              toOption(analyzer.traits.typeCons(name)) match {
                 case Some(ti : TraitIndex) =>
                     val tindex = ti.asInstanceOf[TraitIndex]
                     // Instantiate methods with static args
@@ -948,8 +948,13 @@ object STypesUtil {
     methods
   }
 
-  // def inheritedMethods(traits: TraitTable,
-  //                      extendedTraits: List[TraitTypeWhere],
+  def inheritedMethods(extendedTraits: List[TraitTypeWhere],
+                       analyzer: TypeAnalyzer)
+                       : Relation[IdOrOpOrAnonymousName,
+                                  (Functional, StaticTypeReplacer, TraitType)] =
+    inheritedMethods(extendedTraits, Set (), analyzer)
+
+  // def inheritedMethods(extendedTraits: List[TraitTypeWhere],
   //                      initial: Set[(IdOrOpOrAnonymousName,
   //                                        (Functional, StaticTypeReplacer))],
   //                      analyzer: TypeAnalyzer)

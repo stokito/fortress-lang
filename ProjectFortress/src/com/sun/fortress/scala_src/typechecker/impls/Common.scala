@@ -93,6 +93,9 @@ trait Common { self: STypeChecker =>
     // val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
     // inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
     // methods
+
+    // TODO!!!!!!
+
     def inheritedMethodsHelper(history: HierarchyHistory,
                                methods: Relation[IdOrOpOrAnonymousName, Method],
                                extended_traits: Iterable[TraitTypeWhere])
