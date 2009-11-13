@@ -78,51 +78,105 @@ public class Instantiater extends ClassAdapter {
             return Useful.substituteVarsCompletely(s, this, limit, envVar, INTRO_LEN, OUTRO_LEN);
         }
         
-        public String repairMangle(String s, int start, int end) {
-            StringBuffer b = new StringBuffer();
-            b.append(s.substring(0,start));
-            int olevel = 0;
-            for (int i = start; i < end; i++) {
-                char c = s.charAt(i);
-                
-                if (c == ';') {
-                    mangle(b, olevel, '?', ';');
-                } else if (c == '$') {
-                    mangle(b, olevel, '%', '$');
-                } else if (c == '.') {
-                    mangle(b, olevel, ',', '.');
-                } else {
-                    if (c == Naming.LEFT_OXFORD_CHAR) {
-                        olevel++;
-                    } else if (c == Naming.RIGHT_OXFORD_CHAR) {
-                        olevel--;
-                    }
-                    b.append(c);
-                }
-            }
-            b.append(s.substring(end));
-            return b.toString();
+    }
+    
+    public static class BetterInstantiationMap  {
+        
+        Map<String, String> p;
+
+        BetterInstantiationMap(Map<String, String> p) {
+            this.p = p;
+        }
+        
+        
+        public String getCompletely(String s) {
+            // TODO will need to rewrite into type, desc, and method variants.
+            if (s == null)
+                return s;
+            s = Naming.demangleFortressIdentifier(s);
+            s = oxfordSensitiveSubstitution(s);
+            return s;
         }
 
-        private void mangle(StringBuffer b, int olevel, char c, char c_if_zero) {
-            if (olevel == 0)
-                b.append(c_if_zero);
-            else {
-                b.append('\\');
-                while (olevel-- > 1)
-                    b.append('-');
-                b.append(c);
+        public String getDesc(String s) {           
+            if (s == null)
+                return s;
+            s = Naming.demangleFortressDescriptor(s);
+            s = oxfordSensitiveSubstitution(s);
+            return s;
             }
+       
+
+        /**
+         * @param s
+         * @return
+         * @throws Error
+         */
+        private String oxfordSensitiveSubstitution(String s) throws Error {
+            int l = s.length();
+            
+            int oxLevel = 0;
+            
+            for (int i = 0; i < l; i++) {
+                char ch = s.charAt(i);
+                
+                if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
+                    // Found a variable
+                    StringBuffer b = new StringBuffer();
+                    int j = 0;
+                    while (j < l) {
+                         ch = s.charAt(j);
+                         j++;
+                         if (ch == Naming.LEFT_OXFORD_CHAR) {
+                             oxLevel++;
+                             b.append(ch);
+                         } else if (ch == Naming.RIGHT_OXFORD_CHAR)  {
+                             oxLevel--;
+                             b.append(ch);
+                         } else if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
+                             StringBuffer v = new StringBuffer(8);
+                             v.append(ch);
+                             while (j < l) {
+                                 ch = s.charAt(j);
+                                 if ('0' <= ch && ch <= '9') {
+                                     v.append(ch);
+                                     j++;
+                                 } else {
+                                     break;
+                                 }
+                             }
+                             // j addresses next character or the end.
+                             // v contains the variable.
+                             String vs = v.toString();
+                             String t = p.get(vs);
+                             if (t == null)
+                                 throw new Error("Missing generic binding for " + vs + " map = " + p);
+                             if (oxLevel == 0) {
+                                 b.append(t.substring(1));
+                             } else {
+                                 b.append(t);
+                             }
+                             
+                         } else {
+                             b.append(ch);
+                         }
+                    }
+                    s = b.toString();
+                    break;
+                }
+            }
+            return s;
         }
+        
         
     }
     
-    InstantiationMap xlation;
+    BetterInstantiationMap xlation;
     String instanceName;
     
     public Instantiater(ClassVisitor cv, Map xlation, String instanceName) {
         super(cv);
-        this.xlation = new InstantiationMap(xlation);
+        this.xlation = new BetterInstantiationMap(xlation);
         this.instanceName = instanceName;
     }
 
