@@ -132,7 +132,11 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         } else if (the_overloads.size() == 1 ){
-            IdOrOp thename = the_overloads.get(0).getUnambiguousName();
+            Overloading the_overload = the_overloads.get(0);
+            IdOrOp thename = the_overload.getUnambiguousName();
+            Option<ArrowType> oat = the_overload.getSchema();
+            if (oat.isSome())
+                schema_result = Option.<Type>wrap(oat.unwrap());
             fns = Collections.unmodifiableList(Collections.singletonList(thename));
         } else {
             fns = Collections.unmodifiableList(Collections.singletonList(originalName));

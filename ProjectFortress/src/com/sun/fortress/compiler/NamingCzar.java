@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
+import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitSelfType;
@@ -342,16 +344,48 @@ public class NamingCzar {
     public static final String FValueType = runtimeValues + "FValue";
     // static final String FValueDesc = internalToDesc(FValueType);
 
+    static class PartialTypeComparator implements Comparator<com.sun.fortress.nodes.Type> {
+
+        @Override
+        public int compare(com.sun.fortress.nodes.Type o1,
+                com.sun.fortress.nodes.Type o2) {
+            if (o1 instanceof TraitSelfType)
+                o1 = ((TraitSelfType)o1).getNamed();
+            if (o2 instanceof TraitSelfType)
+                o2 = ((TraitSelfType)o2).getNamed();
+            
+            if (o1 instanceof TraitType && o2 instanceof TraitType) {
+                TraitType t1 = (TraitType) o1;
+                TraitType t2 = (TraitType) o2;
+                Id i1 = t1.getName();
+                Id i2 = t2.getName();
+                return i1.toString().compareTo(i2.toString());
+            } else {
+                Class c1 = o1.getClass();
+                Class c2 = o2.getClass();
+                if (c1 != c2) {
+                    return c1.getName().compareTo(c2.getName());
+                }
+                // TODO We may wish to elaborate this, but traittypes is good enough.
+                return 0;
+            }
+        }
+        
+    }
+    
+    
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
      */
     private static Map<com.sun.fortress.nodes.Type, String> specialFortressDescriptors =
-        new HashMap<com.sun.fortress.nodes.Type, String>();
+        new BATree<com.sun.fortress.nodes.Type, String>(new PartialTypeComparator());
+    //new HashMap<com.sun.fortress.nodes.Type, String>();
     /**
      * Java descriptors for (boxed) Fortress types, WITHOUT leading L and trailing ;
      */
     private static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes =
-        new HashMap<com.sun.fortress.nodes.Type, String>();
+        new BATree<com.sun.fortress.nodes.Type, String>(new PartialTypeComparator());
+        //new HashMap<com.sun.fortress.nodes.Type, String>();
 
     private static void bl(APIName api, String str, String cl) {
         b(api,str, runtimeValues+cl);
@@ -571,7 +605,7 @@ public class NamingCzar {
             String s1 =  makeInnerClassName(api,name);
             String s2 = jvmTypeDesc(parentType, ifMissing, false);
             if (! s1.equals(s2)) {
-                System.err.println(s1 + " MISMATCH " + s2);
+                // System.err.println(s1 + " MISMATCH " + s2);
             }
             result[i] = s2;
         }
@@ -839,10 +873,15 @@ public class NamingCzar {
 
     private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
-
+        String s = id.getText();
+        
+        // Don't tag variables.......
+        if (s.startsWith(Naming.YINYANG))
+            return s;
+        
         String tag = Naming.NORMAL_TAG; // has to be a NORMAL_TAG to work.
         // this might be buggy.
-        return tag + id.getText();
+        return tag + s;
     }
 
 
@@ -928,6 +967,8 @@ public class NamingCzar {
                 if (result != null) {
                     Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
                                 " builtin ", result);
+                    if (! withLSemi)
+                        return result;
                     return result;
                 }
                 Id id = t.getName();

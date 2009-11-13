@@ -763,7 +763,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         String PCN = packageAndClassName + Naming.GEAR +"$" +
-                        mname + sparams_part + Naming.ENVELOPE + "$" + generic_arrow_type;
+                        mname + sparams_part + Naming.ENVELOPE + "$"  + generic_arrow_type
+                        ;
 
         // System.err.println(PCN);
 
@@ -1608,21 +1609,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String pkgClass = calleeInfo.getA();
 
         if (decoration.length() > 0) {
+            // debugging reexecute
+            decoration = genericDecoration(sargs, thisApi());
             /*
              * TODO, BUG, need to use arrow type of uninstantiated generic!
              * This is necessary because otherwise it is difficult (impossible?)
              * to figure out the name of the template class that will be
              * expanded later.
              */
+            
+            Option<Type> oschema = x.getOverloadingSchema();
 
-            String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
+            String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
             
             pkgClass = pkgClass + Naming.GEAR + "$" +
                     calleeInfo.getB() +
                     decoration +
-                    Naming.ENVELOPE + "$" +
-                    arrow_type // TODO fix this.
+                    Naming.ENVELOPE
+                    + "$"  + arrow_type // TODO fix this.
                     ;
+            // DEBUG, for looking at the schema append to a reference.
+            // System.err.println("At " + x.getInfo().getSpan() + ", " + pkgClass);
         }
 
         callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.getB());
