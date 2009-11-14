@@ -13,8 +13,8 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests= Compiled11.a Compiled11.c
+tests= Compiled11 Compiled11.a Compiled11.c
 compile
 link
 run
-run_out_equals=
+run_out_equals=PASS\n
