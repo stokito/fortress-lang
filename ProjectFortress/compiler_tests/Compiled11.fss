@@ -19,7 +19,7 @@ export Executable
 
 (* Generic top-level functions using generic types *)
 
-f[\U extends ZZ32\](x:U):U = x
+f[\T extends ZZ32\](x:T):T = x
 g[\T extends ZZ32, S\](x:T):ZZ32 = f[\T\](x) + 5
 
 run() =do
@@ -30,6 +30,6 @@ run() =do
 
   println(
   if (a=d=0 AND b=c=5)
-     then "pass" else "fail" end
+     then "PASS" else "FAIL" end
   )
 end

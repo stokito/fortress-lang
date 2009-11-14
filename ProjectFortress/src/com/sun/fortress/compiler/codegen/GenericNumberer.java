@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.nodes.ASTNodeInfo;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.ExprInfo;
+import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
@@ -102,7 +104,7 @@ public class GenericNumberer extends NodeUpdateVisitor {
         return forStaticParamOnly(that, info_result, name_result, extendsClause_result, dimParam_result, kind_result);
     }
 
-     @Override
+    @Override
     public Node forOpRef(OpRef that) {
         // Clone from parent.
         ExprInfo info_result = (ExprInfo) recur(that.getInfo());
@@ -115,10 +117,39 @@ public class GenericNumberer extends NodeUpdateVisitor {
         // what about overloadings?
         List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
         List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
-        Option<Type> schema_result = recurOnOptionOfType(that.getOverloadingSchema());
+        Option<Type> schema_result = that.getOverloadingSchema(); // DO NOT TRANSLATE SCHEMA
         Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
         return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result, schema_result);
     }
+
+    @Override
+    public Node forFnRef(FnRef that) {
+        // Clone from parent.
+        ExprInfo info_result = (ExprInfo) recur(that.getInfo());
+        List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+        
+        // need to rewrite originalName and names.
+        IdOrOp originalName_result = xlate(that.getOriginalName());
+        List<IdOrOp> names_result = Useful.<IdOrOp>applyToAllPossiblyReusing(that.getNames(), xlator);
+        
+        // what about overloadings?
+        List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
+        List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
+        Option<Type> schema_result = that.getOverloadingSchema(); // DO NOT TRANSLATE SCHEMA
+        Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
+        return forFnRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result, schema_result);
+    }
+    
+    public Node forOverloading(Overloading that) {
+        ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
+        IdOrOp unambiguousName_result = (IdOrOp) recur(that.getUnambiguousName());
+        IdOrOp originalName_result = (IdOrOp) recur(that.getOriginalName());
+        Option<ArrowType> type_result = recurOnOptionOfArrowType(that.getType());
+        Option<ArrowType> schema_result = that.getSchema();  // DO NOT TRANSLATE SCHEMA
+        return forOverloadingOnly(that, info_result, unambiguousName_result, originalName_result, type_result, schema_result);
+    }
+
+
 
 // Do nothing here.
 //    @Override
