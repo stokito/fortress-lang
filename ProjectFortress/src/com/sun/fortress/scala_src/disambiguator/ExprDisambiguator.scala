@@ -70,10 +70,10 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                         _env: NameEnv) extends Walker {
   var env = _env
   val errors = new JArrayList[StaticError]()
-  var types   = Set[Id]()
-  var topVars = Set[Id]()
-  var topFns  = Set[IdOrOp]()
-  var labels = List[Id]()
+  private var types   = Set[String]()
+  private var topVars = Set[String]()
+  private var topFns  = Set[String]()
+  private var labels = List[Id]()
   var uninitializedNames = Set[Id]()
   var inComponent = false
   var inTraitOrObject = false
@@ -109,7 +109,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         inTraitOrObject = true
         val name = old_name.asInstanceOf[Id]
         checkForShadowingType(name)
-        types += name
+        types += name.getText
         // Check that wrapped fields must not have naked type variables.
         for (decl <- decls) decl match {
           case SVarDecl(_,lhs,_) =>
@@ -130,7 +130,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
-        val (_, inheritedMs) = inheritedMethods(extendsClause)
+        val inheritedMs = inheritedMethods(extendsClause)
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
         extendWithVars(Set(NF.makeId(span, "self")))
@@ -159,7 +159,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         inTraitOrObject = true
         val name = old_name.asInstanceOf[Id]
         checkForShadowingType(name)
-        types += name
+        types += name.getText
         // Check that wrapped fields must not have naked type variables.
         for (decl <- decls) decl match {
           case SVarDecl(_,lhs,_) =>
@@ -178,7 +178,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         old_params match {
           case Some(ps) =>
             checkForShadowingTopFunction(name)
-            topFns += name
+            topFns += name.getText
             checkForValidParams(extractParamNames(ps))
             for (param <- ps) {
               val mods = param.getMods
@@ -207,7 +207,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             }
           case _ =>
             checkForShadowingTopVariable(name)
-            topVars += name
+            topVars += name.getText
         }
         val old_env = env
         extendWithVars(extractStaticExprVars(sparams))
@@ -215,7 +215,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val params = extractParamNames(old_params)
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, params)
-        val (_, inheritedMs) = inheritedMethods(extendsClause)
+        val inheritedMs = inheritedMethods(extendsClause)
         val fields = params ++ vars
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
@@ -254,7 +254,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         }
         if (!inBlock && (!inTraitOrObject || functional)) {
           checkForShadowingTopFunction(name)
-          topFns += name
+          topFns += name.getText
         }
         val old_env = env
         val param_names = extractParamNames(params)
@@ -277,7 +277,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         if (!inTraitOrObject) {
           lhs.foreach(l => l match {
                       case SLValue(_,name,_,_,_) =>
-                        checkForShadowingTopVariable(name); topVars += name
+                        checkForShadowingTopVariable(name); topVars += name.getText
                      })
         }
         super.walk(node)
@@ -303,7 +303,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
         val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
-        val (_, inheritedMs) = inheritedMethods(extendsClause)
+        val inheritedMs = inheritedMethods(extendsClause)
         val old_env = env
         extendWithVars(Set(NF.makeId(span, "self")))
         extendWithFields(vars)
@@ -636,12 +636,10 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
   private def extendWithMethods(definedDecls: Set[FnDecl]): Unit =
     extendWithFns(definedDecls,
                   extractDefinedFnNames(definedDecls.filter(!NU.isFunctionalMethod(_)))
-                  .map(_.asInstanceOf[IdOrOp]))
-  private def extendWithFns(definedDecls: Set[FnDecl]): Unit =
-    extendWithFns(definedDecls, Set[IdOrOp]())
+                  .map(_.asInstanceOf[IdOrOp].getText))
 
   private def extendWithFns(definedDecls: Set[FnDecl],
-                            allowedShadowings: Set[IdOrOp]): Unit = {
+                            allowedShadowings: Set[String]): Unit = {
     checkForShadowingFunctions(extractDefinedFnNames(definedDecls), allowedShadowings)
     extendWithFnsNoCheck(definedDecls)
   }
@@ -672,13 +670,13 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * Check that the function corresponding to the given Id does not shadow any variables
    * in scope.
    */
-  private def checkForShadowingFunction(v: Id, allowedShadowings: Set[IdOrOp]) =
+  private def checkForShadowingFunction(v: Id, allowedShadowings: Set[String]) =
     if (!env.explicitVariableNames(v).isEmpty &&
-        !allowedShadowings.exists(_.getText.equals(v.getText)))
+        !allowedShadowings.contains(v.getText))
       error("Variable " + v + " is already declared.", v)
 
   private def checkForShadowingFunctions(definedNames: Set[IdOrOpOrAnonymousName],
-                                         allowedShadowings: Set[IdOrOp]) =
+                                         allowedShadowings: Set[String]) =
     for (name <- definedNames) name match {
       case id:Id => checkForShadowingFunction(id, allowedShadowings)
       case _ =>
@@ -727,16 +725,16 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * in scope.
    */
   private def checkForShadowingType(ty: Id) =
-    if (types.exists(_.getText.equals(ty.getText)))
+    if (types.contains(ty.getText))
       error("Type " + ty + " is already declared.", ty)
 
   private def checkForShadowingTopVariable(v: Id) =
-    if (topVars.exists(_.getText.equals(v.getText)) ||
-        topFns.exists(_.getText.equals(v.getText)))
+    if (topVars.contains(v.getText) ||
+        topFns.contains(v.getText))
       error("Top-level variable " + v + " is already declared.", v)
 
   private def checkForShadowingTopFunction(f: IdOrOp) =
-    if (topVars.exists(_.getText.equals(f.getText)))
+    if (topVars.contains(f.getText))
       error("Top-level variable " + f + " is already declared.", f)
 
   /**
@@ -839,42 +837,41 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * FnDecls for other functions.
    */
   private def partitionDecls(decls: List[Decl], paramFields: Set[Id]) = {
-    val (vars, gettersAndSetters, fns) =
-      decls.foldLeft((Set[Id](), Set[FnDecl](), Set[FnDecl]()))
+    val (vars, gettersAndSetters, getterAndSetterIds, fns) =
+      decls.foldLeft((Set[Id](), Set[FnDecl](), Set[Id](), Set[FnDecl]()))
                     {(res, decl) => (res, decl) match {
-                       case ((vars, accessors, fns),
+                       case ((vars, accessors, accessorIds, fns),
                              fd@SFnDecl(_,
                                         SFnHeader(_,mods,name,_,_,_,params,_),_,_,_)) =>
                          if (mods.isGetterSetter) {
                            name match {
                              case id:Id =>
-                               if (accessors.exists(acc =>
-                                                    NU.getName(acc).asInstanceOf[Id].getText.equals(id.getText) &&
-                                                    NU.getMods(acc).equals(mods))) {
+                               if (accessorIds.contains(id) &&
+                                   accessors.exists(d => NU.getMods(d).equals(mods) &&
+                                                         NU.getName(d).equals(id))) {
                                  error("Getter/setter declarations should not be overloaded.", fd)
                                }
-                               (vars, accessors + fd, fns)
+                               (vars, accessors + fd, accessorIds + id, fns)
                              case _ =>
                                error("Getter/setter declared with an operator name, '" +
                                      NU.nameString(name) + "'", fd)
-                               (vars, accessors, fns)
+                               (vars, accessors, accessorIds, fns)
                            }
                          // Don't add functional methods!  They go at the top level.
                          } else if (!NU.isFunctionalMethod(toJavaList(params)))
-                           (vars, accessors, fns + fd)
-                         else (vars, accessors, fns)
-                       case ((vars, accessors, fns), vd@SVarDecl(_, lhs, _)) =>
-                         (joinFields(vars, extractDefinedVarNames(lhs)), accessors, fns)
+                           (vars, accessors, accessorIds, fns + fd)
+                         else (vars, accessors, accessorIds, fns)
+                       case ((vars, accessors, accessorIds, fns), vd@SVarDecl(_, lhs, _)) =>
+                         (joinFields(vars, extractDefinedVarNames(lhs)),
+                          accessors, accessorIds, fns)
                        case _ => res
                      }}
-    val accessors = gettersAndSetters.map(NU.getName(_).asInstanceOf[Id])
-    for (id <- paramFields ++ vars ++ accessors)
-      if (fns.exists(fd => NU.getName(fd) match {
-                     case fname:Id => fname.getText.equals(id.getText)
-                     case _ => false
-                     }))
+    val fnNames = fns.flatMap[String](fd => NU.getName(fd) match {
+                                              case fname: Id => Set(fname.getText)
+                                              case _ => Set() })
+    for (id <- paramFields ++ vars ++ getterAndSetterIds if (fnNames.contains(id.getText)))
         error("Getter/setter declarations should not be overloaded with method declarations.", id)
-    (vars, accessors, fns)
+    (vars, getterAndSetterIds, fns)
   }
 
   private def joinFields(vars: Set[Id], new_vars: Set[Id]) =
@@ -898,37 +895,35 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * @return
    */
   private def inheritedMethods(extended_traits: List[TraitTypeWhere])
-                              : (Set[Id], Set[FnDecl]) =
+                              : Set[FnDecl] =
     inheritedMethodsHelper(new HierarchyHistory(), extended_traits)
 
   // For now we won't add functional methods.
   // They are not received through inheritance.
   private def inheritedMethodsHelper(hist: HierarchyHistory,
                                      extended_traits: List[TraitTypeWhere])
-                                    : (Set[Id], Set[FnDecl]) = {
-    extended_traits.foldLeft((Set[Id](), Set[FnDecl]()))
-      {(res, t) => (res, t) match {
-         case ((accessors, methods), STraitTypeWhere(_, base: NamedType, _))
+                                    : Set[FnDecl] = {
+    extended_traits.foldLeft(Set[FnDecl]())
+      {(methods, t) => t match {
+         case STraitTypeWhere(_, base: NamedType, _)
               if hist.explore(base) =>
            // Trait types or VarTypes can represent traits at this phase of compilation.
            val trait_name = base.getName
            env.typeConsIndex(trait_name) match {
              case ti:TraitIndex =>
-               val (my_acc, my_meth) =
-                   (accessors ++ toSet(ti.getters.keySet) ++ toSet(ti.setters.keySet),
-                    methods ++ toSet(ti.dottedMethods.secondSet).map(_.ast))
+               val my_meth = toSet(ti.dottedMethods.secondSet).map(_.ast)
                // Now recursively add methods from trait's extends clause
-               val (inherited_acc, inherited_meth) =
+               val inherited_meth =
                    inheritedMethodsHelper(hist.copy, toList(ti.extendsTypes))
-               (my_acc ++ inherited_acc, my_meth ++ inherited_meth)
+               methods ++ my_meth ++ inherited_meth
              case tci =>
                if (tci == null)
                  error("Type variable " + trait_name + " must not appear " +
                        "in the extends clause of a trait or object declaration.",
                        trait_name)
-               res // Probably ANY
+               methods // Probably ANY
            }
-         case _ => res
+         case _ => methods
        }}
   }
 

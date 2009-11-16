@@ -22,6 +22,8 @@ import scala.collection.Map
 import scala.collection.Set
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
+import scala.collection.jcl.MutableIterator.Wrapper
+import scala.Iterator._
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{DeclaredMethod => JavaDeclaredMethod}
@@ -38,6 +40,7 @@ import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -75,9 +78,9 @@ class AbstractMethodChecker(component: ComponentIndex,
         for {
           d <- decls;
           if d.isInstanceOf[FnDecl];
-          if NU.isFunctionalMethod(NU.getParams(d.asInstanceOf[FnDecl]));
-          if !inherited.exists(NU.getName(d.asInstanceOf[FnDecl]).asInstanceOf[IdOrOp]
-                               .getText.equals(_))
+          val f = d.asInstanceOf[FnDecl];
+          if NU.isFunctionalMethod(NU.getParams(f));
+          if !inherited.contains(NU.getName(f).asInstanceOf[IdOrOp].getText)
         } error(NU.getSpan(d),
                 "Object expressions should not define any new functional methods.")
 
@@ -105,33 +108,21 @@ class AbstractMethodChecker(component: ComponentIndex,
   }
 
   private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]):
-      List[(TraitType, FnDecl)] = {
+      Iterator[(TraitType, FnDecl)] = {
     val inherited = inheritedMethods(extended_traits, typeAnalyzer)
-    var res = List[(TraitType, FnDecl)]()
     for {
-      (meth : HasSelfType, _, tt) <- toSet(inherited.secondSet)
+      (meth : HasSelfType, _, tt) <- inherited.secondSet
       decl <- meth match {
-        case f : JavaFunctionalMethod => Some(f.ast())
-        case m : JavaDeclaredMethod => Some(m.ast())
+        case f : JavaFunctionalMethod => single(f.ast())
+        case m : JavaDeclaredMethod => single(m.ast())
         case gs : FieldGetterOrSetterMethod if gs.fnDecl.isSome =>
-            Some(gs.fnDecl.unwrap)
+            single(gs.fnDecl.unwrap)
         case o => System.err.println("inheritedAbstractMethods: skipped "+o)
-            None
+            empty
       }
-      SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- Some(decl)
+      SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- single(decl)
       if (mods.isAbstract || ! body.isDefined)
-    } res = ((tt,decl)) :: res
-    res
-  }
-
-  private def collectAbstractMethods(name: IdOrOp, decls: List[Decl]) = {
-    val set = new HashSet[FnDecl]
-    for ( fd@SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- decls ) {
-      if ( component.typeConses.containsKey(name) ) {
-        if ( ! body.isDefined ) set += fd
-      } else if ( mods.isAbstract ) set += fd
-    }
-    set
+    } yield (tt,decl)
   }
 
   /* Returns true if any of the concrete method declarations in "decls"

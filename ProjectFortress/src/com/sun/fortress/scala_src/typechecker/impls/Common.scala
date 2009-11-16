@@ -52,93 +52,38 @@ trait Common { self: STypeChecker =>
   // TODO: Rewrite this method!
   def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere])
                       : Relation[IdOrOpOrAnonymousName, Method] = {
-    // Return all of the methods from super-traits
-    // def inheritedMethodsHelper(history: HierarchyHistory,
-
-    //                            extended_traits: Iterable[TraitTypeWhere])
-    //                            : scala.Unit = {
-    //   for ( STraitTypeWhere(_, ty: TraitType, _) <- extended_traits;
-    //         if history.explore(ty)) {
-    //     val name = ty.getName
-    //     toOption(traits.typeCons(name)) match {
-    //       case ti : TraitIndex =>
-    //         val trait_args = ty.getArgs
-    //         val trait_params = ti.staticParameters
-    //         // Instantiate methods with static args
-    //         for ( pair <- toSet(ti.dottedMethods) ) {
-    //             methods.add(pair.first,
-    //                         pair.second.instantiate(trait_params,trait_args)
-    //                         .asInstanceOf[Method])
-    //         }
-    //         for ( kv <- toSet(ti.getters.entrySet) ) {
-    //             methods.add(kv.getKey,
-    //                         kv.getValue.instantiate(trait_params,trait_args)
-    //                         .asInstanceOf[Method])
-    //         }
-    //         for ( kv <- toSet(ti.setters.entrySet) ) {
-    //             methods.add(kv.getKey,
-    //                         kv.getValue.instantiate(trait_params,trait_args)
-    //                         .asInstanceOf[Method])
-    //         }
-    //         val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
-    //         val instantiated_extends_types =
-    //           toList(ti.extendsTypes).map( (t:TraitTypeWhere) =>
-    //                 t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
-    //         // remove history.copy below.
-    //         inheritedMethodsHelper(history.copy, methods, instantiated_extends_types)
-    //       case _ =>
-    //     }
-    //   }
-    // }
-    // val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
-    // inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
-    // methods
-
-    // TODO!!!!!!
-
     def inheritedMethodsHelper(history: HierarchyHistory,
                                methods: Relation[IdOrOpOrAnonymousName, Method],
                                extended_traits: Iterable[TraitTypeWhere])
                                : scala.Unit = {
-      var h = history
-      for ( trait_ <- extended_traits) {
-        val type_ = trait_.getBaseType
-        if ( h.explore(type_) ) {
-          type_ match {
-            case ty@STraitType(_, name, _, _) =>
-              toOption(traits.typeCons(name)) match {
-                case Some(ti) =>
-                  if ( ti.isInstanceOf[TraitIndex] ) {
-                    val trait_params = ti.staticParameters
-                    val trait_args = ty.getArgs
-                    // Instantiate methods with static args
-                    val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => (t.first, t.second))
-                    for ( pair <- dotted ) {
-                        methods.add(pair._1,
-                                    pair._2.instantiate(trait_params,trait_args).asInstanceOf[Method])
-                    }
-                    val getters = ti.asInstanceOf[TraitIndex].getters
-                    for ( getter <- toSet(getters.keySet) ) {
-                        methods.add(getter,
-                                    getters.get(getter).instantiate(trait_params,trait_args).asInstanceOf[Method])
-                    }
-                    val setters = ti.asInstanceOf[TraitIndex].setters
-                    for ( setter <- toSet(setters.keySet) ) {
-                        methods.add(setter,
-                                    setters.get(setter).instantiate(trait_params,trait_args).asInstanceOf[Method])
-                    }
-                    val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
-                    val instantiated_extends_types =
-                      toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
-                            t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
-                    val old_hist = h.copy
-                    inheritedMethodsHelper(h, methods, instantiated_extends_types)
-                    h = old_hist
-                  }
-                case _ =>
-              }
-            case _ =>
-          }
+      for ( STraitTypeWhere(_, ty: TraitType, _) <- extended_traits;
+            if history.explore(ty)) {
+        toOption(traits.typeCons(ty.getName)) match {
+          case Some(ti : TraitIndex) =>
+            val trait_params = ti.staticParameters
+            val trait_args = ty.getArgs
+            // Instantiate methods with static args
+            val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => (t.first, t.second))
+            for ( pair <- dotted ) {
+                methods.add(pair._1,
+                            pair._2.instantiate(trait_params,trait_args).asInstanceOf[Method])
+            }
+            val getters = ti.asInstanceOf[TraitIndex].getters
+            for ( getter <- toSet(getters.keySet) ) {
+                methods.add(getter,
+                            getters.get(getter).instantiate(trait_params,trait_args).asInstanceOf[Method])
+            }
+            val setters = ti.asInstanceOf[TraitIndex].setters
+            for ( setter <- toSet(setters.keySet) ) {
+                methods.add(setter,
+                            setters.get(setter).instantiate(trait_params,trait_args).asInstanceOf[Method])
+            }
+            val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
+            val instantiated_extends_types =
+              toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
+                    t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
+            inheritedMethodsHelper(history.copy, methods, instantiated_extends_types)
+          case _ =>
         }
       }
     }
