@@ -29,7 +29,28 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.optimization.Unbox.Contains;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BoolBase;
+import com.sun.fortress.nodes.BoolBinaryOp;
+import com.sun.fortress.nodes.BoolExpr;
+import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.BoolUnaryOp;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.DimExpr;
 import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.FunctionalRef;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntBase;
+import com.sun.fortress.nodes.IntBinaryOp;
+import com.sun.fortress.nodes.IntExpr;
+import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.KindBool;
+import com.sun.fortress.nodes.KindDim;
+import com.sun.fortress.nodes.KindInt;
+import com.sun.fortress.nodes.KindNat;
+import com.sun.fortress.nodes.KindOp;
+import com.sun.fortress.nodes.KindType;
+import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -43,16 +64,21 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
 import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StaticParamKind;
 import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.UnitExpr;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -62,8 +88,12 @@ import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
+
+import com.sun.fortress.scala_src.useful.STypesUtil;
+
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
@@ -918,7 +948,7 @@ public class NamingCzar {
         return r;
     }
 
-    public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
+    public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
                                      final APIName ifNone,
                                      final boolean withLSemi) {
         return type.accept(new NodeAbstractVisitor<String>() {
@@ -980,8 +1010,13 @@ public class NamingCzar {
                 List<StaticArg> sargs = t.getArgs();
                 
                 // TODO work in progress -- need to expand with StaticArg if those are available.
-
-                result = makeInnerClassName(api,id, forStaticParams(sparams));
+                if (sargs.size() > 0) {
+                    result = makeInnerClassName(api,id, genericDecoration(sargs, ifNone));
+                    if (sparams.size() > 0)
+                        throw new CompilerError(id,"Static args and params both non-empty, what wins? " +  type);
+                } else 
+                    result = makeInnerClassName(api,id, forStaticParams(sparams));
+                
                 if (withLSemi)
                     result = internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
@@ -1264,5 +1299,193 @@ public class NamingCzar {
         Pair<String, String> calleeInfo =
             new Pair<String, String>(calleePackageAndClass, method);
         return calleeInfo;
+    }
+
+    public static NodeAbstractVisitor<String> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<String> () {
+    
+        @Override
+        public String forKindBool(KindBool that) {
+            return Naming.BALLOT_BOX_WITH_CHECK;
+        }
+    
+        @Override
+        public String forKindDim(KindDim that) {
+            return Naming.SCALES;
+        }
+    
+        @Override
+        public String forKindInt(KindInt that) {
+            return Naming.MUSIC_SHARP;
+        }
+    
+        @Override
+        public String forKindNat(KindNat that) {
+            // nats and ints go with same encoding; no distinction in args
+            return Naming.MUSIC_SHARP;
+        }
+    
+        @Override
+        public String forKindOp(KindOp that) {
+            return Naming.HAMMER_AND_PICK;
+        }
+    
+        @Override
+        public String forKindType(KindType that) {
+            return Naming.YINYANG;
+        }
+    
+        @Override
+        public String forKindUnit(KindUnit that) {
+            return Naming.ATOM;
+        }
+    
+        @Override
+        public String forBoolBase(BoolBase b) {
+            return b.isBoolVal() ? "T" : "F";
+        }
+    
+        @Override
+        public String forBoolRef(BoolRef b) {
+            return b.getName().getText();
+        }
+    
+        @Override
+        public String forBoolBinaryOp(BoolBinaryOp b) {
+            BoolExpr l = b.getLeft();
+            BoolExpr r = b.getRight();
+            Op op = b.getOp();
+            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+        }
+    
+        @Override
+        public String forBoolUnaryOp(BoolUnaryOp b) {
+            BoolExpr v = b.getBoolVal();
+            Op op = b.getOp();
+            return v.accept(this) + Naming.ENTER + op.getText();
+        }
+    
+        /* These need to return encodings of Fortress types. */
+        @Override
+        public String forBoolArg(BoolArg that) {
+            BoolExpr arg = that.getBoolArg();
+    
+            return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
+        }
+    
+        @Override
+        public String forDimArg(DimArg that) {
+            DimExpr arg = that.getDimArg();
+            return Naming.SCALES;
+        }
+    
+        @Override
+        public String forIntBase(IntBase b) {
+            return String.valueOf(b.getIntVal());
+        }
+    
+        @Override
+        public String forIntRef(IntRef b) {
+            return b.getName().getText();
+        }
+    
+        @Override
+        public String forIntBinaryOp(IntBinaryOp b) {
+            IntExpr l = b.getLeft();
+            IntExpr r = b.getRight();
+            Op op = b.getOp();
+            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+        }
+    
+       @Override
+        public String forIntArg(IntArg that) {
+            IntExpr arg = that.getIntVal();
+            return Naming.MUSIC_SHARP + arg.accept(this);
+        }
+    
+        @Override
+        public String forOpArg(OpArg that) {
+            FunctionalRef arg = that.getName();
+            // TODO what about static args here?
+            IdOrOp name = arg.getNames().get(0);
+            return Naming.HAMMER_AND_PICK + name.getText();
+        }
+    
+        @Override
+        public String forTypeArg(TypeArg that) {
+            com.sun.fortress.nodes.Type arg = that.getTypeArg();
+            // Pretagged with type information
+            String s =  makeArrowDescriptor(arg, ifMissing);
+            return s;
+        }
+    
+        @Override
+        public String forUnitArg(UnitArg that) {
+            UnitExpr arg = that.getUnitArg();
+            return Naming.ATOM;
+        }
+    
+    };
+    }
+
+    /**
+     * @param xlation
+     * @param sparams
+     * @return
+     */
+    public static String genericDecoration(List<StaticParam> sparams,
+            Map<String, String> xlation,
+            APIName ifMissing
+            ) {
+        if (sparams.size() == 0)
+            return "";
+    
+        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+        
+        String frag = Naming.LEFT_OXFORD;
+        int index = 1;
+        for (StaticParam sp : sparams) {
+            StaticParamKind spk = sp.getKind();
+    
+            IdOrOp spn = sp.getName();
+            String tag = spk.accept(spkTagger) + index;
+            xlation.put(spn.getText(), tag);
+            frag += tag + ";";
+            index++;
+        }
+        // TODO Auto-generated method stub
+        return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
+    }
+
+    public static String genericDecoration(List<StaticArg> sargs,
+            APIName ifMissing) {
+        // TODO we need to make the conventions for Arrows and other static types converge.
+        if (sargs.size() == 0)
+            return "";
+        
+        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+    
+        String frag = Naming.LEFT_OXFORD;
+        int index = 1;
+        for (StaticArg sp : sargs) {
+            String tag = sp.accept(spkTagger);
+            frag += tag;
+            frag += ";";
+            index++;
+        }
+       return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
+    }
+    
+    private static F<StaticParam, StaticArg> paramToArg =
+        new F<StaticParam, StaticArg> () {
+
+            @Override
+            public StaticArg apply(StaticParam x) {
+                return STypesUtil.staticParamToArg(x);
+            }
+    
+    };
+    
+    public static List<StaticArg> paramToArg(List<StaticParam> lp) {
+        return Useful.applyToAll(lp, paramToArg);
     }
 }

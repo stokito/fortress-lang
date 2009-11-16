@@ -26,9 +26,9 @@ import org.objectweb.asm.MethodVisitor;
 public class MethodInstantiater implements MethodVisitor {
 
     MethodVisitor mv;
-    Instantiater.BetterInstantiationMap xlation;
+    InstantiationMap xlation;
     
-    public MethodInstantiater(MethodVisitor mv, Instantiater.BetterInstantiationMap xlation) {
+    public MethodInstantiater(MethodVisitor mv, InstantiationMap xlation) {
         this.mv = mv;
         this.xlation = xlation;
     }
