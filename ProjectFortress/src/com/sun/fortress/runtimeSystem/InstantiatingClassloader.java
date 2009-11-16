@@ -162,7 +162,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
                 } else if (isGeneric) {
-                    String dename = Naming.deMangle(name);
+                    String dename = Naming.demangleFortressIdentifier(name); // (was deMangle)
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
                     String stem = dename.substring(0,left);
@@ -173,7 +173,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else if (stem.equals("AbstractArrow")) {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else {
-                        throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
+                        HashMap<String, String> xlation = new HashMap<String, String>();
+                        String template_name = genericTemplateName(dename, xlation);
+                        byte[] templateClassData = readResource(template_name);
+                        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+                        ClassReader cr = new ClassReader(templateClassData);
+                        ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
+                            new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
+                                cw;
+                        Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
+                        cr.accept(instantiater, 0);
+                        classData = cw.toByteArray();
+                        
+                        // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
                 } else {
                     classData = getClass(name);
@@ -221,62 +233,20 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
         
-        String s = canonicalizeStaticParameters(name, left_oxford,
+        String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
                 right_oxford, xlation);
         
         return Naming.mangleFortressIdentifier(s);
     }
 
-    /**
-     * 
-     * 
-     * 
-     * @param name
-     * @param left_oxford
-     * @param right_oxford
-     * @param xlation
-     * @return
-     * @throws Error
-     */
-    public String canonicalizeStaticParameters(String name, int left_oxford,
-            int right_oxford, Map<String, String> xlation) throws Error {
-        String template_start = name.substring(0,left_oxford+1);
-        String template_end = name.substring(right_oxford);
-        // Note include trailing oxford to simplify loop termination.
-        String generics = name.substring(left_oxford+1, right_oxford);
-        String template_middle = "";
-        int i = 1;
-        while (generics.length() > 0) {
-            int end = generics.indexOf(';');
-            if (end == -1)
-                end = generics.length();
-            String tok =
-                generics.substring(0, end);
-            char ch = tok.charAt(0);
-            String tag;
-            if (ch == Naming.FOREIGN_TAG_CHAR ||
-                ch == Naming.NORMAL_TAG_CHAR ||
-                ch == Naming.INTERNAL_TAG_CHAR) {
-                tag = Naming.YINYANG;
-            } else if (ch == Naming.MUSIC_SHARP_CHAR) {
-                tag = Naming.MUSIC_SHARP;
-            } else if (ch == Naming.HAMMER_AND_PICK_CHAR) {
-                tag = Naming.MUSIC_SHARP;
-            } else {
-                throw new Error("Unimplemented generic kind " + ch + " seen in instantiating classloader");
-            }
-            template_middle += tag+i;
-            xlation.put(tag+i, tok);
-
-
-            if (end == generics.length())
-                break;
-            template_middle += ";";
-            generics = generics.substring(end+1);
-            i++;
-        }
-        String s = template_start + template_middle + template_end;
-        return s;
+    private String genericTemplateName(String name, Map<String, String> xlation) {
+        int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
+        int right_oxford = name.lastIndexOf(Naming.RIGHT_OXFORD);
+        
+        String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
+                right_oxford, xlation);
+        
+        return Naming.mangleFortressIdentifier(s);
     }
 
     private static byte[] instantiateClosure(String name) {

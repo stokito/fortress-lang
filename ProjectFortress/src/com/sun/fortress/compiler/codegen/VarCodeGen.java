@@ -16,6 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.objectweb.asm.Label;
@@ -23,12 +24,16 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.MethodVisitor;
 
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 // import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.runtimeSystem.InstantiationMap;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.compiler.NamingCzar;
 
@@ -163,9 +168,28 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void pushValue(CodeGenMethodVisitor mv,String static_args) {
+        public void pushValue(CodeGenMethodVisitor mv, String static_args) {
+            String cd = classDesc;
+           
+            if (static_args.length() > 0) {
+                // need to rewrite the classDesc given static args.
+                HashMap<String, String> xlation = new HashMap<String, String>();
+
+                String rewritten =
+                    InstantiationMap.canonicalizeStaticParameters(
+                            static_args,
+                            static_args.indexOf(Naming.LEFT_OXFORD),
+                            static_args.indexOf(Naming.RIGHT_OXFORD),
+                            xlation);
+                
+                InstantiationMap im = new InstantiationMap(xlation);
+                
+                cd = im.oxfordSensitiveSubstitution(cd);
+                
+            }
+            
             // TODO work in progress.
-            mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, classDesc);
+            mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, cd);
         }
 
         public void prepareAssignValue(CodeGenMethodVisitor mv) {

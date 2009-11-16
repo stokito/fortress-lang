@@ -335,8 +335,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private VarCodeGen addSelf() {
         Id tid = (Id)currentTraitObjectDecl.getHeader().getName();
+        List<StaticParam> tsparams = currentTraitObjectDecl.getHeader().getStaticParams();
+        
         Id id = NodeFactory.makeId(NodeUtil.getSpan(tid), "self");
-        Type t = NodeFactory.makeTraitType(tid);
+        Type t = NodeFactory.makeTraitType(tid, NamingCzar.paramToArg(tsparams));
         VarCodeGen v = new VarCodeGen.ParamVar(id, t, this);
         addLocalVar(v);
         return v;
@@ -1161,184 +1163,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private String genericDecoration(FnDecl x, Map<String, String> xlation) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return genericDecoration(sparams, xlation, thisApi());
+        return NamingCzar.genericDecoration(sparams, xlation, thisApi());
     }
 
 
-    public static NodeAbstractVisitor<String> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<String> () {
-
-        @Override
-        public String forKindBool(KindBool that) {
-            return Naming.BALLOT_BOX_WITH_CHECK;
-        }
-
-        @Override
-        public String forKindDim(KindDim that) {
-            return Naming.SCALES;
-        }
-
-        @Override
-        public String forKindInt(KindInt that) {
-            return Naming.MUSIC_SHARP;
-        }
-
-        @Override
-        public String forKindNat(KindNat that) {
-            // nats and ints go with same encoding; no distinction in args
-            return Naming.MUSIC_SHARP;
-        }
-
-        @Override
-        public String forKindOp(KindOp that) {
-            return Naming.HAMMER_AND_PICK;
-        }
-
-        @Override
-        public String forKindType(KindType that) {
-            return Naming.YINYANG;
-        }
-
-        @Override
-        public String forKindUnit(KindUnit that) {
-            return Naming.ATOM;
-        }
-
-        @Override
-        public String forBoolBase(BoolBase b) {
-            return b.isBoolVal() ? "T" : "F";
-        }
-
-        @Override
-        public String forBoolRef(BoolRef b) {
-            return b.getName().getText();
-        }
-
-        @Override
-        public String forBoolBinaryOp(BoolBinaryOp b) {
-            BoolExpr l = b.getLeft();
-            BoolExpr r = b.getRight();
-            Op op = b.getOp();
-            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
-        }
-
-        @Override
-        public String forBoolUnaryOp(BoolUnaryOp b) {
-            BoolExpr v = b.getBoolVal();
-            Op op = b.getOp();
-            return v.accept(this) + Naming.ENTER + op.getText();
-        }
-
-        /* These need to return encodings of Fortress types. */
-        @Override
-        public String forBoolArg(BoolArg that) {
-            BoolExpr arg = that.getBoolArg();
-
-            return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
-        }
-
-        @Override
-        public String forDimArg(DimArg that) {
-            DimExpr arg = that.getDimArg();
-            return Naming.SCALES;
-        }
-
-        @Override
-        public String forIntBase(IntBase b) {
-            return String.valueOf(b.getIntVal());
-        }
-
-        @Override
-        public String forIntRef(IntRef b) {
-            return b.getName().getText();
-        }
-
-        @Override
-        public String forIntBinaryOp(IntBinaryOp b) {
-            IntExpr l = b.getLeft();
-            IntExpr r = b.getRight();
-            Op op = b.getOp();
-            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
-        }
-
-       @Override
-        public String forIntArg(IntArg that) {
-            IntExpr arg = that.getIntVal();
-            return Naming.MUSIC_SHARP + arg.accept(this);
-        }
-
-        @Override
-        public String forOpArg(OpArg that) {
-            FunctionalRef arg = that.getName();
-            // TODO what about static args here?
-            IdOrOp name = arg.getNames().get(0);
-            return Naming.HAMMER_AND_PICK + name.getText();
-        }
-
-        @Override
-        public String forTypeArg(TypeArg that) {
-            Type arg = that.getTypeArg();
-            // Pretagged with type information
-            String s =  NamingCzar.makeArrowDescriptor(arg, ifMissing);
-            return s;
-        }
-
-        @Override
-        public String forUnitArg(UnitArg that) {
-            UnitExpr arg = that.getUnitArg();
-            return Naming.ATOM;
-        }
-
-    };
-    }
-
-
-    /**
-     * @param xlation
-     * @param sparams
-     * @return
-     */
-    private static String genericDecoration(List<StaticParam> sparams,
-            Map<String, String> xlation,
-            APIName ifMissing
-            ) {
-        if (sparams.size() == 0)
-            return "";
-
-        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
-
-        String frag = Naming.LEFT_OXFORD;
-        int index = 1;
-        for (StaticParam sp : sparams) {
-            StaticParamKind spk = sp.getKind();
-
-            IdOrOp spn = sp.getName();
-            String tag = spk.accept(spkTagger) + index;
-            xlation.put(spn.getText(), tag);
-            frag += tag + ";";
-            index++;
-        }
-        // TODO Auto-generated method stub
-        return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
-    }
-
-    private static String genericDecoration(List<StaticArg> sargs,
-            APIName ifMissing) {
-        // TODO we need to make the conventions for Arrows and other static types converge.
-        if (sargs.size() == 0)
-            return "";
-
-        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
-
-        String frag = Naming.LEFT_OXFORD;
-        int index = 1;
-        for (StaticArg sp : sargs) {
-            String tag = sp.accept(spkTagger);
-            frag += tag;
-            frag += ";";
-            index++;
-        }
-       return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
-    }
 
     /**
      * @param selfIndex
@@ -1597,7 +1425,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         List<StaticArg> sargs = x.getStaticArgs();
 
-        String decoration = genericDecoration(sargs, thisApi());
+        String decoration = NamingCzar.genericDecoration(sargs, thisApi());
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
         com.sun.fortress.nodes.Type arrow = exprType(x);
@@ -1610,7 +1438,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if (decoration.length() > 0) {
             // debugging reexecute
-            decoration = genericDecoration(sargs, thisApi());
+            decoration = NamingCzar.genericDecoration(sargs, thisApi());
             /*
              * TODO, BUG, need to use arrow type of uninstantiated generic!
              * This is necessary because otherwise it is difficult (impossible?)
@@ -1819,7 +1647,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
-        String sparams_part = genericDecoration(header.getStaticParams(), xlation, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(header.getStaticParams(), xlation, thisApi());
 
         // Rewrite the generic.
         if (sparams_part.length() > 0 ) {
@@ -1840,6 +1668,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Id classId = NodeUtil.getName(x);
         String classFile =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
+        String classFileMinusSparams =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,"",packageAndClassName);
         traitOrObjectName = classFile;
         String classDesc = NamingCzar.internalToDesc(classFile);
         debug("forObjectDeclPrePass ",x," classFile = ", classFile);
@@ -1923,7 +1753,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             addStaticVar(new VarCodeGen.StaticBinding(
                                  classId, NodeFactory.makeTraitType(classId),
-                                 classFile,
+                                 classFileMinusSparams,
                                  NamingCzar.SINGLETON_FIELD_NAME, classDesc));
         }
 
@@ -2361,7 +2191,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forVarRef(VarRef v) {
-        String sargs = genericDecoration(v.getStaticArgs(), thisApi());
+        List<StaticArg> lsargs = v.getStaticArgs();
         Id id = v.getVarId();
         VarCodeGen vcg = getLocalVarOrNull(id);
         if (vcg == null) {
@@ -2377,7 +2207,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         debug("forVarRef ", v , " Value = ", vcg);
         addLineNumberInfo(v);
-        vcg.pushValue(mv, sargs);
+        
+        String static_args = NamingCzar.genericDecoration(lsargs, thisApi());
+        vcg.pushValue(mv, static_args);
     }
 
     private void pushVoid() {
@@ -2399,7 +2231,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " args = ", x.getArg());
         Id method = x.getMethod();
         Expr obj = x.getObj();
-        List<StaticArg> sargs = x.getStaticArgs();
+        List<StaticArg> method_sargs = x.getStaticArgs();
         Expr arg = x.getArg();
 
         Option<Type> mt = x.getOverloadingType();
