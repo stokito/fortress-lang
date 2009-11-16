@@ -19,6 +19,7 @@ package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.{ArrayList => JArrayList}
 import _root_.java.util.{List => JList}
+import _root_.java.util.{Collection => JCollection}
 import _root_.junit.framework.TestCase
 import scala.collection.jcl.Conversions
 
@@ -33,7 +34,7 @@ object Lists {
 
   /* Conversion recommended by Martin Odersky, with some type trickery
      that's a bit annoying. */
-  def toList[T](xs: JList[T]): List[T] =
+  def toList[T](xs: JCollection[T]): List[T] =
     List.fromArray[T]( xs.toArray(List[T]().toArray) )
 
   def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toList(list).map(fun))

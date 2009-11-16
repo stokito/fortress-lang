@@ -28,6 +28,7 @@ import java.util.jar.JarOutputStream;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
@@ -64,8 +65,7 @@ import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.collect.Relation;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
@@ -751,7 +751,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
         String mname;
         at = fndeclToType(x); // Use the new name now.
-        
+
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
@@ -1158,7 +1158,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
 
-  
+
     private String genericDecoration(FnDecl x, Map<String, String> xlation) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
         return genericDecoration(sparams, xlation, thisApi());
@@ -1291,7 +1291,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     };
     }
 
-    
+
     /**
      * @param xlation
      * @param sparams
@@ -1305,7 +1305,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             return "";
 
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
-        
+
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticParam sp : sparams) {
@@ -1326,7 +1326,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)
             return "";
-        
+
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
@@ -1617,11 +1617,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * to figure out the name of the template class that will be
              * expanded later.
              */
-            
+
             Option<Type> oschema = x.getOverloadingSchema();
 
             String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
-            
+
             pkgClass = pkgClass + Naming.GEAR + "$" +
                     calleeInfo.getB() +
                     decoration +
@@ -1826,7 +1826,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             ObjectDecl y = x;
             x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
         }
-        
+
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         String [] superInterfaces =

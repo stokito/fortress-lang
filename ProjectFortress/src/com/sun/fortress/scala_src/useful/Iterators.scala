@@ -19,17 +19,12 @@ package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.{Iterator => JIterator}
 import _root_.java.lang.{Iterable => JIterable}
-
-case class WrappedIterator[T](elts: JIterator[T]) {
-  def foreach(f: T => Unit): Unit = {
-    while (elts.hasNext) {
-      f(elts.next)
-    }
-  }
-}
+import scala.collection.jcl.MutableIterator.Wrapper
 
 object Iterators {
-  implicit def wrapIterator[T](iter: JIterator[T]): WrappedIterator[T] = WrappedIterator(iter)
+  implicit def wrapIterator[T](iter: JIterator[T]): Iterator[T] =
+    new Wrapper(iter)
 
-  implicit def wrapIterable[T](iter: JIterable[T]): WrappedIterator[T] = WrappedIterator(iter.iterator())
+  implicit def wrapIterable[T](iter: JIterable[T]): Iterator[T] =
+    new Wrapper(iter.iterator)
 }

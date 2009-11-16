@@ -18,9 +18,9 @@
 package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.ArrayList
+import _root_.java.util.{List => JList}
 import _root_.java.util.{Map => JMap}
 import scala.collection.{Set => CSet}
-import scala.collection.jcl.MutableIterator.Wrapper
 import edu.rice.cs.plt.tuple.Pair
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.IndexedRelation
@@ -45,6 +45,7 @@ import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -55,9 +56,6 @@ import com.sun.fortress.useful.NI
 
 
 object STypesUtil {
-
-  private implicit def asIterable[A](it : _root_.java.lang.Iterable[A]) =
-    new Wrapper(it.iterator)
 
   // Make sure we don't infinitely explore supertraits that are cyclic
   class HierarchyHistory {
@@ -896,44 +894,38 @@ object STypesUtil {
       // a set of inherited methods:
       // a set of pairs of method names and
       //                   triples of Functionals, static parameters substitutions, and declaring trait
-      // TODO!!!!
-      for (trait_ <- extended_traits ) {
-        val type_ = trait_.getBaseType
-        if ( history.explore(type_) ) {
-          type_ match {
-            case ty@STraitType(_, name, trait_args, _) =>
-              toOption(analyzer.traits.typeCons(name)) match {
-                case Some(ti : TraitIndex) =>
-                    val tindex = ti.asInstanceOf[TraitIndex]
-                    // Instantiate methods with static args
-                    val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
-                                                              toJavaList(trait_args))
-                    def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
-                      val (fname, paramTy0) = toNameParamTy(methodName, methodFunc)
-                      val paramTy = paramsToArgs.replaceIn(paramTy0)
-                      if (!isOverride(fname, paramTy, allMethods, analyzer)) {
-                        methods.add(methodName, (methodFunc, paramsToArgs, ty))
-                        addToAllMethods(fname, paramTy)
-                      }
-                    }
-                    def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
-                      t.first match {
-                        case id : IdOrOp => oneMethod(id, t.second)
-                        case _ => ()
-                      }
-                    def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
-                    ti.dottedMethods.foreach(onePair)
-                    ti.functionalMethods.foreach(onePair)
-                    ti.getters.entrySet.foreach(oneMapping)
-                    ti.setters.entrySet.foreach(oneMapping)
-                    val instantiated_extends_types =
-                      toList(ti.extendsTypes).map(_.accept(paramsToArgs)
-                                                       .asInstanceOf[TraitTypeWhere])
-                    inheritedMethodsHelper(history, instantiated_extends_types, allMethods)
-                case _ =>
+      for ( STraitTypeWhere(_, ty: TraitType, _) <- extended_traits;
+            if history.explore(ty) ) {
+        val STraitType(_, name, trait_args, _) = ty
+        toOption(analyzer.traits.typeCons(name)) match {
+          case Some(ti : TraitIndex) =>
+            val tindex = ti.asInstanceOf[TraitIndex]
+            // Instantiate methods with static args
+            val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
+                                                      toJavaList(trait_args))
+            def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
+              val (fname, paramTy0) = toNameParamTy(methodName, methodFunc)
+              val paramTy = paramsToArgs.replaceIn(paramTy0)
+              if (!isOverride(fname, paramTy, allMethods, analyzer)) {
+                methods.add(methodName, (methodFunc, paramsToArgs, ty))
+                addToAllMethods(fname, paramTy)
               }
-            case _ =>
-          }
+            }
+            def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
+              t.first match {
+                case id : IdOrOp => oneMethod(id, t.second)
+                case _ => ()
+              }
+            def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
+            ti.dottedMethods.foreach(onePair)
+            ti.functionalMethods.foreach(onePair)
+            ti.getters.entrySet.foreach(oneMapping)
+            ti.setters.entrySet.foreach(oneMapping)
+            val instantiated_extends_types =
+              toList(ti.extendsTypes).map(_.accept(paramsToArgs)
+                                               .asInstanceOf[TraitTypeWhere])
+            inheritedMethodsHelper(history, instantiated_extends_types, allMethods)
+          case _ =>
         }
       }
       ()
@@ -952,18 +944,14 @@ object STypesUtil {
                        analyzer: TypeAnalyzer)
                        : Relation[IdOrOpOrAnonymousName,
                                   (Functional, StaticTypeReplacer, TraitType)] =
-    inheritedMethods(extendedTraits, Set (), analyzer)
+    inheritedMethods(extendedTraits, Set(), analyzer)
 
-  // def inheritedMethods(extendedTraits: List[TraitTypeWhere],
-  //                      initial: Set[(IdOrOpOrAnonymousName,
-  //                                        (Functional, StaticTypeReplacer))],
-  //                      analyzer: TypeAnalyzer)
-  //                      : Relation[IdOrOpOrAnonymousName,
-  //                                 (Functional, StaticTypeReplacer,
-  //                      TraitType)] = {
-  //   types = extendedTraits.map((t
-  //   inheritedMethods(traits, types, initial, analyzer)
-  // }
+  def inheritedMethods(extendedTraits: JList[TraitTypeWhere],
+                       analyzer: TypeAnalyzer)
+                       : Relation[IdOrOpOrAnonymousName,
+                                  (Functional, StaticTypeReplacer, TraitType)] =
+    inheritedMethods(toList(extendedTraits), Set(), analyzer)
+
 
   private def toNameParamTy(name: IdOrOpOrAnonymousName, func: Functional) = {
     val span = NU.getSpan(name)
