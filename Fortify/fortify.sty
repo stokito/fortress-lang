@@ -154,7 +154,7 @@
   \topsep=4pt plus 2pt   \parsep=\parskip  \partopsep=1pt plus 1pt
   \trivlist
   \item[]
-  \fortressbeginline\ignorespaces}
+  \fortressbeginline\iffortresspng\hbox to 0pt{\hskip\hsize\color{white}\vrule height 0.001pt width 0.001pt\hss}\fi\ignorespaces}
 \def\endFortressCode{\fortressendline\endtrivlist
   \global\setbox\fortresstabstack=\box\fortresssavedtabstack}
 
@@ -211,10 +211,12 @@
 %  \hbox{\raise 0.2ex\hbox to \wd0{\hss$\ast$\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
 \newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$\hss}\relax
   \hbox{\raise 0.07ex\hbox to \wd0{\hss\tt*\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
-\newcommand\fortresslinecomment[1]{\fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}  
+\newcommand\fortresslinecomment[1]{\fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}
 \newcommand\fortressalignedlinecomment[1]{\fortressendfield
   \leavevmode\box\fortresscodeline&\setbox\fortresscodeline=\hbox{}\fortressbeginfield
   \fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}  
+
+\newcommand\fortressonelinecomment[3]{\hbox{{\tt#1}\FortressOuterMacros\def~{\penalty10000\ }\rm#2{\tt#3}}}
 
 \newcommand\fortressline{\fortressendline\fortressbeginline}
 \newcommand\fortresscommentalignblockline{\fortressendfield
