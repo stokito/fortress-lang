@@ -61,13 +61,16 @@
 ;;;      COLON
 ;;;      COMMA
 ;;;      COMMENT
+;;;      COMMENT-ALIGN-START    [introduced during phase (5) to carry formatting commands]
+;;;      COMMENT-ALIGN-END      [introduced during phase (5) to carry formatting commands]
 ;;;      COMMENT-END
 ;;;      COMMENT-LINE
 ;;;      COMMENT-MIDDLE
 ;;;      COMMENT-START
 ;;;      DIGIT-GROUP-SEPARATOR
 ;;;      DOT
-;;;      EXTRA                  [introduced to carry formatting commands]
+;;;      FRACTION-START         [introduced during phase (6) to carry formatting commands]
+;;;      FRACTION-END           [introduced during phase (6) to carry formatting commands]
 ;;;      IDENTIFIER-RADIX       [eliminated during phase (2)]
 ;;;      KEYWORD
 ;;;      LEFT-BRACKET
@@ -119,6 +122,7 @@
       (goto-char (marker-position backquote-inserted))
       (delete-char -1)
       (set-marker backquote-inserted nil))
+    (set-marker old-point nil)
     (goto-char start)
     (delete-region start end)
     (insert result)))
@@ -1493,11 +1497,11 @@
     (cond ((> startpos endpos)
 	   ;; Must be a comment containing nothing but asterisks!
 	   (concat "\\hbox{\\tt" str "}"))
-	  (t (concat "\\hbox{\\tt"
+	  (t (concat "\\fortressonelinecomment{"
 		     (substring str 0 startpos)
-		     "}\\hbox{"
+		     "}{"
 		     (fortress-render-wiki-creole-line (substring str startpos endpos))
-		     "}\\hbox{\\tt"
+		     "}{"
 		     (substring str endpos)
 		     "}")))))
 
@@ -1771,7 +1775,7 @@
   ;; If we fail, we simply hand back the string with the trailing backquotes removed.
   (goto-char *fortify-region-start*)
   (let ((epos (+ 1 (or (position-if '(lambda (c) (not (= c ?\`))) str :from-end t) -1))))
-    (cond ((search-forward str *fortify-region-end* t)
+    (cond ((let ((case-fold-search nil)) (search-forward str *fortify-region-end* t))
 	   (newfortify-region (- (point) (length str)) (- (point) (- (length str) epos))))
 	  (t (substring str 0 epos)))))
 
@@ -2132,7 +2136,7 @@
        (hrule-last nil)
        (indented-par-last nil)
        (continue-previous-line nil)
-       (par-in-progress nil)
+       (par-in-progress t) ;We begin a comment in TeX horizontal mode.
        (curindent 0)
        (par-kinds-and-counters (list 'DUMMY))) ;entry is a pair (kind counter)
       ((null lns)
@@ -2606,11 +2610,11 @@
   (when (and group-start most-recent-matching-comment)
     (let ((start (car group-start)))
       (rplaca group-start
-	      (list 'EXTRA "" "\\fortressbegincommentalignblock\n"))
+	      (list 'COMMENT-ALIGN-START "" "\\fortressbegincommentalignblock\n"))
       (rplacd group-start
 	      (cons start (cdr group-start)))
       (rplacd most-recent-matching-comment
-	      (cons (list 'EXTRA "" " \\\\\n\\fortressendcommentalignblock")
+	      (cons (list 'COMMENT-ALIGN-END "" " \\\\\n\\fortressendcommentalignblock")
 		    (cdr most-recent-matching-comment)))
       (when (and (cddr most-recent-matching-comment)
 		 (eq (car (caddr most-recent-matching-comment)) 'NEWLINE))
@@ -2709,11 +2713,12 @@
 (defun fortress-intraline-idioms (tokens *fortress-matching-hashtable*)
   (fortress-process-surds ;Must process surds after processing fractions
    (fortress-process-fractions
-    (fortress-process-subscripts
-     (fortress-process-superscripts
-      (fortress-process-opr-and-BIG
-       (fortress-process-colons
-	(fortress-process-compound-assignment tokens))))))))
+    (fortress-process-unit-declarations
+     (fortress-process-subscripts
+      (fortress-process-superscripts
+       (fortress-process-opr-and-BIG
+	(fortress-process-colons
+	 (fortress-process-compound-assignment tokens)))))))))
 
 ;;; Turn a compound assignment (an operator followed by an equals sign)
 ;;; into a single operator that is a RELATION.
@@ -2970,6 +2975,24 @@
 			       '(LEFT-PARENTHESIS LEFT-BRACKET LEFT-ENCLOSER LEFT-WHITE-BRACKET))
 			 (setq skipto (gethash (car z) *fortress-matching-hashtable*))))))))))
 
+;;; To make `unit` declarations a bit nicer, we tweak the rendering of whitespace.
+;;; This will be in addition to the intertoken spacing added in a later phase.
+   
+(defun fortress-process-unit-declarations (tokens)
+  (do ((toks tokens (cdr toks)))
+      ((null toks))
+    (when (and (eq (car (car toks)) 'KEYWORD)
+	       (string= (cadr (car toks)) "unit")
+	       (cdr toks)
+	       (eq (car (cadr toks)) 'WHITESPACE))
+      (do ((z (cddr toks) (cddr z)))
+	  ((or (null z)
+	       (null (cdr z))
+	       (not (eq (car (car z)) 'IDENTIFIER))
+	       (not (eq (car (cadr z)) 'WHITESPACE))))
+	(rplacd (last (cadr z)) (list "\\,")))))
+  tokens)
+
 ;;; The idea here is that a tight fraction xxx/yyy gets turned into LaTeX {xxx \over yyy}.
 ;;; In order to do this, we need to process all tight juxtapositions that fall within a line.
 ;;; To do THAT, we keep a stack that is pushed when we see a left encloser and popped
@@ -3040,7 +3063,8 @@
 	     ((IDENTIFIER)
 	      (unless (second (first stack))
 		(setf (second (first stack)) prev)))))
-	  ((CHARACTER-LITERAL CIRCUMFLEX DOT EXTRA IDENTIFIER NUMBER
+	  ((CHARACTER-LITERAL CIRCUMFLEX COMMENT-ALIGN-START COMMENT-ALIGN-END
+			      DOT FRACTION-START FRACTION-END IDENTIFIER NUMBER
 			      STRING STRING-START STRING-MIDDLE STRING-END)
 	   (unless (second (first stack))
 	     (setf (second (first stack)) prev))))))
@@ -3056,9 +3080,9 @@
     ;; We have a fraction to render, all right.
     (fortress-maybe-suppress-parentheses (second left) (first middle))
     (fortress-maybe-suppress-parentheses (third middle) (first right))
-    (setf (cdr left) (cons (list 'EXTRA "" "{\\textstyle") (cdr left)))
+    (setf (cdr left) (cons (list 'FRACTION-START "" "{\\textstyle") (cdr left)))
     (setf (third (second middle)) "\\over\\textstyle")
-    (setf (cdr right) (cons (list 'EXTRA "" "}") (cdr right)))))
+    (setf (cdr right) (cons (list 'FRACTION-END "" "}") (cdr right)))))
 
 
 (defun fortress-maybe-suppress-parentheses (leftend rightend)
@@ -3264,10 +3288,10 @@
 	  ((COMMA SEMICOLON)
 	   (when (not (null stack))
 	     (setf (second (car stack)) nil)))
-	  ((WHITESPACE NOSPACE DIGIT-GROUP-SEPARATOR
+	  ((WHITESPACE NOSPACE DIGIT-GROUP-SEPARATOR COMMENT-ALIGN-START COMMENT-ALIGN-END
 		       COMMENT COMMENT-LINE COMMENT-START COMMENT-MIDDLE COMMENT-END
 		       AMPERSAND COLON RELATION UNKNOWN KEYWORD CHARACTER-LITERAL
-		       CIRCUMFLEX DOT EXTRA IDENTIFIER NUMBER
+		       CIRCUMFLEX DOT IDENTIFIER NUMBER FRACTION-START FRACTION-END
 		       STRING STRING-START STRING-MIDDLE STRING-END)))))))
 
 
@@ -3407,6 +3431,8 @@
 			    (gethash (cadr tok0) *fortress-operator-kind-hashtable*))
 		       (and (eq (car tok0) 'KEYWORD)
 			    (gethash (cadr tok0) *fortress-keyword-hashtable*))
+		       (and (memq (car tok0) '(FRACTION-START FRACTION-END COMMENT-ALIGN-START COMMENT-ALIGN-END))
+			    (car prev1))
 		       (car tok0)))
 	 (nexttok (if (eq (car tok1) 'WHITESPACE) tok2 tok1))
 	 (nextkind (car nexttok)))
@@ -3496,7 +3522,8 @@
 		       (t `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) "}\\:"))))
 		(t tok0)))
 	 ((RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COMMA SEMICOLON COMMENT-LINE
-			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR EXTRA)
+			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMENT-ALIGN-START COMMENT-ALIGN-END
+			 FRACTION-START FRACTION-END)
 	  tok0)))
       ((CHARACTER-LITERAL STRING STRING-END RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET)
        (ecase (car nexttok)
@@ -3509,7 +3536,8 @@
 		 `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) "}\\:"))
 		(t tok0)))
 	 ((RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COMMA SEMICOLON COMMENT-LINE
-			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR EXTRA)
+			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMENT-ALIGN-START COMMENT-ALIGN-END
+			 FRACTION-START FRACTION-END)
 	  tok0)))
       ((COMMA SEMICOLON LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET
 	      AMPERSAND OPERATOR OPERATOR-WORD BIGOP COLON)
@@ -3520,9 +3548,11 @@
 	 ((CHARACTER-LITERAL STRING STRING-START LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET
 			     OPERATOR OPERATOR-WORD RELATION BIGOP AMPERSAND
 			     RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COLON
-			     WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMA SEMICOLON EXTRA)
+			     WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMA SEMICOLON
+			     COMMENT-ALIGN-START COMMENT-ALIGN-END FRACTION-START FRACTION-END)
 	  tok0)))
-      ((RELATION WHITESPACE NOSPACE NEWLINE EXTRA) tok0))))
+      ((RELATION WHITESPACE NOSPACE NEWLINE COMMENT-ALIGN-START COMMENT-ALIGN-END FRACTION-START FRACTION-END)
+       tok0))))
 
 ;;; Two cases that cannot be handled with a finite window:
 ;;;   (a) a left encloser followed by type parameters in white brackets followed by whitespace
@@ -3615,16 +3645,12 @@
 				 (eq (car (car line)) 'NEWLINE)
 				 (> n k))
 			     ;; This line has to establish its own indentation
-			     (when (eq (car (cadr toks)) 'WHITESPACE)
-			       (rplaca (cdr toks)
-				       (list (car (cadr toks))
-					     (cadr (cadr toks))
-					     (make-string (fortress-indentation-of (car indent-stack)) ?\s)
-					     (fortress-code-indent (- (length (cadr (cadr toks)))
-								      (fortress-indentation-of (car indent-stack))))))
-			       (rplacd (cdr toks)
-				       (cons (list 'PUSHTABS "" "\\+")
-					     (cddr toks)))))
+			     (let ((ind (fortress-indentation-of (car indent-stack))))
+			       (cond ((eq (car (cadr toks)) 'WHITESPACE)
+				      (fortress-install-pushtabs toks ind))
+				     ((and (eq (car (cadr toks)) 'COMMENT-ALIGN-START)
+					   (eq (car (caddr toks)) 'WHITESPACE))
+				      (fortress-install-pushtabs (cdr toks) ind)))))
 			  (when (and (= n k)
 				     prevtok
 				     (memq (car (car prevtok))
@@ -3654,11 +3680,32 @@
 	    (cond ((null (cdr prevline))
 		   (rplacd prevline (cons pt (cdr prevline))))
 		  (t (rplacd (last prevline) (list pt)))))))
+      ;; Here's a fixup to move POPTABS before any COMMENT-ALIGN-END
+      (do ((toks tokens-copy (cdr toks)))
+	  ((null (cddr toks)))
+	(when (and (eq (car (car toks)) 'COMMENT-ALIGN-END)
+		   (eq (car (cadr toks)) 'POPTABS))
+	  (rotatef (car toks) (cadr toks))))
       tokens-copy)))
+
+(defun fortress-install-pushtabs (toks ind)
+  ;; (cadr toks) must be a WHITESPACE token.
+  (rplaca (cdr toks)
+	  (list (car (cadr toks))
+		(cadr (cadr toks))
+		(make-string ind ?\s)
+		(fortress-code-indent (- (length (cadr (cadr toks))) ind))))
+  (rplacd (cdr toks)
+	  (cons (list 'PUSHTABS "" "\\+")
+		(cddr toks))))
+
 
 (defun fortress-indentation-of (toks)
   (cond ((eq (car (car toks)) 'WHITESPACE)
 	 (length (cadr (car toks))))
+	((and (eq (car (car toks)) 'COMMENT-ALIGN-START)
+	      (eq (car (cadr toks)) 'WHITESPACE))
+	 (length (cadr (cadr toks))))
 	(t 0)))
 
 (defun fortress-code-indent (n)
@@ -7503,48 +7550,31 @@ extension .tex."
   "Fortify all sections of a buffer delimited with backticks, and
 write to a file in the same location as the read file, but with
 extension '.tex'."
+  (goto-char (point-min))
   (remove-copyright)
   (print-header "TOOL FORTICK")
-  (let ((pos (point-min))
-	(at-end nil)
-        (file-length (point-max)))
-    (while (not at-end)
-      (progn
-        (let ((next-opening (find-next-tick pos)))
-          (if (equal next-opening (point-max))
-              (setq at-end t)
-            (progn
-              (let ((next-closing (find-next-tick (+ 1 next-opening))))
-                (cond ((equal next-closing (point-max))
-                       (signal-error "Mismatched tick"))
-                      ((equal next-closing (+ 1 next-opening))
-                       ;; Two adjacent ticks denotes an escaped tick.
-                       (delete-char-at next-opening)
-                       (setq pos next-closing))
-                      (t (delete-char-at next-opening)
-                         ;; The left tick has been deleted, so the right tick
-                         ;; has moved to the left.
-                         (setq next-closing (- next-closing 1))
-                         (delete-char-at next-closing)
-                         (setq pos next-closing)
-                         (fortify-region next-opening next-closing)
-                         (setq pos (+ pos (- (point-max) file-length)))))))))
-        (setq file-length (point-max)))))
-  (write-as-tex-file))
-
-(defun delete-char-at (pos)
-  (save-excursion
-    (goto-char pos)
-    (delete-char 1)))
-
-(defun find-next-tick (pos)
-  (while (and (< pos (point-max))
-	      (not (string-equal (char-to-string (char-after pos)) "`")))
-    ; (print (char-to-string (char-after pos)))
-    (setq pos (+ 1 pos)))
-  ; (if (not (equal pos (point-max))) (print (char-to-string (char-after pos))))
-  ; (print pos)
-  pos)
+  (do ((after-next-opening (search-forward "`" nil t) (search-forward "`" nil t)))
+      ((null after-next-opening))
+    (while (equal (char-after (point)) ?\`)
+      (forward-char))
+    (let* ((next-opening (- after-next-opening 1))
+	   (len (- (point) next-opening)))
+      (cond ((oddp len)
+	     ;; An odd number of ticks begins Fortress code to be rendered;
+	     ;; the end is marked by an equal number of ticks.
+	     (let* ((close-str (make-string len ?\`))
+		    (after-matching-close (search-forward close-str nil t)))
+	       (cond ((or (null after-matching-close) (equal (char-after (point)) ?\`))
+		      (goto-char (+ next-opening len))
+		      (signal-error (concat "Mismatched tick(s) " close-str)))
+		     (t (let ((rendered-code (newfortify-region (+ next-opening len)
+								(- after-matching-close len))))
+			  (delete-region next-opening after-matching-close)
+			  (goto-char next-opening)
+			  (insert rendered-code))))))
+	    (t 
+	     ;; An even number of ticks gets cut in half
+	     (delete-char (- (/ len 2))))))))
 
 (defun fortify-region (left right)
   (save-excursion
