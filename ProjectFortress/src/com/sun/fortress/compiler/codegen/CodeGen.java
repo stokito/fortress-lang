@@ -1530,25 +1530,34 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         BigInteger bi = x.getIntVal();
         // This might not work.
         int l = bi.bitLength();
-        if (l < 32) {
+        if (l <= 32) {
             int y = bi.intValue();
             addLineNumberInfo(x);
             pushInteger(y);
             addLineNumberInfo(x);
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    NamingCzar.internalFortressZZ32, NamingCzar.make,
+                    NamingCzar.internalFortressIntLiteral, NamingCzar.make,
                     NamingCzar.makeMethodDesc(NamingCzar.descInt,
-                                              NamingCzar.descFortressZZ32));
-        } else if (l < 64) {
+                                              NamingCzar.descFortressIntLiteral));
+        } else if (l <= 64) {
             long yy = bi.longValue();
             addLineNumberInfo(x);
             mv.visitLdcInsn(yy);
             addLineNumberInfo(x);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    NamingCzar.internalFortressZZ64, NamingCzar.make,
+                    NamingCzar.internalFortressIntLiteral, NamingCzar.make,
                     NamingCzar.makeMethodDesc(NamingCzar.descLong,
-                                              NamingCzar.descFortressZZ64));
+                                              NamingCzar.descFortressIntLiteral));
+        } else {
+            String s = bi.toString();
+            addLineNumberInfo(x);
+            mv.visitLdcInsn(s);
+            addLineNumberInfo(x);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    NamingCzar.internalFortressIntLiteral, NamingCzar.make,
+                    NamingCzar.makeMethodDesc(NamingCzar.descString,
+                                              NamingCzar.descFortressIntLiteral));
         }
     }
 

@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.runtimeValues;
 public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods implements fortress.CompilerBuiltin.ZZ64  {
     final long val;
 
-    FZZ64(long x) { val = x; }
+    private FZZ64(long x) { val = x; }
     public String toString() { return "" + val;}
     public long getValue() {return val;}
     public static FZZ64 make(long x) {return new FZZ64(x);}

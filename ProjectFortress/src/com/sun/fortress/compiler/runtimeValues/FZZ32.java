@@ -21,7 +21,7 @@ public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMetho
         implements fortress.CompilerBuiltin.ZZ32 {
     final int val;
 
-    FZZ32(int x) { val = x; }
+    private FZZ32(int x) { val = x; }
     public String toString() { return String.valueOf(val);}
     public FString asString() { return new FString(String.valueOf(val));}
     public int getValue() {return val;}

@@ -21,7 +21,7 @@ public class FRR32  extends fortress.CompilerBuiltin.RR32.DefaultTraitMethods
 implements fortress.CompilerBuiltin.RR32, fortress.CompilerBuiltin.RR64 {
     final float val;
 
-    FRR32(float x) { val = x; }
+    private FRR32(float x) { val = x; }
     public String toString() { return "" + val;}
     public float getValue() {return val;}
     public static FRR32 make(float x) {return new FRR32(x);}

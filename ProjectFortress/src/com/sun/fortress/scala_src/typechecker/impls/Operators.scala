@@ -387,41 +387,46 @@ trait Operators { self: STypeChecker with Common =>
     }
 
     case SChainExpr(SExprInfo(span,parenthesized,_), first, links, andOp) => {
+
       // Build up a list of OpExprs from the Links (in reverse).
       def makeOpExpr(prevAndResult: (Expr, List[OpExpr]),
-                       nextLink: Link): (Expr, List[OpExpr]) = {
+                     nextLink: Link)
+                     : (Expr, List[OpExpr]) = {
+
         val (prev, result) = prevAndResult
         val next = nextLink.getExpr()
         val op = nextLink.getOp()
         val newExpr = EF.makeOpExpr(NU.spanTwo(prev, next),
-                                             op,
-                                             prev,
-                                             next)
+                                    op,
+                                    prev,
+                                    next)
         (next, newExpr :: result)
       }
-      val (_, conjuncts) = links.foldLeft((first, List[OpExpr]()))(makeOpExpr)
+      val (_, conjuncts0) = links.foldLeft((first, List[OpExpr]()))(makeOpExpr)
+      val conjuncts = conjuncts0.reverse
 
 
-      // Check that every OpExpr formed from Links is a Boolean, and get out
-      // its checked FnRef.
-      def checkBoolean(expr: OpExpr): Option[FunctionalRef] = {
-        val checked = checkExpr(expr).asInstanceOf[OpExpr]
-        getType(checked) match {
-          case Some(ty) =>
-            isSubtype(ty, Types.BOOLEAN, expr,
-                      errorMsg("The chained expression should have type Boolean, but had type ", normalize(ty), "."))
-            Some(checked.getOp)
-          case _ => None
-        }
+      // Check that every OpExpr formed from Links is a Boolean, returning the
+      // checked OpExpr.
+      def checkBoolean(expr: OpExpr): Option[OpExpr] = {
+        val checked =
+          checkExpr(expr,
+                    Types.BOOLEAN,
+                    "The chained expression had type %s, but should have type %s.",
+                    expr).asInstanceOf[OpExpr]
+        getType(checked).map(_ => checked)
       }
-      val fnRefs = conjuncts.flatMap(checkBoolean)
-      if (conjuncts.size != fnRefs.size) return expr
+      val checkedConjuncts = conjuncts.flatMap(checkBoolean)
+      if (conjuncts.size != checkedConjuncts.size) return expr
 
-      // For each link, insert the corresponding checked FnRef and check it.
-      val newLinks = List.map2(links, fnRefs) {
-        case (SLink(info, _, expr), fnRef) =>
-          SLink(info, fnRef, checkExpr(expr)).asInstanceOf[Link]
+      // For each link, insert the checked FnRef and RHS.
+      val newLinks = List.map2(links, checkedConjuncts) {
+        case (SLink(info, _, _), SOpExpr(_, op, List(_, rhs))) =>
+          SLink(info, op, rhs).asInstanceOf[Link]
       }
+
+      // Get the checked first expr out of the first conjunct.
+      val checkedFirst = checkedConjuncts.first.getArgs().get(0)
 
       // Check a dummy OpExpr for the AND operation.
       val andExpr = EF.makeOpExpr(NF.typeSpan,
@@ -433,7 +438,7 @@ trait Operators { self: STypeChecker with Common =>
       val checkedAndOp = checkExpr(andExpr).asInstanceOf[OpExpr].getOp
 
       SChainExpr(SExprInfo(span, parenthesized, Some(Types.BOOLEAN)),
-                 checkExpr(first),
+                 checkedFirst,
                  newLinks,
                  checkedAndOp)
     }

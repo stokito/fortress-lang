@@ -35,7 +35,10 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
-println(x:Number):()
+println(x:ZZ32):()
+println(x:ZZ64):()
+(* println(x:RR32):() *)
+println(x:RR64):()
 
 strToInt(s:String):ZZ32
 
@@ -43,11 +46,12 @@ trait Number excludes { String }
     abstract getter asString(): String
 end
 
-trait ZZ64 extends Number
+trait ZZ64 extends Number excludes RR64
     getter asZZ32(): ZZ32
 end
 
-trait ZZ32 extends Number excludes ZZ64
+trait ZZ32 extends Number excludes { ZZ64, RR64 }
+    coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
     getter asString(): String
     opr |self| : ZZ32
@@ -64,7 +68,15 @@ trait ZZ32 extends Number excludes ZZ64
     opr DIV(self, other:ZZ32): ZZ32
 end
 
-object IntLiteral extends ZZ32
+trait IntLiteral
+    abstract getter asZZ32(): ZZ32
+    abstract getter asZZ64(): ZZ64
+(*
+    abstract getter asNN32(): NN32
+    abstract getter asZZ(): ZZ
+    abstract getter asRR32(): RR32
+*)
+    abstract getter asRR64(): RR64
 end
 
 trait RR64 extends Number
