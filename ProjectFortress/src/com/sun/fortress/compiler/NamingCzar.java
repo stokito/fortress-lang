@@ -172,6 +172,7 @@ public class NamingCzar {
     public static final String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
     public static final String voidToVoid        = makeMethodDesc("", descVoid);
 
+    public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
     public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");
     public static final String internalFortressZZ64  = makeFortressInternal("ZZ64");
     public static final String internalFortressRR32  = makeFortressInternal("RR32");
@@ -182,6 +183,7 @@ public class NamingCzar {
     public static final String internalFortressVoid   = makeFortressInternal("Void");
 
     // fortress interpreter types: type descriptors
+    public static final String descFortressIntLiteral  = internalToDesc(internalFortressIntLiteral);
     public static final String descFortressZZ32  = internalToDesc(internalFortressZZ32);
     public static final String descFortressZZ64  = internalToDesc(internalFortressZZ64);
     public static final String descFortressRR32  = internalToDesc(internalFortressRR32);
@@ -440,6 +442,7 @@ public class NamingCzar {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
+        bl(fortLib, "IntLiteral", "FIntLiteral");
         bl(fortLib, "Boolean", "FBoolean");
         bl(fortLib, "Char", "FChar");
         bl(fortLib, "RR32", "FRR32");

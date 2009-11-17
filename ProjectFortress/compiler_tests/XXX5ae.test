@@ -18,12 +18,12 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.ae.fss:26:12-16:\n\
-\ The chained expression should have type Boolean, but had type ZZ32.\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
 ${STATIC_TESTS_DIR}/Compiled5.ae.fss:26:16-20:\n\
-\ The chained expression should have type Boolean, but had type ZZ32.\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
 ${STATIC_TESTS_DIR}/Compiled5.ae.fss:26:20-24:\n\
-\ The chained expression should have type Boolean, but had type ZZ32.\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
 ${STATIC_TESTS_DIR}/Compiled5.ae.fss:27:6-10:\n\
-\ The chained expression should have type Boolean, but had type ZZ32.\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
 File Compiled5.ae.fss has 4 errors.\n
 compile_out_equals=

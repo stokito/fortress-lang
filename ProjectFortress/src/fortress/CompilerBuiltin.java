@@ -20,7 +20,11 @@ package fortress;
 import com.sun.fortress.compiler.runtimeValues.FValue;
 
 public class CompilerBuiltin {
-    public static interface ZZ32 extends fortress.CompilerBuiltin.ZZ64 {
+    public static interface IntLiteral extends fortress.CompilerBuiltin.Object {
+        public static abstract class DefaultTraitMethods extends FValue implements IntLiteral {}
+    }
+
+    public static interface ZZ32 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ32 {}
     }
 
@@ -28,7 +32,7 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ64 {}
     }
 
-    public static interface RR32 extends fortress.CompilerBuiltin.RR64 {
+    public static interface RR32 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements RR32 {}
     }
 

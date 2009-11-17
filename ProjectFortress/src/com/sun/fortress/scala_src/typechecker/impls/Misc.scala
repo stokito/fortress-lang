@@ -72,54 +72,54 @@ trait Misc { self: STypeChecker with Common =>
    * @TODO: Look over this method.
    */
   protected def generatorClauseGetBindings(clause: GeneratorClause,
-                                           mustBeCondition: Boolean) = clause match {
-    case SGeneratorClause(info, binds, init) =>
-      val newInit = checkExpr(init)
-      val err = errorMsg("Filter expressions in generator clauses must have type Boolean, ",
-                         "but ", init)
-      getType(newInit) match {
-        case None =>
-          signal(init, errorMsg(err, " was not well typed."))
-          (SGeneratorClause(info, Nil, newInit), Nil)
-        case Some(ty) =>
-          isSubtype(ty, Types.BOOLEAN, init, errorMsg(err, " had type ", normalize(ty), "."))
-          binds match {
-            case Nil =>
-              // If bindings are empty, then init must be of type Boolean, a filter, 13.14
-              (SGeneratorClause(info, Nil, newInit), Nil)
-            case hd::tl =>
-              def mkInferenceVarType(id: Id) =
-                NF.make_InferenceVarType(NU.getSpan(id))
-              val (lhstype, bindings) = binds.length match {
-                case 1 => // Just one binding
-                  val lhstype = mkInferenceVarType(hd)
-                  (lhstype, List[LValue](NF.makeLValue(hd, lhstype)))
-                case n =>
-                  // Because generator_type is almost certainly an _InferenceVar,
-                  // we have to declare a new tuple that is the size of the bindings
-                  // and declare one to be a subtype of the other.
-                  val inference_vars = binds.map(mkInferenceVarType)
-                  (Types.makeTuple(toJavaList(inference_vars)),
-                   binds.zip(inference_vars).map((p:(Id,Type)) =>
-                                                 NF.makeLValue(p._1,p._2)))
-              }
-              // Get the type of the Generator
-              val infer_type = NF.make_InferenceVarType(NU.getSpan(init))
-              val generator_type = if (mustBeCondition)
-                                     Types.makeConditionType(infer_type)
-                                   else Types.makeGeneratorType(infer_type)
-              isSubtype(ty, generator_type, init,
-                        errorMsg("Init expression of generator must be a subtype of ",
-                                 (if (mustBeCondition) "Condition" else "Generator"),
-                                 " but is type ", normalize(ty), "."))
-              val err = errorMsg("If more than one variable is bound in a generator, ",
-                                 "generator must have tuple type but ", init,
-                                 " does not or has different number of arguments.")
-              isSubtype(lhstype, generator_type, init, err)
-              isSubtype(generator_type, lhstype, init, err)
-              (SGeneratorClause(info, binds, newInit), bindings)
-          }
-      }
+                                           mustBeCondition: Boolean) = {
+    val SGeneratorClause(info, binds, init) = clause
+    val newInit = checkExpr(init)
+    val err = errorMsg("Filter expressions in generator clauses must have type Boolean, ",
+                       "but ", init)
+    getType(newInit) match {
+      case None =>
+        signal(init, errorMsg(err, " was not well typed."))
+        (SGeneratorClause(info, Nil, newInit), Nil)
+      case Some(ty) =>
+        isSubtype(ty, Types.BOOLEAN, init, errorMsg(err, " had type ", normalize(ty), "."))
+        binds match {
+          case Nil =>
+            // If bindings are empty, then init must be of type Boolean, a filter, 13.14
+            (SGeneratorClause(info, Nil, newInit), Nil)
+          case hd::tl =>
+            def mkInferenceVarType(id: Id) =
+              NF.make_InferenceVarType(NU.getSpan(id))
+            val (lhstype, bindings) = binds.length match {
+              case 1 => // Just one binding
+                val lhstype = mkInferenceVarType(hd)
+                (lhstype, List[LValue](NF.makeLValue(hd, lhstype)))
+              case n =>
+                // Because generator_type is almost certainly an _InferenceVar,
+                // we have to declare a new tuple that is the size of the bindings
+                // and declare one to be a subtype of the other.
+                val inference_vars = binds.map(mkInferenceVarType)
+                (Types.makeTuple(toJavaList(inference_vars)),
+                 binds.zip(inference_vars).map((p:(Id,Type)) =>
+                                               NF.makeLValue(p._1,p._2)))
+            }
+            // Get the type of the Generator
+            val infer_type = NF.make_InferenceVarType(NU.getSpan(init))
+            val generator_type = if (mustBeCondition)
+                                   Types.makeConditionType(infer_type)
+                                 else Types.makeGeneratorType(infer_type)
+            isSubtype(ty, generator_type, init,
+                      errorMsg("Init expression of generator must be a subtype of ",
+                               (if (mustBeCondition) "Condition" else "Generator"),
+                               " but is type ", normalize(ty), "."))
+            val err = errorMsg("If more than one variable is bound in a generator, ",
+                               "generator must have tuple type but ", init,
+                               " does not or has different number of arguments.")
+            isSubtype(lhstype, generator_type, init, err)
+            isSubtype(generator_type, lhstype, init, err)
+            (SGeneratorClause(info, binds, newInit), bindings)
+        }
+    }
   }
 
   /**

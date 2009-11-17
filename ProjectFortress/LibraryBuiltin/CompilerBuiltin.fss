@@ -70,7 +70,10 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
-println(x:Number):() = jPrintln(x.asString)
+println(x:ZZ32):() = jPrintln(x.asString)
+println(x:ZZ64):() = jPrintln(x.asString)
+(* println(x:RR32):() = jPrintln(x.asString) *)
+println(x:RR64):() = jPrintln(x.asString)
 
 strToInt(s:String):ZZ32 = jParseInt(s)
 
@@ -78,11 +81,12 @@ trait Number excludes { String }
     getter asString(): String
 end
 
-trait ZZ64 extends Number
+trait ZZ64 extends Number excludes { RR64 }
     getter asZZ32(): ZZ32 = jLongToInt(self)
 end
 
-trait ZZ32 extends Number excludes ZZ64
+trait ZZ32 extends Number excludes { ZZ64, RR64 }
+    coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntAbs(self)
@@ -99,7 +103,15 @@ trait ZZ32 extends Number excludes ZZ64
     opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
 end
 
-object IntLiteral extends ZZ32
+trait IntLiteral
+    getter asZZ32(): ZZ32
+    getter asZZ64(): ZZ64
+(*
+    getter asNN32(): NN32
+    getter asZZ(): ZZ
+    getter asRR32(): RR32
+*)
+    getter asRR64(): RR64
 end
 
 trait RR64 extends Number

@@ -85,7 +85,7 @@ class ChainExprDesugarer extends Walker {
     // Wrap a declaring do block around the conjunction.
     val block = decl.makeLocalVarDeclDo(NU.getSpan(e), conjunction)
 
-    // System.err.println("desugarChainExpr:\n"+block.toStringReadable());
+    // System.err.println("desugarChainExpr:\n"+e.toStringReadable()+"\nto:\n"+block.toStringReadable());
 
     // Set parenthesized depending on if the ChainExpr was.
     setParenthesized(block, NU.isParenthesized(e))
