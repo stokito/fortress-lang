@@ -1027,9 +1027,9 @@ As with comprehensions, the values in the iteration are generated from specified
 Fortress includes support for automated program testing.
 A new test in a component can be defined using the \KWD{test} modifier
 on a top-level function definition with type ``\EXP{()\rightarrow()}''.
-For example, here is a test function that calls to the \VAR{factorial}
+For example, here is a test function that calls the \VAR{factorial}
 function on some representative values
-result in values greater than or equal to what was provided:
+and checks that the calls result in values greater than or equal to what was provided:
 \input{\home/preliminaries/examples/Overview.Tests.tex}
 
 %test factorialResultLarger [x <- 0:100] = x <= factorial(x)
