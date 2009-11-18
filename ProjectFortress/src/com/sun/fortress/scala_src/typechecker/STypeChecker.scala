@@ -161,7 +161,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
                                      val cycleChecker: CyclicReferenceChecker) {
 
   /** Oracle for determining coercions between types. */
-  protected val coercions = new CoercionOracle(traits, current)
+  protected implicit val coercions = new CoercionOracle(traits, current)
 
   /**
    * This method simply creates a new instance of the class in which it is defined. We need this
