@@ -1141,6 +1141,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FnHeader fh = x.getHeader();
         Type rt = fh.getReturnType().unwrap();
         List<Param> lp = fh.getParams();
+        return typeAndParamsToArrow(x, rt, lp);
+    }
+
+
+    /**
+     * @param x
+     * @param rt
+     * @param lp
+     * @return
+     */
+    private ArrowType typeAndParamsToArrow(Decl x, Type rt, List<Param> lp) {
         Type dt = null;
         switch (lp.size()) {
         case 0:
@@ -1659,6 +1670,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String sparams_part = NamingCzar.genericDecoration(header.getStaticParams(), xlation, thisApi());
 
         // Rewrite the generic.
+        // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
             ObjectDecl y = x;
             x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
@@ -1694,8 +1706,29 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String sig = NamingCzar.jvmSignatureFor(params, classDesc, thisApi());
 
             String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
+            
+            CodeGen cg = this;
+            String PCN = null;
+            
+            if (sparams_part.length() > 0) {
+                ArrowType at =
+                    typeAndParamsToArrow(x, NodeFactory.makeVoidType(x.getInfo().getSpan()), params);
+                String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
+                PCN = packageAndClassName + Naming.GEAR +"$" +
+                mname + sparams_part + Naming.ENVELOPE + "$" + generic_arrow_type
+                ;
 
-            mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
+
+                cg = new CodeGen(this);
+                cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+                String staticClass = PCN.replaceAll("[.]", "/");
+                // This creates the closure bits
+                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass, sig);
+            }
+
+            CodeGenClassWriter cw = cg.cw;
+            CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                     mname,
                     sig,
                     null,
@@ -1718,6 +1751,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
+            
+            if (sparams_part.length() > 0) {
+                cg.dumpClass(PCN);
+            }
+            
+            
         } else { // singleton
             params = Collections.<Param>emptyList();
         }
