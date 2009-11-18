@@ -74,16 +74,16 @@ class CoercionOracle(traits: TraitTable,
   }
 
   /** The `moreSpecific` relation; no less specific and unequal. */
-  private def moreSpecific(t: Type, u: Type): Boolean =
+  def moreSpecific(t: Type, u: Type): Boolean =
     noLessSpecific(t, u) && !analyzer.equivalent(t, u).isTrue
 
   /** The `noLessSpecific` relation. */
-  private def noLessSpecific(t: Type, u: Type): Boolean =
+  def noLessSpecific(t: Type, u: Type): Boolean =
     analyzer.subtype(t, u).isTrue ||
       (analyzer.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
 
   /** Determines if T rejects U. */
-  private def rejects(t: Type, u: Type): Boolean =
+  def rejects(t: Type, u: Type): Boolean =
     getCoercionsTo(t).forall(ca => analyzer.excludes(ca._2.getDomain, u))
 
   /** The set of all arrow types for coercions from types T to U. */
@@ -206,7 +206,8 @@ class CoercionOracle(traits: TraitTable,
 
     // Build app candidates and sort them to find the SMA.
     val candidates = coercionsAndArgs.map(caa => (caa._2, caa._3, List(arg)))
-    val (smaArrow, unliftedSargs, _) = candidates.toList.sort(moreSpecificCandidate).first
+    val (smaArrow, unliftedSargs, _) =
+      candidates.toList.sort((c1, c2) => moreSpecificCandidate(c1, c2)(this)).first
 
     val coercionId = makeCoercionId(u)
     

@@ -40,10 +40,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ConstraintFormula
-import com.sun.fortress.scala_src.typechecker.CnFalse
-import com.sun.fortress.scala_src.typechecker.CnTrue
-import com.sun.fortress.scala_src.typechecker.TraitTable
+import com.sun.fortress.scala_src.typechecker.CoercionOracle
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -53,6 +50,7 @@ import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.MultiMap
 import com.sun.fortress.useful.NI
+import typechecker._
 
 
 object STypesUtil {
@@ -771,7 +769,7 @@ object STypesUtil {
    */
   def moreSpecificCandidate(candidate1: AppCandidate,
                             candidate2: AppCandidate)
-                           (implicit analyzer: TypeAnalyzer): Boolean = {
+                           (implicit coercions: CoercionOracle): Boolean = {
 
     val (SArrowType(_, domain1, range1, _, _, mi1), _, args1) = candidate1
     val (SArrowType(_, domain2, range2, _, _, mi2), _, args2) = candidate2
@@ -796,8 +794,7 @@ object STypesUtil {
     (coercion1, coercion2) match {
       case (true, false) => false
       case (false, true) => true
-      case _ if analyzer.equivalent(newDomain1, newDomain2).isTrue => false
-      case _ => isSubtype(newDomain1, newDomain2)
+      case _ => coercions.moreSpecific(newDomain1, newDomain2)
     }
   }
 
