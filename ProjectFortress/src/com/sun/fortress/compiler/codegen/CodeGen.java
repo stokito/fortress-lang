@@ -764,6 +764,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mname = nonCollidingSingleName(name, sig);
         }
 
+        // TODO refactor, this is computed in another place.
         String PCN = packageAndClassName + Naming.GEAR +"$" +
                         mname + sparams_part + Naming.ENVELOPE + "$"  + generic_arrow_type
                         ;
@@ -1667,15 +1668,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
-        String sparams_part = NamingCzar.genericDecoration(header.getStaticParams(), xlation, thisApi());
+        List<StaticParam> original_static_params = header.getStaticParams();
+        Option<List<Param>> original_params = x.getParams();
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, thisApi());
 
         // Rewrite the generic.
         // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
             ObjectDecl y = x;
             x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
+            // Refresh these post-rewrite
+            header = x.getHeader();
+            extendsC = header.getExtendsClause();
+
         }
 
+        
+        
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         String [] superInterfaces =
@@ -1712,7 +1721,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             if (sparams_part.length() > 0) {
                 ArrowType at =
-                    typeAndParamsToArrow(x, NodeFactory.makeVoidType(x.getInfo().getSpan()), params);
+                    typeAndParamsToArrow(x,
+                            NodeFactory.makeTraitType(classId,
+                                    NamingCzar.paramToArg(original_static_params)),
+                                    original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 PCN = packageAndClassName + Naming.GEAR +"$" +
                 mname + sparams_part + Naming.ENVELOPE + "$" + generic_arrow_type

@@ -76,6 +76,7 @@ public class Instantiater extends ClassAdapter {
             String signature, Object value) {
         // TODO Auto-generated method stub
         desc = xlation.getDesc(desc);
+        name = xlation.getCompletely(name);
         return super.visitField(access, name, desc, signature, value);
     }
 
