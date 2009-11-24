@@ -50,6 +50,27 @@ conversion:Map[\String,ZZ32\] =
          "NN"  |->N  
       }
 
+inverseConversion:Map[\String,Char\] =
+    {[\String, Char\]
+        "A0" |-> 'A',
+        "A1" |-> 'C',
+        "A2" |-> 'G',
+        "A3" |-> 'T',
+        "C0" |-> 'C',
+        "C1" |-> 'A',
+        "C2" |-> 'T',
+        "C3" |-> 'G',
+        "G0" |-> 'G',
+        "G1" |-> 'T',
+        "G2" |-> 'A',
+        "G3" |-> 'C',
+        "T0" |-> 'T',
+        "T1" |-> 'G',
+        "T2" |-> 'C',
+        "T3" |-> 'A'
+    }
+       
+
 validTransitions:Set[\String\] = {[\String\] 
     "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
     "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
@@ -157,7 +178,7 @@ readReferenceFile(name:String):String=do
 end
 
 object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, seqend:ZZ32, 
-            referenceChickenColorsSnip:String, sequenceChickenColorsSnip:String,
+            referenceChickenColorsSnip:String, sampleChickenColorsSnip:String,
             referenceChickenAGCTSnip:String) 
     getter header():String = header
     getter sequence():String = sequence
@@ -166,8 +187,43 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
     getter length():ZZ32 = length
     getter seqend():ZZ32 = seqend
     getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
-    getter sequenceChickenColorsSnip():String = sequenceChickenColorsSnip
+    getter sampleChickenColorsSnip():String = sampleChickenColorsSnip
     getter referenceChickenAGCTSnip():String = referenceChickenAGCTSnip    
+    getter asString():String = "\\n{Snip:" || name || "\\n" || referenceChickenColorsSnip || "\\n" sampleChickenColorsSnip || "\\n" || referenceChickenAGCTSnip 
+
+    sampleChickenAGCTSnip():String = do
+
+        l:ZZ32 = |sampleChickenColorsSnip|
+        var i:ZZ32 := 0
+        var result:String := ""
+        var current:Char := sampleChickenColorsSnip.get(0)
+        var c:Char = referenceChickenAGCTSnip.get(0)
+
+        while (i < l) do
+          result := result || c
+          current := sampleChickenColorsSnip.get(i)
+          temp:String = c.asString() || current.asString()
+          c:= inverseConversion.member(temp).get
+          i:= i+1
+        end
+        result := result || c
+        result
+    end
+
+(*
+       BIG || [(x,y) <- referenceChickenAGCTSnip.zip[\Char\](referenceChickenColorsSnip.javaSubstr(0,1) || sampleChickenColorsSnip)] inverseConversion.member(x.asString() || y.asString()).get()
+
+*)
+
+    printSnip():() = do
+        println("Snip:" name)
+        println(" " referenceChickenColorsSnip)
+        println(" " sampleChickenColorsSnip)
+        println(referenceChickenAGCTSnip)
+(*        println(sampleChickenAGCTSnip())  *)
+    end
+
+
 end
 
 reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
@@ -186,7 +242,7 @@ getAdjustedLocation(negativeOri:Boolean, location:String, length:ZZ32):ZZ32 = do
 end
 
 getReferenceChickenColorsSnip(adjustedLoc:ZZ32, seqEnd:ZZ32):FlatString = do
-   referenceChickenColors.asFlatString().javaSubstr(adjustedLoc, seqEnd + 1)
+   referenceChickenColors[adjustedLoc:seqEnd+1].asFlatString()
 end
 
 getAdjustedSequence(negativeOri:Boolean, sequence:String, refChickenColorsSnip:FlatString):FlatString = do
@@ -204,7 +260,7 @@ readASnip(r:ReadStream):Snip = do
    header:String = r.uncheckedReadLine()
    var sequence:String = r.uncheckedReadLine()
 
-   if sequence = "" then Snip(header, sequence,"", 0, 0, 0) else
+   if sequence = "" then Snip(header, sequence,"", 0, 0, 0, "","","") else
       name:String = header.asFlatString().javaRegExpSplit(",",0)
       loc:String = header.asFlatString().javaRegExpSplit(",",1).asFlatString().javaRegExpSplit("_",1).asFlatString().javaRegExpSplit("\\.",0)
       length:ZZ32 = sequence.asFlatString().size() - 1
@@ -213,7 +269,7 @@ readASnip(r:ReadStream):Snip = do
       sequenceEnd:ZZ32 = adjustedLocation + length - 1
       referenceChickenColorsSnip:FlatString = getReferenceChickenColorsSnip(adjustedLocation, sequenceEnd)
       adjustedSequence:FlatString := getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip)
-      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 6)
+      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation+6, sequenceEnd + 6 + 2)
       Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenAGCTSnip)
    end
 end
@@ -224,12 +280,28 @@ ChunkSize:ZZ32 = 10000
 
 (* Given two samples, this creates a list of the positions where they differ *)
 
-object Event(fileName:String, refSeq:String, sampleSeq:String, startPos:ZZ32, endPos:ZZ32)
-    getter fileName():String = fileName
-    getter refSeq():String = refSeq
-    getter sampleSeq():String = sampleSeq
+object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
+    getter snip():Snip = s
     getter startPos():ZZ32 = startPos
     getter endPos():ZZ32 = endPos
+    getter diffs():String = diffs
+    getter asString():String = "{Event:" || s.header() || ":" startPos || "," || endPos || "}"
+    printEvent():() = do
+       println("Event:" )
+       s.printSnip()
+       println(" " diffs)
+       var i:ZZ32 := 0
+       var c:Char := s.referenceChickenAGCTSnip().get(startPos)
+       var result:String :=  c.asString()
+       while (i < endPos) do
+          next:Char = inverseConversion.member(c.asString() || s.sampleChickenColorsSnip.get(i+startPos).asString()).get()
+          result := result || next
+          c := next
+          i := i+1
+       end
+       println(s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1))
+       println(result)
+    end
 end
 
 (* This code is a little obtuse.  The idea is that if the sample differs from the reference 
@@ -242,12 +314,49 @@ makeTuple(loc:ZZ32, diffs:String):(ZZ32,ZZ32) = do
     (loc, |temp|)
 end
 
-isInteresting(loc:ZZ32, diffs:String):Boolean = do
+makeEvent(s:Snip, diffs:String, loc:ZZ32):Event = do
+    temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
+    Event(s, diffs, loc, |temp|)
+end   
+
+isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
    if loc = 0 OR: diffs.get(loc) = '.'  OR: loc = (|diffs| - 1) OR: (diffs.get(loc - 1) = 'X') OR: (|diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)| < 2) then
       false
    else true
    end
 end
+
+isValidPairTransition(r:String, s:String) = do
+    (r || s) IN validTransitions
+end
+
+isValidTransition(reference:String, sample:String) = do
+    println("Reference = " reference)
+    println("sample = " sample)
+    var i:ZZ32 := 0
+    var result:Boolean := true
+    while (i < |reference| - 1) do
+        r = reference.javaSubstr(i, 2)
+        s = sample.javaSubstr(i, 2)
+        result := result AND isValidPairTransition(r,s)
+        i := i + 1
+    end
+    result
+end
+
+isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
+   len:ZZ32 = |diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)|
+   sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, loc+len)
+   reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, loc+len)
+   isValidTransition(reference, sample)
+end
+
+isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = do
+   isInterestingPosition(loc, diffs) AND: isValidTransition(s, loc,diffs)
+end
+
+
+
 
 sampleCompare(ref:String, sample:String):String = do
    BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
@@ -255,52 +364,51 @@ end
 
 (* Given two samples this creates events *)
 
-eventGenerator(ref:FlatString, sample:FlatString):() = do
-    diffs = sampleCompare(ref, sample)
-    println("ref     :" ref)
-    println("sample  :" sample)
-    println("diffs   :" diffs)
-
+eventGenerator(s:Snip):Map[\ZZ32, List[\(ZZ32,ZZ32)\]\] = do
+    diffs = sampleCompare(s.referenceChickenColorsSnip(),s.sampleChickenColorsSnip())
     stop = |diffs| - 1
-
-    interestingRegions = <| makeTuple(x,diffs) | x<-0:stop, isInteresting(x,diffs) |>
-    println("interestingRegions = " interestingRegions) 
-        
+    var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
+    for x <- 0:stop do
+        if isInteresting(s,x,diffs) then
+           database := database.add(x + s.pos(), <| makeEvent(s, diffs, x) |>)
+        end
+    end
+    database
 end
 
-processSampleChicken(name:String):() = do
+combine(k:ZZ32, val1:List[\Event\], val2:List[\Event\]):List[\Event\] = val1 || val2
+
+processSampleChicken(name:String):Map[\ZZ32, List[\Event\]\] = do
     max:ZZ32 = referenceChickenColors.size()
     var rs:FileReadStream = 
         FileReadStream(sampleFilesDir || "/" || name || "/" || sampleFilesFileName)
     fg:FileGenerator[\Snip\]  = FileGenerator[\Snip\](rs,60,readASnip)
-    label reachedEnd  
+    var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
 
-    for s <- seq(fg) do
-        println("sequence:  " s.sequenceChickenColorsSnip())
-        println("reference: " s.referenceChickenColorsSnip())
-        println(s.referenceChickenAGCTSnip)
-
-        eventGenerator(s.referenceChickenColorsSnip().asFlatString(),
-                      s.sequenceChickenColorsSnip().asFlatString())
-
-
-        if s.pos() > ChunkSize then
-            println("foo")
-            println("bar")
-            exit reachedEnd    
-        end
-    end 
-    end reachedEnd   
+    for s <- fg do
+       database := database.union(combine, eventGenerator(s))
+    end
+    database
 end
 
 var referenceChickenColors:String := ""
 var referenceChickenAGCT:String := ""
+
 run() = do
     referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
-    referenceChickenColors := processReferenceFile(referenceChickenFile) 
+    referenceChickenColors := processReferenceFile(referenceChickenFile)
+    var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]} 
+    
     for sampleChicken <- sampleChickens do
-        processSampleChicken(sampleChicken)
-    end 
+        database := database.union(combine,processSampleChicken(sampleChicken))
+    end
+    println("Summary1")
+    for (key,entryList) <- seq(database) do
+       println(key)
+       for entry <- seq(entryList) do
+          entry.printEvent()
+       end
+    end
 
 end  
 end
