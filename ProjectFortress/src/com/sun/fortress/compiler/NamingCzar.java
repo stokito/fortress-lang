@@ -934,11 +934,13 @@ public class NamingCzar {
 
     public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
         if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t, ifNone);
+        else if (t instanceof TraitSelfType) return makeArrowDescriptor(((TraitSelfType) t).getNamed(), ifNone);
         else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
         else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
         else if (t instanceof ArrowType) return makeNestedArrowDescriptor((ArrowType) t, ifNone);
         else if (t instanceof VarType) return makeArrowDescriptor((VarType) t, ifNone);
-        else throw new CompilerError(t, " How did we get here? type = " +
+        else
+            throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }
 

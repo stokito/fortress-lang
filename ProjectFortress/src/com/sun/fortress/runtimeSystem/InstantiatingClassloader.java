@@ -115,12 +115,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     protected Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException {
         Class clazz;
-        // First, we need to replace all occurrences of the System path
-        // separator
-        // with '.', to handle differences in package specifications. eallen
-        // 10/1/2002
-        //name = MainWrapper.sepToDot(name);
-
+        
         /*
          * We want to actually load the class ourselves, if security allows us
          * to. This is so that the classloader associated with the class is

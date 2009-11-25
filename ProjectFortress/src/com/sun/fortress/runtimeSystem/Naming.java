@@ -441,6 +441,17 @@ public class Naming {
          return t;
     }
 
+    public static String mangleFortressFileName(String s) {
+        if (s == null)
+            return null;
+       
+         StringBuffer sb = new StringBuffer();
+         mangleOrNotFortressFileName(s,0, sb,true);
+         String t = sb.toString();
+         
+         return t;
+    }
+
     /**
      * Expects a type, surrounded by L;, or one of the descriptor type characters.
      * @param s
@@ -519,6 +530,16 @@ public class Naming {
 
 
     private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+        // specials = $/;
+        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;");
+    }
+
+    private static int mangleOrNotFortressFileName(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+        // specials = $/;
+        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;.");
+    }
+
+    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot, String specials) {
         int l = s.length();
         int nesting = 0;
 
@@ -528,7 +549,7 @@ public class Naming {
                 nesting++;
             } else if (ch == RIGHT_OXFORD_CHAR) {
                 nesting--;
-            } else if (nesting == 0 && (ch == '$' || ch == '/' || ch == ';')) {
+            } else if (nesting == 0 && (-1 != specials.indexOf(ch))) {
                 appendNonEmptyMangledSubstring(sb, s, start, i, mangleOrNot);
                 sb.append(ch);
                 if (ch == ';')
@@ -672,5 +693,10 @@ public class Naming {
         }
 
         return sig.substring(start,end+1);
+    }
+
+    public static String dotToSep(String name) {
+        name = name.replace('.', '/');
+        return name;
     }
 }
