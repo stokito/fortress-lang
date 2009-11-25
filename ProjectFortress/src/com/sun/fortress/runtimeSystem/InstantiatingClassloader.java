@@ -142,8 +142,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 if (isGenericFunction) {
                     // also a closure
                     HashMap<String, String> xlation = new HashMap<String, String>();
-                    String dename = Naming.demangleFortressIdentifier(name);
-
+                    String dename = Naming.dotToSep(name);
+                    dename = Naming.demangleFortressIdentifier(dename);
                     String template_name = functionTemplateName(dename, xlation);
                     byte[] templateClassData = readResource(template_name);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -157,7 +157,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
                 } else if (isGeneric) {
-                    String dename = Naming.demangleFortressIdentifier(name); // (was deMangle)
+                    String dename = Naming.dotToSep(name);
+                    dename = Naming.demangleFortressIdentifier(dename);
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
                     String stem = dename.substring(0,left);
@@ -187,7 +188,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 }
                 clazz = defineClass(name, classData, 0, classData.length);
                 if (LOG_LOADS)
-                    System.err.println("Loaded " + clazz.getName());
+                    System.err.println("Loaded " + clazz.getName() + " (" + name+ ")");
             } catch (java.io.EOFException ioe) {
                 // output error msg if this is a real problem
                 ioe.printStackTrace();
