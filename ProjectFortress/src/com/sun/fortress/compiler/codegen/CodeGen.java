@@ -77,7 +77,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     final String packageAndClassName;
     private String traitOrObjectName; // set to name of current trait or object, as necessary.
     private String springBoardClass; // set to name of trait default methods class, if we are emitting it.
-
+    
     // traitsAndObjects appears to be dead code.
     // private final Map<String, ClassWriter> traitsAndObjects =
     //     new BATree<String, ClassWriter>(DefaultComparator.normal());
@@ -97,7 +97,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     boolean inABlock = false;
     private boolean emittingFunctionalMethodWrappers = false;
     private TraitObjectDecl currentTraitObjectDecl = null;
-
+    private TraitObjectDecl currentTraitObjectDeclOriginal = null;
+    
     private boolean fnRefIsApply = false; // FnRef is either apply or closure
 
     final Component component;
@@ -133,6 +134,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.inABlock = c.inABlock;
         this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
+        this.currentTraitObjectDeclOriginal = c.currentTraitObjectDeclOriginal;
+        
         this.jos = c.jos;
 
         this.component = c.component;
@@ -765,8 +768,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         // TODO refactor, this is computed in another place.
-        String PCN = packageAndClassName + Naming.GEAR +"$" +
-                        mname + sparams_part + Naming.ENVELOPE + "$"  + generic_arrow_type
+        String PCN = genericFunctionPkgClass(packageAndClassName, mname,
+                sparams_part, generic_arrow_type)
                         ;
 
         // System.err.println(PCN);
@@ -1119,8 +1122,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (!name.getText().equals(uaname.getText()))
                     generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
             } else if (emittingFunctionalMethodWrappers) {
-                functionalMethodWrapper(x, (IdOrOp)name,
-                                        params, selfIndex, returnType, savedInATrait);
+                functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
             } else if (savedInATrait) {
                 generateTraitDefaultMethod(x, (IdOrOp)name,
                                            params, selfIndex, returnType, inAMethod, body);
@@ -1208,29 +1210,106 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param returnType
      */
     private void functionalMethodWrapper(FnDecl x, IdOrOp name,
-                                         List<Param> params,
                                          int selfIndex,
-                                         com.sun.fortress.nodes.Type returnType,
                                          boolean savedInATrait) {
-        int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
-        String sig =
-            NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x), returnType,
-                                       component.getName());
-
-        // TODO different collision rules for top-level and for methods.
-        String mname = nonCollidingSingleName(name, sig);
+        // FnHeader header = x.getHeader();
+        TraitTypeHeader trait_header = currentTraitObjectDecl.getHeader();
+        List<StaticParam> trait_sparams = trait_header.getStaticParams();
+        String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
+        
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
         int invocation = savedInATrait ? INVOKEINTERFACE : INVOKEVIRTUAL;
+        
+        if (trait_sparams.size() == 0) {
+            int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
 
-        InstantiatingClassloader.forwardingMethod(cw,
-                         mname, modifiers, selfIndex,
-                         traitOrObjectName, dottedName, invocation,
-                         sig, params.size(), true);
+            FnHeader header = x.getHeader();
+            List<Param> params = header.getParams();
+            com.sun.fortress.nodes.Type returnType = header.getReturnType()
+                    .unwrap();
+            String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                    returnType, component.getName());
+
+            // TODO different collision rules for top-level and for methods.
+            String mname = nonCollidingSingleName(name, sig);
+
+            InstantiatingClassloader.forwardingMethod(cw, mname, modifiers,
+                    selfIndex, traitOrObjectName, dottedName, invocation, sig,
+                    params.size(), true);
+
+            // Copy for wrapper, instead of actually wrapping.
+            InstantiatingClassloader.forwardingMethod(cw, wname, modifiers,
+                    selfIndex, traitOrObjectName, dottedName, invocation, sig,
+                    params.size(), true);
+            // generateAllWrappersForFn(x, params, sig, modifiers, mname);
+        } else {
+            int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
+
+            // Generic case -- rewrite declaration.
+            Map<String, String> xlation = new HashMap<String, String>();
+            String sparams_part = NamingCzar.genericDecoration(trait_sparams,
+                    xlation, thisApi());
+            FnDecl y = x;
+            x = (FnDecl) x.accept(new GenericNumberer(xlation));
+
+            // Get translated bits.
+            FnHeader header = x.getHeader();
+            List<Param> params = header.getParams();
+            com.sun.fortress.nodes.Type returnType = header.getReturnType()
+                    .unwrap();
+            String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
+                    returnType, component.getName());
+
+            ArrowType at = fndeclToType(y); // type schema from old
+            String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                       false);
+
+            String mname = nonCollidingSingleName(name, sig);
+
+            functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
+                    sig, generic_arrow_type, invocation, dottedName, selfIndex,
+                    params, modifiers);
+            functionalMethodOfGenericTraitObjectWrapper(wname, sparams_part,
+                    sig, generic_arrow_type, invocation, dottedName, selfIndex,
+                    params, modifiers);
+        }
+
+    }
 
 
-        generateAllWrappersForFn(x, params, sig, modifiers, mname);
+    /**
+     * @param mname
+     * @param sparams_part
+     * @param sig
+     * @param generic_arrow_type
+     * @param invocation
+     * @param dottedName
+     * @param selfIndex
+     * @param params
+     * @param modifiers
+     */
+    private void functionalMethodOfGenericTraitObjectWrapper(String mname,
+            String sparams_part, String sig, String generic_arrow_type,
+            int invocation, String dottedName, int selfIndex,
+            List<Param> params, int modifiers) {
+        String PCN = genericFunctionPkgClass(packageAndClassName, mname,
+                sparams_part, generic_arrow_type);
+        // System.err.println(PCN);
 
+        CodeGen cg = new CodeGen(this);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        String staticClass = PCN.replaceAll("[.]", "/");
+        // This creates the closure bits
+        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw,
+                staticClass, sig);
+
+        InstantiatingClassloader.forwardingMethod(cg.cw, mname, modifiers,
+                selfIndex, traitOrObjectName+sparams_part, dottedName, invocation, sig,
+                params.size(), true);
+
+        cg.dumpClass(PCN);
     }
 
     /**
@@ -1435,12 +1514,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forFunctionalRef(FunctionalRef x) {
         debug("forFunctionalRef ", x);
 
+        /* Arrow, or perhaps an intersection if it is an overloaded function. */
+        com.sun.fortress.nodes.Type arrow = exprType(x);
+        
         List<StaticArg> sargs = x.getStaticArgs();
+        if (arrow instanceof ArrowType) {
+            /*
+             *  Note this does not yet deal with functional, generic methods
+             *  because it stomps on "sargs".
+             */
+            Option<MethodInfo> omi = ((ArrowType) arrow).getMethodInfo();
+            if (omi.isSome()) {
+                MethodInfo mi = omi.unwrap();
+                int self_i = mi.getSelfPosition();
+                Type self_t = mi.getSelfType();
+                if (self_t instanceof TraitSelfType)
+                    self_t = ((TraitSelfType)self_t).getNamed();
+                if (self_t instanceof TraitType) {
+                    sargs = ((TraitType) self_t).getArgs();
+                }
+            }
+        }
 
         String decoration = NamingCzar.genericDecoration(sargs, thisApi());
 
-        /* Arrow, or perhaps an intersection if it is an overloaded function. */
-        com.sun.fortress.nodes.Type arrow = exprType(x);
 
         debug("forFunctionalRef ", x, " arrow = ", arrow);
 
@@ -1462,12 +1559,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
 
-            pkgClass = pkgClass + Naming.GEAR + "$" +
-                    calleeInfo.getB() +
-                    decoration +
-                    Naming.ENVELOPE
-                    + "$"  + arrow_type // TODO fix this.
-                    ;
+            pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.getB(), decoration, arrow_type);
+            
+            // pkgClass = pkgClass.replaceAll("[.]", "/");
             // DEBUG, for looking at the schema append to a reference.
             // System.err.println("At " + x.getInfo().getSpan() + ", " + pkgClass);
         }
@@ -1644,8 +1738,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                          NamingCzar.idToString(NodeUtil.getName(x)));
         debug("forObjectDecl ",x," classFile = ", classFile);
         traitOrObjectName = classFile;
+        currentTraitObjectDecl = x;
         dumpTraitDecls(header.getDecls());
-        emittingFunctionalMethodWrappers = false;
+        currentTraitObjectDecl = null;
+       emittingFunctionalMethodWrappers = false;
         traitOrObjectName = null;
     }
 
@@ -1672,18 +1768,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<List<Param>> original_params = x.getParams();
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, thisApi());
 
+        ObjectDecl y = x;
         // Rewrite the generic.
         // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
-            ObjectDecl y = x;
+            
             x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
             // Refresh these post-rewrite
             header = x.getHeader();
             extendsC = header.getExtendsClause();
 
         }
-
-        
         
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
@@ -1726,8 +1821,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     NamingCzar.paramToArg(original_static_params)),
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
-                PCN = packageAndClassName + Naming.GEAR +"$" +
-                mname + sparams_part + Naming.ENVELOPE + "$" + generic_arrow_type
+                PCN = genericFunctionPkgClass(packageAndClassName, mname, sparams_part, generic_arrow_type)
                 ;
 
 
@@ -1834,6 +1928,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         currentTraitObjectDecl = x;
+        currentTraitObjectDeclOriginal = y;
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
@@ -1844,6 +1939,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw = prev;
         inAnObject = savedInAnObject;
         traitOrObjectName = null;
+        currentTraitObjectDeclOriginal = null;
+        currentTraitObjectDecl = null;
+    }
+
+
+    /**
+     * @param simple_name
+     * @param static_parameters
+     * @param generic_arrow_schema
+     * @return
+     */
+    private String genericFunctionPkgClass(String component_pkg_class, String simple_name,
+            String static_parameters, String generic_arrow_schema) {
+        return component_pkg_class + Naming.GEAR +"$" +
+        simple_name + static_parameters + Naming.ENVELOPE + "$" + generic_arrow_schema;
     }
 
     // This returns a list rather than a set because the order matters;
@@ -2147,6 +2257,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
         inATrait = true;
         currentTraitObjectDecl = x;
+        currentTraitObjectDeclOriginal = x; // not doing static params yet...
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
         // First let's do the interface class

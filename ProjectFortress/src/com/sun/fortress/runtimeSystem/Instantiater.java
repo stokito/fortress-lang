@@ -49,7 +49,10 @@ public class Instantiater extends ClassAdapter {
         for (int i = 0; i < interfaces.length; i++) {
             new_interfaces[i] = xlation.getCompletely(interfaces[i]);
         }
-        super.visit(version, access, instanceName, signature,
+        super.visit(version, access,
+        xlation.getCompletely(name),
+        //instanceName, 
+        signature,
                 xlation.getCompletely(superName), new_interfaces);
     }
 
