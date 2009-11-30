@@ -800,7 +800,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Type traitType = NodeFactory
             .makeTraitType((Id) currentTraitObjectDecl
-                           .getHeader().getName());
+                           .getHeader().getName(),
+                           NamingCzar.paramToArg(
+                           currentTraitObjectDecl
+                           .getHeader().getStaticParams())             
+            );
 
         /* Signature includes explicit leading self
            First version of sig includes duplicate self for
@@ -2246,7 +2250,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // NOTE: Presence of excludes or comprises clauses should not
             // affect code generation once type checking is complete.
             // x.getExcludesClause().isEmpty() &&    // no excludes clause
-            header.getStaticParams().isEmpty() && // no static parameter
+            // header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
@@ -2255,14 +2259,47 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forTraitDecl", x,
                     " decls = ", header.getDecls(), " extends = ", extendsC);
         if ( !canCompile ) sayWhat(x);
+        
+        Map<String, String> xlation = new HashMap<String, String>();
+        List<StaticParam> original_static_params = header.getStaticParams();
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, thisApi());
+
+        TraitDecl y = x;
+        // Rewrite the generic.
+        // need to do more differently if it is a constructor.
+        if (sparams_part.length() > 0 ) {
+            
+            x = (TraitDecl) y.accept(new GenericNumberer(xlation));
+            // Refresh these post-rewrite
+            header = x.getHeader();
+            extendsC = header.getExtendsClause();
+
+        }        
+        
         inATrait = true;
         currentTraitObjectDecl = x;
         currentTraitObjectDeclOriginal = x; // not doing static params yet...
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
-        // First let's do the interface class
-        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                                                         NodeUtil.getName(x).getText());
+//       First let's do the interface class
+//        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+//                                                         NodeUtil.getName(x).getText());
+
+        /*
+         * This will want refactoring into NamingCzar sooner or later.
+         * I decided that the least-confusion convention for implementation
+         * classes for generic traits was to use the Generic[\parameters\]$whatever
+         * convention.  This may require enhancements to the mangling code, but
+         * once that is done it will cause least-confusion for everyone else
+         * later.
+         */
+        Id classId = NodeUtil.getName(x);
+        String classFile =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
+        String classFileMinusSparams =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,"",packageAndClassName);   
+        springBoardClass = classFileMinusSparams  + sparams_part + NamingCzar.springBoard;      
+        
         String abstractSuperclass;
         traitOrObjectName = classFile;
         if (classFile.equals("fortress/AnyType$Any")) {
@@ -2281,7 +2318,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpClass( classFile );
 
         // Now lets do the springboard inner class that implements this interface.
-        springBoardClass = classFile + NamingCzar.springBoard;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         // Springboard *must* be abstract if any methods / fields are abstract!
