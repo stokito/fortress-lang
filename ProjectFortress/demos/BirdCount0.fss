@@ -158,7 +158,6 @@ processReferenceFileLine(input:String):dna = do
         then EmptySequence()
     else 
         size = |input|
-        println input " has " size " characters "  
         dnaSequence(input.get(0), BIG || [p<- Pairs(input)](convert(p)), input.get(size-1)) 
     end
 end
@@ -167,7 +166,6 @@ processReferenceFile(name:String):String=do
    var rs:FileReadStream = FileReadStream(name)
    var res:dna  = BIG OPLUS [l<-rs.lines()] processReferenceFileLine(l)
    colors = res.colorSequence()
-   println "result has " |colors| " characters which should be 1 less than input ACGT colors."
    colors
 end
 
@@ -286,10 +284,9 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
     getter endPos():ZZ32 = endPos
     getter diffs():String = diffs
     getter asString():String = "{Event:" || s.header() || ":" startPos || "," || endPos || "}"
-    printEvent():() = do
-       println("Event:" )
-       s.printSnip()
-       println(" " diffs)
+    valid():Boolean =  isValidTransition(s, startPos,diffs)
+
+    sampleChickenDiffSnip():String = do
        var i:ZZ32 := 0
        var c:Char := s.referenceChickenAGCTSnip().get(startPos)
        var result:String :=  c.asString()
@@ -299,8 +296,26 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
           c := next
           i := i+1
        end
-       println(s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1))
-       println(result)
+       result
+    end
+  
+    printEvent():() = do
+       eventStart:ZZ32 = s.pos() + startPos
+       eventEnd:ZZ32 = eventStart + endPos - 1
+       snipEnd:ZZ32 = endPos + startPos
+       print(eventStart "  " eventEnd "  ")
+       print(s.referenceChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
+       print(s.sampleChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
+       if valid() then
+          print "VALID" 
+          print("  " s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1) "   ")
+          println(sampleChickenDiffSnip())
+       else
+          print "inv" 
+          print("  " s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1) "   ")
+          xs:String = "xxxxxxxxxxxxxxxxxx"
+          println(xs.javaSubstr(0, endPos+1))
+       end
     end
 end
 
@@ -331,8 +346,6 @@ isValidPairTransition(r:String, s:String) = do
 end
 
 isValidTransition(reference:String, sample:String) = do
-    println("Reference = " reference)
-    println("sample = " sample)
     var i:ZZ32 := 0
     var result:Boolean := true
     while (i < |reference| - 1) do
@@ -352,11 +365,8 @@ isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
 end
 
 isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = do
-   isInterestingPosition(loc, diffs) AND: isValidTransition(s, loc,diffs)
+   isInterestingPosition(loc, diffs) 
 end
-
-
-
 
 sampleCompare(ref:String, sample:String):String = do
    BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
@@ -402,9 +412,8 @@ run() = do
     for sampleChicken <- sampleChickens do
         database := database.union(combine,processSampleChicken(sampleChicken))
     end
-    println("Summary1")
+    println("Events")
     for (key,entryList) <- seq(database) do
-       println(key)
        for entry <- seq(entryList) do
           entry.printEvent()
        end
