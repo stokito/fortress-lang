@@ -187,7 +187,7 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
     getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
     getter sampleChickenColorsSnip():String = sampleChickenColorsSnip
     getter referenceChickenAGCTSnip():String = referenceChickenAGCTSnip    
-    getter asString():String = "\\n{Snip:" || name || "\\n" || referenceChickenColorsSnip || "\\n" sampleChickenColorsSnip || "\\n" || referenceChickenAGCTSnip 
+    getter asString():String = pos || "  " || name || "  " || referenceChickenColorsSnip || "  " sampleChickenColorsSnip || "  " || referenceChickenAGCTSnip 
 
     sampleChickenAGCTSnip():String = do
 
@@ -214,7 +214,7 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
 *)
 
     printSnip():() = do
-        println("Snip:" name)
+        println("Snip:" name pos() "  ")
         println(" " referenceChickenColorsSnip)
         println(" " sampleChickenColorsSnip)
         println(referenceChickenAGCTSnip)
@@ -303,7 +303,8 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
        eventStart:ZZ32 = s.pos() + startPos
        eventEnd:ZZ32 = eventStart + endPos - 1
        snipEnd:ZZ32 = endPos + startPos
-       print(eventStart "  " eventEnd "  ")
+       
+       print(s.header() "  " eventStart "  " eventEnd "  ")
        print(s.referenceChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        print(s.sampleChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        if valid() then
@@ -329,17 +330,40 @@ makeTuple(loc:ZZ32, diffs:String):(ZZ32,ZZ32) = do
     (loc, |temp|)
 end
 
+(* Have to special case for "X.XX" *)
 makeEvent(s:Snip, diffs:String, loc:ZZ32):Event = do
-    temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
-    Event(s, diffs, loc, |temp|)
+    if (loc < (|diffs| - 5)) AND: diffs.asFlatString().javaSubstr(loc, loc+4) = "X.XX" then
+       diffs2:String = diffs.asFlatString().javaSubstr(0,loc+1) || "X" || diffs.asFlatString().javaSubstr(loc+2)
+       temp:String = diffs.asFlatString().javaSubstr(loc+2).javaRegExpSplit("\\.",0)
+       Event(s, diffs2, loc, |temp| + 2)       
+    else   
+       temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
+       Event(s, diffs, loc, |temp|)       
+    end
 end   
 
-isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
-   if loc = 0 OR: diffs.get(loc) = '.'  OR: loc = (|diffs| - 1) OR: (diffs.get(loc - 1) = 'X') OR: (|diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)| < 2) then
+
+(* If we have an X.XXX that is apparently interesting *)
+
+singletonX(loc:ZZ32, diffs:String):Boolean = 
+   |diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)| < 2
+
+uninterestingSingletonX(loc:ZZ32,diffs:String):Boolean = 
+   if (loc > (|diffs| - 3) OR: loc < 1) then true
+   elif (diffs.asFlatString().javaSubstr(loc, loc+2) = "XX") then false
+   elif (loc < (|diffs| - 5) AND: singletonX(loc, diffs) AND: (diffs.asFlatString().javaSubstr(loc, loc+4) = "X.XX"))
+      then false
+   else true
+   end
+
+oneAwayFromUninterestingSingleton(loc,diffs):Boolean =  
+  (loc > 3) AND: (loc < |diffs| - 3) AND: (diffs.asFlatString().javaSubstr(loc - 3, loc+2) = ".X.XX") 
+
+isInterestingPosition(loc:ZZ32, diffs:String):Boolean = 
+   if loc = 0 OR: loc = (|diffs| - 1) OR: diffs.get(loc) = '.'  OR: (diffs.get(loc - 1) = 'X') OR: uninterestingSingletonX(loc, diffs) OR: oneAwayFromUninterestingSingleton(loc, diffs) then
       false
    else true
    end
-end
 
 isValidPairTransition(r:String, s:String) = do
     (r || s) IN validTransitions
@@ -359,14 +383,23 @@ end
 
 isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
    len:ZZ32 = |diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)|
-   sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, loc+len)
-   reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, loc+len)
-   isValidTransition(reference, sample)
+   if (loc + len) > (|diffs| - 1) 
+      then false
+   else 
+     sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, loc+len)
+     reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, loc+len)
+     isValidTransition(reference, sample)
+   end
 end
 
-isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = do
-   isInterestingPosition(loc, diffs) 
-end
+isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = 
+   if isInterestingPosition(loc, diffs) then
+(*       print("loc:" loc) *)
+       true
+   else
+       false
+   end
+
 
 sampleCompare(ref:String, sample:String):String = do
    BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
@@ -378,6 +411,7 @@ eventGenerator(s:Snip):Map[\ZZ32, List[\(ZZ32,ZZ32)\]\] = do
     diffs = sampleCompare(s.referenceChickenColorsSnip(),s.sampleChickenColorsSnip())
     stop = |diffs| - 1
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
+(*    print("Snip " s " diffs " diffs)  *)
     for x <- 0:stop do
         if isInteresting(s,x,diffs) then
            database := database.add(x + s.pos(), <| makeEvent(s, diffs, x) |>)
