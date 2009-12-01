@@ -479,6 +479,7 @@ object IndexBuilder {
                           errors: JavaList[StaticError]): Unit = {
     val mods = NU.getMods(ast)
     val name = NU.getName(ast)
+    val uaname = NU.getUnambiguousName(ast);
     if (NU.isCoercion(ast)) {
       coercions.add(new Coercion(ast, traitDecl, apiName, enclosingParams))
     } else if (mods.isGetter) {
@@ -510,6 +511,10 @@ object IndexBuilder {
         val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
         functionalMethods.add(name, m)
         topLevelFunctions.add(name, m)
+        
+        functionalMethods.add(uaname, m)
+        topLevelFunctions.add(uaname, m)
+         
       } else if (functional && operator) {
         var parametric = false
         for (p <- enclosingParams) {
@@ -522,6 +527,9 @@ object IndexBuilder {
           val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
           functionalMethods.add(name, m)
           topLevelFunctions.add(name, m)
+          
+          functionalMethods.add(uaname, m)
+          topLevelFunctions.add(uaname, m)
         }
       } else if ((! functional) && operator) {
         // In this case, we must have a subscripting operator method declaration

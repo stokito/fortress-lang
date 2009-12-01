@@ -386,9 +386,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (int j = i + 1; j < potypes.length; j++) {
                 Type ti = potypes[i].x;
                 Type tj = potypes[j].x;
-                if (ta.subtypeNormal(ti, tj).isTrue()) {
+                if (tweakedSubtypeTest(ta, ti, tj)) {
                     potypes[i].edgeTo(potypes[j]);
-                } else if (ta.subtypeNormal(tj, ti).isTrue()) {
+                } else if (tweakedSubtypeTest(ta, tj, ti)) {
                     potypes[j].edgeTo(potypes[i]);
                 }
             }
@@ -406,7 +406,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 List<Param> parameters = f.tagParameters();
                 Param p = parameters.get(dispatchParameterIndex);
                 Type pt = p.getIdType().unwrap();
-                if (ta.subtypeNormal(t, pt).isTrue()) {
+                if (tweakedSubtypeTest(ta, t, pt)) {
                     childLSTSF.add(f);
                 }
             }
@@ -529,7 +529,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // if any type of the candidate is not a subtype(or eq)
             // of the corresponding type of the msf, then the candidate
             // is NOT better.
-            if (!ta.subtypeNormal(cand_t, msf_t).isTrue()) {
+            if (!tweakedSubtypeTest(ta, cand_t, msf_t)) {
                 cand_better = false;
                 break;
             }
@@ -563,7 +563,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
 
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            typesToJoin.add(f.getReturnType());
+            typesToJoin.add(normalizeSelfType(f.getReturnType()));
         }
 
         s += NamingCzar.jvmTypeDesc(join(ta,typesToJoin), ifNone);
@@ -695,7 +695,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             r0 = getParamType(type, i, paramCount, ta);
             if (r0==null) continue;
 
-            typesToJoin.add(r0);
+            typesToJoin.add(normalizeSelfType(r0));
         }
         return join(ta,typesToJoin);
     }
@@ -744,11 +744,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             com.sun.fortress.nodes.Type tp = p.getIdType().unwrap();
             if (ti == null)
                 return false;
-            if (!ta.subtypeNormal(tp, ti).isTrue())
+            /*
+             * TraitSelfTypes yielded the wrong result here.
+             */
+            ti = normalizeSelfType(ti);
+            tp = normalizeSelfType(tp);
+            if (!tweakedSubtypeTest(ta, tp, ti))
                 return false;
             i++;
         }
         return true;
+    }
+
+    /**
+     * @param ti
+     * @return
+     */
+    private static com.sun.fortress.nodes.Type normalizeSelfType(
+            com.sun.fortress.nodes.Type ti) {
+        if (ti instanceof TraitSelfType)
+            ti = ((TraitSelfType)ti).getNamed();
+        return ti;
+    }
+    
+    private static boolean tweakedSubtypeTest(TypeAnalyzer ta, com.sun.fortress.nodes.Type sub_type, Type super_type ) {
+        sub_type = normalizeSelfType(sub_type);
+        super_type = normalizeSelfType(super_type);
+        return ta.subtypeNormal(sub_type, super_type).isTrue();
     }
 
     /**
@@ -780,7 +802,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<Param> params = f.tagParameters();
             Param p = params.get(param);
-            typesToJoin.add(p.getIdType().unwrap());
+            typesToJoin.add(normalizeSelfType(p.getIdType().unwrap()));
         }
         return join(ta,typesToJoin);
     }
