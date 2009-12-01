@@ -288,6 +288,10 @@ public class NodeUtil {
         return f.getHeader().getName();
     }
 
+    public static IdOrOp getUnambiguousName(FnDecl f) {
+        return f.getUnambiguousName();
+    }
+
     public static List<StaticParam> getStaticParams(FnDecl f) {
         return f.getHeader().getStaticParams();
     }
