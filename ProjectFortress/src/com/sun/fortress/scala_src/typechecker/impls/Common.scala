@@ -49,7 +49,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  */
 trait Common { self: STypeChecker =>
 
-  // TODO: Rewrite this method!
+  // TODO: Consider merging with STypesUtil.inheritedMethods
   def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere])
                       : Relation[IdOrOpOrAnonymousName, Method] = {
     def inheritedMethodsHelper(history: HierarchyHistory,

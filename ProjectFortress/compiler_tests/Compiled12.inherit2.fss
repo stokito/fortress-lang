@@ -14,20 +14,38 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component AbstractDottedMethods
+
 export Executable
 
-  trait T
-    m(x:ZZ32):String
-  end
-
-  object O extends T
-    m(x:ZZ32):String = "hello"
-  end
-
-  f(t:T) = t.m(0)
-
-  run():() = do
-    println f(O)
-  end
+trait T
+  abstract getter asString(): String
+  abstract u(t:T): T
+  abstract v(t:T): T
+  abstract w(t:T): T
 end
+
+trait U extends T
+  u(t:T): T = self
+end
+
+trait V extends T
+  v(t:T): T = self
+end
+
+object W(s:String) extends { U, V }
+  getter asString(): String = "W" s
+  w(t:T): T = self
+end
+
+run() = do
+    w1 : T = W("1")
+    w2 : U = W("2")
+    println(w1.asString)
+    println(w1.u(w2).asString)
+    println(w1.v(w2).asString)
+    println(w1.w(w2).asString)
+    println(w2.asString)
+    println(w2.u(w1).asString)
+    println(w2.v(w1).asString)
+    println(w2.w(w1).asString)
+  end

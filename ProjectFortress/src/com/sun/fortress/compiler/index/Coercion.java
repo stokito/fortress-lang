@@ -18,12 +18,12 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Thunk;
@@ -53,9 +53,11 @@ public class Coercion extends Function {
         _declaringTrait = NodeFactory.makeId(apiName, NodeUtil.getName(traitDecl));
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
+        // TODO: Is this type right?  It seems to only be half the type.
+        // And why is traitParams distinct from the 
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
             public Option<Type> value() {
-                return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, TypesUtil.staticParamsToArgs(_traitParams)));
+                return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, STypesUtil.staticParamsToArgs(_traitParams)));
             }
         });
     }

@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 

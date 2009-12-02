@@ -59,45 +59,6 @@ public class TypesUtil {
       return KindEnv$.MODULE$.makeFresh();
     }
 
-    /** Currently exists in TypeEnv class too. */
-    public static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
-        List<StaticArg> result = new ArrayList<StaticArg>();
-
-        for (StaticParam param: params) {
-            final IdOrOp name = param.getName();
-            result.add(param.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
-                        public StaticArg forKindBool(KindBool k) {
-                            return NodeFactory.makeBoolArg(typeSpan,
-                                                           NodeFactory.makeBoolRef(typeSpan, (Id)name));
-                        }
-                        public StaticArg forKindDim(KindDim k) {
-                            return NodeFactory.makeDimArg(typeSpan,
-                                                          NodeFactory.makeDimRef(typeSpan, (Id)name));
-                        }
-                        public StaticArg forKindInt(KindInt k) {
-                            return NodeFactory.makeIntArg(typeSpan,
-                                                          NodeFactory.makeIntRef(typeSpan, (Id)name));
-                        }
-                        public StaticArg forKindNat(KindNat k) {
-                            return NodeFactory.makeIntArg(typeSpan,
-                                                          NodeFactory.makeIntRef(typeSpan, (Id)name));
-                        }
-                        public StaticArg forKindType(KindType k) {
-                            return NodeFactory.makeTypeArg(typeSpan,
-                                                           NodeFactory.makeVarType(typeSpan, (Id)name));
-                        }
-                        public StaticArg forKindUnit(KindUnit k) {
-                            return NodeFactory.makeUnitArg(typeSpan, NodeFactory.makeUnitRef(typeSpan, false, (Id)name));
-                        }
-                        public StaticArg forKindOp(KindOp that) {
-                            return NodeFactory.makeOpArg(typeSpan,
-                                                         ExprFactory.makeOpRef((Op)name));
-                        }
-                    }));
-        }
-        return result;
-    }
-    
     public static class ArgList {
 
         private final List<Type> _args;

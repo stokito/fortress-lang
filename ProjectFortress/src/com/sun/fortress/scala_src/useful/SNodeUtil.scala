@@ -147,7 +147,7 @@ object SNodeUtil {
     toOption(jComprises) match {
       case Some(jComprisesTypes) =>
 	val self_type = NF.makeTraitType(trait_name,
-					 TypeEnv.staticParamsToArgs(jSparams))
+					 STypesUtil.staticParamsToArgs(jSparams))
 	var sparams = List[StaticParam]()
 	for (sp <- toList(jSparams)) {
 	  if (toList(jComprisesTypes).exists(equalSparam(_, sp))) {

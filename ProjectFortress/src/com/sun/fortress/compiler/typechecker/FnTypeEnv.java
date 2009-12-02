@@ -55,6 +55,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
@@ -150,7 +151,7 @@ class FnTypeEnv extends TypeEnv {
                 // Make trait name fully qualified, since Constructors are not.
                 Id qualified_trait_name = NodeFactory.makeId(var.getApiName(), _fn.declaringTrait());
                 Type selfType = makeTraitType(qualified_trait_name,
-                                              staticParamsToArgs(_fn.staticParameters()));
+                                              STypesUtil.staticParamsToArgs(_fn.staticParameters()));
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.

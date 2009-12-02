@@ -35,6 +35,7 @@ import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -91,8 +92,8 @@ class ObjectTypeEnv extends TypeEnv {
                 // TODO: handle type variables bound in where clause
                 type = NodeFactory.makeArrowType(NodeUtil.getSpan(decl), false,
                                      domainFromParams(NodeUtil.getParams(decl).unwrap()),
-                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(decl))),
-                                                 NodeFactory.emptyEffect,
+                                     STypesUtil.declToTraitType(decl),
+                                     NodeFactory.emptyEffect,
                                      NodeUtil.getStaticParams(decl),
                                      NodeUtil.getWhereClause(decl));
             }

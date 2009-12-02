@@ -122,8 +122,6 @@ public class TypeAnalyzer {
         return typeCons(t.getName());
     }
 
-    /** 
-
     /** Verify that fundamental types are present in the current environment. */
     private void validateEnvironment() {
         assertTraitIndex(OBJECT.getName());
