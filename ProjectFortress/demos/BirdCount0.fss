@@ -69,7 +69,6 @@ inverseConversion:Map[\String,Char\] =
         "T2" |-> 'C',
         "T3" |-> 'A'
     }
-       
 
 validTransitions:Set[\String\] = {[\String\] 
     "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
@@ -78,9 +77,166 @@ validTransitions:Set[\String\] = {[\String\]
     "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
 }
 
+(* if I could read these in from the file I would, but I don't know how to convert a string to an RR64 *)
+
+singleErrorRates:Map[\String,Map[\ZZ32,RR64\]\] =
+     {[\String, Map[\ZZ32, RR64\]\]
+    "10a_LA_Frag35_20080704_white_leghorn_A" |-> 
+                {[\ZZ32,RR64\] 0 |-> 0.00134,
+                               1 |-> 0.00045, 
+                               2 |-> 0.00039, 
+                               3 |-> 0.00073, 
+                               4 |-> 0.00021, 
+                               5 |-> 0.00012, 
+                               6 |-> 0.00008, 
+                               7 |-> 0.00006, 
+                               8 |-> 0.00010, 
+                               9 |-> 0.00015, 
+                               10 |-> 0.00011, 
+                               11 |-> 0.00007, 
+                               12 |-> 0.00007, 
+                               13 |-> 0.00007, 
+                               14 |-> 0.00010, 
+                               15 |-> 0.00016, 
+                               16 |-> 0.00012, 
+                               17 |-> 0.00010, 
+                               18 |-> 0.00011, 
+                               19 |-> 0.00017, 
+                               20 |-> 0.00027, 
+                               21 |-> 0.00022, 
+                               22 |-> 0.00022, 
+                               23 |-> 0.00023, 
+                               24 |-> 0.00034, 
+                               25 |-> 0.00060, 
+                               26 |-> 0.00060, 
+                               27 |-> 0.00062, 
+                               28 |-> 0.00060, 
+                               29 |-> 0.00095, 
+                               30 |-> 0.00161, 
+                               31 |-> 0.00184, 
+                               32 |-> 0.00225, 
+                               33 |-> 0.00265, 
+                               34 |-> 0.00000 },
+    "10b_LA_Frag35_20080704_white_leghorn_B" |-> 
+                {[\ZZ32,RR64\] 0 |-> 0.00028,
+                               1 |-> 0.00012, 
+                               2 |-> 0.00010, 
+                               3 |-> 0.00012, 
+                               4 |-> 0.00010, 
+                               5 |-> 0.00012, 
+                               6 |-> 0.00007, 
+                               7 |-> 0.00006, 
+                               8 |-> 0.00007, 
+                               9 |-> 0.00007, 
+                               10 |-> 0.00010, 
+                               11 |-> 0.00008, 
+                               12 |-> 0.00007, 
+                               13 |-> 0.00008, 
+                               14 |-> 0.00009, 
+                               15 |-> 0.00014, 
+                               16 |-> 0.00011, 
+                               17 |-> 0.00010, 
+                               18 |-> 0.00012, 
+                               19 |-> 0.00014, 
+                               20 |-> 0.00023, 
+                               21 |-> 0.00023, 
+                               22 |-> 0.00022, 
+                               23 |-> 0.00022, 
+                               24 |-> 0.00032, 
+                               25 |-> 0.00056, 
+                               26 |-> 0.00058, 
+                               27 |-> 0.00056, 
+                               28 |-> 0.00063, 
+                               29 |-> 0.00088, 
+                               30 |-> 0.00283, 
+                               31 |-> 0.00282, 
+                               32 |-> 0.00151, 
+                               33 |-> 0.00252, 
+                               34 |-> 0.00000 }
+}
+
+multipleErrorRates:Map[\String,Map[\ZZ32,RR64\]\] =
+     {[\String, Map[\ZZ32, RR64\]\]
+    "10a_LA_Frag35_20080704_white_leghorn_A" |-> 
+                {[\ZZ32,RR64\] 0 |-> 0.04331,
+                               1 |-> 0.03910,
+                               2 |-> 0.01894, 
+                               3 |-> 0.02443, 
+                               4 |-> 0.03466, 
+                               5 |-> 0.00876, 
+                               6 |-> 0.01211, 
+                               7 |-> 0.00658, 
+                               8 |-> 0.00796, 
+                               9 |-> 0.01411, 
+                               10 |->0.01342, 
+                               11 |->0.01010, 
+                               12 |->0.00846, 
+                               13 |->0.00907, 
+                               14 |->0.00952, 
+                               15 |->0.01544, 
+                               16 |->0.01709, 
+                               17 |->0.01165, 
+                               18 |->0.01247, 
+                               19 |->0.01336, 
+                               20 |->0.02285, 
+                               21 |->0.02293, 
+                               22 |->0.01948, 
+                               23 |->0.02129, 
+                               24 |->0.02037, 
+                               25 |->0.03367, 
+                               26 |->0.03527, 
+                               27 |->0.03708, 
+                               28 |->0.03491, 
+                               29 |->0.03672, 
+                               30 |->0.05487, 
+                               31 |->0.06012, 
+                               32 |->0.07016, 
+                               33 |->0.06959, 
+                               34 |->0.07209},
+    "10b_LA_Frag35_20080704_white_leghorn_B" |-> 
+                {[\ZZ32,RR64\] 0 |-> 0.00895, 
+                               1 |-> 0.00954, 
+                               2 |-> 0.00664, 
+                               3 |-> 0.00843, 
+                               4 |-> 0.00863, 
+                               5 |-> 0.00850, 
+                               6 |-> 0.01045, 
+                               7 |-> 0.00593, 
+                               8 |-> 0.00825, 
+                               9 |-> 0.00757, 
+                               10 |->0.01032, 
+                               11 |->0.01131, 
+                               12 |->0.00809, 
+                               13 |->0.00928, 
+                               14 |->0.00915, 
+                               15 |->0.01354, 
+                               16 |->0.01589, 
+                               17 |->0.01044, 
+                               18 |->0.01367, 
+                               19 |->0.01300, 
+                               20 |->0.01934, 
+                               21 |->0.02271, 
+                               22 |->0.01978, 
+                               23 |->0.01934, 
+                               24 |->0.02105, 
+                               25 |->0.03057, 
+                               26 |->0.03541, 
+                               27 |->0.03346, 
+                               28 |->0.03289, 
+                               29 |->0.03943, 
+                               30 |->0.04918, 
+                               31 |->0.13046, 
+                               32 |->0.05682, 
+                               33 |->0.05955, 
+                               34 |->0.07790 }
+}
+
+
+
 referenceChickenFile:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
 sampleFilesDir:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/test_data"
 sampleFilesFileName:String = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName:String = "composite_error_model.txt"
 
 sampleChickens:List[\String\] = <|[\String\]
     "10a_LA_Frag35_20080704_white_leghorn_A",
@@ -278,12 +434,14 @@ ChunkSize:ZZ32 = 10000
 
 (* Given two samples, this creates a list of the positions where they differ *)
 
-object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
+object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, fileName:String)
     getter snip():Snip = s
     getter startPos():ZZ32 = startPos
     getter endPos():ZZ32 = endPos
     getter diffs():String = diffs
     getter asString():String = "{Event:" || s.header() || ":" startPos || "," || endPos || "}"
+    getter errorProb():RR64 = errorProb
+    getter fileName():String = fileName
     valid():Boolean =  isValidTransition(s, startPos,diffs)
 
     sampleChickenDiffSnip():String = do
@@ -304,7 +462,7 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32)
        eventEnd:ZZ32 = eventStart + endPos - 1
        snipEnd:ZZ32 = endPos + startPos
        
-       print(s.header() "  " eventStart "  " eventEnd "  ")
+       print(s.header() "  " errorProb " "  eventStart "  " eventEnd "  ")
        print(s.referenceChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        print(s.sampleChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        if valid() then
@@ -325,45 +483,52 @@ end
    for these potential interesting mutations and return a list of them.
  *)
 
-makeTuple(loc:ZZ32, diffs:String):(ZZ32,ZZ32) = do
-    temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
-    (loc, |temp|)
-end
-
-(* Have to special case for "X.XX" *)
-makeEvent(s:Snip, diffs:String, loc:ZZ32):Event = do
-    if (loc < (|diffs| - 5)) AND: diffs.asFlatString().javaSubstr(loc, loc+4) = "X.XX" then
-       diffs2:String = diffs.asFlatString().javaSubstr(0,loc+1) || "X" || diffs.asFlatString().javaSubstr(loc+2)
-       temp:String = diffs.asFlatString().javaSubstr(loc+2).javaRegExpSplit("\\.",0)
-       Event(s, diffs2, loc, |temp| + 2)       
-    else   
-       temp:String = diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)
-       Event(s, diffs, loc, |temp|)       
-    end
+makeEvent(s:Snip, basicDiffs:String, diffs:String, loc:ZZ32, name:String):Event = do
+   var index:ZZ32 = loc
+   while (index < |diffs| AND: diffs.get(index) = 'X') do index := index + 1 end
+   lenOfEvent = index - loc
+   if lenOfEvent = 2 then
+        println("errorProb then name = " name "  loc = " loc "lenOfEvent " lenOfEvent)
+        temp = singleErrorRates.member(name).get().member(loc).get()
+        println("singleErrorTemp = " temp)
+        Event(s, diffs, loc, lenOfEvent, temp, name)
+               
+   else
+     var errorProb:RR64 := 1
+     println("errorProb else name = " name " loc = " loc " lenOfEvent " lenOfEvent)
+     index := 0
+     while (index < lenOfEvent) do
+        println("errorProb loc = " loc " index = " index " loc + index " = loc + index)
+        temp = multipleErrorRates.member(name).get().member(loc+index).get()
+        println("multipleErrorTemp = " temp "basicDiffs.get(loc+index) = " basicDiffs.get(loc+index))
+        if basicDiffs.get(loc+index) = 'X' then
+           errorProb := errorProb temp
+        end
+        index := index + 1
+     end
+     println("multipleErrorProb = " errorProb)
+     Event(s, diffs, loc, lenOfEvent, errorProb, name)
+   end
 end   
 
-
-(* If we have an X.XXX that is apparently interesting *)
-
-singletonX(loc:ZZ32, diffs:String):Boolean = 
-   |diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)| < 2
-
-uninterestingSingletonX(loc:ZZ32,diffs:String):Boolean = 
-   if (loc > (|diffs| - 3) OR: loc < 1) then true
-   elif (diffs.asFlatString().javaSubstr(loc, loc+2) = "XX") then false
-   elif (loc < (|diffs| - 5) AND: singletonX(loc, diffs) AND: (diffs.asFlatString().javaSubstr(loc, loc+4) = "X.XX"))
-      then false
-   else true
+isSingletonX(loc:ZZ32, diffs:String):Boolean =  
+   if loc = |diffs| - 1 then true
+   elif diffs.get(loc) = 'X' AND: diffs.get(loc+1) = '.' then true
+   else false
    end
 
-oneAwayFromUninterestingSingleton(loc,diffs):Boolean =  
-  (loc > 3) AND: (loc < |diffs| - 3) AND: (diffs.asFlatString().javaSubstr(loc - 3, loc+2) = ".X.XX") 
 
-isInterestingPosition(loc:ZZ32, diffs:String):Boolean = 
-   if loc = 0 OR: loc = (|diffs| - 1) OR: diffs.get(loc) = '.'  OR: (diffs.get(loc - 1) = 'X') OR: uninterestingSingletonX(loc, diffs) OR: oneAwayFromUninterestingSingleton(loc, diffs) then
+ 
+isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
+   len:ZZ32 = |diffs|
+   if loc = 0 AND: diffs.get(0) = 'X' AND: diffs.get(1) = 'X' then true
+   elif loc = 0 then false
+   elif loc = (len - 1) then false
+   elif diffs.get(loc) = '.'  OR: (diffs.get(loc - 1) = 'X') OR: isSingletonX(loc, diffs) then
       false
    else true
    end
+end
 
 isValidPairTransition(r:String, s:String) = do
     (r || s) IN validTransitions
@@ -373,8 +538,8 @@ isValidTransition(reference:String, sample:String) = do
     var i:ZZ32 := 0
     var result:Boolean := true
     while (i < |reference| - 1) do
-        r = reference.javaSubstr(i, 2)
-        s = sample.javaSubstr(i, 2)
+        r = reference.javaSubstr(i, i+2)
+        s = sample.javaSubstr(i, i+2)
         result := result AND isValidPairTransition(r,s)
         i := i + 1
     end
@@ -382,19 +547,16 @@ isValidTransition(reference:String, sample:String) = do
 end
 
 isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
-   len:ZZ32 = |diffs.asFlatString().javaSubstr(loc).javaRegExpSplit("\\.",0)|
-   if (loc + len) > (|diffs| - 1) 
-      then false
-   else 
-     sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, loc+len)
-     reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, loc+len)
-     isValidTransition(reference, sample)
-   end
+   len:ZZ32 := loc
+   while (len < ((|diffs|) - 1) AND: diffs.get(len) = 'X') do len := len + 1 end
+   sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, len)
+   reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, len)
+   isValidTransition(reference, sample)
 end
 
 isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = 
    if isInterestingPosition(loc, diffs) then
-(*       print("loc:" loc) *)
+       println("loc:" loc) 
        true
    else
        false
@@ -405,16 +567,56 @@ sampleCompare(ref:String, sample:String):String = do
    BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
 end
 
+(* X.X should be replaced with XXX *)
+factorOutProblemChildren(diffs:String) = do
+   var index:ZZ32 := 2
+   var result:String := ""
+   if diffs.asFlatString().javaSubstr(0,4) = "X.XX" then 
+      result := result || "XX" 
+   else result := result || diffs.get(0) || diffs.get(1)
+   end
+
+   while (index < |diffs| - 2) do
+      if diffs.get(index) = 'X' then result := result || "X"
+      elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.X." then
+         result := result || "X"
+      elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.XX" then
+         result := result || "X"
+      elif diffs.asFlatString().javaSubstr(index-2, index+3) = "XX.X." then
+         result := result || "X"
+      else result := result || "."
+      end
+      index := index + 1
+   end 
+
+(* The following code wreaks havoc and destruction or at least confuses the interpreter.
+   if diffs.asFlatString().javaSubstr(index - 2, 4) = "XX.X" then
+*)
+
+   if diffs.get(index - 2) =  'X' AND: diffs.get(index-1) = 'X' AND: diffs.get(index) = '.' AND: diffs.get(index+1) = 'X' then
+      result := result || "XX"
+   else 
+      result := result || diffs.get(|diffs| - 2) || diffs.get(|diffs| - 1)  
+   end
+
+   if (diffs =/= result) then
+      println("diffs = " diffs "  result = " result)     
+   end
+
+   result
+end   
+
 (* Given two samples this creates events *)
 
-eventGenerator(s:Snip):Map[\ZZ32, List[\(ZZ32,ZZ32)\]\] = do
-    diffs = sampleCompare(s.referenceChickenColorsSnip(),s.sampleChickenColorsSnip())
+eventGenerator(s:Snip, name:String) = do
+    basicDiffs = sampleCompare(s.referenceChickenColorsSnip(),s.sampleChickenColorsSnip())
+    diffs = factorOutProblemChildren(basicDiffs)
     stop = |diffs| - 1
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
-(*    print("Snip " s " diffs " diffs)  *)
+    println("Snip " s " diffs " diffs) 
     for x <- 0:stop do
         if isInteresting(s,x,diffs) then
-           database := database.add(x + s.pos(), <| makeEvent(s, diffs, x) |>)
+           database := database.add(x + s.pos(), <| makeEvent(s, basicDiffs, diffs, x, name) |>)
         end
     end
     database
@@ -430,7 +632,7 @@ processSampleChicken(name:String):Map[\ZZ32, List[\Event\]\] = do
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
 
     for s <- fg do
-       database := database.union(combine, eventGenerator(s))
+       database := database.union(combine, eventGenerator(s, name))
     end
     database
 end
@@ -438,11 +640,12 @@ end
 var referenceChickenColors:String := ""
 var referenceChickenAGCT:String := ""
 
+
 run() = do
     referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
     referenceChickenColors := processReferenceFile(referenceChickenFile)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]} 
-    
+
     for sampleChicken <- sampleChickens do
         database := database.union(combine,processSampleChicken(sampleChicken))
     end
@@ -452,6 +655,7 @@ run() = do
           entry.printEvent()
        end
     end
+
 
 end  
 end
