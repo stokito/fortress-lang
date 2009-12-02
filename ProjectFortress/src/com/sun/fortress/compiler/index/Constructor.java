@@ -17,7 +17,7 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.compiler.typechecker.TypesUtil;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -44,9 +44,11 @@ public class Constructor extends Function {
         _throwsClause = throwsClause;
         _where = where;
 
+        // TODO: Should we just pass in the declaring trait here?
+        // Then we can use STypesUtil.declToTraitType.
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
             public Option<Type> value() {
-                return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, TypesUtil.staticParamsToArgs(_staticParams)));
+                return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, STypesUtil.staticParamsToArgs(_staticParams)));
             }
         });
     }

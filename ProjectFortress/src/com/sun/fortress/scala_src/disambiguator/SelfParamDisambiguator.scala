@@ -52,7 +52,7 @@ class SelfParamDisambiguator extends Walker {
     case SObjectDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_), _, _) =>
       // Add a type to self parameters of methods
       val self_type = NF.makeSelfType(NF.makeTraitType(name.asInstanceOf[Id],
-                                                       TypeEnv.staticParamsToArgs(toJavaList(sparams))))
+                                                       staticParamsToArgs(toJavaList(sparams))))
       replaceSelfParamsWithType(node, self_type).asInstanceOf[ObjectDecl] match {
         case SObjectDecl(info, header, _, params) =>
           super.walk(SObjectDecl(info, header, some(self_type), params))
@@ -71,7 +71,7 @@ class SelfParamDisambiguator extends Walker {
                     _, _, comprisesC, _) =>
       // Add a type to self parameters of methods
       val type_name = NF.makeTraitType(name.asInstanceOf[Id],
-                                       TypeEnv.staticParamsToArgs(toJavaList(sparams)))
+                                       staticParamsToArgs(toJavaList(sparams)))
       val self_type = comprisesC match {
         case Some(comprises@_::_) => NF.makeSelfType(type_name, toJavaList(comprises))
         case _ => NF.makeSelfType(type_name)

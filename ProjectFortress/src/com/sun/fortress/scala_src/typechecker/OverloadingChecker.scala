@@ -23,6 +23,8 @@ import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import edu.rice.cs.plt.tuple.{Pair => JavaPair}
+import edu.rice.cs.plt.collect.Relation
+import edu.rice.cs.plt.collect.IndexedRelation
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -190,14 +192,20 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             }
             val identity = new StaticTypeReplacer(new ArrayList[StaticParam](),
                                                   new ArrayList[StaticArg]())
-            var methods = toSet(traitOrObject.dottedMethods)
-                          .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, JavaFunctional]]]
-                          .map(p => (p.first, (p.second, identity)))
-            // TODO!!!
-            methods ++=
-              toSet(STypesUtil.inheritedMethods(toList(traitOrObject.extendsTypes),
-                                                methods, typeAnalyzer))
-              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName, (JavaFunctional, StaticTypeReplacer, TraitType)]]]
+            val methodsR =
+              new IndexedRelation[IdOrOpOrAnonymousName,
+                                  (JavaFunctional, StaticTypeReplacer, TraitType)](false)
+            val tt = STypesUtil.declToTraitType(traitOrObject.ast)
+            for ( pltPair <- toSet(traitOrObject.dottedMethods) ) {
+                methodsR.add(pltPair.first, (pltPair.second, identity, tt))
+            }
+            STypesUtil.inheritedMethods(toList(traitOrObject.extendsTypes),
+                                        methodsR, typeAnalyzer)
+
+            val methods =
+              toSet(methodsR)
+              .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName,
+                                         (JavaFunctional, StaticTypeReplacer, TraitType)]]]
               .map(p => (p.first,(p.second._1, p.second._2)))
 
             for ( f <- methods.map(_._1) ; if isDeclaredName(f) ) {

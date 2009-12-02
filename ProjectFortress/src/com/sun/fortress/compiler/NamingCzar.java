@@ -385,7 +385,7 @@ public class NamingCzar {
                 o1 = ((TraitSelfType)o1).getNamed();
             if (o2 instanceof TraitSelfType)
                 o2 = ((TraitSelfType)o2).getNamed();
-            
+
             if (o1 instanceof TraitType && o2 instanceof TraitType) {
                 TraitType t1 = (TraitType) o1;
                 TraitType t2 = (TraitType) o2;
@@ -402,10 +402,10 @@ public class NamingCzar {
                 return 0;
             }
         }
-        
+
     }
-    
-    
+
+
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
      */
@@ -907,11 +907,11 @@ public class NamingCzar {
     private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
         String s = id.getText();
-        
+
         // Don't tag variables.......
         if (s.startsWith(Naming.YINYANG))
             return s;
-        
+
         String tag = Naming.NORMAL_TAG; // has to be a NORMAL_TAG to work.
         // this might be buggy.
         return tag + s;
@@ -1013,22 +1013,22 @@ public class NamingCzar {
                 }
                 List<StaticParam> sparams = t.getStaticParams();
                 List<StaticArg> sargs = t.getArgs();
-                
+
                 // TODO work in progress -- need to expand with StaticArg if those are available.
                 if (sargs.size() > 0) {
                     result = makeInnerClassName(api,id, genericDecoration(sargs, ifNone));
                     if (sparams.size() > 0)
                         throw new CompilerError(id,"Static args and params both non-empty, what wins? " +  type);
-                } else 
+                } else
                     result = makeInnerClassName(api,id, forStaticParams(sparams));
-                
+
                 if (withLSemi)
                     result = internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
             }
-            
+
             private String forStaticParams(List<StaticParam> sparams) {
                 if (sparams.size() == 0)
                     return "";
@@ -1048,7 +1048,7 @@ public class NamingCzar {
                 Pair<String, String> p = idToPackageClassAndName(that, ifNone);
                 return makeInnerClassName(p.getA(), p.getB());
             }
-            
+
             });
     }
 
@@ -1239,7 +1239,7 @@ public class NamingCzar {
             return NamingCzar.idToString((Id) fnName);
         else
             return fnName.getText();
-    
+
     }
 
     /**
@@ -1264,17 +1264,17 @@ public class NamingCzar {
     public static String  idToString(Id id) {
         return id.getText();
     }
-    
+
     // This might generalize beyond functions
     public static Pair<String, String> idToPackageClassAndName(IdOrOp fnName, APIName ifMissingApi) {
         Option<APIName> possibleApiName = fnName.getApiName();
-    
+
         /* Note that after pre-processing in the overload rewriter,
          * there is only one name here; this is not an overload check.
          */
         String calleePackageAndClass = "";
         String method = idOrOpToString(fnName);
-    
+
         if (!possibleApiName.isSome()) {
             // NOT Foreign, calls same component.
             // Nothing special to do.
@@ -1307,53 +1307,53 @@ public class NamingCzar {
     }
 
     public static NodeAbstractVisitor<String> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<String> () {
-    
+
         @Override
         public String forKindBool(KindBool that) {
             return Naming.BALLOT_BOX_WITH_CHECK;
         }
-    
+
         @Override
         public String forKindDim(KindDim that) {
             return Naming.SCALES;
         }
-    
+
         @Override
         public String forKindInt(KindInt that) {
             return Naming.MUSIC_SHARP;
         }
-    
+
         @Override
         public String forKindNat(KindNat that) {
             // nats and ints go with same encoding; no distinction in args
             return Naming.MUSIC_SHARP;
         }
-    
+
         @Override
         public String forKindOp(KindOp that) {
             return Naming.HAMMER_AND_PICK;
         }
-    
+
         @Override
         public String forKindType(KindType that) {
             return Naming.YINYANG;
         }
-    
+
         @Override
         public String forKindUnit(KindUnit that) {
             return Naming.ATOM;
         }
-    
+
         @Override
         public String forBoolBase(BoolBase b) {
             return b.isBoolVal() ? "T" : "F";
         }
-    
+
         @Override
         public String forBoolRef(BoolRef b) {
             return b.getName().getText();
         }
-    
+
         @Override
         public String forBoolBinaryOp(BoolBinaryOp b) {
             BoolExpr l = b.getLeft();
@@ -1361,38 +1361,38 @@ public class NamingCzar {
             Op op = b.getOp();
             return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
         }
-    
+
         @Override
         public String forBoolUnaryOp(BoolUnaryOp b) {
             BoolExpr v = b.getBoolVal();
             Op op = b.getOp();
             return v.accept(this) + Naming.ENTER + op.getText();
         }
-    
+
         /* These need to return encodings of Fortress types. */
         @Override
         public String forBoolArg(BoolArg that) {
             BoolExpr arg = that.getBoolArg();
-    
+
             return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
         }
-    
+
         @Override
         public String forDimArg(DimArg that) {
             DimExpr arg = that.getDimArg();
             return Naming.SCALES;
         }
-    
+
         @Override
         public String forIntBase(IntBase b) {
             return String.valueOf(b.getIntVal());
         }
-    
+
         @Override
         public String forIntRef(IntRef b) {
             return b.getName().getText();
         }
-    
+
         @Override
         public String forIntBinaryOp(IntBinaryOp b) {
             IntExpr l = b.getLeft();
@@ -1400,13 +1400,13 @@ public class NamingCzar {
             Op op = b.getOp();
             return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
         }
-    
+
        @Override
         public String forIntArg(IntArg that) {
             IntExpr arg = that.getIntVal();
             return Naming.MUSIC_SHARP + arg.accept(this);
         }
-    
+
         @Override
         public String forOpArg(OpArg that) {
             FunctionalRef arg = that.getName();
@@ -1414,7 +1414,7 @@ public class NamingCzar {
             IdOrOp name = arg.getNames().get(0);
             return Naming.HAMMER_AND_PICK + name.getText();
         }
-    
+
         @Override
         public String forTypeArg(TypeArg that) {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
@@ -1422,13 +1422,13 @@ public class NamingCzar {
             String s =  makeArrowDescriptor(arg, ifMissing);
             return s;
         }
-    
+
         @Override
         public String forUnitArg(UnitArg that) {
             UnitExpr arg = that.getUnitArg();
             return Naming.ATOM;
         }
-    
+
     };
     }
 
@@ -1443,14 +1443,14 @@ public class NamingCzar {
             ) {
         if (sparams.size() == 0)
             return "";
-    
+
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
-        
+
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
-    
+
             IdOrOp spn = sp.getName();
             String tag = spk.accept(spkTagger) + index;
             xlation.put(spn.getText(), tag);
@@ -1466,9 +1466,9 @@ public class NamingCzar {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)
             return "";
-        
+
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
-    
+
         String frag = Naming.LEFT_OXFORD;
         int index = 1;
         for (StaticArg sp : sargs) {
@@ -1478,19 +1478,5 @@ public class NamingCzar {
             index++;
         }
        return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
-    }
-    
-    private static F<StaticParam, StaticArg> paramToArg =
-        new F<StaticParam, StaticArg> () {
-
-            @Override
-            public StaticArg apply(StaticParam x) {
-                return STypesUtil.staticParamToArg(x);
-            }
-    
-    };
-    
-    public static List<StaticArg> paramToArg(List<StaticParam> lp) {
-        return Useful.applyToAll(lp, paramToArg);
     }
 }

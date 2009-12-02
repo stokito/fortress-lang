@@ -73,14 +73,15 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
-        val inherited = toSet(inheritedMethods(extendsC, typeAnalyzer).firstSet)
-                        .map(t => t.asInstanceOf[IdOrOp].getText)
+        val methods = inheritedMethods(extendsC, typeAnalyzer)
+        val inherited = toSet(methods.firstSet)
+                        .map(t => t.asInstanceOf[IdOrOpOrAnonymousName])
         for {
           d <- decls;
           if d.isInstanceOf[FnDecl];
           val f = d.asInstanceOf[FnDecl];
           if NU.isFunctionalMethod(NU.getParams(f));
-          if !inherited.contains(NU.getName(f).asInstanceOf[IdOrOp].getText)
+          if !inherited.contains(NU.getName(f))
         } error(NU.getSpan(d),
                 "Object expressions should not define any new functional methods.")
 

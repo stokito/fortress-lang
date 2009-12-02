@@ -78,6 +78,7 @@ import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 
@@ -256,7 +257,7 @@ object IndexBuilder {
             ty.asInstanceOf[TraitSelfType].getNamed.asInstanceOf[TraitType]
           case _ =>
             NF.makeTraitType(dName.asInstanceOf[Id],
-                             TypeEnv.staticParamsToArgs(staticParams))
+                             staticParamsToArgs(staticParams))
         }
         // If t is a parameterized type instantiated with ground types,
         // then do not add d to t's excludes clause.
