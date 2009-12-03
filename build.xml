@@ -282,6 +282,11 @@ maintain proper indentation.
           description="Delete the ${nodes} directory tree and cached asts.">
     <delete dir="${nodes}"/>
   </target>
+ 
+  <target name="cleanSpec"
+          description="Delete the built spec files">
+        <ant dir="Specification/fortress/" antfile="build.xml" target="clean"/>
+    </target>
 
   <target name="clean" depends="cleanAst"
           description="Delete the ${build} directory tree and generated files.">
@@ -693,6 +698,12 @@ maintain proper indentation.
         basedir="${build}"
         includes="**/*"/>
   </target>
+
+  <target name="specification" depends="compileAll"
+           description="Build the specification">
+        <ant dir="Specification/fortress/" antfile="build.xml" target="spec"/>
+    </target>
+       
 
   <!-- Note that testOnly no longer depends upon compileAll, as this
        entails a cache flush!  That rules out the only isolated method
