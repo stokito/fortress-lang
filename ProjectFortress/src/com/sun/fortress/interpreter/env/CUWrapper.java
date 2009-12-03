@@ -39,7 +39,7 @@ import java.util.*;
 public class CUWrapper {
 
     private final static boolean loadCompiledEnvs = ProjectProperties.getBoolean("fortress.test.compiled.environments",
-                                                                                 true);
+                                                                                 false);
 
     CompilationUnit comp_unit;
 
