@@ -737,7 +737,7 @@ maintain proper indentation.
           description="Clean, compile everything, and run all unit and system tests.">
   </target>
 
-  <target name ="testNative" depends="cleanCache, compile"
+  <target name ="testCompiler" depends="cleanCache, compile"
           description="Test the native code generator">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${PF}/test-tmp" />
@@ -754,7 +754,8 @@ maintain proper indentation.
       <formatter type="plain" usefile="true"/>
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
-          <include name="**/WrapperGeneratorJUTest.class"/>
+          <include name="**/CompilerJUTest.class"/>
+          <include name="**/OtherCompilerJUTest.class"/>
         </fileset>
       </batchtest>
     </junit>
@@ -784,8 +785,6 @@ maintain proper indentation.
 
           <!-- Do not run the interpreter tests here. Only run the interpreter
                tests during nightly and CruiseControl testing. -->
-          <exclude name="**/SystemJUTest.class"/>
-          <exclude name="**/SpecDataJUTest.class"/>
           <exclude name="**/TopLevelEnvGenJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
 
@@ -823,8 +822,6 @@ maintain proper indentation.
 
           <!-- Do not run the interpreter tests here. Only run the interpreter
                tests during nightly and CruiseControl testing. -->
-          <exclude name="**/SystemJUTest.class"/>
-          <exclude name="**/SpecDataJUTest.class"/>
           <exclude name="**/TopLevelEnvGenJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
 
