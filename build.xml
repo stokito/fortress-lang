@@ -1070,7 +1070,7 @@ maintain proper indentation.
           description="Run all tests, including those known not to pass yet.">
   </target>
 
-  <target name="testNightly" depends="testCruiseControl, testDemos, testsyntax, specification"
+  <target name="testNightly" depends="testCruiseControl, testDemos, testsyntax"
           description="Run tests, demos, and syntax abstraction tests.">
   </target>
 
