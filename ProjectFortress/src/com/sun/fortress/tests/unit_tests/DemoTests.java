@@ -43,6 +43,7 @@ public class DemoTests {
 
     public static Test suite() throws IOException {
         Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
+        boolean failsOnly = !("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
 
         String testDir = ProjectProperties.BASEDIR + "demos";
         String s = System.getProperty("demos");
@@ -51,7 +52,7 @@ public class DemoTests {
         }
         TestSuite suite = new TestSuite("Test all .fss files in 'demos'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.interpreterSuite(testDir, false, false));
+        suite.addTest(FileTests.interpreterSuite(testDir, failsOnly, false));
         //$JUnit-END$
         return suite;
     }
