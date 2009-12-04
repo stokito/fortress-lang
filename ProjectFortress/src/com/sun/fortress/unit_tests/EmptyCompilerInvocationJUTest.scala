@@ -36,12 +36,10 @@ import com.sun.fortress.useful.TestCaseWrapper
 import com.sun.fortress.useful.WireTappedPrintStream
 
 /**
- * Tests for compiler error message quality.
- * These tests deliberately call the compiler just as it would be called by a user.
- * Error messages are read via stderr.
- * Even the ordering of multiple error messages is tested, to ensure deterministic compilation results.
+ * Test compiler when invoked without enough args.
+ * This can't be done by CompilerJUTests.
  */
-class CompilerJUTest() extends TestCaseWrapper {
+class EmptyCompilerInvocationJUTest() extends TestCaseWrapper {
 
   def compilerResult():String = {
     val args = new Array[String](1)
