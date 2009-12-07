@@ -920,34 +920,42 @@ object STypesUtil {
                                                       toJavaList(trait_args))
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
               val paramTy = toParamTy(methodName, methodFunc, paramsToArgs)
-              // System.err.println("   oneMethod: "+ methodFunc)
-              var isOverridden = false
-              val newOverloadings =
-                new HashSet[(Type, Functional, StaticTypeReplacer, TraitType)]()
-              for ( overloadings <- allMethods.get(methodName);
-                    tup@(paramTyX, f, s, tyX) <- overloadings ) {
-                // ty.methodName(paramTy) vs tyX.methodName(paramTyX)
-                // ty > tyX  paramTy <= paramTyX    tyX overrides new ty
-                // ty < tyX  paramTy >= paramTyX    ty overrides extant tyX
-                // otherwise no relation.
-                if (analyzer.lteq(tyX,ty)) {
-                  if (!isOverridden) {
-                    isOverridden = analyzer.lteq(paramTy, paramTyX)
-                    // if (isOverridden) System.err.println("    "+methodFunc+" overridden by "+f)
+              if (!methodFunc.name().equals(methodName)) {
+                // TODO: work around the fact that TraitIndex includes
+                // two copies of the same Functional for exported functional
+                // methods, one under the local methodName and the other
+                // under the unambiguous methodName.  Really the latter ought to
+                // have a methodFunc with a different name() and no body.
+                // System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
+              } else {
+                var isOverridden = false
+                val newOverloadings =
+                  new HashSet[(Type, Functional, StaticTypeReplacer, TraitType)]()
+                for ( overloadings <- allMethods.get(methodName);
+                      tup@(paramTyX, f, s, tyX) <- overloadings ) {
+                  // ty.methodName(paramTy) vs tyX.methodName(paramTyX)
+                  // ty > tyX  paramTy <= paramTyX    tyX overrides new ty
+                  // ty < tyX  paramTy >= paramTyX    ty overrides extant tyX
+                  // otherwise no relation.
+                  if (analyzer.lteq(tyX,ty)) {
+                    if (!isOverridden) {
+                      isOverridden = analyzer.lteq(paramTy, paramTyX)
+                      // if (isOverridden) System.err.println("    "+methodFunc+" overridden by "+f)
+                    }
+                    newOverloadings += tup
+                  } else if (analyzer.lteq(ty,tyX) && analyzer.lteq(paramTyX, paramTy)) {
+                    // Extant is overridden, so skip.
+                    // System.err.println("      dropped " + f)
+                  } else {
+                    newOverloadings += tup
                   }
-                  newOverloadings += tup
-                } else if (analyzer.lteq(ty,tyX) && analyzer.lteq(paramTyX, paramTy)) {
-                  // Extant is overridden, so skip.
-                  // System.err.println("      dropped " + f)
-                } else {
-                  newOverloadings += tup
                 }
+                if (!isOverridden) {
+                  // System.err.println("      added.")
+                  newOverloadings += ( (paramTy, methodFunc, paramsToArgs, ty) )
+                }
+                allMethods += ((methodName, newOverloadings))
               }
-              if (!isOverridden) {
-                // System.err.println("      added.")
-                newOverloadings += ( (paramTy, methodFunc, paramsToArgs, ty) )
-              }
-              allMethods += ((methodName, newOverloadings))
             }
             def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
               t.first match {
@@ -991,6 +999,11 @@ object STypesUtil {
     inheritedMethods(toList(extendedTraits),
                      new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
+  def allMethods(tt: TraitType, analyzer: JTypeAnalyzer)
+                       : Relation[IdOrOpOrAnonymousName,
+                                  (Functional, StaticTypeReplacer, TraitType)] =
+    inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
+                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
   private def toParamTy(name: IdOrOpOrAnonymousName, func: Functional,
                         paramsToArgs: StaticTypeReplacer) = {
