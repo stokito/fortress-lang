@@ -131,8 +131,9 @@ public enum PhaseOrder {
             PRETYPECHECKDESUGAR,
             TYPECHECK,
             DESUGAR,
-            OVERLOADREWRITE_FOR_INTERPRETER,
-            ENVGEN
+            OVERLOADREWRITE_FOR_INTERPRETER
+            // Disabled because we are not using them.
+            //,ENVGEN
     };
     
    static public PhaseOrder[] compilerPhaseOrder = {
