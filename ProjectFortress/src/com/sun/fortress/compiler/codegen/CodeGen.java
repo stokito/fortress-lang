@@ -1091,13 +1091,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (!canCompile)
             sayWhat(x, "Don't know how to compile this kind of FnDecl.");
 
-        Option<Expr> optBody = x.getBody();
-        if (optBody.isNone()) {
-            if (inATrait) return; // Nothing concrete to do; dumpSigs already generated abstract signature.
-            sayWhat(x, "Abstract function declarations are only supported in traits.");
-        }
-        Expr body = optBody.unwrap();
-
         boolean inAMethod = inAnObject || inATrait;
         boolean savedInAnObject = inAnObject;
         boolean savedInATrait = inATrait;
@@ -1107,25 +1100,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             inAnObject = false;
             inATrait = false;
 
-            // For now every Fortress entity is made public, with
-            // namespace management happening in Fortress-land. Right?
-            // [JWM:] we'll want to clamp down on this long-term, but
-            // we have to get nesting right---we generate a pile of
-            // class files for one Fortress component
-
-            if (! sparams.isEmpty()) {
-                generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
-                if (!name.getText().equals(uaname.getText()))
-                    generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
-            } else if (emittingFunctionalMethodWrappers) {
+            if (emittingFunctionalMethodWrappers) {
                 functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
-            } else if (savedInATrait) {
-                generateTraitDefaultMethod(x, (IdOrOp)name,
-                                           params, selfIndex, returnType, inAMethod, body);
             } else {
-                generateFunctionalBody(x, (IdOrOp)name,
-                                       params, selfIndex, returnType, inAMethod,
-                                       savedInAnObject, body);
+
+                Option<Expr> optBody = x.getBody();
+                if (optBody.isNone()) {
+                    if (savedInATrait) return; // Nothing concrete to do; dumpSigs already generated abstract signature.
+                    sayWhat(x, "Abstract function declarations are only supported in traits.");
+                }
+                Expr body = optBody.unwrap();
+
+                // For now every Fortress entity is made public, with
+                // namespace management happening in Fortress-land. Right?
+                // [JWM:] we'll want to clamp down on this long-term, but
+                // we have to get nesting right---we generate a pile of
+                // class files for one Fortress component
+
+                if (! sparams.isEmpty()) {
+                    generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
+                    if (!name.getText().equals(uaname.getText()))
+                        generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
+                } else if (savedInATrait) {
+                    generateTraitDefaultMethod(x, (IdOrOp)name,
+                            params, selfIndex, returnType, inAMethod, body);
+                } else {
+                    generateFunctionalBody(x, (IdOrOp)name,
+                            params, selfIndex, returnType, inAMethod,
+                            savedInAnObject, body);
+                }
             }
 
         } finally {
@@ -1946,7 +1949,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param generic_arrow_schema
      * @return
      */
-    private String genericFunctionPkgClass(String component_pkg_class, String simple_name,
+    private static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
             String static_parameters, String generic_arrow_schema) {
         return component_pkg_class + Naming.GEAR +"$" +
         simple_name + static_parameters + Naming.ENVELOPE + "$" + generic_arrow_schema;
@@ -2237,6 +2240,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forTraitDecl(TraitDecl x) {
         debug("forTraitDecl", x);
         TraitTypeHeader header = x.getHeader();
+        TraitTypeHeader original_header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
             // NOTE: Presence of excludes or comprises clauses should not
@@ -2328,7 +2332,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw = prev;
 
         emittingFunctionalMethodWrappers = true;
-        dumpTraitDecls(header.getDecls());
+        // Have to use the origial header to get the signatures right.
+        dumpTraitDecls(original_header.getDecls());
         emittingFunctionalMethodWrappers = false;
 
         debug("Finished dumpDecls for parent");

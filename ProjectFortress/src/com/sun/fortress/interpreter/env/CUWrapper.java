@@ -38,6 +38,12 @@ import java.util.*;
 
 public class CUWrapper {
 
+    /* 
+     * Had to disable this, because (with additional unambiguous names)
+     * the search tree in the fortress library component env got too large.
+     * (Possible fix -- note when the number of cases is large, and subdivide
+     * into sub-methods).
+     */
     private final static boolean loadCompiledEnvs = ProjectProperties.getBoolean("fortress.test.compiled.environments",
                                                                                  false);
 
