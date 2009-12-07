@@ -17,29 +17,29 @@
 
 export Executable
 
-trait T
-  abstract getter asString(): String
-  abstract u(t:T): T
-  abstract v(t:T): T
-  abstract w(t:T): T
+trait T[\X\]
+  getter asString(): String
+  u(t:T[\X\]): T[\X\]
+  abstract v(t:T[\X\]): T[\X\]
+  abstract w(t:T[\X\]): T[\X\]
 end
 
-trait U extends T
-  u(t:T): T = self
+trait U[\X\] extends T[\X\]
+  u(t:T[\X\]): T[\X\] = self
 end
 
-trait V extends T
-  v(t:T): T = self
+trait V[\X\] extends T[\X\]
+  v(t:T[\X\]): T[\X\] = self
 end
 
-object W(s:String) extends { U, V }
+object W[\X\](s:String) extends { U[\X\], V[\X\] }
   getter asString(): String = "W" s
-  w(t:T): T = self
+  w(t:T[\X\]): T[\X\] = self
 end
 
 run() = do
-    w1 : T = W("1")
-    w2 : U = W("2")
+    w1 : T[\ZZ32\] = W[\ZZ32\]("1")
+    w2 : U[\ZZ32\] = W[\ZZ32\]("2")
     println(w1.asString)
     println(w1.u(w2).asString)
     println(w1.v(w2).asString)

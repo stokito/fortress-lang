@@ -31,7 +31,9 @@ import org.objectweb.asm.util.*;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.ByteCodeWriter;
@@ -41,9 +43,12 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.HasSelfType;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
@@ -59,7 +64,6 @@ import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.MultiMap;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
@@ -97,7 +101,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     boolean inABlock = false;
     private boolean emittingFunctionalMethodWrappers = false;
     private TraitObjectDecl currentTraitObjectDecl = null;
-    private TraitObjectDecl currentTraitObjectDeclOriginal = null;
 
     private boolean fnRefIsApply = false; // FnRef is either apply or closure
 
@@ -134,7 +137,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.inABlock = c.inABlock;
         this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
-        this.currentTraitObjectDeclOriginal = c.currentTraitObjectDeclOriginal;
 
         this.jos = c.jos;
 
@@ -396,6 +398,87 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    private void generateForwardingFor(Functional fnl, StaticTypeReplacer inst,
+                                       TraitType toTrait, TraitType fromTrait) {
+        IdOrOp name = fnl.name();
+        if (!(fnl instanceof HasSelfType))
+            sayWhat(name, " method "+fnl+" doesn't appear to have self type.");
+        HasSelfType st = (HasSelfType)fnl;
+        List<Param> params = fnl.parameters();
+        int arity = params.size();
+        Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
+        Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil.getSpan(name)));
+        String sig = NamingCzar.jvmSignatureFor(
+                         paramType,
+                         NamingCzar.jvmTypeDesc(returnType, component.getName()),
+                         0,
+                         toTrait,
+                         component.getName());
+        String mname;
+        int selfIndex = st.selfPosition();
+        if (selfIndex != NO_SELF) {
+            sig = Naming.removeNthSigParameter(sig, selfIndex+1);
+            mname = fmDottedName(singleName(name), selfIndex);
+        } else {
+            mname = nonCollidingSingleName(name, sig);
+            arity++;
+        }
+        String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
+                               NamingCzar.springBoard;
+        if (toTrait.equals(fromTrait)) receiverClass = springBoardClass;
+        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+                                                  receiverClass, mname, INVOKESTATIC,
+                                                  sig, arity, true);
+    }
+
+    private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+        // We inherit methods mentioned in the first supertype, but
+        // not in subsequent ones.  We must set up explicit chaining
+        // to those supertrait methods that are:
+        //    1) Inherited through the second and subsequent supertraits
+        //    2) Are not also inherited through the first supertrait
+        //       (due to joins in type hierarchy)
+        //    3) Are not overridden by a method in the present trait or object
+        if (!includeCurrent && superInterfaces.length <= 1) return;
+        TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
+        List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            alreadyIncluded;
+        if (extendsClause.size() == 0) {
+            alreadyIncluded =
+                new IndexedRelation<IdOrOpOrAnonymousName,
+                             scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
+        } else {
+            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
+        }
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            toConsider = STypesUtil.allMethods(tt, ta);
+        // System.err.println("Considering chains for "+tt);
+        for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+                 assoc : toConsider) {
+            scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
+            TraitType tupTrait = tup._3();
+            StaticTypeReplacer inst = tup._2();
+            Functional fnl = tup._1();
+            // System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
+            if (!fnl.body().isSome()) continue;
+            if (tupTrait.equals(tt)) {
+                if (includeCurrent) generateForwardingFor(fnl, inst, tupTrait, tt);
+                continue;
+            }
+            boolean alreadyThere = false;
+            for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
+                     alreadyIncluded.matchFirst(assoc.first())) {
+                if (tupAlready._3().equals(tupTrait)) {
+                    // System.err.println("    " + fnl + " already imported by first supertrait.");
+                    alreadyThere = true;
+                    break;
+                }
+            }
+            if (alreadyThere) continue;
+            generateForwardingFor(fnl, inst, tupTrait, tt);
+        }
+    }
 
     private void addLineNumberInfo(ASTNode x) {
         addLineNumberInfo(mv, x);
@@ -428,7 +511,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             resolveMethodAndSignature(x, arrow, methodName);
 
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, pkgAndClassName,
-                method_and_signature.getA(), method_and_signature.getB());
+                method_and_signature.first(), method_and_signature.second());
 
     }
 
@@ -834,9 +917,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Dotted method; downcast self and
         // forward to static method in springboard class
         // with explicit self parameter.
-        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
-                                                  springBoardClass, mname, INVOKESTATIC,
-                                                  sig, n, true);
+
+        // InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+        //                                           springBoardClass, mname, INVOKESTATIC,
+        //                                           sig, n, true);
     }
 
     private void generateFunctionalBody(FnDecl x, IdOrOp name,
@@ -1484,7 +1568,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         com.sun.fortress.nodes.Type arrow = exprType(x);
         // Capture the overloading foo, mutilate that into the name of the thing that we want.
         Pair<String, String> method_and_signature = resolveMethodAndSignature(
-                x, arrow, pc_and_m.getB());
+                x, arrow, pc_and_m.second());
         /* we now have package+class, method name, and signature.
          * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
          * Classloader will see this, and it will trigger demangling of the name, to figure
@@ -1492,9 +1576,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
         String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
-        String PCN = pc_and_m.getA() + "$" +
+        String PCN = pc_and_m.first() + "$" +
 
-            method_and_signature.getA() +
+            method_and_signature.first() +
             Naming.ENVELOPE + "$"+ // "ENVELOPE"
             arrow_type;
         /* The suffix will be
@@ -1542,7 +1626,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
 
-        String pkgClass = calleeInfo.getA();
+        String pkgClass = calleeInfo.first();
 
         if (decoration.length() > 0) {
             // debugging reexecute
@@ -1558,14 +1642,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
 
-            pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.getB(), decoration, arrow_type);
+            pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.second(), decoration, arrow_type);
 
             // pkgClass = pkgClass.replaceAll("[.]", "/");
             // DEBUG, for looking at the schema append to a reference.
             // System.err.println("At " + x.getInfo().getSpan() + ", " + pkgClass);
         }
 
-        callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.getB());
+        callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.second());
     }
 
     /**
@@ -1730,6 +1814,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    // forObjectDecl just generates top-level bindings for functional
+    // methods of object decls.  All the remaining work (of actually
+    // generating the object class) is done by forObjectDeclPrePass.
     public void forObjectDecl(ObjectDecl x) {
         TraitTypeHeader header = x.getHeader();
         emittingFunctionalMethodWrappers = true;
@@ -1740,10 +1827,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         currentTraitObjectDecl = x;
         dumpTraitDecls(header.getDecls());
         currentTraitObjectDecl = null;
-       emittingFunctionalMethodWrappers = false;
+        emittingFunctionalMethodWrappers = false;
         traitOrObjectName = null;
     }
 
+    // forObjectDeclPrePass actually generates the class corresponding
+    // to the given ObjectDecl.
     public void forObjectDeclPrePass(ObjectDecl x) {
         debug("forObjectDeclPrePass ", x);
         TraitTypeHeader header = x.getHeader();
@@ -1927,18 +2016,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         currentTraitObjectDecl = x;
-        currentTraitObjectDeclOriginal = y;
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
         }
+        dumpMethodChaining(superInterfaces, false);
 
         lexEnv = savedLexEnv;
         dumpClass( classFile );
         cw = prev;
         inAnObject = savedInAnObject;
         traitOrObjectName = null;
-        currentTraitObjectDeclOriginal = null;
         currentTraitObjectDecl = null;
     }
 
@@ -2078,7 +2166,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitInsn(Opcodes.DUP);
             // Push the free variables in order.
             for (VarCodeGen v : freeVars) {
-                v.pushValue(mv);
+                v.pushValue(mv, "");
             }
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cname, "<init>", sig);
     }
@@ -2245,13 +2333,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         boolean canCompile =
             // NOTE: Presence of excludes or comprises clauses should not
             // affect code generation once type checking is complete.
-            // x.getExcludesClause().isEmpty() &&    // no excludes clause
-            // header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getMods().isEmpty() ; // && // no modifiers
-            // extendsC.size() <= 1;
+            header.getMods().isEmpty();           // no modifiers
         debug("forTraitDecl", x,
                     " decls = ", header.getDecls(), " extends = ", extendsC);
         if ( !canCompile ) sayWhat(x);
@@ -2274,7 +2359,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         inATrait = true;
         currentTraitObjectDecl = x;
-        currentTraitObjectDeclOriginal = x; // not doing static params yet...
         String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
 //       First let's do the interface class
@@ -2292,9 +2376,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Id classId = NodeUtil.getName(x);
         String classFile =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
-        String classFileMinusSparams =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,"",packageAndClassName);
-        springBoardClass = classFileMinusSparams  + sparams_part + NamingCzar.springBoard;
+        springBoardClass = classFile + NamingCzar.springBoard;
 
         String abstractSuperclass;
         traitOrObjectName = classFile;
@@ -2326,6 +2408,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
         dumpTraitDecls(header.getDecls());
+        dumpMethodChaining(superInterfaces, true);
         debug("Finished dumpDecls ", springBoardClass);
         dumpClass(springBoardClass);
         // Now lets dump out the functional methods at top level.
@@ -2338,6 +2421,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         debug("Finished dumpDecls for parent");
         inATrait = false;
+        currentTraitObjectDecl = null;
         traitOrObjectName = null;
         springBoardClass = null;
     }

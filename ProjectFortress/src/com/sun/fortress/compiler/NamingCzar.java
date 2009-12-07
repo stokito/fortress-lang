@@ -94,10 +94,10 @@ import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.F;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import org.objectweb.asm.Type;
 
@@ -1046,7 +1046,7 @@ public class NamingCzar {
             public String forIdOrOp(IdOrOp that) {
                 // TODO This is not going to work, need to figure out what we do with oprefs.
                 Pair<String, String> p = idToPackageClassAndName(that, ifNone);
-                return makeInnerClassName(p.getA(), p.getB());
+                return makeInnerClassName(p.first(), p.second());
             }
 
             });

@@ -63,12 +63,12 @@ public abstract class VarCodeGen {
     /** Generate code to push the value of this variable onto the Java stack.
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
-    
+
     public void pushValue(CodeGenMethodVisitor mv, String static_args) {
         if (static_args.length() == 0)
             pushValue(mv);
         else
-            throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args)); 
+            throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args));
     }
 
     /** Generate code to prepare to assign the value of this variable;
@@ -170,7 +170,7 @@ public abstract class VarCodeGen {
 
         public void pushValue(CodeGenMethodVisitor mv, String static_args) {
             String cd = classDesc;
-           
+
             if (static_args.length() > 0) {
                 // need to rewrite the classDesc given static args.
                 HashMap<String, String> xlation = new HashMap<String, String>();
@@ -181,13 +181,13 @@ public abstract class VarCodeGen {
                             static_args.indexOf(Naming.LEFT_OXFORD),
                             static_args.indexOf(Naming.RIGHT_OXFORD),
                             xlation);
-                
+
                 InstantiationMap im = new InstantiationMap(xlation);
-                
+
                 cd = im.oxfordSensitiveSubstitution(cd);
-                
+
             }
-            
+
             // TODO work in progress.
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, cd);
         }

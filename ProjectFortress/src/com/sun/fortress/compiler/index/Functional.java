@@ -44,7 +44,7 @@ public abstract class Functional extends InferredTypeIndex {
     public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 
     public abstract IdOrOp name();
-    
+
     public abstract IdOrOp unambiguousName();
 
     public String toString() {
@@ -79,7 +79,7 @@ public abstract class Functional extends InferredTypeIndex {
     public boolean hasDeclaredReturnType() {
         return false;
     }
-    
+
     public boolean hasExplicitType() {
         return hasDeclaredReturnType();
     }
