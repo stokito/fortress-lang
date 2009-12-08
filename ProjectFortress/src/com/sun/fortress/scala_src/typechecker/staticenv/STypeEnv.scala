@@ -21,6 +21,7 @@ import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
 import collection.jcl.Hashtable
 import com.sun.fortress.compiler.index._
+import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
@@ -180,12 +181,14 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
         List(makeBinding(name, typ, mods, false))
+      case SParam(_, name, mods, _, _, _) =>
+        throw TypeError.make("Missing parameter type for " + name, node)
 
       case SLValue(_, name, mods, Some(typ), mutable) =>
         List(makeBinding(name, typ, mods, mutable))
 
       case SLocalVarDecl(_, _, lValues, _) =>
-        lValues.flatMap(extractNodeBindings)
+      lValues.flatMap(extractNodeBindings)
 
       case _ => Nil
     }
