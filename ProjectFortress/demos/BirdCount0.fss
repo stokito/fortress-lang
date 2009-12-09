@@ -439,10 +439,21 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
     getter startPos():ZZ32 = startPos
     getter endPos():ZZ32 = endPos
     getter diffs():String = diffs
-    getter asString():String = "{Event:" || s.header() || ":" startPos || "," || endPos || "}"
+    getter asString():String = do
+      var result:String := fileName || "    " || refStart() || "    " || refEnd() || "    " 
+      result := result || referenceChickenColorsSnip() || "    " || sampleChickenColorsSnip() || "   "
+      result := result || refChickenAGCTSnip() || "    " || sampleChickenDiffSnip() || "   "
+      result := result || errorProb
+      result
+    end
     getter errorProb():RR64 = errorProb
     getter fileName():String = fileName
     valid():Boolean =  isValidTransition(s, startPos,diffs)
+    refStart():ZZ32 = s.pos() + startPos
+    refEnd():ZZ32 = refStart() + endPos - 1
+
+    referenceChickenColorsSnip() = s.referenceChickenColorsSnip.javaSubstr(startPos, endPos + startPos) 
+    sampleChickenColorsSnip() = s.sampleChickenColorsSnip.javaSubstr(startPos, endPos + startPos) 
 
     sampleChickenDiffSnip():String = do
        var i:ZZ32 := 0
@@ -456,7 +467,9 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
        end
        result
     end
-  
+
+   refChickenAGCTSnip():String = s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1)
+
     printEvent():() = do
        eventStart:ZZ32 = s.pos() + startPos
        eventEnd:ZZ32 = eventStart + endPos - 1
@@ -467,16 +480,90 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
        print(s.sampleChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        if valid() then
           print "VALID" 
-          print("  " s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1) "   ")
+          print("  " refChickenAGCTSnip() "   ")
           println(sampleChickenDiffSnip())
        else
           print "inv" 
-          print("  " s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1) "   ")
+          print("  " refChickenAGCTSnip() "   ")
           xs:String = "xxxxxxxxxxxxxxxxxx"
           println(xs.javaSubstr(0, endPos+1))
        end
     end
 end
+
+object MergedEvent(count:ZZ32, refStart:ZZ32, refEnd:ZZ32, 
+                    referenceNumberFormat:String, sampleNumberFormat:String,
+                    referenceAGCTFormat:String, sampleAGCTFormat:String,
+                    totalCoverage:RR64,
+                    probability:RR64, eventList:List[\Event\])
+  getter count():ZZ32 = count
+  getter refStart():ZZ32 = refStart
+  getter refEnd():ZZ32 = refEnd
+  getter referenceNumberFormat():String = referenceNumberFormat
+  getter sampleNumberFormat():String = sampleNumberFormat
+  getter referenceAGCTFormat():String = referenceAGCTFormat
+  getter sampleAGCTFormat():String = sampleAGCTFormat
+  getter totalCoverage():RR64 = totalCoverage
+  getter probability():RR64 = probability
+  getter eventList():List[\Event\] = eventList
+  getter asString():String = do
+      var result:String = count || "  " 
+      result := result || refStart || "  " || refEnd || "  "
+      result := result || referenceNumberFormat || "  " || sampleNumberFormat || "  "
+      result := result || referenceAGCTFormat || "  " || sampleAGCTFormat || "  "
+      result := result || totalCoverage || "  " 
+      result := result || probability || "  "
+      result
+  end
+end
+   
+opr UNIONUNION(a:Map[\String, List[\Event\]\], 
+               b:Map[\String, List[\Event\]\]):Map[\String, List[\Event\]\] =
+           a.union(fn(k,x,y) => x || y, b)
+
+
+opr BIG UNIONUNION(): BigReduction[\Map[\String, List[\Event\]\],Map[\String, List[\Event\]\]\] =
+    embiggen[\Map[\String, List[\Event\]\]\](fn(a,b) => a UNIONUNION b, {[\String,List[\Event\]\]})
+
+makeDatabase(e:Event):Map[\String,List[\Event\]\] = do
+   var database:Map[\String, List[\Event\]\] := {[\String, List[\Event\]\]}
+   database := database.add(e.fileName(), <|[\Event\] e |>)
+   database
+end
+
+maybeUpdateMergedDatabase(mergedDatabase:Map[\ZZ32,List[\MergedEvent\]\],
+                          key:ZZ32, entryList:List[\Event\]):Map[\ZZ32, List[\MergedEvent\]\] = do
+   validEvents:List[\Event\] := <|[\Event\] event | event <- entryList, event.valid() |>
+   EventsByFile:Map[\String, List[\Event\]\] := BIG UNIONUNION [event <- validEvents] makeDatabase(event)
+   var mergedEvents:List[\MergedEvent\] := <|[\MergedEvent\]|>
+   for (file, events) <- seq(EventsByFile) do
+      first = events.left().get()
+      count = |events|
+      snipPos = first.snip().pos()
+      refStart = first.refStart()
+      refEnd = first.refEnd()
+      referenceNumberFormat = first.referenceChickenColorsSnip()
+      sampleNumberFormat = first.sampleChickenColorsSnip()
+      referenceAGCTFormat = first.refChickenAGCTSnip()
+      sampleAGCTFormat = first.sampleChickenDiffSnip()
+      probability = 1.0 (* fix me*)
+      totalCoverage = 1.0 (* fix me too *)
+      me:MergedEvent = MergedEvent(count, refStart, refEnd, 
+                                   referenceNumberFormat, sampleNumberFormat,
+                                   referenceAGCTFormat, sampleAGCTFormat,
+                                   totalCoverage, probability, events)
+      mergedEvents :=  mergedEvents || <| me |>
+   end
+
+ 
+   if |EventsByFile| > 0 then
+      mergedDatabase.update(key, mergedEvents)
+   else
+      mergedDatabase
+   end
+end
+   
+
 
 (* This code is a little obtuse.  The idea is that if the sample differs from the reference 
    chicken in more than one consecutive location it may be an interesting mutation.  We look
@@ -488,25 +575,19 @@ makeEvent(s:Snip, basicDiffs:String, diffs:String, loc:ZZ32, name:String):Event 
    while (index < |diffs| AND: diffs.get(index) = 'X') do index := index + 1 end
    lenOfEvent = index - loc
    if lenOfEvent = 2 then
-        println("errorProb then name = " name "  loc = " loc "lenOfEvent " lenOfEvent)
         temp = singleErrorRates.member(name).get().member(loc).get()
-        println("singleErrorTemp = " temp)
         Event(s, diffs, loc, lenOfEvent, temp, name)
                
    else
      var errorProb:RR64 := 1
-     println("errorProb else name = " name " loc = " loc " lenOfEvent " lenOfEvent)
      index := 0
      while (index < lenOfEvent) do
-        println("errorProb loc = " loc " index = " index " loc + index " = loc + index)
         temp = multipleErrorRates.member(name).get().member(loc+index).get()
-        println("multipleErrorTemp = " temp "basicDiffs.get(loc+index) = " basicDiffs.get(loc+index))
         if basicDiffs.get(loc+index) = 'X' then
            errorProb := errorProb temp
         end
         index := index + 1
      end
-     println("multipleErrorProb = " errorProb)
      Event(s, diffs, loc, lenOfEvent, errorProb, name)
    end
 end   
@@ -556,7 +637,6 @@ end
 
 isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = 
    if isInterestingPosition(loc, diffs) then
-       println("loc:" loc) 
        true
    else
        false
@@ -599,10 +679,6 @@ factorOutProblemChildren(diffs:String) = do
       result := result || diffs.get(|diffs| - 2) || diffs.get(|diffs| - 1)  
    end
 
-   if (diffs =/= result) then
-      println("diffs = " diffs "  result = " result)     
-   end
-
    result
 end   
 
@@ -613,8 +689,8 @@ eventGenerator(s:Snip, name:String) = do
     diffs = factorOutProblemChildren(basicDiffs)
     stop = |diffs| - 1
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
-    println("Snip " s " diffs " diffs) 
-    for x <- 0:stop do
+
+    for x <- seq(0:stop) do
         if isInteresting(s,x,diffs) then
            database := database.add(x + s.pos(), <| makeEvent(s, basicDiffs, diffs, x, name) |>)
         end
@@ -631,7 +707,7 @@ processSampleChicken(name:String):Map[\ZZ32, List[\Event\]\] = do
     fg:FileGenerator[\Snip\]  = FileGenerator[\Snip\](rs,60,readASnip)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
 
-    for s <- fg do
+    for s <- seq(fg) do
        database := database.union(combine, eventGenerator(s, name))
     end
     database
@@ -641,22 +717,54 @@ var referenceChickenColors:String := ""
 var referenceChickenAGCT:String := ""
 
 
+(* This is a simple port of the perl code. I have no idea what it does *)
+
+comb(n:ZZ32, m:ZZ32) = do
+   var k:ZZ32 := n - m
+   var m1:ZZ32 := m
+   if (k > m) then (k,m1) := (m,k) end
+   var prod:RR64 := 1.0
+   var i:ZZ32 := n
+   var j:ZZ32 := k
+   while (i > m1) do
+      prod := prod (i/j)
+      i := i - 1
+      j := j - 1
+   end
+   prod
+end
+
+
 run() = do
+
     referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
     referenceChickenColors := processReferenceFile(referenceChickenFile)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]} 
+    var mergedDatabase:Map[\ZZ32, List[\MergedEvent\]\] := {[\ZZ32, List[\MergedEvent\]\]} 
 
-    for sampleChicken <- sampleChickens do
+    for sampleChicken <- seq(sampleChickens) do
         database := database.union(combine,processSampleChicken(sampleChicken))
     end
+
     println("Events")
-    for (key,entryList) <- seq(database) do
-       for entry <- seq(entryList) do
+    var i:ZZ32 := 0
+    for (key,entries) <- seq(database) do
+       mergedDatabase := maybeUpdateMergedDatabase(mergedDatabase, key, entries) 
+       for entry <- seq(entries) do
           entry.printEvent()
        end
     end
 
-
+   println("Merged Events:")
+   
+   for (key, events) <- seq(mergedDatabase) do
+      for event <- seq(events) do
+             println(event)
+             for e <- seq(event.eventList()) do println(e) end
+             println("-------")
+      end
+   end
+ 
 end  
 end
 
