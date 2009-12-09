@@ -19,7 +19,7 @@ export Executable
 
 (* Generic trait *)
 
-f(x: ZZ32): ZZ32 = x
+f_top(x: ZZ32): ZZ32 = x
 g(x: String) = println x
 
 trait T[\S extends ZZ32\]
@@ -36,7 +36,7 @@ run() =do
   o = O(3)
   a = f(o)       (*) 3
   b = o.g()      (*) 8
-  c = f(4)       (*) 4
+  c = f_top(4)       (*) 4
 
   println(
   if (a=3 AND b=8 AND c=4)

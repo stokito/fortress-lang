@@ -150,7 +150,7 @@ public class FileTests {
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
-                if (!contents.contains(test)) return what + "=" + test;
+                if (!contents.contains(test)) return what + "; expected\n" + test;
                 any_check = true;
             }
 
@@ -158,7 +158,7 @@ public class FileTests {
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
-                if (contents.contains(test)) return what + "=" + test;
+                if (contents.contains(test)) return what + "; expected\n" + test;
                 any_check = true;
             }
 
@@ -166,7 +166,7 @@ public class FileTests {
             test = props.get(what);
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
-                if (!contents.matches(test)) return what + "=" + test;
+                if (!contents.matches(test)) return what + "; expected\n" + test;
                 any_check = true;
             }
 
@@ -175,7 +175,7 @@ public class FileTests {
             test = ProjectProperties.get(test);
             if (test != null && test.length() > 0) {
                 String wi_contents = contents.replaceAll("\\s+", " ").trim();
-                if (!wi_contents.matches(test)) return what + "=" + test;
+                if (!wi_contents.matches(test)) return what + "; expected\n" + test;
                 any_check = true;
             }
 
@@ -185,7 +185,7 @@ public class FileTests {
             if (test != null && test.length() > 0) {
                 String wci_contents = contents.replaceAll("\\s+", " ").trim();
                 String wci_test = test.replaceAll("\\s+", " ").trim();
-                if (!wci_contents.equalsIgnoreCase(wci_test)) return what + "=" + test;
+                if (!wci_contents.equalsIgnoreCase(wci_test)) return what + "; expected\n" + test;
                 any_check = true;
             }
 
@@ -260,7 +260,7 @@ public class FileTests {
 
                         return what + ": some sort of an internal whitespace problem (linebreaks?)";
                     }
-                    return what + "=" + test;
+                    return what + "; expected\n" + test;
                 }
                 any_check = true;
             }
