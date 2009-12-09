@@ -496,7 +496,8 @@ trait Functionals { self: STypeChecker with Common =>
         signal(new NoSuchMethod(expr, recvrType))
         return expr
       }
-      implicit val errorFactory = new ApplicationErrorFactory(expr, Some(recvrType))
+      implicit val errorFactory =
+        new ApplicationErrorFactory(expr, Some(recvrType), arrows.length > 1)
 
       // Type check the application.
       val (smaArrow, infSargs, checkedSubs) =
@@ -519,7 +520,8 @@ trait Functionals { self: STypeChecker with Common =>
         signal(new NoSuchMethod(expr, recvrType))
         return expr
       }
-      implicit val errorFactory = new ApplicationErrorFactory(expr, Some(recvrType))
+      implicit val errorFactory =
+        new ApplicationErrorFactory(expr, Some(recvrType), arrows.length > 1)
 
       // Type check the application.
       val (smaArrow, infSargs, checkedArg) =
@@ -587,7 +589,8 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedFn = checkExpr(fn)
       val fnType = getType(checkedFn).getOrElse(return expr)
       val arrows = getArrowsForFunction(fnType, expr).getOrElse(return expr)
-      implicit val errorFactory = new ApplicationErrorFactory(expr, None)
+      implicit val errorFactory =
+        new ApplicationErrorFactory(expr, None, arrows.length > 1)
 
       // Type check the application.
       val (smaArrow, infSargs, checkedArg) =
@@ -630,7 +633,7 @@ trait Functionals { self: STypeChecker with Common =>
       val checkedOp = checkExpr(op)
       val opType = getType(checkedOp).getOrElse(return expr)
       val arrows = getArrowsForFunction(opType, expr).getOrElse(return expr)
-      implicit val errorFactory = new ApplicationErrorFactory(expr, None)
+      implicit val errorFactory = new ApplicationErrorFactory(expr, None, arrows.length > 1)
       // Type check the application.
       val (smaArrow, infSargs, checkedArgs) =
         checkApplication(arrows, args, expected).getOrElse(return expr)

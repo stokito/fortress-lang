@@ -19,7 +19,7 @@ export Executable
 
 (* Generic object *)
 
-f(x: ZZ32): ZZ32 = x
+f'(x: ZZ32): ZZ32 = x
 g(x: String) = println x
 
 trait T[\S extends ZZ32\]
@@ -36,7 +36,7 @@ run() =do
   o = O[\ZZ32\](3)
   a = f(o)            (*) 3
   b = o.g() (*) 8
-  c = f(4)            (*) 4
+  c = f'(4)            (*) 4
 
   sum =  a + b + c
   println(

@@ -38,7 +38,8 @@ import edu.rice.cs.plt.iter.IterUtil
  */
 class ApplicationError(app: Expr,
                        overloadingErrors: List[OverloadingError],
-                       recvrType: Option[Type])
+                       recvrType: Option[Type],
+                       isOverloaded: Boolean)
     extends TypeError("", NU.getSpan(app)) {
 
   // Overriding description because toString includes this and the location.
@@ -56,20 +57,24 @@ class ApplicationError(app: Expr,
         "call to subscript operator %s.%s".format(recvrType.get, o.getOp.unwrap)
     }
     val sortedSubErrors = overloadingErrors.sort((x,y) => x.compareTo(y) < 0)
-    val substr =
-      sortedSubErrors.map(e => "- %s".format(e.toStringIndented("  "))).
-                        mkString("\n")
+    val substrs = sortedSubErrors.map(_.toString())
+    "Could not check %s\n%s".
+      format(kind, sortedSubErrors.map("    - " + _.toStringIndented("      ")).mkString("\n"))
+  }
 
-    // Indent every single line of the substr by an additional 4 spaces to
-    // conform to standard error message syntax. Gross.
-    val indentedSubstr = StaticError.indentAllLines(substr, "    ")
-    "Could not check %s\n%s".format(kind, indentedSubstr)
+  override def toString = {
+    if (isOverloaded || overloadingErrors.exists(! _.isInstanceOf[FnInferenceError])) {
+      super.toString
+    } else {
+      overloadingErrors.
+          flatMap(_.asInstanceOf[FnInferenceError].errors.map(_.toString)).mkString("\n")
+    }
   }
 }
 
 /** Application failed because there is no method with that name. */
 class NoSuchMethod(app: Expr, recvrType: Type)
-    extends ApplicationError(app: Expr, Nil, Some(recvrType)) {
+    extends ApplicationError(app: Expr, Nil, Some(recvrType), true) {
 
   override def description = app match {
     case f:MethodInvocation =>
@@ -83,11 +88,11 @@ class NoSuchMethod(app: Expr, recvrType: Type)
  * Created once for an entire application, an instance of this class is used
  * for creating the constituent overloading errors.
  */
-class ApplicationErrorFactory(val app: Expr, val recvrType: Option[Type]) {
+class ApplicationErrorFactory(val app: Expr, val recvrType: Option[Type], isOverloaded: Boolean) {
 
   /** Create the top level ApplicationError for this application. */
   def makeApplicationError(errors: List[OverloadingError]): TypeError =
-    new ApplicationError(app, errors, recvrType)
+    new ApplicationError(app, errors, recvrType, isOverloaded)
 
   /** Create a NotApplicableError for this application. */
   def makeNotApplicableError(arrow: ArrowType,
@@ -171,7 +176,7 @@ case class FnInferenceError(arrow: ArrowType,
 
   override def toString = {
     val sortedErrors = errors.sort((x,y) => x.toString < y.toString)
-    val subs = sortedErrors.map(e => "- %s".format(StaticError.indentLines(e.toString, "  "))).mkString("\n")
+    val subs = sortedErrors.map(e => "%s".format(e.toString)).mkString("\n")
     "%s:\n%s".format(OverloadingError.getSignature(sargs, arrow), subs)
   }
 }
@@ -182,22 +187,30 @@ abstract sealed class FnInferenceErrorKind
 /** Failed to infer the parameter types. */
 case class ParameterError(expr: FnExpr) extends FnInferenceErrorKind {
   override def toString =
-    "Could not infer parameter type for function expression @ %s.".
-      format(NU.getSpan(expr).toStringWithoutFiles)
+    NU.getSpan(expr) + ":\n    Could not infer parameter type for function expression."
 }
 
 /** Inferred parameter types, but encountered error in body. */
 case class BodyError(expr: FnExpr, domain: Type, error: StaticError)
     extends FnInferenceErrorKind {
-
-  override def toString = {
-    val subloc = error.location.unwrap match {
-      case s:Span => s.toStringWithoutFiles
-      case l => l.toString
+  // This used to strip location information and embed it at the end
+  // of an error message.  THIS IS WRONG.  DON'T EVER DO IT!!!!!!!!!
+  // There's a reason location information is put at the *beginning*
+  // by toString---so that you (and your tools) will have a prayer of
+  // seeing it.
+  override def toString : String = {
+    val params = toList(NU.getParams(expr))
+    if (params.forall(_.getIdType.isSome)) {
+        return error.toString
     }
-    val base = "Parameter of function expression @ %s inferred to have type %s, resulting in the following error @ %s".
-       format(NU.getSpan(expr).toStringWithoutFiles, domain, subloc)
-    "%s:\n- %s".format(base, error.descriptionIndented("  "))
+    val paramsPretty =
+      if (params.length > 1) {
+        "(%s)".format(params.map(_.toString).mkString(", "))
+      } else {
+        params(0).toString
+      }
+    "%s\n    %s:\n      Possibly because %s: %s after argument inference".
+        format(error.toString, NU.getSpan(expr).toString, paramsPretty, domain)
   }
 }
 
@@ -232,10 +245,10 @@ object OverloadingError {
  * Creates useless errors. This should be used only if the errors resulting
  * from application checking are not needed.
  */
-object DummyApplicationErrorFactory extends ApplicationErrorFactory(null, null) {
+object DummyApplicationErrorFactory extends ApplicationErrorFactory(null, null, false) {
 
   /** Create a dummy ApplicationError.*/
   override def makeApplicationError(errors: List[OverloadingError]) =
     new TypeError("(dummy application error)", NF.typeSpan)
-  
+
 }
