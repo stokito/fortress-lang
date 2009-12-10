@@ -18,6 +18,8 @@
 import CompilerSystem.args
 export { Executable }
 
+(* What on earth is this supposed to be testing? *)
+
 f(x:ZZ32):ZZ32 = do
   z:ZZ32 := 0
   if x <= 1 then 

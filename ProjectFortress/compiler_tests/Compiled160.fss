@@ -18,8 +18,11 @@
 component Compiled160
 export Executable
 
+(* Array aggregates and spawn.
+   Actually pretty low priority right now... *)
+
 run():() = do
-  a:ZZ32[5] = [0 1 2 3 4 5]
+  a:ZZ32[5] = [1 2 3 4 5 6]
   prod1:ZZ32 := 1
   prod2:ZZ32 := 1
   s = spawn
@@ -30,8 +33,7 @@ run():() = do
         for i <- a.indices do
           prod2 TIMES= a[i]
         end
-  println s.val
-  println t.val
+  if s.val = t.val = 720 then println "pass" else println "FAIL" end
 end
 
 end

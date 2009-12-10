@@ -15,9 +15,11 @@
    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************)
 
-component Compiled9
-
+component Compiled270
 export Executable
+
+(* Test composite coercions.
+   TODO: verify the results!!!  Right now this code is naughty. *)
 
 object C extends A end
 object D extends B end

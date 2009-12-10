@@ -18,6 +18,8 @@
 import CompilerSystem.args
 export { Executable }
 
+(* This appears to contain a tonne of invalid overloading. *)
+
 trait A extends Object comprises {D,F,A1,D2,F2} end
 trait B extends Object 
         comprises {D,E,G,H,J,B1,D2,E2,G2,H2,J2,J3,J4,J5,J6,J7} 

@@ -18,18 +18,20 @@
 component Compiled100
 export Executable
 
-(* Dotted methods. Also, inheritance of methods (or not). *)
+(* Dotted methods. Also, inheritance of methods (or not).
+   WORKS - tested by Compiled90.test.
+ *)
 
-trait A 
+trait A
   m(a:A):String = a.m(self)
 end
 
-object O extends A 
-  m(a:A):String = "O"
+object O extends A
+  m(a:A):String = "pass"
 end
 
-object P extends A 
-  m(a:A):String = "P"
+object P extends A
+  m(a:A):String = "FAIL"
 end
 
 anO():A = O
