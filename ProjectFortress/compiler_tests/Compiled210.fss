@@ -17,7 +17,7 @@
 
 export Executable
 
-(* Simple typecase (no generics).  Also traits, and singleton objects. *)
+(* Simple typecase (no generics).  *)
 
 trait A end
 object O extends A end
@@ -27,7 +27,11 @@ anA(): A = O
 
 run():() = do
   typecase x = anA() of
-    O => println("O")
+    O => ()
     else => println("FAIL")
+  end
+  typecase y = anA() of
+    P => println "FAIL"
+    else => println "pass"
   end
 end

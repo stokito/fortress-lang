@@ -17,30 +17,30 @@
 
 export Executable
 
-(* Generic functional methods *)
+(* Generic functional methods
+   OVERLOADING HAS BEEN REMOVED *)
 
-f[\S extends ZZ32\](x: S): S = x
+f'[\S extends ZZ32\](x: S): S = x
 g(x: String) = println x
 
 trait T
   f[\S extends ZZ32\](self):ZZ32
-  g[\S extends ZZ32, U\]():ZZ32
+  g[\S extends ZZ32, U\](self):ZZ32
 end
 
 object O(x: ZZ32) extends T
   f[\S extends ZZ32\](self):ZZ32 = x
-  g[\S extends ZZ32, U\]():ZZ32 = f[\S\](self) + 5
+  g[\S extends ZZ32, U\](self):ZZ32 = f[\S\](self) + 5
 end
 
 run() =do
   o = O(3)
   a = f[\ZZ32\](o)         (*) 3
-  b = o.g[\ZZ32,String\]() (*) 8
-  c = f[\ZZ32\](4)         (*) 4
+  b = g[\ZZ32,String\](o)  (*) 8
+  c = f'[\ZZ32\](4)        (*) 4
 
-  sum =  a + b + c
   println(
-  if (sum = 15)
+  if (a=3 AND b=8 AND c=4)
      then "pass" else "fail" end
   )
 end

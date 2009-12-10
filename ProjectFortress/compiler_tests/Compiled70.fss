@@ -18,14 +18,16 @@
 component Compiled70
 export Executable
 
-(* Local overloading. *)
+(* Local overloading.
+   WORKS.
+ *)
 
 trait A end
 object O extends A end
 object P extends A end
 
 anA():A = O
-f(o:O):() = println("O")
+f(o:O):() = println("pass with O")
 f(a:A):() = println("FAIL WITH A")
 f(p:P):() = println("FAIL WITH P")
 

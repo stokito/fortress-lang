@@ -423,7 +423,7 @@ trait Misc { self: STypeChecker with Common =>
               case (e1, None) => e1
               case (e1, Some(e2)) => EF.makeBlock(e2)
             }
-          
+
           // Reconstruct IfClauses with their new blocks.
           val newIfClauses = List.map2(checkedClauses, newClauseBlocks) {
             case (SIfClause(a, b, _), newBlock) => SIfClause(a, b, newBlock)
@@ -439,7 +439,7 @@ trait Misc { self: STypeChecker with Common =>
     case SIf(SExprInfo(span,parenthesized,_), clauses, None) => {
       val checkedClauses = clauses.map( handleIfClause )
       val clauseTypes = checkedClauses.flatMap(c => getType(c.getBody))
-      
+
       // Check that each if/elif clause has void type
       clauseTypes.foreach { ty =>
         isSubtype(ty,
@@ -482,22 +482,20 @@ trait Misc { self: STypeChecker with Common =>
     case v@SVarRef(SExprInfo(span,paren,_), id, sargs, depth) => {
       val checkedId = check(id).asInstanceOf[Id]
       val ty = getTypeFromName(checkedId).getOrElse(return expr)
-      if ( NU.isSingletonObject(v) )
+      if ( !sargs.isEmpty )
+        // TODO: handle generic higher-order function passing here.
         ty match {
-          case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params) =>
-            if ( NU.isGenericSingletonType(typ) &&
-                 staticArgsMatchStaticParams(sargs, params)) {
+          case typ@STraitType(STypeInfo(sp,pr,_,_), name, args, params)
+            if ( staticArgsMatchStaticParams(sargs, params) ) =>
               // make a trait type that is GenericType instantiated
               val newType = NF.makeTraitType(sp, pr, name, toJavaList(sargs))
               SVarRef(SExprInfo(span,paren,Some(newType)), checkedId, sargs, depth)
-            } else {
-              signal(v, "Unexpected type for a singleton object reference.")
-              v
-            }
           case _ =>
             signal(v, "Unexpected type for a singleton object reference.")
             v
         }
+      // TODO: handle missing static args below (either generic higher-order function
+      // or generic singleton being used without explicit type instantiation).
       else SVarRef(SExprInfo(span,paren,Some(normalize(ty))), checkedId, sargs, depth)
     }
 

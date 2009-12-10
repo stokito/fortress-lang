@@ -17,18 +17,24 @@
 
 export Executable
 
+(* Tests top-level abstract function signature and comprises-based overloading.
+   For extra excitement, delete return types on the concrete declarations for f! *)
+
 trait A comprises {O,P} end
 
 object O extends A end
 
 object P extends A end
 
-f(a:A):String 
-f(o:O) = "O"
-f(p:P) = "P"
+f(a:A): ZZ32
+f(o:O): ZZ32 = 0
+f(p:P): ZZ32 = 1
 
 run(): () = do
-  println f(O)
-  println f(P)
+  if f(O) = 0 AND f(P) = 1 then
+      println "pass"
+  else
+      println "FAIL"
+  end
 end
 

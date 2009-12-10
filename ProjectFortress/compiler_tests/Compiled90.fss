@@ -18,10 +18,16 @@
 component Compiled90
 export Executable
 
-(* Higher order functions. Also local functions. *)
+(* Higher order functions. Also local functions.
+   WORKS.
+ *)
 
-trait A end
-object O extends A end
+trait A
+    getter asString(): String = "FAIL"
+end
+object O extends A
+    getter asString(): String = "pass"
+end
 object P extends A end
 
 f(g:A->(O->A)):O->A = g(anA())
@@ -29,10 +35,7 @@ f(g:A->(O->A)):O->A = g(anA())
 anA():A = O
 
 run():() = do
-  typecase x = f(fn(a:A) => (fn(o:O) => a))(O) of
-    O => println("O")
-    else => println("FAIL")
-  end
+  println(f(fn(a:A) => (fn(o:O) => a))(O).asString)
 end
 
 end

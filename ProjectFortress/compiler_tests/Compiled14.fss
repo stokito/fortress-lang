@@ -17,7 +17,9 @@
 
 export Executable
 
-(* Generic top-level overloaded functions *)
+(* Generic top-level overloaded functions
+   THIS WORKS
+*)
 
 f[\T\]():ZZ32 = 2
 f[\T extends ZZ32\](x: T):ZZ32 = f[\T\]() + x
@@ -27,9 +29,8 @@ run() =do
   b = f[\ZZ32\](8)      (*) 10
   c = f[\String\]()     (*) 2
 
-  sum =  a + b + c
   println(
-  if (sum = 17)
+  if (a=5 AND b=10 AND c=2)
      then "pass" else "fail" end
   )
 end

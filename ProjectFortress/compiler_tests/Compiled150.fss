@@ -18,13 +18,17 @@
 component Compiled150
 export Executable
 
+(* Intended to test array aggregates.
+   Could probably use PROD here, but we're proceeding by baby steps. *)
+
 run():() = do
-  a:ZZ32[5] = [0 1 2 3 4 5]
+  a:ZZ32[5] = [1 2 3 4 5 6]
   prod:ZZ32 := 1
 
   for i <- a do
     prod TIMES= i
   end
+  if prod = 720 then println "pass" else println "FAIL" end
 end
 
 end

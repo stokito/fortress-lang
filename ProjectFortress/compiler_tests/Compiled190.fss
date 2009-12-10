@@ -18,6 +18,8 @@
 component Compiled190
 export Executable
 
+(* Make sure type Any works. *)
+
 ignore(_:Any):() = ()
 
 run():() = ignore("hello")

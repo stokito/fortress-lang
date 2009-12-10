@@ -21,9 +21,13 @@ export Executable
 
 trait A
   x:A
+  getter asString(): String = "FAIL"
 end
 
-object N extends A end
+object N extends A
+  getter x(): A = self
+  getter asString(): String = "pass"
+end
 
 object O(x:A) extends A end
 
@@ -31,14 +35,10 @@ object P extends A
   x:A = O(N).x
 end
 
-anO():A = O
 anA():A = P
 
 run():() = do
-  typecase y = P.x of
-    N => println "N"
-    else => println "FAIL"
-  end
+  println(anA().x.asString)
 end
 
 end

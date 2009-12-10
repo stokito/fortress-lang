@@ -17,7 +17,7 @@
 
 export Executable
 
-(* Generic dotted methods *)
+(* Generic dotted methods in non-generic types *)
 
 trait T
   f[\S\]():ZZ32
