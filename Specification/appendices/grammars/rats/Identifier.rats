@@ -16,37 +16,52 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
+PrimeCharacter = [\u2032-\u2037]
 id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) }
-idstart = UnicodeIdStart / "_"
-idrest  = UnicodeIdStart / "'" / UnicodeIdRest
-IdText  = a1:id &{ !FortressUtil.validOp(a1) && !a1.equals("_") }
+idstart = UnicodeIdStart / [_]
+idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest
 
-Id = IdText
+IdText  = a1:id &{ NodeUtil.validId(a1) }
+
+reserved = s:(idstart idrest*) &{ FORTRESS_KEYWORDS.contains(s) }
+Reserved = reserved
+
+Id =
+     <FIRST> IdText
+
+IdOrOpName =
+     Id
+   / OpName
 
 BindId =
      Id
    / "_"
 
-BindIdList = BindId (w "," w BindId)*
+BindIdList =
+     BindId (w comma w BindId)+
+   / BindId (w commaOrNot w BindId)+
+   / BindId
 
 BindIdOrBindIdTuple =
-     BindId
-   / "(" w BindId w "," w BindIdList w ")"
+     <FIRST> BindId
+   / openparen w BindId w comma w BindIdList w closeparen
+
+commaOrNot = "," / w
 
 SimpleName =
      Id
-   / "opr" (w "BIG")? w (Encloser / Op)
-   / "opr" (w "BIG")? w EncloserPair
+   / opr (w BIG)? w (Encloser / Op)
+   / opr (w BIG)? w EncloserPair
 
-String idOrKeyword = s:(idstart idrest*) &{ true }
+idOrKeyword = (idstart idrest*) &{ true }
 
-APIName = // Reject Fortress keywords and operator names
+APIName =
      idOrKeyword &(w ellipses)
    / idOrKeyword (dot idOrKeyword)* &(w ellipses)
    / idOrKeyword (dot idOrKeyword)*
 
 QualifiedName =
-     Id &(w "...")
-   / Id ("." Id)* &(w "...")
-   / Id ("." Id)*
+     Id &(w ellipses)
+   / Id (dot Id)* &(w ellipses)
+   / Id (dot Id)*
 \end{verbatim}

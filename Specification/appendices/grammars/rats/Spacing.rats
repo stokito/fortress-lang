@@ -16,23 +16,60 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-EndOfFile       = !_
+EndOfFile  = "\u001a"? w !_
+
 Whitespace =
      Space
-   / "\t"       // Error production
    / Newline
-Space =
+Space      =
      " "
    / "\f"
-   / "\t"       // Error production
+   / "&" s Whitespace
+   / InvalidSpace
    / NoNewlineComment
-Newline         = "\r\n" / "\r" / "\n" / NewlineComment
-Comment         = "(*" CommentContents "*)"
-CommentContents = CommentContent*
-CommentContent  = Comment / '*' !')' / c:_ &{c != '*'}
-NewlineComment = Comment
+InvalidSpace =
+     <ErrorProduction1> ("\t" / "\u000b")
+   / <ErrorProduction2> ("\u001c" / "\u001d" / "\u001e" / "\u001f")
+Newline =
+     "\r\n" / "\r" !("\n") / "\n" / [\u2028\u2029]
+   / !("&") NewlineComment
+Comment =
+     "(*" CommentContents "*)"
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+
 NoNewlineComment =
-     Comment &{ !(yyValue.contains("\r\n") || yyValue.contains("\r") || yyValue.contains("\n")) }
+     "(*)" NNCommentContents
+   / "(*" NNCommentContents "*)"
+   / "&" s NewlineComment
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+
+CommentContents =
+     CommentContent*
+
+NNCommentContents =
+     NNCommentContent*
+
+WhitespaceCharacters =
+     [\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u2028\u2029]
+
+NoNewlineWhitespaceCharacters =
+     [\u0009\u000b\u000c\u001c\u001d\u001e\u001f]
+
+CommentContent =
+     "(*)"
+   / Comment
+   / '*' !')'
+   / WhitespaceCharacters
+   / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
+
+NNCommentContent =
+     "(*)"
+   / NoNewlineComment
+   / '*' !')'
+   / NoNewlineWhitespaceCharacters
+   / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
+
+NewlineComment = Comment
 
 w  = Whitespace*
 wr = Whitespace+
@@ -41,10 +78,16 @@ s  = Space*
 sr = Space+
 
 nl = s Newline w
-br = nl / s ";" w
+br = nl / s semicolon w
+
+WhitespaceString =
+     Space
+   / Newline
+hasW =
+     WhitespaceString*
 
 RectSeparator =
-     (w ";")+ w
+     (w semicolon)+ w
    / nl
    / sr
 \end{verbatim}
