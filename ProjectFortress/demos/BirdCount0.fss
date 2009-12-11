@@ -318,6 +318,14 @@ processReferenceFileLine(input:String):dna = do
     end
 end
 
+readReferenceFileLine(input:String):String = do
+    if input.get(0) = '>' 
+        then ""
+    else 
+        input
+    end
+end
+
 processReferenceFile(name:String):String=do
    var rs:FileReadStream = FileReadStream(name)
    var res:dna  = BIG OPLUS [l<-rs.lines()] processReferenceFileLine(l)
@@ -423,7 +431,7 @@ readASnip(r:ReadStream):Snip = do
       sequenceEnd:ZZ32 = adjustedLocation + length - 1
       referenceChickenColorsSnip:FlatString = getReferenceChickenColorsSnip(adjustedLocation, sequenceEnd)
       adjustedSequence:FlatString := getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip)
-      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation+6, sequenceEnd + 6 + 2)
+      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 2)
       Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenAGCTSnip)
    end
 end
@@ -486,8 +494,9 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
           print "inv" 
           print("  " refChickenAGCTSnip() "   ")
           xs:String = "xxxxxxxxxxxxxxxxxx"
-          println(xs.javaSubstr(0, endPos+1))
+          print(xs.javaSubstr(0, endPos+1))
        end
+       println("    " startPos) 
     end
 end
 
@@ -536,9 +545,25 @@ maybeUpdateMergedDatabase(mergedDatabase:Map[\ZZ32,List[\MergedEvent\]\],
    validEvents:List[\Event\] := <|[\Event\] event | event <- entryList, event.valid() |>
    EventsByFile:Map[\String, List[\Event\]\] := BIG UNIONUNION [event <- validEvents] makeDatabase(event)
    var mergedEvents:List[\MergedEvent\] := <|[\MergedEvent\]|>
-   for (file, events) <- seq(EventsByFile) do
-      first = events.left().get()
-      count = |events|
+ 
+   probability:RR64 := 1.0
+   var multiFilePVal:RR64 := 1.0
+
+   if |EventsByFile| > 0 then 
+      var first:Event 
+    
+      for (file, events) <- seq(EventsByFile) do
+         first := events.left().get()
+         count = |events|
+         for event <- seq(events) do
+            probability := probability event.errorProb()
+         end
+         probability := probability^(1/count)
+         multiFilePVal := multiFilePVal probability
+      end      
+      probability := multiFilePVal^(1/(|entryList|))
+    
+   
       snipPos = first.snip().pos()
       refStart = first.refStart()
       refEnd = first.refEnd()
@@ -546,17 +571,13 @@ maybeUpdateMergedDatabase(mergedDatabase:Map[\ZZ32,List[\MergedEvent\]\],
       sampleNumberFormat = first.sampleChickenColorsSnip()
       referenceAGCTFormat = first.refChickenAGCTSnip()
       sampleAGCTFormat = first.sampleChickenDiffSnip()
-      probability = 1.0 (* fix me*)
       totalCoverage = 1.0 (* fix me too *)
-      me:MergedEvent = MergedEvent(count, refStart, refEnd, 
+   
+      me:MergedEvent = MergedEvent(|entryList|, refStart, refEnd, 
                                    referenceNumberFormat, sampleNumberFormat,
                                    referenceAGCTFormat, sampleAGCTFormat,
-                                   totalCoverage, probability, events)
+                                   totalCoverage, probability, entryList)
       mergedEvents :=  mergedEvents || <| me |>
-   end
-
- 
-   if |EventsByFile| > 0 then
       mergedDatabase.update(key, mergedEvents)
    else
       mergedDatabase
