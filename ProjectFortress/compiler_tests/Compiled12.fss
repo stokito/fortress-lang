@@ -40,7 +40,7 @@ run() =do
   c = f'(4)      (*) 4
 
   println(
-  if (a=3 AND b=8 AND c=4)
+  if (a=3 AND b=8)
      then "pass" else "fail" end
   )
 end

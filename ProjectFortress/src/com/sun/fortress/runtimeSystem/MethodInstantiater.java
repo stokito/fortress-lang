@@ -34,7 +34,7 @@ public class MethodInstantiater implements MethodVisitor {
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        return mv.visitAnnotation(xlation.getCompletely(desc), visible);
+        return mv.visitAnnotation(xlation.getTypeName(desc), visible);
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
@@ -56,9 +56,9 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
-        owner = xlation.getCompletely(owner);
-        name = xlation.getCompletely(name);
-        desc = xlation.getDesc(desc);
+        owner = xlation.getTypeName(owner);
+        name = xlation.getTypeName(name);
+        desc = xlation.getFieldDesc(desc);
         mv.visitFieldInsn(opcode, owner, name, desc);
     }
 
@@ -97,8 +97,8 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitLocalVariable(String name, String desc, String signature,
             Label start, Label end, int index) {
-        desc = xlation.getCompletely(desc);
-        signature = xlation.getCompletely(signature);
+        desc = xlation.getFieldDesc(desc);
+        signature = xlation.getTypeName(signature);
 
         mv.visitLocalVariable(name, desc, signature, start, end, index);
     }
@@ -113,9 +113,9 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitMethodInsn(int opcode, String owner, String name,
             String desc) {
-        owner = xlation.getCompletely(owner);
-        name = xlation.getCompletely(name);
-        desc = xlation.getDesc(desc);
+        owner = xlation.getTypeName(owner);
+        name = xlation.getTypeName(name);
+        desc = xlation.getMethodDesc(desc);
         mv.visitMethodInsn(opcode, owner, name, desc);
     }
 
@@ -125,7 +125,7 @@ public class MethodInstantiater implements MethodVisitor {
 
     public AnnotationVisitor visitParameterAnnotation(int parameter,
             String desc, boolean visible) {
-        desc = xlation.getCompletely(desc);
+        desc = xlation.getTypeName(desc);
         return mv.visitParameterAnnotation(parameter, desc, visible);
     }
 
@@ -136,12 +136,12 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitTryCatchBlock(Label start, Label end, Label handler,
             String type) {
-        type = xlation.getCompletely(type);
+        type = xlation.getTypeName(type);
         mv.visitTryCatchBlock(start, end, handler, type);
     }
 
     public void visitTypeInsn(int opcode, String type) {
-        type = xlation.getCompletely(type);
+        type = xlation.getTypeName(type);
         mv.visitTypeInsn(opcode, type);
     }
 

@@ -31,12 +31,12 @@ import com.sun.fortress.useful.Useful;
 
 public class Instantiater extends ClassAdapter {
     
-    InstantiationMap xlation;
+    InstantiationMap types;
     String instanceName;
     
     public Instantiater(ClassVisitor cv, Map xlation, String instanceName) {
         super(cv);
-        this.xlation = new InstantiationMap(xlation);
+        this.types = new InstantiationMap(xlation);
         this.instanceName = instanceName;
     }
 
@@ -47,13 +47,13 @@ public class Instantiater extends ClassAdapter {
         // TODO Auto-generated method stub
         String[] new_interfaces = new String[interfaces.length];
         for (int i = 0; i < interfaces.length; i++) {
-            new_interfaces[i] = xlation.getCompletely(interfaces[i]);
+            new_interfaces[i] = types.getTypeName(interfaces[i]);
         }
         super.visit(version, access,
-        xlation.getCompletely(name),
+        types.getTypeName(name),
         //instanceName, 
         signature,
-                xlation.getCompletely(superName), new_interfaces);
+                types.getTypeName(superName), new_interfaces);
     }
 
     @Override
@@ -78,8 +78,8 @@ public class Instantiater extends ClassAdapter {
     public FieldVisitor visitField(int access, String name, String desc,
             String signature, Object value) {
         // TODO Auto-generated method stub
-        desc = xlation.getDesc(desc);
-        name = xlation.getCompletely(name);
+        desc = types.getFieldDesc(desc);
+        name = types.getName(name);
         return super.visitField(access, name, desc, signature, value);
     }
 
@@ -94,11 +94,11 @@ public class Instantiater extends ClassAdapter {
     public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
         // necessary?
-        name = xlation.getCompletely(name);
-        desc = xlation.getDesc(desc);
+        name = types.getName(name);
+        desc = types.getMethodDesc(desc);
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
 
-        return new MethodInstantiater(mv, xlation);
+        return new MethodInstantiater(mv, types);
     }
 
     @Override

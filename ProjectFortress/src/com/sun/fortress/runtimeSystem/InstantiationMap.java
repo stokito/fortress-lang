@@ -28,20 +28,62 @@ public class InstantiationMap  {
     }
     
     
-    public String getCompletely(String s) {
+    public String getName(String s) {
         // TODO will need to rewrite into type, desc, and method variants.
         if (s == null)
             return s;
         s = Naming.demangleFortressIdentifier(s);
+        StringBuffer b = new StringBuffer();
+        maybeBareVar(s, 0, b, false);
         s = oxfordSensitiveSubstitution(s);
+        if (! b.toString().equals(s)) {
+            throw new Error("mismatch, expected " + s + " but got " + b);
+        }
+        return s;
+    }
+    
+    public String getTypeName(String s) {
+        // TODO will need to rewrite into type, desc, and method variants.
+        String t = s;
+        if (s == null)
+            return s;
+        s = Naming.demangleFortressIdentifier(s);
+        StringBuffer b = new StringBuffer();
+        maybeBareVar(s, 0, b, false);
+        s = oxfordSensitiveSubstitution(s);
+        if (! b.toString().equals(s)) {
+            throw new Error("mismatch, expected " + s + " but got " + b);
+        }
         return s;
     }
 
-    public String getDesc(String s) {           
+    public String getFieldDesc(String s) {           
+        if (s == null)
+            return s;        
+        s = Naming.demangleFortressDescriptor(s);
+
+        StringBuffer b = new StringBuffer();
+        maybeVarInTypeDesc(s, 0, b);
+
+        s = oxfordSensitiveSubstitution(s);
+        if (! b.toString().equals(s)) {
+            throw new Error("mismatch, expected " + s + " but got " + b);
+        }
+        return s;
+        }
+
+    public String getMethodDesc(String s) {           
         if (s == null)
             return s;
         s = Naming.demangleFortressDescriptor(s);
+        
+        StringBuffer b = new StringBuffer();
+        maybeVarInMethodSig(s, 0, b);
+
         s = oxfordSensitiveSubstitution(s);
+        if (! b.toString().equals(s)) {
+            throw new Error("mismatch, expected " + s + " but got " + b);
+        }
         return s;
         }
 
@@ -55,6 +97,7 @@ public class InstantiationMap  {
         int l = s.length();
         
         int oxLevel = 0;
+        
         
         for (int i = 0; i < l; i++) {
             char ch = s.charAt(i);
@@ -107,6 +150,189 @@ public class InstantiationMap  {
         return s;
     }
 
+    
+    // Looking for  Lvariable; in method signatures,
+    // Looking for  LOXvariable;variableROX as part of types
+    
+    /* states:
+     *
+     *  1) scanning potential variable
+     *    LOX -> push suffix; 
+     *    / -> 
+     *    (a) in Oxfords
+     *      ; -> check; (1a)
+     *      ROX -> check; pop suffix;
+     *    (b) in L;
+     *      ; -> check; (3)
+     *    (c) bare
+     *    
+     *    
+     *  2) scanning known non-variable
+     *    (a) in Oxfords
+     *    (b) in L;
+     *    (c) bare
+     *    
+     *  3) scanning in Parens
+     *     BCDIJSZV -> (3)
+     *     L -> 1, suffix=b
+     *     
+     *  4) scanning after Parens
+     *     BCDIJSZV -> (3)
+     *     L -> 1, suffix=b
+     *     
+     *  Outer context is bare/var/L;
+     *  Possibly in ()
+     *  Then some number of nested Oxfords.
+     *     
+     */
+    
+    /**
+     * Come here after seeing a left oxford.  Process characters until an
+     * unnested right Oxford is seen.  At semicolons, check to see if the
+     * previous string is a variable, if it has not been disqualified.
+     */
+    int maybeVarInOxfords(String input, int begin, StringBuffer accum) {
+         int at = maybeBareVar(input, begin, accum, true);
+         char ch = input.charAt(at++);
+         
+         if (ch == ';' || ch == '=') {
+             accum.append(ch);
+             /* This recursion will never be very deep, so it does not
+              * need a tail-call, though golly, that would be nice.
+              */
+             return maybeVarInOxfords(input, at, accum);
+         } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+             accum.append(ch);
+             return at;
+         } else {
+             throw new Error();
+         }
+     }
+    
+    /**
+     * Come here after seeing L where a type signature is expected.
+     * Process characters until an unnested ';' is seen.  Consume the ';' ,
+     * return the index of the next character.
+     * 
+     * If none of the processed characters is disqualifying, check 
+     * for replacement.
+     * 
+     * @param input
+     * @param at
+     * @param accum
+     */
+     int maybeVarInLSemi(String input, int begin, StringBuffer accum) {
+        int at = maybeBareVar(input, begin, accum, false);
+        char ch = input.charAt(at++);
+        if (ch != ';')
+            throw new Error("Expected semicolon, saw " + ch +
+                    " instead at index " + (at-1) + " in " + input) ;
+        
+        accum.append(';');
+        
+        return at;
+    }
+    
+     /**
+      * 
+      * @param ch
+      * @return
+      */
+     private static boolean nonVar(char ch) {
+        return ch == '/' || ch == '$' || ch == ';' || 
+               ch == Naming.LEFT_OXFORD_CHAR || ch == Naming.RIGHT_OXFORD_CHAR;
+    }
+
+    /**
+     * 
+     * @param input
+     * @param begin
+     * @param accum
+     * @param inOxfords
+     * @return
+     */
+    int maybeBareVar(String input, int begin, StringBuffer accum, boolean inOxfords) {
+        int at = begin;
+        char ch = input.charAt(at++);
+        boolean maybeVar = true;
+        boolean eol = false;
+        
+        while (ch != ';' && ch != Naming.RIGHT_OXFORD_CHAR) {
+            if (ch == '=') {
+                if (maybeVar)
+                    accum.append(input.substring(begin, at-1));
+                maybeVar = false;
+                break;
+            } else if (!maybeVar) {
+                accum.append(ch);
+            } else if (nonVar(ch)) {
+                maybeVar = false;
+                accum.append(input.substring(begin, at));
+            }  
+            if (ch == Naming.LEFT_OXFORD_CHAR) {
+                at = maybeVarInOxfords(input, at, accum);
+            }
+            
+            if (at >= input.length()) {
+                eol = true;
+                break;
+            }
+            ch = input.charAt(at++);
+        }
+        
+        at = eol ? at : at - 1;
+        
+        if (maybeVar) {
+            String s = input.substring(begin, at);
+            String t = ch == '=' ? null : p.get(s);
+            if (t != null) {
+                accum.append(inOxfords ? t : t.substring(1));
+            } else {
+                accum.append(s);
+            }
+        }
+        return at;
+    }
+    
+     int maybeVarInMethodSig(String input, int begin, StringBuffer accum) {
+         int at = begin;
+         char ch = input.charAt(at++);
+         // Begin with "("
+         // Expect signature letters, followed by ")"
+         // Expect one more signature letter
+         if (ch != '(') {
+             throw new Error("Signature does not begin with '(', sig="+input);
+         }
+         accum.append(ch);
+         ch = input.charAt(at++);
+         while (ch != ')') {
+             accum.append(ch);
+             if (ch == 'L') {
+                 at = maybeVarInLSemi(input, at, accum);
+             }
+             ch = input.charAt(at++);
+         }
+         accum.append(ch);
+         
+         return maybeVarInTypeDesc(input, at, accum);
+     }
+
+
+    /**
+     * @param input
+     * @param accum
+     * @param at
+     * @return
+     */
+    private int maybeVarInTypeDesc(String input, int at, StringBuffer accum) {
+        char ch;
+        ch = input.charAt(at++);
+         accum.append(ch);
+         if (ch == 'L') {
+             at = maybeVarInLSemi(input, at, accum);
+         }
+         return at;
+    }
 
     /**
      * 
