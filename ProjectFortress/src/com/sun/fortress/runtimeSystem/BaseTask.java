@@ -22,6 +22,7 @@ import jsr166y.ForkJoinTask;
 import jsr166y.RecursiveAction;
 
 import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
+import static com.sun.fortress.runtimeSystem.FortressExecutable.spawnThreshold;
 /** Base class for Fortress tasks.  Includes administrative methods
  *  that make code generation for task spawn a bit easier.
  *
@@ -35,18 +36,17 @@ import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
  *    ... use tmp.result (compiler-inserted field) if desired ...
  */
 public abstract class BaseTask extends RecursiveAction {
-    public static int spawnThreshold = 5;
-
     // Could get this by hacking ForkJoinTask's status field, but
     // not touching that for now as it's too changeable
-    private static int UNFORKED = 0;
-    private static int FORKED = 1;
-    private static int EXECUTED = 2;
+    private static final int UNFORKED = 0;
+    private static final int FORKED = 1;
+    private static final int EXECUTED = 2;
 
     private int actuallyForked = UNFORKED;
 
     private static boolean unsafeWorthSpawning() {
-        return (numThreads > 1 && getSurplusQueuedTaskCount() <= spawnThreshold);
+        return (numThreads > 1 && 
+                (spawnThreshold < 0 || getSurplusQueuedTaskCount() <= spawnThreshold));
     }
 
     public static boolean worthSpawning() {

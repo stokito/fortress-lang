@@ -27,8 +27,10 @@ import jsr166y.RecursiveAction;
  *  the one in the generated class isn't visisble yet.
  */
 public abstract class FortressExecutable extends RecursiveAction {
-    public static int numThreads = getNumThreads();
-    public static FortressTaskRunnerGroup group =
+    public static final int numThreads = getNumThreads();
+    public static final int defaultSpawnThreshold = 5;
+    public static final int spawnThreshold = getSpawnThreshold();
+    public static final FortressTaskRunnerGroup group =
         new FortressTaskRunnerGroup(numThreads);
 
     static int getNumThreads() {
@@ -41,6 +43,12 @@ public abstract class FortressExecutable extends RecursiveAction {
         }
     }
 
+    static int getSpawnThreshold() {
+        String spawnThresholdString = System.getenv("FORTRESS_SPAWN_THRESHOLD");
+        if (spawnThresholdString != null) return Integer.parseInt(spawnThresholdString);
+        return defaultSpawnThreshold;
+    }
+
     public final void runExecutable(String args[]) {
         try {
             systemHelper.registerArgs(args);
@@ -51,6 +59,8 @@ public abstract class FortressExecutable extends RecursiveAction {
             String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
             if (printOnOutput != null && printOnOutput.length() > 0 &&
                 printOnOutput.substring(0,1).matches("[TtYy]")) {
+                System.err.println("numThreads = " + numThreads +
+                                   ", spawnThreshold = " + spawnThreshold);
                 System.err.println(group);
             }
         }
