@@ -1224,7 +1224,9 @@ Each modifier should not appear multiple times in a declaration.
 
 \emph{ExponentOp} &::=& \verb+^T+ $|$ \verb+^+(\emph{Encloser} $|$ \emph{Op})\\
 
-\emph{AssignOp} &::=& \EXP{\ASSIGN} $|$ (\emph{Encloser} $|$ \emph{Op})\EXP{=}\\
+\emph{CompoundOp} &::=& (\emph{Encloser} $|$ \emph{Op})\EXP{=}\\
+
+\emph{AssignOp} &::=& \EXP{\ASSIGN} $|$ \emph{CompoundOp}\\
 
 \emph{Accumulator} &::=& $\sum$ $|$ $\prod$ $|$ \KWD{BIG} (\emph{Encloser} $|$ \emph{Op})\\
 \end{tabular}
