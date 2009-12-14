@@ -106,6 +106,7 @@ transient private String rightEncloserMulti =
    / "/\\/\\/]" / "/\\/]"
    ;
 
+/* ExponentOp ::= ^T | ^(Encloser | Op) */
 transient private String exponentOp =
      "^T"
    / a1:"^" a2:(encloser / op) { yyValue = a1+a2; };
@@ -123,7 +124,7 @@ String OpName =
      opn:id &{NodeUtil.validOp(opn) };
 
 Op Op =
-    a1:(condOp / op !(equalsOp) / compOp) !(Symbol)
+     a1:(condOp / op !(equalsOp) / compOp) !(Symbol)
      { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); }
    / a1:Symbols
      { log(createSpan(yyStart,yyCount),
@@ -186,6 +187,7 @@ String op =
    / multiOp
    / singleOp ;
 
+/* CompoundOp ::= (Encloser | Op)= */
 FunctionalRef CompoundOp =
      a1:(encloser / op) equalsOp
      { yyValue = ExprFactory.makeOpRef(NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1)); };

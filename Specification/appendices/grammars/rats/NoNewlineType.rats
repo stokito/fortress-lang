@@ -16,9 +16,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-Type Type := ...
+Type := ...
+TupleType := ...
+NoNewlineTupleType = TupleType
+ExtentRange := ...
+NoNewlineExtentRange = ExtentRange
 
-NoNewlineType = !("1") TypePrimary (w "in" w NoNewlineExpr)?
+NoNewlineType =
+     !(one) (io w)? TypePrimary (w in w NoNewlineExpr)?
 
 TypePrimary := ...
    / <LooseJuxt> TypePrimaryFront sr TypePrimary

@@ -16,7 +16,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-Type = !("1") TypePrimary (w "in" w Expr)?
+Type =
+     !(one) (io w)? TypePrimary (w in w Expr)?
 
 OpType =
      TypePrimary
@@ -50,8 +51,8 @@ LooseInfix =
    / <InPrefix> DimInfixOp wr TypePrefix
 
 TypePrimaryFront =
-     TypeFront TypeTail+
-   / TypeFront
+    TypeFront TypeTail+
+  / TypeFront
 
 TypeFront =
      ParenthesizedType
@@ -59,64 +60,73 @@ TypeFront =
    / TupleType
    / TypeRef
    / VoidType
-   / "1"
+   / one
 
-ParenthesizedType = "(" w Type w ")"
+ParenthesizedType =
+     openparen w Type w closeparen
 
 Domain =
-     "(" w (Type w "," w)* (Type w "..." w "," w)? KeywordType (w "," w KeywordType)* w ")"
-   / "(" w (Type w "," w)* Type w "..." w ")"
+     openparen w (Type w comma w)* (Type w ellipses w comma w)?
+     KeywordType (w comma w KeywordType)* w closeparen
+   / openparen w (Type w comma w)* Type w ellipses w closeparen
 
-KeywordType = BindId w "=" w Type
+KeywordType = BindId w equals w Type
 
-TupleType = "(" w Type w "," w TypeList w ")"
+TupleType =
+     openparen w Type w comma w TypeList w closeparen
 
-TypeList = Type (w "," w Type)*
+TypeList = Type (w comma w Type)*
 
 TypeRef =
-     Id wr StaticArgs // Error production
-   / "Unity"
-   / Id StaticArgs?
+     "Unity"
+   / Id w StaticArgs
+   / Id
 
-VoidType = "(" w ")"
+VoidType =
+     openparen w closeparen
 
 TypeTail =
      ArrayTypeSize
    / Exponentiation
    / ParenthesizedTypeLeft
    / IdLeft
-   ;
 
-ArrayTypeSize = "[" (w ArraySize)? w "]"
+ArrayTypeSize =
+     opensquare (w ArraySize)? w closesquare
 
-ArraySize = ExtentRange (w "," w ExtentRange)*
+ArraySize = ExtentRange (w comma w ExtentRange)*
 
 ExtentRange =
-     (StaticArg w)? "#" (w StaticArg)?
-   / (StaticArg w)? ":" (w StaticArg)?
+     (StaticArg w)? pound (w StaticArg)?
+   / (StaticArg w)? colon (w StaticArg)?
    / StaticArg
 
 Exponentiation =
-     "^" wr IntExpr // Error production
-   / "^" IntExpr
-   / "^" wr "(" w ExtentRange (w "BY" w ExtentRange)* w ")" // Error production
-   / "^" "(" w ExtentRange (w "BY" w ExtentRange)* w ")"
+     caret hasW IntExpr
+   / caret hasW openparen w ExtentRange (w cross w ExtentRange)* w
+     closeparen
 
 MayParenthesizedOpType =
-     "(" w OpType w ")"
+     openparen w OpType w closeparen
    / OpType
 
-ParenthesizedTypeLeft = "(" w MayParenthesizedOpType w ")"
+ParenthesizedTypeLeft =
+     openparen w MayParenthesizedOpType w closeparen
 
-IdLeft = Id
+IdLeft =
+     Id
 
-TypeInfixOp = "->"
+TypeInfixOp =
+     rightarrow
 
-DimInfixOp = "DOT" / "/" / "per"
+DimInfixOp =
+     (DOT / slash / per)
 
-DimPrefixOp = "square" / "cubic" / "inverse"
+DimPrefixOp =
+     (square / cubic / inverse)
 
-DimPostfixOp = "squared" / "cubed"
+DimPostfixOp =
+     (squared / cubed)
 
 TraitType =
      TraitTypeFront TraitTypeTail+
@@ -132,11 +142,27 @@ TraitTypeTail =
      ArrayTypeSizeTrait
    / ExponentiationTrait
 
-ArrayTypeSizeTrait = "[" (w ArraySize)? w "]"
+ArrayTypeSizeTrait =
+     opensquare (w ArraySize)? w closesquare
 
 ExponentiationTrait =
-     "^" wr IntExpr // Error production
-     "^" IntExpr
-   / "^" wr "(" w ExtentRange (w "BY" w ExtentRange)* w ")" // Error production
-   / "^" "(" w ExtentRange (w "BY" w ExtentRange)* w ")"
+     caret hasW IntExpr
+   / caret hasW openparen w ExtentRange (w cross w ExtentRange)* w
+     closeparen
+
+TraitTypeWithError =
+     TraitTypeFrontWithError TraitTypeTail+
+   / TypeRefWithError
+
+TraitTypeFrontWithError =
+     ParenthesizedType
+   / TupleType
+   / TypeRefWithError
+   / VoidType
+
+TypeRefWithError =
+     "Unity"
+   / Id w StaticArgs
+   / Id
+   / Op (w StaticArgs)?
 \end{verbatim}
