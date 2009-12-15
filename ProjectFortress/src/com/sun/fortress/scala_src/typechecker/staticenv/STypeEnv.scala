@@ -26,6 +26,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.UIDObject
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
@@ -102,6 +103,13 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
   /** Get the modifiers for the given name, if it exists. */
   def getMods(x: Name): Option[Modifiers] = lookup(x).map(_.mods)
 
+  /** Return whether the given name is mutable, if it exists. */
+  def isMutable(x: Name): Boolean = lookup(x) match {
+    case Some(binding) =>
+      binding.mutable || binding.mods.isMutable
+    case _ => false
+  }
+
   /** Get the functional indices for this name, if any. */
   def getFnIndices(x: Name): Option[List[Functional]] =
     lookup(x).map(_.fnIndices)
@@ -174,9 +182,6 @@ object STypeEnv extends StaticEnvCompanion[Type] {
   /** Extract out the bindings in node. */
   protected def extractNodeBindings(node: Node): Iterable[TypeBinding] =
     node match{
-      case SBinding(_, name, mods, Some(typ)) =>
-        List(makeBinding(name, typ, mods, false))
-
       case SParam(_, name, mods, _, _, Some(vaTyp)) =>
         List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
@@ -188,9 +193,10 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         List(makeBinding(name, typ, mods, mutable))
 
       case SLocalVarDecl(_, _, lValues, _) =>
-      lValues.flatMap(extractNodeBindings)
+        lValues.flatMap(extractNodeBindings)
 
-      case _ => Nil
+      case _ =>
+        throw TypeError.make("Cannot handle " + node, node)
     }
 
   protected def extractTypeConsBindings[T <: TypeConsIndex]

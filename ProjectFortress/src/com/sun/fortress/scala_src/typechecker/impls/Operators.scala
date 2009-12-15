@@ -452,7 +452,8 @@ trait Operators { self: STypeChecker with Common =>
           // Check the var ref and make sure it is mutable.
           val checkedLhs = checkExpr(lhs).asInstanceOf[VarRef]
           val lhsType = getType(checkedLhs).getOrElse(return expr)
-          if (!env.getMods(id).get.isMutable) {
+
+          if (!env.isMutable(id)) {
             signal(expr, "Cannot assign to immutable variable: %s".format(id))
             return expr
           }
@@ -536,6 +537,7 @@ trait Operators { self: STypeChecker with Common =>
       // 3. Get out the op ref and lhs
       // 4. Stuff them together into an Assignment
       val opExpr = EF.makeOpExpr(span, op, lhs.asInstanceOf[Expr], rhs)
+
       val checkedAssn = checkExpr(SAssignment(info, List(lhs), None, opExpr, Nil))
       if (getType(checkedAssn).isNone) return expr
 
