@@ -16,8 +16,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-ExprFront -= <Flow> , <Fn>
+ExprFront -= <Flow> , <Fn1> , <Fn2>
 NoSpaceExpr = ExprFront
+
+OpExpr :=
+     OpExprNoEnc
+   / OpExprLeftEncloser
+   / Encloser
 
 TightInfixRight -= <Primary>, <Loose>, <LeftLoose>
 

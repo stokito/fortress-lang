@@ -19,17 +19,20 @@
 NoNewlineExpr = Expr
 Expr := ...
 ExprFront :=
-     <AssignExpr> NoNewlineAssignExpr
-   / ...
-NoNewlineAssignExpr = AssignLefts s AssignOp w NoNewlineExpr
+    <AssignExpr> NoNewlineAssignExpr
+  / ...
+NoNewlineAssignExpr =
+    AssignLefts s AssignOp w NoNewlineExpr
 
 ExprTail :=
      <As> NoNewlineAs
    / <AsIf> NoNewlineAsIf
 
-NoNewlineAs = s "as" w NoNewlineType
+NoNewlineAs =
+     s typed w NoNewlineType
 
-NoNewlineAsIf = s "asif" w NoNewlineType
+NoNewlineAsIf =
+     s asif w NoNewlineType
 
 TightInfixRight := ...
    / <Primary>   Encloser sr OpExprPrimary
@@ -59,15 +62,16 @@ TightInfixPostfix := ...
 LooseInfix := ...
    / <Left> Op sr OpExprLeftEncloser
 
-GeneratorClauseList := GeneratorBinding (s "," w GeneratorClause)*
-
+GeneratorClauseList :=
+     GeneratorBinding (s comma w GeneratorClause)*
 NoNewlineGeneratorClauseList = GeneratorClauseList
 
 NoNewlineVarWTypes =
      NoNewlineVarWType
-   / "(" w NoNewlineVarWType (w "," w NoNewlineVarWType)+ w ")"
+   / openparen w NoNewlineVarWType (w comma w NoNewlineVarWType)+ w
+     closeparen
 
-NoNewlineVarWType = BindId w NoNewlineIsType
+ NoNewlineVarWType = BindId s NoNewlineIsType
 
-NoNewlineIsType = ":" w NoNewlineType
+NoNewlineIsType = colon w NoNewlineType
 \end{verbatim}
