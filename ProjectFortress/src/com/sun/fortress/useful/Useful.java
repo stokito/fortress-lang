@@ -592,6 +592,18 @@ public class Useful {
         return result;
     }
 
+    public static <T,U> Map<T,U> map(List<T> x1, List<U> x2) {
+        HashMap<T,U> result = new HashMap<T,U>();
+        return map(x1, x2, result);
+    }
+
+    public static <T,U> Map<T,U> map(List<T> x1, List<U> x2, Map<T,U> result) {
+        int l = x1.size();
+        for (int i = 0; i < l; i++)
+            result.put(x1.get(i), x2.get(i));
+        return result;
+    }
+
     public static <T> List<T> list(T x1) {
         ArrayList<T> result = new ArrayList<T>(1);
         result.add(x1);

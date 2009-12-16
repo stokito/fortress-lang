@@ -28,7 +28,12 @@ public class ByteCodeWriter {
     static Character slash = '/';
 
     public static void writeJarredClass(JarOutputStream jos, String file, byte[] bytes) {
-        String fileName = file.replace(dot, slash) + ".class";
+        writeJarredFile(jos, file, "class", bytes);
+   
+    }
+    
+    public static void writeJarredFile(JarOutputStream jos, String file, String suffix, byte[] bytes) {
+        String fileName = file.replace(dot, slash) + "." + suffix;
         ZipEntry ze = new ZipEntry(fileName);
         try {
             jos.putNextEntry(ze);
@@ -40,7 +45,7 @@ public class ByteCodeWriter {
    
     }
     
-    public static void writeClass(String repository, String file, byte[] bytes) {
+   public static void writeClass(String repository, String file, byte[] bytes) {
         String fileName = repository + file.replace(dot, slash) + ".class";
         writeClass(bytes, fileName);
     }

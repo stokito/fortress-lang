@@ -21,9 +21,13 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.useful.CheapSerializer;
 
 
 public class Naming {
+    
+    public final static CheapSerializer.LIST<String> xlationSerializer = 
+        new CheapSerializer.LIST<String>(CheapSerializer.STRING);
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -34,6 +38,8 @@ public class Naming {
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
+    
+    public final static String HEAVY_X = "\u2716"; // heavy X -- stop rewriting in an instantiation, for schema tags
 
     public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
     public static final String SCALES = "\u2696"; // dimension static param
@@ -49,7 +55,7 @@ public class Naming {
 
     public static final String ENTER = "\u2386";
 
-    public static final Object INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
+    public static final String INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
 
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
@@ -61,6 +67,7 @@ public class Naming {
     public static final char HAMMER_AND_PICK_CHAR = HAMMER_AND_PICK.charAt(0);
     public static final char YINYANG_CHAR = YINYANG.charAt(0);
     public static final char ATOM_CHAR = ATOM.charAt(0);
+    public static final char HEAVY_X_CHAR = HEAVY_X.charAt(0);
 
     public final static String GEAR = "\u2699";
 
@@ -109,6 +116,7 @@ public class Naming {
         bl(COMPILER_BUILTIN, "$ZZ64", "FZZ64");
         bl(COMPILER_BUILTIN, "$String", "FString");
         bl("", SNOWMAN, "FVoid");
+        bl("", INTERNAL_SNOWMAN, "FVoid");
     }
 
 
@@ -133,22 +141,25 @@ public class Naming {
     private static final String SF_FIRST_ESCAPES = SF_ESCAPES + "=";
 
     public static String javaDescForTaggedFortressType(String ft) {
+
         char ch = ft.charAt(0);
-        ft = ft.substring(1);
         String tx = specialFortressDescriptors.get(ft);
         if (tx != null) {
             return tx; // Should be correct by construction
-        } else if (ch == NORMAL_TAG_CHAR) {
-            //return "L" + mangleFortressIdentifier(ft) + ";";
-            return "L" + (ft) + ";";
-        } else if (ch == INTERNAL_TAG_CHAR) {
-            //return "Lfortress/" + mangleFortressIdentifier(ft) + ";";
-            return "Lfortress/" + (ft) + ";";
-        } else if (ch == FOREIGN_TAG_CHAR) {
-            throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
         }
-        throw new Error("Bad fortress naming scheme tag (unicode " + Integer.toHexString(ch) +
-                    ") on fortress type " + ft);
+        return "L" + (ft) + ";";
+
+//        else if (ch == NORMAL_TAG_CHAR) {
+//            //return "L" + mangleFortressIdentifier(ft) + ";";
+//            return "L" + (ft) + ";";
+//        } else if (ch == INTERNAL_TAG_CHAR) {
+//            //return "Lfortress/" + mangleFortressIdentifier(ft) + ";";
+//            return "Lfortress/" + (ft) + ";";
+//        } else if (ch == FOREIGN_TAG_CHAR) {
+//            throw new Error("Haven't figured out JVM xlation of foreign type " + ft);
+//        }
+//        throw new Error("Bad fortress naming scheme tag (unicode " + Integer.toHexString(ch) +
+//                    ") on fortress type " + ft);
     }
 
     public static String deDot(String s) {

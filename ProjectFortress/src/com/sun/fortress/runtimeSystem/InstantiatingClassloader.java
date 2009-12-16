@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -35,6 +36,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.VersionMismatch;
 
 /**
  * This code steals willy-nilly from the NextGen class loader.
@@ -76,13 +79,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @throws IOException
      */
     private byte[] readResource(String className) throws IOException {
+        return readResource(className, "class");
+    }
+    private byte[] readResource(String className, String suffix) throws IOException {
         // getResourceAsStream finds a file that's in the classpath. It's
         // generally used to load resources (like images) from the same location as
         // class files. However for our purposes of loading the bytes of a class
         // file, this works perfectly. It will find the class in any place in
         // the classpath, and it doesn't force us to search the classpath
         // ourselves.
-        String fileName = dotToSlash(className) + ".class";
+        String fileName = dotToSlash(className) + "." + suffix;
 
         InputStream origStream = getResourceAsStream(fileName);
         if (origStream == null) {
@@ -141,11 +147,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
                 if (isGenericFunction) {
                     // also a closure
-                    HashMap<String, String> xlation = new HashMap<String, String>();
+                    try {
+                    Map<String, String> xlation = new HashMap<String, String>();
                     String dename = Naming.dotToSep(name);
                     dename = Naming.demangleFortressIdentifier(dename);
-                    String template_name = functionTemplateName(dename, xlation);
+                    ArrayList<String> sargs = new ArrayList<String>();
+                    String template_name = functionTemplateName(dename, xlation, sargs);
                     byte[] templateClassData = readResource(template_name);
+                    List<String> xl = Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                    xlation = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
                     ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
@@ -154,6 +164,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
+                    } catch (VersionMismatch ex) {
+                        throw new ClassNotFoundException("Failed to decode xlation info", ex);
+                    }
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
                 } else if (isGeneric) {
@@ -169,9 +182,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else if (stem.equals("AbstractArrow")) {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else {
-                        HashMap<String, String> xlation = new HashMap<String, String>();
-                        String template_name = genericTemplateName(dename, xlation);
+                        try {
+                        Map<String, String> xlation = new HashMap<String, String>();
+                        ArrayList<String> sargs = new ArrayList<String>();
+                        String template_name = genericTemplateName(dename, xlation, sargs);
                         byte[] templateClassData = readResource(template_name);
+                        List<String> xl = Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                        xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                         ClassReader cr = new ClassReader(templateClassData);
                         ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
@@ -180,7 +197,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
                         cr.accept(instantiater, 0);
                         classData = cw.toByteArray();
-                        
+                        } catch (VersionMismatch ex) {
+                            throw new ClassNotFoundException("Failed to decode xlation info", ex);
+                        }
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
                 } else {
@@ -225,22 +244,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return clazz;
     }
 
-    private String functionTemplateName(String name, Map<String, String> xlation) {
+    private String functionTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
         
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
-                right_oxford, xlation);
+                right_oxford, xlation, sargs);
         
         return Naming.mangleFortressIdentifier(s);
     }
 
-    private String genericTemplateName(String name, Map<String, String> xlation) {
+    private String genericTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.lastIndexOf(Naming.RIGHT_OXFORD);
         
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
-                right_oxford, xlation);
+                right_oxford, xlation, sargs);
         
         return Naming.mangleFortressIdentifier(s);
     }
@@ -269,9 +288,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String fn = suffix.substring(0,env_loc);
         String ft = suffix.substring(env_loc+2); // skip $
 
+        // Normalize out leading HEAVY_X, if there is one.
+        if (ft.charAt(0) == Naming.HEAVY_X_CHAR)
+            ft = ft.substring(1);
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
-        String stem = ft.substring(0,left);
         ArrayList<String> parameters = extractStringParameters(ft, left, right);
         
         if (sig == null)

@@ -17,17 +17,154 @@
 
 package com.sun.fortress.useful;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 abstract public class CheapSerializer<T> {
+    
+    /* convert a byte[] containing uft8 representation to a string */
+    public static String fromUtf8(byte[] buf)
+            throws java.io.UTFDataFormatException {
+        return fromUtf8(buf, 0, buf.length);
+    }
+    public static String fromUtf8(byte[] buf, int off, int len)
+            throws java.io.UTFDataFormatException {
+        int t = (off + len);
+        if ((off < 0) || (len < 0) || (t > buf.length) || (t < 0))
+            throw new IndexOutOfBoundsException();
+        if (len == 0)
+            return "";
+        StringBuffer result = new StringBuffer(len); // make an optimistic
+                                                     // guess
+        synchronized (result) {
+            int i = off;
+            try {
+                while (i < t) {
+                    int b = buf[i];
+                    if (b == 0)
+                        throw new java.io.UTFDataFormatException(
+                                "null character in utf8 sequence");
+                    if ((b & 0x80) == 0) {
+                        result = result.append((char) b);
+                        i++;
+                    } else if ((b & 0xe0) == 0xc0) {
+                        i += 2;
+                        if (i > t)
+                            throw new IndexOutOfBoundsException();
+                        int b1 = buf[i - 1];
+                        if ((b1 & 0xc0) != 0x80)
+                            throw new java.io.UTFDataFormatException(
+                                    "ill formed utf8 escape sequence in '"
+                                            + new String(buf) + "'");
+                        result = result
+                                .append((char) (((b & 0x1f) << 6) + (b1 & 0x3f)));
+                    } else if ((b & 0xf0) == 0xe0) {
+                        i += 3;
+                        if (i > t)
+                            throw new IndexOutOfBoundsException();
+                        int b1 = buf[i - 2];
+                        int b2 = buf[i - 1];
+                        if (((b1 & 0xc0) != 0x80) || ((b2 & 0xc0) != 0x80))
+                            throw new java.io.UTFDataFormatException(
+                                    "ill formed utf8 escape sequence in '"
+                                            + new String(buf) + "'");
+                        result = result
+                                .append((char) ((((b & 0xf) << 12) + ((b1 & 0x3f) << 6)) + (b2 & 0x3f)));
+                    } else {
+                        throw new java.io.UTFDataFormatException(
+                                "ill formed unicode escape sequence in '"
+                                        + new String(buf) + "'");
+                    }
+                }
+            } catch (IndexOutOfBoundsException v) {
+                throw new java.io.UTFDataFormatException(
+                        "incomplete utf8 escape sequence in '"
+                                + new String(buf) + "'");
+            }
+        }
+        return result.toString();
+    }
+    /* convert a string to a byte[] containing utf8 representation */
+    public static byte[] toUtf8(String s) {
+        int len = s.length();
+        byte[] result;
+        int newLen = 0;
+        /* compute utf8 length */
+        for (int i = 0; i < len; i++) {
+            int c = (int) s.charAt(i);
+            if ((c > 0) && (c < 0x80))
+                newLen++;
+            else if (c < 0x800) /* includes 0x0 */
+                newLen += 2;
+            else
+                /* c must be < 0xffff */
+                newLen += 3;
+        }
+        /* build correctly sized array and convert */
+        if (newLen == len) {
+            result = new byte[len];
+            // Special case, all easy.
+            for (int i = 0; i < len; i++) {
+                result[i] = (byte) s.charAt(i);
+            }
+        } else {
+            result = new byte[newLen];
+            int newI = 0;
+            for (int i = 0; i < len; i++) {
+                int c = (int) s.charAt(i);
+                if ((c > 0) && (c < 0x80))
+                    result[newI++] = (byte) c;
+                else if (c < 0x800) { /* includes 0x0 */
+                    result[newI++] = (byte) (0xc0 | (0x1f & (c >> 6)));
+                    result[newI++] = (byte) (0x80 | (0x3f & c));
+                } else /* c must be < 0xffff */{
+                    result[newI++] = (byte) (0xe0 | (0x0f & (c >> 12)));
+                    result[newI++] = (byte) (0x80 | (0x3f & (c >> 6)));
+                    result[newI++] = (byte) (0x80 | (0x3f & c));
+                }
+            }
+        }
+        return result;
+    }
 
+
+    public byte[] toBytes(T data) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+           version(bos);
+           write(bos, data);
+        } catch (IOException ex){
+            throw new Error("Cannot happen!");
+        }
+        byte[] b = bos.toByteArray();
+        return b;
+    }
+    
+    public T fromBytes(byte[] b) throws VersionMismatch {
+        ByteArrayInputStream bis = new ByteArrayInputStream(b);
+
+        try {
+            version(bis);
+
+            T data = read(bis);
+            return data;
+        } catch (IOException ex) {
+            throw new Error("Cannot happen!");
+        }
+    }
+    
     public abstract void write(OutputStream o, T data) throws IOException;
 
     public abstract T read(InputStream i) throws IOException;
@@ -101,6 +238,7 @@ abstract public class CheapSerializer<T> {
         return doneg ? -sum : sum;
     }
 
+ 
     static public CheapSerializer<java.lang.String> STRING = new CheapSerializer<java.lang.String>() {
 
         @Override
@@ -112,12 +250,12 @@ abstract public class CheapSerializer<T> {
             m = i.read();
             if (m == -1) throw new EOFException("input ended early");
             if (m != ' ') throw new RuntimeException("Expected ' ', got '" + (char) m + "'");
-            return new String(b);
+            return fromUtf8(b);
         }
 
         @Override
         public void write(OutputStream o, java.lang.String data) throws IOException {
-            byte[] b2 = data.getBytes();
+            byte[] b2 = toUtf8(data);
             writeInt(o, b2.length);
             o.write(b2);
             o.write(' ');
@@ -165,7 +303,6 @@ abstract public class CheapSerializer<T> {
 
     };
 
-
     static public CheapSerializer<Long> LONG = new CheapSerializer<Long>() {
 
         byte[] V = {'L', 'O', 'N', 'G', '_', '1', '.', '0', ' '};
@@ -193,6 +330,48 @@ abstract public class CheapSerializer<T> {
 
     };
 
+    static public class LIST<T> extends CheapSerializer<List<T>> {
+        private CheapSerializer<T> elements;
+        
+        public LIST(CheapSerializer<T> elements) {
+           this.elements = elements;
+        }
+
+        @Override
+        public List<T> read(InputStream i) throws IOException {
+            int n = readInt(i);
+            ArrayList<T> m = new ArrayList<T>(n);
+            for (int j = 0; j < n; j++) {
+                T k = elements.read(i);
+                m.add(k);
+            }
+            return m;
+        }
+
+        byte[] V = {'L', 'I', 'S', 'T', '_', '1', '.', '0', ' '};
+
+        @Override
+        public void version(OutputStream o) throws IOException {
+            o.write(V);
+            elements.version(o);
+        }
+
+
+        @Override
+        public void version(InputStream o) throws IOException, VersionMismatch {
+            check(o, V);
+            elements.version(o);            
+        }
+
+        @Override
+        public void write(OutputStream o, List<T> data) throws IOException {
+            int n = data.size();
+            writeInt(o, n);
+            for (T e : data) {
+                elements.write(o, e);
+            }   
+        }
+    }
 
     static public class MAP<K, V> extends CheapSerializer<Map<K, V>> {
 
@@ -204,11 +383,15 @@ abstract public class CheapSerializer<T> {
             this.values = values;
         }
 
+        protected Map<K,V> newMap(int n) {
+            Map<K, V> m = new HashMap<K, V>();
+            return m;
+        }
 
         @Override
         public Map<K, V> read(InputStream i) throws IOException {
             int n = readInt(i);
-            HashMap<K, V> m = new HashMap<K, V>();
+            Map<K, V> m = newMap(n);
             for (int j = 0; j < n; j++) {
                 K k = keys.read(i);
                 V v = values.read(i);

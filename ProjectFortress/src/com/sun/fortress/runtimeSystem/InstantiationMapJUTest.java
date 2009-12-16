@@ -25,12 +25,12 @@ public class InstantiationMapJUTest extends TestCase {
     InstantiationMap map = newInstantiationMap(); 
     static InstantiationMap newInstantiationMap() {
         HashMap<String, String> map = new HashMap<String, String>();
-        map.put("A", "Xant");
-        map.put("B", "Xbat");
-        map.put("C", "Xcat");
-        map.put("D", "Xdog");
-        map.put("E", "Xemu");
-        map.put("F", "Xfox");
+        map.put("A", "ant");
+        map.put("B", "bat");
+        map.put("C", "cat");
+        map.put("D", "dog");
+        map.put("E", "emu");
+        map.put("F", "fox");
         return new InstantiationMap(map);
     }
     
@@ -39,7 +39,7 @@ public class InstantiationMapJUTest extends TestCase {
         int i = map.maybeVarInOxfords("A"+Naming.RIGHT_OXFORD, 0, b);
   
         assertEquals(2, i);
-        assertEquals("Xant"+Naming.RIGHT_OXFORD, b.toString());
+        assertEquals("ant"+Naming.RIGHT_OXFORD, b.toString());
  
         b = new StringBuffer();
         i = map.maybeVarInOxfords("BB"+Naming.RIGHT_OXFORD, 0, b);
@@ -49,12 +49,12 @@ public class InstantiationMapJUTest extends TestCase {
         b = new StringBuffer();
         i = map.maybeVarInOxfords("C;D"+Naming.RIGHT_OXFORD, 0, b);
         assertEquals(4, i);
-        assertEquals("Xcat;Xdog"+Naming.RIGHT_OXFORD, b.toString());
+        assertEquals("cat;dog"+Naming.RIGHT_OXFORD, b.toString());
         
         b = new StringBuffer();
         i = map.maybeVarInOxfords("C=C;D=D"+Naming.RIGHT_OXFORD, 0, b);
         assertEquals(8, i);
-        assertEquals("C=Xcat;D=Xdog"+Naming.RIGHT_OXFORD, b.toString());
+        assertEquals("C=cat;D=dog"+Naming.RIGHT_OXFORD, b.toString());
     }
 
     public void testMaybeVarInLSemi() {
