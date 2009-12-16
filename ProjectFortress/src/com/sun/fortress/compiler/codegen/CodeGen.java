@@ -377,6 +377,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug( "Writing class ", file);
     }
 
+    public void dumpClass( String unmangled_file_name, List<String> splist) {
+        PrintWriter pw = new PrintWriter(System.out);
+        cw.visitEnd();
+
+        String file = Naming.mangleFortressIdentifier(unmangled_file_name);
+
+        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
+            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
+
+        ByteCodeWriter.writeJarredClass(jos, file, cw.toByteArray());
+        ByteCodeWriter.writeJarredFile(jos, file, "xlation", Naming.xlationSerializer.toBytes(splist));
+        debug( "Writing class ", file);
+    }
+
     private void popAll(int onStack) {
         if (onStack == 0) return;
         for (; onStack > 1; onStack -= 2) {
@@ -813,10 +827,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
 
         Map<String, String> xlation = new HashMap<String, String>();
-        String sparams_part = genericDecoration(x, xlation);
+        List<String> splist = new ArrayList<String>();
+        String sparams_part = genericDecoration(x, xlation, splist);
 
         FnDecl y = x;
-        x = (FnDecl) x.accept(new GenericNumberer(xlation));
+        // NO // x = (FnDecl) x.accept(new GenericNumberer(xlation));
 
         // Get rewritten parts.
         FnHeader header = x.getHeader();
@@ -852,6 +867,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String PCN = genericFunctionPkgClass(packageAndClassName, mname,
                 sparams_part, generic_arrow_type)
                         ;
+        String PCNOuter = genericFunctionPkgClass(packageAndClassName, mname,
+                makeTemplateSParams(sparams_part) , generic_arrow_type)
+                        ;
 
         // System.err.println(PCN);
 
@@ -868,7 +886,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
-        cg.dumpClass(PCN);
+        cg.dumpClass(PCNOuter, splist);
     }
 
     private void generateTraitDefaultMethod(FnDecl x, IdOrOp name,
@@ -1258,9 +1276,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    private String genericDecoration(FnDecl x, Map<String, String> xlation) {
+    private String genericDecoration(FnDecl x, Map<String, String> xlation, List<String> splist) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return NamingCzar.genericDecoration(sparams, xlation, thisApi());
+        return NamingCzar.genericDecoration(sparams, xlation, splist, thisApi());
     }
 
 
@@ -1331,10 +1349,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             // Generic case -- rewrite declaration.
             Map<String, String> xlation = new HashMap<String, String>();
+            ArrayList<String> splist = new ArrayList<String>();
             String sparams_part = NamingCzar.genericDecoration(trait_sparams,
-                    xlation, thisApi());
+                    xlation, splist, thisApi());
             FnDecl y = x;
-            x = (FnDecl) x.accept(new GenericNumberer(xlation));
+            // NO // x = (FnDecl) x.accept(new GenericNumberer(xlation));
 
             // Get translated bits.
             FnHeader header = x.getHeader();
@@ -1352,10 +1371,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers);
+                    params, modifiers, splist);
             functionalMethodOfGenericTraitObjectWrapper(wname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers);
+                    params, modifiers, splist);
         }
 
     }
@@ -1375,9 +1394,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void functionalMethodOfGenericTraitObjectWrapper(String mname,
             String sparams_part, String sig, String generic_arrow_type,
             int invocation, String dottedName, int selfIndex,
-            List<Param> params, int modifiers) {
+            List<Param> params, int modifiers, List<String> splist) {
         String PCN = genericFunctionPkgClass(packageAndClassName, mname,
                 sparams_part, generic_arrow_type);
+        String PCNOuter = genericFunctionPkgClass(packageAndClassName, mname,
+                makeTemplateSParams(sparams_part) , generic_arrow_type);
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
@@ -1392,7 +1413,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 selfIndex, traitOrObjectName+sparams_part, dottedName, invocation, sig,
                 params.size(), true);
 
-        cg.dumpClass(PCN);
+        cg.dumpClass(PCNOuter, splist);
     }
 
     /**
@@ -1852,16 +1873,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
+        List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = x.getParams();
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         ObjectDecl y = x;
         // Rewrite the generic.
         // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
 
-            x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
+            // NO // x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
             // Refresh these post-rewrite
             header = x.getHeader();
             extendsC = header.getExtendsClause();
@@ -1880,7 +1902,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         Id classId = NodeUtil.getName(x);
         String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    sparams_part,
+                    packageAndClassName);
+        String classFileOuter =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    makeTemplateSParams(sparams_part),
+                    packageAndClassName);
         String classFileMinusSparams =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,"",packageAndClassName);
         traitOrObjectName = classFile;
@@ -1901,6 +1929,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             CodeGen cg = this;
             String PCN = null;
+            String PCNOuter = null;
 
             if (sparams_part.length() > 0) {
                 ArrowType at =
@@ -1910,6 +1939,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 PCN = genericFunctionPkgClass(packageAndClassName, mname, sparams_part, generic_arrow_type)
+                ;
+                PCNOuter = genericFunctionPkgClass(packageAndClassName, mname, makeTemplateSParams(sparams_part) , generic_arrow_type)
                 ;
 
 
@@ -1947,7 +1978,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
-                cg.dumpClass(PCN);
+                cg.dumpClass(PCNOuter, splist);
             }
 
 
@@ -1996,7 +2027,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             addStaticVar(new VarCodeGen.StaticBinding(
                                  classId, NodeFactory.makeTraitType(classId),
                                  classFileMinusSparams,
-                                 NamingCzar.SINGLETON_FIELD_NAME, classDesc));
+                                 NamingCzar.SINGLETON_FIELD_NAME, classDesc,
+                                 splist));
         }
 
         BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
@@ -2023,11 +2055,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpMethodChaining(superInterfaces, false);
 
         lexEnv = savedLexEnv;
-        dumpClass( classFile );
+        
+        if (sparams_part.length() > 0) {
+            dumpClass( classFileOuter, splist );
+        } else {
+            dumpClass( classFile );
+        }
         cw = prev;
         inAnObject = savedInAnObject;
         traitOrObjectName = null;
         currentTraitObjectDecl = null;
+    }
+
+
+    private String makeTemplateSParams(String sparamsPart) {
+        if (sparamsPart.length() == 0)
+            return "";
+        else
+            return Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD;
     }
 
 
@@ -2040,7 +2085,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
             String static_parameters, String generic_arrow_schema) {
         return component_pkg_class + Naming.GEAR +"$" +
-        simple_name + static_parameters + Naming.ENVELOPE + "$" + generic_arrow_schema;
+        simple_name + static_parameters + Naming.ENVELOPE + "$" + Naming.HEAVY_X + generic_arrow_schema;
     }
 
     // This returns a list rather than a set because the order matters;
@@ -2342,15 +2387,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( !canCompile ) sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
+        List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         TraitDecl y = x;
         // Rewrite the generic.
         // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
 
-            x = (TraitDecl) y.accept(new GenericNumberer(xlation));
+            // NO // x = (TraitDecl) y.accept(new GenericNumberer(xlation));
             // Refresh these post-rewrite
             header = x.getHeader();
             extendsC = header.getExtendsClause();
@@ -2375,8 +2421,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         Id classId = NodeUtil.getName(x);
         String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,sparams_part,packageAndClassName);
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    sparams_part,
+                    packageAndClassName);
+        // Used just for the name of the class file, nothing else.
+        String classFileOuter =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    makeTemplateSParams(sparams_part) ,
+                    packageAndClassName);
         springBoardClass = classFile + NamingCzar.springBoard;
+        String springBoardClassOuter = classFileOuter + NamingCzar.springBoard;
 
         String abstractSuperclass;
         traitOrObjectName = classFile;
@@ -2393,7 +2447,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
-        dumpClass( classFile );
+        if (sparams_part.length() > 0 ) {
+            dumpClass( classFileOuter, splist );
+        } else {
+            dumpClass( classFileOuter );
+        }
 
         // Now let's do the springboard inner class that implements this interface.
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -2410,7 +2468,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
         debug("Finished dumpDecls ", springBoardClass);
-        dumpClass(springBoardClass);
+        if (sparams_part.length() > 0 ) {
+            dumpClass( springBoardClassOuter, splist );
+        } else {
+            dumpClass( springBoardClassOuter );
+        }
         // Now lets dump out the functional methods at top level.
         cw = prev;
 
@@ -2475,7 +2537,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         addStaticVar(
             new VarCodeGen.StaticBinding(var, ty, classFile,
-                                         NamingCzar.SINGLETON_FIELD_NAME, tyDesc));
+                                         NamingCzar.SINGLETON_FIELD_NAME,
+                                         tyDesc, null /* No static params */));
     }
 
     public void forVarRef(VarRef v) {
@@ -2490,7 +2553,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             vcg = new VarCodeGen.StaticBinding(id, ty,
                                                className,
                                                NamingCzar.SINGLETON_FIELD_NAME,
-                                               tyDesc);
+                                               tyDesc, null /* No static params */);
             addStaticVar(vcg);
         }
         debug("forVarRef ", v , " Value = ", vcg);

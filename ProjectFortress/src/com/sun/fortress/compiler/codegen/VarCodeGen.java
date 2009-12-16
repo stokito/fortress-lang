@@ -16,8 +16,10 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -35,6 +37,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.runtimeSystem.InstantiationMap;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.NamingCzar;
 
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
@@ -160,8 +163,11 @@ public abstract class VarCodeGen {
 
     public static class StaticBinding extends NeedsType {
 
-        public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+        List<String> sparams;
+        
+        public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc, List<String> sparams) {
             super(id, fortressType, owner, name, desc);
+            this.sparams = sparams;
         }
 
         public void pushValue(CodeGenMethodVisitor mv) {
@@ -173,18 +179,20 @@ public abstract class VarCodeGen {
 
             if (static_args.length() > 0) {
                 // need to rewrite the classDesc given static args.
-                HashMap<String, String> xlation = new HashMap<String, String>();
-
+                Map<String, String> xlation = new HashMap<String, String>();
+                ArrayList<String> sargs = new ArrayList<String>();
                 String rewritten =
                     InstantiationMap.canonicalizeStaticParameters(
                             static_args,
                             static_args.indexOf(Naming.LEFT_OXFORD),
                             static_args.indexOf(Naming.RIGHT_OXFORD),
-                            xlation);
+                            xlation, sargs);
 
+                xlation = Useful.map(sparams, sargs);
+                
                 InstantiationMap im = new InstantiationMap(xlation);
 
-                cd = im.oxfordSensitiveSubstitution(cd);
+                cd = im.getUnmangledTypeDesc(cd);
 
             }
 

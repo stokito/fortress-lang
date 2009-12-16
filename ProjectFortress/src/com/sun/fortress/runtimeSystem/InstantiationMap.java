@@ -17,14 +17,27 @@
 
 package com.sun.fortress.runtimeSystem;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 public class InstantiationMap  {
     
+    private final static InstantiationMap EMPTY = new InstantiationMap(new HashMap<String, String>());
+    
     Map<String, String> p;
+    Map<String, String> q;
 
     public InstantiationMap(Map<String, String> p) {
         this.p = p;
+        // Copy tags to front, makes it easier to do tag replacement.
+        q = new HashMap<String,String>();
+        for (Map.Entry<String, String> e : p.entrySet()) {
+            String k = e.getKey();
+            String v = e.getValue();
+            q.put(v.substring(0,1)+k, v);
+            
+        }
     }
     
     
@@ -35,10 +48,9 @@ public class InstantiationMap  {
         s = Naming.demangleFortressIdentifier(s);
         StringBuffer b = new StringBuffer();
         maybeBareVar(s, 0, b, false);
-        s = oxfordSensitiveSubstitution(s);
-        if (! b.toString().equals(s)) {
-            throw new Error("mismatch, expected " + s + " but got " + b);
-        }
+        
+        s = b.toString();
+       
         return s;
     }
     
@@ -50,10 +62,22 @@ public class InstantiationMap  {
         s = Naming.demangleFortressIdentifier(s);
         StringBuffer b = new StringBuffer();
         maybeBareVar(s, 0, b, false);
-        s = oxfordSensitiveSubstitution(s);
-        if (! b.toString().equals(s)) {
-            throw new Error("mismatch, expected " + s + " but got " + b);
-        }
+        
+        s =  b.toString();
+
+        return s;
+    }
+
+    public String getUnmangledTypeDesc(String s) {
+        // TODO will need to rewrite into type, desc, and method variants.
+        String t = s;
+        if (s == null)
+            return s;
+        StringBuffer b = new StringBuffer();
+        maybeVarInTypeDesc(s, 0, b);
+        
+        s =  b.toString();
+
         return s;
     }
 
@@ -65,10 +89,8 @@ public class InstantiationMap  {
         StringBuffer b = new StringBuffer();
         maybeVarInTypeDesc(s, 0, b);
 
-        s = oxfordSensitiveSubstitution(s);
-        if (! b.toString().equals(s)) {
-            throw new Error("mismatch, expected " + s + " but got " + b);
-        }
+        s = b.toString();
+       
         return s;
         }
 
@@ -80,10 +102,8 @@ public class InstantiationMap  {
         StringBuffer b = new StringBuffer();
         maybeVarInMethodSig(s, 0, b);
 
-        s = oxfordSensitiveSubstitution(s);
-        if (! b.toString().equals(s)) {
-            throw new Error("mismatch, expected " + s + " but got " + b);
-        }
+        s = b.toString();
+       
         return s;
         }
 
@@ -256,8 +276,12 @@ public class InstantiationMap  {
         char ch = input.charAt(at++);
         boolean maybeVar = true;
         boolean eol = false;
+        boolean disabled = false;
         
         while (ch != ';' && ch != Naming.RIGHT_OXFORD_CHAR) {
+            if (ch == Naming.HEAVY_X_CHAR)
+                disabled = true;
+            
             if (ch == '=') {
                 if (maybeVar)
                     accum.append(input.substring(begin, at-1));
@@ -268,9 +292,10 @@ public class InstantiationMap  {
             } else if (nonVar(ch)) {
                 maybeVar = false;
                 accum.append(input.substring(begin, at));
-            }  
+            } 
+            
             if (ch == Naming.LEFT_OXFORD_CHAR) {
-                at = maybeVarInOxfords(input, at, accum);
+                at = (disabled ? EMPTY: this).maybeVarInOxfords(input, at, accum);
             }
             
             if (at >= input.length()) {
@@ -284,9 +309,14 @@ public class InstantiationMap  {
         
         if (maybeVar) {
             String s = input.substring(begin, at);
-            String t = ch == '=' ? null : p.get(s);
-            if (t != null) {
-                accum.append(inOxfords ? t : t.substring(1));
+            if (ch != '=') {
+                String t = p.get(s); // (inOxfords ? q : p).get(s);
+                if (t != null) {
+                    accum.append(t);
+                    //accum.append(inOxfords ? t : t.substring(1));
+                } else {
+                    accum.append(s);
+                }
             } else {
                 accum.append(s);
             }
@@ -346,12 +376,12 @@ public class InstantiationMap  {
      * @throws Error
      */
     public static String canonicalizeStaticParameters(String name, int left_oxford,
-            int right_oxford, Map<String, String> xlation) throws Error {
+            int right_oxford, Map<String, String> xlation, ArrayList<String> sargs) throws Error {
         String template_start = name.substring(0,left_oxford+1);
         String template_end = name.substring(right_oxford);
         // Note include trailing oxford to simplify loop termination.
         String generics = name.substring(left_oxford+1, right_oxford);
-        String template_middle = "";
+        //String template_middle = "";
         int i = 1;
         while (generics.length() > 0) {
             int end = generics.indexOf(';');
@@ -359,30 +389,33 @@ public class InstantiationMap  {
                 end = generics.length();
             String tok =
                 generics.substring(0, end);
-            char ch = tok.charAt(0);
-            String tag;
-            if (ch == Naming.FOREIGN_TAG_CHAR ||
-                ch == Naming.NORMAL_TAG_CHAR ||
-                ch == Naming.INTERNAL_TAG_CHAR) {
-                tag = Naming.YINYANG;
-            } else if (ch == Naming.MUSIC_SHARP_CHAR) {
-                tag = Naming.MUSIC_SHARP;
-            } else if (ch == Naming.HAMMER_AND_PICK_CHAR) {
-                tag = Naming.MUSIC_SHARP;
-            } else {
-                throw new Error("Unimplemented generic kind " + ch + " seen in instantiating classloader");
-            }
-            template_middle += tag+i;
-            xlation.put(tag+i, tok);
+//            char ch = tok.charAt(0);
+//            String tag;
+//            if (ch == Naming.FOREIGN_TAG_CHAR ||
+//                ch == Naming.NORMAL_TAG_CHAR ||
+//                ch == Naming.INTERNAL_TAG_CHAR) {
+//                tag = Naming.YINYANG;
+//            } else if (ch == Naming.MUSIC_SHARP_CHAR) {
+//                tag = Naming.MUSIC_SHARP;
+//            } else if (ch == Naming.HAMMER_AND_PICK_CHAR) {
+//                tag = Naming.MUSIC_SHARP;
+//            } else {
+//                throw new Error("Unimplemented generic kind " + ch + " seen in instantiating classloader");
+//            }
+//            template_middle += tag+i;
+//            xlation.put(tag+i, tok);
+            sargs.add(tok);
     
     
             if (end == generics.length())
                 break;
-            template_middle += ";";
+//            template_middle += ";";
             generics = generics.substring(end+1);
             i++;
         }
-        String s = template_start + template_middle + template_end;
+        String s = template_start +
+                   // template_middle +
+                   template_end;
         return s;
     }
     

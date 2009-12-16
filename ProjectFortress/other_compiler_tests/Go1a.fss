@@ -19,7 +19,7 @@ component Go1a
 export Executable
 
 object O[\T\]
-  m():String = "PASS"
+   m():String = "PASS"
 end
 
 run():() = do

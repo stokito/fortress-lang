@@ -51,7 +51,7 @@ public class Instantiater extends ClassAdapter {
         }
         super.visit(version, access,
         types.getTypeName(name),
-        //instanceName, 
+        // instanceName, 
         signature,
                 types.getTypeName(superName), new_interfaces);
     }

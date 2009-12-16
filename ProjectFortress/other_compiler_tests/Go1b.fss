@@ -23,7 +23,7 @@ object O[\T\](x:T)
 end
 
 run():() = do
-    println(O[\ZZ32\](1+1).m())
+      println(O[\ZZ32\](1+1).m())
 end
 
 end

@@ -833,7 +833,8 @@ public class NamingCzar {
     }
 
     private static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
-        return Naming.NORMAL_TAG + makeArrowDescriptor(t,ifNone);
+        return // Naming.NORMAL_TAG +
+        makeArrowDescriptor(t,ifNone);
     }
 
     // forFnExpr
@@ -885,22 +886,24 @@ public class NamingCzar {
         APIName apiName = id.getApiName().unwrap(ifNone);
         String tag = "";
         String sep = ".";
-        if (false)
-         {
-            if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
-                tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
-                sep = "$"; // for some reason this fails, why?
-            } else if (ForeignJava.only.definesApi(apiName)) {
-                tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
-            } else {
-                tag = Naming.NORMAL_TAG; // smiley face == normal case.
-                sep = "$";
-            }
-
-                // this might be buggy.
-            return tag + apiName + sep + id.getText();
-        } else {
-            return Naming.NORMAL_TAG + jvmTypeDesc(t, ifNone, false);
+//        if (false)
+//         {
+//            if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
+//                tag = Naming.INTERNAL_TAG; // warning sign -- internal use only
+//                sep = "$"; // for some reason this fails, why?
+//            } else if (ForeignJava.only.definesApi(apiName)) {
+//                tag = Naming.FOREIGN_TAG; // hot beverage == JAVA
+//            } else {
+//                tag = Naming.NORMAL_TAG; // smiley face == normal case.
+//                sep = "$";
+//            }
+//
+//                // this might be buggy.
+//            return tag + apiName + sep + id.getText();
+//        } else
+            {
+            return // Naming.NORMAL_TAG +
+            jvmTypeDesc(t, ifNone, false);
         }
     }
 
@@ -908,13 +911,15 @@ public class NamingCzar {
         Id id = t.getName();
         String s = id.getText();
 
-        // Don't tag variables.......
-        if (s.startsWith(Naming.YINYANG))
-            return s;
-
-        String tag = Naming.NORMAL_TAG; // has to be a NORMAL_TAG to work.
-        // this might be buggy.
-        return tag + s;
+        return s;
+        
+//        // Don't tag variables.......
+//        if (s.startsWith(Naming.YINYANG))
+//            return s;
+//
+//        String tag = Naming.NORMAL_TAG; // has to be a NORMAL_TAG to work.
+//        // this might be buggy.
+//        return tag + s;
     }
 
 
@@ -1439,6 +1444,7 @@ public class NamingCzar {
      */
     public static String genericDecoration(List<StaticParam> sparams,
             Map<String, String> xlation,
+            List<String> splist,
             APIName ifMissing
             ) {
         if (sparams.size() == 0)
@@ -1454,7 +1460,8 @@ public class NamingCzar {
             IdOrOp spn = sp.getName();
             String tag = spk.accept(spkTagger) + index;
             xlation.put(spn.getText(), tag);
-            frag += tag + ";";
+            splist.add(spn.getText());
+            frag += spn.getText() + ";";
             index++;
         }
         // TODO Auto-generated method stub
