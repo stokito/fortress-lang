@@ -100,6 +100,12 @@ class AbstractMethodChecker(component: ComponentIndex,
     typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
     for ( (owner, d) <- toCheck; if (!implement(d, decls, owner)) ) {
+        // for (pair <- inheritedMethods(extendsC, typeAnalyzer)) {
+        //     val uname = pair.first
+        //     val (fnl, _, t) = pair.second
+        //     System.err.println(name + ": " + fnl + " in " + t);
+        // }
+        // System.err.println("******");
         error(span,
               "The inherited abstract method " + d + " from the trait " + owner +
               "\n    in the object " + name +
