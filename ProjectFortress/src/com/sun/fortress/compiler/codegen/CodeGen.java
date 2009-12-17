@@ -1661,6 +1661,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             Option<Type> oschema = x.getOverloadingSchema();
 
+            if (!oschema.isSome()) {
+                sayWhat(x, "FunctionalRef " + x + " lacks overloading schema.\n");
+            }
+
             String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
 
             pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.second(), decoration, arrow_type);
@@ -2537,8 +2541,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         addStaticVar(
             new VarCodeGen.StaticBinding(var, ty, classFile,
-                                         NamingCzar.SINGLETON_FIELD_NAME,
-                                         tyDesc, null /* No static params */));
+                                         NamingCzar.SINGLETON_FIELD_NAME, tyDesc));
     }
 
     public void forVarRef(VarRef v) {
@@ -2552,8 +2555,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String className = NamingCzar.jvmClassForToplevelDecl(id, packageAndClassName);
             vcg = new VarCodeGen.StaticBinding(id, ty,
                                                className,
-                                               NamingCzar.SINGLETON_FIELD_NAME,
-                                               tyDesc, null /* No static params */);
+                                               NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
             addStaticVar(vcg);
         }
         debug("forVarRef ", v , " Value = ", vcg);
