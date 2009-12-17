@@ -88,8 +88,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     public final static Comparator<List<? extends Overloading>> overloadListComparator = new AnyListComparer<Overloading>(overloadComparator);
 
-    
-    
+
+
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedFunctions = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
     final private Map<List<? extends Overloading>, TypedIdOrOpList> overloadedOperators = new BATree<List<? extends Overloading>, TypedIdOrOpList>(overloadListComparator);
 
@@ -109,7 +109,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              Option<Type> schema_result) {
 
         List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
-        
+
         Collections.<Overloading>sort(the_overloads, overloadComparator);
         fns = Useful.applyToAll(the_overloads, overloadingToIdOrOp);
 
@@ -130,16 +130,16 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                 overloadedFunctions.put(the_overloads, new TypedIdOrOpList(overloadingName, fns, that.getInfo().getExprType()));
             }
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
-            fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
+            fns = Collections.singletonList(overloadingId);
         } else if (the_overloads.size() == 1 ){
             Overloading the_overload = the_overloads.get(0);
             IdOrOp thename = the_overload.getUnambiguousName();
             Option<ArrowType> oat = the_overload.getSchema();
             if (oat.isSome())
                 schema_result = Option.<Type>wrap(oat.unwrap());
-            fns = Collections.unmodifiableList(Collections.singletonList(thename));
+            fns = Collections.singletonList(thename);
         } else {
-            fns = Collections.unmodifiableList(Collections.singletonList(originalName));
+            fns = Collections.singletonList(originalName);
         }
 
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
@@ -155,7 +155,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                              Option<Type> type_result,
                              Option<Type> schema_result) {
         Op originalOp = (Op)originalName;
-        
+
         List<Overloading> the_overloads = forInterpreter ? interp_overloadings : newOverloadings;
 
         Collections.<Overloading>sort(the_overloads, overloadComparator);
@@ -171,12 +171,10 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             }
         }
 
-        ops = new ArrayList<IdOrOp>();
-        the_overloads = new ArrayList<Overloading>();
-        ops.addAll(newOps);
-        the_overloads.addAll(newNewOverloadings);
+        ops = newOps;
+        the_overloads = newNewOverloadings;
 
-       if (the_overloads.size() > 1) {
+        if (the_overloads.size() > 1) {
             // Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
 
             StringBuffer buffer = new StringBuffer();
@@ -194,8 +192,17 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
                 overloadedOperators.put(the_overloads, new TypedIdOrOpList(overloadingName, ops, that.getInfo().getExprType()));
             }
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
-            ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
-       }
+            ops = Collections.singletonList(overloadingOp);
+        } else if (the_overloads.size() == 1 ){
+            Overloading the_overload = the_overloads.get(0);
+            IdOrOp thename = the_overload.getUnambiguousName();
+            Option<ArrowType> oat = the_overload.getSchema();
+            if (oat.isSome())
+                schema_result = Option.<Type>wrap(oat.unwrap());
+            ops = Collections.singletonList(thename);
+        } else {
+            ops = Collections.singletonList(originalName);
+        }
         return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
                                   // interp_overloadings, newOverloadings,
                                   Collections.<Overloading>emptyList(), Collections.<Overloading>emptyList(),

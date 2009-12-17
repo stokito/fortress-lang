@@ -50,7 +50,7 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 
 public class GenericNumberer extends NodeUpdateVisitor {
-    
+
    private final Map<String, String> xlation;
 
     GenericNumberer(Map<String, String> xlation) {
@@ -66,7 +66,7 @@ public class GenericNumberer extends NodeUpdateVisitor {
         s = xlation.get(s);
         return NodeFactory.makeId(x,s);
     }
-    
+
     private Op xlate(Op x) {
         if (x.getApiName().isSome())
             return x;
@@ -76,7 +76,7 @@ public class GenericNumberer extends NodeUpdateVisitor {
         s = xlation.get(s);
         return NodeFactory.makeOp(x,s);
     }
-    
+
     private IdOrOp xlate (IdOrOp x) {
         if (x instanceof Op)
             return xlate((Op) x);
@@ -84,16 +84,16 @@ public class GenericNumberer extends NodeUpdateVisitor {
             return xlate((Id) x);
         throw new Error("This cannot happen; instanceof should have covered all cases, but saw " + x == null ? "null" : x.getClass().getName());
     }
-    
+
     F<IdOrOp,IdOrOp> xlator = new F<IdOrOp, IdOrOp>() {
 
         @Override
         public IdOrOp apply(IdOrOp x) {
             return xlate(x);
         }
-        
+
     };
-    
+
     @Override
     public Node forStaticParam(StaticParam that) {
         ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
@@ -109,11 +109,11 @@ public class GenericNumberer extends NodeUpdateVisitor {
         // Clone from parent.
         ExprInfo info_result = (ExprInfo) recur(that.getInfo());
         List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-        
+
         // need to rewrite originalName and names.
         IdOrOp originalName_result = xlate(that.getOriginalName());
         List<IdOrOp> names_result = Useful.<IdOrOp>applyToAllPossiblyReusing(that.getNames(), xlator);
-        
+
         // what about overloadings?
         List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
         List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
@@ -127,11 +127,11 @@ public class GenericNumberer extends NodeUpdateVisitor {
         // Clone from parent.
         ExprInfo info_result = (ExprInfo) recur(that.getInfo());
         List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
-        
+
         // need to rewrite originalName and names.
         IdOrOp originalName_result = xlate(that.getOriginalName());
         List<IdOrOp> names_result = Useful.<IdOrOp>applyToAllPossiblyReusing(that.getNames(), xlator);
-        
+
         // what about overloadings?
         List<Overloading> overloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
         List<Overloading> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
@@ -139,7 +139,7 @@ public class GenericNumberer extends NodeUpdateVisitor {
         Option<Type> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
         return forFnRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, overloadings_result, newOverloadings_result, overloadingType_result, schema_result);
     }
-    
+
     public Node forOverloading(Overloading that) {
         ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
         IdOrOp unambiguousName_result = (IdOrOp) recur(that.getUnambiguousName());
@@ -160,10 +160,10 @@ public class GenericNumberer extends NodeUpdateVisitor {
     @Override
     public Node forTraitType(TraitType that) {
         TypeInfo info_result = (TypeInfo) recur(that.getInfo());
-        
+
         // replace the name
         Id name_result = xlate(that.getName());
-        
+
         List<StaticArg> args_result = recurOnListOfStaticArg(that.getArgs());
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         return forTraitTypeOnly(that, info_result, name_result, args_result, staticParams_result);
@@ -172,10 +172,10 @@ public class GenericNumberer extends NodeUpdateVisitor {
     @Override
     public Node forVarRef(VarRef that) {
         ExprInfo info_result = (ExprInfo) recur(that.getInfo());
-        
+
         // replace the varId
         Id varId_result = xlate(that.getVarId());
-        
+
         List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
         return forVarRefOnly(that, info_result, varId_result, staticArgs_result);
     }
@@ -183,11 +183,11 @@ public class GenericNumberer extends NodeUpdateVisitor {
     @Override
     public Node forVarType(VarType that) {
         TypeInfo info_result = (TypeInfo) recur(that.getInfo());
-        
+
         // replace the name
         Id name_result = xlate(that.getName());
-        
+
         return forVarTypeOnly(that, info_result, name_result);
     }
-        
+
 }

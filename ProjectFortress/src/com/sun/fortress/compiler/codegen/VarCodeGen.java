@@ -17,6 +17,7 @@
 package com.sun.fortress.compiler.codegen;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,10 +165,15 @@ public abstract class VarCodeGen {
     public static class StaticBinding extends NeedsType {
 
         List<String> sparams;
-        
+
         public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc, List<String> sparams) {
             super(id, fortressType, owner, name, desc);
             this.sparams = sparams;
+        }
+
+        public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+            super(id, fortressType, owner, name, desc);
+            this.sparams = Collections.emptyList();
         }
 
         public void pushValue(CodeGenMethodVisitor mv) {
@@ -189,7 +195,7 @@ public abstract class VarCodeGen {
                             xlation, sargs);
 
                 xlation = Useful.map(sparams, sargs);
-                
+
                 InstantiationMap im = new InstantiationMap(xlation);
 
                 cd = im.getUnmangledTypeDesc(cd);
