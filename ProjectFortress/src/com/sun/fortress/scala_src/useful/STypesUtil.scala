@@ -895,15 +895,15 @@ object STypesUtil {
     val history: HierarchyHistory = new HierarchyHistory()
     val allMethods =
       new HashMap[IdOrOpOrAnonymousName,
-                  MSet[(Type, Functional, StaticTypeReplacer, TraitType)]]
+                  MSet[(Type, Int, Functional, StaticTypeReplacer, TraitType)]]
       with MultiMap[IdOrOpOrAnonymousName,
-                    (Type, Functional, StaticTypeReplacer, TraitType)]
+                    (Type, Int, Functional, StaticTypeReplacer, TraitType)]
       // Method name -> parameter types (not incl self), actual decl, type info, decl site
     for (pltPair <- toSet(methods)) {
       val methodName = pltPair.first
       val (f, r, tt) = pltPair.second
-      val paramTy = toParamTy(methodName, f, r)
-      allMethods.add(methodName, (paramTy, f, r, tt))
+      val (paramTy, selfIndex) = paramTyWithoutSelf(methodName, f, r)
+      allMethods.add(methodName, (paramTy, selfIndex, f, r, tt))
     }
     var traitsToDo: List[TraitTypeWhere] = extendedTraits
     while (!traitsToDo.isEmpty) {
@@ -919,7 +919,7 @@ object STypesUtil {
             val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
                                                       toJavaList(trait_args))
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
-              val paramTy = toParamTy(methodName, methodFunc, paramsToArgs)
+              val (paramTy, selfIndex) = paramTyWithoutSelf(methodName, methodFunc, paramsToArgs)
               if (!methodFunc.name().equals(methodName)) {
                 // TODO: work around the fact that TraitIndex includes
                 // two copies of the same Functional for exported functional
@@ -930,20 +930,21 @@ object STypesUtil {
               } else {
                 var isOverridden = false
                 val newOverloadings =
-                  new HashSet[(Type, Functional, StaticTypeReplacer, TraitType)]()
+                  new HashSet[(Type, Int, Functional, StaticTypeReplacer, TraitType)]()
                 for ( overloadings <- allMethods.get(methodName);
-                      tup@(paramTyX, f, s, tyX) <- overloadings ) {
+                      tup@(paramTyX, selfIndexX, f, s, tyX) <- overloadings ) {
                   // ty.methodName(paramTy) vs tyX.methodName(paramTyX)
                   // ty > tyX  paramTy <= paramTyX    tyX overrides new ty
                   // ty < tyX  paramTy >= paramTyX    ty overrides extant tyX
                   // otherwise no relation.
                   if (analyzer.lteq(tyX,ty)) {
                     if (!isOverridden) {
-                      isOverridden = analyzer.lteq(paramTy, paramTyX)
+                      isOverridden = selfIndex == selfIndexX && analyzer.lteq(paramTy, paramTyX)
                       // if (isOverridden) System.err.println("    "+methodFunc+" overridden by "+f)
                     }
                     newOverloadings += tup
-                  } else if (analyzer.lteq(ty,tyX) && analyzer.lteq(paramTyX, paramTy)) {
+                  } else if (analyzer.lteq(ty,tyX) && selfIndex == selfIndexX &&
+                             analyzer.lteq(paramTyX, paramTy)) {
                     // Extant is overridden, so skip.
                     // System.err.println("      dropped " + f)
                   } else {
@@ -952,7 +953,7 @@ object STypesUtil {
                 }
                 if (!isOverridden) {
                   // System.err.println("      added.")
-                  newOverloadings += ( (paramTy, methodFunc, paramsToArgs, ty) )
+                  newOverloadings += ( (paramTy, selfIndex, methodFunc, paramsToArgs, ty) )
                 }
                 allMethods += ((methodName, newOverloadings))
               }
@@ -976,7 +977,7 @@ object STypesUtil {
       }
     }
     for ( (methodName, overloadings) <- allMethods;
-          (_, f, s, tt) <- overloadings ) {
+          (_, _, f, s, tt) <- overloadings ) {
       methods.add(methodName, (f, s, tt))
     }
     methods
@@ -1005,12 +1006,20 @@ object STypesUtil {
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
                      new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
-  private def toParamTy(name: IdOrOpOrAnonymousName, func: Functional,
-                        paramsToArgs: StaticTypeReplacer) = {
+  private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
+                                paramsToArgs: StaticTypeReplacer) = {
     val span = NU.getSpan(name)
-    paramsToType(toList(func.parameters), span) match {
-      case Some(t) => paramsToArgs.replaceIn(t)
-      case _ => NF.makeVoidType(span)
+    val params = toList(func.parameters)
+    val (paramsSansSelf, sp) =
+      func match {
+        case st : HasSelfType if st.selfPosition >= 0 =>
+          val stp = st.selfPosition
+          (params.take(stp) ++ params.drop(stp+1), stp)
+        case _ => (params, -1)
+      }
+    paramsToType(paramsSansSelf, span) match {
+      case Some(t) => (paramsToArgs.replaceIn(t), sp)
+      case _ => (NF.makeVoidType(span), sp)
     }
   }
 
