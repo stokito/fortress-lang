@@ -17,6 +17,10 @@
 
 export Executable
 
+(* Test multiple inheritance of method implementation
+   in the presence of abstract methods, when the
+   types involved are generic. *)
+
 trait T[\X\]
   getter asString(): String
   u(t:T[\X\]): T[\X\]

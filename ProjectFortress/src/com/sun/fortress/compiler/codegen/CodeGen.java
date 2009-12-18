@@ -1660,12 +1660,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              */
 
             Option<Type> oschema = x.getOverloadingSchema();
+            Type arrowToUse = arrow;
 
-            if (!oschema.isSome()) {
-                sayWhat(x, "FunctionalRef " + x + " lacks overloading schema.\n");
+            if (oschema.isSome()) {
+                arrowToUse = oschema.unwrap();
+            } else {
+                System.err.println(NodeUtil.getSpan(x) + ": FunctionalRef " + x + " lacks overloading schema; using "+arrowToUse);
             }
 
-            String arrow_type = NamingCzar.jvmTypeDesc(oschema.unwrap(), thisApi(), false);
+            String arrow_type = NamingCzar.jvmTypeDesc(arrowToUse, thisApi(), false);
 
             pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.second(), decoration, arrow_type);
 
@@ -2709,8 +2712,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         List<IdOrOp> fns = x.getFns();
         IdOrOp name = x.getName();
-        Option<com.sun.fortress.nodes.Type> ot = x.getType();
-        com.sun.fortress.nodes.Type ty = ot.unwrap();
+        com.sun.fortress.nodes.Type ty = x.getType().unwrap();
         Relation<IdOrOpOrAnonymousName, Function> fnrl = ci.functions();
 
         MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount =
