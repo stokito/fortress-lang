@@ -17,6 +17,9 @@
 
 export Executable
 
+(* Test multiple inheritance of method implementation
+   in combination with abstract methods. *)
+
 trait T comprises { U, V }
   abstract getter asString(): String
   abstract getter foo(): String

@@ -17,29 +17,35 @@
 
 export Executable
 
-trait T[\X\]
+(* Test multiple inheritance of functional
+   method implementation in the presence of
+   abstract functional methods. *)
+
+(** TODO: Re-insert generics a la Compiled12.inherit2 *)
+
+trait T
   getter asString(): String
-  u(self, t:T[\X\]): T[\X\]
-  abstract v(self, t:T[\X\]): T[\X\]
-  abstract w(self, t:T[\X\]): T[\X\]
+  u(self, t:T): T
+  abstract v(self, t:T): T
+  abstract w(self, t:T): T
 end
 
-trait U[\X\] extends T[\X\]
-  u(self, t:T[\X\]): T[\X\] = self
+trait U extends T
+  u(self, t:T): T = self
 end
 
-trait V[\X\] extends T[\X\]
-  v(self, t:T[\X\]): T[\X\] = self
+trait V extends T
+  v(self, t:T): T = self
 end
 
-object W[\X\](s:String) extends { U[\X\], V[\X\] }
+object W(s:String) extends { U, V }
   getter asString(): String = "W" s
-  w(self, t:T[\X\]): T[\X\] = self
+  w(self, t:T): T = self
 end
 
 run() = do
-    w1 : T[\ZZ32\] = W[\ZZ32\]("1")
-    w2 : U[\ZZ32\] = W[\ZZ32\]("2")
+    w1 : T = W("1")
+    w2 : U = W("2")
     println(w1.asString)
     println(u(w1,w2).asString)
     println(v(w1,w2).asString)
