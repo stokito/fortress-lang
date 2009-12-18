@@ -32,6 +32,7 @@ public abstract class FortressExecutable extends RecursiveAction {
     public static final int spawnThreshold = getSpawnThreshold();
     public static final FortressTaskRunnerGroup group =
         new FortressTaskRunnerGroup(numThreads);
+    public static final boolean useHelpJoin = getHelpJoin();
 
     static int getNumThreads() {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
@@ -49,6 +50,16 @@ public abstract class FortressExecutable extends RecursiveAction {
         return defaultSpawnThreshold;
     }
 
+    static boolean getHelpJoin() {
+        String getHelpJoinString = System.getenv("FORTRESS_HELP_JOIN");
+        return envToBoolean(getHelpJoinString);
+    }
+
+    private static boolean envToBoolean(String s) {
+        return s != null && s.length() > 0 &&
+               s.substring(0,1).matches("[TtYy]");
+    }
+
     public final void runExecutable(String args[]) {
         try {
             systemHelper.registerArgs(args);
@@ -57,10 +68,10 @@ public abstract class FortressExecutable extends RecursiveAction {
             this.join();
         } finally {
             String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
-            if (printOnOutput != null && printOnOutput.length() > 0 &&
-                printOnOutput.substring(0,1).matches("[TtYy]")) {
+            if (envToBoolean(printOnOutput)) {
                 System.err.println("numThreads = " + numThreads +
-                                   ", spawnThreshold = " + spawnThreshold);
+                                   ", spawnThreshold = " + spawnThreshold +
+                                   " helpJoin = " + useHelpJoin);
                 System.err.println(group);
             }
         }

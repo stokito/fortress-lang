@@ -23,6 +23,8 @@ import jsr166y.RecursiveAction;
 
 import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
 import static com.sun.fortress.runtimeSystem.FortressExecutable.spawnThreshold;
+import static com.sun.fortress.runtimeSystem.FortressExecutable.useHelpJoin;
+
 /** Base class for Fortress tasks.  Includes administrative methods
  *  that make code generation for task spawn a bit easier.
  *
@@ -45,7 +47,7 @@ public abstract class BaseTask extends RecursiveAction {
     private int actuallyForked = UNFORKED;
 
     private static boolean unsafeWorthSpawning() {
-        return (numThreads > 1 && 
+        return (numThreads > 1 &&
                 (spawnThreshold < 0 || getSurplusQueuedTaskCount() <= spawnThreshold));
     }
 
@@ -92,6 +94,8 @@ public abstract class BaseTask extends RecursiveAction {
         // Emphasize common UNFORKED case.
         if (actuallyForked == UNFORKED) {
             this.compute();
+        } else if (useHelpJoin) {
+            this.helpJoin();
         } else {
             this.join();
         }
