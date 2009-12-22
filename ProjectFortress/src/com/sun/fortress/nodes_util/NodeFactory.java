@@ -2712,4 +2712,15 @@ public class NodeFactory {
     public static Id makeLiftedCoercionId(Span span, Id trait, APIName api) {
         return makeId(span, api, NamingCzar.makeLiftedCoercionName(trait));
     }
+
+    public static IdOrOp makeIdOrOp(APIName a, IdOrOp originalName) {
+        Option<APIName> oa = Option.some(a);
+        if (originalName instanceof Id) {
+            return makeId(oa, (Id) originalName);
+        } else if (originalName instanceof Op) {
+            return makeOp(oa, (Op) originalName);
+        } else {
+            return bug("Unexpected member of IdOrOp hierarchy " + originalName.getClass());
+        }
+    }
 }
