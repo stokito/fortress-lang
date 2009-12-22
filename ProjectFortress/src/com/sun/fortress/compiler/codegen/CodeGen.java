@@ -76,6 +76,12 @@ import com.sun.fortress.scala_src.useful.STypesUtil;
 // solution than writing out their entire types, please
 // shout out.
 public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
+    private final static boolean doUAdecls1 = false;
+    private final static boolean doUAdecls2 = false;
+    private final static boolean doUAdecls3 = false;
+    private final static boolean doUAdecls4 = false;
+    private final static boolean doUAdecls5 = false;
+    
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
@@ -1008,8 +1014,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
 
         // unambiguous within component
-        String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
-        cg.generateWrapperMethodCode(modifiers, mname, wname, sig, params);
+        if (doUAdecls1) {
+            String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
+            cg.generateWrapperMethodCode(modifiers, mname, wname, sig, params);
+        }
     }
 
 
@@ -1023,6 +1031,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void generateUnambiguousWrappersForApi() {
 
+        if (doUAdecls5)
         for (Map.Entry<String, Set<Function>> entry : exportedToUnambiguous
                 .entrySet()) {
             Set<Function> sf = entry.getValue();
@@ -1221,7 +1230,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 if (! sparams.isEmpty()) {
                     generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
-                    if (!name.getText().equals(uaname.getText()))
+                    if (doUAdecls2 && !name.getText().equals(uaname.getText()))
                         generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
                 } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
@@ -1316,7 +1325,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // FnHeader header = x.getHeader();
         TraitTypeHeader trait_header = currentTraitObjectDecl.getHeader();
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
-        String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
+        String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
 
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
@@ -1340,9 +1349,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     params.size(), true);
 
             // Copy for wrapper, instead of actually wrapping.
-            InstantiatingClassloader.forwardingMethod(cw, wname, modifiers,
-                    selfIndex, traitOrObjectName, dottedName, invocation, sig,
-                    params.size(), true);
+            if (doUAdecls3)
+                InstantiatingClassloader.forwardingMethod(cw, uaname, modifiers,
+                        selfIndex, traitOrObjectName, dottedName, invocation, sig,
+                        params.size(), true);
             // generateAllWrappersForFn(x, params, sig, modifiers, mname);
         } else {
             int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
@@ -1372,7 +1382,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
                     params, modifiers, splist);
-            functionalMethodOfGenericTraitObjectWrapper(wname, sparams_part,
+            if (doUAdecls4)
+                functionalMethodOfGenericTraitObjectWrapper(uaname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
                     params, modifiers, splist);
         }
@@ -1691,7 +1702,59 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( names.size() != 1) {
             return sayWhat(x,"Non-unique overloading after rewrite " + x);
         }
-        return idToPackageClassAndName(names.get(0));
+        
+        IdOrOp n = names.get(0);
+
+        if (n.getText().contains(Naming.FOREIGN_TAG))
+            return idToPackageClassAndName(n);
+        
+        Option<APIName> oapi = n.getApiName();
+        if (oapi.isSome()) {
+            APIName a = oapi.unwrap();
+            ApiIndex ai = env.apis().get(a);
+            Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
+            Set<Function> s = fns.matchFirst(NodeFactory.makeLocalIdOrOp(n));
+            if (s.size() != 0) {
+                IdOrOp nn = NodeFactory.makeIdOrOp(a, x.getOriginalName());
+                Pair<String, String> trial = idToPackageClassAndName(nn);
+                Pair<String, String> rval = idToPackageClassAndName(n);
+//                if (! (trial.first().equals(rval.first()) &&
+//                       trial.second().equals(rval.second()))) {
+//                    System.err.println("Substitute " +
+//                            trial.first()+"."+trial.second()+" for "+
+//                            rval.first()+"."+rval.second()); 
+//                }
+                return trial;
+
+            } else {
+                Pair<String, String> rval = idToPackageClassAndName(n);
+                return rval;
+
+            }
+
+        } else {
+            Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
+            Set<Function> s = fns.matchFirst(n);
+            if (s.size() == 1) {
+                IdOrOp nn = x.getOriginalName();
+                Pair<String, String> trial = idToPackageClassAndName(nn);
+                Pair<String, String> rval = idToPackageClassAndName(n);
+//                if (!(trial.first().equals(rval.first()) && trial.second()
+//                        .equals(rval.second()))) {
+//                    System.err.println("Substitute " + trial.first() + "."
+//                            + trial.second() + " for " + rval.first() + "."
+//                            + rval.second());
+//                }
+                return trial;
+            } else {
+                IdOrOp nn = x.getOriginalName();
+                Pair<String, String> trial = idToPackageClassAndName(nn);
+                Pair<String, String> rval = idToPackageClassAndName(n);
+                return rval;
+            }
+
+        }
+        // return idToPackageClassAndName(n); // names.get(0));
     }
 
     private Pair<String, String> idToPackageClassAndName(IdOrOp fnName) {
