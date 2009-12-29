@@ -1421,7 +1421,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 staticClass, sig);
 
         InstantiatingClassloader.forwardingMethod(cg.cw, mname, modifiers,
-                selfIndex, traitOrObjectName+sparams_part, dottedName, invocation, sig,
+                selfIndex,
+                //traitOrObjectName+sparams_part,
+                traitOrObjectName,
+                dottedName, invocation, sig,
                 params.size(), true);
 
         cg.dumpClass(PCNOuter, splist);
@@ -1911,8 +1914,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forObjectDecl(ObjectDecl x) {
         TraitTypeHeader header = x.getHeader();
         emittingFunctionalMethodWrappers = true;
-        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
-                                                         NamingCzar.idToString(NodeUtil.getName(x)));
+        
+        // TODO trim and/or consolidate this boilerplate around sparams_part
+        Map<String, String> xlation = new HashMap<String, String>();
+        List<String> splist = new ArrayList<String>();
+        List<StaticParam> original_static_params = header.getStaticParams();
+        Option<List<Param>> original_params = x.getParams();
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
+
+        Id classId = NodeUtil.getName(x);
+        String classFile =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    sparams_part,
+                    packageAndClassName);
+
+//        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
+//                                                         NamingCzar.idToString(NodeUtil.getName(x)));
         debug("forObjectDecl ",x," classFile = ", classFile);
         traitOrObjectName = classFile;
         currentTraitObjectDecl = x;
