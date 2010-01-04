@@ -16,13 +16,15 @@
  ******************************************************************************)
 
 component Compiled7
+import CompilerSystem.args
 export Executable
 
 (* Bindings gratuitously out of order to test top-level binding dependency analysis *)
 expect : RR64 = integ(finish) - integ(start)
 start : RR64 = 0.0
 finish : RR64 = 1536.0
-errorTolerance : RR64 = 10.0^(-9) (* should be 10^(-12) *)
+logTol : ZZ32 = if args.size < 1 then 9 else strToInt(args[0]) end
+errorTolerance : RR64 = 10.0^(-logTol) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 
 fun(x: RR64): RR64 = x (x x + 1.0)
@@ -116,6 +118,7 @@ runTest(desc:String, theTest: ()->RR64): () = do
 
 run(): () = do
     println("Expect\t\t" expect.asString)
+    println("Tolerance\t" errorTolerance.asString)
     println("Time(s)\t\tArea")
     for _ <- seq(0#reps) do
         runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance))
