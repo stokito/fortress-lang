@@ -1,5 +1,5 @@
 /********************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -65,12 +65,6 @@ public abstract class BaseTask extends RecursiveAction {
     // a ForkJoinWorkerThread.  So we must submit the task to the
     // global task pool instead.
     private void executeAlways() {
-        // RIGHT NOW THIS DOESN"T WORK AT ALL AND IS DISABLED.
-        // However, the same stuff works from within FortressExecutable
-        // to invoke the run() method on an executable component.
-        // Why are these behaving differently?  The thread context is the
-        // same in both cases!
-
         FortressExecutable.group.execute(this);
         actuallyForked = EXECUTED;
     }
