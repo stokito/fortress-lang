@@ -15,3 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
+api StatDigest
+
+object StatDigest(n:RR64, sum:RR64, sumSq:RR64)
+    getter asString(): String
+    getter average(): RR64
+    (** Population variance (not sample variance!) *)
+    getter variance(): RR64
+    (** add n0 occurrences of value v0 to digest *)
+    add(n0: RR64, v0: RR64): StatDigest
+    (** combine two digests for the same statistic *)
+    combine(other:StatDigest): StatDigest
+end
+
+emptySD : StatDigest
+
+end
