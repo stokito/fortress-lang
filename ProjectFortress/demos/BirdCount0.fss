@@ -231,7 +231,7 @@ multipleErrorRates:Map[\String,Map[\ZZ32,RR64\]\] =
                                34 |->0.07790 }
 }
 
-
+var coverage:Map[\String, Map[\ZZ32,ZZ32\]\]:= {[\String, Map [\ZZ32, ZZ32\] \] }
 
 referenceChickenFile:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
 sampleFilesDir:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/test_data"
@@ -335,7 +335,7 @@ end
 
 readReferenceFile(name:String):String=do
    var rs:FileReadStream = FileReadStream(name)
-   var res:String = BIG || [l<-rs.lines()] l
+   var res:String = BIG || [l<-rs.lines()] readReferenceFileLine(l)
    res
 end
 
@@ -432,10 +432,10 @@ readASnip(r:ReadStream):Snip = do
       referenceChickenColorsSnip:FlatString = getReferenceChickenColorsSnip(adjustedLocation, sequenceEnd)
       adjustedSequence:FlatString := getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip)
       referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 2)
+
       Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenAGCTSnip)
    end
 end
-
 
 ChunkSize:ZZ32 = 10000
 
@@ -489,7 +489,7 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
        if valid() then
           print "VALID" 
           print("  " refChickenAGCTSnip() "   ")
-          println(sampleChickenDiffSnip())
+          print(sampleChickenDiffSnip())
        else
           print "inv" 
           print("  " refChickenAGCTSnip() "   ")
@@ -540,48 +540,125 @@ makeDatabase(e:Event):Map[\String,List[\Event\]\] = do
    database
 end
 
-maybeUpdateMergedDatabase(mergedDatabase:Map[\ZZ32,List[\MergedEvent\]\],
-                          key:ZZ32, entryList:List[\Event\]):Map[\ZZ32, List[\MergedEvent\]\] = do
-   validEvents:List[\Event\] := <|[\Event\] event | event <- entryList, event.valid() |>
-   EventsByFile:Map[\String, List[\Event\]\] := BIG UNIONUNION [event <- validEvents] makeDatabase(event)
-   var mergedEvents:List[\MergedEvent\] := <|[\MergedEvent\]|>
- 
-   probability:RR64 := 1.0
-   var multiFilePVal:RR64 := 1.0
+makeChangeDatabase(e:Event):Map[\String,List[\Event\]\] = do
+   var database:Map[\String, List[\Event\]\] := {[\String, List[\Event\]\]}
+   database := database.add(e.sampleChickenDiffSnip(),  <|[\Event\] e |>)
+   database
+end
 
-   if |EventsByFile| > 0 then 
-      var first:Event 
-    
-      for (file, events) <- seq(EventsByFile) do
-         first := events.left().get()
-         count = |events|
-         for event <- seq(events) do
-            probability := probability event.errorProb()
-         end
-         probability := probability^(1/count)
-         multiFilePVal := multiFilePVal probability
-      end      
-      probability := multiFilePVal^(1/(|entryList|))
-    
-   
-      snipPos = first.snip().pos()
-      refStart = first.refStart()
-      refEnd = first.refEnd()
-      referenceNumberFormat = first.referenceChickenColorsSnip()
-      sampleNumberFormat = first.sampleChickenColorsSnip()
-      referenceAGCTFormat = first.refChickenAGCTSnip()
-      sampleAGCTFormat = first.sampleChickenDiffSnip()
-      totalCoverage = 1.0 (* fix me too *)
-   
-      me:MergedEvent = MergedEvent(|entryList|, refStart, refEnd, 
-                                   referenceNumberFormat, sampleNumberFormat,
-                                   referenceAGCTFormat, sampleAGCTFormat,
-                                   totalCoverage, probability, entryList)
-      mergedEvents :=  mergedEvents || <| me |>
-      mergedDatabase.update(key, mergedEvents)
-   else
-      mergedDatabase
+(* This may change with newer technology, but for now it is OK. *)
+readSize:ZZ32 = 35
+var minlibpval:RR64 := 1.0
+var combpval:RR64 := 0.0
+
+calculateCoverage(fileName:String, refEnd:ZZ32):ZZ32 = do
+    rangeStart:ZZ32 = refEnd - readSize + 1
+    rangeEnd:ZZ32 = refEnd
+    var count:ZZ32 := 0
+
+    for i <- seq(rangeStart:rangeEnd) do
+        count := count + coverage.member(fileName).get().member(i,0)
+    end
+
+    count
+end
+
+calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
+   count:ZZ32 = |events|
+   first:Event = events.left().get()
+   var probability:RR64 := 1.0
+   var gmp:RR64 := 1.0
+   var libpval:RR64 :=0 
+   for event <- seq(events) do
+      probability := probability event.errorProb()
    end
+   gmp := probability^(1/count)
+   cov:ZZ32 = calculateCoverage(fileName, first.refEnd())
+   for j <- seq(count:cov) do
+      libpval := libpval + ((gmp^j) comb(cov, j))
+   end
+   minlibpval := minlibpval cov
+   libpval
+end
+
+calculateBonferroniTotal(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
+   var totcov:ZZ32 := 0
+   var totcalls:ZZ32 := 0
+   var totprob:RR64 := 1.0
+   for (file, events) <- seq(EventsByFile) do
+      var probability:RR64 := 1.0
+      totcov := totcov +  calculateCoverage(file, events.left().get().refEnd())
+      totcalls := totcalls + |events|
+      for event <- seq(events) do
+         probability := probability event.errorProb()
+      end
+      totprob := totprob probability
+   end
+   gmp:RR64 = totprob^(1.0/totcalls)
+   for j <-seq(totcalls:totcov) do
+      combpval += (gmp^j) comb(totcov, j)
+   end
+   combpval   
+end
+
+calculateBonferroni(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
+   for (file, events) <- seq(EventsByFile) do
+      minlibpval := calculateBonferroniLibrary(file, events) MIN minlibpval
+   end
+   calculateBonferroniTotal(EventsByFile)
+   result:RR64 = (2 combpval) MIN (2 minlibpval)
+   result
+end
+
+calculateTotalCoverage(EventsByFile:Map[\String, List[\Event\]\]):ZZ32 = do
+   var totcov:ZZ32 := 0
+   for (file, events) <- seq(EventsByFile) do
+      totcov := totcov +  calculateCoverage(file, events.left().get().refEnd())
+   end
+   totcov
+end
+         
+getFirstEvent(EventsByFile:Map[\String, List[\Event\]\]):Event = do
+   var first:Event
+   (* There has to be a better way, but I'm in a hurry shame shame *)
+   for (file, events) <- seq(EventsByFile) do
+      first := events.left().get()
+   end
+   first
+end
+
+maybeUpdateMergedDatabase(mergedDatabase:Map[\(ZZ32, String),List[\MergedEvent\]\],
+                          key:ZZ32, entryList:List[\Event\]):Map[\(ZZ32,String),  List[\MergedEvent\]\] = do
+   var resultMergedDatabase:Map[\(ZZ32, String), List[\MergedEvent\]\] := mergedDatabase
+   validEvents:List[\Event\] := <|[\Event\] event | event <- entryList, event.valid() |>
+   EventsByChange:Map[\String, List[\Event\]\] := BIG UNIONUNION [event <- validEvents] makeChangeDatabase(event)
+
+   for (change, changeEvents) <- seq(EventsByChange) do
+      EventsByFile:Map[\String, List[\Event\]\] := BIG UNIONUNION [event <- changeEvents] makeDatabase(event)
+      var mergedEvents:List[\MergedEvent\] := <|[\MergedEvent\]|>
+
+      if (|changeEvents| > 0) then
+         first:Event = changeEvents.left().get()
+         probability:RR64 := calculateBonferroni(EventsByFile)
+         totalCoverage:ZZ32 := calculateTotalCoverage(EventsByFile) 
+   
+         snipPos = first.snip().pos()
+         refStart = first.refStart()
+         refEnd = first.refEnd()
+         referenceNumberFormat = first.referenceChickenColorsSnip()
+         sampleNumberFormat = first.sampleChickenColorsSnip()
+         referenceAGCTFormat = first.refChickenAGCTSnip()
+         sampleAGCTFormat = first.sampleChickenDiffSnip()
+
+         me:MergedEvent = MergedEvent(|changeEvents|, refStart, refEnd, 
+                                referenceNumberFormat, sampleNumberFormat,
+                                referenceAGCTFormat, sampleAGCTFormat,
+                                totalCoverage, probability, changeEvents)
+         mergedEvents :=  mergedEvents || <| me |>
+         resultMergedDatabase := resultMergedDatabase.update((key, change), mergedEvents)
+      end
+   end
+   resultMergedDatabase
 end
    
 
@@ -711,11 +788,13 @@ eventGenerator(s:Snip, name:String) = do
     stop = |diffs| - 1
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
 
+
     for x <- seq(0:stop) do
         if isInteresting(s,x,diffs) then
            database := database.add(x + s.pos(), <| makeEvent(s, basicDiffs, diffs, x, name) |>)
         end
     end
+
     database
 end
 
@@ -727,10 +806,13 @@ processSampleChicken(name:String):Map[\ZZ32, List[\Event\]\] = do
         FileReadStream(sampleFilesDir || "/" || name || "/" || sampleFilesFileName)
     fg:FileGenerator[\Snip\]  = FileGenerator[\Snip\](rs,60,readASnip)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]}
-
+    coverageDatabase:Map[\ZZ32,ZZ32\] = { [\ZZ32, ZZ32\] }
+    
     for s <- seq(fg) do
+       coverageDatabase := coverageDatabase.updateWith(fn(mx) => Just[\ZZ32\](mx.getDefault(0)+1), s.pos())
        database := database.union(combine, eventGenerator(s, name))
     end
+    coverage := coverage.add(name, coverageDatabase)
     database
 end
 
@@ -761,7 +843,7 @@ run() = do
     referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
     referenceChickenColors := processReferenceFile(referenceChickenFile)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]} 
-    var mergedDatabase:Map[\ZZ32, List[\MergedEvent\]\] := {[\ZZ32, List[\MergedEvent\]\]} 
+    var mergedDatabase:Map[\(ZZ32,String), List[\MergedEvent\]\] := {[\(ZZ32, String), List[\MergedEvent\]\]} 
 
     for sampleChicken <- seq(sampleChickens) do
         database := database.union(combine,processSampleChicken(sampleChicken))
@@ -778,7 +860,7 @@ run() = do
 
    println("Merged Events:")
    
-   for (key, events) <- seq(mergedDatabase) do
+   for (dontcare , events) <- seq(mergedDatabase) do
       for event <- seq(events) do
              println(event)
              for e <- seq(event.eventList()) do println(e) end
