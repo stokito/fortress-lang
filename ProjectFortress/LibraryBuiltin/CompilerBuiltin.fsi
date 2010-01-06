@@ -24,8 +24,12 @@ end Object
 nanoTime(): RR64
 
 trait String
+(*)    coerce(n: ZZ32) 
+(*)    coerce(n: ZZ64) 
     getter isEmpty(): Boolean
     getter asString(): String
+    opr <(self, b:String): Boolean
+    opr =(self, b: String): Boolean
     opr |self| : ZZ32
     opr || (self, b:String):String
     opr juxtaposition(self, b:String): String
@@ -47,7 +51,22 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number excludes RR64
-    getter asZZ32(): ZZ32
+    coerce(x: IntLiteral)
+    coerce(x: ZZ32) 
+    getter asZZ32(): ZZ32 
+    getter asString(): String 
+    opr |self| : ZZ64
+    opr -(self): ZZ64
+    opr +(self, other:ZZ64): ZZ64
+    opr -(self, other:ZZ64): ZZ64 
+    opr <(self, other:ZZ64): Boolean 
+    opr <=(self, other:ZZ64): Boolean 
+    opr >(self, other:ZZ64): Boolean 
+    opr >=(self, other:ZZ64): Boolean 
+    opr =(self, other:ZZ64): Boolean 
+    opr juxtaposition(self, other:ZZ64): ZZ64
+    opr DOT(self, other:ZZ64): ZZ64 
+    opr DIV(self, other:ZZ64): ZZ64
 end
 
 trait ZZ32 extends Number excludes { ZZ64, RR64 }
@@ -68,7 +87,7 @@ trait ZZ32 extends Number excludes { ZZ64, RR64 }
     opr DIV(self, other:ZZ32): ZZ32
 end
 
-trait IntLiteral
+trait IntLiteral excludes {ZZ32, ZZ64}
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
 (*

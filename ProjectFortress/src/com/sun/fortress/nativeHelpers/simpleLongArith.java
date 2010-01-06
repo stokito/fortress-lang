@@ -17,66 +17,61 @@
 
 package com.sun.fortress.nativeHelpers;
 
-public class simpleIntArith {
+public class simpleLongArith {
 
-    public static String intToString(int x) {
-        return Integer.toString(x);
+    public static String longToString(long x) {
+        return Long.toString(x);
     }
 
-     public static int parseInt(String s) {
-        return Integer.parseInt(s);
+     public static long parseLong(String s) {
+        return Long.parseLong(s);
     }
 
-    public static int intAdd(int a, int b) {
+    public static long longAdd(long a, long b) {
         return a + b;
     }
 
-    public static int intSub(int a, int b) {
+    public static long longSub(long a, long b) {
         return a - b;
     }
 
-    public static int intMul(int a, int b) {
+    public static long longMul(long a, long b) {
         return a * b;
     }
 
-    public static int intDiv(int a, int b) {
+    public static long longDiv(long a, long b) {
         return a / b;
     }
 
-    public static int intNeg(int a) {
+    public static long longNeg(long a) {
         return -a;
     }
 
-    public static boolean intLT(int a, int b) {
+    public static boolean longLT(long a, long b) {
         return a < b;
     }
 
-    public static boolean intLE(int a, int b) {
+    public static boolean longLE(long a, long b) {
         return a <= b;
     }
 
-    public static boolean intGT(int a, int b) {
+    public static boolean longGT(long a, long b) {
         return a > b;
     }
 
-    public static boolean intGE(int a, int b) {
+    public static boolean longGE(long a, long b) {
         return a > b;
     }
 
-    public static boolean intEQ(int a, int b) {
+    public static boolean longEQ(long a, long b) {
         return a == b;
     }
 
-    public static long iMulL(int a, int b) {
-        return (long) a * (long) b;
-    }
-
-    public static int intAbs(int a) {
+    public static long longAbs(long a) {
         return Math.abs(a);
     }
 
-    public static int longToInt(long l) {
-        return (int)l;
+    public static long intToLong(int i) {
+	return (long)i;
     }
-
 }

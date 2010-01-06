@@ -33,6 +33,20 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.parseInt => jParseInt,
                                             simpleIntArith.intAbs => jIntAbs,
                                             simpleIntArith.longToInt => jLongToInt}
+import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
+                                            simpleLongArith.longAdd => jLongAdd,
+                                            simpleLongArith.longSub => jLongSub,
+                                            simpleLongArith.longMul => jLongMul,
+                                            simpleLongArith.longDiv => jLongDiv,
+                                            simpleLongArith.longLT => jLongLT,
+                                            simpleLongArith.longLE => jLongLE,
+                                            simpleLongArith.longGT => jLongGT,
+                                            simpleLongArith.longGE => jLongGE,
+                                            simpleLongArith.longEQ => jLongEQ,
+                                            simpleLongArith.longNeg => jLongNeg,
+                                            simpleLongArith.parseLong => jParseLong,
+                                            simpleLongArith.longAbs => jLongAbs,
+                                            simpleLongArith.intToLong => jIntToLong}
 import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => jDoubleToString,
                                             simpleDoubleArith.doubleAdd => jDoubleAdd,
                                             simpleDoubleArith.doubleSub => jDoubleSub,
@@ -50,6 +64,8 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => 
                                             simpleDoubleArith.doubleNanoTime => jNanoTime}
 import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
                                             LocalRandom.localRandomInt => jRandomInt }
+import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo }
+
 import AnyType.{Any}
 export CompilerBuiltin
 
@@ -59,9 +75,13 @@ trait Object extends Any
 end Object
 
 trait String
+(*)    coerce(n: ZZ32) = n.asString
+(*)    coerce(n: ZZ64) = n.asString
     getter isEmpty(): Boolean = (jStrlen(self) = 0)
     getter asString(): String = self
     opr |self| : ZZ32 = jStrlen(self)
+    opr <(self, b: String) = (jCompareTo(self, b) < 0)
+    opr =(self, b: String) = (jCompareTo(self, b) = 0)
     opr ||(self, b:String): String =  jConcatenate(self, b)
     opr juxtaposition(self, b:String): String = jConcatenate(self, b)
 end
@@ -82,7 +102,22 @@ trait Number excludes { String }
 end
 
 trait ZZ64 extends Number excludes { RR64 }
+    coerce(x: IntLiteral) = x.asZZ64
+    coerce(x: ZZ32) = jIntToLong(x)
     getter asZZ32(): ZZ32 = jLongToInt(self)
+    getter asString(): String = jLongToString(self)
+    opr |self| : ZZ64 = jLongAbs(self)
+    opr -(self): ZZ64 = jLongNeg(self)
+    opr +(self, other:ZZ64): ZZ64 = jLongAdd(self,other)
+    opr -(self, other:ZZ64): ZZ64 = jLongSub(self,other)
+    opr <(self, other:ZZ64): Boolean = jLongLT(self,other)
+    opr <=(self, other:ZZ64): Boolean = jLongLE(self,other)
+    opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
+    opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
+    opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
+    opr juxtaposition(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr DOT(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
 end
 
 trait ZZ32 extends Number excludes { ZZ64, RR64 }
@@ -103,7 +138,7 @@ trait ZZ32 extends Number excludes { ZZ64, RR64 }
     opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
 end
 
-trait IntLiteral
+trait IntLiteral excludes {ZZ32, ZZ64}
     getter asZZ32(): ZZ32
     getter asZZ64(): ZZ64
 (*
