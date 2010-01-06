@@ -33,8 +33,8 @@ if (!$path) {
 
 chdir $path;
 
-my $checkRev=3300;	 # Only examine files from versions greater than this.
-my $checkDate = 2009;    # Only examine files in this year.
+my $checkRev=4388;	 # Only examine files from versions greater than this.
+my $checkDate = 2010;    # Only examine files in this year.
 my $rootDir = $path;
 my $copyright = "Copyright $checkDate"; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
