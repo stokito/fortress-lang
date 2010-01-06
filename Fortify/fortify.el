@@ -7574,7 +7574,9 @@ extension '.tex'."
 			  (insert rendered-code))))))
 	    (t 
 	     ;; An even number of ticks gets cut in half
-	     (delete-char (- (/ len 2))))))))
+	     (delete-char (- (/ len 2)))))))
+	     (write-as-tex-file)
+	     )
 
 (defun fortify-region (left right)
   (save-excursion

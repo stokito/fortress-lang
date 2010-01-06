@@ -364,6 +364,13 @@ public class Useful {
         return result;
     }
 
+    public static <T, U> Set<U> applyToAllInserting(List<T> s, F<T, U> verb, Set<U> result) {
+        for (T i : s) {
+            result.add(verb.apply(i));
+        }
+        return result;
+    }
+
     public static <T> Set<T> set(Iterable<T> xs) {
         HashSet<T> result = new HashSet<T>();
 
