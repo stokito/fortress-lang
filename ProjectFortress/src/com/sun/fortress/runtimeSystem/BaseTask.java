@@ -64,17 +64,17 @@ public abstract class BaseTask extends RecursiveAction {
     // initializer.  That doesn't work as the initializer isn't run in
     // a ForkJoinWorkerThread.  So we must submit the task to the
     // global task pool instead.
-    private void final executeAlways() {
+    private final void executeAlways() {
         FortressExecutable.group.execute(this);
         actuallyForked = EXECUTED;
     }
 
-    private void final forkAlways() {
+    private final void forkAlways() {
         this.fork();
         actuallyForked = FORKED;
     }
 
-    public void final forkIfProfitable() {
+    public final void forkIfProfitable() {
         if (ForkJoinTask.inForkJoinPool()) {
             if (unsafeWorthSpawning()) {
                 this.forkAlways();
@@ -84,7 +84,7 @@ public abstract class BaseTask extends RecursiveAction {
         }
     }
 
-    public void final joinOrRun() {
+    public final void joinOrRun() {
         // Emphasize common UNFORKED case.
         if (actuallyForked == UNFORKED) {
             this.compute();
