@@ -67,7 +67,7 @@ maintain proper indentation.
   <property name="javadb" location="${PF}/third_party/javadb"/>
 
   <!-- Scala jar files -->
-  <property name="scala-version" value="2.7.6"/>
+  <property name="scala-version" value="2.7.7"/>
   <property name="scala-compiler.jar"
             value="${PF}/third_party/scala/scala-compiler-${scala-version}.jar"/>
   <property name="scala-library.jar"

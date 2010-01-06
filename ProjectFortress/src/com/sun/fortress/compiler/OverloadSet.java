@@ -18,8 +18,11 @@
 package com.sun.fortress.compiler;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.index.Constructor;
+import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
+import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
@@ -872,8 +875,29 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param f
      * @return
      */
-    static String jvmSignatureFor(TaggedFunctionName f) {
-        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA);
+    String jvmSignatureFor(TaggedFunctionName f) {
+        Function fu = f.tagF;
+        List<StaticParam> params = null;
+        if (fu instanceof FunctionalMethod) {
+            List<StaticParam> lsp = ((FunctionalMethod) fu).traitStaticParameters();
+            if (lsp.size() > 0)
+                params = lsp;
+        } else if (fu instanceof DeclaredFunction) {
+            DeclaredFunction df = (DeclaredFunction) fu;
+            List<StaticParam> lsp = df.staticParameters();
+            if (lsp.size() > 0)
+                params = lsp;
+        } else if (fu instanceof Constructor) {
+            InterpreterBug.bug("Unimplemented arm of jvm signature " + fu);
+        } else {
+            InterpreterBug.bug("Unexpected subtype of FunctionalMethod " + fu);
+        }
+        TypeAnalyzer eta = ta;
+        if (params != null) {
+            eta = ta.extend(params, Option.<WhereClause>none());
+        }
+        
+        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA, ta);
     }
 
 

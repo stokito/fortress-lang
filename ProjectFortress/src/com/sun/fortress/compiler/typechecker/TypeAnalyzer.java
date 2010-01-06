@@ -55,6 +55,7 @@ import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,8 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv;
+import com.sun.fortress.useful.F;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
@@ -487,6 +490,111 @@ public class TypeAnalyzer {
         return makeUnion(reduceDisjuncts(disjuncts, h));
     }
 
+    NAVandF groundingBoundingVisitor = new NAVandF();
+    
+    /**
+     * It's a visitor AND a function.
+     * 
+     * @author dr2chase
+     */
+    class NAVandF extends NodeAbstractVisitor<Type> implements F<Type, Type> {
+
+        @Override
+        public Type apply(Type x) {
+            return x.accept(this);
+        }
+  
+        @Override
+        public Type defaultCase(Node that) {
+            // TODO Auto-generated method stub
+            return super.defaultCase(that);
+        }
+
+        @Override
+        public Type forArrowType(ArrowType that) {
+            Type d = that.getDomain();
+            Type r = that.getRange();
+            Effect e = that.getEffect();
+            Option<MethodInfo> om = that.getMethodInfo();
+            TypeInfo ti = that.getInfo();
+            // TODO Not correct if there are type params in the arrow type.
+            // TODO Contravariance is not our friend here.
+            return that;
+        }
+
+        
+        // Bool/Dim/Int/Op/Unit/Type-Arg
+        
+        @Override
+        public Type forTraitType(TraitType that) {
+            List<StaticArg> lsa = that.getArgs();
+            TypeInfo ti = that.getInfo();
+            Id i = that.getName();
+            List <StaticParam> lsp = that.getStaticParams();
+        
+            ArrayList<StaticArg> nlsa = new ArrayList<StaticArg>(lsa.size());
+            for (StaticArg sa : lsa) {
+                if (sa instanceof TypeArg) {
+                    TypeArg ta = (TypeArg) sa;
+                    ASTNodeInfo tati = ta.getInfo();
+                    Type t = ta.getTypeArg();
+                } 
+                nlsa.add(sa);
+            }
+            
+            // TODO Auto-generated method stub
+            return NodeFactory.makeTraitType(ti.getSpan(), ti.isParenthesized(), i, lsa, lsp);
+        }
+
+        @Override
+        public Type forTraitSelfType(TraitSelfType that) {
+            // Open coded because this is list of NamedType, not Type
+            List<NamedType> lnt = new ArrayList<NamedType>();
+            
+            // Is it really necessary to do this to the comprised types?
+            for (NamedType t : that.getComprised())
+                lnt.add((NamedType)t.accept(this));
+            
+            return NodeFactory.makeTraitSelfType(that.getInfo().getSpan(),
+                    that.getInfo().isParenthesized(),
+                    (BaseType) that.getNamed().accept(this), lnt);
+        }
+
+        @Override
+        public Type forVarType(VarType that) {
+            Id i = that.getName();
+            TypeInfo ti = that.getInfo();
+            // TODO Auto-generated method stub
+            return super.forVarType(that);
+        }
+
+        @Override
+        public Type forAnyType(AnyType that) {
+            return that;
+        }
+
+        @Override
+        public Type forBottomType(BottomType that) {
+            return that;
+        }
+
+        @Override
+        public Type forTupleType(TupleType that) {
+            return NodeFactory.makeTupleType(that, Useful.applyToAll(that.getElements(), this));
+        }
+    }
+    
+    /**
+     * Return a ground type that is the (more general) bound on {@code t}.
+     * If {@code t} is a ground type already, return t.
+     * If {@code t} is a type parameter, return its declared bound.
+     * @param t
+     * @return
+     */
+    public Type groundBound( final Type t ) {
+        return t.accept(groundingBoundingVisitor);
+    }
+    
     /**
      * Produce a formula that, if satisfied, will support
      * {@code sub_type} as a subtype of {@code super_type}.
