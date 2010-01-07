@@ -302,6 +302,24 @@ public class Useful {
 
     }
     
+    public static <T> Boolean andReduction(Collection<T> s, F<T, Boolean> verb) {
+        for (T i : s) {
+            if (!verb.apply(i).booleanValue())
+                return Boolean.FALSE;
+        }
+        return Boolean.TRUE;
+    }
+    
+    public static <T> Boolean orReduction(Collection<T> s, F<T, Boolean> verb) {
+        for (T i : s) {
+            if (verb.apply(i).booleanValue())
+                return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+    
+
+    
     public static <T> List<T> applyToAllPossiblyReusing(List<T> s, F<T, T> verb) {
         int j = 0;
         for (T i : s) {

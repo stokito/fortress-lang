@@ -584,6 +584,81 @@ public class TypeAnalyzer {
         }
     }
     
+    isGround isGroundInstance = new isGround();
+    
+    class isGround extends NodeAbstractVisitor<Boolean> implements F<Type, Boolean> {
+
+        @Override
+        public Boolean apply(Type x) {
+            return x.accept(this);
+        }
+  
+        @Override
+        public Boolean defaultCase(Node that) {
+            // TODO Auto-generated method stub
+            throw new Error("Something needs implementing, " + that.getClass());
+        }
+
+        @Override
+        public Boolean forArrowType(ArrowType that) {
+            Type d = that.getDomain();
+            Type r = that.getRange();
+           
+            return d.accept(this) && r.accept(this);
+        }
+
+        
+        // Bool/Dim/Int/Op/Unit/Type-Arg
+        
+        @Override
+        public Boolean forTraitType(TraitType that) {
+            List<StaticArg> lsa = that.getArgs();
+            TypeInfo ti = that.getInfo();
+            Id i = that.getName();
+            List <StaticParam> lsp = that.getStaticParams();
+        
+            for (StaticArg sa : lsa) {
+                if (sa instanceof TypeArg) {
+                    TypeArg ta = (TypeArg) sa;
+                    ASTNodeInfo tati = ta.getInfo();
+                    Type t = ta.getTypeArg();
+                    if (! t.accept(this).booleanValue())
+                        return Boolean.FALSE;
+                } 
+            }
+            
+            // TODO Auto-generated method stub
+            return Boolean.TRUE;
+        }
+
+        @Override
+        public Boolean forTraitSelfType(TraitSelfType that) {
+            return that.getNamed().accept(this);
+        }
+
+        @Override
+        public Boolean forVarType(VarType that) {
+            Id i = that.getName();
+            // is it necessarily false?  I don't think so, really.
+            return false;
+        }
+
+        @Override
+        public Boolean forAnyType(AnyType that) {
+            return Boolean.TRUE;
+        }
+
+        @Override
+        public Boolean forBottomType(BottomType that) {
+            return Boolean.TRUE;
+        }
+
+        @Override
+        public Boolean forTupleType(TupleType that) {
+            return Useful.andReduction(that.getElements(), this);
+        }
+    }
+
     /**
      * Return a ground type that is the (more general) bound on {@code t}.
      * If {@code t} is a ground type already, return t.
@@ -592,7 +667,9 @@ public class TypeAnalyzer {
      * @return
      */
     public Type groundBound( final Type t ) {
-        return t.accept(groundingBoundingVisitor);
+        if (t.accept(isGroundInstance))
+            return t;
+        return t;
     }
     
     /**

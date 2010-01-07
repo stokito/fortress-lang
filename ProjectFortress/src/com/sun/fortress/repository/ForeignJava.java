@@ -283,10 +283,11 @@ public class ForeignJava {
             ClassNode imported_class = null;
             Debug.debug(Debug.Type.REPOSITORY, 1,
                         "Hunting for java match for ", pkg_name_string, ".", suffix);
+            String candidate_suffix = suffix;
             while (last_dot > 0) {
-                String candidate_class = suffix.substring(0, last_dot);
-                candidate_class = pkg_name_string + "." +
-                                  Useful.replace(candidate_class, ".", "$");
+                 candidate_suffix = candidate_suffix.substring(0, last_dot);
+                 String candidate_class = pkg_name_string + "." +
+                                  Useful.replace(candidate_suffix, ".", "$");
                 Debug.debug(Debug.Type.REPOSITORY, 1,
                             "Looking for java class ", candidate_class);
                 try {
@@ -297,7 +298,7 @@ public class ForeignJava {
                 catch (IOException e) {
                     // failed to get this one
                 }
-                last_dot = suffix.lastIndexOf('.', last_dot);
+                last_dot = candidate_suffix.lastIndexOf('.', last_dot);
             }
             if (imported_class == null) {
                 // Could not match a class to any prefix
