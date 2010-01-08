@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -20,6 +20,6 @@ package com.sun.fortress.nativeHelpers;
 public class stringOps {
 
     public static int compareTo(String s, String t) {
-	return s.compareTo(t);
+return s.compareTo(t);
     }
 }
