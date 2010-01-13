@@ -24,6 +24,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements IntLiteral {}
     }
 
+    public static interface FloatLiteral extends fortress.CompilerBuiltin.Object {
+	public static abstract class DefaultTraitMethods extends FValue implements FloatLiteral {}
+    }
+
     public static interface ZZ32 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ32 {}
     }

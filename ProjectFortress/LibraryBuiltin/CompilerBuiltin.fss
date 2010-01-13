@@ -47,7 +47,8 @@ import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLon
                                             simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAbs => jLongAbs,
                                             simpleLongArith.intToLong => jIntToLong}
-import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.doubleToString => jDoubleToString,
+import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => jFloatToDouble,
+                                            simpleDoubleArith.doubleToString => jDoubleToString,
                                             simpleDoubleArith.doubleAdd => jDoubleAdd,
                                             simpleDoubleArith.doubleSub => jDoubleSub,
                                             simpleDoubleArith.doubleMul => jDoubleMul,
@@ -75,8 +76,6 @@ trait Object extends Any
 end Object
 
 trait String
-(*)    coerce(n: ZZ32) = n.asString
-(*)    coerce(n: ZZ64) = n.asString
     getter isEmpty(): Boolean = (jStrlen(self) = 0)
     getter asString(): String = self
     opr |self| : ZZ32 = jStrlen(self)
@@ -120,7 +119,7 @@ trait ZZ64 extends Number excludes { RR64 }
     opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
 end
 
-trait ZZ32 extends Number excludes { ZZ64, RR64 }
+trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asString(): String = jIntToString(self)
@@ -149,7 +148,9 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     getter asRR64(): RR64
 end
 
-trait RR64 extends Number
+trait RR64 extends Number excludes ZZ64
+    coerce(x: FloatLiteral) = x.asRR64
+    coerce(x: RR32) = jFloatToDouble(x)
     getter asString(): String = jDoubleToString(self)
     opr |self| : RR64 = jDoubleAbs(self)
     opr -(self): RR64 = jDoubleNeg(self)
@@ -180,10 +181,13 @@ trait RR64 extends Number
         end
 end
 
-trait RR32 extends Number
+trait RR32 extends Number excludes { ZZ64, ZZ32, RR64 }
+    coerce(x: FloatLiteral) = x.asRR32
 end
 
-object FloatLiteral extends RR64
+trait FloatLiteral excludes {RR32, RR64}
+    getter asRR32(): RR32
+    getter asRR64(): RR64
 end
 
 trait Boolean

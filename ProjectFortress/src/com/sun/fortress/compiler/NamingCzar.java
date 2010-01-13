@@ -174,6 +174,7 @@ public class NamingCzar {
     public static final String voidToVoid        = makeMethodDesc("", descVoid);
 
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
+    public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");
     public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");
     public static final String internalFortressZZ64  = makeFortressInternal("ZZ64");
     public static final String internalFortressRR32  = makeFortressInternal("RR32");
@@ -185,6 +186,7 @@ public class NamingCzar {
 
     // fortress interpreter types: type descriptors
     public static final String descFortressIntLiteral  = internalToDesc(internalFortressIntLiteral);
+    public static final String descFortressFloatLiteral  = internalToDesc(internalFortressFloatLiteral);
     public static final String descFortressZZ32  = internalToDesc(internalFortressZZ32);
     public static final String descFortressZZ64  = internalToDesc(internalFortressZZ64);
     public static final String descFortressRR32  = internalToDesc(internalFortressRR32);
