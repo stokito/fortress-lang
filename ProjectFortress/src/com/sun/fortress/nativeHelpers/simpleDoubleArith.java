@@ -78,4 +78,9 @@ public class simpleDoubleArith {
     public static double doubleNanoTime() {
         return (double)System.nanoTime();
     }
+
+    public static double floatToDouble(float f) {
+	return (double)f;
+    }
+	
 }

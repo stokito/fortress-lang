@@ -69,7 +69,7 @@ trait ZZ64 extends Number excludes RR64
     opr DIV(self, other:ZZ64): ZZ64
 end
 
-trait ZZ32 extends Number excludes { ZZ64, RR64 }
+trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
     getter asString(): String
@@ -98,7 +98,9 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     abstract getter asRR64(): RR64
 end
 
-trait RR64 extends Number
+trait RR64 extends Number excludes ZZ64
+    coerce(x: FloatLiteral)
+    coerce(x: RR32)
     getter asString(): String
     opr |self| : RR64
     opr -(self): RR64
@@ -116,10 +118,13 @@ trait RR64 extends Number
     opr ^(self, other:ZZ32): RR64
 end
 
-trait RR32 extends Number 
+trait RR32 extends Number excludes { ZZ64, ZZ32, RR64 }
+    coerce(x: FloatLiteral)
 end
 
-object FloatLiteral extends RR64
+trait FloatLiteral excludes {RR32, RR64}
+    abstract getter asRR32(): RR32
+    abstract getter asRR64(): RR64
 end
 
 

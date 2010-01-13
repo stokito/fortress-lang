@@ -789,9 +789,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              Math.pow(x.getDenomBase(), x.getDenomPower()));
         mv.visitLdcInsn(val);
         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                           NamingCzar.internalFortressRR64, NamingCzar.make,
+                           NamingCzar.internalFortressFloatLiteral, NamingCzar.make,
                            NamingCzar.makeMethodDesc(NamingCzar.descDouble,
-                                                     NamingCzar.descFortressRR64));
+                                                     NamingCzar.descFortressFloatLiteral));
     }
 
     private void generateGenericMethodClass(FnDecl x, IdOrOp name,
