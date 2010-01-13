@@ -76,11 +76,6 @@ import com.sun.fortress.scala_src.useful.STypesUtil;
 // solution than writing out their entire types, please
 // shout out.
 public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
-    private final static boolean doUAdecls1 = false;
-    private final static boolean doUAdecls2 = false;
-    private final static boolean doUAdecls3 = false;
-    private final static boolean doUAdecls4 = false;
-    private final static boolean doUAdecls5 = false;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -1013,11 +1008,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * the (local) unambiguous name of the function.
          */
 
-        // unambiguous within component
-        if (doUAdecls1) {
-            String wname = NamingCzar.idOrOpToString(x.getUnambiguousName());
-            cg.generateWrapperMethodCode(modifiers, mname, wname, sig, params);
-        }
     }
 
 
@@ -1030,27 +1020,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param sf
      */
     private void generateUnambiguousWrappersForApi() {
-
-        if (doUAdecls5)
-        for (Map.Entry<String, Set<Function>> entry : exportedToUnambiguous
-                .entrySet()) {
-            Set<Function> sf = entry.getValue();
-            for (Function function : sf) {
-                List<Param> params = function.parameters();
-
-                String sig = NamingCzar.jvmSignatureFor(
-                        NodeUtil.getParamType(params, function.getSpan()),
-                        function.getReturnType().unwrap(),
-                        component.getName());
-
-                String mname = NamingCzar.idOrOpToString(function.name()); // entry.getKey();
-
-                String function_ua_name = NamingCzar.idOrOpToString(function.unambiguousName());
-                generateWrapperMethodCode(
-                        Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC, mname,
-                        function_ua_name, sig, params);
-            }
-        }
     }
 
     /** Generate an actual Java method and body code from an Expr.
@@ -1230,9 +1199,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 if (! sparams.isEmpty()) {
                     generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
-                    if (doUAdecls2 && !name.getText().equals(uaname.getText()))
-                        generateGenericMethodClass(x, (IdOrOp) uaname, selfIndex);
-                } else if (savedInATrait) {
+                 } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
                             params, selfIndex, returnType, inAMethod, body);
                 } else {
@@ -1348,12 +1315,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     selfIndex, traitOrObjectName, dottedName, invocation, sig,
                     params.size(), true);
 
-            // Copy for wrapper, instead of actually wrapping.
-            if (doUAdecls3)
-                InstantiatingClassloader.forwardingMethod(cw, uaname, modifiers,
-                        selfIndex, traitOrObjectName, dottedName, invocation, sig,
-                        params.size(), true);
-            // generateAllWrappersForFn(x, params, sig, modifiers, mname);
         } else {
             int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
 
@@ -1382,10 +1343,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
                     params, modifiers, splist);
-            if (doUAdecls4)
-                functionalMethodOfGenericTraitObjectWrapper(uaname, sparams_part,
-                    sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers, splist);
+          
         }
 
     }
