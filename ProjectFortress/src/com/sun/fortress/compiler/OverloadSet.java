@@ -897,7 +897,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             eta = ta.extend(params, Option.<WhereClause>none());
         }
         
-        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA, ta);
+        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA, eta);
     }
 
 
