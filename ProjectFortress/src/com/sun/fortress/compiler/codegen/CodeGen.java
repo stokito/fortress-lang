@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -76,7 +76,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil;
 // solution than writing out their entire types, please
 // shout out.
 public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
-    
+
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
@@ -1343,7 +1343,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
                     params, modifiers, splist);
-          
+
         }
 
     }
@@ -1663,12 +1663,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if ( names.size() != 1) {
             return sayWhat(x,"Non-unique overloading after rewrite " + x);
         }
-        
+
         IdOrOp n = names.get(0);
 
         if (n.getText().contains(Naming.FOREIGN_TAG))
             return idToPackageClassAndName(n);
-        
+
         Option<APIName> oapi = n.getApiName();
         if (oapi.isSome()) {
             APIName a = oapi.unwrap();
@@ -1683,7 +1683,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //                       trial.second().equals(rval.second()))) {
 //                    System.err.println("Substitute " +
 //                            trial.first()+"."+trial.second()+" for "+
-//                            rval.first()+"."+rval.second()); 
+//                            rval.first()+"."+rval.second());
 //                }
                 return trial;
 
@@ -1872,7 +1872,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forObjectDecl(ObjectDecl x) {
         TraitTypeHeader header = x.getHeader();
         emittingFunctionalMethodWrappers = true;
-        
+
         // TODO trim and/or consolidate this boilerplate around sparams_part
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
@@ -2100,7 +2100,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpMethodChaining(superInterfaces, false);
 
         lexEnv = savedLexEnv;
-        
+
         if (sparams_part.length() > 0) {
             dumpClass( classFileOuter, splist );
         } else {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -80,7 +80,7 @@ public class simpleDoubleArith {
     }
 
     public static double floatToDouble(float f) {
-	return (double)f;
+return (double)f;
     }
-	
+
 }

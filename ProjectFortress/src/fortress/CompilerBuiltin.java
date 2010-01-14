@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -25,7 +25,7 @@ public class CompilerBuiltin {
     }
 
     public static interface FloatLiteral extends fortress.CompilerBuiltin.Object {
-	public static abstract class DefaultTraitMethods extends FValue implements FloatLiteral {}
+        public static abstract class DefaultTraitMethods extends FValue implements FloatLiteral {}
     }
 
     public static interface ZZ32 extends fortress.CompilerBuiltin.Number {
