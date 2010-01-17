@@ -230,15 +230,18 @@ a valid overloading.
 \section{Meet Rule}
 \seclabel{more-specific-rule}
 
-If neither the Subtype Rule nor the Incompatibility Rule holds for a
-pair of overloaded declarations then the declarations introduce the
-possibility of ambiguity.  To avoid this ambiguity, we require a
-\emph{disambiguating declaration}; this is, for every call to which
-both declarations are applicable, there must be a third, more
-specific, declaration that is also applicable.  Thus, at run time,
-neither of the pair of declarations is executed because the
-disambiguating declaration is also applicable, and it is more specific
-than both.
+If neither the Subtype Rule nor the Incompatibility Rule holds 
+for a pair of overloaded declarations 
+then the declarations introduce the possibility of ambiguity.  
+To avoid this ambiguity, 
+we require a \emph{disambiguating declaration}:
+for any possible arguments to which both declarations are applicable, 
+there must be another more specific declaration that is also applicable.  
+Thus, 
+if the functional is called with such arguments, 
+neither of the pair of declarations is executed 
+because the disambiguating declaration is also applicable, 
+and it is more specific than both.
 
 \note{What is "an intersection of two declarations"?
 -- Sukyoung
