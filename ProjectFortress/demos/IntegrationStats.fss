@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component IntegrationStats
-import System.args
+import CompilerSystem.args
 import StatDigest.{...}
 export Executable
 
