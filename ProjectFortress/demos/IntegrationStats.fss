@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component IntegrationStats
-import CompilerSystem.args
+import System.{...}
 import StatDigest.{...}
 export Executable
 
@@ -60,7 +60,7 @@ leaf(val: RR64, depth: RR64) = Result(val, histLeaf(depth))
 expect : RR64 = integ(finish) - integ(start)
 start : RR64 = 0.0
 finish : RR64 = 1536.0
-logTol : ZZ32 = if args.size < 1 then 9 else strToInt(args[0]) end
+logTol : ZZ32 = if |args| < 1 then 9 else strToInt(args[0]) end
 errorTolerance : RR64 = 10.0^(-logTol) (* should be 10^(-12) *)
 reps : ZZ32 = 10
 
