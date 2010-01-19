@@ -206,11 +206,17 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       xv match {
         // Bind object names to their types.
         case (x:Id, v:ObjectTraitIndex) =>
+          val decl = v.ast
           val qualifiedName = api match {
             case Some(api) => NF.makeId(api, x)
-            case None => x
+            case None =>
+              // The trait type might have a qualified name (i.e. if it is being
+              // exported), so get that name from the SelfType.
+              toOption(decl.getSelfType) match {
+                case Some(STraitSelfType(_, STraitType(_, name, _, _), _)) => name
+                case _ => x
+              }
           }
-          val decl = v.ast
           val params = toOption(NU.getParams(decl))
           val sparams = NU.getStaticParams(decl)
           val objType = params match {
