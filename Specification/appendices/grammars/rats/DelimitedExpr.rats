@@ -19,103 +19,111 @@
 DelimitedExpr =
      ArgExpr
    / Parenthesized
-   / "object" (w ExtendsWhere)? (w GoInAnObject)? w "end"
+   / object (w ExtendsWhere)? (w GoInAnObject)? w end
    / Do
-   / "label" w Id w BlockElems w "end" w Id
-   / "label" w OpName w BlockElems w "end" w Id // Error production
-   / "while" w GeneratorClause w Do
-   / "for" w GeneratorClauseList w DoFront w "end"
-   / "if" w GeneratorClause w "then" w BlockElems (w Elifs)? (w Else)? w "end"
-   / "if" w GeneratorClause w "then" w BlockElems (w Elifs)? w Else (w "end")? &(w ")")
-   / "(" w "if" w GeneratorClause w "then" w BlockElems (w Elifs)? w Else (w "end")? w ")"
-   / "case" w Expr (w (Encloser / Op))? w "of" w CaseClauses (w CaseElse)? w "end"
-   / "case" w Expr (w (Encloser / Op))? w "do" w CaseClauses (w CaseElse)? w "end" // Error production
-   / "case" w "most" w (Encloser / Op) w "of" w CaseClauses w "end"
-   / "case" w "most" w (Encloser / Op) w "do" w CaseClauses w "end" // Error production
-   / "typecase" w TypecaseBindings w "of" w TypecaseClauses (br CaseElse)? w "end"
-   / "typecase" w TypecaseBindings w "do" w TypecaseClauses (br CaseElse)? w "end" // Error production
-   / "typecase" w "self" w "of" w TypecaseClauses (br CaseElse)? w "end" // Error production
-   / "try" w BlockElems (w Catch)? (w "forbid" w TraitTypes)? (w "finally" w BlockElems)? w "end"
+   / label w IdOrOpName w BlockElems w end w IdOrOpName
+   / while w GeneratorClause w Do
+   / for w GeneratorClauseList w DoFront w end
+   / if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
+   / if w GeneratorClause w then w BlockElems (w Elifs)? w Else
+     (w end)? &(w closeparen)
+   / openparen w if w GeneratorClause w then w BlockElems (w Elifs)?
+     w Else (w end)? w closeparen
+   / case w Expr (w (Encloser / Op))? w (of / do / in) w CaseClauses
+     (br CaseElse)? w end
+   / case w most w (Encloser / Op) w (of / do / in) w CaseClauses w end
+   / typecase w TypecaseBindings w (of / do / in) w TypecaseClauses
+     (br CaseElse)? w end
+   / <ErrorProduction>
+     typecase w self w (of / do / in) w TypecaseClauses (br CaseElse)? w end
+   / <TRY> try w BlockElems (w Catch)? (w forbid w TraitTypes)?
+     (w finally w BlockElems)? w end
 
-Do = (DoFront w "also" w)* DoFront w "end"
+Do = (DoFront w also w)* DoFront w end
 
-DoFront = ("at" w Expr w)? ("atomic" w)? "do" (w BlockElems)?
+DoFront =
+     (at w Expr w)? (atomic w)? do (w BlockElems)?
 
 ArgExpr =
-     "(" w (Expr w "," w)* (Expr w "..." w "," w)? KeywordExpr (w "," w KeywordExpr)* w ")"
-   / "(" w (Expr w "," w)* Expr w "..." w ")"
+     openparen w (Expr w comma w)* (Expr w ellipses w comma w)?
+     KeywordExpr (w comma w KeywordExpr)* w closeparen
+   / openparen w (Expr w comma w)* Expr w ellipses w closeparen
    / TupleExpr
 
-TupleExpr = "(" w (Expr w "," w)* Expr w ")"
+TupleExpr =
+     openparen w (Expr w comma w)+ Expr w closeparen
 
-KeywordExpr = BindId w "=" w Expr
+KeywordExpr = BindId w equals w Expr
 
-Parenthesized = "(" w Expr w ")"
+Parenthesized =
+     openparen w Expr w closeparen
 
 Elifs = Elif (w Elif)*
 
-Elif = "elif" w GeneratorClause w "then" w BlockElems
+Elif = elif w GeneratorClause w then w BlockElems
 
-Else = "else" w BlockElems
+Else = else w BlockElems
 
 CaseClauses = CaseClause (br CaseClause)*
 
-/* CaseClause is defined in LocalDecl.rats */
+CaseElse = else w match w BlockElems
 
-CaseElse = "else" w match w BlockElems
+TypecaseBindings =
+     BindIdOrBindIdTuple w equals w Expr &(w of)
+   / BindIdOrBindIdTuple &(w of)
+   / <ErrorProduction> Expr
 
-TypecaseBindings = TypecaseVars (w "=" w Expr)?
+TypecaseClauses =
+     TypecaseClause (br TypecaseClause)*
 
-TypecaseVars =
-     BindId
-   / "(" w BindId (w "," w BindId)+ w ")"
-
-TypecaseClauses = TypecaseClause (br TypecaseClause)*
-
-TypecaseClause = TypecaseTypes w match w BlockElems
+TypecaseClause =
+     TypecaseTypes w match w BlockElems
 
 TypecaseTypes =
-     "(" w TypeList w ")"
+     openparen w TypeList w closeparen
    / Type
 
-Catch = "catch" w BindId w CatchClauses
+Catch = catch w BindId w CatchClauses
 
 CatchClauses = CatchClause (br CatchClause)*
 
 CatchClause = TraitType w match w BlockElems
 
-MapExpr = "{" StaticArgs? (w EntrList)? w "}"
+MapExpr =
+     LeftEncloser (w StaticArgs)? w EntryList w RightEncloser
 
 Comprehension =
-     ("BIG" w)? "[" wr StaticArgs w ArrayComprehensionClause (br ArrayComprehensionClause)* w "]"
-     // Error production
-   / ("BIG" w)? "{" wr StaticArgs w Entry wr bar wr GeneratorClauseList w "}" // Error production
-   / ("BIG" w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser
-     // Error production
-   / ("BIG" w)? "[" StaticArgs? w ArrayComprehensionClause (br ArrayComprehensionClause)* w "]"
-   / ("BIG" w)? "{" StaticArgs? w Entry wr bar wr GeneratorClauseList w "}"
-   / ("BIG" w)? LeftEncloser StaticArgs? w Expr wr bar wr GeneratorClauseList w RightEncloser
+     (BIG w)? opensquare (w StaticArgs)? w ArrayComprehensionClause
+     (br ArrayComprehensionClause)* w closesquare
+   / (BIG w)? LeftEncloser (w StaticArgs)? w Entry wr bar wr
+     GeneratorClauseList w RightEncloser
+   / (BIG w)? LeftEncloser (w StaticArgs)? w Expr wr bar wr
+     GeneratorClauseList w RightEncloser
 
-/* The operator "|->" should not be in the left-hand sides of map expressions
-   and map/array comprehensions.
- */
-mapstoOp = !("|->" w Expr (w mapsto / wr bar / w "}" / w ",")) "|->"
+mapstoOp =
+     !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->"
+
+leftarrowOp = !("<-" w Expr (w leftarrow / w comma)) "<-"
 
 Entry = Expr w mapsto w Expr
 
 ArrayComprehensionLeft =
      IdOrInt w mapsto w Expr
-   / "(" w IdOrInt w "," w IdOrIntList w ")" w mapsto w Expr
-
-/* ArrayComprehensionClause is defined in Symbol.rats */
+   / openparen w IdOrInt w comma w IdOrIntList w closeparen w mapsto w
+     Expr
+   / openparen w IdOrInt w IdOrIntList w closeparen w mapsto w
+     Expr
 
 IdOrInt =
      Id
    / IntLiteralExpr
 
-IdOrIntList = IdOrInt (w "," w IdOrInt)*
+IdOrIntList =
+     IdOrInt (w comma w IdOrInt)+
+   / IdOrInt (w commaOrNot w IdOrInt)+
+   / IdOrInt
 
-ExprList = Expr (w "," w Expr)*
+ExprList = Expr (w comma w Expr)*
 
-EntryList = Entry (w "," w Entry)*
+EntryList = Entry (w comma w Entry)*
 \end{verbatim}
