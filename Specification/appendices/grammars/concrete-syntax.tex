@@ -1017,8 +1017,8 @@ Each modifier should not appear multiple times in a declaration.
 \emph{ArgExpr} &::=&
 \texttt( (\emph{Expr}\EXP{,})$^*$ \options{\emph{Expr}\EXP{...}\EXP{,}}
 \emph{KeywordExpr} (\EXP{,} \emph{KeywordExpr})$^*$ \texttt)\\
-&$|$& \emph{TupleExpr}\\
 &$|$& \texttt( (\emph{Expr}\EXP{,})$^*$ \emph{Expr}\EXP{...} \texttt)\\
+&$|$& \emph{TupleExpr}\\
 
 \emph{TupleExpr}
 &::=& \texttt( (\emph{Expr}\EXP{,})$^+$ \emph{Expr} \texttt)\\
@@ -1063,13 +1063,13 @@ Each modifier should not appear multiple times in a declaration.
 
 \emph{CatchClause} &::=& \emph{TraitType} \EXP{\Rightarrow} \emph{BlockElems} \\
 
-\emph{MapExpr} &::=& \{ \option{\emph{StaticArgs}} \option{\emph{EntryList}} \}\\
+\emph{MapExpr} &::=& \emph{LeftEncloser} \option{\emph{StaticArgs}} \emph{EntryList} \emph{RightEncloser}\\
 
 \emph{Comprehension}
 &::=& \option{\KWD{BIG}} \texttt{[} \option{\emph{StaticArgs}}
 \emph{ArrayComprehensionClause}$^+$ \texttt{]}\\
-&$|$& \option{\KWD{BIG}} \{ \option{\emph{StaticArgs}}
-\emph{Entry} \texttt{|} \emph{GeneratorClauseList} \} \\
+&$|$& \option{\KWD{BIG}} \emph{LeftEncloser} \option{\emph{StaticArgs}}
+\emph{Entry} \texttt{|} \emph{GeneratorClauseList} \emph{RightEncloser} \\
 &$|$& \option{\KWD{BIG}} \emph{LeftEncloser} \option{\emph{StaticArgs}}
 \emph{Expr} \texttt{|} \emph{GeneratorClauseList} \emph{RightEncloser} \\
 
@@ -1106,25 +1106,26 @@ Each modifier should not appear multiple times in a declaration.
 &$|$& \emph{LocalVarDecl}\\
 
 \emph{LocalFnDecl} &::=&
-\option{\emph{LocalFnMods}} \emph{NamedFnHeaderFront} \emph{FnHeaderClause} \EXP{=}
+\option{\emph{LocalFnMods}} \emph{Id} \option{\emph{StaticParams}} \emph{ValParam} \emph{FnHeaderClause} \EXP{=}
 \emph{Expr} \\
 
 \emph{LocalVarDecl}
-&::=& \option{\KWD{var}} \emph{LocalVarWTypes} \emph{InitVal} \\
-&$|$& \option{\KWD{var}} \emph{LocalVarWTypes}\\
-&$|$& \emph{LocalVarWoTypes} \EXP{=} \emph{Expr} \\
-&$|$& \option{\KWD{var}} \emph{LocalVarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+&::=& \option{\KWD{var}} \emph{VarMayTypes} \EXP{=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWTypes} \EXP{:=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWTypes}\\
+&$|$& \emph{VarWoTypes} \EXP{=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
 \option{\emph{InitVal}} \\
-&$|$& \option{\KWD{var}} \emph{LocalVarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+&$|$& \option{\KWD{var}} \emph{VarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
 \option{\emph{InitVal}} \\
 
-\emph{LocalVarWTypes} &::=& \emph{LocalVarWType} \\
-&$|$& \texttt{(} \emph{LocalVarWType}(\EXP{,} \emph{LocalVarWType})$^+$ \texttt{)}\\
-\emph{LocalVarWType} &::=& \emph{BindId} \emph{IsType}\\
+\emph{VarMayTypes} &::=& \emph{VarMayType} \\
+&$|$& \texttt{(} \emph{VarMayType}(\EXP{,} \emph{VarMayType})$^+$ \texttt{)}\\
+\emph{VarMayType} &::=& \emph{BindId} \options{\emph{IsType}}\\
 
-\emph{LocalVarWoTypes} &::=& \emph{LocalVarWoType} \\
-&$|$& \texttt{(} \emph{LocalVarWoType}(\EXP{,} \emph{LocalVarWoType})$^+$ \texttt{)}\\
-\emph{LocalVarWoType} &::=& \emph{BindId}\\
+\emph{VarWoTypes} &::=& \emph{VarWoType} \\
+&$|$& \texttt{(} \emph{VarWoType}(\EXP{,} \emph{VarWoType})$^+$ \texttt{)}\\
+\emph{VarWoType} &::=& \emph{BindId}\\
 &$|$& \emph{Unpasting} \\
 
 \emph{Unpasting} &::=& \texttt{[} \emph{UnpastingElems} \texttt{]} \\
