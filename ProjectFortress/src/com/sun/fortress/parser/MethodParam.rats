@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -82,7 +82,7 @@ FnHeaderFront OpHeaderFront :=
 
 /* AbsOpMdHeaderFront ::=
      opr (w BIG)? w ({| w -> | LeftEncloser | Encloser) (w StaticParams)?
-     (w AbsParams)? w (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
+     (w AbsParams)? w (RightEncloser | Encloser) (w := w ( w AbsSubscriptAssignParam w ))?
    | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
  */

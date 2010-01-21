@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright 2009 Sun Microsystems, Inc.,
+%   Copyright 2010 Sun Microsystems, Inc.,
 %   4150 Network Circle, Santa Clara, California 95054, U.S.A.
 %   All rights reserved.
 %
@@ -16,27 +16,33 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-Expr = ExprFront ExprTail*
+Expr =
+     ExprFront ExprTail*
 
 ExprFront =
-     AssignExpr
+     <AssignExpr> AssignExpr
    / OpExpr
    / DelimitedExpr
    / <Flow> FlowExpr
-   / <Fn> "fn" w ValParam (w IsType)? (w Throws)? w "=>" w Expr
+   / <Fn1> fn w BindId (w Throws)? w match w Expr
+   / <Fn2> fn w openparen (w Params)? w closeparen (w IsType)? (w Throws)? w match w Expr
+   / <ErrorProduction1> fn w ValParam (w IsType)? (w Throws)? w match w Expr
+   / <ErrorProduction2> fn w ValParam (w IsType)? (w Throws)? w Expr
 
 ExprTail =
      <As> As
    / <Asif> AsIf
 
-As = w "as" w Type
+As =
+     w typed w Type
 
-AsIf = w "asif" w Type
+AsIf =
+     w asif w Type
 
 AssignExpr = AssignLefts w AssignOp w Expr
 
 AssignLefts =
-     "(" w AssignLeft (w "," w AssignLeft)* w ")"
+     openparen w AssignLeft (w comma w AssignLeft)* w closeparen
    / AssignLeft
 
 AssignLeft =
@@ -48,19 +54,20 @@ AssignLeftTail =
    / FieldSelectionAssign
 
 SubscriptAssign =
-     LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
-   / LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+     LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
 
-FieldSelectionAssign = "." Id
+FieldSelectionAssign =
+    dot (Reserved / Id)
 
 OpExpr =
-     OpExprNoEnc
+     <FIRST> OpExprNoEnc
    / OpExprLeftEncloser
    / Encloser
 
 OpExprNoEnc =
-     OpExprPrimary
+     <FIRST> OpExprPrimary
    / OpExprPrefix
+   / caret
    / Op
 
 TightInfixRight =
@@ -77,7 +84,8 @@ LeftLooseInfix =
    / <Prefix>  Encloser wr OpExprPrefix
    / <Left>    Encloser wr OpExprLeftEncloser
 
-OpExprLeftEncloser = Encloser OpExprNoEnc
+OpExprLeftEncloser =
+     Encloser OpExprNoEnc
 
 OpExprPrimary =
      Primary TightInfixPostfix
@@ -94,6 +102,9 @@ OpExprPrefix =
    / <Primary> Op wr OpExprPrimary
    / <Prefix>  Op wr OpExprPrefix
    / <Left>    Op wr OpExprLeftEncloser
+   / caret w OpExprPrimary
+   / caret w OpExprPrefix
+   / caret w OpExprLeftEncloser
 
 TightInfixPostfix =
      Op OpExprPrimary
@@ -102,6 +113,10 @@ TightInfixPostfix =
    / <Primary> Op wr OpExprPrimary
    / <Prefix>  Op wr OpExprPrefix
    / <Left>    Op wr OpExprLeftEncloser
+   / caret wr OpExprPrimary
+   / caret wr OpExprPrefix
+   / caret wr OpExprLeftEncloser
+   / caret
    / Op
 
 LooseInfix =
@@ -110,63 +125,67 @@ LooseInfix =
    / <Left> Op wr OpExprLeftEncloser
 
 Primary =
-     PrimaryItem (w "," w PrimaryItem)+ &(w Encloser)
+    PrimaryItem (w comma w PrimaryItem)+
+    &(Encloser (wr / br / w comma / w RightEncloser))
    / PrimaryItem
 
-PrimaryItem = LeftAssociatedPrimary / MathPrimary
+PrimaryItem =
+     (LeftAssociatedPrimary / MathPrimary)
 
 LeftAssociatedPrimary =
-     DottedIdChain wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft* Selector*
-     // Error production
-   / DottedIdChain StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft* Selector*
-   / DottedIdChain SubscriptingLeft+ ParenthesisDelimitedLeft* Selector*
-   / DottedIdChain ParenthesisDelimited ParenthesisDelimitedLeft* Selector*
+     DottedIdChain w StaticArgs ParenthesisDelimited
+     ParenthesisDelimitedLeft* Selector*
+   / DottedIdChain SubscriptingLeft+ ParenthesisDelimitedLeft*
+     Selector*
+   / DottedIdChain ParenthesisDelimited ParenthesisDelimitedLeft*
+     Selector*
    / DottedIdChain Selector*
-   / PrimaryFront SubscriptingLeft* ParenthesisDelimitedLeft* Selector+
+   / PrimaryFront SubscriptingLeft* ParenthesisDelimitedLeft*
+     Selector+
 
-DottedIdChain = Id ("." w Id)+
+DottedIdChain =
+    (Reserved / Id) (dot w (Reserved / Id))+
 
-MathPrimary = PrimaryFront MathItem*
+MathPrimary =
+    PrimaryFront MathItem*
 
 PrimaryFront =
      ArrayExpr
    / MapExpr
    / Comprehension
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
-   / LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
    / ParenthesisDelimited
    / LiteralExpr
    / VarOrFnRef
-   / "self"
-
-/* ArrayExpr is defined in Literal.rats */
+   / self
 
 VarOrFnRef =
-     Id wr StaticArgs // Error production
-   / Id StaticArgs?
+     Id w StaticArgs
+   / Id
 
 SubscriptingLeft =
-     ("[" / "{") wr StaticArgs (w ExprList)? w ("]" / "}") // Error production
-   / ("[" / "{") StaticArgs? (w ExprList)? w ("]" / "}")
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
-   / LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+     (opensquare / opencurly) (w StaticArgs)? (w ExprList)? w
+     (closesquare / closecurly)
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
 
-ParenthesisDelimitedLeft = ParenthesisDelimited
+ParenthesisDelimitedLeft =
+    ParenthesisDelimited
 
 ParenthesisDelimited =
      Parenthesized
    / ArgExpr
-   / "(" w ")"
+   / openparen w closeparen
 
 Selector =
      MethodInvocationSelector
    / FieldSelectionSelector
 
-MethodInvocationSelector =
-     "." w Id wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft* // Error production
-   / "." w Id StaticArgs? ParenthesisDelimited ParenthesisDelimitedLeft*
+MethodInvocationSelector = /* REVERSE ORDER */
+     dot w (Reserved / Id) (w StaticArgs)? ParenthesisDelimited
+     ParenthesisDelimitedLeft*
 
-FieldSelectionSelector = "." w Id SubscriptingLeft* ParenthesisDelimitedLeft*
+FieldSelectionSelector =
+     dot w (Reserved / Id) SubscriptingLeft* ParenthesisDelimitedLeft*
 
 MathItem =
      Subscripting
@@ -174,42 +193,44 @@ MathItem =
    / ParenthesisDelimited
    / LiteralExpr
    / VarOrFnRef
-   / "self"
+   / self
 
 Subscripting =
-     ("[" / "{") wr StaticArgs (w ExprList)? w ("]" / "}") // Error production
-   / ("[" / "{") StaticArgs? (w ExprList)? w ("]" / "}")
-   / LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser // Error production
-   / LeftEncloser StaticArgs? (w ExprList)? w RightEncloser
+     (opensquare / opencurly) (w StaticArgs)? (w ExprList)? w
+     (closesquare / closecurly)
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
 
 Exponentiation =
-     "^" wr Exponent // Error production
-   / "^" Exponent
+     caret hasW Exponent
    / ExponentOp
 
 Exponent =
      ParenthesisDelimited
    / LiteralExpr
    / Id
-   / "self"
+   / self
 
 FlowExpr =
-     "exit" (w Id)? (w "with" w Expr)?
-   / Accumulator wr StaticArgs (w "[" w GeneratorClauseList w "]")? w Expr // Error production
-   / Accumulator StaticArgs? (w "[" w GeneratorClauseList w "]")? w Expr
-   / "atomic" w AtomicBack
-   / "tryatomic" w AtomicBack
-   / "spawn" w Expr
-   / "throw" w Expr
+     exit (w Id)? (w with w Expr)?
+   / Accumulator (w StaticArgs)?
+     (w opensquare w GeneratorClauseList w closesquare)? w Expr
+   / BIG w LeftEncloser w mapsto (w StaticArgs)? w RightEncloser w Expr
+   / BIG w LeftEncloser (w StaticArgs)? w RightEncloser w Expr
+   / atomic w AtomicBack
+   / tryatomic w AtomicBack
+   / spawn w Expr
+   / throw w Expr
 
 AtomicBack =
      AssignExpr
    / OpExpr
    / DelimitedExpr
 
-GeneratorClauseList = GeneratorBinding (w "," w GeneratorClause)*
+GeneratorClauseList =
+     GeneratorBinding (w comma w GeneratorClause)*
 
-GeneratorBinding = BindIdOrBindIdTuple w "<-" w Expr
+GeneratorBinding =
+     BindIdOrBindIdTuple w leftarrow w Expr
 
 GeneratorClause =
      GeneratorBinding
