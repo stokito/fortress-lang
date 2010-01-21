@@ -16,9 +16,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-FldDecl = VarDecl
+ArrayExpr =
+     opensquare (w StaticArgs)? w NoSpaceExpr MultiDimCons* w
+     closesquare
 
-VarMods := FldMods
-
-VarImmutableMods := FldImmutableMods
+MultiDimCons =
+     RectSeparator NoSpaceExpr
 \end{verbatim}
