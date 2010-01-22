@@ -22,7 +22,7 @@ ${STATIC_TESTS_DIR}/Compiled3.g.fss:18:11-21:\n\
 \ by the declarations in component Compiled3.g.\n\
 \ Unmatched declarations: {\n\
 \     (TraitDecl T at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled3.g.fsi:19.3,\n\
-\      due to different clauses for traits)\n\
+\      due to different excludes clauses for traits)\n\
 \ }\n\
 File Compiled3.g.fss has 1 error.\n
 compile_out_equals=

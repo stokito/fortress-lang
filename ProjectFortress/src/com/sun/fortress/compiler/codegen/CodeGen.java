@@ -1165,7 +1165,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         header.getWhereClause().isNone() && // no where clause
         header.getThrowsClause().isNone() && // no throws clause
         header.getContract().isNone() && // no contract
-            header.getMods().remove(fnDeclCompilableModifiers).isEmpty() && // no unhandled modifiers
+        fnDeclCompilableModifiers.containsAll(header.getMods()) && // no unhandled modifiers
         !inABlock; // no local functions
 
         if (!canCompile)
@@ -1911,7 +1911,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
             //            header.getDecls().isEmpty() &&        // no members
-            header.getMods().isEmpty()         // no modifiers
+            Modifiers.ObjectMod.containsAll(header.getMods())
             // ( extendsC.size() <= 1 ); // 0 or 1 super trait
             ;
 
@@ -2426,7 +2426,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getMods().isEmpty();           // no modifiers
+            Modifiers.TraitMod.containsAll(header.getMods());
         debug("forTraitDecl", x,
                     " decls = ", header.getDecls(), " extends = ", extendsC);
         if ( !canCompile ) sayWhat(x);
