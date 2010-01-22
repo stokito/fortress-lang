@@ -317,18 +317,32 @@ object ExportChecker {
           val declInComp = NodeUtil.getDecl(traitOrObject)
           val equalHeaders = equalTraitTypeHeaders(declInAPI.getHeader,
                                                    declInComp.getHeader)
-          val diffTraits = NodeUtil.isTrait(traitOrObject) &&
-                           ( ! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
-                                              toList(NodeUtil.getExcludesClause(declInComp))) ||
-                             ! equalComprises(declInAPI, declInComp) )
-          val diffObjects = NodeUtil.isObject(traitOrObject) &&
-                            ! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
-                                                 toOptList(NodeUtil.getParams(declInComp)))
           var cause = ""
-          if ( ! equalHeaders._1 ) cause = addMessage(cause, equalHeaders._2)
-          if ( diffTraits  ) cause = addMessage(cause, "different clauses for traits")
-          if ( diffObjects ) cause = addMessage(cause, "different parameters")
-          if ( ! equalHeaders._1 || diffTraits || diffObjects )
+          if ( ! equalHeaders._1 )
+              cause = addMessage(cause, equalHeaders._2)
+          if (NodeUtil.isTrait(traitOrObject)) {
+            if (!declInAPI.isInstanceOf[TraitDecl]) {
+              cause = addMessage(cause, "non-trait in api, but trait in component")
+            } else {
+              if (! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
+                                   toList(NodeUtil.getExcludesClause(declInComp)))) {
+                cause = addMessage(cause, "different excludes clauses for traits")
+              }
+              if (! equalComprises(declInAPI, declInComp)) {
+                cause = addMessage(cause, "different comprises clauses for traits")
+              }
+            }
+          } else if (NodeUtil.isObject(traitOrObject)) {
+            if (declInAPI.isInstanceOf[TraitDecl]) {
+              if ( ! isEmptyComprisesEllipses(declInAPI)) {
+                cause = addMessage(cause, "trait in api must comprise {...} to match object in component")
+              }
+            } else if (! equalOptListParams(toOptList(NodeUtil.getParams(declInAPI)),
+                                            toOptList(NodeUtil.getParams(declInComp)))) {
+              cause = addMessage(cause, "different parameters for object constructors")
+            }
+          }
+          if ( ! cause.equals("") )
             wrongDecls = (declInAPI, cause) :: wrongDecls
         } else missingDecls = declInAPI :: missingDecls
       }
@@ -669,6 +683,11 @@ object ExportChecker {
       }
     else equalOptListTypes(comprisesInAPI, comprisesInComp)
   }
+
+  /* Returns true if declInAPI has simply {...} as a comprises clause. */
+  private def isEmptyComprisesEllipses(declInAPI: TraitObjectDecl): Boolean =
+    NodeUtil.isComprisesEllipses(declInAPI) &&
+    toOptList(NodeUtil.getComprisesClause(declInAPI)).map(_.isEmpty).getOrElse(true)
 
   /* Returns true if members in traits and objects in an API have
    * corresponding members in the component.

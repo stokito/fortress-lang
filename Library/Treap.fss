@@ -28,12 +28,14 @@ object Treap(root: TreapNode)
     getter asDebugString(): String = "(" root.mkString(true) ")"
     getter min(): Treap = Treap(root.min)
     getter max(): Treap = Treap(root.max)
+    (* Union and intersection are left-biased *)
     opr UNION(self, other: Treap): Treap = Treap(root.combine(UnionOp, other.root))
     opr INTERSECTION(self, other: Treap): Treap = Treap(root.combine(IntersectionOp, other.root))
     opr DIFFERENCE(self, other: Treap): Treap =
         Treap(root.combine(DifferenceOp, other.root))
     opr SYMDIFF(self, other: Treap): Treap =
         Treap(root.combine(SymdiffOp, other.root))
+    containsKey(key:ZZ32): Boolean = NOT root.nodeWithKey(key).isEmpty
     replace(key:ZZ32, val:String): Treap = singleton(key,val) UNION self
     add(key:ZZ32, val:String): Treap = self UNION singleton(key,val)
     remove(key:ZZ32): Treap = self DIFFERENCE Treap(Leaf1(Min_W,key,""))
@@ -112,18 +114,28 @@ private object Empty extends TreapNode
 end
 
 private trait NonEmpty extends TreapNode comprises { Leaf1, Node }
+    getter isEmpty(): Boolean = false
     getter k(): ZZ32
     getter v(): String
     getter root(): Leaf1
+
+    join(r: TreapNode): TreapNode = r.joinNE(self)
     (* Join this treap (on left) to r (on right);
        assumes w > r.w *)
     joinNEH(r: NonEmpty): NonEmpty
 
+    combine(c: CombiningOp, r: TreapNode): TreapNode =
+        r.combineNE(self,c)
     combineNEH(c: CombiningOp, r: NonEmpty): TreapNode
+
+    combineRootL(lr: Leaf1, c: CombiningOp): TreapNode = c.combine(lr,self.root)
+    combineRootR(c: CombiningOp, rr: Leaf1): TreapNode = c.combine(self.root,rr)
+
+    rootKey(defaultKey: ZZ32): ZZ32 = self.k
+    rootValue(defaultValue: String): String = self.v
 end
 
 private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
-    getter isEmpty(): Boolean = false
     getter k(): ZZ32 = k0
     getter v(): String = v0
     getter root(): Leaf1 = self
@@ -158,7 +170,6 @@ private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
     splitR(key:ZZ32): TreapNode =
         if key < k0 then self else Empty end
 
-    join(r: TreapNode): TreapNode = r.joinNE(self)
     joinNE(l: NonEmpty): NonEmpty =
         if w0 > l.w then
             Node(l, w0, k0, v0, Empty)
@@ -168,8 +179,6 @@ private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
     joinNEH(r: NonEmpty): NonEmpty =
         Node(Empty, w0, k0, v0, r)
 
-    combine(c: CombiningOp, r: TreapNode): TreapNode =
-        r.combineNE(self,c)
     combineNE(l: NonEmpty, c: CombiningOp): TreapNode =
         if w0 > l.w then
             (lt, m, rt) = (l.splitL(k0), l.nodeWithKey(k0), l.splitR(k0))
@@ -181,12 +190,6 @@ private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
             (lt, m, rt) = (r.splitL(k0), r.nodeWithKey(k0), r.splitR(k0))
             c.rightAlone(lt).join(m.combineRootL(self, c)).join(c.rightAlone(rt))
         end
-
-    combineRootL(lr: Leaf1, c: CombiningOp): TreapNode = c.combine(lr,self)
-    combineRootR(c: CombiningOp, rr: Leaf1): TreapNode = c.combine(self,rr)
-
-    rootKey(defaultKey: ZZ32): ZZ32 = k0
-    rootValue(defaultValue: String): String = v0
 end
 
 private leaf1(key: ZZ32, val: String): TreapNode =
@@ -194,7 +197,6 @@ private leaf1(key: ZZ32, val: String): TreapNode =
 
 private object Node(left: TreapNode, w0: ZZ32, k0: ZZ32, v0: String, right: TreapNode)
         extends NonEmpty
-    getter isEmpty(): Boolean = false
     getter k(): ZZ32 = k0
     getter v(): String = v0
     getter root(): Leaf1 = Leaf1(w0, k0, v0)
@@ -255,7 +257,6 @@ private object Node(left: TreapNode, w0: ZZ32, k0: ZZ32, v0: String, right: Trea
             right
         end
 
-    join(r: TreapNode): TreapNode = r.joinNE(self)
     joinNE(l: NonEmpty): NonEmpty =
         if w0 > l.w then
             Node(l.join(left), w0, k0, v0, right)
@@ -265,25 +266,17 @@ private object Node(left: TreapNode, w0: ZZ32, k0: ZZ32, v0: String, right: Trea
     joinNEH(r: NonEmpty): NonEmpty =
         Node(left, w0, k0, v0, right.join(r))
 
-    combine(c: CombiningOp, r: TreapNode): TreapNode =
-        r.combineNE(self,c)
     combineNE(l: NonEmpty, c: CombiningOp): TreapNode =
-        if w0 < l.w then
-            l.combineNEH(c,self)
-        else
+        if w0 > l.w then
             (lt, m, rt) = (l.splitL(k0), l.nodeWithKey(k0), l.splitR(k0))
             lt.combine(c,left).join(m.combineRootR(c, self.root)).join(rt.combine(c,right))
+        else
+            l.combineNEH(c,self)
         end
     combineNEH(c: CombiningOp, r: NonEmpty): TreapNode = do
             (lt, m, rt) = (r.splitL(k0), r.nodeWithKey(k0), r.splitR(k0))
             left.combine(c,lt).join(m.combineRootL(self.root, c)).join(right.combine(c,rt))
         end
-
-    combineRootL(lr: Leaf1, c: CombiningOp): TreapNode = c.combine(lr,self.root)
-    combineRootR(c: CombiningOp, rr: Leaf1): TreapNode = c.combine(self.root,rr)
-
-    rootKey(defaultKey: ZZ32): ZZ32 = k0
-    rootValue(defaultValue: String): String = v0
 end
 
 private trait CombiningOp
