@@ -118,7 +118,7 @@ transient Param AbsParam = AbsPlainParam ;
 /* OpHeaderFront ::=
      opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
      (w Params)? w (RightEncloser | Encloser)
-   | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr w ValParam w (Op | ExponentOp | ^) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 transient Op LeftOp =
@@ -162,7 +162,7 @@ FnHeaderFront OpHeaderFront =
 /* AbsOpHeaderFront ::=
      opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
      (w AbsParams)? w (RightEncloser | Encloser)
-   | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr w AbsValParam w (Op | ExponentOp | ^) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
  */
 FnHeaderFront AbsOpHeaderFront =

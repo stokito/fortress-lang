@@ -472,20 +472,31 @@ Each modifier should not appear multiple times in a declaration.
 
 \emph{Extends} &::=& \KWD{extends} \emph{TraitTypes} \\
 \emph{Excludes} &::=& \KWD{excludes} \emph{TraitTypes} \\
-\emph{Comprises} &::=& \KWD{comprises} \emph{TraitTypes} \\
-\emph{AbsComprises} &::=& \KWD{comprises} \emph{ComprisingTypes} \\
+\emph{Comprises} &::=& \KWD{comprises} \emph{ComprisingTypes} \\
+\emph{AbsComprises} &::=& \KWD{comprises} \emph{AbsComprisingTypes} \\
 
 \emph{TraitTypes} &::=& \emph{TraitType} \\
 &$|$& \{ \emph{TraitTypeList} \} \\
 \emph{TraitTypeList} &::=& \emph{TraitType}(\EXP{,} \emph{TraitType})$^*$ \\
 
 \emph{ComprisingTypes}
-&::=& \emph{TraitType} \\
+&::=& \emph{ComprisingType} \\
 &$|$& \texttt{\{} \emph{ComprisingTypeList} \texttt{\}} \\
 
 \emph{ComprisingTypeList}
+&::=& \emph{ComprisingType}(\EXP{,} \emph{ComprisingType})$^*$\\
+
+\emph{ComprisingType}
+&::=& \emph{TraitType} \\
+&$|$& \emph{Id} \\
+
+\emph{AbsComprisingTypes}
+&::=& \emph{ComprisingType} \\
+&$|$& \texttt{\{} \option{\emph{AbsComprisingTypeList}} \texttt{\}} \\
+
+\emph{AbsComprisingTypeList}
 &::=& \EXP{\ldots} \\
-&$|$& \emph{TraitType}(\EXP{,} \emph{TraitType})$^*$ \options{\EXP{,} \ldots}\\
+&$|$& \emph{ComprisingTypeList} \options{\EXP{,} \ldots}\\
 
 \emph{Where}
 &::=& \KWD{where} \bTPl\ \emph{WhereBindingList} \bTPr\
@@ -512,7 +523,7 @@ Each modifier should not appear multiple times in a declaration.
 &$|$& \emph{UnitConstraint} \\
 &$|$& \emph{QualifiedName} \EXP{=} \emph{QualifiedName}\\
 &$|$& \emph{IntConstraint} \\
-&$|$& \emph{BoolConstraint} \\
+&$|$& \emph{BoolExpr} \\
 
 \emph{UnitConstraint}
 &::=& \TYP{dimensionless} \EXP{=} \emph{Id}\\
@@ -715,20 +726,22 @@ Each modifier should not appear multiple times in a declaration.
 
 \emph{OpHeaderFront}
 &::=& \KWD{opr} \option{\KWD{BIG}}
-(\{\EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
-\option{\emph{Params}} (\emph{RightEncloser} $|$ \emph{Encloser}) \\
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser})
+\option{\emph{StaticParams}} \option{\emph{Params}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser}) \\
 &$|$& \KWD{opr} \emph{ValParam}
-(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+(\emph{Op} $|$ \emph{ExponentOp} $|$ \texttt{\^}) \option{\emph{StaticParams}} \\
 &$|$& \KWD{opr} \option{\KWD{BIG}}
 (\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
  \option{\emph{StaticParams}} \emph{ValParam} \\
 
 \emph{AbsOpHeaderFront}
 &::=& \KWD{opr} \option{\KWD{BIG}}
-(\{\EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
-\option{\emph{AbsParams}} (\emph{RightEncloser} $|$ \emph{Encloser}) \\
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser})
+\option{\emph{StaticParams}} \option{\emph{AbsParams}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser}) \\
 &$|$& \KWD{opr} \emph{AbsValParam}
-(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+(\emph{Op} $|$ \emph{ExponentOp} $|$ \texttt{\^}) \option{\emph{StaticParams}} \\
 &$|$& \KWD{opr} \option{\KWD{BIG}}
 (\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
  \option{\emph{StaticParams}} \emph{AbsValParam} \\

@@ -79,7 +79,7 @@ List<BaseType> TraitTypes =
 
 /*    Comprises ::= comprises w ComprisingTypes */
 /* AbsComprises ::= comprises w AbsComprisingTypes */
-/* AbsComprisingTypes ::= ComprisingType | { w AbsComprisingTypeList w } */
+/* AbsComprisingTypes ::= ComprisingType | { (w AbsComprisingTypeList)? w } */
 Comprises Comprises =
      comprises w a1:ComprisingTypes
      { yyValue = new Comprises(createSpan(yyStart,yyCount), a1);

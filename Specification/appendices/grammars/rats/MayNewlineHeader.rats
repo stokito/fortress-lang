@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright 2009 Sun Microsystems, Inc.,
+%   Copyright 2010 Sun Microsystems, Inc.,
 %   4150 Network Circle, Santa Clara, California 95054, U.S.A.
 %   All rights reserved.
 %
@@ -16,26 +16,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-IsType = ":" w Type
+IsType = colon w Type
 
-WhereConstraintList = WhereConstraint (w "," w WhereConstraint)*
+WhereConstraintList =
+     WhereConstraint (w comma w WhereConstraint)*
 
 WhereConstraint =
-     Id w Extends
-   / OpName w Extends // Error production
+     IdOrOpName w Extends
    / TypeAlias
-   / Type w "coerces" w Type
-   / Type w "widens" w Type
+   / Type w coerces w Type
+   / Type w widens w Type
    / UnitConstraint
-   / QualifiedName w "=" w QualifiedName
+   / QualifiedName w equals w QualifiedName
    / IntConstraint
-   / BoolConstraint
+   / BoolExpr
+   / Type w widens w or w coerces w Type
 
 UnitConstraint =
-     "dimensionless" w "=" w Id
-   / Id w "=" w "dimensionless"
-   / "dimensionless" w "=" w OpName // Error production
-   / OpName w "=" w "dimensionless" // Error production
+     "dimensionless" w equals w IdOrOpName
+   / IdOrOpName w equals w "dimensionless"
 
 IntConstraint =
      IntExpr w lessthanequal w IntExpr
@@ -48,138 +47,107 @@ IntVal =
      IntLiteralExpr
    / QualifiedName
 
-IntExpr = IntExprFront IntExprTail*
-
-IntExprFront =
-     IntVal
-   / "(" w IntExpr w ")"
-
+IntExpr =
+     SumExpr IntExprTail*
 IntExprTail =
      SumIntExpr
    / MinusIntExpr
-   / ProductIntExpr
-   / ExponentIntExpr
+SumIntExpr =
+     w plus w SumExpr
+MinusIntExpr =
+     w minus w SumExpr
 
-SumIntExpr = w "+" w IntExpr
+SumExpr =
+     MulExpr SumExprTail*
+SumExprTail =
+     ProductIntExpr
+ProductIntExpr =
+     (w DOT w / sr) MulExpr
 
-MinusIntExpr = w "-" w IntExpr
+MulExpr =
+     IntBase caret IntVal
+   / IntBase
 
-ProductIntExpr = (w "DOT" w / sr) IntExpr
+IntBase =
+     IntVal
+   / openparen w IntExpr w closeparen
 
-ExponentIntExpr = "^" IntVal
+BoolExpr = OpBool
 
-BoolConstraint = BoolConstraintFront BoolConstraintTail*
+OpBool =
+     BoolPrimary
+   / BoolPrefix
 
-BoolConstraintFront =
-     NOT w BoolExpr
-   / BoolConstraintHead w OR w BoolExpr
-   / BoolConstraintHead w AND w BoolExpr
-   / BoolConstraintHead w IMPLIES w BoolExpr
-   / BoolConstraintHead w "=" w BoolExpr
+BoolPrimary =
+     BoolPrimaryFront BoolPrefix
+   / BoolPrimaryFront wr BoolPrimary
+   / BoolPrimaryFront wr Op wr OpBool
+   / BoolPrimaryFront
 
-BoolConstraintHead =
-     BoolVal
-   / "(" w BoolExpr w ")"
+BoolPrefix =
+     Op OpBool
+   / Op wr OpBool
 
-BoolConstraintTail =
-     OrBoolConstraint
-   / AndBoolConstraint
-   / ImpliesBoolConstraint
-   / EqualsBoolConstraint
-
-OrBoolConstraint = w OR w BoolExpr
-
-AndBoolConstraint = w AND w BoolExpr
-
-ImpliesBoolConstraint = w IMPLIES w BoolExpr
-
-EqualsBoolConstraint = w "=" w BoolExpr
-
-BoolVal =
+BoolPrimaryFront =
      "true"
    / "false"
    / QualifiedName
+   / openparen w OpBool w closeparen
 
-BoolExpr = BoolExprFront BoolExprTail*
-
-BoolExprFront =
-     BoolVal
-   / "(" w BoolExpr w ")"
-   / NOT w BoolExpr
-
-BoolExprTail =
-     OrBoolExpr
-   / AndBoolExpr
-   / ImpliesBoolExpr
-   / EqualsBoolExpr
-
-OrBoolExpr = w OR w BoolExpr
-
-AndBoolExpr = w AND w BoolExpr
-
-ImpliesBoolExpr = w IMPLIES w BoolExpr
-
-EqualsBoolExpr = w "=" w BoolExpr
-
-UnitExpr = UnitExprFront UnitExprTail*
-
-UnitExprFront =
+UnitVal =
      "dimensionless"
    / QualifiedName
-   / "(" w UnitExpr w ")"
 
+UnitExpr =
+     MulDivUnit UnitExprTail*
 UnitExprTail =
      ProductUnitExpr
    / QuotientUnitExpr
-   / ExponentUnitExpr
+ProductUnitExpr =
+     (w DOT w / sr) MulDivUnit
+QuotientUnitExpr =
+     (slash / per) MulDivUnit
 
-ProductUnitExpr = (w "DOT" w / sr) UnitExpr
+MulDivUnit =
+     UnitBase caret UnitVal
+   / UnitBase
 
-QuotientUnitExpr = ("/" / "per") UnitExpr
+UnitBase =
+     UnitVal
+   / openparen w UnitExpr w closeparen
 
-ExponentUnitExpr = "^" UnitExpr
+Requires = requires w opencurly (w ExprList)? w closecurly
 
-Contract =
-     w Requires w (ExtendsWhere / Throws / Where) (w Ensures)? (w Invariant)? // Error production
-   / w Requires w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
-   / w Requires w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
-   / w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)? // Error production
-   / w Ensures w Invariant w (ExtendsWhere / Throws / Where) // Error production
-   / w Invariant w (ExtendsWhere / Throws / Where) // Error production
-   / w Requires w Invariant w Ensures // Error production
-   / w Invariant w Ensures w Requires // Error production
-   / w Invariant w Requires (w Ensures)? // Error production
-   / w Ensures w Invariant w Requires // Error production
-   / w Ensures w Requires (w Invariant)? // Error production
-   / w Invariant w Ensures // Error production
-   / (w Requires)? (w Ensures)? (w Invariant)?
+Ensures =
+     ensures w opencurly (w EnsuresClauseList)? w closecurly
 
-Requires = "requires" w "{" (w ExprList)? w "}"
+EnsuresClauseList =
+     EnsuresClause (w comma w EnsuresClause)*
 
-Ensures = "ensures" w "{" (w EnsuresClauseList)? w "}"
+EnsuresClause = Expr (w provided w Expr)?
 
-EnsuresClauseList = EnsuresClause (w "," w EnsuresClause)*
+Invariant =
+     invariant w opencurly (w ExprList)? w closecurly
 
-EnsuresClause = Expr (w "provided" w Expr)?
+StaticArgs =
+    opendoublesquare w StaticArgList w closedoublesquare
 
-Invariant = "invariant" w "{" (w ExprList)? w "}"
-
-StaticArgs = "[\" w StaticArgList w "\]"
-
-StaticArgList = StaticArg (w "," w StaticArg)*
+StaticArgList = StaticArg (w comma w StaticArg)*
 
 StaticArg =
-     Op
-   / !(QualifiedName (w "\]" / w "]" / w "," / w "[\" / w "[" / w "->" /
-                      w "OR" / w "AND" / w "IMPLIES" / w "=") /
+     Op &(w comma / w closedoublesquare)
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w OR / w AND / w IMPLIES / w equals) /
        "Unity" / "dimensionless" / "true" / "false")
      IntExpr
-   / !(QualifiedName (w "\]" / w "]" / w "," / w "[\" / w "[" / w "->") /
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow) /
        "Unity" / "dimensionless")
      BoolExpr
    / "true"
    / "false"
-   / !(QualifiedName (w "DOT" / w "/" / w "per" / w DimPostfixOp) / "dimensionless")
+   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
      Type
    / UnitExpr
 \end{verbatim}
