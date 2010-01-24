@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright 2009 Sun Microsystems, Inc.,
+%   Copyright 2010 Sun Microsystems, Inc.,
 %   4150 Network Circle, Santa Clara, California 95054, U.S.A.
 %   All rights reserved.
 %
@@ -18,56 +18,57 @@
 \begin{verbatim}
 ValParam =
      BindId
-   / "(" (w Params)? w ")"
+   / openparen (w Params)? w closeparen
 
 AbsValParam =
-     "(" (w AbsParams)? w ")"
+     openparen (w AbsParams)? w closeparen
    / Type
 
+Parameter = Keyword / Varargs / Param
 Params =
-     (Param w "," w)+ (Keyword w "," w)+ Varargs // Error production
-   / Varargs w "," w (Keyword w "," w)+ Param (w "," w Param)* // Error production
-   / Varargs (w "," w Param)+ (w "," w Keyword)* // Error production
-   / (Param w "," w)* (Varargs w "," w)? Keyword (w "," w Keyword)*
-   / (Param w "," w)*  Varargs
-   / Param (w "," w Param)*
+     Parameter (w comma w Parameter)+
+   / Parameter (w commaOrNot w Parameter)+
+   / Parameter
 
+AbsParameter = Keyword / Varargs / AbsParam
 AbsParams =
-     (AbsParam w "," w)+ (Keyword w "," w)+ Varargs // Error production
-   / Varargs w "," w (Keyword w "," w)+ AbsParam (w "," w AbsParam)* // Error production
-   / Varargs (w "," w AbsParam)+ (w "," w Keyword)* // Error production
-   / (AbsParam w "," w)* (Varargs w "," w)? Keyword (w "," w Keyword)*
-   / (AbsParam w "," w)*  Varargs
-   / AbsParam (w "," w AbsParam)*
+     AbsParameter (w comma w AbsParameter)+
+   / AbsParameter (w commaOrNot w AbsParameter)+
+   / AbsParameter
 
-VarargsParam = BindId w ":" w Type w "..."
-
+VarargsParam = BindId w colon w Type w ellipses
 Varargs = VarargsParam
 
-Keyword = Param w "=" w Expr
+Keyword = Param w equals w Expr
 
 PlainParam =
-     BindId w IsType
-   / !(BindId (w "\]" / w "]" / w "[\" / w "[" / w "->")) BindId
-   / Type
-
+     BindId (w IsType)?
 Param = PlainParam
 
 AbsPlainParam =
      BindId w IsType
    / Type
-
 AbsParam = AbsPlainParam
 
+LeftOp =
+     LeftEncloser w mapsto
+   / LeftEncloser
+   / Encloser
+SingleOp =
+     Op
+   / caret
+   / Encloser
+   / SUM
+   / PROD
 OpHeaderFront =
-     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w Params)? w
-     (RightEncloser / Encloser)
-   / "opr" w ValParam w (Op / ExponentOp) (w StaticParams)?
-   / "opr" (w "BIG")? w (Op / "^" / Encloser / SUM / PROD) (w StaticParams)? w ValParam
+     <Enclosing> opr (w BIG)? w opLeftOp
+     (w StaticParams)? (w Params)? w (RightEncloser / Encloser)
+   / opr w ValParam w (Op / ExponentOp / caret) (w StaticParams)?
+   / opr (w BIG)? w SingleOp (w StaticParams)? w ValParam
 
 AbsOpHeaderFront =
-     "opr" (w "BIG")? w ("{" w "|->" / LeftEncloser / Encloser) (w StaticParams)? (w AbsParams)? w
-     (RightEncloser / Encloser)
-   / "opr" w AbsValParam w (Op / ExponentOp) (w StaticParams)?
-   / "opr" (w "BIG")? w (Op / "^" / Encloser / SUM / PROD) (w StaticParams)? w AbsValParam
+     <Enclosing> opr (w BIG)? w opLeftOp
+     (w StaticParams)? (w AbsParams)? w (RightEncloser / Encloser)
+   / opr w AbsValParam w (Op / ExponentOp / caret) (w StaticParams)?
+   / opr (w BIG)? w SingleOp (w StaticParams)? w AbsValParam
 \end{verbatim}

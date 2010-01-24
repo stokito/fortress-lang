@@ -50,7 +50,7 @@ transient List<WhereConstraint> WhereConstraintList =
    | UnitConstraint
    | QualifiedName w = w QualifiedName
    | IntConstraint
-   | BoolConstraint
+   | BoolExpr
    | Type w widens w or w coerces w Type
  */
 transient WhereConstraint WhereConstraint =

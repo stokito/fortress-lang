@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright 2009 Sun Microsystems, Inc.,
+%   Copyright 2010 Sun Microsystems, Inc.,
 %   4150 Network Circle, Santa Clara, California 95054, U.S.A.
 %   All rights reserved.
 %
@@ -16,180 +16,99 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{verbatim}
-ExtendsWhere = "extends" w TraitTypeWheres
+ExtendsWhere =
+     extends w TraitTypeWhere
+   / extends w opencurly w TraitTypeWhere (w comma w TraitTypeWhere)*
+     w closecurly
 
-TraitTypeWheres =
-     TraitTypeWhere
-   / "{" w TraitTypeWhereList w "}"
+TraitTypeWhere =
+     TraitTypeWithError (w Where)?
 
-TraitTypeWhereList = TraitTypeWhere (w "," w TraitTypeWhere)*
+Extends = extends w TraitTypes
 
-TraitTypeWhere = TraitType (w Where)?
-
-Extends = "extends" w TraitTypes
-
-Excludes = "excludes" w TraitTypes
-
-Comprises = "comprises" w TraitTypes
-
-AbsComprises = "comprises" w ComprisingTypes
+Excludes = excludes w TraitTypes
 
 TraitTypes =
-     TraitType
-   / "{" w TraitTypeList w "}"
+     TraitTypeWithError
+   / opencurly w TraitTypeWithError (w comma w TraitTypeWithError)* w closecurly
 
-TraitTypeList = TraitType (w "," w TraitType)*
+Comprises =
+     comprises w ComprisingTypes
+   / comprises w opencurly (w AbsComprisingTypeList)? w closecurly
+
+AbsComprisingTypeList =
+     ellipses
+   / ComprisingTypeList (w comma w ellipses)?
 
 ComprisingTypes =
-     TraitType
-   / "{" w ComprisingTypeList w "}"
+     ComprisingTypeWithError
+   / opencurly w ComprisingTypeList w closecurly
 
 ComprisingTypeList =
-     "..."
-   / TraitType (w "," w TraitType)* (w "," w "...")?
+     ComprisingTypeWithError (w comma w ComprisingTypeWithError)*
+
+ComprisingTypeWithError =
+     TraitTypeWithError
+   / Id
 
 Where =
-     "where" w "[\" w WhereBindingList w "\]" (w "{" w WhereConstraintList w "}")?
-   / "where" w "{" w WhereConstraintList w "}"
-
-WhereBindingList = WhereBinding (w "," w WhereBinding)*
+     where w opendoublesquare w WhereBinding (w comma w WhereBinding)* w
+     closedoublesquare (w opencurly w WhereConstraintList w closecurly)?
+   / where w opencurly w WhereConstraintList w closecurly
 
 WhereBinding =
-     "nat" w Id
-   / "nat" w OpName // Error production
-   / "int" w Id
-   / "int" w OpName // Error production
-   / "bool" w Id
-   / "bool" w OpName // Error production
-   / "unit" w Id
-   / "unit" w OpName // Error production
-   / OpName w Extends // Error production
-   / Id (w Extends)?
-   / "[\"       // Error production
+     nat w IdOrOpName
+   / int w IdOrOpName
+   / bool w IdOrOpName
+   / unit w IdOrOpName
+   / IdOrOpName (w Extends)?
+   / <ErrorProduction> opendoublesquare
 
 FnHeaderClause = (w NoNewlineIsType)? FnClauses
 
-FnClauses =
-     w Throws w ExtendsWhere (w Where)? Contract    // Error production
-   / w Throws w Where w ExtendsWhere Contract    // Error production
-   / w Where w ExtendsWhere Contract // Error production
-   / w Where w Throws Contract // Error production
-   / (w Throws)? (w Where)? Contract
+FnClauses = FnClause*
+FnClause =
+     w Throws
+   / w Where
+   / w Requires
+   / w Ensures
+   / w Invariant
+   / w ExtendsWhere
 
-Throws = "throws" w MayTraitTypes
+Throws =
+     throws w opencurly w closecurly
+   / throws w TraitTypes
 
-MayTraitTypes =
-     "{" w "}"
-   / TraitTypes
+Mods = (Mod w)+
 
-/* Each modifier cannot appear more than once. */
-TraitMods = (TraitMod w)+
+Mod =
+     abstract
+   / atomic
+   / getter
+   / hidden
+   / io
+   / override
+   / private
+   / settable
+   / setter
+   / test
+   / value
+   / var
+   / wrapped
 
-TraitMod =
-     AbsTraitMod
-   / "private"
-
-/* Each modifier cannot appear more than once. */
-AbsTraitMods = (AbsTraitMod w)+
-
-AbsTraitMod =
-     "value"
-   / "test"
-
-/* Each modifier cannot appear more than once. */
-ObjectMods = TraitMods
-
-/* Each modifier cannot appear more than once. */
-AbsObjectMods = AbsTraitMods
-
-/* Each modifier cannot appear more than once. */
-MdMods = (MdMod w)+
-
-MdMod =
-     FnMod
-   / "override"
-
-/* Each modifier cannot appear more than once. */
-AbsMdMods = (AbsMdMod w)+
-
-AbsMdMod =
-     AbsFnMod
-   / "override"
-
-/* Each modifier cannot appear more than once. */
-FnMods = (FnMod w)+
-
-FnMod =
-     AbsFnMod
-   / "private"
-
-/* Each modifier cannot appear more than once. */
-AbsFnMods = (AbsFnMod w)+
-
-AbsFnMod =
-     LocalFnMod
-   / "test"
-
-/* Each modifier cannot appear more than once. */
-LocalFnMods = (LocalFnMod w)+
-
-LocalFnMod =
-     "atomic"
-   / "io"
-
-/* Each modifier cannot appear more than once. */
-ParamFldMods = (ParamFldMod w)+
-
-ParamFldMod =
-     "hidden"
-   / "settable"
-   / "wrapped"
-
-/* Each modifier cannot appear more than once. */
-FldMods = (FldMod w)+
-
-/* Each modifier cannot appear more than once. */
-FldImmutableMods = (FldImmutableMod w)+
-
-FldMod =
-     "var"
-   / AbsFldMod
-
-FldImmutableMod = AbsFldMod
-
-/* Each modifier cannot appear more than once. */
-AbsFldMods = (AbsFldMod w)+
-
-AbsFldMod =
-     ApiFldMod
-   / "wrapped"
-   / "private"
-
-/* Each modifier cannot appear more than once. */
-ApiFldMods = (ApiFldMod w)+
-
-ApiFldMod =
-     "hidden"
-   / "settable"
-   / "test"
-
-StaticParams = "[\" w StaticParamList w "\]"
-
-StaticParamList = StaticParam (w "," w StaticParam)*
+StaticParams =
+     opendoublesquare w StaticParam (w comma w StaticParam)* w
+     closedoublesquare
 
 StaticParam =
-     "nat"  w Id
-   / "nat"  w OpName // Error production
-   / "int"  w Id
-   / "int"  w OpName // Error production
-   / "bool" w Id
-   / "bool" w OpName // Error production
-   / "dim"  w Id
-   / "dim"  w OpName // Error production
-   / "unit" w Id (w ":" w NoNewlineType)? (w "absorbs" w "unit")?
-   / "unit" w OpName (w ":" w NoNewlineType)? (w "absorbs" w "unit")? // Error production
-   / "opr"  w Op
-   / OpName w Extends (w "absorbs" w "unit")? // Error production
-   / Id (w Extends)? (w "absorbs" w "unit")?
-   / "[\"       // Error production
+     nat w IdOrOpName
+   / int w IdOrOpName
+   / bool w IdOrOpName
+   / dim w IdOrOpName
+   / unit w IdOrOpName (w colon w NoNewlineType)? (w absorbs w unit)?
+   / opr w Op
+   / IdOrOpName w Extends (w absorbs w unit)?
+   / Id (w Extends)? (w absorbs w unit)?
+   / <ErrorProduction>
+     opendoublesquare
 \end{verbatim}
