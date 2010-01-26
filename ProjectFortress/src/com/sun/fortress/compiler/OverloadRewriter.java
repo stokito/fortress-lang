@@ -76,12 +76,12 @@ public class OverloadRewriter {
         OverloadRewriteVisitor visitor = new OverloadRewriteVisitor(forInterpreter);
         comp = (Component) comp.accept(visitor);
         List<Decl> decls = comp.getDecls();
-        Span span = NodeUtil.getSpan(comp);
 
         // Add rewritten overloaded functions
         Map<List<? extends Overloading>, OverloadRewriteVisitor.TypedIdOrOpList> overloadedFunctions = visitor.getOverloadedFunctions();
         for (Map.Entry<List<? extends Overloading>, OverloadRewriteVisitor.TypedIdOrOpList> overload : overloadedFunctions.entrySet()) {
             OverloadRewriteVisitor.TypedIdOrOpList value = overload.getValue();
+            Span span = value.span;
             List<IdOrOp> overloadings = new ArrayList<IdOrOp>(value.names);
             Id overloadingId = NodeFactory.makeId(span, value.name);
             _RewriteFnOverloadDecl newDecl = NodeFactory.make_RewriteFnOverloadDecl(span, overloadingId, overloadings, value.type);
@@ -92,6 +92,7 @@ public class OverloadRewriter {
         Map<List<? extends Overloading>, OverloadRewriteVisitor.TypedIdOrOpList> overloadedOperators = visitor.getOverloadedOperators();
         for (Map.Entry<List<? extends Overloading>, OverloadRewriteVisitor.TypedIdOrOpList> overload : overloadedOperators.entrySet()) {
             OverloadRewriteVisitor.TypedIdOrOpList value = overload.getValue();
+            Span span = value.span;
             List<IdOrOp> overloadings = new ArrayList<IdOrOp>(value.names);
             Op overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan("impossible", value.names), value.name);
             _RewriteFnOverloadDecl newDecl = NodeFactory.make_RewriteFnOverloadDecl(span, overloadingOp, overloadings, value.type);

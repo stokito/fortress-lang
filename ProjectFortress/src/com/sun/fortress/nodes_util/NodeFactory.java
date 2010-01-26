@@ -280,7 +280,7 @@ public class NodeFactory {
                                                     Option<Id> alias) {
         return new AliasedAPIName(makeSpanInfo(span), api, alias);
     }
-    
+
     public static TraitDecl makeTraitDecl(TraitType selfType,
                                           List<TraitTypeWhere> extendsC,
                                           List<BaseType> excludesC,
@@ -296,8 +296,8 @@ public class NodeFactory {
                              comprisesC,
                              Option.<SelfType>some(makeSelfType(selfType)));
     }
-    
-    
+
+
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,
@@ -385,7 +385,7 @@ public class NodeFactory {
                               Option.<List<Type>>none(),
                               Option.<Contract>none(),selfType);
     }
-    
+
     public static ObjectDecl makeObjectDecl(TraitType selfType,
                                             List<TraitTypeWhere> extendsC) {
         return makeObjectDecl(NodeUtil.getSpan(selfType),
@@ -400,7 +400,7 @@ public class NodeFactory {
                               Option.<Contract>none(),
                               Option.<SelfType>some(makeSelfType(selfType)));
     }
-    
+
     public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,
                                             List<StaticParam> sparams,
                                             List<TraitTypeWhere> extendsC,
@@ -496,7 +496,7 @@ public class NodeFactory {
                           Option.<Contract>none(),
                           body);
     }
-    
+
     private static String uaName(String tag, Span span ) {
         String s = terseSpan(span);
         s = s.replaceAll("/", "|");
@@ -514,7 +514,7 @@ public class NodeFactory {
         }
         return s;
     }
-    
+
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
@@ -523,12 +523,12 @@ public class NodeFactory {
                                     Option<List<Type>> throwsC,
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract) {
-    	IdOrOp unambiguousName;
-    	if (name instanceof Op) {
-    		unambiguousName = makeOp((Op)name, uaName("OP", span));
-    	} else {
-    		unambiguousName = makeId(span, uaName("FN", span));
-    	}
+        IdOrOp unambiguousName;
+        if (name instanceof Op) {
+            unambiguousName = makeOp((Op)name, uaName("OP", span));
+        } else {
+            unambiguousName = makeId(span, uaName("FN", span));
+        }
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
                           throwsC, whereC, contract, unambiguousName,
                           Option.<Expr>none(), Option.<IdOrOp>none());
@@ -543,12 +543,12 @@ public class NodeFactory {
                                     Option<WhereClause> whereC,
                                     Option<Contract> contract,
                                     Option<Expr> body) {
-    	IdOrOp unambiguousName;
-    	if (name instanceof Op) {
-    		unambiguousName = makeOp((Op)name, uaName("OP", span));
-    	} else {
-    		unambiguousName = makeId(span, uaName("FN", span));
-    	}
+        IdOrOp unambiguousName;
+        if (name instanceof Op) {
+            unambiguousName = makeOp((Op)name, uaName("OP", span));
+        } else {
+            unambiguousName = makeId(span, uaName("FN", span));
+        }
         return makeFnDecl(span, mods, name, staticParams, params, returnType,
                           throwsC, whereC, contract, unambiguousName,
                           body, Option.<IdOrOp>none());
@@ -1277,7 +1277,8 @@ public class NodeFactory {
 
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type, Option<WhereClause> in_where) {
         if ( in_where.isSome() )
-            return makeTraitTypeWhere(new Span(NodeUtil.getSpan(in_type), NodeUtil.getSpan(in_where.unwrap())), in_type, in_where);
+            return makeTraitTypeWhere(new Span(NodeUtil.getSpan(in_type),
+                                               NodeUtil.getSpan(in_where.unwrap())), in_type, in_where);
         else
             return makeTraitTypeWhere(NodeUtil.getSpan(in_type), in_type, in_where);
     }
@@ -2705,11 +2706,11 @@ public class NodeFactory {
         TypeInfo info = makeTypeInfo(typeSpan, false);
         return new UnknownType(info);
     }
-    
+
     public static Id makeLiftedCoercionId(Span span, Id trait) {
         return makeId(span, trait.getApiName(), NamingCzar.makeLiftedCoercionName(trait));
     }
-    
+
     public static Id makeLiftedCoercionId(Span span, Id trait, APIName api) {
         return makeId(span, api, NamingCzar.makeLiftedCoercionName(trait));
     }

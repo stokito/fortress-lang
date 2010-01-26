@@ -30,6 +30,7 @@ import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.AnyListComparer;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.DefaultComparator;
@@ -44,13 +45,14 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         final List<IdOrOp> names;
         final  Option<Type> type;
         final String name;
+        final Span span;
 
-        TypedIdOrOpList (String name, List<IdOrOp> names, Option<Type> type) {
+        TypedIdOrOpList (Span span, String name, List<IdOrOp> names, Option<Type> type) {
             this.names = names;
             this.type = type;
             this.name = name;
+            this.span = span;
         }
-
     }
 
 
@@ -127,7 +129,10 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedFunctions.containsKey(overloadingName)) {
-                overloadedFunctions.put(the_overloads, new TypedIdOrOpList(overloadingName, fns, that.getInfo().getExprType()));
+                overloadedFunctions.put(the_overloads,
+                                        new TypedIdOrOpList(NodeUtil.getSpan(that),
+                                                            overloadingName, fns,
+                                                            that.getInfo().getExprType()));
             }
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.singletonList(overloadingId);
@@ -189,9 +194,11 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             buffer.append('}');
             String overloadingName = buffer.toString();
             if (!overloadedOperators.containsKey(overloadingName)) {
-                overloadedOperators.put(the_overloads, new TypedIdOrOpList(overloadingName, ops, that.getInfo().getExprType()));
+                overloadedOperators.put(the_overloads, new TypedIdOrOpList(NodeUtil.getSpan(that),
+                                                                           overloadingName, ops,
+                                                                           that.getInfo().getExprType()));
             }
-            IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
+            IdOrOp overloadingOp = NodeFactory.makeOp(NodeUtil.getSpan(that), overloadingName);
             ops = Collections.singletonList(overloadingOp);
         } else if (the_overloads.size() == 1 ){
             Overloading the_overload = the_overloads.get(0);
