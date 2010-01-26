@@ -92,7 +92,7 @@ public class Constructor extends Function {
     public Id name() {
         return _declaringTrait;
     }
-    
+
     public IdOrOp unambiguousName() {
         return name();
     }
