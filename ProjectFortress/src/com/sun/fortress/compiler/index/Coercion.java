@@ -54,7 +54,7 @@ public class Coercion extends Function {
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
 
         // TODO: Is this type right?  It seems to only be half the type.
-        // And why is traitParams distinct from the 
+        // And why is traitParams distinct from the
         _thunk = Option.<Thunk<Option<Type>>>some(new Thunk<Option<Type>>() {
             public Option<Type> value() {
                 return Option.<Type>some(NodeFactory.makeTraitType(_declaringTrait, STypesUtil.staticParamsToArgs(_traitParams)));
@@ -64,7 +64,7 @@ public class Coercion extends Function {
 
     /** Construct a Coercion index using the renamed, lifted function. */
     public Coercion(FnDecl ast, Option<APIName> apiName) {
-        
+
         // Return type always a TraitType inserted by CoercionLifter.
         Type returnTy = NodeUtil.getReturnType(ast).unwrap();
         final TraitType returnType;
@@ -72,7 +72,7 @@ public class Coercion extends Function {
             returnType = (TraitType)((TraitSelfType)returnTy).getNamed();
         else returnType = (TraitType) returnTy;
 
-        
+
         _lifted = true;
         _ast = ast;
         _declaringTrait = NodeFactory.makeId(apiName, returnType.getName());
@@ -98,7 +98,7 @@ public class Coercion extends Function {
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
     }
-    
+
     public boolean isLifted() {
         return _lifted;
     }
@@ -124,7 +124,7 @@ public class Coercion extends Function {
         // Coercions cannot have anonymous names.
         return (IdOrOp) ast().getHeader().getName();
     }
-    
+
     public IdOrOp unambiguousName() {
         return (IdOrOp) ast().getUnambiguousName();
     }
