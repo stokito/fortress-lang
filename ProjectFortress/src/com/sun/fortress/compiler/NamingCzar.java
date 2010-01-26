@@ -145,6 +145,11 @@ public class NamingCzar {
     // Base class for tasks
     public static final String fortressBaseTask = "com/sun/fortress/runtimeSystem/BaseTask";
 
+    // Base class for misc RTS routines
+    public static final String miscCodegen = "com/sun/fortress/runtimeSystem/MiscCodegenFunctions";
+    public static final String matchFailure = "overloadMatchFailure";
+    public static final String errorReturn = "()Ljava/lang/Error;";
+
     // Base class for non-executable Fortress Components
     public static final String fortressComponent = Naming.javaObject;
 
