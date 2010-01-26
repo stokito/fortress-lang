@@ -427,7 +427,7 @@ public class ExprFactory {
             IdOrOp name, List<IdOrOp> names,
             List<Overloading> interp_overloadings,
             List<Overloading> newOverloadings,
-            Option<Type> overloadingType){
+            Option<Type> overloadingType) {
         return makeFnRef(span, parenthesized, ty, staticArgs, lexicalDepth, name, names, interp_overloadings, newOverloadings, overloadingType, Option.<Type>none());
     }
 

@@ -35,12 +35,14 @@ end
 
 run() =do
   o = O(3)
+  t : T[\ZZ32\] = O(7)
   a = f(o)       (*) 3
   b = o.g()      (*) 8
-  c = f'(4)      (*) 4
+  c = f(t)       (*) 7
+  d = t.g()      (*) 12
 
   println(
-  if (a=3 AND b=8)
+  if (a=3 AND b=8 AND c=7 AND d=12)
      then "pass" else "fail" end
   )
 end

@@ -35,7 +35,6 @@ import static com.sun.fortress.compiler.Types.stripKeywords;
 import static com.sun.fortress.compiler.Types.varargDisjunct;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.containsVariable;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.makeSubstitution;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
 import static edu.rice.cs.plt.collect.CollectUtil.makeList;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
@@ -66,6 +65,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeAliasIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
+import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -491,10 +491,10 @@ public class TypeAnalyzer {
     }
 
     NAVandF groundingBoundingVisitor = new NAVandF();
-    
+
     /**
      * It's a visitor AND a function.
-     * 
+     *
      * @author dr2chase
      */
     class NAVandF extends NodeAbstractVisitor<Type> implements F<Type, Type> {
@@ -503,7 +503,7 @@ public class TypeAnalyzer {
         public Type apply(Type x) {
             return x.accept(this);
         }
-  
+
         @Override
         public Type defaultCase(Node that) {
             // TODO Auto-generated method stub
@@ -522,30 +522,30 @@ public class TypeAnalyzer {
             return that;
         }
 
-        
+
         // Bool/Dim/Int/Op/Unit/Type-Arg
-        
+
         @Override
         public Type forTraitType(TraitType that) {
             if (isGround(that))
                 return that;
-            
+
             Id i = that.getName();
 
             List<StaticArg> lsa = that.getArgs();
             TypeInfo ti = that.getInfo();
             List <StaticParam> lsp = that.getStaticParams();
-        
+
             ArrayList<StaticArg> nlsa = new ArrayList<StaticArg>(lsa.size());
             for (StaticArg sa : lsa) {
                 if (sa instanceof TypeArg) {
                     TypeArg ta = (TypeArg) sa;
                     ASTNodeInfo tati = ta.getInfo();
                     Type t = ta.getTypeArg();
-                } 
+                }
                 nlsa.add(sa);
             }
-            
+
             // TODO Auto-generated method stub
             return NodeFactory.makeTraitType(ti.getSpan(), ti.isParenthesized(), i, lsa, lsp);
         }
@@ -554,11 +554,11 @@ public class TypeAnalyzer {
         public Type forTraitSelfType(TraitSelfType that) {
 //            // Open coded because this is list of NamedType, not Type
 //            List<NamedType> lnt = new ArrayList<NamedType>();
-//            
+//
 //            // Is it really necessary to do this to the comprised types?
 //            for (NamedType t : that.getComprised())
 //                lnt.add((NamedType)t.accept(this));
-            
+
             return NodeFactory.makeTraitSelfType(that.getInfo().getSpan(),
                     that.getInfo().isParenthesized(),
                     (BaseType) that.getNamed().accept(this), that.getComprised());
@@ -568,7 +568,7 @@ public class TypeAnalyzer {
         public Type forVarType(VarType that) {
             Id i = that.getName();
             TypeInfo ti = that.getInfo();
-            
+
             Option<StaticParam> osp = toJavaOption(_kindEnv.staticParam(that.getName()));
             if (osp.isSome()) {
                 StaticParam sp = osp.unwrap();
@@ -577,64 +577,64 @@ public class TypeAnalyzer {
                      * This is not enough yet.
                      * Probably, for our client (overloading, code generation)
                      * we will need to spot self-type idioms as they go by.
-                     * 
-                     * See 
+                     *
+                     * See
                      * http://projectfortress.sun.com/Projects/Community/blog/category/SelfTypes
                      * for discussion of self types and idiom.
-                     * 
+                     *
                      * One important question is whether the extends clause
                      * has been desugared by the time it appears here.
-                     * 
+                     *
                      * Would be nice, if it had been, because we lack the context
                      * to see the comprises clause that triggers the desugaring.
-                     * 
+                     *
                      * trait BinaryOperator[\T, opr ODOT\]
                      * (* implicit T extends BinaryOperator[\T, opr ODOT\] *)
                      *    comprises T
                      *    extends Any
                      *    abstract opr ODOT(self, other: T): T
                      * end
-                     * 
+                     *
                      * When opr ODOT (a functional method) is overloaded,
                      * there will be a need to generate a signature for the
-                     * overloaded+generic ODOT.  What is the return type of 
+                     * overloaded+generic ODOT.  What is the return type of
                      * the overload?  "Object" would be correct, but it is
                      * over general.
-                     * 
+                     *
                      * In the generated code, we need to create a placeholder
                      * superinterface BinaryOperator (no generics) extended
                      * by all instances of BinaryOperator, so that the top
                      * level (static) function will have the signature
-                     * 
+                     *
                      *   opr ODOT(LBinaryOperator;LBinaryOperator;)LBinaryOperator;
-                     *   
+                     *
                      * (I don't think this placeholder type is generated yet;
                      * it needs to be.)
-                     * 
+                     *
                      * Similarly, the BinaryOperator type needs to support the
                      * corresponding (non-static) method
-                     * 
+                     *
                      * opr ODOT(LBinaryOperator;)LBinaryOperator;
-                     * 
+                     *
                      * The stenciling code generated for
                      *     BinaryOperator[\T,opr ODOT\]
                      * needs to include the following (note that opr parameters
                      * are not supported quite yet).  Hmm, for now, just carry
                      * around the ODOT, I think there will be some stenciling
                      * there anyhow.
-                     * 
+                     *
                      * interface BinaryOperator[\opr ODOT\] {
                      *   abstract BinaryOperator[\opr ODOT\]
                      *       oprODOT(BinaryOperator[\opr ODOT\] bo);
                      * }
-                     * 
+                     *
                      * interface BinaryOperator[\T,opr ODOT\]
                      *   extends BinaryOperator[\opr ODOT\] {
                      *    abstract T oprODOT(T bo);
                      * }
-                     * 
+                     *
                      *  // need to check on exact decl of DefaultTraitMethods
-                     *  
+                     *
                      *  class BinaryOperator$DefaultTraitMethods[\T,opr ODOT\]
                      *       extends BinaryOperator[\T,opr ODOT\]
                      * {
@@ -652,11 +652,11 @@ public class TypeAnalyzer {
                      *      }
                      *    }
                      * }
-                     * 
+                     *
                      * In practice, for any type Foo extending
                      * BO[\ Foo, opr ODOT \], there need to be two signatures
                      * in the generated (JVM) code.  The Java rules demand
-                     * that we create 
+                     * that we create
                      */
                     // not prepared for more than one.
                     List<BaseType> extendsClause = sp.getExtendsClause();
@@ -667,9 +667,9 @@ public class TypeAnalyzer {
                     // not sure what we do here
                 }
             } else {
-                return bug(that, "Type should be in scope: " + that);
+                throw new CompilerError(that, "VarType should be in scope: " + that);
             }
-            
+
             // TODO Auto-generated method stub
             return super.forVarType(that);
         }
@@ -689,16 +689,16 @@ public class TypeAnalyzer {
             return NodeFactory.makeTupleType(that, Useful.applyToAll(that.getElements(), this));
         }
     }
-    
+
     isGround isGroundInstance = new isGround();
-    
+
     class isGround extends NodeAbstractVisitor<Boolean> implements F<Type, Boolean> {
 
         @Override
         public Boolean apply(Type x) {
             return x.accept(this);
         }
-  
+
         @Override
         public Boolean defaultCase(Node that) {
             // TODO Auto-generated method stub
@@ -709,20 +709,20 @@ public class TypeAnalyzer {
         public Boolean forArrowType(ArrowType that) {
             Type d = that.getDomain();
             Type r = that.getRange();
-           
+
             return d.accept(this) && r.accept(this);
         }
 
-        
+
         // Bool/Dim/Int/Op/Unit/Type-Arg
-        
+
         @Override
         public Boolean forTraitType(TraitType that) {
             List<StaticArg> lsa = that.getArgs();
             TypeInfo ti = that.getInfo();
             Id i = that.getName();
             List <StaticParam> lsp = that.getStaticParams();
-        
+
             for (StaticArg sa : lsa) {
                 if (sa instanceof TypeArg) {
                     TypeArg ta = (TypeArg) sa;
@@ -730,9 +730,9 @@ public class TypeAnalyzer {
                     Type t = ta.getTypeArg();
                     if (! t.accept(this).booleanValue())
                         return Boolean.FALSE;
-                } 
+                }
             }
-            
+
             // TODO Auto-generated method stub
             return Boolean.TRUE;
         }
@@ -768,7 +768,7 @@ public class TypeAnalyzer {
     public boolean isGround(final Type t) {
         return t.accept(isGroundInstance).booleanValue();
     }
-    
+
     /**
      * Return a ground type that is the (more general) bound on {@code t}.
      * If {@code t} is a ground type already, return t.
@@ -781,7 +781,7 @@ public class TypeAnalyzer {
             return t;
         return t.accept(groundingBoundingVisitor);
     }
-    
+
     /**
      * Produce a formula that, if satisfied, will support
      * {@code sub_type} as a subtype of {@code super_type}.
@@ -1066,7 +1066,7 @@ public class TypeAnalyzer {
         Option<StaticParam> param = toJavaOption(_kindEnv.staticParam(s.getName()));
 
         if( param.isNone() )
-            return bug(s, "Type should be in scope: " + s);
+            throw new CompilerError(s, "Type should be in scope: " + s);
 
         StaticParam that = param.unwrap();
         ConstraintFormula result = falseFormula();
@@ -1093,7 +1093,8 @@ public class TypeAnalyzer {
             Option<StaticParam> s_param_ = toJavaOption(_kindEnv.staticParam(s.getName()));
 
             if( t_param_.isNone() || s_param_.isNone() )
-                return bug("We are being asked about types that are not in scope:\n(" +
+                throw new CompilerError(
+                           "We are being asked about types that are not in scope:\n(" +
                            s + " @ " + NodeUtil.getSpan(s) + ",\n " +
                            t + " @ " + NodeUtil.getSpan(s) + ")");
 
