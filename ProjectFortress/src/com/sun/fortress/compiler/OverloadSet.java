@@ -769,7 +769,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             ti = ((TraitSelfType)ti).getNamed();
         return ti;
     }
-    
+
     private static boolean tweakedSubtypeTest(TypeAnalyzer ta, com.sun.fortress.nodes.Type sub_type, Type super_type ) {
         sub_type = normalizeSelfType(sub_type);
         super_type = normalizeSelfType(super_type);
@@ -855,17 +855,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         } else {
             // Perform instanceof checks on specified parameter to dispatch to children.
-            Label lookahead = new Label();
             for (int i = 0; i < children.length; i++) {
                 OverloadSet os = children[i];
+                Label lookahead = new Label();
                 mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
                 mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.jvmTypeDesc(os.selectedParameterType, ifNone, false));
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
-                if (i + 1 < children.length)
-                    lookahead = new Label();
-                else lookahead = null;
             }
             mv.visitJumpInsn(Opcodes.GOTO, failLabel);
         }
@@ -896,7 +893,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (params != null) {
             eta = ta.extend(params, Option.<WhereClause>none());
         }
-        
+
         return NamingCzar.jvmSignatureFor(f.tagF, f.tagA, eta);
     }
 
@@ -971,12 +968,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         // Emit failure case
         mv.visitLabel(fail);
         // Boilerplate for throwing an error.
-        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        mv.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitLdcInsn("Should not happen");
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Error", "<init>",
-                "(Ljava/lang/String;)V");
+        // mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           NamingCzar.miscCodegen, NamingCzar.matchFailure, NamingCzar.errorReturn);
         mv.visitInsn(Opcodes.ATHROW);
 
         mv.visitMaxs(getParamCount(), getParamCount()); // autocomputed
