@@ -626,7 +626,7 @@ public class NamingCzar {
      * @return The names of the Java interfaces providing the mentioned types;
      *         if the extends clause is empty, fills in Object as required.
      */
-    public static String [] extendsClauseToInterfaces(List<TraitTypeWhere> extendsC, APIName ifMissing) {
+    public static String [] extendsClauseToInterfaces(List<TraitTypeWhere> extendsC, APIName ifMissing, String erasedName) {
         String [] result = new String[extendsC.size()];
         int i = -1;
         for (TraitTypeWhere ttw : extendsC) {

@@ -1937,15 +1937,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
+        Id classId = NodeUtil.getName(x);
+        String erasedSuperI = sparams_part.length() > 0 ?
+                NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                "",
+                packageAndClassName) : "";
         String [] superInterfaces =
-            NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
+            NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
+        
+        if (sparams_part.length() > 0) {
+            emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
+        }
+        
         String abstractSuperclass;
         if (superInterfaces.length > 0) {
             abstractSuperclass = superInterfaces[0] + NamingCzar.springBoard;
         } else {
             abstractSuperclass = NamingCzar.internalObject;
         }
-        Id classId = NodeUtil.getName(x);
         String classFile =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,
                     sparams_part,
@@ -2110,6 +2119,43 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = savedInAnObject;
         traitOrObjectName = null;
         currentTraitObjectDecl = null;
+    }
+
+
+    private void emitErasedClassFor(String erasedSuperI, TraitObjectDecl x) {
+        Id classId = NodeUtil.getName(x);
+        String classFile =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    "",
+                    packageAndClassName);
+        String classFileOuter =
+            NamingCzar.jvmClassForToplevelTypeDecl(classId,
+                    makeTemplateSParams(""),
+                    packageAndClassName);
+
+        traitOrObjectName = classFile;
+        String classDesc = NamingCzar.internalToDesc(classFile);
+        
+        // need to adapt this code
+        
+        // need to include erased superinterfaces
+        // need to 
+        
+        String[] superInterfaces = new String[0];
+        
+        CodeGenClassWriter prev = cw;
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
+        cw.visit( Opcodes.V1_5,
+                  Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+                  classFile, null, NamingCzar.internalObject, superInterfaces);
+        
+        dumpClass( classFileOuter );
+        
+        cw = prev;
+
+        
+        
     }
 
 
@@ -2437,20 +2483,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         TraitDecl y = x;
-        // Rewrite the generic.
-        // need to do more differently if it is a constructor.
-        if (sparams_part.length() > 0 ) {
 
-            // NO // x = (TraitDecl) y.accept(new GenericNumberer(xlation));
-            // Refresh these post-rewrite
-            header = x.getHeader();
-            extendsC = header.getExtendsClause();
-
-        }
-
-        inATrait = true;
-        currentTraitObjectDecl = x;
-        String [] superInterfaces = NamingCzar.extendsClauseToInterfaces(extendsC, component.getName());
 
 //       First let's do the interface class
 //        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
@@ -2469,16 +2502,31 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             NamingCzar.jvmClassForToplevelTypeDecl(classId,
                     sparams_part,
                     packageAndClassName);
+        
         // Used just for the name of the class file, nothing else.
         String classFileOuter =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,
                     makeTemplateSParams(sparams_part) ,
                     packageAndClassName);
+        
+        String erasedSuperI = sparams_part.length() > 0 ? NamingCzar
+                .jvmClassForToplevelTypeDecl(classId, "", packageAndClassName)
+                : "";
+                if (sparams_part.length() > 0) {
+                    emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
+                }
+                                
+                
+        inATrait = true;
+        currentTraitObjectDecl = x;
+
         springBoardClass = classFile + NamingCzar.springBoard;
         String springBoardClassOuter = classFileOuter + NamingCzar.springBoard;
 
         String abstractSuperclass;
         traitOrObjectName = classFile;
+        String[] superInterfaces = NamingCzar.extendsClauseToInterfaces(
+                extendsC, component.getName(), erasedSuperI);
         if (classFile.equals("fortress/AnyType$Any")) {
             superInterfaces = new String[0];
             abstractSuperclass = NamingCzar.FValueType;
