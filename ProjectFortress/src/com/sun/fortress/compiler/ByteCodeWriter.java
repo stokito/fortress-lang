@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import com.sun.fortress.repository.ProjectProperties;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
@@ -34,8 +35,9 @@ public class ByteCodeWriter {
     
     public static void writeJarredFile(JarOutputStream jos, String file, String suffix, byte[] bytes) {
         String fileName = file.replace(dot, slash) + "." + suffix;
-        ZipEntry ze = new ZipEntry(fileName);
+        JarEntry ze = new JarEntry(fileName);
         try {
+            ze.setSize(bytes.length);
             jos.putNextEntry(ze);
             jos.write(bytes);
             jos.closeEntry();
