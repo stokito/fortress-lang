@@ -446,15 +446,48 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                   sig, arity, true);
     }
 
+
+    /**
+      Fortress objects, compiled into classes, will class-inherit default methods
+      defined in the first trait they extend (they are compiled to extend its
+      trait default methods, which are in a class), but not default methods
+      defined in subsequent extended traits.
+      
+      To fix this forwarding methods are added to the object to call the
+      non-inherited default methods (where appropriate, meaning not defined
+      in either the object itself or an earlier trait).
+      
+      Forwarding methods are also added to the compiled default-trait-methods
+      classes, so that if they are inherited, they will supply all the necessary
+      methods, and to ensure that the forwarding analysis is entirely local
+      (that is, this trait/object, its first extended trait, and subsequent
+      extended traits).
+      
+      includeCurrent is true for traits.  default-trait-method bodies are static,
+      but instance methods are required for inheritance and dispatch.  For traits,
+      in order to inherit the own (current) default methods, instance-to-static
+      forwarding methods must be also be added.
+      
+      The conditions for adding a forwarding method are:
+      
+          1) Inherited through the second and subsequent supertraits -OR-
+             includeCurrent and defined in the current trait.
+             
+          2) Are not also inherited through the first supertrait
+             (due to joins in type hierarchy)
+             
+          3) Are not overridden by a method in the present trait or object
+    */
     private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
-        // We inherit methods mentioned in the first supertype, but
-        // not in subsequent ones.  We must set up explicit chaining
-        // to those supertrait methods that are:
-        //    1) Inherited through the second and subsequent supertraits
-        //    2) Are not also inherited through the first supertrait
-        //       (due to joins in type hierarchy)
-        //    3) Are not overridden by a method in the present trait or object
+        /*
+         * If the number of supertraits is 0, there is nothing to inherit.
+         * If it is one, inheritance comes via the class hierarchy.
+         * If not includeCurrent, then there are no own-trait methods to forward.
+         * 
+         * In that case, there is nothing to do.
+         */
         if (!includeCurrent && superInterfaces.length <= 1) return;
+        
         TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
