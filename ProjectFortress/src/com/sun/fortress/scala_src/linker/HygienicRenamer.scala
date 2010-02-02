@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,11 +18,11 @@ package com.sun.fortress.scala_src.linker
 
 import collection.mutable.HashMap
 import com.sun.fortress.compiler.GlobalEnvironment
-import compiler.index.ComponentIndex
-import fortress.nodes.{IdOrOpOrAnonymousName, APIName}
-import nodes._
-import useful.Sets._
-import repository.FortressRepository
+import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.nodes.{IdOrOpOrAnonymousName, APIName}
+import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.repository.FortressRepository
 
 
 /**
