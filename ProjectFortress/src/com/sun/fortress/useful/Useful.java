@@ -489,21 +489,21 @@ public class Useful {
         return j < s ? l.get(j) : l.get(s - 1);
     }
 
-    public static <U, T extends U> List<U> list(List<T> all) {
+    public static <U> List<U> list(List<? extends U> all) {
         List<U> l = new ArrayList<U>();
         l.addAll(all);
         return l;
     }
 
-    public static <U, T extends U> List<U> list(T[] all) {
+    public static <U> List<U> list(U[] all) {
         List<U> l = new ArrayList<U>(all.length);
-        for (T x : all) {
+        for (U x : all) {
             l.add(x);
         }
         return l;
     }
 
-    public static <T> List<T> list(Iterable<T> xs) {
+    public static <T> List<T> list(Iterable<? extends T> xs) {
         ArrayList<T> result;
         if (xs instanceof Collection<?>) {
             result = new ArrayList<T>(((Collection<?>) xs).size());
