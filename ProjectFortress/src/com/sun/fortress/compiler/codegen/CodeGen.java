@@ -492,6 +492,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             alreadyIncluded;
+        /*
+         * Initialize alreadyIncluded to empty, or to the inherited methods 
+         * from the first t 
+         */
         if (extendsClause.size() == 0) {
             alreadyIncluded =
                 new IndexedRelation<IdOrOpOrAnonymousName,
