@@ -73,11 +73,11 @@ public class TopSort {
     }
 
     public static <T extends TopSortItem<T>> List<T> depthFirst(T[] unsorted) {
-        return TopSort.<T>depthFirst(Useful.<T,T>list(unsorted));
+        return TopSort.<T>depthFirst(Useful.<T>list(unsorted));
     }
 
     public static <T extends TopSortItem<T>> List<T> breadthFirst(T[] unsorted) {
-        return TopSort.<T>breadthFirst(Useful.<T,T>list(unsorted));
+        return TopSort.<T>breadthFirst(Useful.<T>list(unsorted));
     }
 
     /**
