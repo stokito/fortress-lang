@@ -33,8 +33,9 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
-import exceptions.StaticError
-import fortress.useful.{HasAt, NI}
+import com.sun.fortress.scala_src.typechecker._
+import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.useful.{HasAt, NI}
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
@@ -322,7 +323,7 @@ trait Functionals { self: STypeChecker with Common =>
                                          domain,
                                          Types.ANY)
     val tryChecker = STypeCheckerFactory.makeTryChecker(this)
-    val result =
+    val result : Option[Expr] =
       if (doCoercion)
         // Coercion is applied since we are passing in a type.
         tryChecker.tryCheckExpr(unchecked, expectedArrow)

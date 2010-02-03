@@ -19,7 +19,7 @@ package com.sun.fortress.scala_src.typechecker.staticenv
 
 import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
-import collection.jcl.Hashtable
+// import collection.jcl.Hashtable
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
@@ -304,7 +304,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       // function named x.
       val ambiguousThunk = new TypeThunk {
         def apply: Option[Type] = {
-          val oTypes = fns.flatMap[Type](makeArrowFromFunctional)
+          val oTypes = fns.flatMap(makeArrowFromFunctional)
           if (oTypes.isEmpty)
             None
           else

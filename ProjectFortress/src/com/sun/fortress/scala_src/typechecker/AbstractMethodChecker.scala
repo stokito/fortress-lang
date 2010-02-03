@@ -22,7 +22,7 @@ import scala.collection.Map
 import scala.collection.Set
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-import scala.collection.jcl.MutableIterator.Wrapper
+// import scala.collection.jcl.MutableIterator.Wrapper
 import scala.Iterator._
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
