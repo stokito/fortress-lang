@@ -35,7 +35,7 @@ object ASTGenHelper {
     case o: JList[_]    => true
     case o: JMap[_, _]  => true
     case o: JSet[_]     => true
-    case o: JInteger[_] => true
+    case o: JInteger    => true
     case _ => false
   }
 

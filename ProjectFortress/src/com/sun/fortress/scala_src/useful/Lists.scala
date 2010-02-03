@@ -21,7 +21,7 @@ import _root_.java.util.{ArrayList => JArrayList}
 import _root_.java.util.{List => JList}
 import _root_.java.util.{Collection => JCollection}
 import _root_.junit.framework.TestCase
-import scala.collection.jcl.Conversions
+// import scala.collection.jcl.Conversions
 
 object Lists {
 

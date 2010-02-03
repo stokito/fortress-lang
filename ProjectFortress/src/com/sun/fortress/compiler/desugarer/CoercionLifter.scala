@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.desugarer
 
+import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.exceptions.InterpreterBug.bug

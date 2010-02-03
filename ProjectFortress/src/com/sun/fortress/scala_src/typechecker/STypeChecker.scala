@@ -94,7 +94,7 @@ object STypeCheckerFactory {
       checker.env,
       checker.labelExitTypes,
       new TryErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
-  
+
   /**
    * Creates a type checker that does not throw or store errors. This is a bit
    * different from a TryChecker in that it silently doesn't report anything.
@@ -106,7 +106,7 @@ object STypeCheckerFactory {
       checker.env,
       checker.labelExitTypes,
       DummyErrorLog)(checker.analyzer, checker.envCache, checker.cycleChecker)
-    
+
 }
 
 /**
@@ -171,8 +171,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
   def constructor(current: CompilationUnitIndex,
                   traits: TraitTable,
                   env: STypeEnv,
-                  labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],
-                  errors: ErrorLog)
+                  labelExitTypes: JavaMap[Id, Option[JavaSet[Type]]],                  errors: ErrorLog)
                  (implicit analyzer: TypeAnalyzer,
                            envCache: MMap[APIName, STypeEnv],
                            cycleChecker: CyclicReferenceChecker): STypeCheckerImpl

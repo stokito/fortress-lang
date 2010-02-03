@@ -866,9 +866,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                           accessors, accessorIds, fns)
                        case _ => res
                      }}
-    val fnNames = fns.flatMap[String](fd => NU.getName(fd) match {
+    val fnNames = fns.flatMap((fd: FnDecl) => NU.getName(fd) match {
                                               case fname: Id => Set(fname.getText)
-                                              case _ => Set() })
+                                              case _ => Set[String]() })
     for (id <- paramFields ++ vars ++ getterAndSetterIds if (fnNames.contains(id.getText)))
         error("Getter/setter declarations should not be overloaded with method declarations.", id)
     (vars, getterAndSetterIds, fns)

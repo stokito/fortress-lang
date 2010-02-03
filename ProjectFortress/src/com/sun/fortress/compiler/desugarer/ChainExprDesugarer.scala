@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler.desugarer
 
+import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
