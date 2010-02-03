@@ -109,6 +109,10 @@ run():() = do
       print(".")
       chkPop(flii,3,(i+1) DIV 2,2)
       print(".")
+      fliii = BIG CONCAT[\ZZ32\][x <- li, x REM 2 = 0] <|[\ZZ32\] x+3|>
+      print(".")
+      chkPop(fliii,3,(i+1) DIV 2,2)
+      print(".")
       mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
       chkPop(mli,17,i)
       print(".")
