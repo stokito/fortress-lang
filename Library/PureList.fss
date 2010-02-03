@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -106,6 +106,11 @@ opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\T,List[\T\]\](fn cc => list(cc.toImmutableArray()))
 opr BIG <|[\T\] g:Generator[\T\]|>:List[\T\] =
     __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
+
+opr BIG CONCAT[\T\](): BigReduction[\List[\T\],List[\T\]\] =
+    BigReduction[\List[\T\],List[\T\]\](Concat[\T\])
+opr BIG CONCAT[\T\](g: Generator[\List[\T\]\]):List[\T\] =
+    __bigOperatorSugar[\List[\T\],List[\T\],List[\T\],List[\T\]\](BIG CONCAT[\T\](), g)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)

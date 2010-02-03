@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -91,6 +91,9 @@ opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
 opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\]
 opr BIG <|[\T\] g:Generator[\T\]|>: List[\T\]
+
+opr BIG CONCAT[\T\](): BigReduction[\List[\T\],List[\T\]\]
+opr BIG CONCAT[\T\](g: Generator[\List[\T\]\]):List[\T\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
