@@ -454,22 +454,17 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         }
 
       case opref@SOpRef(info, sargs, depth, name, names, ovl, newOvl, _, _) =>
-        opRefHelper(opref) match {
-          case Some(op) => op
-          case None =>
-            // Make sure to populate the 'originalName' field.
-            SOpRef(info, sargs, depth, names.head, names, ovl, newOvl, None, None)
+        opRefHelper(opref).getOrElse {
+          // Make sure to populate the 'originalName' field.
+          SOpRef(info, sargs, depth, names.head, names, ovl, newOvl, None, None)
         }
 
       // OpExpr checks to make sure its OpRef can be disambiguated, since
       // forOpRef will not automatically report an error.
       case SOpExpr(info, op, args) =>
-        val new_op = opRefHelper(op) match {
-          case Some(opref) => opref
-          case None =>
-            error("Operator " + op.getNames.get(0).stringName +
-                  " is not defined.", op)
-            walk(op).asInstanceOf[FunctionalRef]
+        val new_op = opRefHelper(op).getOrElse {
+          error("Operator " + op.getNames.get(0).stringName + " is not defined.", op)
+          walk(op).asInstanceOf[FunctionalRef]
         }
         SOpExpr(info, new_op, walk(args).asInstanceOf[List[Expr]])
 
@@ -807,8 +802,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         // Create a list of overloadings for this OpRef from the matching
         // operator names.
         Some(SOpRef(info, sargs, depth, op_name, new_ops,
-                    new_ops.map(new Overloading(info, _, op_name, None)),
-                    unambiguous_ops.map(new Overloading(info, _, op_name, None)), None, None))
+                    new_ops.map(SOverloading(info, _, op_name, None, None)),
+                    unambiguous_ops.map(SOverloading(info, _, op_name, None, None)), None, None))
       }
     case _ => None
   }

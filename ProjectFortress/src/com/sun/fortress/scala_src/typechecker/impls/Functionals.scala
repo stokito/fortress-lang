@@ -126,11 +126,12 @@ trait Functionals { self: STypeChecker with Common =>
    * The result is an AppCandidate, which contains the inferred arrow type, the list of static
    * args that were inferred, and the checked arguments.
    */
-  def checkApplicable(arrow: ArrowType,
+  def checkApplicable(preCandidate: PreAppCandidate,
                       context: Option[Type],
                       args: List[Either[Expr, FnExpr]])
                      (implicit errorFactory: ApplicationErrorFactory)
                       : Either[AppCandidate, OverloadingError] = {
+    val arrow = preCandidate.arrow
 
     // Make sure all uncheckable args correspond to arrow type params.
     zipWithDomain(args, arrow.getDomain).foreach {
@@ -149,14 +150,13 @@ trait Functionals { self: STypeChecker with Common =>
     // Are there static params? i.e., do we need more inference?
     val candidateOrError =
       if (hasStaticParams(liftedArrow))
-        checkApplicableWithInference(liftedArrow, arrow, context, args)
+        checkApplicableWithInference(liftedArrow, preCandidate, context, args)
       else
-        checkApplicableWithoutInference(liftedArrow, arrow, args)
+        checkApplicableWithoutInference(liftedArrow, preCandidate, args)
 
     // If applicable, then inject the lifted static args into the result.
-    candidateOrError match {
-      case Left((arrow, sargs, args)) => Left((arrow, liftedSargs ++ sargs, args))
-      case error => error
+    candidateOrError.left.map { c =>
+      AppCandidate(c.arrow, liftedSargs ++ c.sargs, c.args, c.overloading)
     }
   }
 
@@ -166,11 +166,13 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplicableWithInference(
           arrow: ArrowType,
-          originalArrow: ArrowType,
+          preCandidate: PreAppCandidate,
           context: Option[Type],
           args: List[Either[Expr, FnExpr]])
           (implicit errorFactory: ApplicationErrorFactory)
            : Either[AppCandidate, OverloadingError] = {
+
+    val originalArrow = preCandidate.arrow
 
     // Try to check the unchecked args, constructing a new list of
     // (checked, unchecked) arg pairs.
@@ -240,7 +242,10 @@ trait Functionals { self: STypeChecker with Common =>
         }
 
         // We've reached a fixed point and all args are checked!
-        Left((resultArrow, sargs, newArgs.map(_.left.get)))
+        Left(AppCandidate(resultArrow,
+                          sargs,
+                          newArgs.map(_.left.get),
+                          preCandidate.overloading))
       }
     }
 
@@ -254,10 +259,12 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplicableWithoutInference(
           arrow: ArrowType,
-          originalArrow: ArrowType,
+          preCandidate: PreAppCandidate,
           args: List[Either[Expr, FnExpr]])
           (implicit errorFactory: ApplicationErrorFactory)
            : Either[AppCandidate, OverloadingError] = {
+    
+    val originalArrow = preCandidate.arrow
 
     // Gather up either-args and option-errors.
     val newArgsAndErrors = zipWithDomain(args, arrow.getDomain).map {
@@ -300,7 +307,10 @@ trait Functionals { self: STypeChecker with Common =>
       // type is a subtype of the domain type.
       val argType = getArgType(newArgs)
       if (isSubtype(argType,arrow.getDomain) && (newArgs.size == args.size))
-        Left((arrow, Nil, newArgs.map(_.left.get)))
+        Left(AppCandidate(arrow,
+                          Nil,
+                          newArgs.map(_.left.get),
+                          preCandidate.overloading))
       else
         Right(errorFactory.makeNotApplicableError(originalArrow, args))
     }
@@ -374,43 +384,47 @@ trait Functionals { self: STypeChecker with Common =>
   }
 
   /**
-   * Type check the application of the given arrows to the given arg. This
-   * returns the statically most specific arrow, inferred static args, and the
-   * new, checked argument expression.
+   * Type check the application of the given arrow candidates to the given arg.
+   * This returns the statically applicable candidates (with their corresponding
+   * inferred static args and updated arguments) with the most specific one at
+   * the head. The resulting AppCandidates will contain the single arg as a
+   * singleton list.
    */
-  def checkApplication(arrows: List[ArrowType],
+  def checkApplication(preCandidates: List[PreAppCandidate],
                        arg: Expr,
                        context: Option[Type])
                       (implicit errorFactory: ApplicationErrorFactory)
-                       : Option[(ArrowType, List[StaticArg], Expr)] = {
+                       : Option[List[AppCandidate]] = {
 
     // Check the application using the args extrapolated from arg.
     val args = getArgList(arg)
-    val (smaArrow, infSargs, newArgs) = checkApplication(arrows, args, context).
-                                          getOrElse(return None)
+    checkApplication(preCandidates, args, context) map { candidates =>
 
-    // Combine the separate args back into a single one.
-    val checkedArg = EF.makeArgumentExpr(NU.getSpan(arg), toJavaList(newArgs))
-    Some((smaArrow, infSargs, checkedArg))
+      // Combine the separated args back into a single arg in the resulting app
+      // candidate.
+      candidates.map(_.mergeArgs(NU.getSpan(arg)))
+    }
+
   }
 
   /**
-   * Type check the application of the given arrows to the given args. This
-   * returns the statically most specific arrow, inferred static args, and the
-   * new, checked argument expressions.
+   * Type check the application of the given arrow candidates to the given args.
+   * This returns the statically applicable candidates (with their corresponding
+   * inferred static args and updated arguments) with the most specific one at
+   * the head.
    */
-  def checkApplication(arrows: List[ArrowType],
+  def checkApplication(preCandidates: List[PreAppCandidate],
                        iargs: List[Expr],
                        context: Option[Type])
                       (implicit errorFactory: ApplicationErrorFactory)
-                       : Option[AppCandidate] = {
+                       : Option[List[AppCandidate]] = {
 
     // Check all the checkable args and make sure they all have types.
     val args = partitionArgs(iargs).getOrElse(return None)
 
     // Filter the overloadings that are applicable.
     val (candidates, overloadingErrors) =
-      List.separate(arrows.map(arrow => checkApplicable(arrow, context, args)))
+      List.separate(preCandidates.map(pc => checkApplicable(pc, context, args)))
 
     // If there were no candidates, report errors.
     if (candidates.isEmpty) {
@@ -418,18 +432,19 @@ trait Functionals { self: STypeChecker with Common =>
       return None
     }
 
-    // Sort the arrows and instantiations to find the statically most applicable.
-    Some(candidates.sort(moreSpecificCandidate).first)
+    // Sort the arrows and instantiations to find the statically most
+    // applicable. Then update each candidate's Overloading node.
+    Some(candidates.sort(moreSpecificCandidate))
   }
 
   /**
    * Given a receiver type and a method name, return the list of all the arrow types for each
    * method overloading. Ignores any arrows that were for getters or setters.
    */
-  def getArrowsForMethod(recvrType: Type,
-                         name: IdOrOp,
-                         sargs: List[StaticArg],
-                         loc: HasAt): Option[List[ArrowType]] = {
+  def getCandidatesForMethod(recvrType: Type,
+                             name: IdOrOp,
+                             sargs: List[StaticArg],
+                             loc: HasAt): Option[List[PreAppCandidate]] = {
     def noGetterSetter(m: Method): Option[Method] = m match {
       case g:FieldGetterMethod => None
       case s:FieldSetterMethod => None
@@ -448,18 +463,35 @@ trait Functionals { self: STypeChecker with Common =>
     if (!sargs.isEmpty) {
       arrows = arrows.flatMap(a => instantiateStaticParams(sargs, a).map(_.asInstanceOf[ArrowType]))
     }
-    Some(arrows)
+
+    // Methods have no Overloading nodes.
+    Some(arrows.map(a => PreAppCandidate(a, None)))
   }
 
   /**
-   * Given the type of a functional ref, return the list of all arrow types for each overloading.
+   * Given an applicand, return the list of all arrow type candidates for each
+   * overloading.
    */
-  def getArrowsForFunction(fnType: Type, loc: HasAt): Option[List[ArrowType]] = {
+  def getCandidatesForFunction(fn: Expr, loc: HasAt): Option[List[PreAppCandidate]] = {
+    val fnType = getType(fn).getOrElse(return None)
     if (!isArrows(fnType)) {
       signal(loc, "Applicand has a type that is not an arrow: %s".format(normalize(fnType)))
       return None
     }
-    Some(conjuncts(fnType).toList.map(_.asInstanceOf[ArrowType]))
+    Some(fn match {
+      case f:FunctionalRef =>
+        toList(f.getNewOverloadings).map { ov =>
+          // The fn has already been type checked, so each overloading has an
+          // arrow type.
+          val arrow = ov.getType.get.asInstanceOf[ArrowType]
+          PreAppCandidate(arrow, Some(ov))
+        }
+      case _ =>
+        conjuncts(fnType).toList.map { t =>
+          val arrow = t.asInstanceOf[ArrowType]
+          PreAppCandidate(arrow, None)
+        }
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -492,23 +524,28 @@ trait Functionals { self: STypeChecker with Common =>
     case SSubscriptExpr(SExprInfo(span, paren, _), obj, subs, Some(op), sargs) => {
       val checkedObj = checkExpr(obj)
       val recvrType = getType(checkedObj).getOrElse(return expr)
-      val arrows = getArrowsForMethod(recvrType, op, sargs, expr).getOrElse(return expr)
-      if (arrows.isEmpty) {
+      val preCandidates = getCandidatesForMethod(recvrType, op, sargs, expr).getOrElse(return expr)
+      if (preCandidates.isEmpty) {
         signal(new NoSuchMethod(expr, recvrType))
         return expr
       }
       implicit val errorFactory =
-        new ApplicationErrorFactory(expr, Some(recvrType), arrows.length > 1)
+        new ApplicationErrorFactory(expr,
+                                    Some(recvrType),
+                                    preCandidates.length > 1)
 
-      // Type check the application.
-      val (smaArrow, infSargs, checkedSubs) =
-        checkApplication(arrows, subs, expected).getOrElse(return expr)
-      val newSargs = if (sargs.isEmpty) infSargs.filter(!_.isLifted) else sargs
+      // Type check the application to get the checked candidates.
+      val candidates =
+        checkApplication(preCandidates, subs, expected).getOrElse(return expr)
+
+      // We only care about the most specific one.
+      val AppCandidate(bestArrow, bestSargs, bestSubs, _) = candidates.first
+      val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
-      SSubscriptExpr(SExprInfo(span, paren, Some(smaArrow.getRange)),
+      SSubscriptExpr(SExprInfo(span, paren, Some(bestArrow.getRange)),
                      checkedObj,
-                     checkedSubs,
+                     bestSubs,
                      Some(op),
                      newSargs)
     }
@@ -516,26 +553,33 @@ trait Functionals { self: STypeChecker with Common =>
     case SMethodInvocation(SExprInfo(span, paren, _), obj, method, sargs, arg, _, _) =>{
       val checkedObj = checkExpr(obj)
       val recvrType = getType(checkedObj).getOrElse(return expr)
-      val arrows = getArrowsForMethod(recvrType, method, sargs, expr).getOrElse(return expr)
-      if (arrows.isEmpty) {
+      val preCandidates = getCandidatesForMethod(recvrType, method, sargs, expr).getOrElse(return expr)
+      if (preCandidates.isEmpty) {
         signal(new NoSuchMethod(expr, recvrType))
         return expr
       }
       implicit val errorFactory =
-        new ApplicationErrorFactory(expr, Some(recvrType), arrows.length > 1)
+        new ApplicationErrorFactory(expr,
+                                    Some(recvrType),
+                                    preCandidates.length > 1)
 
       // Type check the application.
-      val (smaArrow, infSargs, checkedArg) =
-        checkApplication(arrows, arg, expected).getOrElse(return expr)
-      val newSargs = if (sargs.isEmpty) infSargs.filter(!_.isLifted) else sargs
+      val candidates =
+        checkApplication(preCandidates, arg, expected).getOrElse(return expr)
+
+      // We only care about the most specific one. We know the args pattern
+      // match succeeds because all app candidates generated for method
+      // invocations include only a single arg.
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.first
+      val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
-      SMethodInvocation(SExprInfo(span, paren, Some(smaArrow.getRange)),
+      SMethodInvocation(SExprInfo(span, paren, Some(bestArrow.getRange)),
                         checkedObj,
                         method,
                         newSargs,
-                        checkedArg,
-                        Some(smaArrow),
+                        bestArg,
+                        Some(bestArrow),
                         None)
     }
 
@@ -555,7 +599,7 @@ trait Functionals { self: STypeChecker with Common =>
         case _ =>
       }
 
-      // Note that ExprDisambiguator inserts the static args from a
+      // Note that ExprDisambiguator inserts the explicit static args from a
       // FunctionalRef into each of its Overloadings.
 
       // Check all the overloadings and filter out any that have the wrong
@@ -563,9 +607,12 @@ trait Functionals { self: STypeChecker with Common =>
       var hadNoType = false
       def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
         case ov@SOverloading(_, _, _, Some(ty), _) if sargs.isEmpty => Some(ov)
+
         case SOverloading(info, name, origName, Some(ty), schema) =>
-          instantiateStaticParams(sargs, ty).
-            map(t => SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType]), schema))
+          instantiateStaticParams(sargs, ty).map { t =>
+            SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType]), schema)
+          }
+
         case _ => hadNoType = true; None
       }
       val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
@@ -586,21 +633,26 @@ trait Functionals { self: STypeChecker with Common =>
       addType(addOverloadings(fn, checkedOverloadings), intersectionType)
     }
 
-    case S_RewriteFnApp(SExprInfo(span, paren, _), fn, arg) => {
+    case app @ S_RewriteFnApp(SExprInfo(span, paren, _), fn, arg) => {
       val checkedFn = checkExpr(fn)
-      val fnType = getType(checkedFn).getOrElse(return expr)
-      val arrows = getArrowsForFunction(fnType, expr).getOrElse(return expr)
+      val preCandidates = getCandidatesForFunction(checkedFn, expr).getOrElse(return expr)
       implicit val errorFactory =
-        new ApplicationErrorFactory(expr, None, arrows.length > 1)
+        new ApplicationErrorFactory(expr,
+                                    None,
+                                    preCandidates.length > 1)
 
       // Type check the application.
-      val (smaArrow, infSargs, checkedArg) =
-        checkApplication(arrows, arg, expected).getOrElse(return expr)
+      val candidates =
+        checkApplication(preCandidates, arg, expected).getOrElse(return expr)
+
+      // We know the arg pattern match succeeds because all app candidates
+      // generated for functions include a single arg.
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.first
 
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
-      val newFn = rewriteApplicand(checkedFn, smaArrow, infSargs)
-      val info = SExprInfo(span, paren, Some(smaArrow.getRange))
+      val newFn = rewriteApplicand(checkedFn, candidates)
+      val info = SExprInfo(span, paren, Some(bestArrow.getRange))
 
       newFn match {
         // Detect FnApp that is really method application with implicit self,
@@ -618,7 +670,7 @@ trait Functionals { self: STypeChecker with Common =>
                names, iOverloadings, newOverloadings, overloadingType, overloadingSchema) if selfPos == -1 =>
           val selfRef = checkExpr(EF.makeVarRef(span, "self"))
           val res : MethodInvocation =
-              SMethodInvocation(info, selfRef, origName, staticArgs, checkedArg,
+              SMethodInvocation(info, selfRef, origName, staticArgs, bestArg,
                                 overloadingType, overloadingSchema)
           // System.err.println(span+": app of "+checkedFn+
           //                    "\n  selfType="+selfType+
@@ -626,23 +678,23 @@ trait Functionals { self: STypeChecker with Common =>
           //                    "\n  REWRITTEN TO: "+res.toStringReadable())
           res
         case _ =>
-          S_RewriteFnApp(info, newFn, checkedArg)
+          S_RewriteFnApp(info, newFn, bestArg)
       }
     }
 
-    case SOpExpr(SExprInfo(span, paren, _), op, args) => {
+    case app @ SOpExpr(SExprInfo(span, paren, _), op, args) => {
       val checkedOp = checkExpr(op)
-      val opType = getType(checkedOp).getOrElse(return expr)
-      val arrows = getArrowsForFunction(opType, expr).getOrElse(return expr)
-      implicit val errorFactory = new ApplicationErrorFactory(expr, None, arrows.length > 1)
+      val preCandidates = getCandidatesForFunction(checkedOp, expr).getOrElse(return expr)
+      implicit val errorFactory = new ApplicationErrorFactory(expr, None, preCandidates.length > 1)
+
       // Type check the application.
-      val (smaArrow, infSargs, checkedArgs) =
-        checkApplication(arrows, args, expected).getOrElse(return expr)
+      val candidates = checkApplication(preCandidates, args, expected).getOrElse(return expr)
+      val AppCandidate(bestArrow, bestSargs, bestArgs, _) = candidates.first
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.
-      val newOp = rewriteApplicand(checkedOp, smaArrow, infSargs).asInstanceOf[FunctionalRef]
-      SOpExpr(SExprInfo(span, paren, Some(smaArrow.getRange)), newOp, checkedArgs)
+      val newOp = rewriteApplicand(checkedOp, candidates).asInstanceOf[FunctionalRef]
+      SOpExpr(SExprInfo(span, paren, Some(bestArrow.getRange)), newOp, bestArgs)
     }
 
     case SFnExpr(SExprInfo(span, paren, _),
@@ -713,19 +765,18 @@ trait Functionals { self: STypeChecker with Common =>
             case SCaseClause(info@SASTNodeInfo(span), matchE, block, _) =>
               val args = List(p, c.getMatchClause)
               def checkOp(op: FunctionalRef): FunctionalRef = {
-                val opType = getType(op).getOrElse(return op)
-                val arrows = getArrowsForFunction(opType, expr).getOrElse(return op)
+                val preCandidates = getCandidatesForFunction(op, expr).getOrElse(return op)
 
                 // Type check the application without reporting an error.
                 implicit val errorFactory = DummyApplicationErrorFactory
                 val checker = STypeCheckerFactory.makeDummyChecker(this)
-                val (smaArrow, infSargs, checkedArgs) =
-                  checker.checkApplication(arrows, args, Some(Types.BOOLEAN))
+                val candidates =
+                  checker.checkApplication(preCandidates, args, Some(Types.BOOLEAN))
                          .getOrElse(return op)
 
                 // Rewrite the applicand to include the arrow and static args
                 // and update the application.
-                rewriteApplicand(op, smaArrow, infSargs).asInstanceOf[FunctionalRef]
+                rewriteApplicand(op, candidates).asInstanceOf[FunctionalRef]
               }
               newCompare match {
                 // If compare is some, we use that operator

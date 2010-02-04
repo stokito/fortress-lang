@@ -179,10 +179,10 @@ trait Operators { self: STypeChecker with Common =>
       val multiOpExpr =
         STypeCheckerFactory.makeTryChecker(this).
           tryCheckExpr(EF.makeOpExpr(span,
-                                              paren,
-                                              toJavaOption(optType),
-                                              multi,
-                                              toJavaList(associatedChunks)))
+                                     paren,
+                                     toJavaOption(optType),
+                                     multi,
+                                     toJavaList(associatedChunks)))
       multiOpExpr.getOrElse {
         // If not, left associate as InfixJuxts
         associatedChunks match {

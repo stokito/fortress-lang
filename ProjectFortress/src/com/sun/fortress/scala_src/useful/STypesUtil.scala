@@ -39,7 +39,7 @@ import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
-import com.sun.fortress.nodes_util.ExprFactory
+import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
@@ -84,11 +84,44 @@ object STypesUtil {
   /** A function type that takes two types and returns a boolean. */
   type Subtype = (Type, Type) => Boolean
 
-  /** A function application candidate. */
-  type AppCandidate = (ArrowType, List[StaticArg], List[Expr])
+  /**
+   * A function application candidate before any inference.
+   *
+   * @param arrow The arrow type of this candidate. Has been instantiated with
+   *     explicit static args if any.
+   * @param overloading Optional Overloading node for this candidate. Should
+   *    exist for all candidates of overloaded functions.
+   */
+  case class PreAppCandidate(arrow: ArrowType, overloading: Option[Overloading])
 
   /**
-   * Return the arrow type of the given Functional index.
+   * A function application candidate.
+   *
+   * @param arrow The arrow type of this candidate. Has been instantiated with
+   *     explicit static args if any.
+   * @param sargs The inferred static args for this candidate.
+   * @param args The argument expression or expressions for this candidate.
+   * @param overloading Optional Overloading node for this candidate. Should
+   *     exist for all candidates of overloaded functions.
+   */
+  case class AppCandidate(arrow: ArrowType,
+                          sargs: List[StaticArg],
+                          args: List[Expr],
+                          overloading: Option[Overloading]) {
+
+    /**
+     * Combine all the args in this candidate into a single, perhaps tuple arg
+     * and insert this into the duplicated AppCandidate. Uses the given span for
+     * the new arg.
+     */
+    def mergeArgs(loc: Span): AppCandidate = {
+      val newArg = EF.makeArgumentExpr(loc, toJavaList(args))
+      AppCandidate(arrow, sargs, List(newArg), overloading)
+    }
+  }
+
+  /**
+   *  Return the arrow type of the given Functional index.
    */
   def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
@@ -250,7 +283,7 @@ object STypesUtil {
       case (id:Id, _:KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id), p.isLifted)
       case (id:Id, _:KindType) => NF.makeTypeArg(span, NF.makeVarType(span, id), p.isLifted)
       case (id:Id, _:KindUnit) => NF.makeUnitArg(span, NF.makeUnitRef(span, false, id), p.isLifted)
-      case (op:Op, _:KindOp) => NF.makeOpArg(span, ExprFactory.makeOpRef(op), p.isLifted)
+      case (op:Op, _:KindOp) => NF.makeOpArg(span, EF.makeOpRef(op), p.isLifted)
       case _ => bug("Unexpected static parameter kind")
     }
   }
@@ -788,8 +821,8 @@ object STypesUtil {
                             candidate2: AppCandidate)
                            (implicit coercions: CoercionOracle): Boolean = {
 
-    val (SArrowType(_, domain1, range1, _, _, mi1), _, args1) = candidate1
-    val (SArrowType(_, domain2, range2, _, _, mi2), _, args2) = candidate2
+    val AppCandidate(SArrowType(_, domain1, range1, _, _, mi1), _, args1, _) = candidate1
+    val AppCandidate(SArrowType(_, domain2, range2, _, _, mi2), _, args2, _) = candidate2
 
     // If these are dotted methods, add in the self type as an implicit first
     // parameter. The new domains will be a tuple of the form
@@ -819,68 +852,111 @@ object STypesUtil {
    * Determines if the given overloading is dynamically applicable.
    */
   def isDynamicallyApplicable(overloading: Overloading,
-                              smaArrow: ArrowType,
-                              sargs: List[StaticArg],
-                              liftedInfSargs: List[StaticArg])
+                              bestArrow: ArrowType,
+                              unliftedSargs: List[StaticArg],
+                              liftedSargs: List[StaticArg])
                              (implicit analyzer: TypeAnalyzer)
                               : Option[Overloading] = {
-    val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
+//    // Note that after type checking, the type, static args, and args for this
+//    // overloading will be present.
+//    val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
+//
+//    // If there were lifted, inferred static args, then instantiate those.
+//    val (liftedOvSargs, unliftedOvSargs) = ovSargs.partition(_.isLifted)
+//    val typ1 =
+//      if (!liftedOvSargs.isEmpty)
+//        instantiateLiftedStaticParams(liftedOvSargs, ovType).getOrElse(return None)
+//      else
+//        ovType
+//
+//    // If there were explicit static args, then instantiate them.
+//    val typ2 = explicitSargs match {
+//      case Some(expSargs) =>
+//        instantiateStaticParams(expSargs, typ1).getOrElse(return None)
+//      case None if !unliftedOvSargs.isEmpty =>
+//        instantiateStaticParams(unliftedOvSargs, typ1).getOrElse(return None)
+//      case None => typ1
+//    }
+//
+//    // If there are still some static params in it, then we can't infer them
+//    // so it's not applicable.
+//    val newOvType = typ2.asInstanceOf[ArrowType]
+//    if (!hasStaticParams(newOvType) && isSubtype(newOvType.getDomain, bestArrow.getDomain))
+//      Some(SOverloading(ovInfo,
+//                        ovName,
+//                        origName,
+//                        Some(newOvType),
+//                        schema,
+//                        Some(ovSargs),
+//                        Some(ovArgs)))
+//    else
+//      None
 
-    // If static args, then instantiate the unlifted static params.
-    val typ1 =
-      if (!sargs.isEmpty)
-        instantiateStaticParams(sargs, ovType).getOrElse(return None)
-      else
-        ovType
+    val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
+    var newOvType: ArrowType = ovType
+
+    // If unlifted static args, then instantiate the unlifted static params.
+    if (!unliftedSargs.isEmpty)
+      newOvType = instantiateStaticParams(unliftedSargs, newOvType)
+                      .getOrElse(return None).asInstanceOf[ArrowType]
 
     // If there were lifted, inferred static args, then instantiate those.
-    val typ2 =
-      if (!liftedInfSargs.isEmpty)
-        instantiateLiftedStaticParams(liftedInfSargs, typ1).getOrElse(return None)
-      else
-        typ1
+    if (!liftedSargs.isEmpty)
+      newOvType = instantiateLiftedStaticParams(liftedSargs, newOvType)
+                      .getOrElse(return None).asInstanceOf[ArrowType]
 
     // If there are still some static params in it, then we can't infer them
-    // so it's not applicable.
-    val typ = typ2.asInstanceOf[ArrowType]
-    val newOvType =
-      if (!hasStaticParams(typ) && isSubtype(typ.getDomain, smaArrow.getDomain))
-        typ
-      else
-        return None
+    // so it's not applicable. If this is not a subtype of the best arrow, then
+    // it cannot be picked at runtime.
+    if (hasStaticParams(newOvType) ||
+            !isSubtype(newOvType.getDomain, bestArrow.getDomain))
+      return None
 
     Some(SOverloading(ovInfo, ovName, origName, Some(newOvType), schema))
   }
 
   /**
-   * Given an applicand, the statically most applicable arrow type for it,
-   * and the static args from the application, return the applicand updated
-   * with the dynamically applicable overloadings, arrow type, and static args.
+   * Given an applicand and all the application candidates, return the applicand
+   * updated with the dynamically applicable overloadings, arrow type, and
+   * static args.
    */
-  def rewriteApplicand(fn: Expr,
-                       arrow: ArrowType,
-                       sargs: List[StaticArg])
-                      (implicit analyzer: TypeAnalyzer): Expr = fn match {
-    case fn: FunctionalRef =>
-      // Get the unlifted static args.
-      val (liftedSargs, unliftedSargs) = sargs.partition(_.isLifted)
+  def rewriteApplicand(fn: Expr, candidates: List[AppCandidate])
+                      (implicit analyzer: TypeAnalyzer): Expr = {
 
-      // Get the dynamically applicable overloadings.
-      val overloadings =
-        toList(fn.getNewOverloadings).
-        flatMap(o => isDynamicallyApplicable(o, arrow, unliftedSargs, liftedSargs))
+    // Pull out the info for the winning candidate.
+    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
 
-      // Add in the filtered overloadings, the inferred static args,
-      // and the statically most applicable arrow to the fn.
-      addType(
-        addStaticArgs(
-          addOverloadings(fn, overloadings), unliftedSargs), arrow)
+    fn match {
+      case fn: FunctionalRef =>
+//        val explicitSargs = fn.getStaticArgs match {
+//          case lst if lst.isEmpty => None
+//          case lst => Some(toList(lst))
+//        }
 
-    case _ if !sargs.isEmpty =>
-      NI.nyi("No place to put inferred static args in application.")
+        // Get the unlifted static args.
+        val (liftedSargs, unliftedSargs) = bestSargs.partition(_.isLifted)
 
-    // Just add the arrow type if the applicand is not a FunctionalRef.
-    case _ => addType(fn, arrow)
+        // Get the dynamically applicable overloadings. Any time this method is
+        // called, the candidates would have been created with corresponding
+        // Overloading nodes; so use those instead of the ones on fn.
+        val overloadings = toList(fn.getNewOverloadings).flatMap { o =>
+          isDynamicallyApplicable(o, bestArrow, unliftedSargs, liftedSargs)
+        }
+
+        // Add in the filtered overloadings, the inferred static args,
+        // and the statically most applicable arrow to the fn.
+        addType(
+          addStaticArgs(
+            addOverloadings(fn, overloadings),
+            unliftedSargs),
+          bestArrow)
+
+      case _ if !bestSargs.isEmpty =>
+        NI.nyi("No place to put inferred static args in application.")
+
+      // Just add the arrow type if the applicand is not a FunctionalRef.
+      case _ => addType(fn, bestArrow)
+    }
   }
 
   // Invariant: Parameter types of all the methods should exist,
