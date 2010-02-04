@@ -66,8 +66,8 @@ class CoercionOracle(traits: TraitTable,
     }
     else {
       var result: Option[Type] = None
-      for (c <- cs) {
-        if (result.isEmpty || moreSpecific(c, result.get)) result = Some(c)
+      for (c <- cs ; if result.isEmpty || moreSpecific(c, result.get)) {
+        result = Some(c)
       }
       result
     }
@@ -192,11 +192,17 @@ class CoercionOracle(traits: TraitTable,
     // Make the dummy argument.
     val dummyArg = makeDummyFor(t)
 
-    // Get a list of all the (coercion, arrow, inferred args) pairs that worked.
+    // Get a list of all the (coercion, arrow, inferred args, original arrow)
+    // tuples that worked. The inferred args returned are only the unlifted
+    // ones, as the lifted args are given in U.
+    val liftedSargs = toList(u.getArgs)
     val allLiftedCoercions = getCoercionsTo(u)
     val coercionsAndArgs = allLiftedCoercions flatMap { liftedCoercion =>
       inferStaticParams(liftedCoercion._2, t, None) map { arrowAndSargs =>
-        (liftedCoercion._1, arrowAndSargs._1, arrowAndSargs._2, liftedCoercion._3)
+        (liftedCoercion._1,
+         arrowAndSargs._1,
+         liftedSargs ++ arrowAndSargs._2, // Prepend the lifted static args.
+         liftedCoercion._3)
       }
     }
     if (coercionsAndArgs.isEmpty) return None
@@ -205,10 +211,12 @@ class CoercionOracle(traits: TraitTable,
     val argSpan = NU.getSpan(arg)
 
     // Build app candidates and sort them to find the SMA.
-    val candidates = coercionsAndArgs.map(caa => (caa._2, caa._3, List(arg)))
-    val (smaArrow, unliftedSargs, _) =
-      candidates.toList.sort((c1, c2) => moreSpecificCandidate(c1, c2)(this)).first
-
+    val candidates = coercionsAndArgs.map { caa =>
+      AppCandidate(caa._2, caa._3, List(arg), None)
+    }.toList.sort { (c1, c2) =>
+      moreSpecificCandidate(c1, c2)(this)
+    }
+    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
     val coercionId = makeCoercionId(u)
     
     // Make an overloading for each lifted coercion to U.
@@ -220,20 +228,23 @@ class CoercionOracle(traits: TraitTable,
       val overloadingId = setSpan(coercionId, coercionNameSpan).asInstanceOf[Id]
       
       // Use coercionId as originalName -- no idea what the real name should be
-      SOverloading(SSpanInfo(coercionNameSpan), coercionId, coercionId, Some(caa._2), Some(caa._4))
+      SOverloading(SSpanInfo(coercionNameSpan),
+                   coercionId,
+                   coercionId,
+                   Some(caa._2),
+                   Some(caa._4))
     }
 
     // Make a dummy functional ref.
-    val sargs = toList(u.getArgs) ++ unliftedSargs
     val fnRef = EF.makeFnRef(argSpan,
                              false,
                              coercionId,
-                             toJavaList(sargs),
+                             toJavaList(Nil),
                              toJavaList(overloadings),
                              toJavaList(overloadings))
 
     // Rewrite the FnRef so that it filters out dynamically unapplicable arrows.
-    val newFnRef = rewriteApplicand(fnRef, smaArrow, sargs).asInstanceOf[FnRef]
+    val newFnRef = rewriteApplicand(fnRef, candidates).asInstanceOf[FnRef]
 
     // Make the coercion invocation!
     Some(Some(STraitCoercionInvocation(SExprInfo(argSpan, false, Some(u)), arg, u, newFnRef)))
@@ -250,10 +261,10 @@ class CoercionOracle(traits: TraitTable,
 
     // 2. If X has more elts, then create the coercions for them.
     if (xelts.length > yelts.length) return None
-    var xCoercionElts = List.map2(xelts, yelts)((xelt, yelt) => {
+    var xCoercionElts = List.map2(xelts, yelts) { (xelt, yelt) =>
       val maybeDummy = maybeArg.map(_ => makeDummyFor(xelt))
       checkSubstitutable(xelt, yelt, maybeDummy)
-    })
+    }
 
     // 3. Check for same number of plain types if neither have varargs.
     if (xelts.length != yelts.length && yvar.isNone) return None
@@ -269,10 +280,10 @@ class CoercionOracle(traits: TraitTable,
     // 5. Check that remainder of X is substitutable for Y's varargs.
     val xCoercionsMoreElts =
       if (yvar.isDefined)
-        xelts.drop(yelts.length).map(xelt => {
+        xelts.drop(yelts.length).map { xelt =>
           val maybeDummy = maybeArg.map(_ => makeDummyFor(xelt))
           checkSubstitutable(xelt, yvar.get, maybeDummy)
-        })
+        }
       else
         Nil
 

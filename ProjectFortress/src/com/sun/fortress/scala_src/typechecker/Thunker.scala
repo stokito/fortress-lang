@@ -73,11 +73,7 @@ class Thunker(var typeChecker: STypeChecker)
                                           dottedMethods)
           typeChecker = typeChecker.extendWithFunctions(methods)
           // Extend method checker with self
-          selfType match {
-            case Some(ty) =>
-              typeChecker = typeChecker.addSelf(ty)
-            case _ =>
-          }
+          selfType.foreach(ty => typeChecker = typeChecker.addSelf(ty))
           //Create a tryChecker
           val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
           // Prime all the functional indices in this object to set their return
