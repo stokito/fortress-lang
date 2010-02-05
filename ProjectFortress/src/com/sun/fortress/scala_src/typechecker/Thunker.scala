@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,11 +35,11 @@ import scala.collection.mutable.Stack
 
 class Thunker(var typeChecker: STypeChecker)
              (implicit val cycleChecker: CyclicReferenceChecker) {
-  
+
   type TypeThunk = Thunk[JOption[Type]]
-  
+
   def walk(node: Node):Unit = node match {
-    
+
     case SComponent(info, name, imports, decls, comprises, isNative, exports) =>
       decls.map(walk(_))
 
@@ -81,11 +81,11 @@ class Thunker(var typeChecker: STypeChecker)
           Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
           Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
           Thunker.primeFunctionals(CollectUtil.asSet(ti.getters.values), tryChecker)
-          
+
         case _ => ()
       }
     }
-    
+
     case o@SObjectDecl(info,
                        STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, decls),
                        selfType, params) => {
@@ -119,14 +119,14 @@ class Thunker(var typeChecker: STypeChecker)
           Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
           Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
           Thunker.primeFunctionals(CollectUtil.asSet(to.getters.values), tryChecker)
-          
+
         case _ => ()
     }
   }
-    
-    case _ =>  
+
+    case _ =>
   }
-  
+
 }
 
 object Thunker {
@@ -137,11 +137,11 @@ object Thunker {
   def primeFunctionals[T<:Functional]
       (fns: JavaSet[T], tryChecker: TryChecker)
       (implicit cycleChecker: CyclicReferenceChecker) = toSet(fns).foreach(primeFunctional(cycleChecker, tryChecker))
-      
+
   def primeFunctionals[T<:Functional]
       (fns: List[T], tryChecker: TryChecker)
-      (implicit cycleChecker: CyclicReferenceChecker) = fns.foreach(primeFunctional(cycleChecker, tryChecker))                                
-      
+      (implicit cycleChecker: CyclicReferenceChecker) = fns.foreach(primeFunctional(cycleChecker, tryChecker))
+
   def primeFunctional[T<:Functional](cycleChecker: CyclicReferenceChecker,
                                       tryChecker: TryChecker)(fn: T) = {
     implicit val check = cycleChecker
@@ -153,12 +153,12 @@ object Thunker {
           m.putThunk(makeThunk(m.ast, m, tryChecker))
         case d:DeclaredFunction =>
           d.putThunk(makeThunk(d.ast.asInstanceOf[FnDecl], d, tryChecker))
-        case f:FunctionalMethod =>    
+        case f:FunctionalMethod =>
           f.putThunk(makeThunk(f.ast.asInstanceOf[FnDecl], f, tryChecker))
         case _ =>
       }
   }
-  
+
   /** Make the thunk used for the given functional that checks its body. */
   def makeThunk(decl: FnDecl,
                 index: Functional,
@@ -214,7 +214,7 @@ object Thunker {
             none[Type]
         }
       }
-      
+
       index.putThunk(thunk)
     }
   }
@@ -248,9 +248,9 @@ object Thunker {
  *   f() = ... x ...
  */
 class CyclicReferenceChecker(val errors: ErrorLog) {
-  
+
   protected val stack = new Stack[InferredTypeIndex]
-  
+
   def push(index: InferredTypeIndex): Boolean = {
 
     // Check if this index is in the stack; if so, error. else push
@@ -272,7 +272,7 @@ class CyclicReferenceChecker(val errors: ErrorLog) {
       true
     }
   }
-  
+
   def pop(): InferredTypeIndex = stack.pop
-  
+
 }
