@@ -283,6 +283,12 @@ test testStringification() = do
   assert(ran.asDebugString, "StridedFullParScalarRange(1,19,2)")
 end
 
+test testRegExpSplit() = do
+   str = "How much wood would a woodchuck chuck if a woodchuck could chuck wood?"
+   assert(str.javaRegExpSplit("wood", 0), "How much ", "Test RegExpSplit failed" );
+   assert(str.javaRegExpSplit("wood", 100), "", "Should return empty string")
+end
+
 run():() = do
   testStringification()
   testDepth()
@@ -303,6 +309,7 @@ run():() = do
   testCatStringGet()
   testSubstringGet()
   testEquality()
+  testRegExpSplit()
 end
 
 end StringTests
