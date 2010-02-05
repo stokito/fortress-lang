@@ -21,6 +21,7 @@ import _root_.java.util.ArrayList
 import _root_.java.util.{List => JList}
 import _root_.java.util.{Map => JMap}
 import scala.collection.{Set => CSet}
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.MultiMap
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
@@ -1131,6 +1132,56 @@ object STypesUtil {
       toList(NU.getExtendsClause(obj)).map(_.getBaseType)
     if (extends_types.isEmpty) extends_types = List(Types.OBJECT)
     NF.makeObjectExprType(toJavaList(extends_types))
+  }
+
+  /**
+   * Simply provides a convenient extractor pattern for getting the self type
+   * and self position out of an AppCandidate.
+   */
+  object AppCandidateMethodInfo {
+    def unapply(c: AppCandidate): Option[(Type, Int)] = c match {
+      case AppCandidate(SArrowType(_, _, _, _, _, Some(SMethodInfo(t, p))), _, _, _) =>
+        Some((t, p))
+      case _ => None
+    }
+  }
+
+  /**
+   * Prunes any candidates of overlapping functional and dotted methods. We
+   * prune a candidate method if there is an applicable candidate whose self
+   * parameter / receiver is a supertype, and the remaining parameters are
+   * non-disjoint.
+   */
+  def pruneMethodCandidates(candidates: List[AppCandidate])
+                           (implicit analyzer: TypeAnalyzer)
+                           : List[AppCandidate] = {
+    // Partition the candidates by self position.
+    val candidateBuckets = new HashMap[Int, ArrayBuffer[AppCandidate]]
+    for (c @ AppCandidateMethodInfo(_, pos) <- candidates) {
+      candidateBuckets.getOrElseUpdate(pos, new ArrayBuffer) += c
+    }
+
+    // Now prune each bucket.
+    val pruned = new HashSet[AppCandidate]
+    for (bucket <- candidateBuckets.values) {
+
+      // Loop over distinct, unpruned candidate pairs.
+      for {c1 @ AppCandidateMethodInfo(st1, _) <- bucket
+           c2 @ AppCandidateMethodInfo(st2, _) <- bucket
+           if (c1 ne c2) && !pruned(c1) && !pruned(c2)} {
+
+        // If c2's self type is a strict subtype of c1's self type, and if c1
+        // and c2 domains aren't disjoint, then they overlap -- prune c2.
+        if (!analyzer.equivalent(st1, st2).isTrue
+            && analyzer.subtype(st2, st1).isTrue
+            && !analyzer.excludes(c1.arrow.getDomain, c2.arrow.getDomain)) {
+          pruned += c2
+        }
+      }
+    }
+
+    // Remove the pruned candidates.
+    candidates.remove(c => pruned.contains(c))
   }
 
 }

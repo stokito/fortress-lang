@@ -68,6 +68,13 @@ object Lists {
   def maybeUnsnoc[A](b: Boolean, xxs: List[A]): (List[A], Option[A]) =
     if (b) (xxs.init, Some(xxs.last)) else (xxs, None)
 
+  /** The maximum element of a list. Throws an error if empty. */
+  def max[A <% Ordered[A]](xs: List[A]): A =
+    xs.foldLeft[A](xs.head){ (x, y) => if (x > y) x else y }
+
+  /** The minimum element of a list. Throws an error if empty. */
+  def min[A <% Ordered[A]](xs: List[A]): A =
+    xs.foldLeft[A](xs.head){ (x, y) => if (x < y) x else y }
 }
 
 class JavaList[T] {
