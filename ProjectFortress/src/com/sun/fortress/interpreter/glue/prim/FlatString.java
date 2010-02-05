@@ -201,7 +201,9 @@ public class FlatString extends NativeConstructor {
         protected String f(java.lang.String self, java.lang.String match, int index) {
             Pattern p = Pattern.compile(match);
             java.lang.String[] temp = p.split(self);
-            return temp[index];
+            if (index < temp.length)
+                return temp[index];
+            else return "";
         }
     }
 }
