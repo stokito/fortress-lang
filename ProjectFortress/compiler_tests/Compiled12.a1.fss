@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,7 +18,7 @@
 component Compiled12.a1
 export Executable
 
-object O[\T\]
+object O[\T extends Object\]
   m():String = "PASS"
 end
 

@@ -382,27 +382,36 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * How do we determine incoming and outgoing signatures?
      */
     public static void forwardingMethod(ClassWriter cw,
+            String thisName, int thisModifiers, int selfIndex,
+            String fwdClass, String fwdName, int fwdOp,
+            String maximalSig,
+            int nparamsIncludingSelf, boolean pushSelf) {
+        forwardingMethod(cw, thisName, thisModifiers, selfIndex,
+                fwdClass, fwdName, fwdOp, maximalSig, maximalSig, maximalSig,
+                nparamsIncludingSelf, pushSelf
+                );
+    }
+    
+    public static void forwardingMethod(ClassWriter cw,
                                         String thisName, int thisModifiers, int selfIndex,
                                         String fwdClass, String fwdName, int fwdOp,
-                                        String maximalSig,
+                                        String thisSig, String fwdSig, String selfCastSig,
                                         int nparamsIncludingSelf, boolean pushSelf) {
-        String thisSig = maximalSig;
-        String fwdSig = maximalSig;
         String selfSig = null;
         if (pushSelf) {
-            selfSig = Naming.nthSigParameter(maximalSig, selfIndex);
+            selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
             selfSig = selfSig.substring(1, selfSig.length()-1);
             if ((thisModifiers & ACC_STATIC) != 0) {
                 if (fwdOp != INVOKESTATIC) {
                     // receiver has explicit self, fwd is dotted.
-                    fwdSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+                    fwdSig = Naming.removeNthSigParameter(fwdSig, selfIndex);
                 }
             } else if (fwdOp == INVOKESTATIC) {
-                thisSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+                thisSig = Naming.removeNthSigParameter(thisSig, selfIndex);
             }
         } else if (selfIndex >= 0 && (thisModifiers & ACC_STATIC) != 0) {
             // Dropping explicit self parameter, so remove from signature.
-            fwdSig = Naming.removeNthSigParameter(maximalSig, selfIndex);
+            fwdSig = Naming.removeNthSigParameter(fwdSig, selfIndex);
         }
         // System.err.println("Forwarding "+thisName+":"+thisSig+
         //                    " arity "+nparamsIncludingSelf+"\n"+
