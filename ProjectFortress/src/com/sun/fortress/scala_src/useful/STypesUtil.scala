@@ -925,14 +925,10 @@ object STypesUtil {
                       (implicit analyzer: TypeAnalyzer): Expr = {
 
     // Pull out the info for the winning candidate.
-    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
+    val sma @ AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
 
     fn match {
       case fn: FunctionalRef =>
-//        val explicitSargs = fn.getStaticArgs match {
-//          case lst if lst.isEmpty => None
-//          case lst => Some(toList(lst))
-//        }
 
         // Get the unlifted static args.
         val (liftedSargs, unliftedSargs) = bestSargs.partition(_.isLifted)
@@ -940,8 +936,10 @@ object STypesUtil {
         // Get the dynamically applicable overloadings. Any time this method is
         // called, the candidates would have been created with corresponding
         // Overloading nodes; so use those instead of the ones on fn.
-        val overloadings = toList(fn.getNewOverloadings).flatMap { o =>
-          isDynamicallyApplicable(o, bestArrow, unliftedSargs, liftedSargs)
+        val overloadings = pruneMethodCandidates(candidates, sma).flatMap { c =>
+          c.overloading.flatMap { o =>
+            isDynamicallyApplicable(o, bestArrow, unliftedSargs, liftedSargs)
+          }
         }
 
         // Add in the filtered overloadings, the inferred static args,
@@ -1150,9 +1148,11 @@ object STypesUtil {
    * Prunes any candidates of overlapping functional and dotted methods. We
    * prune a candidate method if there is an applicable candidate whose self
    * parameter / receiver is a supertype, and the remaining parameters are
-   * non-disjoint.
+   * non-disjoint. The statically most applicable candidate should never be
+   * pruned.
    */
-  def pruneMethodCandidates(candidates: List[AppCandidate])
+  def pruneMethodCandidates(candidates: List[AppCandidate],
+                            sma: AppCandidate)
                            (implicit analyzer: TypeAnalyzer)
                            : List[AppCandidate] = {
     // Partition the candidates by self position.
@@ -1170,9 +1170,11 @@ object STypesUtil {
            c2 @ AppCandidateMethodInfo(st2, _) <- bucket
            if (c1 ne c2) && !pruned(c1) && !pruned(c2)} {
 
-        // If c2's self type is a strict subtype of c1's self type, and if c1
+        // If c2 is not the statically most applicable candidate, and c2's self
+        // type is a strict subtype of c1's self type, and if c1
         // and c2 domains aren't disjoint, then they overlap -- prune c2.
-        if (!analyzer.equivalent(st1, st2).isTrue
+        if ((c2 ne sma)
+            && !analyzer.equivalent(st1, st2).isTrue
             && analyzer.subtype(st2, st1).isTrue
             && !analyzer.excludes(c1.arrow.getDomain, c2.arrow.getDomain)) {
           pruned += c2
