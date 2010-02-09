@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,11 +18,11 @@
 component Gt0c
 export Executable
 
-trait T[\S\]
+trait T[\S extends Object\]
   m(x:S):S = x
 end
 
-object O[\S\] extends T[\S\]
+object O[\S extends Object\] extends T[\S\]
 end
 
 run():() = do

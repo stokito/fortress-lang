@@ -529,6 +529,7 @@ public class TypeAnalyzer {
         public Type forTraitType(TraitType that) {
             if (isGround(that))
                 return that;
+            
 
             Id i = that.getName();
 
@@ -537,17 +538,30 @@ public class TypeAnalyzer {
             List <StaticParam> lsp = that.getStaticParams();
 
             ArrayList<StaticArg> nlsa = new ArrayList<StaticArg>(lsa.size());
-            for (StaticArg sa : lsa) {
-                if (sa instanceof TypeArg) {
-                    TypeArg ta = (TypeArg) sa;
-                    ASTNodeInfo tati = ta.getInfo();
-                    Type t = ta.getTypeArg();
-                }
-                nlsa.add(sa);
-            }
+            
+            /* This is incorrect for invariant generics.
+             * In that case, we need to say something that is 
+             * not-Fortress corresponding to our use of an erased
+             * type in the generated Java.  For now, we will use an
+             * empty list (and hope for the best).  We may need to use
+             * a "distinguised" empty list to make this work, or modify
+             * the AST, but I'd prefer to avoid this if we could (for
+             * example, we could add a subtype to TraitType, for
+             * ErasedTraitType, and use that).
+             */
+
+//            for (StaticArg sa : lsa) {
+//                if (sa instanceof TypeArg) {
+//                    TypeArg ta = (TypeArg) sa;
+//                    ASTNodeInfo tati = ta.getInfo();
+//                    Type t = ta.getTypeArg();
+//                    // TODO need to convert this into a TypeArg, sigh.
+//                }
+//                nlsa.add(sa);
+//            }
 
             // TODO Auto-generated method stub
-            return NodeFactory.makeTraitType(ti.getSpan(), ti.isParenthesized(), i, lsa, lsp);
+            return NodeFactory.makeTraitType(ti.getSpan(), ti.isParenthesized(), i, nlsa, lsp);
         }
 
         @Override
@@ -664,6 +678,7 @@ public class TypeAnalyzer {
                         return ty;
                     }
                 } else {
+                    // We need to return ObjectType.
                     // not sure what we do here
                 }
             } else {

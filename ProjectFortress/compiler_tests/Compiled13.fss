@@ -19,7 +19,7 @@ export Executable
 
 (* Generic object with generic methods extending a generic trait.
     Both functional and dotted methods.
-   Single inheritance.
+    Single inheritance.
    No overloading with top level.
  *)
 

@@ -14,7 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package verifier;
+package com.sun.fortress.compiler.bytecodeoptimizer;
 import java.io.*;
 
 class verify {

@@ -46,6 +46,7 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
+import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
@@ -146,7 +147,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.env = c.env;
 
     }
-
 
     public CodeGen(Component c,
                    TypeAnalyzer ta, ParallelismAnalyzer pa, FreeVariables fv,
@@ -479,6 +479,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
           3) Are not overridden by a method in the present trait or object
     */
     private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+       
         /*
          * If the number of supertraits is 0, there is nothing to inherit.
          * If it is one, inheritance comes via the class hierarchy.
@@ -503,6 +504,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
         }
+        
+        /*
+         * Apparently allMethods returns the transitive closure of all methods
+         * declared in a particular trait or object and the types it extends.
+         * Iterate over all of them, noting the ones with bodies, that are not
+         * already defined in this type or the first extending type (those
+         * defined in this type are conditional on includeCurrent).
+         * 
+         * Note that extends clauses should be minimal by this point, or at
+         * least as-if minimal; we don't want to be dealing with duplicated
+         * methods that would not trigger overriding by the meet rule (if the
+         * extends clause is minimal, and a method is defined twice in the
+         * extends clause, then it needs to be disambiguated in this type).
+         */
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.allMethods(tt, ta);
         // System.err.println("Considering chains for "+tt);
@@ -513,12 +528,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             StaticTypeReplacer inst = tup._2();
             Functional fnl = tup._1();
             // System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
+            /* Skip non-definitions. */
             if (!fnl.body().isSome()) continue;
+            
+            /* If defined in the current trait. */
             if (tupTrait.equals(tt)) {
-                if (includeCurrent) generateForwardingFor(fnl, inst, tupTrait, tt);
+                if (includeCurrent) {
+                    generateForwardingFor(fnl, inst, tupTrait, tt);
+                }
                 continue;
             }
             boolean alreadyThere = false;
+            
+            /* Iterate over tuples for
+             * already-defined methods
+             * whose names match
+             * that of the method being considered (assoc.first()).
+             * 
+             * If the trait of the method being considered,
+             * and the trait of any name-matching already included method
+             * match, then don't generate a wrapper.
+             * 
+             * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
+             * Their names will match, but the parameter types need not.
+             */
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
                      alreadyIncluded.matchFirst(assoc.first())) {
                 if (tupAlready._3().equals(tupTrait)) {
@@ -530,6 +563,290 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (alreadyThere) continue;
             generateForwardingFor(fnl, inst, tupTrait, tt);
         }
+    }
+    
+    /**
+     * Similar to dumpMethodChaining, except that this generates
+     * the erased versions of methods from generic traits and objects.
+     * 
+     * @param superInterfaces
+     * @param isTrait
+     */
+
+    private void dumpErasedMethodChaining(String [] superInterfaces, boolean isTrait) {
+        
+        /*
+         * TODO: THIS CODE IS CLOSE BUT NOT FULLY CORRECT.
+         * 
+         * Hypothesized screw case:
+         * 
+         * trait isGeneric[\T\]
+         *   f(self, x:T):T
+         * end
+         * 
+         * trait hidesGeneric extends isGeneric[\ZZ\]
+         *   f(self, x:ZZ):ZZ = 1
+         * end
+         * 
+         * trait firstExtended end
+         * 
+         * object O extends { firstExtended, hidesGeneric } end
+         * 
+         * Because "hidesGeneric" is second in the extends clause, its
+         * will not be class-inherited by O.  Because it supplies f,
+         * it will override (in the query methods below) the f declared
+         * in isGeneric.  However, hidesGeneric is not generic, so no
+         * erased function will be created.
+         * 
+         */
+        TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
+        List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
+        
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            fromFirst;
+        
+        /*
+         * Initialize alreadyIncluded to empty, or to the inherited methods 
+         * from the first t 
+         */
+        if (extendsClause.size() == 0) {
+            fromFirst =
+                new IndexedRelation<IdOrOpOrAnonymousName,
+                             scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
+        } else {
+            fromFirst = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
+        }
+
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+        fromSelf = STypesUtil.inheritedMethods(Useful.list(NodeFactory.makeTraitTypeWhere(tt)), ta);
+
+        /* Need to filter alreadyIncluded to contain only those methods that come
+         * from generics -- we don't want a non-generic to shadow a generic.
+         * (Should be able to handle this below instead of here.)
+         */
+
+        /*
+         * Apparently allMethods returns the transitive closure of all methods
+         * declared in a particular trait or object and the types it extends.
+         * Iterate over all of them, noting the ones with bodies, that are not
+         * already defined in this type or the first extending type (those
+         * defined in this type are conditional on includeCurrent).
+         * 
+         * Note that extends clauses should be minimal by this point, or at
+         * least as-if minimal; we don't want to be dealing with duplicated
+         * methods that would not trigger overriding by the meet rule (if the
+         * extends clause is minimal, and a method is defined twice in the
+         * extends clause, then it needs to be disambiguated in this type).
+         */
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            toConsider = STypesUtil.allMethods(tt, ta);
+        // System.err.println("Considering chains for "+tt);
+        
+        for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+                 assoc : toConsider) {
+            
+            scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
+            TraitType tupTrait = tup._3();
+            StaticTypeReplacer inst = tup._2();
+            Functional fnl = tup._1();
+            
+            /* Not generic, no need to remove erased method. */
+            if (tupTrait.getArgs().size() == 0)
+                continue;
+            
+            /* Need to define a wrapper even if there is no body.
+             * consider case where
+             * trait T[\S\]
+             *   f(x:T):T
+             * end
+             * object O extends T[\ZZ\]
+             *   f(x:ZZ):ZZ=1
+             * end
+             * 
+             * The information for O.f will not mention the need to define an
+             * erased wrapper for T[\S\].f
+             */
+            
+            
+            /* Iterate over tuples for
+             * already-defined methods
+             * whose names match
+             * that of the method being considered (assoc.first()).
+             * 
+             * If the trait of the method being considered,
+             * and the trait of any name-matching already included method
+             * match, then don't generate a wrapper.
+             * 
+             * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
+             * Their names will match, but the parameter types need not.
+             */
+            
+            /* Is it already erased in the first supertype?
+             * If so, the erasure will be inherited from there.
+             */
+            boolean alreadyThere =
+                isAlreadyErased(fromFirst, assoc, tupTrait);
+            if (alreadyThere)
+                continue;
+            
+            /*
+             * Not erased in parent, therefore, if it is declared in this
+             * type, emit an erased version.
+             */
+            if (tupTrait.equals(tt)) {
+                generateErasedForwardingFor(fnl, inst, tupTrait, tt);
+                continue;
+            }
+            
+            /*
+             * Is it defined in this type already?
+             * If so, do not repeat the definition from a supertype.
+             * But if not, then we need an erased implementation.
+             */
+            alreadyThere =
+                isAlreadyErased(fromSelf, assoc, tupTrait);
+            if (alreadyThere)
+                continue;
+
+            generateErasedForwardingFor(fnl, inst, tupTrait, tt);
+        }
+    }
+
+
+    /**
+     * @param alreadyErased
+     * @param fnl_name
+     * @param fnl_Trait
+     * @return
+     */
+    private boolean isAlreadyErased(
+            Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>> alreadyErased,
+            Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            assoc, TraitType fnl_Trait) {
+        IdOrOpOrAnonymousName fnl_name = assoc.first();
+        boolean alreadyThere = false;
+        for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
+                 alreadyErased.matchFirst(fnl_name)) {
+            /* Non-generics cannot shadow generics. */
+            if (tupAlready._3().getArgs().size() == 0)
+                continue;
+            /*
+             * This test is not right; it needs to pass in the entire function,
+             * and compare parameter lists for collision.
+             */
+            if (tupAlready._3().equals(fnl_Trait)) {
+                // System.err.println("    " + fnl + " already imported by first supertrait.");
+                alreadyThere = true;
+                break;
+            }
+        }
+        return alreadyThere;
+    }
+
+    
+    /**
+     * Generates forwarding methods for type-erased dotted methods
+     * that are generated as companions to top-level functional
+     * methods.  The methods for which this needs to be done are:
+     * 
+     *  * declared in a generic trait/object
+     *  * are functional (have an explicit self parameter)
+     *  * mention a static parameter type (from the declaring trait/object)
+     *    in their parameter list (this is optional -- ideally we spot for
+     *    this, but we can over-generate initially, because we will need to
+     *    do the tricky test in overloading code to spot this case).
+     *  
+     *  The methods so generated will be tagged with a $ERASED suffix to
+     *  avoid clashes.
+     *  
+     *  The code cannot do blind forwarding because casts must be
+     *  supplied for the erased types in the forwarding method.
+     * 
+     * @param fnl
+     * @param inst
+     * @param toTrait
+     * @param fromTrait
+     */
+    private void generateErasedForwardingFor(Functional fnl,
+            StaticTypeReplacer inst, TraitType toTrait, TraitType fromTrait) {
+        /* No need to (un)erase for non-generic */
+        if (toTrait.getArgs().size() == 0)
+            return;
+        /*
+         * TODO - starting with a copy of generateForwardingFor
+         * The goal is to obtain an erased-signature wrapper
+         * function that forwards to the properly typed target.
+         * The original code form generateForwardingFor obtains
+         * an appropriate target signature.
+         */
+        IdOrOp name = fnl.name();
+        if (!(fnl instanceof HasSelfType))
+            sayWhat(name, " method " + fnl
+                    + " doesn't appear to have self type.");
+        HasSelfType st = (HasSelfType) fnl;
+        List<Param> params = fnl.parameters();
+        int arity = params.size();
+        
+        Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
+        Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil
+                .getSpan(name)));
+        String sig = NamingCzar.jvmSignatureFor(paramType, NamingCzar
+                .jvmTypeDesc(returnType, component.getName()), -1, toTrait,
+                component.getName());
+        
+        // erase these using toTrait.
+        // what's the right way to do this?  Use component index to lookup trait name,
+        // to get the traitdecl, to get the staticparams.
+        
+        Map<Id, TypeConsIndex> types = ci.typeConses();
+        TypeConsIndex tci = types.get(toTrait.getName());
+        List<StaticParam> sp_list = tci.staticParameters();
+        
+        TypeAnalyzer eta = ta.extend(sp_list, Option.<WhereClause>none());
+                
+        // GroundBound is not quite right, because we have erased type names
+        // for ilks that are not available to legal Fortress.  Perhaps
+        // we can pun them as generics with no arguments.
+        
+        Type erasedReturnType = eta.groundBound(fnl.getReturnType().unwrap());
+        Type erasedParamType = eta.groundBound(NodeUtil.getParamType(params, NodeUtil
+                .getSpan(name)));
+        String erasedSig = NamingCzar.jvmSignatureFor(erasedParamType, NamingCzar
+                .jvmTypeDesc(erasedReturnType, component.getName()), -1, eta.groundBound(toTrait),
+                component.getName());
+        String mname;
+        int selfIndex = st.selfPosition();
+        
+        List<Type> from_type_list =
+            normalizeParamsToList(erasedParamType);
+        
+        List<Type> to_type_list =
+            normalizeParamsToList(paramType);
+        
+        if (selfIndex != NO_SELF) {
+            erasedSig = Naming.removeNthSigParameter(erasedSig, selfIndex );
+            sig = Naming.removeNthSigParameter(sig, selfIndex );
+            mname = fmDottedName(singleName(name), selfIndex);
+            from_type_list = Useful.removeIndex(selfIndex, from_type_list);
+            to_type_list = Useful.removeIndex(selfIndex, to_type_list);
+        } else {
+            mname = nonCollidingSingleName(name, erasedSig);
+            arity++;
+        }
+        
+        String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component
+                .getName(), false);
+        
+//        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+//                receiverClass, mname, INVOKEVIRTUAL, sig, arity, true);
+    }
+
+    /**
+     * @param paramType
+     * @return
+     */
+    private List<Type> normalizeParamsToList(Type paramType) {
+        return paramType instanceof TupleType ? ((TupleType)paramType).getElements() : Useful.list(paramType);
     }
 
     private void addLineNumberInfo(ASTNode x) {
@@ -2144,6 +2461,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             d.accept(this);
         }
         dumpMethodChaining(superInterfaces, false);
+        dumpErasedMethodChaining(superInterfaces, false);
 
         lexEnv = savedLexEnv;
 
@@ -2597,6 +2915,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("Finished init method ", springBoardClass);
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
+        dumpErasedMethodChaining(superInterfaces, true);
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
             dumpClass( springBoardClassOuter, splist );
