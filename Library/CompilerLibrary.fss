@@ -274,7 +274,6 @@ __generate(p: Boolean, r: ReductionString, f:()->String): String =
 
 object SeqGenZZ32(g: GeneratorZZ32) extends SeqGeneratorZZ32
     getter asString(): String = "seq(" g.asString ")"
-    seq(self): SeqGeneratorZZ32 = self
     loop(body:ZZ32->()): () = g.seqloop(body)
     generate(r: ReductionString, body: ZZ32->String): String = g.seqgenerate(r, body)
     seqloop(body:ZZ32->()): () = g.seqloop(body)
