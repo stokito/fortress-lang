@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -56,6 +56,16 @@ identity[\T extends Any\](x:T):T = x
 
 (* Should we deprecate tuple and use identity instead?  Decision: no. *)
 tuple[\T\](x:T):T = x
+
+first[\T1,T2\](x:(T1,T2)): T1 = do (a,_) = x; a end
+second[\T1,T2\](x:(T1,T2)): T2 = do (_,b) = x; b end
+first[\T1,T2,T3\](x:(T1,T2,T3)): T1 = do (a,_,_) = x; a end
+second[\T1,T2,T3\](x:(T1,T2,T3)): T2 = do (_,b,_) = x; b end
+third[\T1,T2,T3\](x:(T1,T2,T3)): T3 = do (_,_,c) = x; c end
+first[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T1 = do (a,_,_,_) = x; a end
+second[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T2 = do (_,b,_,_) = x; b end
+third[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T3 = do (_,_,c,_) = x; c end
+fourth[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T4 = do (_,_,_,d) = x; d end
 
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
@@ -1290,6 +1300,7 @@ In particular, we don't want to generate the data when creating the
 generator, as that misses the whole point.  We want to defer the
 object traversals until the moment the resulting generator is used.
 **)
+
 
 (************************************************************
 * The Maybe type, used instead of null
@@ -3179,11 +3190,42 @@ object OrReduction
     isZero(a:Boolean): Boolean = a
 end
 
-opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\] =
+opr BIG OR[\T\](): BigReduction[\Boolean, Boolean\] =
     BigReduction[\Boolean,Boolean\](OrReduction)
 
-opr BIG OR[\T\](g: Generator[\Boolean\]) =
+opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean =
     __bigOperatorSugar[\Boolean,Boolean,Boolean,Boolean\](BIG OR[\T\](), g)
+
+
+(** Operator reductions on integers *)
+
+(*
+object BitXorReduction[\T extends Integral[\T\]\]
+        extends { CommutativeMonoidReduction[\T\] }
+    getter asString(): String = "BitXorReduction"
+    empty(): T = 0
+    join(a: T, b: T): T = a BITXOR b
+end
+
+opr BIG BITXOR[\T extends Integral[\T\]\](): BigReduction[\T, T\] =
+    BigReduction[\T,T\](BitXorReduction)
+
+opr BIG BITXOR[\T extends Integral[\T\]\](g: Generator[\T\]): T =
+    __bigOperatorSugar[\T,T,T,T\](BIG BITXOR[\T\](), g)
+*)
+
+object BitXorReduction
+        extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String = "BitXorReduction"
+    empty(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a BITXOR b
+end
+
+opr BIG BITXOR(): BigReduction[\ZZ32, ZZ32\] =
+    BigReduction[\ZZ32,ZZ32\](BitXorReduction)
+
+opr BIG BITXOR(g: Generator[\ZZ32\]): ZZ32 =
+    __bigOperatorSugar[\ZZ32,ZZ32,ZZ32,ZZ32\](BIG BITXOR(), g)
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
@@ -3683,6 +3725,14 @@ end
 trait CompactFullRange[\I\] extends FullRange[\I\]
     getter lower(): I = self.left.get
     getter upper(): I = self.right.get
+    opr |self| : ZZ32 = do
+      (l, u) = (self.lower, self.upper)
+      typecase l of
+        ZZ32 => 0 MAX ((u - l) + 1)
+        (ZZ32, ZZ32) => (0 MAX ((first u - first l) + 1)) (0 MAX ((second u - second l) + 1))
+        (ZZ32, ZZ32, ZZ32) => (0 MAX ((first u - first l) + 1)) (0 MAX ((second u - second l) + 1)) (0 MAX ((third u - third l) + 1))
+      end
+    end
     forward(): CompactFullRange[\I\] = self
 end
 
@@ -3836,6 +3886,10 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     getter size() : ZZ32
     getter asString() : String = self
     getter indices() : CompactFullRange[\ZZ32\] = self.bounds
+
+    getter left(): Maybe[\Char\] = if |self| = 0 then Nothing[\Char\] else self.get(0) end
+    getter right(): Maybe[\Char\] = if |self| = 0 then Nothing[\Char\] else self.get(self.size-1) end
+
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficient code. *)
     getter generator() : Generator[\Char\] =
@@ -3869,6 +3923,26 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
     allButLast(): String = self[0#(|self| - 1)]
     allButFirst(): String = self[1:]
+
+    opr ^(self, n: ZZ32): String =
+      if n <= 1 then
+        if n=1 then self elif n=0 then "" else throw NegativeLength end
+      else
+        x = (self || self)^(n DIV 2)
+        if odd n then x || self else x end
+      end
+
+    upto(c: Char): String =
+      if c IN self then
+        n = BIG MIN[i <- self.indices, self[i]=c] i
+        self[ 0#n ]
+      else self end
+
+    beyond(c: Char): String =
+      if c IN self then
+        n = BIG MIN[i <- self.indices, self[i]=c] i
+        self[ (n+1): ]
+      else "" end
 
     (** The operator %||% with at least one String argument converts
         to String and concatenates **)
@@ -3953,6 +4027,8 @@ object StringJoinReduction(s:String) extends Reduction[\Maybe[\String\]\]
         end
     end
 end
+
+reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
 
 (***********************************************************
 * Numeric primitives
@@ -4040,6 +4116,16 @@ strToInt(s: String, radix: ZZ32): ZZ32 = do
 
 (** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
 strToInt(s: String): ZZ32 = strToInt(s,10)
+
+
+strToFloat(s: String): RR64 = do   (*) Quick and dirty implementation
+  intpart = s.upto('.')
+  frac = s.beyond('.')
+  both = intpart || frac
+  1.0 (SUM[k <- 0 # |both|] 10^k (both[|both| - 1 - k].codePoint - '0'.codePoint))/(10^(|frac|))
+end
+
+
 
 match(regex:FlatString,some:FlatString):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 

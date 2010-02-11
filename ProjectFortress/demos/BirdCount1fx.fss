@@ -8,7 +8,11 @@ Use is subject to license terms accompanying the software.
 
  ******************************************************************************)
 
-component BirdCount0
+(*) a. Delete `validTransitions` map and `isValidPairTransition` method; recode `isValidTransition` method algorithmically.
+(*) b. Delete `conversion` map; recode `convert` method algorithmically.
+(*) c. Convert `while` loops to use reductions or comprehensions.  (Had to implement `BIG BITXOR`.)
+
+component BirdCount1fx
 import File.{...}
 import FileSupport.{...}
 import FlatString.{...}
@@ -18,37 +22,6 @@ import Set.{...}
 import System.{getProperty}
 
 export Executable
-
-N:ZZ32 = 4
-
-conversion:Map[\String,ZZ32\] = 
-    {[\String,ZZ32\]
-         "AA"   |->0  ,
-         "CA"   |->1  ,
-         "GA"   |->2  ,
-         "TA"   |->3  ,
-         "AC"   |->1  ,
-         "CC"   |->0  ,
-         "GC"   |->3  ,
-         "TC"   |->2  ,
-         "AG"   |->2  ,
-         "CG"   |->3  ,
-         "GG"   |->0  ,
-         "TG"   |->1  ,
-         "AT"   |->3  ,
-         "CT"   |->2  ,
-         "GT"   |->1  ,
-         "TT"   |->0  ,
-         "AN"  |->N  , 
-         "CN"  |->N  , 
-         "GN"  |->N  , 
-         "TN"  |->N  , 
-         "NA"  |->N  , 
-         "NC"  |->N  , 
-         "NG"  |->N  , 
-         "NT"  |->N  , 
-         "NN"  |->N  
-      }
 
 inverseConversion:Map[\String,Char\] =
     {[\String, Char\]
@@ -69,13 +42,6 @@ inverseConversion:Map[\String,Char\] =
         "T2" |-> 'C',
         "T3" |-> 'A'
     }
-
-validTransitions:Set[\String\] = {[\String\] 
-    "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
-    "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
-    "2002","2013","2031","2103","2112","2130","2200","2211","2233","2301","2310","2332",
-    "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
-}
 
 (* if I could read these in from the file I would, but I don't know how to convert a string to an RR64 *)
 
@@ -251,10 +217,10 @@ sampleChickens:List[\String\] = <|[\String\]
     "22.1_LA_Frag35_20081114_RJF" *)
 |>
 
-convert(c:(Char, Char)):String = do
-    (c1:Char,c2:Char) = c
-   conversion.member("" || c1 || c2).get()
-end
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+convert(c1:Char, c2:Char): Char =
+    if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
 
 object Pairs[\T\](g: Generator[\T\]) extends Generator[\(T,T)\]
     generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
@@ -310,16 +276,16 @@ opr BIG OPLUS[\T\](g:Generator[\dna\]) =
 
 
 processReferenceFileLine(input:String):dna = do
-    if input.get(0) = '>' 
+    if input[0] = '>' 
         then EmptySequence()
     else 
-        size = |input|
-        dnaSequence(input.get(0), BIG || [p<- Pairs(input)](convert(p)), input.get(size-1)) 
+        n = |input|
+        dnaSequence(input[0], BIG || [p<- Pairs(input)](convert(p)), input[n-1])
     end
 end
 
 readReferenceFileLine(input:String):String = do
-    if input.get(0) = '>' 
+    if input[0] = '>' 
         then ""
     else 
         input
@@ -341,7 +307,7 @@ end
 
 object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, seqend:ZZ32, 
             referenceChickenColorsSnip:String, sampleChickenColorsSnip:String,
-            referenceChickenAGCTSnip:String) 
+            referenceChickenACGTSnip:String) 
     getter header():String = header
     getter sequence():String = sequence
     getter name():String = name
@@ -350,39 +316,21 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
     getter seqend():ZZ32 = seqend
     getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
     getter sampleChickenColorsSnip():String = sampleChickenColorsSnip
-    getter referenceChickenAGCTSnip():String = referenceChickenAGCTSnip    
-    getter asString():String = pos || "  " || name || "  " || referenceChickenColorsSnip || "  " sampleChickenColorsSnip || "  " || referenceChickenAGCTSnip 
+    getter referenceChickenACGTSnip():String = referenceChickenACGTSnip    
+    getter asString():String = pos || "  " || name || "  " || referenceChickenColorsSnip || "  " sampleChickenColorsSnip || "  " || referenceChickenACGTSnip 
 
-    sampleChickenAGCTSnip():String = do
-
-        l:ZZ32 = |sampleChickenColorsSnip|
-        var i:ZZ32 := 0
-        var result:String := ""
-        var current:Char := sampleChickenColorsSnip.get(0)
-        var c:Char = referenceChickenAGCTSnip.get(0)
-
-        while (i < l) do
-          result := result || c
-          current := sampleChickenColorsSnip.get(i)
-          temp:String = c.asString() || current.asString()
-          c:= inverseConversion.member(temp).get
-          i:= i+1
-        end
-        result := result || c
-        result
-    end
-
-(*
-       BIG || [(x,y) <- referenceChickenAGCTSnip.zip[\Char\](referenceChickenColorsSnip.javaSubstr(0,1) || sampleChickenColorsSnip)] inverseConversion.member(x.asString() || y.asString()).get()
-
-*)
+    sampleChickenACGTSnip():String =
+        (referenceChickenACGTSnip[0] ||
+            (BIG ||[i <- sampleChickenColorsSnip.indices]
+                inverseConversion[referenceChickenACGTSnip[0].asString ||
+                                  char('0'.codePoint BITOR (BIG BITXOR[j <- 0#(i+1)] (sampleChickenColorsSnip[i].codePoint BITAND 3)))]))
 
     printSnip():() = do
         println("Snip:" name pos() "  ")
         println(" " referenceChickenColorsSnip)
         println(" " sampleChickenColorsSnip)
-        println(referenceChickenAGCTSnip)
-(*        println(sampleChickenAGCTSnip())  *)
+        println(referenceChickenACGTSnip)
+(*        println(sampleChickenACGTSnip())  *)
     end
 
 
@@ -431,9 +379,9 @@ readASnip(r:ReadStream):Snip = do
       sequenceEnd:ZZ32 = adjustedLocation + length - 1
       referenceChickenColorsSnip:FlatString = getReferenceChickenColorsSnip(adjustedLocation, sequenceEnd)
       adjustedSequence:FlatString := getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip)
-      referenceChickenAGCTSnip:String = referenceChickenAGCT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 2)
+      referenceChickenACGTSnip:String = referenceChickenACGT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 2)
 
-      Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenAGCTSnip)
+      Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenACGTSnip)
    end
 end
 
@@ -450,7 +398,7 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
     getter asString():String = do
       var result:String := fileName || "    " || refStart() || "    " || refEnd() || "    " 
       result := result || referenceChickenColorsSnip() || "    " || sampleChickenColorsSnip() || "   "
-      result := result || refChickenAGCTSnip() || "    " || sampleChickenDiffSnip() || "   "
+      result := result || refChickenACGTSnip() || "    " || sampleChickenDiffSnip() || "   "
       result := result || errorProb
       result
     end
@@ -463,12 +411,13 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
     referenceChickenColorsSnip() = s.referenceChickenColorsSnip.javaSubstr(startPos, endPos + startPos) 
     sampleChickenColorsSnip() = s.sampleChickenColorsSnip.javaSubstr(startPos, endPos + startPos) 
 
+
     sampleChickenDiffSnip():String = do
        var i:ZZ32 := 0
-       var c:Char := s.referenceChickenAGCTSnip().get(startPos)
+       var c:Char := s.referenceChickenACGTSnip[startPos]
        var result:String :=  c.asString()
        while (i < endPos) do
-          next:Char = inverseConversion.member(c.asString() || s.sampleChickenColorsSnip.get(i+startPos).asString()).get()
+          next:Char = inverseConversion[c.asString() || s.sampleChickenColorsSnip[i + startPos].asString]
           result := result || next
           c := next
           i := i+1
@@ -476,7 +425,14 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
        result
     end
 
-   refChickenAGCTSnip():String = s.referenceChickenAGCTSnip.javaSubstr(startPos, endPos+startPos+1)
+(*
+    sampleChickenDiffSnip():String =
+        (s.referenceChickenACGTSnip[startPos] ||
+            (BIG ||[i <- 0 # endPos]
+                inverseConversion[s.referenceChickenACGTSnip[startPos].asString ||
+                                  char('0'.codePoint BITOR (BIG BITXOR[j <- 0#(i+1)] (sampleChickenColorsSnip[j+startPos].codePoint BITAND 3)))]))
+*)
+    refChickenACGTSnip():String = s.referenceChickenACGTSnip.javaSubstr(startPos, endPos+startPos+1)
 
     printEvent():() = do
        eventStart:ZZ32 = s.pos() + startPos
@@ -488,11 +444,11 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
        print(s.sampleChickenColorsSnip.javaSubstr(startPos, snipEnd) "  ")
        if valid() then
           print "VALID" 
-          print("  " refChickenAGCTSnip() "   ")
+          print("  " refChickenACGTSnip() "   ")
           print(sampleChickenDiffSnip())
        else
           print "inv" 
-          print("  " refChickenAGCTSnip() "   ")
+          print("  " refChickenACGTSnip() "   ")
           xs:String = "xxxxxxxxxxxxxxxxxx"
           print(xs.javaSubstr(0, endPos+1))
        end
@@ -502,7 +458,7 @@ end
 
 object MergedEvent(count:ZZ32, refStart:ZZ32, refEnd:ZZ32, 
                     referenceNumberFormat:String, sampleNumberFormat:String,
-                    referenceAGCTFormat:String, sampleAGCTFormat:String,
+                    referenceACGTFormat:String, sampleACGTFormat:String,
                     totalCoverage:RR64,
                     probability:RR64, eventList:List[\Event\])
   getter count():ZZ32 = count
@@ -510,8 +466,8 @@ object MergedEvent(count:ZZ32, refStart:ZZ32, refEnd:ZZ32,
   getter refEnd():ZZ32 = refEnd
   getter referenceNumberFormat():String = referenceNumberFormat
   getter sampleNumberFormat():String = sampleNumberFormat
-  getter referenceAGCTFormat():String = referenceAGCTFormat
-  getter sampleAGCTFormat():String = sampleAGCTFormat
+  getter referenceACGTFormat():String = referenceACGTFormat
+  getter sampleACGTFormat():String = sampleACGTFormat
   getter totalCoverage():RR64 = totalCoverage
   getter probability():RR64 = probability
   getter eventList():List[\Event\] = eventList
@@ -519,9 +475,9 @@ object MergedEvent(count:ZZ32, refStart:ZZ32, refEnd:ZZ32,
       var result:String = count || "  " 
       result := result || refStart || "  " || refEnd || "  "
       result := result || referenceNumberFormat || "  " || sampleNumberFormat || "  "
-      result := result || referenceAGCTFormat || "  " || sampleAGCTFormat || "  "
+      result := result || referenceACGTFormat || "  " || sampleACGTFormat || "  "
       result := result || totalCoverage || "  " 
-      result := result || probability || "  "
+      result := result || (1.0 probability) || "  "
       result
   end
 end
@@ -548,38 +504,34 @@ end
 
 (* This may change with newer technology, but for now it is OK. *)
 readSize:ZZ32 = 35
-var minlibpval:RR64 := 1.0
-var combpval:RR64 := 0.0
 
-calculateCoverage(fileName:String, refEnd:ZZ32):ZZ32 = do
-    rangeStart:ZZ32 = refEnd - readSize + 1
-    rangeEnd:ZZ32 = refEnd
-    var count:ZZ32 := 0
+calculateCoverage(fileName:String, refEnd:ZZ32):ZZ32 =
+    SUM[i <- seq(refEnd - readSize + 1 : refEnd)] coverage[fileName].member(i,0)
 
-    for i <- seq(rangeStart:rangeEnd) do
-        count := count + coverage.member(fileName).get().member(i,0)
-    end
-
-    count
-end
-
+(*
 calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
    count:ZZ32 = |events|
    first:Event = events.left().get()
-   var probability:RR64 := 1.0
-   var gmp:RR64 := 1.0
-   var libpval:RR64 :=0 
-   for event <- seq(events) do
-      probability := probability event.errorProb()
-   end
-   gmp := probability^(1.0/count)
+   probability: RR64 := PROD[event <- seq(events)] event.errorProb
+   var gmp: RR64 := probability^(1.0/count)
    cov:ZZ32 = calculateCoverage(fileName, first.refEnd())
-   for j <- seq(count:cov) do
-      libpval := libpval + ((gmp^j) comb(cov, j))
-   end
-   minlibpval := minlibpval cov
-   libpval
+   SUM[j <- seq(count:cov)] ((gmp^j) comb(cov, j))
 end
+
+calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
+   gmp = (PROD[event <- events] event.errorProb)^(1.0/(|events|))
+   cov = calculateCoverage(fileName, events.left().get().refEnd())
+   SUM[j <- seq(count:cov)] ((gmp^j) comb(cov, j))
+end
+*)
+
+calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
+   gmp = geometricMean <| e.errorProb | e <- events |>
+   cov = calculateCoverage(fileName, events.left().get().refEnd())
+   SUM[j <- seq(count:cov)] ((gmp^j) comb(cov, j))
+end
+
+geometricMean(xs: List[\RR64\]) = (PROD xs)^(1.0/(|xs|))
 
 calculateBonferroniTotal(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
    var totcov:ZZ32 := 0
@@ -594,37 +546,14 @@ calculateBonferroniTotal(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
       end
       totprob := totprob probability
    end
-   gmp:RR64 = totprob^(1.0/totcalls)
-   for j <-seq(totcalls:totcov) do
-      combpval += (gmp^j) comb(totcov, j)
-   end
-   combpval   
+   gmp: RR64 = totprob^(1.0/totcalls)
+   SUM[j <- seq(totcalls:totcov)] (gmp^j) comb(totcov, j)   
 end
 
 calculateBonferroni(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
-   for (file, events) <- seq(EventsByFile) do
-      minlibpval := calculateBonferroniLibrary(file, events) MIN minlibpval
-   end
-   calculateBonferroniTotal(EventsByFile)
-   result:RR64 = (2 combpval) MIN (2 minlibpval)
-   result
-end
-
-calculateTotalCoverage(EventsByFile:Map[\String, List[\Event\]\]):ZZ32 = do
-   var totcov:ZZ32 := 0
-   for (file, events) <- seq(EventsByFile) do
-      totcov := totcov +  calculateCoverage(file, events.left().get().refEnd())
-   end
-   totcov
-end
-         
-getFirstEvent(EventsByFile:Map[\String, List[\Event\]\]):Event = do
-   var first:Event
-   (* There has to be a better way, but I'm in a hurry shame shame *)
-   for (file, events) <- seq(EventsByFile) do
-      first := events.left().get()
-   end
-   first
+   minlibpval: RR64 = BIG MIN[(file, events) <- EventsByFile] calculateBonferroniLibrary(file, events)
+   combpval: RR64 = calculateBonferroniTotal(EventsByFile)
+   2 (combpval MIN minlibpval)
 end
 
 maybeUpdateMergedDatabase(mergedDatabase:Map[\(ZZ32, String),List[\MergedEvent\]\],
@@ -640,19 +569,19 @@ maybeUpdateMergedDatabase(mergedDatabase:Map[\(ZZ32, String),List[\MergedEvent\]
       if (|changeEvents| > 0) then
          first:Event = changeEvents.left().get()
          probability:RR64 := calculateBonferroni(EventsByFile)
-         totalCoverage:ZZ32 := calculateTotalCoverage(EventsByFile) 
+         totalCoverage:ZZ32 := SUM[(file, events) <- EventsByFile] calculateCoverage(file, events.left().get().refEnd()) 
    
          snipPos = first.snip().pos()
          refStart = first.refStart()
          refEnd = first.refEnd()
          referenceNumberFormat = first.referenceChickenColorsSnip()
          sampleNumberFormat = first.sampleChickenColorsSnip()
-         referenceAGCTFormat = first.refChickenAGCTSnip()
-         sampleAGCTFormat = first.sampleChickenDiffSnip()
+         referenceACGTFormat = first.refChickenACGTSnip()
+         sampleACGTFormat = first.sampleChickenDiffSnip()
 
          me:MergedEvent = MergedEvent(|changeEvents|, refStart, refEnd, 
                                 referenceNumberFormat, sampleNumberFormat,
-                                referenceAGCTFormat, sampleAGCTFormat,
+                                referenceACGTFormat, sampleACGTFormat,
                                 totalCoverage, probability, changeEvents)
          mergedEvents :=  mergedEvents || <| me |>
          resultMergedDatabase := resultMergedDatabase.update((key, change), mergedEvents)
@@ -670,76 +599,45 @@ end
 
 makeEvent(s:Snip, basicDiffs:String, diffs:String, loc:ZZ32, name:String):Event = do
    var index:ZZ32 = loc
-   while (index < |diffs| AND: diffs.get(index) = 'X') do index := index + 1 end
-   lenOfEvent = index - loc
-   if lenOfEvent = 2 then
-        temp = singleErrorRates.member(name).get().member(loc).get()
-        Event(s, diffs, loc, lenOfEvent, temp, name)
-               
-   else
-     var errorProb:RR64 := 1
-     index := 0
-     while (index < lenOfEvent) do
-        temp = multipleErrorRates.member(name).get().member(loc+index).get()
-        if basicDiffs.get(loc+index) = 'X' then
-           errorProb := errorProb temp
-        end
-        index := index + 1
-     end
-     Event(s, diffs, loc, lenOfEvent, errorProb, name)
-   end
+   while (index < |diffs| AND: diffs[index] = 'X') do index := index + 1 end
+   len = index - loc
+   errorProb = if (len = 2) then
+                 (singleErrorRates[name])[loc]
+               else
+                 PROD[i <- seq(loc#len), basicDiffs[i] = 'X'] (multipleErrorRates[name])[i]
+               end
+   Event(s, diffs, loc, len, errorProb, name)
 end   
 
 isSingletonX(loc:ZZ32, diffs:String):Boolean =  
    if loc = |diffs| - 1 then true
-   elif diffs.get(loc) = 'X' AND: diffs.get(loc+1) = '.' then true
+   elif diffs[loc] = 'X' AND: diffs[loc+1] = '.' then true
    else false
    end
 
-
- 
 isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
    len:ZZ32 = |diffs|
-   if loc = 0 AND: diffs.get(0) = 'X' AND: diffs.get(1) = 'X' then true
+   if loc = 0 AND: diffs[0] = 'X' AND: diffs[1] = 'X' then true
    elif loc = 0 then false
    elif loc = (len - 1) then false
-   elif diffs.get(loc) = '.'  OR: (diffs.get(loc - 1) = 'X') OR: isSingletonX(loc, diffs) then
+   elif diffs[loc] = '.'  OR: (diffs[loc-1] = 'X') OR: isSingletonX(loc, diffs) then
       false
    else true
    end
 end
 
-isValidPairTransition(r:String, s:String) = do
-    (r || s) IN validTransitions
-end
-
-isValidTransition(reference:String, sample:String) = do
-    var i:ZZ32 := 0
-    var result:Boolean := true
-    while (i < |reference| - 1) do
-        r = reference.javaSubstr(i, i+2)
-        s = sample.javaSubstr(i, i+2)
-        result := result AND isValidPairTransition(r,s)
-        i := i + 1
-    end
-    result
-end
+isValidTransition(reference:String, sample:String) =
+    BIG AND[i <- 0 # |reference| - 1]  ((reference[i].codePoint BITXOR reference[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
 
 isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
    len:ZZ32 := loc
-   while (len < ((|diffs|) - 1) AND: diffs.get(len) = 'X') do len := len + 1 end
+   while (len < ((|diffs|) - 1) AND: diffs[len] = 'X') do len := len + 1 end
    sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, len)
    reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, len)
    isValidTransition(reference, sample)
 end
 
-isInteresting(s:Snip, loc:ZZ32, diffs:String):Boolean = 
-   if isInterestingPosition(loc, diffs) then
-       true
-   else
-       false
-   end
-
+isInteresting(s:Snip, loc:ZZ32, diffs:String): Boolean = isInterestingPosition(loc, diffs)
 
 sampleCompare(ref:String, sample:String):String = do
    BIG || [(x,y) <- ref.zip[\Char\](sample)] (if (x =/= y) then "X" else "." end)
@@ -751,11 +649,11 @@ factorOutProblemChildren(diffs:String) = do
    var result:String := ""
    if diffs.asFlatString().javaSubstr(0,4) = "X.XX" then 
       result := result || "XX" 
-   else result := result || diffs.get(0) || diffs.get(1)
+   else result := result || diffs[0] || diffs[1]
    end
 
    while (index < |diffs| - 2) do
-      if diffs.get(index) = 'X' then result := result || "X"
+      if diffs[index] = 'X' then result := result || "X"
       elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.X." then
          result := result || "X"
       elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.XX" then
@@ -771,10 +669,10 @@ factorOutProblemChildren(diffs:String) = do
    if diffs.asFlatString().javaSubstr(index - 2, 4) = "XX.X" then
 *)
 
-   if diffs.get(index - 2) =  'X' AND: diffs.get(index-1) = 'X' AND: diffs.get(index) = '.' AND: diffs.get(index+1) = 'X' then
+   if diffs[index-2] =  'X' AND: diffs[index-1] = 'X' AND: diffs[index] = '.' AND: diffs[index+1] = 'X' then
       result := result || "XX"
    else 
-      result := result || diffs.get(|diffs| - 2) || diffs.get(|diffs| - 1)  
+      result := result || diffs[|diffs| - 2] || diffs[|diffs| - 1]  
    end
 
    result
@@ -817,7 +715,7 @@ processSampleChicken(name:String):Map[\ZZ32, List[\Event\]\] = do
 end
 
 var referenceChickenColors:String := ""
-var referenceChickenAGCT:String := ""
+var referenceChickenACGT:String := ""
 
 
 (* This is a simple port of the perl code. I have no idea what it does *)
@@ -840,7 +738,7 @@ end
 
 run() = do
 
-    referenceChickenAGCT   := readReferenceFile(referenceChickenFile)
+    referenceChickenACGT   := readReferenceFile(referenceChickenFile)
     referenceChickenColors := processReferenceFile(referenceChickenFile)
     var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\]} 
     var mergedDatabase:Map[\(ZZ32,String), List[\MergedEvent\]\] := {[\(ZZ32, String), List[\MergedEvent\]\]} 
@@ -870,5 +768,3 @@ run() = do
  
 end  
 end
-
-

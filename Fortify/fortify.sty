@@ -25,6 +25,13 @@
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc} %useful to type directly accentuated characters
 
+
+\newcommand\twointersectand{\mathbin{\wedge\mskip-8mu\wedge}}
+\newcommand\twointersector{\mathbin{\vee\mskip-8mu\vee}}
+\newcommand\twointersectxor{\mathbin{\underline{\vee\mskip-8mu\vee}}}
+
+
+
 \newlength{\FortressCodeIndent}
 \setlength{\FortressCodeIndent}{1em}
 \newlength{\FortressParSkip}
@@ -69,6 +76,7 @@
 \newcommand\ASSIGN{\mathrel{\mathtt{:}}=}
 \newcommand\COLON{\mathpunct{\mathtt{:}}}
 \newcommand\COLONOP{\mathinner{\mathtt{:}}}
+\newcommand\SHORTCUT[1]{\mathrel{\mathord{#1}\mathord{:}}}
 \newcommand\verythin{{\ensuremath{\mskip 1.5mu}}}
 \newcommand\ultrathin{{\ensuremath{\mskip 0.75mu}}}
 \def\Vvert{\mathrel{\vert\mskip-1.5mu\vert\mskip-1.5mu\vert}}
@@ -135,6 +143,7 @@
 \newif\iffortresscommentalignblock
 \newif\iffortresspng  \fortresspngfalse
 
+\definecolor{almostwhite}{rgb}{0.99,0.99,0.99}
 
 \newcommand\FortressCode{\lineskip=1.5pt\lineskiplimit=1.5pt
   \setbox\fortresssavedtabstack=\box\fortresstabstack
@@ -153,14 +162,15 @@
   \fortresscommentalignblockfalse
   \topsep=4pt plus 2pt   \parsep=\parskip  \partopsep=1pt plus 1pt
   \trivlist
-  \item[]
-  \fortressbeginline\iffortresspng\hbox to 0pt{\hskip\hsize\color{white}\vrule height 0.001pt width 0.001pt\hss}\fi\ignorespaces}
+  \item[]%
+  % The \mathopen in the next line prevents a leading \mathrel (as for a keyword) from inserting glue.
+  \fortressbeginline\iffortresspng\mathopen{\hbox to 0pt{\hskip\hsize\color{almostwhite}\vrule height 0.001pt width 0.001pt\hss}}\fi\ignorespaces}
 \def\endFortressCode{\fortressendline\endtrivlist
   \global\setbox\fortresstabstack=\box\fortresssavedtabstack}
 
 \newcommand\fortressbeginline{\fortressretrievenewindent
   \fortresscurindent=\fortressnewindent
-  \setbox\fortresscodeline=\hbox{\iffortresspng\hbox to 0pt{\color{white}\vrule height 0.001pt width 0.001pt\hss}\fi
+  \setbox\fortresscodeline=\hbox{\iffortresspng\hbox to 0pt{\color{almostwhite}\vrule height 0.001pt width 0.001pt\hss}\fi
        \hskip\fortresscurindent\strut}%
   \fortressbeginfield}
 \newcommand\fortressendline{\unskip\fortressendfield

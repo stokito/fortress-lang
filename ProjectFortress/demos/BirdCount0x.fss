@@ -8,7 +8,7 @@ Use is subject to license terms accompanying the software.
 
  ******************************************************************************)
 
-component BirdCount0
+component BirdCount0x
 import File.{...}
 import FileSupport.{...}
 import FlatString.{...}
@@ -577,7 +577,6 @@ calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
    for j <- seq(count:cov) do
       libpval := libpval + ((gmp^j) comb(cov, j))
    end
-   minlibpval := minlibpval cov
    libpval
 end
 

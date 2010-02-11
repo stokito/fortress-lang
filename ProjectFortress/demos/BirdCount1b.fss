@@ -8,7 +8,11 @@ Use is subject to license terms accompanying the software.
 
  ******************************************************************************)
 
-component BirdCount0
+(*) a. Delete `validTransitions` map and `isValidPairTransition` method; recode `isValidTransition` method algorithmically.
+(*) b. Delete `conversion` map; recode `convert` method algorithmically.
+
+
+component BirdCount1b
 import File.{...}
 import FileSupport.{...}
 import FlatString.{...}
@@ -18,37 +22,6 @@ import Set.{...}
 import System.{getProperty}
 
 export Executable
-
-N:ZZ32 = 4
-
-conversion:Map[\String,ZZ32\] = 
-    {[\String,ZZ32\]
-         "AA"   |->0  ,
-         "CA"   |->1  ,
-         "GA"   |->2  ,
-         "TA"   |->3  ,
-         "AC"   |->1  ,
-         "CC"   |->0  ,
-         "GC"   |->3  ,
-         "TC"   |->2  ,
-         "AG"   |->2  ,
-         "CG"   |->3  ,
-         "GG"   |->0  ,
-         "TG"   |->1  ,
-         "AT"   |->3  ,
-         "CT"   |->2  ,
-         "GT"   |->1  ,
-         "TT"   |->0  ,
-         "AN"  |->N  , 
-         "CN"  |->N  , 
-         "GN"  |->N  , 
-         "TN"  |->N  , 
-         "NA"  |->N  , 
-         "NC"  |->N  , 
-         "NG"  |->N  , 
-         "NT"  |->N  , 
-         "NN"  |->N  
-      }
 
 inverseConversion:Map[\String,Char\] =
     {[\String, Char\]
@@ -69,13 +42,6 @@ inverseConversion:Map[\String,Char\] =
         "T2" |-> 'C',
         "T3" |-> 'A'
     }
-
-validTransitions:Set[\String\] = {[\String\] 
-    "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
-    "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
-    "2002","2013","2031","2103","2112","2130","2200","2211","2233","2301","2310","2332",
-    "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
-}
 
 (* if I could read these in from the file I would, but I don't know how to convert a string to an RR64 *)
 
@@ -251,10 +217,10 @@ sampleChickens:List[\String\] = <|[\String\]
     "22.1_LA_Frag35_20081114_RJF" *)
 |>
 
-convert(c:(Char, Char)):String = do
-    (c1:Char,c2:Char) = c
-   conversion.member("" || c1 || c2).get()
-end
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+convert(c1:Char, c2:Char): Char =
+    if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
 
 object Pairs[\T\](g: Generator[\T\]) extends Generator[\(T,T)\]
     generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
@@ -709,17 +675,13 @@ isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
    end
 end
 
-isValidPairTransition(r:String, s:String) = do
-    (r || s) IN validTransitions
-end
-
 isValidTransition(reference:String, sample:String) = do
     var i:ZZ32 := 0
     var result:Boolean := true
     while (i < |reference| - 1) do
         r = reference.javaSubstr(i, i+2)
         s = sample.javaSubstr(i, i+2)
-        result := result AND isValidPairTransition(r,s)
+        result := result AND ((r[0].codePoint BITXOR r[1].codePoint) = (s[0].codePoint BITXOR s[1].codePoint))
         i := i + 1
     end
     result
@@ -870,5 +832,3 @@ run() = do
  
 end  
 end
-
-
