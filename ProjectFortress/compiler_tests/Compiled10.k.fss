@@ -31,7 +31,7 @@ trait T[\U\] comprises U
     i(self) (* Yes *)
     j(self) (* Yes *)
     k(self) (* No *)
-    h(x)    (* No *)
+    h(x)    (* Yes *)
     i(x)    (* Yes *)
     j(x)    (* No *)
     k(x)    (* No *)

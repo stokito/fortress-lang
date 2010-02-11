@@ -20,9 +20,6 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:33:5-9:\n\
 \ Could not check call to function k\n\
 \ - Q->() is not applicable to an argument of type T[\\U\\].\n\
-${STATIC_TESTS_DIR}/Compiled10.k.fss:34:5-7:\n\
-\ Could not check call to function h\n\
-\ - T[\\U\\]->() is not applicable to an argument of type T[\\U\\].\n\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:36:5-7:\n\
 \ Could not check call to function j\n\
 \ - U->() is not applicable to an argument of type T[\\U\\].\n\
@@ -38,5 +35,5 @@ ${STATIC_TESTS_DIR}/Compiled10.k.fss:43:5-7:\n\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:44:5-7:\n\
 \ Could not check call to function j\n\
 \ - U->() is not applicable to an argument of type Q.\n\
-File Compiled10.k.fss has 7 errors.\n
+File Compiled10.k.fss has 6 errors.\n
 compile_out_equals=
