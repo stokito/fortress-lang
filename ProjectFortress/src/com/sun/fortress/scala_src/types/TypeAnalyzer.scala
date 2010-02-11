@@ -65,12 +65,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         case _ => super.walk(y)
       }
     }
-    remover(x).asInstanceOf[Type]
+    normalize(remover(x).asInstanceOf[Type])
   }
 
-  def subtype(x: Type, y: Type): ConstraintFormula =
-    sub(normalize(removeSelf(x)), normalize(removeSelf(y)))
-
+  def subtype(x: Type, y: Type): ConstraintFormula = 
+    sub(normalize(x), normalize(y))
+    
   private def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
@@ -94,6 +94,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val supers = toList(index.extendsTypes).
       map(tw => substitute(a, toList(index.staticParameters), tw.getBaseType))
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
+    case (s: TraitSelfType, t) => sub(removeSelf(s), t)
+    case (t, STraitSelfType(_, named, _)) => sub(t,named)
+    case (s: ObjectExprType, t) => sub(removeSelf(s), t)
     //Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
       and(and(sub(d2, d1), sub(r1, r2)), sub(e1, e2))
