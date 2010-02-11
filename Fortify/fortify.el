@@ -2713,12 +2713,13 @@
 (defun fortress-intraline-idioms (tokens *fortress-matching-hashtable*)
   (fortress-process-surds ;Must process surds after processing fractions
    (fortress-process-fractions
-    (fortress-process-unit-declarations
-     (fortress-process-subscripts
-      (fortress-process-superscripts
-       (fortress-process-opr-and-BIG
-	(fortress-process-colons
-	 (fortress-process-compound-assignment tokens)))))))))
+    (fortress-process-choose-etc
+     (fortress-process-unit-declarations
+      (fortress-process-subscripts
+       (fortress-process-superscripts
+	(fortress-process-opr-and-BIG
+	 (fortress-process-colons
+	  (fortress-process-compound-assignment tokens))))))))))
 
 ;;; Turn a compound assignment (an operator followed by an equals sign)
 ;;; into a single operator that is a RELATION.
@@ -2752,7 +2753,7 @@
 		(cdr toks)
 		(eq (car (second toks)) 'COLON))
 	   (rplaca (cdr (first toks)) (concat (cadr (first toks)) (cadr (second toks))))
-	   (rplaca (cddr (first toks)) (concat "\\mathbin{" (caddr (first toks)) (caddr (second toks)) "}"))
+	   (rplaca (cddr (first toks)) (concat "\\SHORTCUT{" (caddr (first toks)) "}"))
 	   (rplacd toks (cddr toks)))
 	  ((and (not (memq (car (first toks)) '(WHITESPACE NEWLINE)))
 		(cdr toks)
@@ -2993,6 +2994,109 @@
 	(rplacd (last (cadr z)) (list "\\,")))))
   tokens)
 
+
+;;; The idea here is that we turn an enclosed expression of the form x CHOOSE y
+;;; into TeX {x \choose y}, and perhaps similarly for other operators.  In order
+;;; for this transformation to be valid, x and y must not contain any relational
+;;; operators outside parentheses.
+
+;;; In order to do this, we need to process all CHOOSE expressions that fall within a line.
+;;; To do THAT, we keep a stack that is pushed when we see a left encloser and popped
+;;; when we see a right encloser.  Each stack entry tracks the latest token that could
+;;; not be part of a tight juxtaposition as well as the position of any tight "/".
+
+;;; A stack entry is a 7-tuple of
+;;; (left-encloser possible before-left-start-or-nil left-end-or-nil choose-op-or-nil right-start-or-nil right-end-or-nil).
+
+(defun fortress-process-choose-etc (tokens)
+  (let ((dummy (cons (list 'DUMMY) tokens)))
+    (do ((toks tokens (cdr toks))
+	 (prev dummy toks)
+	 (stack (list (list nil t nil nil nil nil nil))))
+	((null toks))
+      (let ((thistok (car toks))
+	    (top (first stack)))
+	(ecase (car thistok)
+	  ((LEFT-PARENTHESIS LEFT-BRACKET LEFT-WHITE-BRACKET LEFT-ENCLOSER)
+	   (cond ((null (second top)))
+		 ((null (fifth top))
+		  (unless (third top)
+		    (setf (third top) prev))
+		  (setf (fourth top) toks))
+		 (t (unless (sixth top)
+		      (setf (sixth top) toks))
+		    (setf (seventh top) toks)))
+	   (when (gethash thistok *fortress-matching-hashtable*)
+	     (push (list toks t nil nil nil nil nil) stack)))
+	  ((RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-WHITE-BRACKET RIGHT-ENCLOSER)
+	   (when (gethash thistok *fortress-matching-hashtable*)
+	     (fortress-maybe-process-one-choose top toks)
+	     (pop stack)
+	     (let ((top (first stack)))
+	       (cond ((null (second top)))
+		     ((null (fifth top))
+		      (unless (third top)
+			(setf (third top) prev))
+		      (setf (fourth top) toks))
+		     (t (unless (sixth top)
+			  (setf (sixth top) toks))
+			(setf (seventh top) toks))))))
+	  ((NEWLINE)
+	   ;; Cancel all outstanding possibilities, because we don't want
+	   ;; to use any that has an embedded newline.
+	   (dolist (s stack) (setf (second s) nil)))
+	  ((WHITESPACE DIGIT-GROUP-SEPARATOR COMMENT COMMENT-LINE COMMENT-START COMMENT-MIDDLE COMMENT-END))
+	  ((COMMA SEMICOLON RELATION)
+	   ;; Cancel the current possibility
+	   (setf (second top) nil))
+	  ((OPERATOR OPERATOR-WORD)
+	   (cond ((gethash (second thistok) *fortress-choose-op-hashtable*)
+		  (cond ((and (second top) (third top) (null (fifth top)))
+			 (setf (fifth top) toks))
+			(t (setf (second top) nil))))
+		 ((null (second top)))
+		 ((null (fifth top))
+		  (unless (third top)
+		    (setf (third top) prev))
+		  (setf (fourth top) toks))
+		 (t (unless (sixth top)
+		      (setf (sixth top) toks))
+		    (setf (seventh top) toks))))
+	  ((AMPERSAND COLON BIGOP KEYWORD UNKNOWN
+		      CHARACTER-LITERAL CIRCUMFLEX COMMENT-ALIGN-START COMMENT-ALIGN-END
+		      DOT FRACTION-START FRACTION-END IDENTIFIER NUMBER
+		      STRING STRING-START STRING-MIDDLE STRING-END)
+	   (cond ((null (second top)))
+		 ((null (fifth top))
+		  (unless (third top)
+		    (setf (third top) prev))
+		  (setf (fourth top) toks))
+		 (t (unless (sixth top)
+		      (setf (sixth top) toks))
+		    (setf (seventh top) toks)))))))
+    (rest dummy)))
+
+;;; If either operand is surrounded by matching parentheses,
+;;; those parentheses are not rendered.  The overall surrounding
+;;; parentheses are certainly not rendered.
+
+(defun fortress-maybe-process-one-choose (stack-entry right-encloser)
+  (let ((left-encloser (first stack-entry))
+	(possible (second stack-entry))
+	(before-left-start (third stack-entry))
+	(left-end (fourth stack-entry))
+	(choose-op (fifth  stack-entry))
+	(right-start (sixth stack-entry))
+	(right-end (seventh stack-entry)))
+    (when (and possible before-left-start left-end choose-op right-start right-end)
+      ;; We have a choose-like operator to render, all right.
+      (fortress-maybe-suppress-parentheses (first left-encloser) (first right-encloser))
+      (fortress-maybe-suppress-parentheses (second before-left-start) (first left-end))
+      (fortress-maybe-suppress-parentheses (first right-start) (first right-end))
+      (setf (cdr before-left-start) (cons (list 'FRACTION-START "" "{\\textstyle ") (cdr before-left-start)))
+      (setf (third (first choose-op)) (concat (gethash (second (first choose-op)) *fortress-choose-op-hashtable*) "\\textstyle"))
+      (setf (cdr right-end) (cons (list 'FRACTION-END "" "}") (cdr right-end))))))
+
 ;;; The idea here is that a tight fraction xxx/yyy gets turned into LaTeX {xxx \over yyy}.
 ;;; In order to do this, we need to process all tight juxtapositions that fall within a line.
 ;;; To do THAT, we keep a stack that is pushed when we see a left encloser and popped
@@ -3092,7 +3196,8 @@
     (setf (third leftend) "")
     (setf (third rightend) "")))
 
-;;; This routine must come after fraction processing because it checks for suppressed parentheses.
+;;; This routine must come after fraction processing
+;;; and CHOOSE processing because it checks for suppressed parentheses.
 
 (defun fortress-process-surds (tokens)
   (do ((toks tokens (cdr toks)))
@@ -3140,15 +3245,16 @@
 			     (when (fortress-balanced-expression-no-newlines beyond)
 			       (rplacd (cdr (car toks)) (list item "{"))
 			       (gethash (first beyond) *fortress-matching-hashtable*))))))
-		     (rplacd (last finaltok) (list "}"))
-		     (let ((finalplace (memq finaltok toks)))
-		       (when (and finalplace
-				  (cdr finalplace)
-				  (memq (car (cadr finalplace))
-					'(RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-WHITE-BRACKET RIGHT-ENCLOSER))
-				  (not (string= (third (cadr finalplace)) "")) ;Watch out for suppressed parentheses
-				  )
-			 (rplacd (last finaltok) (list "\\,")))))
+		     (when finaltok
+		       (rplacd (last finaltok) (list "}"))
+		       (let ((finalplace (memq finaltok toks)))
+			 (when (and finalplace
+				    (cdr finalplace)
+				    (memq (car (cadr finalplace))
+					  '(RIGHT-PARENTHESIS RIGHT-BRACKET RIGHT-WHITE-BRACKET RIGHT-ENCLOSER))
+				    (not (string= (third (cadr finalplace)) "")) ;Watch out for suppressed parentheses
+				    )
+			   (rplacd (last finaltok) (list "\\,"))))))
 		   (when (eq (car (cadr toks)) 'WHITESPACE)
 		     (rplaca (cadr toks) 'NOSPACE)))))))))
   tokens)
@@ -3176,11 +3282,11 @@
 ;;;     is made at least size 1.
 ;;; (g) A matching pair that:
 ;;;     (i) is within a line, and
-;;;     (ii) contains a SQRT or tight fraction or BIG operator
+;;;     (ii) contains a SQRT or tight fraction or BIG operator or CHOOSE operator
 ;;;     is given variable size.
 ;;; (h) A matching pair that:
 ;;;     (i) is NOT within a line, and
-;;;     (ii) contains a SQRT or tight fraction or BIG operator
+;;;     (ii) contains a SQRT or tight fraction or BIG operator or CHOOSE operator
 ;;;     is given size at least 2.
 
 (defun fortress-resize-bracketing-delimiters (tokens *fortress-matching-hashtable*)
@@ -3207,7 +3313,7 @@
 ;;; (a) One matches each "|" comprehension token to its matching left encloser and vice versa.
 ;;; (b) One holds the size for each delimiter (initially 0).
 ;;; (c) One says whether a left encloser belongs to a pair that contains a newline.
-;;; (d) One says whether a left encloser belongs to a pair that contains a SQRT or tight fraction or BIG operator.
+;;; (d) One says whether a left encloser belongs to a pair that contains a SQRT or tight fraction or BIG operator or CHOOSE operator.
 
 (defun fortress-initialize-bracket-hashtables (tokens comprehension-matching-hashtable
 						      bracket-size-hashtable
@@ -3255,7 +3361,8 @@
 	   (dolist (stackitem stack)
 	     (puthash (first stackitem) t bracket-newline-hashtable)))
 	  ((OPERATOR-WORD)
-	   (when (string= (second thistok) "SQRT")
+	   (when (or (gethash (second thistok) *fortress-surd-hashtable*)
+		     (gethash (second thistok) *fortress-choose-op-hashtable*))
 	     (dolist (stackitem stack)
 	       (puthash (first stackitem) t bracket-big-hashtable))))
 	  ((OPERATOR)
@@ -3271,6 +3378,10 @@
 							  IDENTIFIER NUMBER CHARACTER-LITERAL STRING STRING-START))))
 		    (dolist (stackitem stack)
 		      (puthash (first stackitem) t bracket-big-hashtable))))
+		 ((or (gethash (second thistok) *fortress-surd-hashtable*)
+		      (gethash (second thistok) *fortress-choose-op-hashtable*))
+		  (dolist (stackitem stack)
+		    (puthash (first stackitem) t bracket-big-hashtable)))
 		 ((or (string= (second thistok) "<-")
 		      (string= (second thistok) "\\u2190"))
 		  (when (not (null stack))
@@ -3542,8 +3653,10 @@
       ((COMMA SEMICOLON LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET
 	      AMPERSAND OPERATOR OPERATOR-WORD BIGOP COLON)
        (ecase (car nexttok)
+	 ((IDENTIFIER NUMBER)
+	  (if (eq (car tok0) 'OPERATOR-WORD) `(,@tok0 "\\:") tok0))
 	 ((COMMENT COMMENT-START COMMENT-LINE COMMENT-MIDDLE COMMENT-END
-		DOT IDENTIFIER NUMBER STRING-END STRING-MIDDLE UNKNOWN KEYWORD)
+		DOT STRING-END STRING-MIDDLE UNKNOWN KEYWORD)
 	   `(,@tok0 "\\:"))
 	 ((CHARACTER-LITERAL STRING STRING-START LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET
 			     OPERATOR OPERATOR-WORD RELATION BIGOP AMPERSAND
@@ -3898,7 +4011,17 @@
    ("CUBE_ROOT" "\\sqrt[3]")
    ("CBRT" "\\sqrt[3]")
    ("\u221C" "\\sqrt[4]")
-   ("FOURTH_ROOT" "\\sqr[4]t")))
+   ("FOURTH_ROOT" "\\sqrt[4]")))
+
+
+(setq *fortress-choose-op-hashtable* (make-hash-table :test 'equal))
+
+(fortress-initialize-hashtable-pairs
+ *fortress-choose-op-hashtable*
+ '(("CHOOSE" "\\choose")
+   ("CYCLES" "\\atopwithdelims[]")
+   ("SUBSETS" "\\atopwithdelims\\{\\}")
+   ("EULERIAN" "\\atopwithdelims\\langle\\rangle")))
 
 (setq *fortress-traditional-name-hashtable* (make-hash-table :test 'equal))
 
@@ -4331,7 +4454,7 @@
    (?\u2A94 "\\FortressUnknownCharacter{GREATER THAN ABOVE SLANTED EQUAL ABOVE LESS THAN ABOVE SLANTED EQUAL}" RELATION "GREATER_THAN_ABOVE_SLANTED_EQUAL_ABOVE_LESS_THAN_ABOVE_SLANTED_EQUAL")
    (?\u2AA4 "\\FortressUnknownCharacter{GREATER THAN OVERLAPPING LESS THAN}" RELATION "GREATER_THAN_OVERLAPPING_LESS_THAN")
    (?\u2AA5 "\\FortressUnknownCharacter{GREATER THAN BESIDE LESS THAN}" RELATION "GREATER_THAN_BESIDE_LESS_THAN")
-   (?\u0023 "\\#" OPERATOR "NUMBER_SIGN")
+   (?\u0023 "\\mathbin{\\#}" OPERATOR "NUMBER_SIGN")
    (?\u003A ":" OPERATOR "COLON")
    (?\u2237 "\\FortressUnknownCharacter{!PROPORTION}" RELATION "PROPORTION")
    (?\u2282 "\\subset" RELATION "SUBSET_OF" "SUBSET")

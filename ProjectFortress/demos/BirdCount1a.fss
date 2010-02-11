@@ -8,7 +8,7 @@ Use is subject to license terms accompanying the software.
 
  ******************************************************************************)
 
-component BirdCount0
+component BirdCount1a
 import File.{...}
 import FileSupport.{...}
 import FlatString.{...}
@@ -69,13 +69,6 @@ inverseConversion:Map[\String,Char\] =
         "T2" |-> 'C',
         "T3" |-> 'A'
     }
-
-validTransitions:Set[\String\] = {[\String\] 
-    "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
-    "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
-    "2002","2013","2031","2103","2112","2130","2200","2211","2233","2301","2310","2332",
-    "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
-}
 
 (* if I could read these in from the file I would, but I don't know how to convert a string to an RR64 *)
 
@@ -709,17 +702,13 @@ isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
    end
 end
 
-isValidPairTransition(r:String, s:String) = do
-    (r || s) IN validTransitions
-end
-
 isValidTransition(reference:String, sample:String) = do
     var i:ZZ32 := 0
     var result:Boolean := true
     while (i < |reference| - 1) do
         r = reference.javaSubstr(i, i+2)
         s = sample.javaSubstr(i, i+2)
-        result := result AND isValidPairTransition(r,s)
+        result := result AND ((r[0].codePoint BITXOR r[1].codePoint) = (s[0].codePoint BITXOR s[1].codePoint))
         i := i + 1
     end
     result
@@ -870,5 +859,3 @@ run() = do
  
 end  
 end
-
-

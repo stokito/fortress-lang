@@ -139,4 +139,6 @@ object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
+transpose[\E,F\](xs: List[\(E,F)\]): (List[\E\], List[\F\])
+
 end

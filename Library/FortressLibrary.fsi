@@ -40,6 +40,16 @@ identity[\T extends Any\](x:T):T
 (* Should we deprecate tuple and use identity instead?  Decision: no. *)
 tuple[\T\](x:T):T
 
+first[\T1,T2\](x:(T1,T2)): T1
+second[\T1,T2\](x:(T1,T2)): T2
+first[\T1,T2,T3\](x:(T1,T2,T3)): T1
+second[\T1,T2,T3\](x:(T1,T2,T3)): T2
+third[\T1,T2,T3\](x:(T1,T2,T3)): T3
+first[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T1
+second[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T2
+third[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T3
+fourth[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T4
+
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C
 
@@ -1919,9 +1929,35 @@ object OrReduction
     isZero(a:Boolean): Boolean
 end
 
-opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\]
+opr BIG OR[\T\](): BigReduction[\Boolean, Boolean\]
 
 opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean
+
+(** Operator reductions on integers *)
+
+(*
+object BitXorReduction[\T extends Integral[\T\]\]
+        extends { CommutativeMonoidReduction[\T\] }
+    getter asString(): String
+    empty(): T
+    join(a: T, b: T): T
+end
+
+opr BIG BITXOR[\T extends Integral[\T\]\](): BigReduction[\T, T\]
+
+opr BIG BITXOR[\T extends Integral[\T\]\](g: Generator[\T\]): T
+*)
+
+object BitXorReduction
+        extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String
+    empty(): ZZ32
+    join(a: ZZ32, b: ZZ32): ZZ32
+end
+
+opr BIG BITXOR(): BigReduction[\ZZ32, ZZ32\]
+
+opr BIG BITXOR(g: Generator[\ZZ32\]): ZZ32
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
@@ -2109,6 +2145,7 @@ end
 trait CompactFullRange[\I\] extends FullRange[\I\]
     getter lower(): I
     getter upper(): I
+    opr |self| : I
     forward(): CompactFullRange[\I\]
 end
 
@@ -2240,6 +2277,8 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     getter size() : ZZ32
     getter indices() : CompactFullRange[\ZZ32\]
+    getter left(): Maybe[\Char\]
+    getter right(): Maybe[\Char\]
     getter depth() : ZZ32
     getter asFlatString(): String
     getter isBalanced(): Boolean
@@ -2285,6 +2324,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     (**  A balanced version of the receiver  **)
     balanced(): String (*  ensures {outcome.isAlmostBalanced AND outcome = self} *)
 
+    opr ^(self, n: ZZ32): String
+
+    upto(c: Char): String
+    beyond(c: Char): String
+
     (** The operator %||% with at least one String argument converts to string and
         appends **)
     opr ||(self, b:String):String
@@ -2328,6 +2372,8 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
 end String
 
 object StringJoinReduction(s:String) extends Reduction[\Maybe[\String\]\] end
+
+reverse(sequence: String): String
 
 (***********************************************************
 * \subsection{Top-level primitives}
@@ -2395,6 +2441,8 @@ strToInt(s: String, radix: ZZ32): ZZ32
 
 (** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
 strToInt(s: String): ZZ32
+
+strToFloat(s: String): RR64
 
 (** opr // appends a single newline separator. **)
 opr (x:Any)// : String

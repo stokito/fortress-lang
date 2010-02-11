@@ -8,7 +8,11 @@ Use is subject to license terms accompanying the software.
 
  ******************************************************************************)
 
-component BirdCount0
+(*) a. Delete `validTransitions` map and `isValidPairTransition` method; recode `isValidTransition` method algorithmically.
+(*) b. Delete `conversion` map; recode `convert` method algorithmically.
+
+
+component BirdCount1d
 import File.{...}
 import FileSupport.{...}
 import FlatString.{...}
@@ -18,37 +22,6 @@ import Set.{...}
 import System.{getProperty}
 
 export Executable
-
-N:ZZ32 = 4
-
-conversion:Map[\String,ZZ32\] = 
-    {[\String,ZZ32\]
-         "AA"   |->0  ,
-         "CA"   |->1  ,
-         "GA"   |->2  ,
-         "TA"   |->3  ,
-         "AC"   |->1  ,
-         "CC"   |->0  ,
-         "GC"   |->3  ,
-         "TC"   |->2  ,
-         "AG"   |->2  ,
-         "CG"   |->3  ,
-         "GG"   |->0  ,
-         "TG"   |->1  ,
-         "AT"   |->3  ,
-         "CT"   |->2  ,
-         "GT"   |->1  ,
-         "TT"   |->0  ,
-         "AN"  |->N  , 
-         "CN"  |->N  , 
-         "GN"  |->N  , 
-         "TN"  |->N  , 
-         "NA"  |->N  , 
-         "NC"  |->N  , 
-         "NG"  |->N  , 
-         "NT"  |->N  , 
-         "NN"  |->N  
-      }
 
 inverseConversion:Map[\String,Char\] =
     {[\String, Char\]
@@ -69,13 +42,6 @@ inverseConversion:Map[\String,Char\] =
         "T2" |-> 'C',
         "T3" |-> 'A'
     }
-
-validTransitions:Set[\String\] = {[\String\] 
-    "0011","0022","0033","0110","0123","0132","0213","0220","0231","0312","0321","0330",
-    "1001","1023","1032","1100","1122","1133","1203","1221","1230","1302","1320","1331",
-    "2002","2013","2031","2103","2112","2130","2200","2211","2233","2301","2310","2332",
-    "3003","3012","3021","3102","3113","3120","3201","3210","3223","3300","3311","3322"
-}
 
 (* if I could read these in from the file I would, but I don't know how to convert a string to an RR64 *)
 
@@ -251,10 +217,10 @@ sampleChickens:List[\String\] = <|[\String\]
     "22.1_LA_Frag35_20081114_RJF" *)
 |>
 
-convert(c:(Char, Char)):String = do
-    (c1:Char,c2:Char) = c
-   conversion.member("" || c1 || c2).get()
-end
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+convert(c1:Char, c2:Char): Char =
+    if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
 
 object Pairs[\T\](g: Generator[\T\]) extends Generator[\(T,T)\]
     generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
@@ -310,16 +276,16 @@ opr BIG OPLUS[\T\](g:Generator[\dna\]) =
 
 
 processReferenceFileLine(input:String):dna = do
-    if input.get(0) = '>' 
+    if input[0] = '>' 
         then EmptySequence()
     else 
-        size = |input|
-        dnaSequence(input.get(0), BIG || [p<- Pairs(input)](convert(p)), input.get(size-1)) 
+        n = |input|
+        dnaSequence(input[0], BIG || [p<- Pairs(input)](convert(p)), input[n-1])
     end
 end
 
 readReferenceFileLine(input:String):String = do
-    if input.get(0) = '>' 
+    if input[0] = '>' 
         then ""
     else 
         input
@@ -358,14 +324,14 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
         l:ZZ32 = |sampleChickenColorsSnip|
         var i:ZZ32 := 0
         var result:String := ""
-        var current:Char := sampleChickenColorsSnip.get(0)
-        var c:Char = referenceChickenAGCTSnip.get(0)
+        var current:Char := sampleChickenColorsSnip[0]
+        var c:Char = referenceChickenAGCTSnip[0]
 
         while (i < l) do
           result := result || c
-          current := sampleChickenColorsSnip.get(i)
+          current := sampleChickenColorsSnip[i]
           temp:String = c.asString() || current.asString()
-          c:= inverseConversion.member(temp).get
+          c:= inverseConversion[temp]
           i:= i+1
         end
         result := result || c
@@ -373,7 +339,7 @@ object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, 
     end
 
 (*
-       BIG || [(x,y) <- referenceChickenAGCTSnip.zip[\Char\](referenceChickenColorsSnip.javaSubstr(0,1) || sampleChickenColorsSnip)] inverseConversion.member(x.asString() || y.asString()).get()
+       BIG || [(x,y) <- referenceChickenAGCTSnip.zip[\Char\](referenceChickenColorsSnip.javaSubstr(0,1) || sampleChickenColorsSnip)] inverseConversion[x.asString() || y.asString()]
 
 *)
 
@@ -465,10 +431,10 @@ object Event(s:Snip, diffs:String, startPos:ZZ32, endPos:ZZ32, errorProb:RR64, f
 
     sampleChickenDiffSnip():String = do
        var i:ZZ32 := 0
-       var c:Char := s.referenceChickenAGCTSnip().get(startPos)
+       var c:Char := s.referenceChickenAGCTSnip[startPos]
        var result:String :=  c.asString()
        while (i < endPos) do
-          next:Char = inverseConversion.member(c.asString() || s.sampleChickenColorsSnip.get(i+startPos).asString()).get()
+          next:Char = inverseConversion[c.asString() || s.sampleChickenColorsSnip[i + startPos].asString]
           result := result || next
           c := next
           i := i+1
@@ -557,7 +523,7 @@ calculateCoverage(fileName:String, refEnd:ZZ32):ZZ32 = do
     var count:ZZ32 := 0
 
     for i <- seq(rangeStart:rangeEnd) do
-        count := count + coverage.member(fileName).get().member(i,0)
+        count := count + coverage[fileName].member(i,0)
     end
 
     count
@@ -670,18 +636,18 @@ end
 
 makeEvent(s:Snip, basicDiffs:String, diffs:String, loc:ZZ32, name:String):Event = do
    var index:ZZ32 = loc
-   while (index < |diffs| AND: diffs.get(index) = 'X') do index := index + 1 end
+   while (index < |diffs| AND: diffs[index] = 'X') do index := index + 1 end
    lenOfEvent = index - loc
    if lenOfEvent = 2 then
-        temp = singleErrorRates.member(name).get().member(loc).get()
+        temp = (singleErrorRates[name])[loc]
         Event(s, diffs, loc, lenOfEvent, temp, name)
                
    else
      var errorProb:RR64 := 1
      index := 0
      while (index < lenOfEvent) do
-        temp = multipleErrorRates.member(name).get().member(loc+index).get()
-        if basicDiffs.get(loc+index) = 'X' then
+        temp = (multipleErrorRates[name])[loc+index]
+        if basicDiffs[loc+index] = 'X' then
            errorProb := errorProb temp
         end
         index := index + 1
@@ -692,7 +658,7 @@ end
 
 isSingletonX(loc:ZZ32, diffs:String):Boolean =  
    if loc = |diffs| - 1 then true
-   elif diffs.get(loc) = 'X' AND: diffs.get(loc+1) = '.' then true
+   elif diffs[loc] = 'X' AND: diffs[loc+1] = '.' then true
    else false
    end
 
@@ -700,17 +666,13 @@ isSingletonX(loc:ZZ32, diffs:String):Boolean =
  
 isInterestingPosition(loc:ZZ32, diffs:String):Boolean = do
    len:ZZ32 = |diffs|
-   if loc = 0 AND: diffs.get(0) = 'X' AND: diffs.get(1) = 'X' then true
+   if loc = 0 AND: diffs[0] = 'X' AND: diffs[1] = 'X' then true
    elif loc = 0 then false
    elif loc = (len - 1) then false
-   elif diffs.get(loc) = '.'  OR: (diffs.get(loc - 1) = 'X') OR: isSingletonX(loc, diffs) then
+   elif diffs[loc] = '.'  OR: (diffs[loc-1] = 'X') OR: isSingletonX(loc, diffs) then
       false
    else true
    end
-end
-
-isValidPairTransition(r:String, s:String) = do
-    (r || s) IN validTransitions
 end
 
 isValidTransition(reference:String, sample:String) = do
@@ -719,7 +681,7 @@ isValidTransition(reference:String, sample:String) = do
     while (i < |reference| - 1) do
         r = reference.javaSubstr(i, i+2)
         s = sample.javaSubstr(i, i+2)
-        result := result AND isValidPairTransition(r,s)
+        result := result AND ((r[0].codePoint BITXOR r[1].codePoint) = (s[0].codePoint BITXOR s[1].codePoint))
         i := i + 1
     end
     result
@@ -727,7 +689,7 @@ end
 
 isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
    len:ZZ32 := loc
-   while (len < ((|diffs|) - 1) AND: diffs.get(len) = 'X') do len := len + 1 end
+   while (len < ((|diffs|) - 1) AND: diffs[len] = 'X') do len := len + 1 end
    sample:String = s.sampleChickenColorsSnip().javaSubstr(loc, len)
    reference:String = s.referenceChickenColorsSnip().javaSubstr(loc, len)
    isValidTransition(reference, sample)
@@ -751,11 +713,11 @@ factorOutProblemChildren(diffs:String) = do
    var result:String := ""
    if diffs.asFlatString().javaSubstr(0,4) = "X.XX" then 
       result := result || "XX" 
-   else result := result || diffs.get(0) || diffs.get(1)
+   else result := result || diffs[0] || diffs[1]
    end
 
    while (index < |diffs| - 2) do
-      if diffs.get(index) = 'X' then result := result || "X"
+      if diffs[index] = 'X' then result := result || "X"
       elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.X." then
          result := result || "X"
       elif diffs.asFlatString().javaSubstr(index-2, index+3) = ".X.XX" then
@@ -771,10 +733,10 @@ factorOutProblemChildren(diffs:String) = do
    if diffs.asFlatString().javaSubstr(index - 2, 4) = "XX.X" then
 *)
 
-   if diffs.get(index - 2) =  'X' AND: diffs.get(index-1) = 'X' AND: diffs.get(index) = '.' AND: diffs.get(index+1) = 'X' then
+   if diffs[index-2] =  'X' AND: diffs[index-1] = 'X' AND: diffs[index] = '.' AND: diffs[index+1] = 'X' then
       result := result || "XX"
    else 
-      result := result || diffs.get(|diffs| - 2) || diffs.get(|diffs| - 1)  
+      result := result || diffs[|diffs| - 2] || diffs[|diffs| - 1]  
    end
 
    result
@@ -870,5 +832,3 @@ run() = do
  
 end  
 end
-
-

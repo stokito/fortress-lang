@@ -1,6 +1,5 @@
-(** COPYRIGHT **)
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,31 +14,9 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component Object.Decl.ConsFn
+api Pairs
 
-export Executable
-
-trait List[\T\]
-  append(List[\T\]):List[\T\]
-end
-
-object Empty[\T\]
-  extends List[\T\]
-  cons(x) = Cons(x,self)
-  append(xs:List[\T\]):List[\T\] = xs
-end
-
-object Cons[\T\](firstitem:T, rest:List[\T\])
-  extends List[\T\]
-  cons(x) = Cons(x,self)
-  append(xs:List[\T\]):List[\T\] = Cons(firstitem,rest.append(xs))
-end
-(** EXAMPLE **)
-Cons[\T\](firstitem:T) = Cons(firstitem,Empty)
-(** END EXAMPLE **)
-
-run() = ()
+pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\]
 
 end

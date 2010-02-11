@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Pairs
+
+export Pairs
+
+pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
+
+object Pairs[\T\](g: Generator[\T\]) extends { Generator[\(T,T)\] }
+    generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
+    if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(T,R,T)\](t, red.empty(), t))
+        then v else red.empty() end
+end
+
+object PairReduction[\T,R\](red: Reduction[\R\], m:(T,T)->R)
+        extends { Reduction[\Maybe[\(T,R,T)\]\] }
+    empty():Maybe[\(T,R,T)\] = Nothing[\(T,R,T)\]
+    join(left:Maybe[\(T,R,T)\], right:Maybe[\(T,R,T)\]) : Maybe[\(T,R,T)\]=
+    if (l, v_l, m_l) <- left then
+        if (m_r, v_r, r) <- right then
+            Just[\(T,R,T)\](l, red.join(red.join(v_l, m(m_l, m_r)), v_r), r)
+        else left end
+    else right end
+end
+
+end

@@ -501,4 +501,7 @@ singleton[\E\](e:E): List[\E\] = do
     ArrayList[\E\](u,0,noShot,1,if minSize > 1 then oneShot() else noShot end)
   end
 
+transpose[\E,F\](xs: List[\(E,F)\]): (List[\E\], List[\F\]) =
+  ( <|[\E\] first x | x <- xs |>, <|[\F\] second x | x <- xs |> )
+
 end
