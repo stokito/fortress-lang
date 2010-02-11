@@ -435,7 +435,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sig = Naming.removeNthSigParameter(sig, selfIndex+1);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
-            mname = nonCollidingSingleName(name, sig);
+            mname = nonCollidingSingleName(name, sig,""); // What about static params?
             arity++;
         }
         String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
@@ -830,7 +830,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             from_type_list = Useful.removeIndex(selfIndex, from_type_list);
             to_type_list = Useful.removeIndex(selfIndex, to_type_list);
         } else {
-            mname = nonCollidingSingleName(name, erasedSig);
+            mname = nonCollidingSingleName(name, erasedSig, ""); // Need to figure this out later.
+            // I think it might need to have $ERASED added to it anyway.
+            // But we could overload those, too, couldn't we?
             arity++;
         }
         
@@ -1215,7 +1217,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
-            mname = nonCollidingSingleName(name, sig);
+            mname = nonCollidingSingleName(name, sig, generic_arrow_type);
         }
 
         // TODO refactor, this is computed in another place.
@@ -1274,7 +1276,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sig = Naming.removeNthSigParameter(sig, selfIndex+1);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
-            mname = nonCollidingSingleName(name, sig);
+            mname = nonCollidingSingleName(name, sig, ""); // static params?
             n++;
         }
 
@@ -1327,7 +1329,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
-            mname = nonCollidingSingleName(name, sig);
+            mname = nonCollidingSingleName(name, sig,""); // static params?
         }
 
         if (!savedInAnObject) {
@@ -1663,7 +1665,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     returnType, component.getName());
 
             // TODO different collision rules for top-level and for methods.
-            String mname = nonCollidingSingleName(name, sig);
+            String mname = nonCollidingSingleName(name, sig, "");
 
             InstantiatingClassloader.forwardingMethod(cw, mname, modifiers,
                     selfIndex, traitOrObjectName, dottedName, invocation, sig,
@@ -1692,7 +1694,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                        false);
 
-            String mname = nonCollidingSingleName(name, sig);
+            String mname = nonCollidingSingleName(name, sig, generic_arrow_type);
 
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
@@ -1832,9 +1834,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param sig The jvm signature for a method, e.g., (ILjava/lang/Object;)D
      * @return
      */
-    private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig) {
+    private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig, String schema) {
         String mname = singleName(name);
-        if (overloadedNamesAndSigs.contains(mname+sig)) {
+        if (overloadedNamesAndSigs.contains(mname+sig+schema)) {
             mname = NamingCzar.mangleAwayFromOverload(mname);
         }
         return mname;
@@ -2333,7 +2335,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              // Generate the factory method
             String sig = NamingCzar.jvmSignatureFor(params, classDesc, thisApi());
 
-            String mname = nonCollidingSingleName(x.getHeader().getName(), sig);
+            String mname ;
 
             CodeGen cg = this;
             String PCN = null;
@@ -2346,6 +2348,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     STypesUtil.staticParamsToArgs(original_static_params)),
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
+                mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
                 PCN = genericFunctionPkgClass(packageAndClassName, mname, sparams_part, generic_arrow_type)
                 ;
                 PCNOuter = genericFunctionPkgClass(packageAndClassName, mname, makeTemplateSParams(sparams_part) , generic_arrow_type)
@@ -2358,6 +2361,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 String staticClass = PCN.replaceAll("[.]", "/");
                 // This creates the closure bits
                 InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass, sig);
+            } else {
+                mname = nonCollidingSingleName(x.getHeader().getName(), sig, "");
             }
 
             CodeGenClassWriter cw = cg.cw;
@@ -3252,6 +3257,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                    String ss = o_entry.getKey();
                    ss = s + ss;
+                   // Need to add Schema to the end of ss for generic overloads.
                    overloaded_names_and_sigs.add(ss);
                }
            }
@@ -3362,7 +3368,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // it seems wrong to publicly mangle.
             String mname = functionalMethod ? fmDottedName(
                             singleName(name), selfIndex) : nonCollidingSingleName(
-                                    name, desc);
+                                    name, desc, ""); // static params?
 
             mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
                                 mname, desc, null, null);

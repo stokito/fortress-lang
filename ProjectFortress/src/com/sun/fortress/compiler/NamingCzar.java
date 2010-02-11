@@ -784,6 +784,12 @@ public class NamingCzar {
         return jvmSignatureFor(f.parameters(), range, ifNone);
     }
 
+    // OverloadSet.jvmSignatureFor
+    public static String jvmSignatureFor(Function f, APIName ifNone) {
+        com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
+        return jvmSignatureFor(f.parameters(), range, ifNone);
+    }
+
     // Codegen.dumpSigs
     public static String jvmSignatureFor(FnDecl f, APIName ifNone) {
         FnHeader h = f.getHeader();
