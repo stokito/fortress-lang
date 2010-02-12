@@ -119,7 +119,7 @@ List<Lhs> AssignLefts =
      SubscriptExpr
    | FieldSelection
    | QualifiedName
-   SubscriptExpr ::= Primay LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+   SubscriptExpr ::= Primary LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
    FieldSelection ::= Primary . Id
  */
 Lhs AssignLeft =
