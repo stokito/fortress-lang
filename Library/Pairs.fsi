@@ -17,6 +17,11 @@
 
 api Pairs
 
+import List.{...}
+
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\]
+triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\]
+runRanges(x: Indexed[\Boolean,ZZ32\]): List[\CompactFullRange[\ZZ32\]\]
+geometricMean(xs: List[\RR64\]): RR64
 
 end
