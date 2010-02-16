@@ -17,6 +17,7 @@
 
 component Pairs
 
+import List.{...}
 export Pairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
@@ -38,5 +39,70 @@ object PairReduction[\T,R\](red: Reduction[\R\], m:(T,T)->R)
         else left end
     else right end
 end
+
+
+triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\] = Triples(g)
+
+object Triples[\T\](g: Generator[\T\]) extends { Generator[\(T,T,T)\] }
+    generate[\R\](red: Reduction[\R\], m:(T,T,T)->R): R =
+    if (s,l,l',v,r',r) <- g.generate[\Maybe[\(Boolean,T,T,R,T,T)\]\](TripleReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(Boolean,T,T,R,T,T)\](true, t, t, red.empty(), t, t))
+        then v else red.empty() end
+end
+
+object TripleReduction[\T,R\](red: Reduction[\R\], m:(T,T,T)->R)
+        extends { Reduction[\Maybe[\(Boolean,T,T,R,T,T)\]\] }
+    empty():Maybe[\(Boolean,T,T,R,T,T)\] = Nothing[\(Boolean,T,T,R,T,T)\]
+    join(left:Maybe[\(Boolean,T,T,R,T,T)\], right:Maybe[\(Boolean,T,T,R,T,T)\]) : Maybe[\(Boolean,T,T,R,T,T)\]=
+    if (s1,l1,l1',v1,r1',r1) <- left then
+        if (s2,l2,l2',v2,r2',r2) <- right then
+           if s1 then
+              if s2 then
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, r2, red.empty(), l1, r2)
+              else
+                Just[\(Boolean,T,T,R,T,T)\](false, r1, l2, red.join(m(r1, l2, l2'), v2), r2', r2)
+              end
+           else
+              if s2 then
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, l1', red.join(v1, m(r1', r1, l2)), r1, l2)
+              else
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, l1', red.join(red.join(v1, m(r1', r1, l2)), red.join(m(r1, l2, l2'), v2)), r2', r2)
+              end
+           end
+        else left end
+    else right end
+end
+
+
+runRanges(x: Indexed[\Boolean,ZZ32\]): List[\CompactFullRange[\ZZ32\]\] =
+  (BIG BOXPLUS[i <- 0 # |x|] (if x[i] then RangeSet(0, <|[\CompactFullRange[\ZZ32\]\] i:i |>, 0) else SingleRange(1))).ranges
+
+opr BIG BOXPLUS[\T\](): BigReduction[\RunRanges, RunRanges\] =
+   embiggen[\RunRanges\](fn(a,b) => a BOXPLUS b, SingleRange(0))
+
+trait RunRanges comprises { SingleRange, RangeSet }
+  getter ranges(): List[\CompactFullRange[\ZZ32\]\]
+  opr BOXPLUS(self, x: RunRanges): RunRanges
+end
+
+object SingleRange(n: ZZ32) extends RunRanges
+  getter ranges() = <|[\CompactFullRange[\ZZ32\]\] |>
+  opr BOXPLUS(self, other: SingleRange) = SingleRange(n + other.n)
+  opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right)
+end
+
+object RangeSet(left: ZZ32, ranges: List[\CompactFullRange[\ZZ32\]\], right: ZZ32) extends RunRanges
+  opr BOXPLUS(self, other: SingleRange) = RangeSet(left, ranges, right + other.n)
+  opr BOXPLUS(self, other: RangeSet) =
+    if right + other.left >= 2 then
+      RangeSet(left, ranges || other.ranges, other.right)
+    else
+      (ps, p) = ranges.extractRight.get
+      (q, qs) = other.ranges.extractLeft.get
+      RangeSet(left, ps || <| p.lower:q.upper |> || qs, other.right)
+    end
+end
+
+geometricMean(xs: List[\RR64\]): RR64 = (PROD xs)^(1.0/(|xs|))
 
 end
