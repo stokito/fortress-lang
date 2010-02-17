@@ -23,9 +23,9 @@ export Executable
 var coverage: Map[\String, Map[\ZZ32,ZZ32\]\] := {[\String, Map [\ZZ32, ZZ32\] \] }
 
 homeDir: String = getProperty("fortress.autohome",".")
-referenceFile = homeDir || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
-sampleFilesDir = homeDir || "/ProjectFortress/demos/chickenData/test_data"
-errorRateFilesDir = homeDir || "/ProjectFortress/demos/chickenData/error_rates"
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
 sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
 errorFilesFileName = "composite_error_model.txt"
 
