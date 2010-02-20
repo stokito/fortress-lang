@@ -2146,7 +2146,6 @@ trait CompactFullRange[\I\] extends FullRange[\I\]
     getter lower(): I
     getter upper(): I
     opr |self| : I
-    opr =(self, other: CompactFullRange[\I\]): Boolean
     forward(): CompactFullRange[\I\]
 end
 
