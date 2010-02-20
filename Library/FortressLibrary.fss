@@ -3733,7 +3733,6 @@ trait CompactFullRange[\I\] extends FullRange[\I\]
         (ZZ32, ZZ32, ZZ32) => (0 MAX ((first u - first l) + 1)) (0 MAX ((second u - second l) + 1)) (0 MAX ((third u - third l) + 1))
       end
     end
-    opr =(self, other: CompactFullRange[\I\]): Boolean = (self.lower = other.lower) AND (self.upper = other.upper)
     forward(): CompactFullRange[\I\] = self
 end
 
