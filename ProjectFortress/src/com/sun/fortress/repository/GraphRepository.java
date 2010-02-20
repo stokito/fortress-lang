@@ -378,7 +378,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     public File findFile(APIName name, String suffix) throws FileNotFoundException {
         String dotted = name.toString();
-        String slashed = dotted.replaceAll("[.]", "/");
+        String slashed = dotted.replace(".", "/");
         slashed = slashed + "." + suffix;
         File fdot;
 

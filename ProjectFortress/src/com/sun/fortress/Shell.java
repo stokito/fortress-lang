@@ -774,7 +774,7 @@ public final class Shell {
         String rootName = filename.substring( 0, filename.lastIndexOf(".") );
         rootName = rootName.replace('/','.');
         rootName = rootName.replace('\\','.');
-        String regex = "(.*\\.)?" + cuname.replaceAll("\\.", "\\.") + "$";
+        String regex = "(.*\\.)?" + cuname.replace(".", "\\.") + "$";
         Debug.debug( Debug.Type.REPOSITORY, 3,
                      "Checking file name ", rootName, " vs cuname ", regex );
         return rootName.matches( regex );

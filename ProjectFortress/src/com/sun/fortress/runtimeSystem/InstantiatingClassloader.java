@@ -121,7 +121,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     protected Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException {
         Class clazz;
-        
+
         /*
          * We want to actually load the class ourselves, if security allows us
          * to. This is so that the classloader associated with the class is
@@ -247,20 +247,20 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private String functionTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
-        
+
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
                 right_oxford, xlation, sargs);
-        
+
         return Naming.mangleFortressIdentifier(s);
     }
 
     private String genericTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.lastIndexOf(Naming.RIGHT_OXFORD);
-        
+
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
                 right_oxford, xlation, sargs);
-        
+
         return Naming.mangleFortressIdentifier(s);
     }
 
@@ -294,7 +294,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         ArrayList<String> parameters = extractStringParameters(ft, left, right);
-        
+
         if (sig == null)
             sig = arrowParamsToJVMsig(parameters);
 
@@ -314,7 +314,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         AnnotationVisitor av0;
         //String superClass = Naming.mangleFortressIdentifier("Abstract"+ft);
         String superClass = "Abstract"+ft;
-        name = api.replaceAll("[.]", "/") + '$' + suffix;
+        name = api.replace(".", "/") + '$' + suffix;
         // name = Naming.mangleFortressIdentifier(name);
         String desc = "L" + name + ";";
         // String field_desc = "L" + Naming.mangleFortressIdentifier(ft) + ";";
@@ -353,7 +353,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
             // What if staticClass is compiler builtin?  How do we know?
             if (staticClass == null)
-                staticClass = api.replaceAll("[.]", "/");
+                staticClass = api;
+            staticClass = staticClass.replace(".","/");
 
             if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -39,24 +39,36 @@ public class FortressTransformer {
 
 
     @SuppressWarnings("unchecked")
-    public static void transform(String inputClassName, 
+    public static void transform(String inputClassName,
             APIName api_name,
             Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
             TypeAnalyzer ta) {
         try {
             ClassReader cr = new ClassReader(inputClassName);
-            CodeGenClassWriter cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+            CodeGenClassWriter cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES,
+                                                           (CodeGenClassWriter)null);
             String outputClassName = Naming.NATIVE_PREFIX_DOT + inputClassName;
-            
+
+            // Note that this will fail if it attempts to create a function that requires a
+            // closure (eg a function whose type is a fortress generic).  That is because fortress
+            // generics requrie a JarOutputStream to be provided to cw so that they have some way
+            // to write out fresh classes for the closures.
             FortressMethodAdapter fa = new FortressMethodAdapter(cw,
                     inputClassName, outputClassName, api_name, size_partitioned_overloads, ta);
             cr.accept(fa, 0);
 
+            // Note: we are not generating a jar, and did not provide
+            // a jar file argument when we created cw.  Thus we need
+            // to handle cleanup on our own, explicitly, rather than
+            // using cw.dumpClass().  Trying to refactor this away was
+            // ugly; we ended up with a dependency upon repository in
+            // CodeGenClassWriter.  We accept this solution instead
+            // for the time being.
             cw.visitEnd();
             byte[] b1 = cw.toByteArray();
 
             ByteCodeWriter.writeClass(repository, outputClassName, b1);
-            
+
 //            cr = new ClassReader(b1);
 //            cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 //

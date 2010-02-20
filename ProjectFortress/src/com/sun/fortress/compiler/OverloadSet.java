@@ -17,7 +17,13 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.*;
+
+import org.objectweb.asm.*;
+import org.objectweb.asm.util.*;
+
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
@@ -27,7 +33,9 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.*;
 import edu.rice.cs.plt.tuple.Option;
@@ -35,8 +43,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-
-import java.util.*;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
 
@@ -132,6 +138,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * null.
      */
     TaggedFunctionName principalMember;
+    public String genericSchema = ""; /* Need to stash this for generic-tagged overloads. */
 
     /**
      * If there are subsets of the overload set that have principal
@@ -254,6 +261,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (computeSubsets) {
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
                 int i = 1; // for self
+                /* Count the number of functions in LSTSF that are more
+                 * specific than or equal to f.
+                 */
                 for (TaggedFunctionName g : lessSpecificThanSoFar) {
                     if (!(f == g)) {
                         if (fSuperTypeOfG(f, g)) {
@@ -262,10 +272,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     }
                 }
                 if (i > 1) {
+                    
                     if (i == lessSpecificThanSoFar.size()) {
+                        /*
+                         * If f is more specific than or equal to every member
+                         * of LSTSF, then it is the principal member.
+                         */
                         principalMember = f;
                     } else {
-                        // TODO work in progress
+                        /* TODO work in progress
+                         * There are SOME members of the subset that are more
+                         * specific than f; identify those, and create that
+                         * subset.
+                         */
                         HashSet<TaggedFunctionName> subLSTSF = new HashSet<TaggedFunctionName>();
                         subLSTSF.add(f);
                         for (TaggedFunctionName g : lessSpecificThanSoFar) {
@@ -278,18 +297,22 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         OverloadSet subset = makeSubset(subLSTSF, f);
                         subset.overloadSubsets = overloadSubsets;
 
-                        overloadSubsets.put(jvmSignatureFor(f), subset);
+                        overloadSubsets.put(name.stringName()+jvmSignatureFor(f), subset);
                     }
                 }
             }
 
+            /*
+             * After identifying all the subsets (which have principal
+             * members), generate their structure.
+             */
             for (OverloadSet subset : overloadSubsets.values()) {
                 subset.splitInternal();
             }
         }
 
         if (principalMember != null)
-            overloadSubsets.put(jvmSignatureFor(principalMember), this);
+            overloadSubsets.put(name.stringName()+jvmSignatureFor(principalMember), this);
 
         /* Split set into dispatch tree. */
         splitInternal();
@@ -493,7 +516,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     /**
-     *
+     * Returns the most specific member (least generally applicable) 
+     * member of a set of tagged function names, if any exists.
+     * (So, return a singleton or empty.)
      */
     private Set<TaggedFunctionName> mostSpecificMemberOf(Set<TaggedFunctionName> set) {
         TaggedFunctionName msf = null;
@@ -514,6 +539,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     /**
+     * Returns true if the parameter list of g is more specific than or equal
+     * to the parameter list of f.  If any of g's parameters fails to be more
+     * specific than the corresponding parameter of f (using the
+     * "tweakedSubtypeTest"), then returns false.
+     * 
      * @param f
      * @param g
      * @return
@@ -562,16 +592,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public String getSignature() {
-        String s = overloadedDomainSig();
-        List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
+        return overloadedDomainSig() + NamingCzar.jvmTypeDesc(getRange(), ifNone);
+    }
 
+    public Type getRange() {
+        List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             typesToJoin.add(normalizeSelfType(f.getReturnType()));
         }
-
-        s += NamingCzar.jvmTypeDesc(join(ta,typesToJoin), ifNone);
-
-        return s;
+        return join(ta,typesToJoin);
     }
 
     /**
@@ -604,7 +633,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         String s = overloadedDomainSig(t, paramCount, ta);
 
-        Type r = getRangeSignature(t, paramCount, ta);
+        Type r = getRange(t, paramCount, ta);
 
         s += NamingCzar.jvmTypeDesc(r, null);
 
@@ -656,7 +685,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
 
-    private static Type getRangeSignature(IntersectionType t, int paramCount, TypeAnalyzer ta) {
+    private static Type getRange(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         List<Type> types = t.getElements();
         List<Type> typesToJoin = new ArrayList(types.size());
 
@@ -678,7 +707,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
                 r0 = at.getRange();
             } else if (type instanceof IntersectionType) {
-                r0 = getRangeSignature((IntersectionType) type, paramCount, ta);
+                r0 = getRange((IntersectionType) type, paramCount, ta);
             } else {
                 InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
@@ -793,11 +822,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private String overloadedDomainSig() {
         String s = "(";
 
-        for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.jvmTypeDesc(overloadedParamType(i), ifNone);
+        for (Type t : overloadedDomain()) {
+            s += NamingCzar.jvmTypeDesc(t, ifNone);
         }
         s += ")";
         return s;
+    }
+
+    protected List<Type> overloadedDomain() {
+        List<Type> res = new ArrayList(paramCount);
+        for (int i = 0; i < paramCount; i++) {
+            res.add(overloadedParamType(i));
+        }
+        return res;
     }
 
     private Type overloadedParamType(int param) {
@@ -874,6 +911,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     String jvmSignatureFor(TaggedFunctionName f) {
         Function fu = f.tagF;
+        List<StaticParam> params = staticParametersOf(fu);
+        TypeAnalyzer eta = ta;
+        if (params != null) {
+            eta = ta.extend(params, Option.<WhereClause>none());
+        }
+
+        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); // eta
+    }
+
+    /**
+     * @param fu
+     * @return
+     */
+    private static List<StaticParam> staticParametersOf(Function fu) {
         List<StaticParam> params = null;
         if (fu instanceof FunctionalMethod) {
             List<StaticParam> lsp = ((FunctionalMethod) fu).traitStaticParameters();
@@ -889,12 +940,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else {
             InterpreterBug.bug("Unexpected subtype of FunctionalMethod " + fu);
         }
-        TypeAnalyzer eta = ta;
-        if (params != null) {
-            eta = ta.extend(params, Option.<WhereClause>none());
-        }
-
-        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); // eta
+        return params;
     }
 
 
@@ -932,7 +978,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return name; // no mangling after all.
     }
 
-    public void generateAnOverloadDefinition(String name, ClassVisitor cv) {
+    public void generateAnOverloadDefinition(String name, CodeGenClassWriter cv) {
+        // System.err.println("Generating "+ name + "\n" +
+        //                    "    principalMember "+ principalMember + "\n" + this.toStringR("   "));
         generateAnOverloadDefinitionInner(name, cv);
 
         for (Map.Entry<String, OverloadSet> o_entry : getOverloadSubsets().entrySet()) {
@@ -944,22 +992,83 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    private void generateAnOverloadDefinitionInner(String name, ClassVisitor cv) {
+    private void generateAnOverloadDefinitionInner(String name, CodeGenClassWriter cv) {
 
         // "(" anOverloadedArg^N ")" returnType
         // Not sure what to do with return type.
         String signature = getSignature();
         String[] exceptions = getExceptions();
+
+        // Right now we extract any necessary static arguments from
+        // the principalMember.  This may turn out to be wrong, but it
+        // ought to be the case that principalMember is always set to
+        // the statically most applicable method for the given set of
+        // overloadings under consideration.  [At present this does
+        // not always appear to be the case in practice.]
+        List<StaticParam> sargs = null;
+        if (principalMember != null) {
+            sargs = staticParametersOf(principalMember.tagF);
+        }
+
+        String tstr = (exceptions.length==0) ? "" : (" throws " + Useful.list(exceptions));
+        String astr = (sargs==null)? "" : Useful.listInOxfords(sargs);
+        // System.err.println(astr + signature + tstr);
         if (CodeGenerationPhase.debugOverloading)
             System.err.println("Emitting overload " + name + signature);
 
+        String PCNOuter = null;
+        List<String> splist = null;
+        if (sargs != null) {
+            Map<String, String> xlation = new HashMap<String, String>();
+            splist = new ArrayList<String>();
+            String sparamsType = NamingCzar.genericDecoration(sargs, xlation, splist, ifNone);
+            // TODO: which signature is which?  One needs to not have generics info in it.
+            String genericArrowType =
+                NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+            
+            /* Save this for later, to forestall collisions with
+             * single functions that hit the generic type.
+             * 
+             * Question: is this a problem with references to single
+             * types within the overload itself?  I think it might be, if we
+             * do not use exactly the same handshake.
+             */
+            genericSchema = genericArrowType;
+            
+            String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
+            // If we have static arguments, then our caller must be
+            // invoking us by instantiating a closure class and then
+            // calling its apply method.  Thus we need to make sure
+            // that we generate the expected closure class rather than
+            // a top-level method.
+            String PCN =
+                NamingCzar.genericFunctionPkgClass(packageAndClassName, name,
+                                                   sparamsType, genericArrowType);
+            PCNOuter =
+                NamingCzar.genericFunctionPkgClass(packageAndClassName, name,
+                                                   Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD,
+                                                   genericArrowType);
+            // System.err.println("Looks generic.\n    signature " + signature +
+            //                    "\n    gArrType " + genericArrowType +
+            //                    "\n    sparamsType " + sparamsType +
+            //                    "\n    PCN " + PCN +
+            //                    "\n    PCNOuter " + PCNOuter);
+            cv = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cv);
+            InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature);
+        }
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
-                + Opcodes.ACC_STATIC, // access,
-                oMangle(name), // name,
-                signature, // sp.getFortressifiedSignature(),
-                null, // signature, // depends on generics, I think
-                exceptions); // exceptions);
+                    + Opcodes.ACC_STATIC, // access,
+                    oMangle(name), // name,
+                    signature, // sp.getFortressifiedSignature(),
+                    null, // signature, // depends on generics, I think
+                    exceptions); // exceptions);
+        generateBody(mv);
+        if (PCNOuter != null) {
+            cv.dumpClass(PCNOuter, splist);
+        }
+    }
 
+    private void generateBody(MethodVisitor mv) {
         mv.visitCode();
         Label fail = new Label();
 
@@ -975,7 +1084,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         mv.visitMaxs(getParamCount(), getParamCount()); // autocomputed
         mv.visitEnd();
-
     }
 
 
@@ -1007,11 +1115,23 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                                               String sig) {
 
-
+            List<StaticParam> sargs = staticParametersOf(f.tagF);
+            String sparamsType = "";
+            String genericArrowType = "";
+            
             String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
-            if (getOverloadSubsets().containsKey(sig)) {
+            if (sargs != null) {
+                 genericArrowType =
+                    NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+                sparamsType = NamingCzar.genericDecoration(sargs, null, null, ifNone);
+                ownerName =
+                    NamingCzar.genericFunctionPkgClass(ownerName, mname,
+                                                       sparamsType, genericArrowType);
+            }
+            
+            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
                 mname = NamingCzar.mangleAwayFromOverload(mname);
             }
 

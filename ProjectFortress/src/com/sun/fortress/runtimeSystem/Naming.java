@@ -381,7 +381,7 @@ public class Naming {
                 i = mangleFortressIdentifier(s, i+1, sb);
                 break;
             default:
-                throw new Error("Was not expecting to see character " + ch);
+                throw new Error("Was not expecting to see character " + ch + " in " + s);
             }
         }
         return sb.toString();
