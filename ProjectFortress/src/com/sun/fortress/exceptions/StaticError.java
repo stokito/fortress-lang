@@ -152,7 +152,7 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
     }
 
     protected static String indentLines(String s, String prefix) {
-        return s.replaceAll("\n", "\n" + prefix);
+        return s.replace("\n", "\n" + prefix);
     }
 
     /** Indents every line after the first line with the `prefix` string. */

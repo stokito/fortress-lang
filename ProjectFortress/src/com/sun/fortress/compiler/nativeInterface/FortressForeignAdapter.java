@@ -28,6 +28,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.EmptyVisitor;
 
+import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.useful.Debug;
 
@@ -35,12 +36,12 @@ public class FortressForeignAdapter extends ClassAdapter {
     private final Set<OverloadSet> overloads;
     HashSet<String> overloadsDone = new HashSet<String>();
     String className;
-    ClassWriter cw;
+    CodeGenClassWriter cw;
 
-    public FortressForeignAdapter(ClassWriter cv,
+    public FortressForeignAdapter(CodeGenClassWriter cv,
             String outputClassName,
             Set<OverloadSet> overloads
-            
+
         ) {
         super(cv);
         this.cw = cv; // same as parent, avoid cast later.
@@ -53,11 +54,11 @@ public class FortressForeignAdapter extends ClassAdapter {
         Debug.debug( Debug.Type.COMPILER, 1,
                      "visit:" + name + " generate " + className);
         cv.visit(version, access, className, signature, superName, interfaces);
-        
+
         // Emit all overloads.
-        
-        
-        
+
+
+
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc,
@@ -78,7 +79,7 @@ public class FortressForeignAdapter extends ClassAdapter {
                     // exposed naming conventions, ugh.
                     oname = oname.substring(oname.lastIndexOf(".") + 1);
                     if (oname.equals(name)) {
-                        o.generateAnOverloadDefinition(oname, cv);
+                        o.generateAnOverloadDefinition(oname, cw);
                     }
                 }
             }

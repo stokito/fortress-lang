@@ -499,7 +499,7 @@ public class NodeFactory {
 
     private static String uaName(String tag, Span span ) {
         String s = terseSpan(span);
-        s = s.replaceAll("/", "|");
+        s = s.replace("/", "|");
         return s;
     }
 

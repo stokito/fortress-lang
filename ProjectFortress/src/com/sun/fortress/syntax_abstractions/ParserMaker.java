@@ -76,7 +76,7 @@ public class ParserMaker {
         }
 
         private String mangle(String name) {
-            return "USER_" + name.replaceAll("_", "__").replace('.', '_');
+            return "USER_" + name.replace("_", "__").replace('.', '_');
         }
     }
 

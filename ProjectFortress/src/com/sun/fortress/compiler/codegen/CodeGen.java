@@ -20,7 +20,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.jar.JarOutputStream;
@@ -36,7 +35,6 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import com.sun.fortress.compiler.AnalyzeResult;
-import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.WellKnownNames;
@@ -54,7 +52,6 @@ import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
@@ -109,7 +106,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     final Component component;
     private final ComponentIndex ci;
     private GlobalEnvironment env;
-    private final JarOutputStream jos;
 
     private static final int NO_SELF = -1;
 
@@ -140,8 +136,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
 
-        this.jos = c.jos;
-
         this.component = c.component;
         this.ci = c.ci;
         this.env = c.env;
@@ -154,8 +148,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName());
         String dotted = NamingCzar.javaPackageClassForApi(c.getName(), ".");
+        JarOutputStream jos;
         try {
-            this.jos = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(NamingCzar.cache + dotted + ".jar")));
+            jos = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(NamingCzar.cache + dotted + ".jar")));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -167,6 +162,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.ci = ci;
         this.exportedToUnambiguous = new MultiMap<String, Function> ();
 
+        this.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, jos);
+        cw.visitSource(NodeUtil.getSpan(c).begin.getFileName(), null);
+        boolean exportsExecutable = false;
+        boolean exportsDefaultLibrary = false;
+
         /*
          * Find every exported name, and make an entry mapping name to
          * API declarations, so that unambiguous names from APIs can
@@ -174,6 +174,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         List<APIName> exports = c.getExports();
         for (APIName apiname:exports) {
+            if ( WellKnownNames.exportsMain(apiname.getText()) )
+                exportsExecutable = true;
+            if ( WellKnownNames.exportsDefaultLibrary(apiname.getText()) )
+                exportsDefaultLibrary = true;
             ApiIndex api_index = env.api(apiname);
             Relation<IdOrOpOrAnonymousName, Function> fns = api_index.functions();
             for (IdOrOpOrAnonymousName name : fns.firstSet()) {
@@ -204,7 +208,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.env = env;
 
 
+        String extendedJavaClass =
+            exportsExecutable ? NamingCzar.fortressExecutable :
+                                NamingCzar.fortressComponent ;
+
+        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+                 packageAndClassName, null, extendedJavaClass,
+                 null);
+
         debug( "Compile: Compiling ", packageAndClassName );
+
+        // Always generate the init method
+        generateFieldsAndInitMethod(packageAndClassName, extendedJavaClass, Collections.<Param>emptyList());
+
+        // If this component exports an executable API,
+        // generate a main method.
+        if ( exportsExecutable ) {
+            generateMainMethod();
+        }
     }
 
 
@@ -365,33 +386,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return r;
     }
 
-    public void dumpClass( String unmangled_file_name ) {
-        PrintWriter pw = new PrintWriter(System.out);
-        cw.visitEnd();
-
-        String file = Naming.mangleFortressIdentifier(unmangled_file_name);
-
-        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
-            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
-
-        ByteCodeWriter.writeJarredClass(jos, file, cw.toByteArray());
-        debug( "Writing class ", file);
-    }
-
-    public void dumpClass( String unmangled_file_name, List<String> splist) {
-        PrintWriter pw = new PrintWriter(System.out);
-        cw.visitEnd();
-
-        String file = Naming.mangleFortressIdentifier(unmangled_file_name);
-
-        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false))
-            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), true, pw);
-
-        ByteCodeWriter.writeJarredClass(jos, file, cw.toByteArray());
-        ByteCodeWriter.writeJarredFile(jos, file, "xlation", Naming.xlationSerializer.toBytes(splist));
-        debug( "Writing class ", file);
-    }
-
     private void popAll(int onStack) {
         if (onStack == 0) return;
         for (; onStack > 1; onStack -= 2) {
@@ -452,50 +446,50 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
       defined in the first trait they extend (they are compiled to extend its
       trait default methods, which are in a class), but not default methods
       defined in subsequent extended traits.
-      
+
       To fix this forwarding methods are added to the object to call the
       non-inherited default methods (where appropriate, meaning not defined
       in either the object itself or an earlier trait).
-      
+
       Forwarding methods are also added to the compiled default-trait-methods
       classes, so that if they are inherited, they will supply all the necessary
       methods, and to ensure that the forwarding analysis is entirely local
       (that is, this trait/object, its first extended trait, and subsequent
       extended traits).
-      
+
       includeCurrent is true for traits.  default-trait-method bodies are static,
       but instance methods are required for inheritance and dispatch.  For traits,
       in order to inherit the own (current) default methods, instance-to-static
       forwarding methods must be also be added.
-      
+
       The conditions for adding a forwarding method are:
-      
+
           1) Inherited through the second and subsequent supertraits -OR-
              includeCurrent and defined in the current trait.
-             
+
           2) Are not also inherited through the first supertrait
              (due to joins in type hierarchy)
-             
+
           3) Are not overridden by a method in the present trait or object
     */
     private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
-       
+
         /*
          * If the number of supertraits is 0, there is nothing to inherit.
          * If it is one, inheritance comes via the class hierarchy.
          * If not includeCurrent, then there are no own-trait methods to forward.
-         * 
+         *
          * In that case, there is nothing to do.
          */
         if (!includeCurrent && superInterfaces.length <= 1) return;
-        
+
         TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             alreadyIncluded;
         /*
-         * Initialize alreadyIncluded to empty, or to the inherited methods 
-         * from the first t 
+         * Initialize alreadyIncluded to empty, or to the inherited methods
+         * from the first t
          */
         if (extendsClause.size() == 0) {
             alreadyIncluded =
@@ -504,14 +498,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
         }
-        
+
         /*
          * Apparently allMethods returns the transitive closure of all methods
          * declared in a particular trait or object and the types it extends.
          * Iterate over all of them, noting the ones with bodies, that are not
          * already defined in this type or the first extending type (those
          * defined in this type are conditional on includeCurrent).
-         * 
+         *
          * Note that extends clauses should be minimal by this point, or at
          * least as-if minimal; we don't want to be dealing with duplicated
          * methods that would not trigger overriding by the meet rule (if the
@@ -530,7 +524,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
             /* Skip non-definitions. */
             if (!fnl.body().isSome()) continue;
-            
+
             /* If defined in the current trait. */
             if (tupTrait.equals(tt)) {
                 if (includeCurrent) {
@@ -539,16 +533,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 continue;
             }
             boolean alreadyThere = false;
-            
+
             /* Iterate over tuples for
              * already-defined methods
              * whose names match
              * that of the method being considered (assoc.first()).
-             * 
+             *
              * If the trait of the method being considered,
              * and the trait of any name-matching already included method
              * match, then don't generate a wrapper.
-             * 
+             *
              * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
              * Their names will match, but the parameter types need not.
              */
@@ -564,50 +558,50 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             generateForwardingFor(fnl, inst, tupTrait, tt);
         }
     }
-    
+
     /**
      * Similar to dumpMethodChaining, except that this generates
      * the erased versions of methods from generic traits and objects.
-     * 
+     *
      * @param superInterfaces
      * @param isTrait
      */
 
     private void dumpErasedMethodChaining(String [] superInterfaces, boolean isTrait) {
-        
+
         /*
          * TODO: THIS CODE IS CLOSE BUT NOT FULLY CORRECT.
-         * 
+         *
          * Hypothesized screw case:
-         * 
+         *
          * trait isGeneric[\T\]
          *   f(self, x:T):T
          * end
-         * 
+         *
          * trait hidesGeneric extends isGeneric[\ZZ\]
          *   f(self, x:ZZ):ZZ = 1
          * end
-         * 
+         *
          * trait firstExtended end
-         * 
+         *
          * object O extends { firstExtended, hidesGeneric } end
-         * 
+         *
          * Because "hidesGeneric" is second in the extends clause, its
          * will not be class-inherited by O.  Because it supplies f,
          * it will override (in the query methods below) the f declared
          * in isGeneric.  However, hidesGeneric is not generic, so no
          * erased function will be created.
-         * 
+         *
          */
         TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
-        
+
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             fromFirst;
-        
+
         /*
-         * Initialize alreadyIncluded to empty, or to the inherited methods 
-         * from the first t 
+         * Initialize alreadyIncluded to empty, or to the inherited methods
+         * from the first t
          */
         if (extendsClause.size() == 0) {
             fromFirst =
@@ -631,7 +625,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * Iterate over all of them, noting the ones with bodies, that are not
          * already defined in this type or the first extending type (those
          * defined in this type are conditional on includeCurrent).
-         * 
+         *
          * Note that extends clauses should be minimal by this point, or at
          * least as-if minimal; we don't want to be dealing with duplicated
          * methods that would not trigger overriding by the meet rule (if the
@@ -641,19 +635,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.allMethods(tt, ta);
         // System.err.println("Considering chains for "+tt);
-        
+
         for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
-            
+
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
             TraitType tupTrait = tup._3();
             StaticTypeReplacer inst = tup._2();
             Functional fnl = tup._1();
-            
+
             /* Not generic, no need to remove erased method. */
             if (tupTrait.getArgs().size() == 0)
                 continue;
-            
+
             /* Need to define a wrapper even if there is no body.
              * consider case where
              * trait T[\S\]
@@ -662,25 +656,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * object O extends T[\ZZ\]
              *   f(x:ZZ):ZZ=1
              * end
-             * 
+             *
              * The information for O.f will not mention the need to define an
              * erased wrapper for T[\S\].f
              */
-            
-            
+
+
             /* Iterate over tuples for
              * already-defined methods
              * whose names match
              * that of the method being considered (assoc.first()).
-             * 
+             *
              * If the trait of the method being considered,
              * and the trait of any name-matching already included method
              * match, then don't generate a wrapper.
-             * 
+             *
              * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
              * Their names will match, but the parameter types need not.
              */
-            
+
             /* Is it already erased in the first supertype?
              * If so, the erasure will be inherited from there.
              */
@@ -688,7 +682,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 isAlreadyErased(fromFirst, assoc, tupTrait);
             if (alreadyThere)
                 continue;
-            
+
             /*
              * Not erased in parent, therefore, if it is declared in this
              * type, emit an erased version.
@@ -697,7 +691,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 generateErasedForwardingFor(fnl, inst, tupTrait, tt);
                 continue;
             }
-            
+
             /*
              * Is it defined in this type already?
              * If so, do not repeat the definition from a supertype.
@@ -743,25 +737,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return alreadyThere;
     }
 
-    
+
     /**
      * Generates forwarding methods for type-erased dotted methods
      * that are generated as companions to top-level functional
      * methods.  The methods for which this needs to be done are:
-     * 
+     *
      *  * declared in a generic trait/object
      *  * are functional (have an explicit self parameter)
      *  * mention a static parameter type (from the declaring trait/object)
      *    in their parameter list (this is optional -- ideally we spot for
      *    this, but we can over-generate initially, because we will need to
      *    do the tricky test in overloading code to spot this case).
-     *  
+     *
      *  The methods so generated will be tagged with a $ERASED suffix to
      *  avoid clashes.
-     *  
+     *
      *  The code cannot do blind forwarding because casts must be
      *  supplied for the erased types in the forwarding method.
-     * 
+     *
      * @param fnl
      * @param inst
      * @param toTrait
@@ -786,28 +780,28 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         HasSelfType st = (HasSelfType) fnl;
         List<Param> params = fnl.parameters();
         int arity = params.size();
-        
+
         Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
         Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil
                 .getSpan(name)));
         String sig = NamingCzar.jvmSignatureFor(paramType, NamingCzar
                 .jvmTypeDesc(returnType, component.getName()), -1, toTrait,
                 component.getName());
-        
+
         // erase these using toTrait.
         // what's the right way to do this?  Use component index to lookup trait name,
         // to get the traitdecl, to get the staticparams.
-        
+
         Map<Id, TypeConsIndex> types = ci.typeConses();
         TypeConsIndex tci = types.get(toTrait.getName());
         List<StaticParam> sp_list = tci.staticParameters();
-        
+
         TypeAnalyzer eta = ta.extend(sp_list, Option.<WhereClause>none());
-                
+
         // GroundBound is not quite right, because we have erased type names
         // for ilks that are not available to legal Fortress.  Perhaps
         // we can pun them as generics with no arguments.
-        
+
         Type erasedReturnType = eta.groundBound(fnl.getReturnType().unwrap());
         Type erasedParamType = eta.groundBound(NodeUtil.getParamType(params, NodeUtil
                 .getSpan(name)));
@@ -816,13 +810,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 component.getName());
         String mname;
         int selfIndex = st.selfPosition();
-        
+
         List<Type> from_type_list =
             normalizeParamsToList(erasedParamType);
-        
+
         List<Type> to_type_list =
             normalizeParamsToList(paramType);
-        
+
         if (selfIndex != NO_SELF) {
             erasedSig = Naming.removeNthSigParameter(erasedSig, selfIndex );
             sig = Naming.removeNthSigParameter(sig, selfIndex );
@@ -835,10 +829,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // But we could overload those, too, couldn't we?
             arity++;
         }
-        
+
         String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component
                 .getName(), false);
-        
+
 //        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
 //                receiverClass, mname, INVOKEVIRTUAL, sig, arity, true);
     }
@@ -1044,38 +1038,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forComponent(Component x) {
         debug("forComponent ",x.getName(),NodeUtil.getSpan(x));
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        boolean exportsExecutable = false;
-        boolean exportsDefaultLibrary = false;
-
-        for ( APIName export : x.getExports() ) {
-            if ( WellKnownNames.exportsMain(export.getText()) )
-                exportsExecutable = true;
-            if ( WellKnownNames.exportsDefaultLibrary(export.getText()) )
-                exportsDefaultLibrary = true;
-        }
-
-        String extendedJavaClass =
-            exportsExecutable ? NamingCzar.fortressExecutable :
-                                NamingCzar.fortressComponent ;
-
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageAndClassName, null, extendedJavaClass,
-                 null);
 
         for ( Import i : x.getImports() ) {
             i.accept(this);
         }
 
-        // Always generate the init method
-        generateFieldsAndInitMethod(packageAndClassName, extendedJavaClass, Collections.<Param>emptyList());
-
-        // If this component exports an executable API,
-        // generate a main method.
-        if ( exportsExecutable ) {
-            generateMainMethod();
-        }
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
@@ -1110,13 +1077,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             d.accept(this);
         }
 
-        dumpClass( packageAndClassName );
-
-        try {
-            jos.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        cw.dumpClass( packageAndClassName );
     }
 
     public void forDecl(Decl x) {
@@ -1187,7 +1148,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<String> splist = new ArrayList<String>();
         String sparams_part = genericDecoration(x, xlation, splist);
 
-        FnDecl y = x;
+        // FnDecl y = x;
         // NO // x = (FnDecl) x.accept(new GenericNumberer(xlation));
 
         // Get rewritten parts.
@@ -1205,10 +1166,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * at the reference site, so for now we are using the declared
          * names.  In rare cases, this might lead to a problem.
          */
-        ArrowType at = fndeclToType(y); // use the pre-rewritten type.
+        ArrowType at = fndeclToType(x); // use the pre-rewritten type.
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
         String mname;
-        at = fndeclToType(x); // Use the new name now.
+        // at = fndeclToType(x); // Use the new name now.
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
@@ -1221,21 +1182,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         // TODO refactor, this is computed in another place.
-        String PCN = genericFunctionPkgClass(packageAndClassName, mname,
-                sparams_part, generic_arrow_type)
-                        ;
-        String PCNOuter = genericFunctionPkgClass(packageAndClassName, mname,
-                makeTemplateSParams(sparams_part) , generic_arrow_type)
-                        ;
+        String PCN =
+            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                                               sparams_part, generic_arrow_type);
+        String PCNOuter =
+            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                        makeTemplateSParams(sparams_part) , generic_arrow_type);
 
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
-        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
-        String staticClass = PCN.replaceAll("[.]", "/");
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass, sig);
+        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
@@ -1243,7 +1203,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
-        cg.dumpClass(PCNOuter, splist);
+        cg.cw.dumpClass(PCNOuter, splist);
     }
 
     private void generateTraitDefaultMethod(FnDecl x, IdOrOp name,
@@ -1720,19 +1680,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String sparams_part, String sig, String generic_arrow_type,
             int invocation, String dottedName, int selfIndex,
             List<Param> params, int modifiers, List<String> splist) {
-        String PCN = genericFunctionPkgClass(packageAndClassName, mname,
-                sparams_part, generic_arrow_type);
-        String PCNOuter = genericFunctionPkgClass(packageAndClassName, mname,
-                makeTemplateSParams(sparams_part) , generic_arrow_type);
+        String PCN =
+            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                                               sparams_part, generic_arrow_type);
+        String PCNOuter =
+            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                        makeTemplateSParams(sparams_part) , generic_arrow_type);
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
-        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
-        String staticClass = PCN.replaceAll("[.]", "/");
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw,
-                staticClass, sig);
+        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
 
         InstantiatingClassloader.forwardingMethod(cg.cw, mname, modifiers,
                 selfIndex,
@@ -1741,7 +1701,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 dottedName, invocation, sig,
                 params.size(), true);
 
-        cg.dumpClass(PCNOuter, splist);
+        cg.cw.dumpClass(PCNOuter, splist);
     }
 
     /**
@@ -1788,7 +1748,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String desc = NamingCzar.makeAbstractArrowDescriptor(params, rt, thisApi());
         String idesc = NamingCzar.makeArrowDescriptor(params, rt, thisApi());
         CodeGen cg = new CodeGen(this);
-        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         String className = NamingCzar.gensymArrowClassName(Naming.deDot(thisApi().getText()));
@@ -1820,7 +1780,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         body.accept(cg);
 
         cg.methodReturnAndFinish();
-        cg.dumpClass(className);
+        cg.cw.dumpClass(className);
 
         constructWithFreeVars(className, freeVars, init);
     }
@@ -1966,6 +1926,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     sargs = ((TraitType) self_t).getArgs();
                 }
             }
+        } else {
+            System.err.println("non-arrowtype "+arrow);
         }
 
         String decoration = NamingCzar.genericDecoration(sargs, thisApi());
@@ -1993,14 +1955,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (oschema.isSome()) {
                 arrowToUse = oschema.unwrap();
             } else {
-                System.err.println(NodeUtil.getSpan(x) + ": FunctionalRef " + x + " lacks overloading schema; using "+arrowToUse);
+                System.err.println(NodeUtil.getSpan(x) + ": FunctionalRef " + x + " lacks overloading schema; using "+arrowToUse+" sargs "+sargs);
             }
 
             String arrow_type = NamingCzar.jvmTypeDesc(arrowToUse, thisApi(), false);
 
-            pkgClass = genericFunctionPkgClass(pkgClass, calleeInfo.second(), decoration, arrow_type);
+            pkgClass =
+                NamingCzar.genericFunctionPkgClass(pkgClass, calleeInfo.second(),
+                                                   decoration, arrow_type);
 
-            // pkgClass = pkgClass.replaceAll("[.]", "/");
+            // pkgClass = pkgClass.replace(".", "/");
             // DEBUG, for looking at the schema append to a reference.
             // System.err.println("At " + x.getInfo().getSpan() + ", " + pkgClass);
         }
@@ -2300,11 +2264,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 packageAndClassName) : "";
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
-        
+
         if (sparams_part.length() > 0) {
             emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
         }
-        
+
         String abstractSuperclass;
         if (superInterfaces.length > 0) {
             abstractSuperclass = superInterfaces[0] + NamingCzar.springBoard;
@@ -2349,18 +2313,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
-                PCN = genericFunctionPkgClass(packageAndClassName, mname, sparams_part, generic_arrow_type)
-                ;
-                PCNOuter = genericFunctionPkgClass(packageAndClassName, mname, makeTemplateSParams(sparams_part) , generic_arrow_type)
-                ;
+                PCN =
+                    NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                                                       sparams_part, generic_arrow_type);
+                PCNOuter =
+                    NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                                makeTemplateSParams(sparams_part) , generic_arrow_type);
 
 
                 cg = new CodeGen(this);
-                cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+                cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
-                String staticClass = PCN.replaceAll("[.]", "/");
                 // This creates the closure bits
-                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, staticClass, sig);
+                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
             } else {
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, "");
             }
@@ -2391,7 +2356,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
-                cg.dumpClass(PCNOuter, splist);
+                cg.cw.dumpClass(PCNOuter, splist);
             }
 
 
@@ -2401,7 +2366,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         CodeGenClassWriter prev = cw;
 
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         // Until we resolve the directory hierarchy problem.
@@ -2471,9 +2436,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         lexEnv = savedLexEnv;
 
         if (sparams_part.length() > 0) {
-            dumpClass( classFileOuter, splist );
+            cw.dumpClass( classFileOuter, splist );
         } else {
-            dumpClass( classFile );
+            cw.dumpClass( classFile );
         }
         cw = prev;
         inAnObject = savedInAnObject;
@@ -2485,37 +2450,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void emitErasedClassFor(String erasedSuperI, TraitObjectDecl x) {
         Id classId = NodeUtil.getName(x);
         String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    "",
-                    packageAndClassName);
+            NamingCzar.jvmClassForToplevelTypeDecl(classId, "",
+                                                   packageAndClassName);
         String classFileOuter =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    makeTemplateSParams(""),
-                    packageAndClassName);
+            NamingCzar.jvmClassForToplevelTypeDecl(classId, "",
+                                                   packageAndClassName);
 
         traitOrObjectName = classFile;
         String classDesc = NamingCzar.internalToDesc(classFile);
-        
+
         // need to adapt this code
-        
+
         // need to include erased superinterfaces
-        // need to 
-        
+        // need to
+
         String[] superInterfaces = new String[0];
-        
+
         CodeGenClassWriter prev = cw;
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( Opcodes.V1_5,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
-        
-        dumpClass( classFileOuter );
-        
+
+        cw.dumpClass( classFileOuter );
+
         cw = prev;
 
-        
-        
+
+
     }
 
 
@@ -2524,19 +2487,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             return "";
         else
             return Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD;
-    }
-
-
-    /**
-     * @param simple_name
-     * @param static_parameters
-     * @param generic_arrow_schema
-     * @return
-     */
-    private static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
-            String static_parameters, String generic_arrow_schema) {
-        return component_pkg_class + Naming.GEAR +"$" +
-        simple_name + static_parameters + Naming.ENVELOPE + "$" + Naming.HEAVY_X + generic_arrow_schema;
     }
 
     // This returns a list rather than a set because the order matters;
@@ -2637,7 +2587,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Create a new environment, and codegen task class in it.
         CodeGen cg = new CodeGen(this);
-        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
@@ -2651,7 +2601,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.generateTaskCompute(className, x, result);
 
-        cg.dumpClass(className);
+        cg.cw.dumpClass(className);
 
         this.lexEnv = restoreFromTaskLexEnv(cg.lexEnv, this.lexEnv);
         return className;
@@ -2862,21 +2812,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             NamingCzar.jvmClassForToplevelTypeDecl(classId,
                     sparams_part,
                     packageAndClassName);
-        
+
         // Used just for the name of the class file, nothing else.
         String classFileOuter =
             NamingCzar.jvmClassForToplevelTypeDecl(classId,
                     makeTemplateSParams(sparams_part) ,
                     packageAndClassName);
-        
+
         String erasedSuperI = sparams_part.length() > 0 ? NamingCzar
                 .jvmClassForToplevelTypeDecl(classId, "", packageAndClassName)
                 : "";
                 if (sparams_part.length() > 0) {
                     emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
                 }
-                                
-                
+
+
         inATrait = true;
         currentTraitObjectDecl = x;
 
@@ -2894,20 +2844,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             abstractSuperclass = superInterfaces[0] + NamingCzar.springBoard;
         }
         CodeGenClassWriter prev = cw;
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( Opcodes.V1_5,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
         if (sparams_part.length() > 0 ) {
-            dumpClass( classFileOuter, splist );
+            cw.dumpClass( classFileOuter, splist );
         } else {
-            dumpClass( classFileOuter );
+            cw.dumpClass( classFileOuter );
         }
 
         // Now let's do the springboard inner class that implements this interface.
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         // Springboard *must* be abstract if any methods / fields are abstract!
         // In general Springboard must not be directly instantiable.
@@ -2923,9 +2873,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpErasedMethodChaining(superInterfaces, true);
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
-            dumpClass( springBoardClassOuter, splist );
+            cw.dumpClass( springBoardClassOuter, splist );
         } else {
-            dumpClass( springBoardClassOuter );
+            cw.dumpClass( springBoardClassOuter );
         }
         // Now lets dump out the functional methods at top level.
         cw = prev;
@@ -2950,7 +2900,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     /** Supposed to be called with nested codegen context. */
     private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyDesc, Expr exp) {
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalSingleton, null );
@@ -2964,7 +2914,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
         mv.visitEnd();
-        dumpClass( classFile );
+        cw.dumpClass( classFile );
     }
 
     private void forVarDeclPrePass(VarDecl v) {
@@ -3165,6 +3115,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         MultiMap<Integer, OverloadSet.TaggedFunctionName> byCount =
             new MultiMap<Integer,OverloadSet.TaggedFunctionName>();
 
+        // System.err.println(NodeUtil.getSpan(x) + ": _RewriteFnOverloadDecl " + name +
+        //                    "\n  candidates " + fns);
+
         for (IdOrOp fn : fns) {
 
             Option<APIName> fnapi = fn.getApiName();
@@ -3188,7 +3141,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    "too accurate" which causes a call to an otherwise
                    non-existent static method.
                 */
-                if (OverloadSet.functionInstanceofType(f, ty, ta)) {
+                if (true || OverloadSet.functionInstanceofType(f, ty, ta)) {
                     OverloadSet.TaggedFunctionName tagged_f =
                         new OverloadSet.TaggedFunctionName(apiname, f);
                     byCount.putItem(f.parameters().size(), tagged_f);
@@ -3256,12 +3209,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                    String ss = o_entry.getKey();
-                   ss = s + ss;
+                   OverloadSet o_s = o_entry.getValue();
+                   ss = // s +
+                   ss + o_s.genericSchema;
                    // Need to add Schema to the end of ss for generic overloads.
+                   // System.err.println("Adding "+s+" : "+ss);
                    overloaded_names_and_sigs.add(ss);
                }
            }
         }
+        // StringBuilder sb = new StringBuilder("api ");
+        // sb.append(api_name);
+        // sb.append(" has overloads:\n");
+        // for (String s : overloaded_names_and_sigs) {
+        //     sb.append("  ");
+        //     sb.append(s);
+        //     sb.append("\n");
+        // }
+        // System.err.println(sb.toString());
         return overloaded_names_and_sigs;
     }
 

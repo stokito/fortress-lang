@@ -169,7 +169,7 @@ public class TemplateParser {
         if (str.startsWith("FortressSyntax")) {
             return "p" + str.substring(str.indexOf(".") + 1).replace('.', '$');
         } else {
-            return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
+            return "pUSER_" + str.replace("_", "__").replace('.', '_');
         }
     }
 }

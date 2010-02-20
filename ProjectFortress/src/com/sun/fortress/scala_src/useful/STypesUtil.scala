@@ -942,6 +942,29 @@ object STypesUtil {
           }
         }
 
+      // if (!overloadings.equals(toList(fn.getNewOverloadings))) {
+      //     val msg = new StringBuilder(NU.getSpan(fn).toString())
+      //     msg.append(": "); msg.append(fn); msg.append(" : ")
+      //     msg.append(arrow); msg.append(" NARROWED")
+      //     msg.append("\n  from")
+      //     for (o <- toList(fn.getNewOverloadings)) {
+      //         msg.append("\n    ")
+      //         msg.append(o.getUnambiguousName())
+      //         msg.append(": ")
+      //         msg.append(o.getType())
+      //     }
+      //     msg.append("\n  to");
+      //     for (o <- overloadings) {
+      //         msg.append("\n    ")
+      //         msg.append(NU.getSpan(o))
+      //         msg.append(": ")
+      //         msg.append(o.getType())
+      //     }
+      //     msg.append("\n")
+      //     System.err.println(msg.toString())
+      // }
+
+
         // Add in the filtered overloadings, the inferred static args,
         // and the statically most applicable arrow to the fn.
         addType(

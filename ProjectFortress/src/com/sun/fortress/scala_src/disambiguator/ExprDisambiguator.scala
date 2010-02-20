@@ -401,6 +401,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   // Create a list of overloadings for this FnRef from the
                   // matching function names.
                   // TODO: insert correct number of to-infer arguments?
+                  if (false && (new_fns.size > 1 || unambiguous_fns.size > 1))
+                      System.err.println(info.getSpan+":\n  new_fns "+new_fns+"\n  unamb_fns "+unambiguous_fns);
                   result = Some(SFnRef(info, sargs, depth, name, new_fns,
                                        new_fns.map(new Overloading(info, _, name, None)),
                                        unambiguous_fns.map(new Overloading(info, _, name, None)),
@@ -446,7 +448,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         else {
           val new_fns = setToList[IdOrOp](toSet(fns))
           val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(fn_name)))
-          SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns, 
+          SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns,
                  // Create a list of overloadings for this FnRef from the matching
                  // function names.
                  new_fns.map(new Overloading(info, _, fn_name, None)),

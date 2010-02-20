@@ -617,8 +617,20 @@ public class NamingCzar {
      */
     private static String mangleClassIdentifier(String identifier) {
         // Is this adequate, given naming freedom?
-        String mangledString = identifier.replaceAll("\\.", "\\$");
+        String mangledString = identifier.replace(".", "$");
         return mangledString+deCase(mangledString);
+    }
+
+    /**
+     * @param simple_name
+     * @param static_parameters
+     * @param generic_arrow_schema
+     * @return
+     */
+    public static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
+            String static_parameters, String generic_arrow_schema) {
+        return component_pkg_class + Naming.GEAR +"$" +
+        simple_name + static_parameters + Naming.ENVELOPE + "$" + Naming.HEAVY_X + generic_arrow_schema;
     }
 
     /**
@@ -857,8 +869,7 @@ public class NamingCzar {
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone) {
-        String result = "AbstractArrow";
-        return makeAnArrowDescriptor(params, rt, ifNone, result);
+        return makeAnArrowDescriptor(paramsToTypes(params), rt, ifNone, "AbstractArrow");
     }
 
     /**
@@ -869,14 +880,13 @@ public class NamingCzar {
      * @return
      */
     private static String makeAnArrowDescriptor(
-            List<com.sun.fortress.nodes.Param> params,
+            List<com.sun.fortress.nodes.Type> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone, String result) {
         result += Naming.LEFT_OXFORD;
         if (params.size() > 0)
-        for (Param p : params) {
-            result = result
-                    + makeArrowDescriptor(p.getIdType().unwrap(), ifNone) + ";";
-        }
+            for (com.sun.fortress.nodes.Type t : params) {
+                result += makeArrowDescriptor(t, ifNone) + ";";
+            }
         else {
             result = result + Naming.INTERNAL_SNOWMAN + ";";
         }
@@ -885,12 +895,29 @@ public class NamingCzar {
         return result;
     }
 
+    private static List<com.sun.fortress.nodes.Type> paramsToTypes(
+             List<com.sun.fortress.nodes.Param> params) {
+        List<com.sun.fortress.nodes.Type> res = new ArrayList(params.size());
+        for (com.sun.fortress.nodes.Param p : params) {
+            res.add(p.getIdType().unwrap());
+        }
+        return res;
+    }
+
+    // Parameter order differs here (ifNone first) in order to avoid a clash
+    // with the List<Param> overloading below.
+    public static String makeArrowDescriptor(
+            APIName ifNone,
+            List<com.sun.fortress.nodes.Type> params,
+            com.sun.fortress.nodes.Type rt) {
+        return makeAnArrowDescriptor(params, rt, ifNone, "Arrow");
+    }
+
     // forFnExpr
     public static String makeArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone) {
-        String result = "Arrow";
-        return makeAnArrowDescriptor(params, rt, ifNone, result);
+        return makeArrowDescriptor(ifNone, paramsToTypes(params), rt);
     }
 
     private static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
@@ -928,7 +955,7 @@ public class NamingCzar {
         String s = id.getText();
 
         return s;
-        
+
 //        // Don't tag variables.......
 //        if (s.startsWith(Naming.YINYANG))
 //            return s;
@@ -1475,8 +1502,10 @@ public class NamingCzar {
 
             IdOrOp spn = sp.getName();
             String tag = spk.accept(spkTagger) + index;
-            xlation.put(spn.getText(), tag);
-            splist.add(spn.getText());
+            if (xlation != null)
+                xlation.put(spn.getText(), tag);
+            if (splist != null)
+                splist.add(spn.getText());
             frag += spn.getText() + ";";
             index++;
         }
@@ -1500,6 +1529,6 @@ public class NamingCzar {
             frag += ";";
             index++;
         }
-       return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
+        return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
     }
 }

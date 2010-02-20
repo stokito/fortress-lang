@@ -21,7 +21,7 @@ export Executable
    method implementation in the presence of
    abstract functional methods. *)
 
-(** TODO: Re-insert generics a la Compiled12.inherit2 *)
+(**     TODO: Re-insert generics a la Compiled12.inherit2 *)
 
 trait T[\X\]
   getter asString(): String

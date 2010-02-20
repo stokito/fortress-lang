@@ -434,7 +434,7 @@ public class OperatorStuffGenerator {
     }
 
     private static String otherEnd(String ename, HashMap<String, Element> h, Set<Element> enclosing_right) {
-        String formulaOther = ename.replaceAll("LEFT", "RIGHT");
+        String formulaOther = ename.replace("LEFT", "RIGHT");
         Element otherE = h.get(formulaOther);
         if (otherE != null && enclosing_right.contains(otherE)) {
             return otherE.escapedShortName();
