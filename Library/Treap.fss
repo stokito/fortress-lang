@@ -33,34 +33,12 @@ trait Treap comprises { NonEmpty, Empty }
     getter max(): Treap
     getter asString(): String = "{" mkString(false) "}"
     getter asDebugString(): String = "(" mkString(true) ")"
-    private mkString(withParens: Boolean): String
-    (*
-    (* Split tree at key. *)
-    split(key: ZZ32): (Treap, Treap, Treap)
-    *)
-    (* Left subtree of split at key *)
-    splitL(key:ZZ32): Treap
-    (* Node with given key, or Empty *)
-    nodeWithKey(key:ZZ32): Treap
-    (* Right subtree of split at key *)
-    splitR(key:ZZ32): Treap
-    (* Join this treap (on left) to r (on right);
-       assumes keys appropriately ordered. *)
-    join(r: Treap): Treap
-    (* Join nonempty l (on left) to this treap (on right);
-       again assumes keys appropriately ordered. *)
-    private joinNE(l: NonEmpty): NonEmpty
-
-    private combine(c: CombiningOp, r: Treap): Treap
-    private combineNE(l: NonEmpty, c: CombiningOp): Treap
-    private combineRootL(lr: Leaf1, c: CombiningOp): Treap
-    private combineRootR(c: CombiningOp, rr: Leaf1): Treap
 
     (* Union and intersection are left-biased *)
-    opr UNION(self, other: Treap): Treap = combine(UnionOp, other)
-    opr INTERSECTION(self, other: Treap): Treap = combine(IntersectionOp, other)
-    opr DIFFERENCE(self, other: Treap): Treap = combine(DifferenceOp, other)
-    opr SYMDIFF(self, other: Treap): Treap = combine(SymdiffOp, other)
+    opr UNION(self, other: Treap): Treap = doCombine(self,UnionOp, other)
+    opr INTERSECTION(self, other: Treap): Treap = doCombine(self,IntersectionOp, other)
+    opr DIFFERENCE(self, other: Treap): Treap = doCombine(self,DifferenceOp, other)
+    opr SYMDIFF(self, other: Treap): Treap = doCombine(self,SymdiffOp, other)
     containsKey(key:ZZ32): Boolean = NOT nodeWithKey(key).isEmpty
     replace(key:ZZ32, val:String): Treap = singleton(key,val) UNION self
     add(key:ZZ32, val:String): Treap = self UNION singleton(key,val)
@@ -69,6 +47,30 @@ trait Treap comprises { NonEmpty, Empty }
         nodeWithKey(key).rootValue(defaultValue)
     rootKey(defaultKey: ZZ32): ZZ32
     rootValue(defaultValue: String): String
+
+    private mkString(withParens: Boolean): String
+    (** TODO: some of these should probably be exposed in the api somehow. *)
+    (*
+    (* Split tree at key. *)
+    split(key: ZZ32): (Treap, Treap, Treap)
+    *)
+    (* Left subtree of split at key *)
+    private splitL(key:ZZ32): Treap
+    (* Node with given key, or Empty *)
+    private nodeWithKey(key:ZZ32): Treap
+    (* Right subtree of split at key *)
+    private splitR(key:ZZ32): Treap
+    (* Join this treap (on left) to r (on right);
+       assumes keys appropriately ordered. *)
+    private join(r: Treap): Treap
+    (* Join nonempty l (on left) to this treap (on right);
+       again assumes keys appropriately ordered. *)
+    private joinNE(l: NonEmpty): NonEmpty
+
+    private combine(c: CombiningOp, r: Treap): Treap
+    private combineNE(l: NonEmpty, c: CombiningOp): Treap
+    private combineRootL(lr: Leaf1, c: CombiningOp): Treap
+    private combineRootR(c: CombiningOp, rr: Leaf1): Treap
 end
 
 private object Empty extends Treap
@@ -266,6 +268,11 @@ private object Node(left: Treap, w0: ZZ32, k0: ZZ32, v0: String, right: Treap)
             left.combine(c,lt).join(m.combineRootL(self.root, c)).join(right.combine(c,rt))
         end
 end
+
+(** Work around bug in which direct call to combine method was
+ *  generated with incorrect type signature (using actual call-
+ *  site type of CombiningOp) **)
+doCombine(l:Treap, co: CombiningOp, r: Treap): Treap = l.combine(co,r)
 
 private trait CombiningOp
     rightAlone(right: Treap): Treap
