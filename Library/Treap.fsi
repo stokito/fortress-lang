@@ -23,10 +23,11 @@ trait Treap comprises {...}
     getter asDebugString(): String
     getter min(): Treap
     getter max(): Treap
-    opr CUP(self, other: Treap): Treap
-    opr CAP(self, other: Treap): Treap
+    opr UNION(self, other: Treap): Treap
+    opr INTERSECTION(self, other: Treap): Treap
     opr DIFFERENCE(self, other: Treap): Treap
     opr SYMDIFF(self, other: Treap): Treap
+    containsKey(key:ZZ32): Boolean
     replace(key: ZZ32, val: String): Treap
     add(key: ZZ32, val: String): Treap
     remove(key: ZZ32): Treap
