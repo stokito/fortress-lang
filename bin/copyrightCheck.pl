@@ -38,7 +38,7 @@ my $checkDate = 2010;    # Only examine files in this year.
 my $rootDir = $path;
 my $copyright = "Copyright $checkDate"; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
-my $ignoreThese = 'ant|fortress-keywords|UserDictionary|README.txt|testData|README$|\.fsg$|\.xml$|\_iml$|\.NW$|fortress.vim|\.ods|\.jar$|\.tic$|\.timing$|\.war$|\.zip$|\.fa$|\.tgz$|\.head$|\/\.|^\.|^Sandbox';
+my $ignoreThese = 'ant|fortress-keywords|composite_error_model.txt|errors.txt|UserDictionary|README.txt|testData|README$|\.fsg$|\.xml$|\_iml$|\.NW$|fortress.vim|\.ods|\.jar$|\.tic$|\.timing$|\.war$|\.zip$|\.fa$|\.tgz$|\.head$|\/\.|^\.|^Sandbox';
 my $tempFile = '/tmp/svnInfo.xml';
 
 #
