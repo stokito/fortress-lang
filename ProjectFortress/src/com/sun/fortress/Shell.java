@@ -432,13 +432,15 @@ public final class Shell {
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
                 useFortressLibraries();
+                setScala(false);
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhaseOrder( PhaseOrder.typecheckPhaseOrder );
 
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
-                useCompilerLibraries();
+                useFortressLibraries();
+                setScala(false);
                 setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
