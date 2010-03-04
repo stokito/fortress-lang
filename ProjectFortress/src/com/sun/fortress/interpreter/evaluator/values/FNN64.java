@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import com.naturalbridge.misc.Unsigned;
 
 
-public class FNN64 extends NativeConstructor.FNativeObject implements HasIntValue {
+public class FNN64 extends FNativeObject implements HasIntValue {
     private final long val;
     private static volatile NativeConstructor con;
 
@@ -61,7 +61,7 @@ public class FNN64 extends NativeConstructor.FNativeObject implements HasIntValu
     }
 
     public boolean seqv(FValue v) {
-        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
+        if (!(v instanceof FNativeObject)) return false;
         if (v instanceof FNN32 || v instanceof FNN64) {
             return (getNN64() == v.getNN64());
         }

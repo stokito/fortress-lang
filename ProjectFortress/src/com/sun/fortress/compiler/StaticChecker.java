@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -56,7 +56,6 @@ import com.sun.fortress.scala_src.typechecker.ExportChecker;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.scala_src.typechecker.Thunker;
-import com.sun.fortress.scala_src.typechecker.Thunker$;
 import com.sun.fortress.scala_src.typechecker.CyclicReferenceChecker;
 import com.sun.fortress.scala_src.typechecker.TypeHierarchyChecker;
 import com.sun.fortress.scala_src.typechecker.TypeWellFormedChecker;
@@ -65,9 +64,7 @@ import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.typechecker.TryChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
-import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
-import com.sun.fortress.scala_src.types.TypeAnalyzer$;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
 import com.sun.fortress.useful.Debug;
@@ -239,7 +236,7 @@ public class StaticChecker {
             index = buildIndex(ast, isApi);
 
             TraitTable traitTable = new TraitTable(index, env);
-            TypeAnalyzer typeAnalyzer = TypeAnalyzer$.MODULE$.make(traitTable);
+            TypeAnalyzer typeAnalyzer = com.sun.fortress.scala_src.types.TypeAnalyzer$.MODULE$.make(traitTable);
 
             if (Shell.testCoercion())
                 errors.addAll(new CoercionTest(typeAnalyzer).run());
@@ -256,7 +253,7 @@ public class StaticChecker {
                 if ( ! Shell.getScala() ) {
                     throw new Error("The Java version of the type checker is gone now.");
                 } else {
-                    STypeEnv typeEnv = STypeEnv$.MODULE$.make(componentIndex);
+                    STypeEnv typeEnv = com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv$.MODULE$.make(componentIndex);
                     ErrorLog log = new ErrorLog();
 
                     //Create thunks for when the user elides function return types
@@ -267,8 +264,8 @@ public class StaticChecker {
                     thunker.walk(component_ast);
                     //make sure to do toplevel functions after walking so functional methods and operators will already have thunks
                     TryChecker tryChecker = STypeCheckerFactory.makeTryChecker(componentIndex,traitTable,typeEnv,typeAnalyzer, cycleChecker);
-                    Thunker$.MODULE$.primeFunctionals(componentIndex.parametricOperators(), tryChecker, cycleChecker);
-                    Thunker$.MODULE$.primeFunctionals(componentIndex.functions().secondSet(), tryChecker, cycleChecker);
+                    com.sun.fortress.scala_src.typechecker.Thunker$.MODULE$.primeFunctionals(componentIndex.parametricOperators(), tryChecker, cycleChecker);
+                    com.sun.fortress.scala_src.typechecker.Thunker$.MODULE$.primeFunctionals(componentIndex.functions().secondSet(), tryChecker, cycleChecker);
                     //Typecheck
                     STypeChecker typeChecker =
                         STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, log, typeAnalyzer, cycleChecker);

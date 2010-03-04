@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -18,7 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 
-public class FBool extends NativeConstructor.FNativeObject {
+public class FBool extends FNativeObject {
     public final static FBool TRUE = new FBool(true);
     public final static FBool FALSE = new FBool(false);
     private static volatile NativeConstructor con;

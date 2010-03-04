@@ -19,7 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.Set;
 import static com.sun.fortress.scala_src.useful.Options.*;
-import static com.sun.fortress.scala_src.useful.Lists.*;
+import com.sun.fortress.scala_src.useful.Lists;
 import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.compiler.Types.CONJUNCTS;
 import static com.sun.fortress.compiler.Types.DISJUNCTS;
@@ -102,7 +102,7 @@ public class TypeAnalyzer {
     }
 
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table, enclosing._kindEnv.extend(toList(params), toOption(whereClause)));
+        this(enclosing._table, enclosing._kindEnv.extend(Lists.toList(params), toOption(whereClause)));
     }
 
     public TypeAnalyzer(TraitTable table, KindEnv kindEnv) {
@@ -159,8 +159,8 @@ public class TypeAnalyzer {
         return new TypeAnalyzer(this, params, whereClause);
     }
 
-    public TypeAnalyzer extend(scala.List<StaticParam> params, scala.Option<WhereClause> whereClause){
-        return extend(toJavaList(params),toJavaOption(whereClause));
+    public TypeAnalyzer extend(scala.collection.immutable.List<StaticParam> params, scala.Option<WhereClause> whereClause){
+        return extend(Lists.toJavaList(params),toJavaOption(whereClause));
     }
 
     /**

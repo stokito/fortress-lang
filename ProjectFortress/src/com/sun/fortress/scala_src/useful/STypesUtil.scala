@@ -1001,7 +1001,7 @@ object STypesUtil {
       val methodName = pltPair.first
       val (f, r, tt) = pltPair.second
       val (paramTy, selfIndex) = paramTyWithoutSelf(methodName, f, r)
-      allMethods.add(methodName, (paramTy, selfIndex, f, r, tt))
+      allMethods.addBinding(methodName, (paramTy, selfIndex, f, r, tt))
     }
     var traitsToDo: List[TraitTypeWhere] = extendedTraits
     while (!traitsToDo.isEmpty) {

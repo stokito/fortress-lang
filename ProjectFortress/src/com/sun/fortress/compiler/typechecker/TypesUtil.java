@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,7 +20,7 @@ package com.sun.fortress.compiler.typechecker;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static com.sun.fortress.nodes_util.NodeFactory.typeSpan;
-import static com.sun.fortress.scala_src.useful.Lists.*;
+import com.sun.fortress.scala_src.useful.Lists;
 
 import java.util.ArrayList;
 import java.util.Collections;

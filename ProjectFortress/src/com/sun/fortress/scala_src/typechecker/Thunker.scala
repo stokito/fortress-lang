@@ -252,10 +252,9 @@ class CyclicReferenceChecker(val errors: ErrorLog) {
   protected val stack = new Stack[InferredTypeIndex]
 
   def push(index: InferredTypeIndex): Boolean = {
-
     // Check if this index is in the stack; if so, error. else push
     if (stack.contains(index)) {
-      val cycle = stack.dropWhile(_ != index) ++ List(index)
+      val cycle = extractCycle(index)
       val cycleStr = cycle.mkString(", ")
       val kind = index match {
         case _:Variable => "variable"
@@ -271,6 +270,29 @@ class CyclicReferenceChecker(val errors: ErrorLog) {
       stack.push(index)
       true
     }
+  }
+
+  /**
+   * Extract out the cycle of elements from the stack starting at the top and
+   * ending at the first occurrence of the `endpoint` element (which should
+   * be in the stack). The resulting cycle should go from bottom to top and
+   * have `endpoint` as both its first and last element.
+   */
+  private def extractCycle(endpoint: InferredTypeIndex): List[InferredTypeIndex] = {
+
+    // Helper function pulls elements off the top of the stack and prepends them
+    // to the cycle.
+    var stackItr = stack.iterator
+    def helper(cycle: List[InferredTypeIndex]): List[InferredTypeIndex] = {
+      val x = stackItr.next
+      if (x == endpoint)
+        x :: cycle
+      else
+        helper(x :: cycle)
+    }
+
+    // First and last elements should be endpoint.
+    helper(List(endpoint))
   }
 
   def pop(): InferredTypeIndex = stack.pop

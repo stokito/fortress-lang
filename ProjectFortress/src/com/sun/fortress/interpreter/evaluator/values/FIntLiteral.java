@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -22,7 +22,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.math.BigInteger;
 
-public class FIntLiteral extends NativeConstructor.FNativeObject implements HasIntValue {
+public class FIntLiteral extends FNativeObject implements HasIntValue {
 
     public static final BigInteger INT_MIN = BigInteger.valueOf(java.lang.Integer.MIN_VALUE);
 
@@ -82,7 +82,7 @@ public class FIntLiteral extends NativeConstructor.FNativeObject implements HasI
     }
 
     public boolean seqv(FValue v) {
-        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
+        if (!(v instanceof FNativeObject)) return false;
         if (v instanceof FIntLiteral) return value.equals(((FIntLiteral) v).value);
         if (v instanceof FFloat || v instanceof FFloatLiteral) return getFloat() == v.getFloat();
         return false;

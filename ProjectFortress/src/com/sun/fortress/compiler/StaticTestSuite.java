@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -48,14 +48,14 @@ public final class StaticTestSuite extends TestSuite {
     private final static boolean VERBOSE = false;
     private final static boolean SKIP_FAILING = true;
 
-    public StaticTestSuite(String _name, TestCaseDir testCaseDir) {
+    public StaticTestSuite(String _name, StaticTestSuite.TestCaseDir testCaseDir) {
         super(_name);
         addStaticTests(testCaseDir);
     }
 
     public StaticTestSuite(String _name, String _testDir, List<String> _failingDisambiguator, List<String> _failingTypeChecker) {
         super(_name);
-        TestCaseDir testCaseDir = new TestCaseDir(_testDir, _failingDisambiguator, _failingTypeChecker);
+        StaticTestSuite.TestCaseDir testCaseDir = new StaticTestSuite.TestCaseDir(_testDir, _failingDisambiguator, _failingTypeChecker);
         addStaticTests(testCaseDir);
     }
 

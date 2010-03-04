@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright 2009 Sun Microsystems, Inc.,
+Copyright 2010 Sun Microsystems, Inc.,
 4150 Network Circle, Santa Clara, California 95054, U.S.A.
 All rights reserved.
 
@@ -19,12 +19,12 @@ package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.{Iterator => JIterator}
 import _root_.java.lang.{Iterable => JIterable}
-import scala.collection.jcl.MutableIterator.Wrapper
+import scala.collection.JavaConversions
 
 object Iterators {
   implicit def wrapIterator[T](iter: JIterator[T]): Iterator[T] =
-    new Wrapper(iter)
+   JavaConversions.asIterator(iter)
 
   implicit def wrapIterable[T](iter: JIterable[T]): Iterator[T] =
-    new Wrapper(iter.iterator)
+    JavaConversions.asIterator(iter.iterator)
 }

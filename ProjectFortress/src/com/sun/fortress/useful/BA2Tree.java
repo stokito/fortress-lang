@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -310,7 +310,7 @@ public class BA2Tree<T1, T2, U> {
         comp2 = c2;
     }
 
-    BA2Tree(Node<T1, T2, U> r, Comparator<T1> c1, Comparator<T2> c2) {
+    BA2Tree(BA2Tree.Node<T1, T2, U> r, Comparator<T1> c1, Comparator<T2> c2) {
         this(c1, c2);
         root = r;
 

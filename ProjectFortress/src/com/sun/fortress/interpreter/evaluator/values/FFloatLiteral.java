@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import java.math.BigInteger;
 
-public class FFloatLiteral extends NativeConstructor.FNativeObject {
+public class FFloatLiteral extends FNativeObject {
     private final String value;
     private static volatile NativeConstructor con;
     public static final FFloatLiteral ZERO = new FFloatLiteral("0.0");
@@ -49,7 +49,7 @@ public class FFloatLiteral extends NativeConstructor.FNativeObject {
     public boolean seqv(FValue v) {
         // HACK that's only sort-of correct.  If we care about all the digits,
         // there must be some sort of normalization.
-        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
+        if (!(v instanceof FNativeObject)) return false;
         if (v instanceof FFloat || v instanceof FFloatLiteral) {
             return (Double.doubleToRawLongBits(getFloat()) == Double.doubleToRawLongBits(v.getFloat()));
         }

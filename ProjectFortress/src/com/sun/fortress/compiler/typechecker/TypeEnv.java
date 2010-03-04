@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -24,11 +24,10 @@ import static com.sun.fortress.nodes_util.NodeFactory.typeSpan;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static edu.rice.cs.plt.tuple.Option.wrap;
-import static com.sun.fortress.scala_src.useful.Lists.*;
+import com.sun.fortress.scala_src.useful.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -359,8 +358,8 @@ public abstract class TypeEnv {
         else { return new ParamTypeEnv(params, this); }
     }
     // DERIVED
-    public final TypeEnv extendWithParams(scala.List<Param> params) {
-    	return extendWithParams(toJavaList(params));
+    public final TypeEnv extendWithParams(scala.collection.immutable.List<Param> params) {
+    	return extendWithParams(Lists.toJavaList(params));
     }
 
     public final TypeEnv extendWithStaticParams(List<StaticParam> params) {
@@ -368,8 +367,8 @@ public abstract class TypeEnv {
     	else { return new StaticParamTypeEnv(params,this); }
     }
 
-    public final TypeEnv extendWithStaticParams(scala.List<StaticParam> params) {
-    	return extendWithStaticParams(toJavaList(params));
+    public final TypeEnv extendWithStaticParams(scala.collection.immutable.List<StaticParam> params) {
+    	return extendWithStaticParams(Lists.toJavaList(params));
     }
     // DONE
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
@@ -391,94 +390,6 @@ public abstract class TypeEnv {
 
     public final TypeEnv extendWithout(Node declSite, Set<? extends IdOrOpOrAnonymousName> entries) {
         return new ConcealingTypeEnv(declSite, entries, this);
-    }
-
-    /**
-     * A wrapper around the binding found in the TypeEnv.  Since some bindings
-     * do not have an Id to be indexed, there is no way to create the LValue
-     * node to represent the binding.  In the case of operators, for example,
-     * only a IdOrOpOrAnonymousName exists, so the BindingLookup exports the same methods
-     * that LValue does, since an LValue cannot be created.
-     */
-    public static class BindingLookup {
-
-        private final IdOrOpOrAnonymousName var;
-        private final Option<Type> type;
-        private final Modifiers mods;
-        private final boolean mutable;
-
-        public BindingLookup(LValue binding) {
-            var = binding.getName();
-            type = binding.getIdType();
-            mods = binding.getMods();
-            mutable = binding.isMutable();
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, FnDecl decl) {
-            var = _var;
-            type = Option.<Type>wrap(genericArrowFromDecl(decl));
-            mods = NodeUtil.getMods(decl);
-            mutable = false;
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Collection<FnDecl> decls) {
-            var = _var;
-            List<Type> overloads = new ArrayList<Type>();
-            Modifiers mods = Modifiers.None;
-            for (FnDecl decl : decls) {
-                overloads.add(genericArrowFromDecl(decl));
-            }
-            this.mods = mods;
-            type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
-            mutable = false;
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type) {
-            this(_var, _type, Modifiers.None, false);
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type) {
-            this(_var, _type, Modifiers.None, false);
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, Modifiers _mods) {
-            this(_var, _type, _mods, false);
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, Modifiers _mods) {
-            this(_var, _type, _mods, false);
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, Modifiers _mods, boolean _mutable) {
-            var = _var;
-            type = some(_type);
-            mods = _mods;
-            mutable = _mutable;
-        }
-
-        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, Modifiers _mods, boolean _mutable) {
-            var = _var;
-            type = _type;
-            mods = _mods;
-            mutable = _mutable;
-        }
-
-        public IdOrOpOrAnonymousName getVar() { return var; }
-        public Option<Type> getType() { return type; }
-        public Modifiers getMods() { return mods; }
-
-        public boolean isMutable() {
-            if( mutable )
-                return true;
-
-            return mods.isMutable();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s:%s", var, type);
-        }
-
     }
 
     /**

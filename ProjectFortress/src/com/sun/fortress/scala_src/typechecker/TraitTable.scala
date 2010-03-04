@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -56,7 +56,7 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
     else globalEnv.api(name)
   }
 
-  def elements() = {
+  override def iterator() = {
     var result: Set[TypeConsIndex] = new HashSet()
     for (t <- current.typeConses.values) {
       result += t

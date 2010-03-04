@@ -191,7 +191,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     boolean splitDone;
 
     protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                          Set<TaggedFunctionName> lessSpecificThanSoFar,
+                          Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.ifNone = ifNone;
         this.name = name;
@@ -204,7 +204,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
-                          Set<TaggedFunctionName> lessSpecificThanSoFar,
+                          Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           int paramCount, APIName ifNone) {
         this(ifNone, name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
                 null, null, paramCount);
