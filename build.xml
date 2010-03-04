@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <!--
-Copyright 2009 Sun Microsystems, Inc.,
+Copyright 2010 Sun Microsystems, Inc.,
 4150 Network Circle, Santa Clara, California 95054, U.S.A.
 All rights reserved.
 
@@ -42,6 +42,7 @@ maintain proper indentation.
   <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
   <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
   <property name="blahblahblah" value="com/sun/fortress"/>
+  <property name="bigStack" value="-Xss32m"/>
 
   <!-- Directories in the ${PF} directory -->
   <property name="cache0" location="default_repository/caches"/>
@@ -66,9 +67,10 @@ maintain proper indentation.
   <property name="unsigned" location="${PF}/third_party/unsigned"/>
   <property name="javadb" location="${PF}/third_party/javadb"/>
 
-  <!-- Scala jar files -->
-  <property name="scala-version" value="2.7.7"/>
-  <property name="scala-compiler.jar"
+  <!-- Scala jar files 2.7.7  -->
+  <property name="scala-version" value="2.8.0Beta1"/>
+
+ <property name="scala-compiler.jar"
             value="${PF}/third_party/scala/scala-compiler-${scala-version}.jar"/>
   <property name="scala-library.jar"
             value="${PF}/third_party/scala/scala-library-${scala-version}.jar"/>
@@ -722,6 +724,7 @@ maintain proper indentation.
            failureProperty="tests.failed">
       <classpath refid="compile.classpath"/>
       <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <jvmarg value="${bigStack}" />
       <formatter type="plain" usefile="false"/>
       <syspropertyset>
         <propertyref prefix="plt." />
@@ -788,6 +791,7 @@ maintain proper indentation.
            failureProperty="tests.failed">
       <classpath refid="compile.classpath"/>
       <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <jvmarg value="${bigStack}" />
       <formatter type="plain" usefile="true"/>
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
@@ -955,6 +959,7 @@ maintain proper indentation.
            failureProperty="tests.failed">
       <classpath refid="compile.classpath"/>
       <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <jvmarg value="${bigStack}" />
       <formatter type="plain" usefile="true"/>
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
@@ -1054,6 +1059,7 @@ maintain proper indentation.
            failureProperty="tests.failed">
       <classpath refid="compile.classpath"/>
       <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <jvmarg value="${bigStack}" />
       <formatter type="brief" usefile="true"/>
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">

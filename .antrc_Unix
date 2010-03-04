@@ -1,5 +1,5 @@
 ################################################################################
-#    Copyright 2009 Sun Microsystems, Inc.,
+#    Copyright 2010 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -20,6 +20,6 @@
 # Large stack necessary on some platforms, harmless on others.
 
 if [ -z "$ANT_OPTS" ] ; then
-  export ANT_OPTS="-Xmx512m -Xss8m"
+  export ANT_OPTS="-Xmx512m -Xss32m"
   echo Using ANT_OPTS="\"$ANT_OPTS\""
 fi

@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright 2009 Sun Microsystems, Inc.,
+Copyright 2010 Sun Microsystems, Inc.,
 4150 Network Circle, Santa Clara, California 95054, U.S.A.
 All rights reserved.
 
@@ -19,7 +19,7 @@ package com.sun.fortress.scala_src.useful
 
 import _root_.java.util.{HashSet => JHashSet}
 import _root_.java.util.{Set => JavaSet}
-import scala.collection.jcl.Conversions
+import scala.collection.JavaConversions
 
 object Sets {
 
@@ -32,6 +32,6 @@ object Sets {
 
   /** Creates an immutable set. */
   def toSet[T](jset: JavaSet[T]): Set[T] =
-    Set(Conversions.convertSet(jset).toSeq: _*)
+    Set(JavaConversions.asSet(jset).toSeq: _*)
 
 }

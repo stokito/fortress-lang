@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.transactions;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
+import com.sun.fortress.interpreter.evaluator.values.FNativeObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  *         Originally based on Christine's AtomicArray, in turn based on
  *         Maurice's code.  Now modified beyond all recognition.
  */
-public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
+public class AtomicFTypeArray extends FNativeObject {
     // The native constructor, containing type and method information:
     private final NativeConstructor con;
 

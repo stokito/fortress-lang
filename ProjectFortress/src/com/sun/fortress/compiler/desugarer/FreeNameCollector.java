@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,9 +26,9 @@ import java.util.Stack;
 
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.typechecker.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
-import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;

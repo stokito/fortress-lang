@@ -455,7 +455,7 @@ object IndexBuilder {
     // Add as coercion too?
     if (NU.isLiftedCoercion(ast)) {
       val c = new Coercion(ast, apiName)
-      liftedCoercions.add(c.declaringTrait.getText, c)
+      liftedCoercions.addBinding(c.declaringTrait.getText, c)
     }
   }
 

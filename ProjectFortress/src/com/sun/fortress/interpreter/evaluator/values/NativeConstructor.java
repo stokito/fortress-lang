@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -20,7 +20,6 @@ package com.sun.fortress.interpreter.evaluator.values;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
-import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.ObjectConstructor;
 
@@ -57,32 +56,6 @@ public abstract class NativeConstructor extends Constructor {
 
     protected FValue check(FValue x) {
         return x;
-    }
-
-    public static abstract class FNativeObject extends FObject {
-        public FNativeObject(NativeConstructor con) {
-        }
-
-        /**
-         * getConstructor retrieves the constructor stored away by
-         * setConstructor.
-         */
-        public abstract NativeConstructor getConstructor();
-
-        /**
-         * All the getters operate in terms of getConstructor.
-         */
-        public Environment getSelfEnv() {
-            return getConstructor().getSelfEnv();
-        }
-
-        public Environment getLexicalEnv() {
-            return getConstructor().getLexicalEnv();
-        }
-
-        public FType type() {
-            return getConstructor().selfType;
-        }
     }
 
     /**

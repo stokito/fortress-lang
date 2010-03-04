@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-public class FInt extends NativeConstructor.FNativeObject implements HasIntValue {
+public class FInt extends FNativeObject implements HasIntValue {
     private final int val;
     private static volatile NativeConstructor con;
 
@@ -57,7 +57,7 @@ public class FInt extends NativeConstructor.FNativeObject implements HasIntValue
     }
 
     public boolean seqv(FValue v) {
-        if (!(v instanceof NativeConstructor.FNativeObject)) return false;
+        if (!(v instanceof FNativeObject)) return false;
         if (v instanceof FInt || v instanceof FLong) {
             return (getLong() == v.getLong());
         }

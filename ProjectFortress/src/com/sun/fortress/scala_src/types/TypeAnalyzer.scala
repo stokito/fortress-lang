@@ -54,6 +54,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = meet(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
+  override def tryCompare(x: Type, y: Type): Option[Int] = {
+    val xLEy = lteq(x,y)
+    val yLEx = lteq(y,x)
+    if (xLEy) Some(if (yLEx) 0 else -1)
+    else if (yLEx) Some(1) else None
+  }
+
   private def removeSelf(x: Type) = {
     object remover extends Walker {
       override def walk(y: Any): Any = y match {
