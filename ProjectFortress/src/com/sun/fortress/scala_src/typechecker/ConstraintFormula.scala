@@ -202,9 +202,9 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
         val bound2 = bounds2.get(ivar)
         (bound1,bound2) match{
           case (None, None) => ()
-          case (Some(b1), Some(b2)) => newBounds=newBounds.update(ivar, merge(b1, b2))
-          case (Some(b), None) => newBounds=newBounds.update(ivar, b)
-          case (None, Some(b)) => newBounds=newBounds.update(ivar, b)
+          case (Some(b1), Some(b2)) => newBounds=newBounds.updated(ivar, merge(b1, b2))
+          case (Some(b), None) => newBounds=newBounds.updated(ivar, b)
+          case (None, Some(b)) => newBounds=newBounds.updated(ivar, b)
         }
       }
       newBounds
@@ -245,7 +245,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
         case Some(substitution) => ta.lteq(substitution, newBound)
       }
     }
-    bounds.keys.forall(pred)
+    bounds.keysIterator.forall(pred)
   }
 
   override def toString():String = {
@@ -317,7 +317,7 @@ case class CnOr(conjuncts: List[CnAnd], ta: TypeAnalyzer) extends ConstraintForm
     if(this.isFalse)
       return CnFalse
     if(conjuncts.size == 1)
-      return conjuncts.first.reduce
+      return conjuncts.head.reduce
     this
   }
   

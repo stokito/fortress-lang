@@ -590,5 +590,5 @@ class TryChecker(current: CompilationUnitIndex,
     }
 
   /** Return the error that made the TryChecker fail. */
-  def getError: Option[StaticError] = errors.errors.firstOption
+  def getError: Option[StaticError] = errors.errors.headOption
 }

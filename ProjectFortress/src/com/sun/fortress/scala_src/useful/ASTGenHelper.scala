@@ -51,7 +51,7 @@ object ASTGenHelper {
       if (l.isEmpty) {
         Nil
       } else {
-        val r = List.fromArray( l.toArray )
+        val r = l.toArray.toList
         if (needsScalafication(r.head)) {
           r.map(scalaify)
         } else {
@@ -104,7 +104,7 @@ object ASTGenHelper {
 
     case m: Map[_, _] => {
       val accum = new JHashMap[Object, Object]()
-      val keyset = m.keys
+      val keyset = m.keysIterator
       for (k <- keyset) {
         accum.put(javaify(k), javaify(m.apply(k)))
       }

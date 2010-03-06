@@ -48,7 +48,7 @@ object TypeAnalyzerUtil {
       case SDimArg(_, _, v) => v
       case SUnitArg(_, _, v) => v
     }
-    val subst = Map(List.map2(params, args)
+    val subst = Map((params, args).zipped.map
                     ((p, a) => (p.getName, a)):_*)
     object replacer extends Walker {
       override def walk(node: Any) = node match {

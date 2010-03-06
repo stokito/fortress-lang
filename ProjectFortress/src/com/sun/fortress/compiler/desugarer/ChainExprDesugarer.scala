@@ -74,7 +74,7 @@ class ChainExprDesugarer extends Walker {
     val decl = TempVarDecl(allVars, newFirst :: linkExprs)
 
     // Create the conjuncts.
-    val conjuncts = List.map3(allVars, newLinks, linkVars) {
+    val conjuncts = (allVars, newLinks, linkVars).zipped.map {
       case (left, SLink(_, op, _), right) =>
         setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right), true)
     }

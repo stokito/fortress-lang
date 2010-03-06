@@ -420,13 +420,13 @@ trait Operators { self: STypeChecker with Common =>
       if (conjuncts.size != checkedConjuncts.size) return expr
 
       // For each link, insert the checked FnRef and RHS.
-      val newLinks = List.map2(links, checkedConjuncts) {
+      val newLinks = (links, checkedConjuncts).zipped.map {
         case (SLink(info, _, _), SOpExpr(_, op, List(_, rhs))) =>
           SLink(info, op, rhs).asInstanceOf[Link]
       }
 
       // Get the checked first expr out of the first conjunct.
-      val checkedFirst = checkedConjuncts.first.getArgs().get(0)
+      val checkedFirst = checkedConjuncts.head.getArgs().get(0)
 
       // Check a dummy OpExpr for the AND operation.
       val andExpr = EF.makeOpExpr(NF.typeSpan,
@@ -583,7 +583,7 @@ trait Operators { self: STypeChecker with Common =>
       val rhsTypes = typeIterator(rhsType).toList
 
       // Create a list of singleton assignments.
-      val checkedAssignments = List.map2(lhses, rhsTypes) { (lhs, rhsType) => {
+      val checkedAssignments = (lhses, rhsTypes).zipped.map { (lhs, rhsType) => {
         val span = NU.getSpan(lhs.asInstanceOf[Expr])
         checkExpr(SAssignment(SExprInfo(span, false, None),
                               List(lhs),
@@ -594,10 +594,10 @@ trait Operators { self: STypeChecker with Common =>
       if (!haveTypes(checkedAssignments)) return expr
 
       // Pull out the checked LHS and checked OpRef for each assignment.
-      val (checkedLhses, infos) = List.unzip(checkedAssignments.map {
+      val (checkedLhses, infos) = (checkedAssignments.map {
         case SAssignment(_, lhs :: Nil, _, _, info) => (lhs, info)
         case _ => bug("impossible result of checking")
-      })
+      }).unzip
 
       // Put the assignment back together.
       SAssignment(SExprInfo(span, paren, Some(Types.VOID)),

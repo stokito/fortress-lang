@@ -411,7 +411,7 @@ trait Misc { self: STypeChecker with Common =>
         case Some(winner) =>
 
           // Get the coercions on all the clauses.
-          val maybeCoercions = List.map2(allClauses, allTypes) { (e, t) =>
+          val maybeCoercions = (allClauses, allTypes).zipped.map { (e, t) =>
             // .get works because we know each clause is indeed subst.
             // for the winner
             coercions.checkSubstitutable(t, winner, Some(e)).get
@@ -419,13 +419,13 @@ trait Misc { self: STypeChecker with Common =>
 
           // Merge the coerced clauses and the original clauses.
           val (newElseBlock :: newClauseBlocks) =
-            List.map2(allClauses, maybeCoercions) {
+            (allClauses, maybeCoercions).zipped.map {
               case (e1, None) => e1
               case (e1, Some(e2)) => EF.makeBlock(e2)
             }
 
           // Reconstruct IfClauses with their new blocks.
-          val newIfClauses = List.map2(checkedClauses, newClauseBlocks) {
+          val newIfClauses = (checkedClauses, newClauseBlocks).zipped.map {
             case (SIfClause(a, b, _), newBlock) => SIfClause(a, b, newBlock)
           }
           SIf(SExprInfo(span,parenthesized, Some(winner)),
@@ -560,7 +560,7 @@ trait Misc { self: STypeChecker with Common =>
             eltTypes.zip(matchType).map((p:(Type, Type)) =>
                 normalize(NF.makeIntersectionType(p._1, p._2)))
           } else {
-            List[Type](normalize(NF.makeIntersectionType(checkedType, matchType.first)))
+            List[Type](normalize(NF.makeIntersectionType(checkedType, matchType.head)))
           }
 
         val checkedBody =

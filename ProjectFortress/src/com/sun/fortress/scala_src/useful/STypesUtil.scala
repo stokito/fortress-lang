@@ -175,7 +175,7 @@ object STypesUtil {
     var varargsType: Option[Type] = None
     val span = ps match {
       case Nil => NF.typeSpan
-      case _ => NU.spanTwo(NU.getSpan(ps.first), NU.getSpan(ps.last))
+      case _ => NU.spanTwo(NU.getSpan(ps.head), NU.getSpan(ps.last))
     }
 
     // Extract out the appropriate parameter types.
@@ -237,7 +237,7 @@ object STypesUtil {
   def makeLhsType(ls: List[LValue]): Option[Type] = {
     val span = ls match {
       case Nil => NF.typeSpan
-      case _ => NU.spanTwo(NU.getSpan(ls.first), NU.getSpan(ls.last))
+      case _ => NU.spanTwo(NU.getSpan(ls.head), NU.getSpan(ls.last))
     }
     val types = ls.map(lv => lv match {
       case SLValue(_, _, _, Some(typ), _) => typ
@@ -255,7 +255,7 @@ object STypesUtil {
     typ match {
       case STupleType(_, elts, _, _) if elts.length == ls.length =>
         // Put each tuple element into corresponding LValue.
-        Some(List.map2(ls, elts)((lv, typ) => {
+        Some((ls, elts).zipped.map((lv, typ) => {
           val SLValue(info, name, mods, _, mutable) = lv
           SLValue(info, name, mods, Some(typ), mutable)
         }))
@@ -330,7 +330,7 @@ object STypesUtil {
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
         case STypeInfo(a, b, existingSparams, _) =>
-          STypeInfo(a, b, existingSparams -- sparams, None)
+          STypeInfo(a, b, existingSparams filterNot (sparams contains), None)
         case _ => super.walk(node)
       }
     }
@@ -645,9 +645,9 @@ object STypesUtil {
    * singleton iterator.
    */
   def typeIterator(dom: Type): Iterator[Type] = dom match {
-    case STupleType(_, elts, None, _) => elts.elements
+    case STupleType(_, elts, None, _) => elts.iterator
     case STupleType(_, elts, Some(varargs), _) =>
-      elts.elements ++ new Iterator[Type] {
+      elts.iterator ++ new Iterator[Type] {
         def hasNext = true
         def next() = varargs
       }
@@ -680,7 +680,7 @@ object STypesUtil {
   /** Same as the other zipWithDomain but uses lists. */
   def zipWithDomain[T](elts: List[T], dom: Type): List[(T, Type)] = elts match {
     case List(elt) => List((elt, dom))
-    case _ => List.fromIterator(elts.elements zip typeIterator(dom))
+    case _ => (elts.iterator zip typeIterator(dom)).toList
   }
 
   /**
@@ -692,7 +692,7 @@ object STypesUtil {
 
   /** Same as the other zipWithRhsType but uses lists. */
   def zipWithRhsType[T](elts: List[T], dom: Type): List[(T, Type)] =
-    List.fromIterator(zipWithRhsType(elts.elements, dom))
+    (zipWithRhsType(elts.iterator, dom)).toList
 
   /**
    * Determine if there are enough of the given elements to cover all
@@ -925,7 +925,7 @@ object STypesUtil {
                       (implicit analyzer: TypeAnalyzer): Expr = {
 
     // Pull out the info for the winning candidate.
-    val sma @ AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
+    val sma @ AppCandidate(bestArrow, bestSargs, _, _) = candidates.head
 
     fn match {
       case fn: FunctionalRef =>
@@ -1186,7 +1186,7 @@ object STypesUtil {
 
     // Now prune each bucket.
     val pruned = new HashSet[AppCandidate]
-    for (bucket <- candidateBuckets.values) {
+    for (bucket <- candidateBuckets.valuesIterator) {
 
       // Loop over distinct, unpruned candidate pairs.
       for {c1 @ AppCandidateMethodInfo(st1, _) <- bucket
@@ -1206,7 +1206,7 @@ object STypesUtil {
     }
 
     // Remove the pruned candidates.
-    candidates.remove(c => pruned.contains(c))
+    candidates.filterNot(c => pruned.contains(c))
   }
 
 }

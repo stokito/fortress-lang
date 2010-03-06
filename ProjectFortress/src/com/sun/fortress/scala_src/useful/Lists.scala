@@ -61,7 +61,7 @@ object Lists {
    * consed head and the tail. If b is false, get back (None, list).
    */
   def maybeUncons[A](b: Boolean, xxs: List[A]): (Option[A], List[A]) =
-    if (b) (Some(xxs.first), xxs.tail) else (None, xxs)
+    if (b) (Some(xxs.head), xxs.tail) else (None, xxs)
 
   /**
    * If b is true, then this list was created with maybeSnoc; get back the

@@ -61,7 +61,7 @@ class ExportExpander(env: GlobalEnvironment) {
     var moreAdded = true
     while (moreAdded) {
       moreAdded = false
-      for (api <- toMap(env.apis).values) {
+      for (api <- toMap(env.apis).valuesIterator) {
         val name = api.ast.getName
         // Simple APIs have empty comprises clauses and are never added in this loop
         var canAdd = !(api.comprises.isEmpty) && !(newExports contains name)

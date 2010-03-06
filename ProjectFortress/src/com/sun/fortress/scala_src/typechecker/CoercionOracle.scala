@@ -216,7 +216,7 @@ class CoercionOracle(traits: TraitTable,
     }.toList.sort { (c1, c2) =>
       moreSpecificCandidate(c1, c2)(this)
     }
-    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.first
+    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.head
     val coercionId = makeCoercionId(u)
     
     // Make an overloading for each lifted coercion to U.
@@ -261,7 +261,7 @@ class CoercionOracle(traits: TraitTable,
 
     // 2. If X has more elts, then create the coercions for them.
     if (xelts.length > yelts.length) return None
-    var xCoercionElts = List.map2(xelts, yelts) { (xelt, yelt) =>
+    var xCoercionElts = (xelts, yelts).zipped.map { (xelt, yelt) =>
       val maybeDummy = maybeArg.map(_ => makeDummyFor(xelt))
       checkSubstitutable(xelt, yelt, maybeDummy)
     }

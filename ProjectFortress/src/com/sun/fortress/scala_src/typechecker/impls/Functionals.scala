@@ -221,7 +221,7 @@ trait Functionals { self: STypeChecker with Common =>
       // constructing a new list of (checked, unchecked) arg pairs.
       val newArgsAndErrors = zipWithDomain(args, resultArrow.getDomain).
                                map(updateArgs)
-      val (newArgs, maybeErrors) = List.unzip(newArgsAndErrors)
+      val (newArgs, maybeErrors) = (newArgsAndErrors).unzip
 
       // If progress was made, keep going. Otherwise return.
       if (newArgs.count(_.isRight) < args.count(_.isRight))
@@ -295,7 +295,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Make sure that all the args were checked. If any remain unchecked, gather
     // up all the inference errors into an overloading error.
-    val (newArgs, maybeErrors) = List.unzip(newArgsAndErrors)
+    val (newArgs, maybeErrors) = (newArgsAndErrors).unzip
     if (newArgs.count(_.isRight) != 0) {
       Right(makeOverloadingError(originalArrow,
                                  arrow.getDomain,
@@ -539,7 +539,7 @@ trait Functionals { self: STypeChecker with Common =>
         checkApplication(preCandidates, subs, expected).getOrElse(return expr)
 
       // We only care about the most specific one.
-      val AppCandidate(bestArrow, bestSargs, bestSubs, _) = candidates.first
+      val AppCandidate(bestArrow, bestSargs, bestSubs, _) = candidates.head
       val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -570,7 +570,7 @@ trait Functionals { self: STypeChecker with Common =>
       // We only care about the most specific one. We know the args pattern
       // match succeeds because all app candidates generated for method
       // invocations include only a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.first
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.head
       val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -647,7 +647,7 @@ trait Functionals { self: STypeChecker with Common =>
 
       // We know the arg pattern match succeeds because all app candidates
       // generated for functions include a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.first
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.head
 
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
@@ -689,7 +689,7 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Type check the application.
       val candidates = checkApplication(preCandidates, args, expected).getOrElse(return expr)
-      val AppCandidate(bestArrow, bestSargs, bestArgs, _) = candidates.first
+      val AppCandidate(bestArrow, bestSargs, bestArgs, _) = candidates.head
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.

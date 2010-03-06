@@ -112,7 +112,7 @@ trait Common { self: STypeChecker =>
     }
     val getters = methods.flatMap(isGetter).toList
     // TODO: Figure out what the type should be if there are overridden getters.
-    getters.firstOption.flatMap(g => toOption(g.getReturnType))
+    getters.headOption.flatMap(g => toOption(g.getReturnType))
   }
 
   def getSetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
@@ -124,7 +124,7 @@ trait Common { self: STypeChecker =>
     }
     val setters = methods.flatMap(isSetter).toList
     // TODO: Figure out what the type should be if there are overridden setters.
-    setters.firstOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
+    setters.headOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
   }
 
   /**
