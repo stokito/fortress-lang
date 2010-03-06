@@ -26,7 +26,7 @@ object Maps {
 
   def toJavaMap[S, T](smap: MMap[S, T]): JavaMap[S, T] = {
     var jmap = new JavaHashMap[S, T]()
-    for (key <- smap.keys) {
+    for (key <- smap.keysIterator) {
       val value = smap.get(key).get
       jmap.put(key, value)
     }

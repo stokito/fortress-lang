@@ -66,6 +66,6 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
         result += t
       }
     }
-    result.elements
+    result.iterator
   }
 }

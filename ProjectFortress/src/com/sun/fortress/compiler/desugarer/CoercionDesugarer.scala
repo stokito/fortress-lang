@@ -93,7 +93,7 @@ class CoercionDesugarer extends Walker {
     // Get the list of all the optional constituent coercions, and desugar each
     // one or just use its new variable name if it shouldn't be coerced.
     val subCoercions = maybeSnoc(eltCoercions, varargCoercion)
-    val subExprs = List.map2(subCoercions, freshVars) {
+    val subExprs = (subCoercions, freshVars).zipped.map {
       case (Some(c), freshVar) => desugarCoercion(copyCoercion(c, freshVar))
       case (None, freshVar) => freshVar
     }
@@ -169,7 +169,7 @@ class CoercionDesugarer extends Walker {
     val boundVarName = naming.makeId
 
     // Create the clauses, one for each constituent type of the union.
-    val clauses = List.map2(fromTypes, fromCoercions) {
+    val clauses = (fromTypes, fromCoercions).zipped.map {
 
       // Subtype, so no coercion.
       case (t, None) =>

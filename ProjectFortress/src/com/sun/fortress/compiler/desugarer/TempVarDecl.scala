@@ -115,7 +115,7 @@ object TempVarDecl {
                                body: List[Expr]): LocalVarDecl =
     decls.foldRight(body) {
       (nextDecl, nextBody) => List(nextDecl.makeLocalVarDecl(span, nextBody))
-    }.first.asInstanceOf[LocalVarDecl]
+    }.head.asInstanceOf[LocalVarDecl]
 
   /** Same as the other but takes only a single body expression. */
   def makeLocalVarDeclFromList(decls: List[TempVarDecl],

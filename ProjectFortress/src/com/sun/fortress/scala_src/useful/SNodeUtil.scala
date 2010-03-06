@@ -58,13 +58,13 @@ object SNodeUtil {
 		if alias.equals(unqualified) =>
 		  Some(newName.asInstanceOf[IdOrOp])
 	      case _ => None
-	    }.firstOption
+	    }.headOption
 
 	  case _ => None
 	}
 
 	// Get the first name that matched within any import, or return name.
-	imports.flatMap(getAlias).firstOption
+	imports.flatMap(getAlias).headOption
 
       case _ => None
     }

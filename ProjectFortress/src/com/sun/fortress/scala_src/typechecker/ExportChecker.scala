@@ -483,7 +483,7 @@ object ExportChecker {
   /* Returns true if two lists of types are same. */
   private def equalListTypes(left: List[Type], right: List[Type]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalTypes(l,r))
+    (left, right).zipped.forall((l,r) => equalTypes(l,r))
 
   /* Returns true if two optional lists of types are same. */
   private def equalOptListTypes(left: Option[List[Type]],
@@ -498,7 +498,7 @@ object ExportChecker {
   private def equalListKeywordTypes(left: List[KeywordType],
                                     right: List[KeywordType]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalKeywordTypes(l,r))
+    (left, right).zipped.forall((l,r) => equalKeywordTypes(l,r))
 
   /* Returns true if two keyword types are same. */
   private def equalKeywordTypes(left: KeywordType, right: KeywordType): Boolean =
@@ -549,7 +549,7 @@ object ExportChecker {
     (left, right) match {
       case (None, None) => true
       case (Some(SAPIName(_, idsL, _)), Some(SAPIName(_, idsR, _))) =>
-        List.forall2(idsL, idsR)((l,r) => equalIds(l,r))
+        (idsL, idsR).zipped.forall((l,r) => equalIds(l,r))
       case _ => false
     }
 
@@ -573,7 +573,7 @@ object ExportChecker {
   private def equalListStaticParams(left: List[StaticParam],
                                     right: List[StaticParam]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalStaticParams(l,r))
+    (left, right).zipped.forall((l,r) => equalStaticParams(l,r))
 
   /* Returns true if two static parameters are same. */
   private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
@@ -589,7 +589,7 @@ object ExportChecker {
   private def equalListStaticArgs(left: List[StaticArg],
                                   right: List[StaticArg]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalStaticArgs(l,r))
+    (left, right).zipped.forall((l,r) => equalStaticArgs(l,r))
 
   /* Returns true if two static arguments are same. */
   private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
@@ -618,7 +618,7 @@ object ExportChecker {
   /* Returns true if two lists of parameters are same. */
   private def equalListParams(left: List[Param], right: List[Param]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalParams(l,r))
+    (left, right).zipped.forall((l,r) => equalParams(l,r))
 
   /* Returns true if two optional lists of parameters are same. */
   private def equalOptListParams(left: Option[List[Param]],
@@ -656,7 +656,7 @@ object ExportChecker {
   private def equalListTraitTypeWheres(inAPI:  List[TraitTypeWhere],
                                        inComp: List[TraitTypeWhere]): Boolean =
     inAPI.length == inComp.length &&
-    List.forall2(inAPI, inComp)((l,r) => equalTraitTypeWheres(l,r))
+    (inAPI, inComp).zipped.forall((l,r) => equalTraitTypeWheres(l,r))
 
   /* Returns true if two TraitTypeWheres are same. */
   private def equalTraitTypeWheres(inAPI:  TraitTypeWhere,
@@ -728,7 +728,7 @@ object ExportChecker {
   /* Returns true if two lists of LValues are same. */
   private def equalListLValues(left: List[LValue], right: List[LValue]): Boolean =
     left.length == right.length &&
-    List.forall2(left, right)((l,r) => equalLValue(l,r))
+    (left, right).zipped.forall((l,r) => equalLValue(l,r))
 
   /* Returns true if two LValues are same. */
   private def equalLValue(left: LValue, right: LValue): Boolean =

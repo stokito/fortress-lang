@@ -926,7 +926,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
 
   private def setToList[T](set: Set[T]): List[T] = {
     var list = List[T]()
-    for (x <- set.elements) { list = x :: list }
+    for (x <- set.iterator) { list = x :: list }
     list
   }
 

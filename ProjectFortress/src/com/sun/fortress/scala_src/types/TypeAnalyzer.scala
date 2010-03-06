@@ -95,7 +95,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     //Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
-      List.map2(a1, a2)((a, b) => eq(a, b)).foldLeft(TRUE)(and)
+      (a1, a2).zipped.map((a, b) => eq(a, b)).foldLeft(TRUE)(and)
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
       val index = typeCons(n).asInstanceOf[TraitIndex]
       val supers = toList(index.extendsTypes).
@@ -116,10 +116,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       sub(s, disjunctFromTuple(t, e1.size))
     case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2))
       if (e1.size == e2.size) =>
-        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
+        (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
     case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2))
       if (e1.size == e2.size) =>
-        List.map2(e1, e2)((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
+        (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
     //Intersection types
     case (s, SIntersectionType(_,ts)) =>
       ts.map(sub(s, _)).foldLeft(TRUE)(and)
@@ -143,7 +143,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       case (Some(s), Some(t)) => sub(s, t)
       case _ => FALSE
     }
-    xmap.keys.map(compare).foldLeft(TRUE)(and)
+    xmap.keysIterator.map(compare).foldLeft(TRUE)(and)
   }
 
   private def sub(x: Effect, y: Effect): ConstraintFormula = {
@@ -230,7 +230,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (_, t: ArrowType) => true
     // ToDo: Handle keywords
     case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val excludes = List.exists2(e1, e2)((a, b) => exc(a, b))
+      val excludes = (e1, e2).zipped.exists((a, b) => exc(a, b))
       val different = (mv1, mv2) match {
         case (Some(v1), _) if (e1.size < e2.size) =>
           e2.drop(e1.size).exists(exc(_, v1))
@@ -305,7 +305,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   //ToDo: Keywords
   private def normTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
     case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
-      STupleType(makeInfo(e1), List.map2(e1, e2)(meet), None, Nil)
+      STupleType(makeInfo(e1), (e1, e2).zipped.map(meet), None, Nil)
     case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
       normTuples(x, disjunctFromTuple(y, e1.size).asInstanceOf[TupleType])
     case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
@@ -313,7 +313,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
       val ee1 = e1 ++ List.make(e2.size - e1.size, v1)
       val ee2 = e2 ++ List.make(e1.size - e2.size, v2)
-      STupleType(makeInfo(e1), List.map2(ee1, ee2)(meet), Some(meet(v1, v2)), Nil)
+      STupleType(makeInfo(e1), (ee1, ee2).zipped.map(meet), Some(meet(v1, v2)), Nil)
     }
   }
 

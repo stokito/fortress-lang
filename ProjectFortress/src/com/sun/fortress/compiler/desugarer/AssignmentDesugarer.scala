@@ -78,7 +78,7 @@ class AssignmentDesugarer extends Walker {
     // Evaluate the subexpressions of each of the LHSes and get any necessary
     // decls for doing so.
     val evaledLhsesAndDecls = makeEvaledLhses(lhses)
-    val (evaledLhses, declsForLhs) = List.unzip(evaledLhsesAndDecls)
+    val (evaledLhses, declsForLhs) = (evaledLhsesAndDecls).unzip
 
     // A list of list of decls. For each component, this will be the list of all
     // decls that need to be performed. If compound, add in the decl setting
@@ -229,7 +229,7 @@ class AssignmentDesugarer extends Walker {
                              : List[List[TempVarDecl]] =
 
     // Zip over the evaluated LHSes (with their decls) and the LHS var names.
-    List.map2(evaledLhsesAndDecls, lhsVars) {
+    (evaledLhsesAndDecls, lhsVars).zipped.map {
       case ((evaledLhs, decls), lhsVar) =>
         // Add the `LHS_i = evaledLhses_i` decl to the existing one.
         decls ++ List(TempVarDecl(lhsVar, evaledLhs.asInstanceOf[Expr]))
@@ -279,7 +279,7 @@ class AssignmentDesugarer extends Walker {
                              (implicit assn: Assignment): Expr = {
 
     // Create the individual assignments.
-    val assns = List.map2(evaledLhses, phaseTwoRhses) { (lhs, rhs) =>
+    val assns = (evaledLhses, phaseTwoRhses).zipped.map { (lhs, rhs) =>
       val info = SExprInfo(NU.getSpan(assn),
                            NU.isParenthesized(assn),
                            Some(Types.VOID))

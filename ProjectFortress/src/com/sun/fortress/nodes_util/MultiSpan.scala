@@ -21,7 +21,7 @@ package com.sun.fortress.nodes_util
  * A Span object that contains info for multiple locations. Its main utility lies in the toString()
  * method, since its existence as a Span itself is a bit of a kluge.
  */
-class MultiSpan(spans: List[Span]) extends Span(spans.first, spans.last) {
+class MultiSpan(spans: List[Span]) extends Span(spans.head, spans.last) {
 
   /** Allows you to call with some number of spans to comprise. */
   def this(spans: Span*) = this(List(spans:_*))
