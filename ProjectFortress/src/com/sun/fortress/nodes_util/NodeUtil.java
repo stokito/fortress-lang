@@ -485,7 +485,7 @@ public class NodeUtil {
     }
 
     private static boolean blankOrComment( String line ) {
-        if ( line.equals("") )
+        if ( line.trim().equals("") )
             return true;
         else {
             String[] split = line.split(" ");
