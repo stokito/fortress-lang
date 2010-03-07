@@ -27,7 +27,7 @@ import scala.collection.JavaConversions
 object Lists {
 
   /** Convert any collection to a Java list. */
-  def toJavaList[T](elts: Collection[T]): JList[T] = {
+  def toJavaList[T](elts: Iterable[T]): JList[T] = {
     val result = new JArrayList[T](elts.size)
     elts.foreach(result.add(_))
     result

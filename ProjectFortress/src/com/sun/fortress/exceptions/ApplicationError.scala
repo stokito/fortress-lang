@@ -56,7 +56,7 @@ class ApplicationError(app: Expr,
       case o:SubscriptExpr =>
         "call to subscript operator %s.%s".format(recvrType.get, o.getOp.unwrap)
     }
-    val sortedSubErrors = overloadingErrors.sort((x,y) => x.compareTo(y) < 0)
+    val sortedSubErrors = overloadingErrors.sortWith((x,y) => x.compareTo(y) < 0)
     val substrs = sortedSubErrors.map(_.toString())
     "Could not check %s\n%s".
       format(kind, sortedSubErrors.map("    - " + _.toStringIndented("      ")).mkString("\n"))
@@ -175,7 +175,7 @@ case class FnInferenceError(arrow: ArrowType,
     extends OverloadingError {
 
   override def toString = {
-    val sortedErrors = errors.sort((x,y) => x.toString < y.toString)
+    val sortedErrors = errors.sortWith((x,y) => x.toString < y.toString)
     val subs = sortedErrors.map(e => "%s".format(e.toString)).mkString("\n")
     "%s:\n%s".format(OverloadingError.getSignature(sargs, arrow), subs)
   }

@@ -24,7 +24,7 @@ import scala.collection.JavaConversions
 object Sets {
 
   /** Takes in any kind of collection. */
-  def toJavaSet[T](elts: Collection[T]): JavaSet[T] = {
+  def toJavaSet[T](elts: Iterable[T]): JavaSet[T] = {
     val temp = new JHashSet[T]()
     elts.foreach(temp.add)
     temp

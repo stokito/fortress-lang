@@ -79,7 +79,7 @@ class ExportExpander(env: GlobalEnvironment) {
     // Build new list of exports. Note that ComponentIndices always hold Components.
     val allExports = toList(comp.getExports) ::: newExports
     // Remove duplicates
-    allExports.removeDuplicates
+    allExports.distinct
     // Construct a new AST with allExports as its extends clause
     replaceExports(comp, allExports)
   }
