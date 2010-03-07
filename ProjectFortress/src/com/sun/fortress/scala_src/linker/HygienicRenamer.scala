@@ -57,7 +57,7 @@ class HygienicRenamer(constituent: APIName,
     if (exported) { for (a <- toSet(comp.exports)) apis = a :: apis }
     else { for (a <- toSet(comp.imports)) apis = a :: apis }
 
-    for (e <- apis.sort((a1,a2) => (a1.getText compareTo a2.getText) < 0)) {
+    for (e <- apis.sortWith((a1,a2) => (a1.getText compareTo a2.getText) < 0)) {
       // We are assured at this point that all exported API names refer to an
       // API in the globalEnv
       val api = repository.getApi(e)

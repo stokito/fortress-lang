@@ -120,7 +120,7 @@ object ExportChecker {
      */
     var exports = List[APIName]()
     for ( e <- toSet(component.exports) ) exports = e :: exports
-    for ( e <- exports.sort((a1,a2) => (a1.getText compareTo a2.getText) < 0) ) {
+    for ( e <- exports.sortWith((a1,a2) => (a1.getText compareTo a2.getText) < 0) ) {
       // We are assured at this point that all exported API names refer to an
       // API in the globalEnv
       val api = globalEnv.api(e)
@@ -351,7 +351,7 @@ object ExportChecker {
       // Collect the error messages for the missing declarations.
       if ( ! missingDecls.isEmpty ) {
         def comp(x:ASTNode,y:ASTNode) = toString(x) < toString(y)
-        missingDecls = missingDecls.sort(comp)
+        missingDecls = missingDecls.sortWith(comp)
         var message = "" + getMessage(missingDecls.head)
         for ( f <- missingDecls.tail )
           message += ",\n                           " + getMessage(f)
@@ -364,7 +364,7 @@ object ExportChecker {
       // Collect the error messages for the multiple declarations.
       if ( ! multipleDecls.isEmpty ) {
         def comp(x:(String,String),y:(String,String)) = x._1 < y._1
-        multipleDecls = multipleDecls.sort(comp)
+        multipleDecls = multipleDecls.sortWith(comp)
         var message = "" + multipleDecls.head
         for ( f <- multipleDecls.tail )
           message += ",\n                           " + f
@@ -378,7 +378,7 @@ object ExportChecker {
       if ( ! wrongDecls.isEmpty ) {
         def comp(x:(ASTNode,String), y:(ASTNode,String)) =
           toString(x._1) < toString(y._1)
-        wrongDecls = wrongDecls.sort(comp)
+        wrongDecls = wrongDecls.sortWith(comp)
         var message = "" + wrongDecls.head
         for ( f <- wrongDecls.tail )
           message += ",\n        " + f

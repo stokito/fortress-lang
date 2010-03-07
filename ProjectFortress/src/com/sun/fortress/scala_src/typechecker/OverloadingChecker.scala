@@ -439,8 +439,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       if ( meets.length == 1 ) {
         val meet = meets.head
         def nonExclusive(pair: (List[TraitType], List[TraitType])): Boolean = {
-          for ( first <- pair._1 - meet ) {
-            for ( second <- pair._2 - meet ) {
+          for ( first <- pair._1.filterNot(_ == meet) ) {
+            for ( second <- pair._2.filterNot(_ == meet) ) {
               if ( typeAnalyzer.equivalent(first, second).isFalse &&
                    ! exclusionOracle.excludes(first, second) )
                 return true

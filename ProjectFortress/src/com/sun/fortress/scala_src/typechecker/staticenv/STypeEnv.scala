@@ -93,7 +93,7 @@ abstract sealed class STypeEnv extends StaticEnv[Type] {
     extendWithBindingsFromFnList(fns)
 
   /** Extend me without the bindings with the given names. */
-  def extendWithout[T <: Name](names: Collection[T]): STypeEnv =
+  def extendWithout[T <: Name](names: Iterable[T]): STypeEnv =
     new ConcealingSTypeEnv(this, names)
 
   /** Same as `lookup`. */
@@ -164,7 +164,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
                             typeThunk: TypeThunk,
                             mods: Modifiers,
                             mutable: Boolean,
-                            functions: Collection[Functional]): TypeBinding =
+                            functions: Iterable[Functional]): TypeBinding =
     TypeBinding(name, typeThunk, mods, mutable, functions.toList)
 
   /**
@@ -361,7 +361,7 @@ case class TypeBinding(name: Name,
  * @param concealedNames The set of names to conceal.
  */
 class ConcealingSTypeEnv(protected val parent: STypeEnv,
-                         protected val concealedNames: Collection[Name])
+                         protected val concealedNames: Iterable[Name])
     extends STypeEnv {
 
   /** Fail when looking up any of the hidden names. */

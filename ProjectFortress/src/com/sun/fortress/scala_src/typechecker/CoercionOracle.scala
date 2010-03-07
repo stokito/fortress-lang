@@ -213,7 +213,7 @@ class CoercionOracle(traits: TraitTable,
     // Build app candidates and sort them to find the SMA.
     val candidates = coercionsAndArgs.map { caa =>
       AppCandidate(caa._2, caa._3, List(arg), None)
-    }.toList.sort { (c1, c2) =>
+    }.toList.sortWith { (c1, c2) =>
       moreSpecificCandidate(c1, c2)(this)
     }
     val AppCandidate(bestArrow, bestSargs, _, _) = candidates.head

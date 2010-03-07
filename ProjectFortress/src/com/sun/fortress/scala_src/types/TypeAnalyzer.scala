@@ -180,7 +180,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
   /** Determine if a collection of types all exclude each other. */
-  def excludes(tsCollection: Collection[Type]): Boolean = {
+  def excludes(tsCollection: Iterable[Type]): Boolean = {
 
     // Cache as array for faster lookups.
     val ts = tsCollection.toArray
@@ -311,8 +311,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
       normTuples(disjunctFromTuple(x, e2.size).asInstanceOf[TupleType], y)
     case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
-      val ee1 = e1 ++ List.make(e2.size - e1.size, v1)
-      val ee2 = e2 ++ List.make(e1.size - e2.size, v2)
+      val ee1 = e1 ++ List.fill(e2.size - e1.size){v1}
+      val ee2 = e2 ++ List.fill(e1.size - e2.size){v2}
       STupleType(makeInfo(e1), (ee1, ee2).zipped.map(meet), Some(meet(v1, v2)), Nil)
     }
   }
