@@ -347,7 +347,7 @@ trait Operators { self: STypeChecker with Common =>
             // Otherwise, make a new MathPrimary that is one element shorter,
             // and recur.
             val fn = EF.make_RewriteFnApp(front,
-                                                   second.asInstanceOf[ExprMI].getExpr)
+                                          second.asInstanceOf[ExprMI].getExpr)
             checkExpr(SMathPrimary(info, multi, infix, fn, remained))
           // THE FRONT ITEM WAS NOT A FN FOLLOWED BY AN EXPR, REASSOCIATE REST
           } else {
@@ -365,11 +365,11 @@ trait Operators { self: STypeChecker with Common =>
             val multi_op_expr =
               STypeCheckerFactory.makeTryChecker(this).
                 tryCheckExpr(EF.makeOpExpr(span,
-                                                    multi,
-                                                    toJavaList(head::newTail)))
+                                           multi,
+                                           toJavaList(head::newTail)))
             multi_op_expr.getOrElse {
               newTail.foldLeft(head) { (r:Expr, e:Expr) =>
-                EF.makeOpExpr(NU.spanTwo(r, e), infix, r, e)
+                checkExpr(EF.makeOpExpr(NU.spanTwo(r, e), infix, r, e))
               }
             }
           }

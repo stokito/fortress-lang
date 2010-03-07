@@ -30,20 +30,21 @@ object O(x:ZZ32) extends T
     println self.z()        (* 30 No *)
 
     println x               (* 32 Ok *)
-    println self.x          (* 33 Ok *)
+    println x()             (* 33 No *)
+    println self.x          (* 34 Ok *)
 
-    println y                   (* 35 No *)
-    println y()                 (* 36 No *)
-    println self.y              (* 37 Ok *)
-    println self.y()            (* 38 No *)
+    println y                   (* 36 No *)
+    println y()                 (* 37 No *)
+    println self.y              (* 38 Ok *)
+    println self.y()            (* 39 No *)
   end
 end
 
 run(): () = do
   o = O(3)
-  println o.x               (* 44 Ok *)
-  println o.z               (* 45 Ok *)
-  println o.z()             (* 46 No *)
-  println o.y                   (* 47 Ok *)
-  println o.y()                 (* 48 No *)
+  println o.x               (* 45 Ok *)
+  println o.z               (* 46 Ok *)
+  println o.z()             (* 47 No *)
+  println o.y                   (* 48 Ok *)
+  println o.y()                 (* 49 No *)
 end

@@ -21,9 +21,9 @@ ${STATIC_TESTS_DIR}/Compiled6.z.fss:27:13:\n\
 \ Variable z is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:28:13:\n\
 \ Variable z is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled6.z.fss:35:13:\n\
-\ Variable y is not defined.\n\
 ${STATIC_TESTS_DIR}/Compiled6.z.fss:36:13:\n\
+\ Variable y is not defined.\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:37:13:\n\
 \ Variable y is not defined.\n\
 File Compiled6.z.fss has 4 errors.\n
 compile_out_equals=
