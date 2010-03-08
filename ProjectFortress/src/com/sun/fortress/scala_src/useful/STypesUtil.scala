@@ -983,6 +983,16 @@ object STypesUtil {
 
   // Invariant: Parameter types of all the methods should exist,
   //            either given or inferred.
+  // The methods relation is updated to include all methods
+  // found in the inherited traits.  Why imperative update?
+  // Because we want to ensure that traversals of multiple
+  // traits don't re-traverse their common parents.  This is
+  // the simplest way of accomplishing that goal.  Otherwise we
+  // need to pass in a "previousMethods" Relation, and return
+  // a "newMethods" relation, plumbing it through everywhere:
+  // essentially a state monad, which is after all what imperative
+  // update gives us for free.
+  // It'd be nice to abbreviate the type of the Relation somehow.
   def inheritedMethods(extendedTraits: List[TraitTypeWhere],
                        methods: Relation[IdOrOpOrAnonymousName,
                                          (Functional, StaticTypeReplacer, TraitType)],
