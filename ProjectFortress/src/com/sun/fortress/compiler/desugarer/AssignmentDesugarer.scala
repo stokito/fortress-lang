@@ -247,7 +247,7 @@ class AssignmentDesugarer extends Walker {
                                : (TempVarDecl, List[VarRef]) = {
 
     // Map over (LHS_i, RHS_i, info_i), creating a new OpExpr (or coercion).
-    val opExprs = ((lhsVars zip rhsVars) zip toList(assn.getAssignmentInfos)) map {
+    val opExprs = ((lhsVars zip rhsVars) zip toListFromImmutable(assn.getAssignmentInfos)) map {
       case ((lhsVar, rhsVar), SCompoundAssignmentInfo(op, coercionOuter, coercionInner)) =>
 
         // If there was a coercion on the inner argument, copy it onto LHS_i.

@@ -499,7 +499,7 @@ object IndexBuilder {
       }
     } else {
       var functional = false
-      for (p <- toList(NU.getParams(ast))) {
+      for (p <- toListFromImmutable(NU.getParams(ast))) {
         if (p.getName.equals(NamingCzar.SELF_NAME))
           functional = true
       }

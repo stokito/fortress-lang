@@ -107,7 +107,7 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
         if ( sargs.size == sparams.size ) {
           val replacer = new StaticTypeReplacer(sparams, toJavaList(sargs))
           def wfStaticArgs(pair:(StaticArg,StaticParam)) =
-            for ( bound <- toList(pair._2.getExtendsClause);
+            for ( bound <- toListFromImmutable(pair._2.getExtendsClause);
             if pair._1.isInstanceOf[TypeArg] ) {
               val new_bound = replacer.replaceIn(bound)
               if ( ! analyzer.subtype(pair._1.asInstanceOf[TypeArg].getTypeArg,
@@ -116,7 +116,7 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
                     "\n    The static argument " + pair._1 +
                     " does not satisfy the corresponding bound " + new_bound + ".", t)
             }
-          sargs.zip(toList(sparams)).foreach(wfStaticArgs)
+          sargs.zip(toListFromImmutable(sparams)).foreach(wfStaticArgs)
         } else error("Ill-formed type: " + t +
             "\n    The numbers of the static parameters and " +
             "the static arguments do not match.", t)

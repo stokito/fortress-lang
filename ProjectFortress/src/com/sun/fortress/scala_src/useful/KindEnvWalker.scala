@@ -39,9 +39,9 @@ class KindEnvWalker extends Walker {
    */
   override def walk(node: Any) = node match {
     case d:FnDecl =>
-      withStaticParams(toList(NU.getStaticParams(d)), super.walk(d))
+      withStaticParams(toListFromImmutable(NU.getStaticParams(d)), super.walk(d))
     case d:TraitObjectDecl =>
-      withStaticParams(toList(NU.getStaticParams(d)), super.walk(d))
+      withStaticParams(toListFromImmutable(NU.getStaticParams(d)), super.walk(d))
     case _ => super.walk(node)
   }
 

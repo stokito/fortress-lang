@@ -126,10 +126,10 @@ object STypesUtil {
    */
   def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
-    val params = toList(f.parameters).map(NU.getParamType)
+    val params = toListFromImmutable(f.parameters).map(NU.getParamType)
     val argType = makeArgumentType(params)
     val sparamsJava = f.staticParameters
-    val sparams = toList(sparamsJava)
+    val sparams = toListFromImmutable(sparamsJava)
     val effect = NF.makeEffect(f.thrownTypes)
     val where = f match {
       case f:Constructor => f.where
@@ -293,7 +293,7 @@ object STypesUtil {
    * Convert  list of static parameters to corresponding list of static args.
    */
   def staticParamsToArgs(p: JList[StaticParam]): JList[StaticArg] =
-    toJavaList(toList(p).map(staticParamToArg))
+    toJavaList(toListFromImmutable(p).map(staticParamToArg))
 
   def declToTraitType(d: TraitObjectDecl): TraitType = {
     val tid = d.getHeader.getName.asInstanceOf[Id]
@@ -319,7 +319,7 @@ object STypesUtil {
    *  Get all the static parameters out of the given type.
    */
   def getStaticParams(typ: Type): List[StaticParam] =
-    toList(typ.getInfo.getStaticParams)
+    toListFromImmutable(typ.getInfo.getStaticParams)
 
   /**
    * Return an identical type but with the given static params removed from it.
@@ -1077,7 +1077,7 @@ object STypesUtil {
             ti.getters.entrySet.foreach(oneMapping)
             ti.setters.entrySet.foreach(oneMapping)
             val instantiated_extends_types =
-              toList(ti.extendsTypes).map(_.accept(paramsToArgs)
+              toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs)
                                                .asInstanceOf[TraitTypeWhere])
             traitsToDo ++= instantiated_extends_types
           case _ =>
@@ -1105,7 +1105,7 @@ object STypesUtil {
                        analyzer: JTypeAnalyzer)
                        : Relation[IdOrOpOrAnonymousName,
                                   (Functional, StaticTypeReplacer, TraitType)] =
-    inheritedMethods(toList(extendedTraits),
+    inheritedMethods(toListFromImmutable(extendedTraits),
                      new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
   def allMethods(tt: TraitType, analyzer: JTypeAnalyzer)
@@ -1117,7 +1117,7 @@ object STypesUtil {
   private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
                                 paramsToArgs: StaticTypeReplacer) = {
     val span = NU.getSpan(name)
-    val params = toList(func.parameters)
+    val params = toListFromImmutable(func.parameters)
     val (paramsSansSelf, sp) =
       func match {
         case st : HasSelfType if st.selfPosition >= 0 =>
@@ -1160,7 +1160,7 @@ object STypesUtil {
    */
   def getObjectExprType(obj: ObjectExpr): SelfType = {
     var extends_types =
-      toList(NU.getExtendsClause(obj)).map(_.getBaseType)
+      toListFromImmutable(NU.getExtendsClause(obj)).map(_.getBaseType)
     if (extends_types.isEmpty) extends_types = List(Types.OBJECT)
     NF.makeObjectExprType(toJavaList(extends_types))
   }

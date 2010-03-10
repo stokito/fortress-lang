@@ -306,7 +306,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Lookup the type of the given name in the proper type environment.
    */
   protected def getTypeFromName(name: Name): Option[Type] =
-    getRealName(name, toList(current.ast.getImports)) match {
+    getRealName(name, toListFromImmutable(current.ast.getImports)) match {
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getType(id)
       case id:IdOrOp => env.getType(id) match {
         case Some(ty) => Some(ty)
@@ -319,7 +319,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Is there a binding for the given name?
    */
   protected def nameHasBinding(name: Name): Boolean =
-    getRealName(name, toList(current.ast.getImports)) match {
+    getRealName(name, toListFromImmutable(current.ast.getImports)) match {
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).contains(id)
       case id:IdOrOp => env.contains(id) || analyzer.env.contains(id)
       case _ => false
@@ -329,7 +329,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Lookup the modifiers of the given name in the proper type environment.
    */
   protected def getModsFromName(name: Name): Option[Modifiers] =
-    getRealName(name, toList(current.ast.getImports)) match {
+    getRealName(name, toListFromImmutable(current.ast.getImports)) match {
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getMods(id)
       case id:IdOrOp => env.getMods(id)
       case _ => None
@@ -340,7 +340,7 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * environment.
    */
   protected def getFnIndicesFromName(name: Name): Option[List[Functional]] =
-    getRealName(name, toList(current.ast.getImports)) match {
+    getRealName(name, toListFromImmutable(current.ast.getImports)) match {
       case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getFnIndices(id)
       case id:IdOrOp => env.getFnIndices(id)
       case _ => None

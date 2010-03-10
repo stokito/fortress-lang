@@ -22,6 +22,7 @@ import _root_.java.util.{List => JList}
 import _root_.java.util.{Collection => JCollection}
 import _root_.junit.framework.TestCase
 import _root_.com.sun.fortress.useful.Useful
+import _root_.com.sun.fortress.useful.ArrayBackedList
 import scala.collection.JavaConversions
 
 object Lists {
@@ -35,11 +36,16 @@ object Lists {
 
   /* Conversion recommended by Martin Odersky, with some type trickery
      that's a bit annoying. */
-  def toList[T](xs: JCollection[T]): List[T] =
-    JavaConversions.asBuffer(Useful.list(xs)).toList
+  def toList[T](xs: JList[T]): List[T] =
+    JavaConversions.asBuffer(new ArrayBackedList(xs)).toList 
+    /* JavaConversions.asBuffer(Useful.list(xs)).toList */
     /* List.fromArray[T]( xs.toArray(List[T]().toArray) ) */
-
-  def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toList(list).map(fun))
+    
+  def toListFromImmutable[T](xs: JList[T]): List[T] =
+    JavaConversions.asBuffer(xs).toList 
+    /* JavaConversions.asBuffer(ArrayBackedList.fromImmutable(xs)).toList */
+    
+  def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toListFromImmutable(list).map(fun))
 
   /** Append a single element to the end of a list. */
   def snoc[A, B >: A](xs: List[A], x: B): List[B] = xs ++ List(x)
@@ -82,7 +88,7 @@ object Lists {
 class JavaList[T] {
   def apply(xs: T*) = Lists.toJavaList(xs)
 
-  def unapplySeq(xs: JList[T]) = Some(Lists.toList(xs))
+  def unapplySeq(xs: JList[T]) = Some(Lists.toListFromImmutable(xs))
 }
 
 class ListsJUTest() extends TestCase {

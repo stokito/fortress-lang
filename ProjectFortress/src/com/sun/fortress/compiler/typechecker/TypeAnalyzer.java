@@ -102,7 +102,7 @@ public class TypeAnalyzer {
     }
 
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table, enclosing._kindEnv.extend(Lists.toList(params), toOption(whereClause)));
+        this(enclosing._table, enclosing._kindEnv.extend(Lists.toListFromImmutable(params), toOption(whereClause)));
     }
 
     public TypeAnalyzer(TraitTable table, KindEnv kindEnv) {

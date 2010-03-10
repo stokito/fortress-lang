@@ -115,7 +115,7 @@ object KindEnv extends StaticEnvCompanion[StaticParam] {
     node match {
       case p:StaticParam => List(KindBinding(p.getName, p))
       case g:Generic =>
-        toList(g.getHeader.getStaticParams).map(p => KindBinding(p.getName, p))
+        toListFromImmutable(g.getHeader.getStaticParams).map(p => KindBinding(p.getName, p))
       case _ => Nil
     }
 }

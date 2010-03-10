@@ -45,7 +45,7 @@ class ExportExpander(env: GlobalEnvironment) {
     var newExports: List[APIName] = List()
 
     // Add constituents of exported compound APIs
-    for (export <- toList(comp.getExports)) {
+    for (export <- toListFromImmutable(comp.getExports)) {
       if (env.definesApi(export)) {
         for (constituent <- toSet(env.lookup(export).comprises)) {
           newExports = constituent :: newExports
@@ -77,7 +77,7 @@ class ExportExpander(env: GlobalEnvironment) {
     }
 
     // Build new list of exports. Note that ComponentIndices always hold Components.
-    val allExports = toList(comp.getExports) ::: newExports
+    val allExports = toListFromImmutable(comp.getExports) ::: newExports
     // Remove duplicates
     allExports.distinct
     // Construct a new AST with allExports as its extends clause

@@ -60,7 +60,7 @@ trait Decls { self: STypeChecker with Common =>
 
     // Check the body exprs and make sure all but the last have type ().
     val newBody = bodyChecker.checkExpr(body).asInstanceOf[Block].getExprs
-    val newBlock = toList(newBody)
+    val newBlock = toListFromImmutable(newBody)
     if (!haveTypes(newBlock)) return None
     for (e <- newBlock.dropRight(1)) {
       isSubtype(getType(e).get,

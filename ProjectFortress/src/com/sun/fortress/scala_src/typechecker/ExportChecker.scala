@@ -324,8 +324,8 @@ object ExportChecker {
             if (!declInAPI.isInstanceOf[TraitDecl]) {
               cause = addMessage(cause, "non-trait in api, but trait in component")
             } else {
-              if (! equalListTypes(toList(NodeUtil.getExcludesClause(declInAPI)),
-                                   toList(NodeUtil.getExcludesClause(declInComp)))) {
+              if (! equalListTypes(toListFromImmutable(NodeUtil.getExcludesClause(declInAPI)),
+                                   toListFromImmutable(NodeUtil.getExcludesClause(declInComp)))) {
                 cause = addMessage(cause, "different excludes clauses for traits")
               }
               if (! equalComprises(declInAPI, declInComp)) {
@@ -740,7 +740,7 @@ object ExportChecker {
   }
 
   private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
-    if (ol.isNone) None else Some(toList(ol.unwrap))
+    if (ol.isNone) None else Some(toListFromImmutable(ol.unwrap))
 }
 
 /* Extractor Objects

@@ -149,8 +149,8 @@ object SNodeUtil {
 	val self_type = NF.makeTraitType(trait_name,
 					 STypesUtil.staticParamsToArgs(jSparams))
 	var sparams = List[StaticParam]()
-	for (sp <- toList(jSparams)) {
-	  if (toList(jComprisesTypes).exists(equalSparam(_, sp))) {
+	for (sp <- toListFromImmutable(jSparams)) {
+	  if (toListFromImmutable(jComprisesTypes).exists(equalSparam(_, sp))) {
 	    sp match {
               case SStaticParam(info, name, extendsC, dim, absorbs, k:KindType, lifted) =>
 		sparams ++= List(SStaticParam(info, name,
@@ -174,7 +174,7 @@ object SNodeUtil {
     for (ty <- comprises) {
       ty match {
 	case SVarType(_, name, _) =>
-	  if (!toList(jSparams).exists(equalSparam(_, name))) return Some(name)
+	  if (!toListFromImmutable(jSparams).exists(equalSparam(_, name))) return Some(name)
 	case _ =>
       }
     }

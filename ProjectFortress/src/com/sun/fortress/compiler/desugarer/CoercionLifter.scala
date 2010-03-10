@@ -77,7 +77,7 @@ class CoercionLifter(env: GlobalEnvironment) extends Walker {
   protected def liftCoercionsFromTrait(t: TraitObjectDecl): List[Decl] = {
 
     // Get all the trait's decls.
-    val decls = toList(t.getHeader.getDecls)
+    val decls = toListFromImmutable(t.getHeader.getDecls)
 
     // Partition into coercion decls and others.
     val (coercionDecls, otherDecls) = decls.partition(NU.isCoercion)
@@ -155,7 +155,7 @@ object CoercionLifter {
     val newName = NF.makeLiftedCoercionId(NU.getSpan(NU.getName(f)), NU.getName(t))
 
     // Concatenate the trait's and the function's static params.
-    val liftedSparams = toList(NU.getStaticParams(t)).map(liftStaticParam)
+    val liftedSparams = toListFromImmutable(NU.getStaticParams(t)).map(liftStaticParam)
     val sparams = liftedSparams ++ fnSparams
 
     // Create the return type.

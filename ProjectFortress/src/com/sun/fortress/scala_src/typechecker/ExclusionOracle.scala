@@ -78,12 +78,12 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           case (Some(fp), Some(sp)) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
-              for ( ty <- toList(fp.getExtendsClause) ; if ! result ) {
+              for ( ty <- toListFromImmutable(fp.getExtendsClause) ; if ! result ) {
                 if ( excludes(ty, s) ) result = true
               }
             }
             if ( NodeUtil.isTypeParam( sp ) ) {
-              for ( ty <- toList(sp.getExtendsClause) ; if ! result ) {
+              for ( ty <- toListFromImmutable(sp.getExtendsClause) ; if ! result ) {
                 if ( excludes(ty, f) ) result = true
               }
             }
@@ -108,7 +108,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           case Some(fp) =>
             var result = false
             if ( NodeUtil.isTypeParam( fp ) ) {
-              for ( ty <- toList(fp.getExtendsClause) ; if ! result ) {
+              for ( ty <- toListFromImmutable(fp.getExtendsClause) ; if ! result ) {
                 if ( excludes(ty, second) ) result = true
               }
             }
@@ -123,7 +123,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           case Some(sp) =>
             var result = false
             if ( NodeUtil.isTypeParam( sp ) ) {
-              for ( ty <- toList(sp.getExtendsClause) ; if ! result ) {
+              for ( ty <- toListFromImmutable(sp.getExtendsClause) ; if ! result ) {
                 if ( excludes(ty, first) ) result = true
               }
             }
@@ -141,7 +141,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           f.getVarargs.isNone && s.getVarargs.isNone &&
           f.getKeywords.isEmpty && s.getKeywords.isEmpty &&
           f.getElements.size == s.getElements.size &&
-          toList(f.getElements).zip(toList(s.getElements)).exists((e:(Type,Type)) =>
+          toListFromImmutable(f.getElements).zip(toListFromImmutable(s.getElements)).exists((e:(Type,Type)) =>
                                                                   excludes(e._1,e._2))
         }
       case (_:TupleType ,_) => true
@@ -181,7 +181,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
 
   private def transitivelyExcludes(tIndex: ProperTraitIndex): Set[TraitType] = {
     var result = toSet(tIndex.excludesTypes)
-    for ( t <- toList(tIndex.extendsTypes) ) {
+    for ( t <- toListFromImmutable(tIndex.extendsTypes) ) {
       if ( t.getBaseType.isInstanceOf[NamedType] ) {
         result ++= transitivelyExcludes(typeAnalyzer.traits.typeCons(t.getBaseType.asInstanceOf[NamedType].getName).unwrap.asInstanceOf[ProperTraitIndex])
       }
@@ -194,9 +194,9 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
    */
   private def excludes(s: TraitType, t: TraitType, tIndex: ProperTraitIndex) = {
     // staticParams: X...
-    val staticParams = toList(tIndex.staticParameters)
+    val staticParams = toListFromImmutable(tIndex.staticParameters)
     // staticArgs  : ty...
-    val staticArgs   = toList(t.getArgs)
+    val staticArgs   = toListFromImmutable(t.getArgs)
     if ( staticParams.size != staticArgs.size )
       errors.signal("The numbers of static parameters and static arguments do not match: " + t,
                     NodeUtil.getSpan(t))
