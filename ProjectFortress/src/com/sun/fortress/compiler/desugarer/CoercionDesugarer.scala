@@ -81,7 +81,7 @@ class CoercionDesugarer extends Walker {
 
     // Get the types out of the expr.
     val exprType = getType(expr).get.asInstanceOf[TupleType]
-    val exprTypes = maybeSnoc(toList(exprType.getElements),
+    val exprTypes = maybeSnoc(toListFromImmutable(exprType.getElements),
                               toOption(exprType.getVarargs))
 
     // Create a fresh variable name for each element in the tuple type.

@@ -375,7 +375,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
               case None =>
                 // shift all names to the right, and try a smaller api name
                 fields = name :: fields
-                val ids = toList(givenApiName.getIds)
+                val ids = toListFromImmutable(givenApiName.getIds)
                 name = ids.last
                 api = ids.dropRight(1) match {
                   case Nil => None
@@ -911,7 +911,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                val my_meth = toSet(ti.dottedMethods.secondSet).map(_.ast)
                // Now recursively add methods from trait's extends clause
                val inherited_meth =
-                   inheritedMethodsHelper(hist.copy, toList(ti.extendsTypes))
+                   inheritedMethodsHelper(hist.copy, toListFromImmutable(ti.extendsTypes))
                methods ++ my_meth ++ inherited_meth
              case tci =>
                if (tci == null)

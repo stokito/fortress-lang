@@ -576,7 +576,7 @@ trait Misc { self: STypeChecker with Common =>
       // Check the else clause with the new binding.
       val newType =
         if (isMultipleIds)
-          toList(checkedType.asInstanceOf[TupleType].getElements)
+          toListFromImmutable(checkedType.asInstanceOf[TupleType].getElements)
         else
           List[Type](checkedType)
       val checkedElse =
@@ -754,7 +754,7 @@ trait Misc { self: STypeChecker with Common =>
           Some(Types.makeArrayKType(1, Useful.list(NF.makeTypeArg(elemType),
                                                    lower, size)))
         case _ =>
-          if (staticArgsMatchStaticParams(sargs, toList(ind.staticParameters))) {
+          if (staticArgsMatchStaticParams(sargs, toListFromImmutable(ind.staticParameters))) {
             val typ = sargs.head.asInstanceOf[TypeArg].getTypeArg
             isSubtype(elemType, typ, elemType,
                       elemType + " must be a subtype of " + typ + ".")
@@ -838,7 +838,7 @@ trait Misc { self: STypeChecker with Common =>
           // then instantiate and return
           Some(Types.makeArrayKType(dimension, toJavaList(inferredArgs)))
         case _ =>
-          if (staticArgsMatchStaticParams(sargs, toList(ind.staticParameters))) {
+          if (staticArgsMatchStaticParams(sargs, toListFromImmutable(ind.staticParameters))) {
             // First arg MUST BE a TypeArg, and it must be a supertype of the elements
             val typ = sargs.head.asInstanceOf[TypeArg].getTypeArg
             isSubtype(arrayType, typ, arrayType,

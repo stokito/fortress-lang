@@ -199,7 +199,7 @@ case class BodyError(expr: FnExpr, domain: Type, error: StaticError)
   // by toString---so that you (and your tools) will have a prayer of
   // seeing it.
   override def toString : String = {
-    val params = toList(NU.getParams(expr))
+    val params = toListFromImmutable(NU.getParams(expr))
     if (params.forall(_.getIdType.isSome)) {
         return error.toString
     }

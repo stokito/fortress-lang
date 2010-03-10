@@ -139,7 +139,7 @@ class ApiTypeExtractor(component: ComponentIndex,
       case 0 => params
       case 1 => List(forParam((params.head, paramTypeInAPI)))
       case _ =>
-        params.zip(toList(paramTypeInAPI.asInstanceOf[TupleType].getElements)).map(forParam)
+        params.zip(toListFromImmutable(paramTypeInAPI.asInstanceOf[TupleType].getElements)).map(forParam)
     }
 
   private def forParam(pair:(Param, Type)) = pair._1 match {
@@ -226,7 +226,7 @@ class ApiTypeExtractor(component: ComponentIndex,
                                throwsC, contract, params, returnType),
                      unambiguousName, body, impName) =>
         if ( NodeUtil.getReturnType(f).isNone ||
-             toList(NodeUtil.getParams(f)).exists(paramWithoutType) ) {
+             toListFromImmutable(NodeUtil.getParams(f)).exists(paramWithoutType) ) {
           isExported(f, inTraitOrObject) match {
             // If this function f is exported by an API api
             case Some((api, paramTypeInAPI, returnTypeInAPI)) =>

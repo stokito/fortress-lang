@@ -156,8 +156,8 @@ class AbstractMethodChecker(component: ComponentIndex,
     val tci = typeAnalyzer.traits.typeCons(t.getName)
     var sparams = List[StaticParam]()
     if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] )
-      sparams = toList(NU.getStaticParams(tci.unwrap.asInstanceOf[TraitIndex].ast.asInstanceOf[TraitObjectDecl])).asInstanceOf[List[StaticParam]]
-    val sargs = toList(t.getArgs)
+      sparams = toListFromImmutable(NU.getStaticParams(tci.unwrap.asInstanceOf[TraitIndex].ast.asInstanceOf[TraitObjectDecl])).asInstanceOf[List[StaticParam]]
+    val sargs = toListFromImmutable(t.getArgs)
 
     // Extend the type analyzer with the collected static parameters
     def subst(ty: Type) =
@@ -165,7 +165,7 @@ class AbstractMethodChecker(component: ComponentIndex,
     val result =
       ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type]),
                                 subst(NU.getParamType(decl))).isTrue ||
-        implement(toList(NU.getParams(d)), toList(NU.getParams(decl))) ) &&
+        implement(toListFromImmutable(NU.getParams(d)), toListFromImmutable(NU.getParams(decl))) ) &&
       typeAnalyzer.subtype(subst(NU.getReturnType(decl).unwrap),
                            subst(NU.getReturnType(d).unwrap)).isTrue
     result

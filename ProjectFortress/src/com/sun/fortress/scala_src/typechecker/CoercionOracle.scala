@@ -52,7 +52,7 @@ class CoercionOracle(traits: TraitTable,
    * qualified.
    */
   def makeCoercionId(u: TraitType): Id = {
-    val realTraitName = getRealName(u.getName, toList(current.ast.getImports))
+    val realTraitName = getRealName(u.getName, toListFromImmutable(current.ast.getImports))
     NF.makeLiftedCoercionId(NU.getSpan(u), realTraitName.asInstanceOf[Id])
   }
 
@@ -195,7 +195,7 @@ class CoercionOracle(traits: TraitTable,
     // Get a list of all the (coercion, arrow, inferred args, original arrow)
     // tuples that worked. The inferred args returned are only the unlifted
     // ones, as the lifted args are given in U.
-    val liftedSargs = toList(u.getArgs)
+    val liftedSargs = toListFromImmutable(u.getArgs)
     val allLiftedCoercions = getCoercionsTo(u)
     val coercionsAndArgs = allLiftedCoercions flatMap { liftedCoercion =>
       inferStaticParams(liftedCoercion._2, t, None) map { arrowAndSargs =>

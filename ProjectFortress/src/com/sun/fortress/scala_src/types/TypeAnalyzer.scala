@@ -90,7 +90,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     //Type variables
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
-      val supers = toList(sParam.getExtendsClause)
+      val supers = toListFromImmutable(sParam.getExtendsClause)
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
     //Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
@@ -98,8 +98,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       (a1, a2).zipped.map((a, b) => eq(a, b)).foldLeft(TRUE)(and)
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
       val index = typeCons(n).asInstanceOf[TraitIndex]
-      val supers = toList(index.extendsTypes).
-      map(tw => substitute(a, toList(index.staticParameters), tw.getBaseType))
+      val supers = toListFromImmutable(index.extendsTypes).
+      map(tw => substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType))
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
     case (s: TraitSelfType, t) => sub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => sub(t,named)
@@ -199,7 +199,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (_, t: AnyType) => false
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
-      val supers = toList(sParam.getExtendsClause)
+      val supers = toListFromImmutable(sParam.getExtendsClause)
       supers.exists(exc(_, t))
     case (s, t:VarType) => exc(t, s)
     // ToDo: Make sure that two traits with the same exclude each other
@@ -258,7 +258,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           val index = typeCons(n)
           index match {
             case ti: TypeAliasIndex =>
-              val params = toList(ti.staticParameters)
+              val params = toListFromImmutable(ti.staticParameters)
               walk(substitute(a, params, ti.ast.getTypeDef))
             case _ => super.walk(t)
           }
@@ -389,8 +389,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
     def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
     case ti: ProperTraitIndex =>
-      val args = toList(t.getArgs)
-      val params = toList(ti.staticParameters)
+      val args = toListFromImmutable(t.getArgs)
+      val params = toListFromImmutable(ti.staticParameters)
       toSet(ti.comprisesTypes).map(nt => if (!nt.isInstanceOf[TraitType]) return Set()
                                          else substitute(args, params, nt).asInstanceOf[TraitType])
     case _ => Set()
@@ -398,14 +398,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def excludesClause(t: TraitType): Set[TraitType] = {
     val ti = typeCons(t.getName).asInstanceOf[TraitIndex]
-    val args = toList(t.getArgs)
-    val params = toList(ti.staticParameters)
+    val args = toListFromImmutable(t.getArgs)
+    val params = toListFromImmutable(ti.staticParameters)
     val excludes = ti match{
       case ti : ProperTraitIndex =>
       toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
       case _ => Set[TraitType]()
     }
-    val supers = toList(ti.extendsTypes).map(tw => substitute(args, params, tw.getBaseType))
+    val supers = toListFromImmutable(ti.extendsTypes).map(tw => substitute(args, params, tw.getBaseType))
     val transitively = supers.flatMap{
       case s: TraitType => excludesClause(s)
       case _ => Set[TraitType]()

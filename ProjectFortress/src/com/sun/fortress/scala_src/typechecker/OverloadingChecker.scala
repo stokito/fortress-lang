@@ -124,13 +124,13 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     def checkOverloading(): JavaList[StaticError] = {
         val fnsInComp = compilation_unit.functions
         val ast = compilation_unit.ast
-        val importStars = toList(ast.getImports).filter(_.isInstanceOf[ImportStar]).map(_.asInstanceOf[ImportStar])
-        val importNames = toList(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
+        val importStars = toListFromImmutable(ast.getImports).filter(_.isInstanceOf[ImportStar]).map(_.asInstanceOf[ImportStar])
+        val importNames = toListFromImmutable(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
         for ( f <- toSet(fnsInComp.firstSet) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
           var set = getFunctions(compilation_unit, f)
           for ( i <- importNames ) {
-            for ( n <- toList(i.getAliasedNames) ) {
+            for ( n <- toListFromImmutable(i.getAliasedNames) ) {
               if ( n.getAlias.isSome &&
                    n.getAlias.unwrap.asInstanceOf[IdOrOp].getText.equals(name) ) {
                 // get the JavaFunctionals from the api and add them to set
@@ -144,7 +144,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
           }
           for ( i <- importStars ) {
             val index = globalEnv.lookup(i.getApiName)
-            val excepts = toList(i.getExceptNames).asInstanceOf[List[IdOrOp]]
+            val excepts = toListFromImmutable(i.getExceptNames).asInstanceOf[List[IdOrOp]]
             for ( n <- toSet(index.functions.firstSet).++(toSet(index.variables.keySet)) ) {
               val text = n.asInstanceOf[IdOrOp].getText
               if ( text.equals(name) &&
@@ -170,7 +170,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             // Extend the type analyzer with the collected static parameters
             val oldTypeAnalyzer = typeAnalyzer
             // Add static parameters of the enclosing trait or object
-            typeAnalyzer = typeAnalyzer.extend(toList(traitOrObject.staticParameters),
+            typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(traitOrObject.staticParameters),
                                                None)
             /* The parameter type of a setter must be the same as the return type
              * of a getter with the same name, if any.
@@ -199,7 +199,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             for ( pltPair <- toSet(traitOrObject.dottedMethods) ) {
                 methodsR.add(pltPair.first, (pltPair.second, identity, tt))
             }
-            STypesUtil.inheritedMethods(toList(traitOrObject.extendsTypes),
+            STypesUtil.inheritedMethods(toListFromImmutable(traitOrObject.extendsTypes),
                                         methodsR, typeAnalyzer)
 
             val methods =
@@ -258,7 +258,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             case _ =>
               // A functional which takes a single parameter of a parametric type
               // bound by Any cannot be overloaded.
-              if ( checkBoundAny(param, toList(sparams)) ) {
+              if ( checkBoundAny(param, toListFromImmutable(sparams)) ) {
                 error(span, "A functional which takes a single parameter " +
                       "of a parametric type bound by Any\n    cannot be overloaded.")
                 return
@@ -276,6 +276,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                                 firstO + "\n and " + secondO
                                               else
                                                 secondO + "\n and " + firstO
+                               val do_over =  validOverloading(first, second, signatures)
                                error(mergeSpan(first, second),
                                      "Invalid overloading of " + name +
                                      ":\n     " + mismatch)
@@ -314,7 +315,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(sub_type._1._1)
         staticParameters.addAll(super_type._1._1)
-        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
+        typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
         val result = subtype(super_type._1._2, sub_type._1._2) &&
                      subtype(sub_type._1._3, super_type._1._3)
         typeAnalyzer = oldTypeAnalyzer
@@ -338,7 +339,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(first._1._1)
         staticParameters.addAll(second._1._1)
-        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
+        typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
         val result = new ExclusionOracle(typeAnalyzer,
                                          new ErrorLog()).excludes(first._1._2,
                                                                   second._1._2)
@@ -356,7 +357,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val staticParameters = new ArrayList[StaticParam]()
         staticParameters.addAll(first._1._1)
         staticParameters.addAll(second._1._1)
-        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
+        typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
         var result = false
         val exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog())
         val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2), exclusionOracle),
@@ -498,12 +499,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             }
         }
         // Add static parameters of "g"
-        for ( s <- toList(g.staticParameters) ) staticParameters.add(s)
+        for ( s <- toListFromImmutable(g.staticParameters) ) staticParameters.add(s)
         // Extend the type analyzer with the collected static parameters
         val oldTypeAnalyzer = typeAnalyzer
         // Whether "g"'s parameter type is a subtype of "f"'s parameter type
         // and "f"'s return type is a subtype of "g"'s return type
-        typeAnalyzer = typeAnalyzer.extend(toList(staticParameters), None)
+        typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
         val result = subtype(paramsToType(g.parameters, g.getSpan),
                              paramsToType(f.parameters, f.getSpan)) &&
                      subtype(f.getReturnType.unwrap, g.getReturnType.unwrap)
@@ -556,7 +557,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     /* Returns the type of the given list of parameters. */
     private def paramsToType(params: JavaList[Param], span: Span): Type =
-      STypesUtil.paramsToType(toList(params), span) match {
+      STypesUtil.paramsToType(toListFromImmutable(params), span) match {
         case Some(ty) => ty
         case _ =>
           val span = NodeUtil.spanAll(params)
@@ -571,7 +572,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         case 0 => NodeUtil.getSpan(self)
         case _ => NodeUtil.spanAll(params)
       }
-      val elems = toList(params).map(paramToType)
+      val elems = toListFromImmutable(params).map(paramToType)
       if (elems.forall(_.isDefined))
         NodeFactory.makeTupleType(span, toJavaList(List(self) ++ elems.map(_.get)))
       else {

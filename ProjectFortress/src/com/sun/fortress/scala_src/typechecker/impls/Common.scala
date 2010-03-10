@@ -80,7 +80,7 @@ trait Common { self: STypeChecker =>
             }
             val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
             val instantiated_extends_types =
-              toList(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
+              toListFromImmutable(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
                     t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
             inheritedMethodsHelper(history.copy, methods, instantiated_extends_types)
           case _ =>

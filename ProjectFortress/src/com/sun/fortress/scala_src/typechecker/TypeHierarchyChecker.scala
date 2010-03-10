@@ -54,7 +54,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     for (typ <- toSet(compilation_unit.typeConses.keySet)) {
       checkDeclAcyclicity(typ, List(), errors)
     }
-    toJavaList(removeDuplicates(toList(errors)))
+    toJavaList(removeDuplicates(toListFromImmutable(errors)))
   }
 
   def checkAcyclicHierarchy(analyzer: TypeAnalyzer): JavaList[StaticError] = {
@@ -63,7 +63,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
       checkAcyclicity(typ, List(), errors)
       checkDeclComprises(typ, errors, analyzer)
     }
-    toJavaList(removeDuplicates(toList(errors)))
+    toJavaList(removeDuplicates(toListFromImmutable(errors)))
   }
 
   private def getTypes(typ:Id, errors:JavaList[StaticError]) = {
@@ -89,7 +89,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
     else {
       types match {
 	case ti:TraitIndex =>
-	  for (extension <- toList(ti.extendsTypes)) {
+	  for (extension <- toListFromImmutable(ti.extendsTypes)) {
 	    extension match {
 	      // TODO: Extend to handle non-empty where clauses.
 	      case STraitTypeWhere(_,SAnyType(_),_) => {}
@@ -125,7 +125,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	  error(errors, "Cyclic type hierarchy: Type " + decl +
 		" transitively extends/coerces to itself.", ti.ast)
 	} else {
-	  for (extension <- toList(ti.extendsTypes)) {
+	  for (extension <- toListFromImmutable(ti.extendsTypes)) {
 	    extension match {
 	      // TODO: Extend to handle non-empty where clauses.
 	      case STraitTypeWhere(_,SAnyType(_),_) => {}
@@ -170,8 +170,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	    error(errors, "Invalid trait type: " + self_type, decl)
 	    Types.OBJECT // error recovery
 	}
-	val new_analyzer = analyzer.extend(toList(ti.staticParameters), None)
-	val extended = toList(ti.extendsTypes)
+	val new_analyzer = analyzer.extend(toListFromImmutable(ti.staticParameters), None)
+	val extended = toListFromImmutable(ti.extendsTypes)
 	for (extension <- extended) {
 	  extension match {
 	    // TODO: Extend to handle non-empty where clauses.
@@ -202,8 +202,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 		    case _ =>
 		  }
 		  val subst_comprises =
-		    comprises.map(substitute(toList(st.getArgs),
-					     toList(si.staticParameters),
+		    comprises.map(substitute(toListFromImmutable(st.getArgs),
+					     toListFromImmutable(si.staticParameters),
 					     _).asInstanceOf[NamedType])
 		  if (! comprises.isEmpty &&
 		      ! isEligibleToExtend(tt, subst_comprises, new_analyzer, errors) &&
@@ -230,8 +230,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 		  getTypes(name, errors) match {
 		    case tti:TraitIndex =>
                       val subst_extends =
-                        toList(tti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
-                                                     toList(tti.staticParameters) zip args,
+                        toListFromImmutable(tti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
+                                                     toListFromImmutable(tti.staticParameters) zip args,
                                                      tw.getBaseType)(new_analyzer))
                       if ( ! extendsContains(tt, subst_extends,
 					     new_analyzer, errors) )
@@ -296,8 +296,8 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
           getTypes(name, errors) match {
             case ti:TraitIndex =>
               val subst_extends =
-                toList(ti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
-                                            toList(ti.staticParameters) zip args,
+                toListFromImmutable(ti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
+                                            toListFromImmutable(ti.staticParameters) zip args,
                                             tw.getBaseType)(analyzer))
               extendsContains(comprises, subst_extends, analyzer,
                               errors)

@@ -45,7 +45,7 @@ object SExprUtil {
   }
   
   def fnExprHasParams(f: FnExpr): Boolean = 
-    toList(f.getHeader.getParams).forall(p => p.getIdType.isSome)
+    toListFromImmutable(f.getHeader.getParams).forall(p => p.getIdType.isSome)
   
   def isFnExpr(e: Expr) = e match {
     case f:FnExpr => true
@@ -169,11 +169,11 @@ object SExprUtil {
   def getStaticArgsFromApp(app: Expr): Option[List[StaticArg]] =
     app match {
       case t:_RewriteFnApp => t.getFunction match {
-        case f:FunctionalRef => Some(toList(f.getStaticArgs))
+        case f:FunctionalRef => Some(toListFromImmutable(f.getStaticArgs))
         case _ => None
       }
-      case t:OpExpr => Some(toList(t.getOp.getStaticArgs))
-      case t:MethodInvocation => Some(toList(t.getStaticArgs))
+      case t:OpExpr => Some(toListFromImmutable(t.getOp.getStaticArgs))
+      case t:MethodInvocation => Some(toListFromImmutable(t.getStaticArgs))
       case _ => None
     }
 

@@ -480,7 +480,7 @@ trait Functionals { self: STypeChecker with Common =>
     }
     Some(fn match {
       case f:FunctionalRef =>
-        toList(f.getNewOverloadings).map { ov =>
+        toListFromImmutable(f.getNewOverloadings).map { ov =>
           // The fn has already been type checked, so each overloading has an
           // arrow type.
           val arrow = ov.getType.get.asInstanceOf[ArrowType]
@@ -585,7 +585,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _, _) => {
       // Error if this is a getter
-      val thisEnv = getRealName(name, toList(current.ast.getImports)) match {
+      val thisEnv = getRealName(name, toListFromImmutable(current.ast.getImports)) match {
         case id@SIdOrOpOrAnonymousName(_, Some(api)) => getEnvFromApi(api)
         case _ => env
       }
