@@ -126,6 +126,7 @@ public class NamingCzar {
     public static final String make = "make";
 
     public static final String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
+    public static final String optimizedcache = ProjectProperties.OPTIMIZED_BYTECODE_CACHE_DIR + "/";
 
     //Asm requires you to call visitMaxs for every method
     // but ignores the arguments.

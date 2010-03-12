@@ -24,6 +24,7 @@ class MethodInfo {
     int descriptorIndex;
     AttributeInfo attributes[];
     ClassToBeOptimized cls;
+    CodeAttributeInfo cai;
 
     MethodInfo(ClassToBeOptimized cl) {
         cls = cl;
@@ -134,20 +135,12 @@ class MethodInfo {
         }
     }
 
-    public void OptimizeCodeAttribute(CodeAttributeInfo info) {
-       info.optimizedCode();         
-    }
-
     public void Verify() throws Exception {
         for (int i = 0; i < attributes.length; i++) 
-            if (attributes[i] instanceof CodeAttributeInfo) 
+            if (attributes[i] instanceof CodeAttributeInfo) {
                 VerifyCodeAttribute((CodeAttributeInfo) attributes[i]);
-    }
-
-    public void Optimize() {
-        for (int i = 0; i < attributes.length; i++) 
-            if (attributes[i] instanceof CodeAttributeInfo) 
-                OptimizeCodeAttribute((CodeAttributeInfo) attributes[i]);
+                cai = (CodeAttributeInfo) attributes[i];
+            }
     }
 
     public static MethodInfo[] readMethods(ClassToBeOptimized cls) {
