@@ -86,7 +86,7 @@ class ConstantPoolInfo {
         case RTC.CONSTANT_NAMEANDTYPE: resType = "CONSTANT_NAMEANDTYPE"; break;
         }
         System.out.println("ConstantPoolInfo: " + resType);
-    } 
+    }
 
     TypeState getConstantEntry() {
         switch (tag) 
@@ -175,6 +175,12 @@ class ConstantPoolInfo {
         ConstantClassInfo cc = (ConstantClassInfo) this;
         return cc.getClassName(cls);
     }
+
+    String getString(ClassToBeOptimized cls) {
+        ConstantStringInfo csi = (ConstantStringInfo) this;
+        return csi.getString(cls);
+    }
+        
 
     TypeState getConstantClass(ClassToBeOptimized cls) {
         String name = getClassName(cls);

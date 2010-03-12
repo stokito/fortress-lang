@@ -30,6 +30,7 @@ class ClassToBeOptimized {
     AttributeInfo attributes[];
     ClassFileReader  reader;
     String name;
+    String sourceFileName;
 
     ClassToBeOptimized(String name, byte buf[]) {
         reader = new ClassFileReader(buf);
@@ -1111,7 +1112,7 @@ class ClassToBeOptimized {
                     System.out.println("Verification Pass 2: Bad SourceFileAttribute length (1)");     
                     throw new VerifyError();
                 }
-                String sourceFileName = ((SourceFileAttributeInfo)attr).sourceFileName;
+                sourceFileName = ((SourceFileAttributeInfo)attr).sourceFileName;
                 int dotIndex = sourceFileName.indexOf('.');
         
                 // Disable this check for now.
