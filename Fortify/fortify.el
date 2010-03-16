@@ -3416,6 +3416,7 @@
 	 (prevtoks nil toks))
 	((null toks))
       (let ((thistok (car toks)))
+      (print (list thistok stack))
 	(case (first thistok)
 	  ((LEFT-PARENTHESIS LEFT-BRACKET LEFT-WHITE-BRACKET LEFT-ENCLOSER)
 	   (when (and (gethash thistok *fortress-matching-hashtable*)
@@ -3473,6 +3474,7 @@
 
 (defun fortress-install-bracket-sizes (tokens comprehension-matching-hashtable
 					      bracket-size-hashtable)
+  (maphash '(lambda (k v) (print (list k '-> v))) bracket-size-hashtable))
   (dolist (thistok tokens)
     (cond ((and (gethash thistok *fortress-matching-hashtable*)
 		(memq (first thistok)

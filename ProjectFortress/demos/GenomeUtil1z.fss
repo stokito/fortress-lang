@@ -25,7 +25,7 @@ color(c1:Char, c2:Char): Char =
 colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
 
 colorsToACGT(start: Char, colorstr: String): String =
-  start || (BIG ||[i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+  start || (BIG || [i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
 
 
 trait ReferenceGenome
