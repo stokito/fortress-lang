@@ -30,8 +30,10 @@ fi
 
 CACHES="$FORTRESS_HOME/default_repository/caches"
 THIRD_PARTY="$FORTRESS_HOME/ProjectFortress/third_party"
+TP="$FORTRESS_HOME/ProjectFortress/third_party"
+SV=2.8.0.r21209
 
-CP="$CACHES/bytecode_cache${SEP}$CACHES/bytecode_cache/*${SEP}$CACHES/nativewrapper_cache${SEP}$CACHES/environment_cache${SEP}$FORTRESS_HOME/ProjectFortress/build${SEP}$THIRD_PARTY/junit/junit.jar${SEP}$THIRD_PARTY/asm/asm-all-3.1.jar${SEP}$THIRD_PARTY/xtc/xtc.jar${SEP}$THIRD_PARTY/jsr166y/jsr166y.jar${SEP}$THIRD_PARTY/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$THIRD_PARTY/unsigned/unsigned.jar${SEP}$THIRD_PARTY/astgen/astgen.jar${SEP}$THIRD_PARTY/scala/scala-compiler-2.7.5.jar${SEP}$THIRD_PARTY/scala/scala-library-2.7.5.jar${SEP}$CP"
+CP="$CACHES/bytecode_cache${SEP}$CACHES/bytecode_cache/*${SEP}$CACHES/nativewrapper_cache${SEP}$CACHES/environment_cache${SEP}$FORTRESS_HOME/ProjectFortress/build${SEP}$THIRD_PARTY/junit/junit.jar${SEP}$THIRD_PARTY/asm/asm-all-3.1.jar${SEP}$THIRD_PARTY/xtc/xtc.jar${SEP}$THIRD_PARTY/jsr166y/jsr166y.jar${SEP}$THIRD_PARTY/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$THIRD_PARTY/unsigned/unsigned.jar${SEP}$THIRD_PARTY/astgen/astgen.jar${SEP}$THIRD_PARTY/scala/scala-compiler-${SV}.jar${SEP}$THIRD_PARTY/scala/scala-library-${SV}.jar${SEP}$CP"
 
 if [ -z "$JAVA_HOME" ] ; then
   JAVACMD=java

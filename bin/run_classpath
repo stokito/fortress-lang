@@ -17,7 +17,7 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-FORTRESS_HOME=`${0%pfjava}fortress_home`
+export FORTRESS_HOME="`${0%run_classpath}fortress_home`"
 
 if (uname | egrep CYGWIN > /dev/null) ; then
   SEP=";"
@@ -25,9 +25,7 @@ else
   SEP=":"
 fi
 
-TP="$FORTRESS_HOME/ProjectFortress/third_party"
-SV=2.8.0.r21209
+BASIC_CLASS_PATH="`"${FORTRESS_HOME}"/bin/fortress_classpath`"
+CLASSPATH="$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$FORTRESS_HOME/default_repository/caches/bytecode_cache/*${SEP}$FORTRESS_HOME/default_repository/caches/nativewrapper_cache${SEP}${BASIC_CLASS_PATH}"
 
-CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-${SV}.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-${SV}.jar${SEP}$CP"
-
-java $JAVA_FLAGS -cp "$CP" "$@"
+echo "$CLASSPATH"
