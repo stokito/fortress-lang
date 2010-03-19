@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.ProgramError.error;

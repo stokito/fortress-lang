@@ -42,7 +42,7 @@ public class DepthFirstVisitorGenerator extends edu.rice.cs.astgen.DepthFirstVis
         writer.startLine(" ** top of this delegation tree is defaultCase(), which (unless overridden)");
         writer.startLine(" ** throws an exception.");
         writer.startLine(" **/");
-        writer.startLine("@SuppressWarnings(value={\"unused\"})");
+        writer.startLine("@SuppressWarnings({\"unused\", \"unchecked\"})");
         writer.startLine("public abstract class " + visitorName + "<RetType>");
         if (options.usePLT) {
             writer.print(" extends " + root.name() + "VisitorLambda<RetType>");

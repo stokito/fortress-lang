@@ -22,7 +22,6 @@ import java.util.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;

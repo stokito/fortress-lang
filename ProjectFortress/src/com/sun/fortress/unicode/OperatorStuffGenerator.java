@@ -191,12 +191,12 @@ public class OperatorStuffGenerator {
         tjf.write("class " + cls + " {");
         tjf.newLine();
 
-        Set<String> s_enclosing = new BASet<String>(DefaultComparator.V);
-        Set<String> s_left = new BASet<String>(DefaultComparator.V);
-        Set<String> s_right = new BASet<String>(DefaultComparator.V);
-        Set<String> s_ops = new BASet<String>(DefaultComparator.V);
-        Map<String, String> l2r = new BATree<String, String>(DefaultComparator.V);
-        Map<String, String> aliases = new BATree<String, String>(DefaultComparator.V);
+        Set<String> s_enclosing = new BASet<String>(DefaultComparator.<String>normal());
+        Set<String> s_left = new BASet<String>(DefaultComparator.<String>normal());
+        Set<String> s_right = new BASet<String>(DefaultComparator.<String>normal());
+        Set<String> s_ops = new BASet<String>(DefaultComparator.<String>normal());
+        Map<String, String> l2r = new BATree<String, String>(DefaultComparator.<String>normal());
+        Map<String, String> aliases = new BATree<String, String>(DefaultComparator.<String>normal());
 
         for (Element e : allElements) {
             String ename = fortressName(e.name());
@@ -260,7 +260,7 @@ public class OperatorStuffGenerator {
 
         for (String k : groups.keySet()) {
             Set<Element> els = groups.get(k);
-            Set<String> s_e = new BASet<String>(DefaultComparator.V);
+            Set<String> s_e = new BASet<String>(DefaultComparator.<String>normal());
 
             for (Element e : els) {
                 String ename = e.escapedShortName();
@@ -278,22 +278,22 @@ public class OperatorStuffGenerator {
         }
 
         tjf.write(
-                "   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(DefaultComparator.V));");
+                "   static Set<String> enclosing = StringEncodedAggregate.stringToSet(encodedEnclosing,';',new BASet<String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
         tjf.write(
-                "   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(DefaultComparator.V));");
+                "   static Set<String> left = StringEncodedAggregate.stringToSet(encodedLeft,';',new BASet<String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
         tjf.write(
-                "   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(DefaultComparator.V));");
+                "   static Set<String> right = StringEncodedAggregate.stringToSet(encodedRight,';',new BASet<String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
         tjf.write(
-                "   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(DefaultComparator.V));");
+                "   static Set<String> ops = StringEncodedAggregate.stringToSet(encodedOps,';',new BASet<String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
         tjf.write(
-                "   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(DefaultComparator.V));");
+                "   static Map<String, String> l2r = StringEncodedAggregate.stringToMap(encodedL2R,';',new BATree<String, String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
         tjf.write(
-                "   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.V));");
+                "   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
 
         for (String k : groups.keySet()) {
@@ -301,7 +301,7 @@ public class OperatorStuffGenerator {
             String enc_group = "encoded_" + k;
 
             tjf.write("   static Set<String> p_" + k + " = StringEncodedAggregate.stringToSet(" + enc_group +
-                      ",';',new BASet<String>(DefaultComparator.V));");
+                      ",';',new BASet<String>(DefaultComparator.<String>normal()));");
             tjf.newLine();
 
         }

@@ -68,7 +68,7 @@ maintain proper indentation.
   <property name="javadb" location="${PF}/third_party/javadb"/>
 
   <!-- Scala jar files -->
-  <property name="scala-version" value="2.8.0.r21030"/>
+  <property name="scala-version" value="2.8.0.r21209"/>
 
  <property name="scala-compiler.jar"
             value="${PF}/third_party/scala/scala-compiler-${scala-version}.jar"/>
@@ -415,7 +415,7 @@ maintain proper indentation.
         srcdir="${astgen.generators.src}"
         destdir="${build}"
         classpathref="astgen.classpath"
-        addparams=""
+        addparams="-Ybuilder-debug:refined"
         deprecation="yes">
       <include name="**/*.scala"/>
       <exclude name="${usefulPackage}/*.scala"/>
