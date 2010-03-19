@@ -55,7 +55,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         writer.startLine(" ** All recursion should go via recur(...); this allows overrides to insert");
         writer.startLine(" ** hooks into the recursion path (eg to record incremental results)");
         writer.startLine(" **/");
-        writer.startLine("@SuppressWarnings(value={\"unused\"})");
+        writer.startLine("@SuppressWarnings({\"unused\", \"unchecked\"})");
         writer.startLine("public abstract class " + visitorName + "<RetType>");
         writer.print(" extends " + root.name() + "DepthFirstVisitor<RetType>");
         writer.print(" {");

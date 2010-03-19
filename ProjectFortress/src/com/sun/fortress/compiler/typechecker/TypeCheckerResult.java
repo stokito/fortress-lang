@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;

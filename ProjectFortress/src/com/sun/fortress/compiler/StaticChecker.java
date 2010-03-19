@@ -257,7 +257,7 @@ public class StaticChecker {
                     ErrorLog log = new ErrorLog();
 
                     //Create thunks for when the user elides function return types
-                    CyclicReferenceChecker cycleChecker = cycleChecker = new CyclicReferenceChecker(log);
+                    CyclicReferenceChecker cycleChecker = new CyclicReferenceChecker(log);
                     STypeChecker thunkChecker =
                       STypeCheckerFactory.make(componentIndex, traitTable, typeEnv, typeAnalyzer, cycleChecker);
                     Thunker thunker = new Thunker(thunkChecker,cycleChecker);

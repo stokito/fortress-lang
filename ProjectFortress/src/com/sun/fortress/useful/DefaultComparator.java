@@ -49,6 +49,5 @@ public class DefaultComparator<T extends Comparable> implements Comparator<T> {
     }
 
     public final static DefaultComparator V = new DefaultComparator();
-    public final static DefaultComparator Vreversed = new Reversed();
-
+    public final static DefaultComparator Vreversed = new Reversed();    
 }
