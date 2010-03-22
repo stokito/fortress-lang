@@ -17,6 +17,9 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+# This script contains the Scala version choice, and builds the basic classpath for running the Fortress tools.
+# It does NOT put the caches into the right place on the classpath.
+
 export FORTRESS_HOME="`${0%fortress_classpath}fortress_home`"
 
 if (uname | egrep CYGWIN > /dev/null) ; then
