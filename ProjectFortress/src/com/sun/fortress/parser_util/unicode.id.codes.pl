@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 ################################################################################
-#    Copyright 2009 Sun Microsystems, Inc.,
+#    Copyright 2010 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -36,7 +36,19 @@ while ( $line = <IN> ) {
   my ($code,$name,$category) = ($1,$2,$3);
   if ( $category =~ /L.|Nl/ ) {
     my $hex = hex $code;
-    if ( $hex > 0xFFFF ) {
+    if ( $name =~ /, First/ ) { # begin (range of characters)
+      $line = <IN>;
+      $line =~ /^([0-9A-F]+);([^;]+);([^;]+);/;
+      my $last = hex $1;
+      for (my($i) = $hex; $i <= $last; $i++) {
+        if ( $i > 0xFFFF ) {
+          push @codesstart2, $i;
+        } else {
+          push @codesstart1, $i;
+        }
+      }
+    } # end (range of characters)
+    elsif ( $hex > 0xFFFF ) {
       push @codesstart2, $hex;
     } else {
       push @codesstart1, $hex;
@@ -158,7 +170,7 @@ sub ranges2ValidId {
 }
 
 print RATS "/*******************************************************************************\n";
-print RATS "    Copyright 2009 Sun Microsystems, Inc.,\n";
+print RATS "    Copyright 2010 Sun Microsystems, Inc.,\n";
 print RATS "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
 print RATS "    All rights reserved.\n\n";
 print RATS "    U.S. Government Rights - Commercial software.\n";
@@ -184,7 +196,7 @@ ranges2(@codesrest2);
 close RATS;
 
 print UTIL "/*******************************************************************************\n";
-print UTIL "    Copyright 2009 Sun Microsystems, Inc.,\n";
+print UTIL "    Copyright 2010 Sun Microsystems, Inc.,\n";
 print UTIL "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
 print UTIL "    All rights reserved.\n\n";
 print UTIL "    U.S. Government Rights - Commercial software.\n";
