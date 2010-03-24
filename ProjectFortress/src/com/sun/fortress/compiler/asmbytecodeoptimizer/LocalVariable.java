@@ -14,24 +14,34 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.bytecodeoptimizer;
+package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
-class LocalVariableTableAttributeInfo extends AttributeInfo {
-  int localVariableTableLength;
-  LocalVariableTableInfo localVariableTable[];
+import org.objectweb.asm.*;
+import org.objectweb.asm.util.*;
 
-  LocalVariableTableAttributeInfo(ClassToBeOptimized cls, String name, int length) {
-    attributeName = name;
-    attributeLength = length;
-    localVariableTableLength = cls.reader.read2Bytes();
-    localVariableTable = new LocalVariableTableInfo[localVariableTableLength];
-    for (int i = 0; i < localVariableTableLength; i++)
-      localVariableTable[i] = new LocalVariableTableInfo(cls.reader);
-  }
+public class LocalVariable extends Insn {
+    String _name;
+    String desc;
+    String sig;
+    Label start;
+    Label end;
+    int index;
 
-  public void Print() {
-    System.out.println("LocalVariableTable Attribute Info = ");
-  }
+    LocalVariable(String name, String _name, String desc, String sig, Label start, Label end, int index) {
+        this.name = name;
+        this._name = _name;
+        this.desc = desc;
+        this.sig = sig;
+        this.start = start;
+        this.end = end;
+        this.index = index;
+    }
+
+    public String toString() { 
+        return "LocalVariable" +  _name;
+    }
+    
+    public void toAsm(MethodVisitor mv) { 
+        mv.visitLocalVariable(_name, desc, sig, start, end, index);
+    }
 }
-
-

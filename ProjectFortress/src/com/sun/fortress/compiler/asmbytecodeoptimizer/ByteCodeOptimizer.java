@@ -36,19 +36,27 @@ class ByteCodeOptimizer {
 
     HashMap classes = new HashMap();
 
-    // void readInClassFile(String name) {
-    //     ClassReader cr = new ClassReader(name);
-    //     ByteCodeVisitor bcv = new ByteCodeVisitor();
-    //     cr.accept(bcv, 0);
-
-    //     classes.put(name, bcv);
-    // }
+    void readInClassFile(String name) {
+        System.out.println("readClassFile " + name);
+        // Remove the .class and replace / with .
+        String nname = name.substring(0, name.length() - 6).replace("/", ".");
+        System.out.println("readClassFile " + name + " new = " + nname);
+        try {
+            ClassReader cr = new ClassReader(nname);
+            ByteCodeVisitor bcv = new ByteCodeVisitor();
+            cr.accept(bcv, 0);
+            classes.put(name, bcv);
+        } catch (Exception e) {
+            System.out.println("ClassFormatError:"  + e );
+            e.printStackTrace();
+        }
+    }
 
     void readInJarFile(String name) {
         try {
             JarInputStream jario = new JarInputStream(new FileInputStream(name));
             // How big can classes get?  10,000 is our limit for now.
-            int bufsize = 10000;
+            int bufsize = 100000;
             int bufchunk = 1000;
             JarEntry entry;
             int bytesread;
@@ -58,47 +66,77 @@ class ByteCodeOptimizer {
                 byte tempbuf[] = new byte[bufchunk];
                 int bytepos = 0;
                 int lastread = 0;
+                System.out.println("entry = " + entry);
 
-                while ((bytesread = jario.read(tempbuf, lastread, bufchunk)) > 0) {
-                    System.arraycopy(tempbuf, 0, buf, bytepos, bytesread);
-                    bytepos = bytepos + bytesread;
+                if (entry.getName().endsWith(".class")) {
+                    while ((bytesread = jario.read(tempbuf, lastread, bufchunk)) > 0) {
+                        System.arraycopy(tempbuf, 0, buf, bytepos, bytesread);
+                        System.out.println("bytepos = " + bytepos + " bytesread = " + bytesread);
+                        bytepos = bytepos + bytesread;
+                    }
+                    ClassReader cr = new ClassReader(buf);
+                    ByteCodeVisitor bcv = new ByteCodeVisitor();
+                    cr.accept(bcv, 0);
+                    classes.put(entry.getName(), bcv);
                 }
-                ClassReader cr = new ClassReader(buf);
-                ByteCodeVisitor bcv = new ByteCodeVisitor();
-                cr.accept(bcv, 0);
-                classes.put(entry.getName(), bcv);
             }
         } catch (Exception e) {
             System.out.println("ClassFormatError:"  + e );
             e.printStackTrace();
         }
     }
-        
-        
-        
 
-    public static void main(String[] args) throws Exception {
-        ByteCodeOptimizer bco = new ByteCodeOptimizer();
 
-        for (String arg : args) {
-            bco.readInJarFile(arg);
-            System.out.println("Reading in jar file " + arg);
+    void writeOutClassFile(String arg) {
+        System.out.println("NYI");
+    }
+
+    void writeOutJarFile(String arg) {
+        try {
             String outputFile = arg.replace("bytecode_cache", "optimizedbytecode_cache");
             String directoryName = outputFile.substring(0, outputFile.lastIndexOf("/"));
             ProjectProperties.ensureDirectoryExists(directoryName);
             System.out.println("Writing out jar file" + outputFile);
 
             JarOutputStream jos = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
-            Iterator it = bco.classes.entrySet().iterator();
+            Iterator it = classes.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry pairs = (Map.Entry)it.next();
-                System.out.println("Printing file : " + pairs.getKey() + ":");
                 ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
-                bcv.print();
-                System.out.println("Outputting to ASM");
                 bcv.toAsm(jos);
             }
             jos.close();
+        } catch (Exception e) {
+            System.out.println("ClassFormatError:"  + e );
+            e.printStackTrace();
+        }
+    }
+
+    void optimize() {
+        Iterator it = classes.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry)it.next();
+            ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
+            AddOptimizeString.Optimize(bcv);
+            RemoveLiteralCoercions.Optimize(bcv);
+        }
+    }
+        
+    public static void main(String[] args) throws Exception {
+        ByteCodeOptimizer bco = new ByteCodeOptimizer();
+
+        for (String arg : args) {
+            System.out.println("Reading in jar file " + arg);
+            if (arg.endsWith(".jar")) {
+                bco.readInJarFile(arg);
+                bco.optimize();
+                bco.writeOutJarFile(arg);
+            } else if (arg.endsWith(".class")) {
+                bco.readInClassFile(arg);
+                bco.optimize();
+                bco.writeOutClassFile(arg);
+            }
+            else throw new RuntimeException("Undefined File Type " + arg);
         }
     }
 }

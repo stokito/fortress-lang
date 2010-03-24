@@ -39,4 +39,11 @@ public class MethodInsn extends Insn {
     public void toAsm(MethodVisitor mv) { 
         mv.visitMethodInsn(opcode, owner, _name, desc);
     }
+
+    public boolean matches(int opcode, String owner, String _name, String desc) {
+        return ((this.opcode == opcode) &&
+                (this.owner.equals(owner)) &&
+                (this._name.equals(_name)) &&
+                (this.desc.equals(desc)));
+    }
 }

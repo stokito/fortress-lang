@@ -75,7 +75,6 @@ class ByteCodeVisitor implements ClassVisitor {
 
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
-            System.out.println("Printing Field: " + pairs.getKey() + ":");
             ByteCodeFieldVisitor fv = (ByteCodeFieldVisitor) pairs.getValue();
             fv.toAsm(cw);
         }
@@ -83,7 +82,6 @@ class ByteCodeVisitor implements ClassVisitor {
         it = methodVisitors.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
-            System.out.println("Printing Method: " + pairs.getKey() + ":");
             ByteCodeMethodVisitor mv = (ByteCodeMethodVisitor) pairs.getValue();
             mv.toAsm(cw);
         }
@@ -94,9 +92,8 @@ class ByteCodeVisitor implements ClassVisitor {
             CheckClassAdapter.verify(new ClassReader(bytes), true, pw);
         }
 
-        System.out.println("About to write class " + name + " with " + bytes.length + " bytes " + bytes);
         ByteCodeWriter.writeJarredClass(jos, name, bytes);
-        System.out.println("just wrote class " + name);
+        System.out.println("Wrote class " + name);
     }
 
         
@@ -107,7 +104,6 @@ class ByteCodeVisitor implements ClassVisitor {
         this.name = name;
         this.sig = sig;
         this.superName = superName;
-        System.out.println("Visit:" + name);
     }
 
     public void visitSource(String file, String debug) {
@@ -133,15 +129,12 @@ class ByteCodeVisitor implements ClassVisitor {
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        System.out.println("visitAnnotation");
         return new ByteCodeAnnotationVisitor(0);
     }
 
     public void visitAttribute(Attribute attr) {
-        System.out.println("visitAttribute");
     }
 
     public void visitEnd() {
-        System.out.println("visitEnd");
     }
 }

@@ -35,6 +35,11 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     String sig;
     String[] exceptions;
 
+    static int INVOKESTATIC = Opcodes.INVOKESTATIC;
+    static int GETSTATIC = Opcodes.GETSTATIC;
+    static int INVOKEVIRTUAL = Opcodes.INVOKEVIRTUAL;
+
+
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
         this.labelNames = new HashMap();
         this.insns = new ArrayList<Insn>();
@@ -47,12 +52,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     public void toAsm(ClassWriter cw) {
         MethodVisitor mv = cw.visitMethod(access, name, desc, sig, exceptions);
-        if (name.equals("main")) {
-            mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-            mv.visitLdcInsn("Running Optimized Version");
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
-        }
-
         for (Insn i : insns) {
             i.toAsm(mv);
         }
@@ -86,11 +85,11 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitCode() {
-        System.out.println("visitCode");
+
     }
         
     public void visitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
-        System.out.println("visitFrame");
+
     }
         
     public void visitInsn(int opcode) {
@@ -146,7 +145,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int index) {
-        insns.add(new NotYetImplementedInsn("visitLocalVariable"));
+        insns.add(new LocalVariable("visitLocalVariable", name, desc, sig, start, end, index));
     }
 
     public void visitMultiANewArrayInsn(String name, int i) {

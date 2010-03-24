@@ -23,6 +23,7 @@ public class NotYetImplementedInsn extends Insn {
 
     NotYetImplementedInsn(String name) {
         this.name = name;
+        throw new RuntimeException("Encountered a not yet implemented instruction");
     }
 
     public String toString() { 

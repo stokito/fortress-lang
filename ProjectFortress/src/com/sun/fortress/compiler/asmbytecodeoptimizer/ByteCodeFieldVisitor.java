@@ -53,16 +53,13 @@ public class ByteCodeFieldVisitor implements FieldVisitor {
 
 
     public void visitAttribute(Attribute attr) {
-        System.out.println("visitAttribute");
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        System.out.println("visitAnnotation");
         return new ByteCodeAnnotationVisitor(0);
     }
 
     public void visitEnd() {
-        System.out.println("visitEnd");
     }
         
 } 
