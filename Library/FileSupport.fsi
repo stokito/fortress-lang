@@ -116,7 +116,7 @@ trait ReadStream extends { Closeable, Consumable }
 end
 
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
-                          readOne:ReadStream -> S)
+                          readOne:ReadStream -> Maybe[\S\])
         extends { Consumable, Generator[\S\] }
 end
 
