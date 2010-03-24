@@ -14,24 +14,19 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.bytecodeoptimizer;
+package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
-class LineNumberTableAttributeInfo extends AttributeInfo {
-  int lineNumberTableLength;
-  LineNumberTableInfo lineNumberTable[];
+import java.util.ArrayList;
 
-  LineNumberTableAttributeInfo(ClassToBeOptimized cls, String name, int length) {
-    attributeName = name;
-    attributeLength = length;
-    lineNumberTableLength = cls.reader.read2Bytes();
-    lineNumberTable = new LineNumberTableInfo[lineNumberTableLength];
-    for (int i = 0; i < lineNumberTableLength; i++)
-      lineNumberTable[i] = new LineNumberTableInfo(cls.reader);
-  }
+public class AddOptimizeString {
+    public static void Optimize(ByteCodeVisitor bcv) {
+        ByteCodeMethodVisitor bcvm = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main");
 
-  public void Print() {
-    System.out.println("LineNumberTable Attribute Info = ");
-  }
+        if (bcvm != null) {
+            bcvm.insns.add(0, new FieldInsn("GETSTATIC", bcvm.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+            bcvm.insns.add(1, new LdcInsn("LdcInsn", "Running Optimized Version"));
+            bcvm.insns.add(2, new MethodInsn("INVOKEVIRTUAL", bcvm.INVOKEVIRTUAL, "java/io/PrintStream", "println",
+                                          "(Ljava/lang/String;)V"));
+        }
+    }
 }
-
-

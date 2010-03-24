@@ -14,19 +14,11 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
-package com.sun.fortress.compiler.bytecodeoptimizer;
+package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
-class ConstantInterfaceMethodInfo extends ConstantPoolInfo{
-  int classIndex;
-  int nameAndTypeIndex;
-  ConstantInterfaceMethodInfo(ClassToBeOptimized cls) {
-      classIndex = cls.reader.read2Bytes();
-      nameAndTypeIndex = cls.reader.read2Bytes();
-  }    
-  void print(ClassToBeOptimized cls) {
-    System.out.println("ConstantInterfaceMethodInfo classIndex = " + 
-		       classIndex +
-		       " nameAndTypeIndex = " + nameAndTypeIndex);
-  }
+public abstract class Optimization {
+
+    
+    abstract void Optimize(ByteCodeVisitor bcv);
+
 }
-

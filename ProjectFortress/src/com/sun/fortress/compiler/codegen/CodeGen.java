@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.jar.JarOutputStream;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
