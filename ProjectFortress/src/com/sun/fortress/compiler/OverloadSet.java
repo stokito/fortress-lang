@@ -1041,10 +1041,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // that we generate the expected closure class rather than
             // a top-level method.
             String PCN =
-                NamingCzar.genericFunctionPkgClass(packageAndClassName, name,
+                Naming.genericFunctionPkgClass(packageAndClassName, name,
                                                    sparamsType, genericArrowType);
             PCNOuter =
-                NamingCzar.genericFunctionPkgClass(packageAndClassName, name,
+                Naming.genericFunctionPkgClass(packageAndClassName, name,
                                                    Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD,
                                                    genericArrowType);
             // System.err.println("Looks generic.\n    signature " + signature +
@@ -1126,7 +1126,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
                 sparamsType = NamingCzar.genericDecoration(sargs, null, null, ifNone);
                 ownerName =
-                    NamingCzar.genericFunctionPkgClass(ownerName, mname,
+                    Naming.genericFunctionPkgClass(ownerName, mname,
                                                        sparamsType, genericArrowType);
             }
             

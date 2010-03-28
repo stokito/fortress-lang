@@ -26,9 +26,9 @@ shouldBeTheSame(a:String, b:String, diag:String,f:String):() =
    if a =/= b then
        println("FAIL: " diag f)
        println("--------expected--------------------------------------------")
-       println(a)
+       println("|" a "| length = " |a|)
        println("--------got-------------------------------------------------")
-       println(b)
+       println("|" b "| length = " |b|)
        println("------------------------------------------------------------")
    end
 

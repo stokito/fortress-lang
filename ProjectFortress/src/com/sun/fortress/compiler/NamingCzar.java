@@ -623,18 +623,6 @@ public class NamingCzar {
     }
 
     /**
-     * @param simple_name
-     * @param static_parameters
-     * @param generic_arrow_schema
-     * @return
-     */
-    public static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
-            String static_parameters, String generic_arrow_schema) {
-        return component_pkg_class + Naming.GEAR +"$" +
-        simple_name + static_parameters + Naming.ENVELOPE + "$" + Naming.HEAVY_X + generic_arrow_schema;
-    }
-
-    /**
      * @param extendsC
      * @return The names of the Java interfaces providing the mentioned types;
      *         if the extends clause is empty, fills in Object as required.
@@ -666,6 +654,11 @@ public class NamingCzar {
         return result;
     }
 
+    /**
+     * Returns slash-separated concatenation of parts of api name.
+     * @param api
+     * @return
+     */
     public static String javaPackageClassForApi(APIName api) {
         return javaPackageClassForApi(api, "/");
     }

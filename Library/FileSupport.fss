@@ -106,7 +106,10 @@ trait ReadStream extends { Closeable, Consumable }
     lines(n:ZZ32):Generator[\String\] = do
         consume()
         FileGenerator[\String\](self, n,
-            fn (r:ReadStream): Maybe[\String\] => (if r.eof() then Nothing[\String\] else Just r.uncheckedReadLine()))
+            fn (r:ReadStream): Maybe[\String\] => do
+               s = r.uncheckedReadLine()
+               (if |s| = 0 AND: r.eof() then Nothing[\String\] else Just s)
+            end)
       end
     lines():Generator[\String\] = lines(0)
 
@@ -115,7 +118,10 @@ trait ReadStream extends { Closeable, Consumable }
     characters(n:ZZ32):Generator[\Char\] = do
         consume()
         FileGenerator[\Char\](self, n,
-            fn (r:ReadStream): Maybe[\Char\] => (if r.eof() then Nothing[\Char\] else Just r.eofCheckedReadChar()))
+            fn (r:ReadStream): Maybe[\Char\] => do
+               c = r.uncheckedReadChar()
+               (if c = -1 then Nothing[\Char\] else Just char(c) )
+            end)
       end
     characters():Generator[\Char\] = characters(0)
 
