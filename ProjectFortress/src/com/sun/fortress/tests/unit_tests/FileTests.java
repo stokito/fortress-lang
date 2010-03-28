@@ -74,17 +74,17 @@ public class FileTests {
         final boolean printSuccess;
         final boolean printFailure;
 
-        public BaseTest(String path,
-                        String d,
-                        String s,
+        public BaseTest(String _path,
+                        String _dir,
+                        String _name,
                         boolean unexpected_only,
                         boolean knownFailure,
                         boolean shouldFail) {
             super("testFile");
-            this.f = join(d, s);
-            this.dir = d;
-            this.path = path;
-            this.name = s;
+            this.f = join(_dir, _name);
+            this.dir = _dir;
+            this.path = _path;
+            this.name = _name;
             this.unexpectedOnly = unexpected_only;
 
             this.printSuccess = !unexpected_only || knownFailure;
@@ -439,17 +439,22 @@ public class FileTests {
 
         private final StringMap props;
 
-        public TestTest(StringMap props,
-                        String path,
-                        String d,
-                        String s,
+        public TestTest(StringMap _props,
+                        String _path,
+                        String _dir,
+                        String _name,
                         boolean unexpected_only,
                         boolean knownFailure,
                         boolean shouldFail) {
-            super(path, d, s, unexpected_only, knownFailure, shouldFail);
-            this.props = props;
+            super(_path, _dir, _name, unexpected_only, knownFailure, shouldFail);
+            this.props = _props;
         }
 
+        public TestTest(StringMap props, TestTest existing) {
+            super(existing.path, existing.dir, existing.name, existing.unexpectedOnly, existing.knownFailure, existing.shouldFail);
+            this.props= new StringMap.ComposedMaps(props, existing.props);
+        }
+        
         static boolean whinedAboutTimingIssues = false;
 
         public void testFile() throws Throwable {

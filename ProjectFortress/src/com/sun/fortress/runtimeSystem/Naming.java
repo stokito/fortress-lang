@@ -710,4 +710,16 @@ public class Naming {
         name = name.replace('.', '/');
         return name;
     }
+
+    /**
+     * @param simple_name
+     * @param static_parameters
+     * @param generic_arrow_schema
+     * @return
+     */
+    public static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
+            String static_parameters, String generic_arrow_schema) {
+        return component_pkg_class + GEAR +"$" +
+        simple_name + static_parameters + ENVELOPE + "$" + HEAVY_X + generic_arrow_schema;
+    }
 }

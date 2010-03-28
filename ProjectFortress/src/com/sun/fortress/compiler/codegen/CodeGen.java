@@ -1183,10 +1183,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // TODO refactor, this is computed in another place.
         String PCN =
-            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
         String PCNOuter =
-            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         makeTemplateSParams(sparams_part) , generic_arrow_type);
 
         // System.err.println(PCN);
@@ -1681,10 +1681,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int invocation, String dottedName, int selfIndex,
             List<Param> params, int modifiers, List<String> splist) {
         String PCN =
-            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
         String PCNOuter =
-            NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         makeTemplateSParams(sparams_part) , generic_arrow_type);
         // System.err.println(PCN);
 
@@ -1961,7 +1961,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String arrow_type = NamingCzar.jvmTypeDesc(arrowToUse, thisApi(), false);
 
             pkgClass =
-                NamingCzar.genericFunctionPkgClass(pkgClass, calleeInfo.second(),
+                Naming.genericFunctionPkgClass(pkgClass, calleeInfo.second(),
                                                    decoration, arrow_type);
 
             // pkgClass = pkgClass.replace(".", "/");
@@ -2314,10 +2314,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
                 PCN =
-                    NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                        sparams_part, generic_arrow_type);
                 PCNOuter =
-                    NamingCzar.genericFunctionPkgClass(packageAndClassName, mname,
+                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                 makeTemplateSParams(sparams_part) , generic_arrow_type);
 
 
