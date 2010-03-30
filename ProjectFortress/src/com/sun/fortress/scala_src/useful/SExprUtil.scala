@@ -24,6 +24,9 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.nodes_util.{Span, NodeUtil => NU}
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer
 
 object SExprUtil {
 
@@ -123,10 +126,17 @@ object SExprUtil {
    * Replaces the overloadings in a FunctionalRef with the given overloadings
    */
   def addOverloadings(fnRef: FunctionalRef,
-                      overs: List[Overloading]): FunctionalRef = fnRef match {
-    case SFnRef(a, b, c, d, e, f, _, h, i) => SFnRef(a, b, c, d, e, f, overs, h, i)
-    case SOpRef(a, b, c, d, e, f, _, h, i) => SOpRef(a, b, c, d, e, f, overs, h, i)
-    case _ => NI.nyi()
+                      overs: List[Overloading])(implicit ta: TypeAnalyzer): FunctionalRef = {
+    val (typs,schms) = overs.map(x => x match {case SOverloading(_, _, _, typ, schma) => (typ.get,schma.get)}).unzip
+    val tsa = new TypeSchemaAnalyzer(ta)
+    val ityps = tsa.duplicateFreeIntersection(typs)
+    val ischms = tsa.duplicateFreeIntersection(schms)
+    //Todo: Put ityps and ischms into the FunctionalRef
+    fnRef match {
+      case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, None, None)
+      case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, None, None)
+      case _ => NI.nyi()
+    }
   }
 
   /**
