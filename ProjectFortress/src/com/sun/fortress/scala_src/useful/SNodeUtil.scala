@@ -21,12 +21,15 @@ import _root_.java.util.{List => JList}
 import _root_.java.util.{Set => JSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
 import com.sun.fortress.compiler.typechecker.TypeEnv
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.staticenv.EmptyKindEnv
+import com.sun.fortress.scala_src.typechecker.staticenv.StaticEnv
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -105,17 +108,17 @@ object SNodeUtil {
     object adder extends Walker {
       var swap = false
       override def walk(node: Any): Any = node match {
-	case SExprInfo(_, a, b) if !swap =>
-	  swap = true
-	  SExprInfo(span, a, b)
-	case STypeInfo(_, a, b, c) if !swap =>
-	  swap = true
-	  STypeInfo(span, a, b, c)
-	case SSpanInfo(_) if !swap =>
-	  swap = true
-	  SSpanInfo(span)
-	case _ if !swap => super.walk(node)
-	case _ => node
+      	case SExprInfo(_, a, b) if !swap =>
+      	  swap = true
+      	  SExprInfo(span, a, b)
+      	case STypeInfo(_, a, b, c) if !swap =>
+      	  swap = true
+      	  STypeInfo(span, a, b, c)
+      	case SSpanInfo(_) if !swap =>
+      	  swap = true
+      	  SSpanInfo(span)
+      	case _ if !swap => super.walk(node)
+      	case _ => node
       }
     }
     adder(node).asInstanceOf[HasAt]
@@ -185,5 +188,143 @@ object SNodeUtil {
     case tt:TraitType => Some(tt)
     case tt:TraitSelfType => getTraitType(tt.getNamed)
     case _ => None
+  }
+  
+  /**
+   * Replace every occurrence of a the name `orig` with the name `repl` in the
+   * node `body`. Every occurrence of a name with the same API and text as
+   * `orig` is replaced with the name `repl`. The span of the original name is
+   * preserved on the new occurrence of `repl`.
+   */
+  def alphaRename(orig: IdOrOp, repl: IdOrOp, body: Node): Node =
+    alphaRename(List((orig, repl)), body)
+  
+  /**
+   * Replace every occurrence of a the name `orig` with the name `repl` in the
+   * node `body`. Every occurrence of a name with the same API and text as
+   * `orig` is replaced with the name `repl`. The span of the original name is
+   * preserved on the new occurrence of `repl`.
+   */
+  def alphaRename(repls: List[(IdOrOp, IdOrOp)], body: Node): Node = {
+    
+    // Predicate that says the replacement matches the name x.
+    def matches(x: IdOrOp)(repl: (IdOrOp, IdOrOp)): Boolean = {
+      val SIdOrOp(_, xApi, xText) = x
+      val SIdOrOp(_, oApi, oText) = repl._1
+      xApi == oApi && oText == oText
+    }
+    
+    // Walker that replaces the names.
+    object renamer extends Walker {
+      override def walk(n: Any): Any = n match {
+        
+        // If this name matches one of the replacements in API and text, replace
+        // it while preserving the span. Otherwise we don't need to recur since
+        // no nested names.
+        case x:IdOrOp => repls.find(matches(x)) match {
+          case Some((_, repl)) => setSpan(repl, x.getInfo.getSpan)
+          case _ => x
+        }
+        
+        case _ => super.walk(n)
+      }
+    }
+    
+    // Walk
+    renamer(body).asInstanceOf[Node]
+  }
+  
+  /**
+   * Check for any occurrence of `name` in `body`. Returns true iff there is any
+   * occurrence of an IdOrOp node with the same API and text as `name` somewhere
+   * within the node `body`.
+   */
+  def nameInBody(name: IdOrOp, body: Node): Boolean = {
+    val SIdOrOp(_, api, text) = name
+    
+    // The walker sets found = true when it finds the given name.
+    object checker extends Walker {
+      var found = false 
+      override def walk(n: Any): Any = n match {
+        case SIdOrOp(_, napi, ntext)
+               if !found && napi == api && ntext == text => found = true
+        case _ if !found => super.walk(n)
+        case _ => n
+      }
+    }
+    
+    // Walk and return whether or not it was found.
+    checker.walk(body)
+    checker.found
+  }
+  
+  /**
+   * Creates a duplicate of `x` with a fresh name within `node`. Repeatedly
+   * creates a duplicate of `x` with a fresh name, checking if it exists within
+   * `node`. If so, it continues (stopping with an error eventually); otherwise
+   * it returns the successful, fresh duplicate.
+   */
+  def makeFreshName(x: IdOrOp, node: Node): IdOrOp =
+    makeFreshNameHelper(x, y => !nameInBody(y, node))
+  
+  /**
+   * Creates a fresh name within `node`. Repeatedly creates a fresh name,
+   * checking if it exists within `node`. If so, it continues (stopping with an
+   * error eventually); otherwise it returns the successful, fresh duplicate.
+   */
+  def makeFreshName(node: Node): IdOrOp = {
+    // Ok to use a dummy span because if this name is used for alpha renaming,
+    // the span of the original name it replaces remains.
+    val tempId = NF.bogusId(NF.typeSpan)
+    makeFreshNameHelper(tempId, y => !nameInBody(y, node))
+  }
+  
+  /**
+   * Creates a duplicate of `x` with a fresh name within `env`. Repeatedly
+   * creates a duplicate of `x` with a fresh name, checking if it exists either
+   * in the domain of `env`. If so, it continues (stopping with an error
+   * eventually); otherwise it returns the successful, fresh duplicate.
+   */
+  def makeFreshName[T](x: IdOrOp, env: StaticEnv[T]): IdOrOp =
+    makeFreshNameHelper(x, y => !env.contains(y))
+  
+  /**
+   * Creates a fresh name within `env`. Repeatedly creates a fresh name,
+   * checking if it exists either in the domain of `env`. If so, it continues
+   * (stopping with an error eventually); otherwise it returns the successful,
+   * fresh duplicate.
+   */
+  def makeFreshName[T](env: StaticEnv[T]): IdOrOp = {
+    // Ok to use a dummy span because if this name is used for alpha renaming,
+    // the span of the original name it replaces remains.
+    val tempId = NF.bogusId(NF.typeSpan)
+    makeFreshNameHelper(tempId, y => !env.contains(y))
+  }
+  
+  /**
+   * Helper for the companion method that takes in an arbitrary predicate
+   * for determining if a name is fresh.
+   */
+  private def makeFreshNameHelper(x: IdOrOp,
+                                  isFresh: IdOrOp => Boolean)
+                                  : IdOrOp = {
+    
+    // Creates a duplicate of `x` with a mangled name.
+    def mkname(i: Int): IdOrOp = {
+      val s = "%s$%d".format(x.getText, i)
+      x match {
+        case SId(info, _, _) => SId(info, None, s)
+        case SOp(info, _, _, f, e) => SOp(info, None, s, f, e)
+        case _ => null // never matches
+      }
+    }
+    
+    // Keep trying to generate a name not already in `env`.
+    val MAX_I = 10000
+    for (i <- 1.to(MAX_I)) {
+      val fresh = mkname(i)
+      if (isFresh(fresh)) return fresh
+    }
+    bug("Failed to create a fresh name for %s".format(x))
   }
 }
