@@ -637,6 +637,26 @@ object STypesUtil {
     }
     unknownChecker(typ); unknownChecker.found
   }
+  
+  /** Returns true iff the two static params have the same kind. */
+  def equalKinds(sp1: StaticParam, sp2: StaticParam): Boolean =
+    (sp1.getKind, sp2.getKind) match {
+      case (_:KindType, _:KindType) => true
+      case (_:KindInt, _:KindInt) => true
+      case (_:KindBool, _:KindBool) => true
+      case (_:KindDim, _:KindDim) => true
+      case (_:KindOp, _:KindOp) => true
+      case (_:KindUnit, _:KindUnit) => true
+      case (_:KindNat, _:KindNat) => true
+      case (_, _) => false
+    }
+  
+  /**
+   * Returns true iff the two lists of static params have the same length and
+   * each corresponding pair has the same kind.
+   */
+  def equalKinds(sp1: List[StaticParam], sp2: List[StaticParam]): Boolean =
+    sp1.length == sp2.length && (sp1, sp2).zipped.forall((x, y) => equalKinds(x, y))
 
   /**
    * Creates an iterator over the given domain type. If this is a tuple, it

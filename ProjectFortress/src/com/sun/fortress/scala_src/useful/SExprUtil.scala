@@ -126,8 +126,11 @@ object SExprUtil {
    * Replaces the overloadings in a FunctionalRef with the given overloadings
    */
   def addOverloadings(fnRef: FunctionalRef,
-                      overs: List[Overloading])(implicit ta: TypeAnalyzer): FunctionalRef = {
-    val (typs,schms) = overs.map(x => x match {case SOverloading(_, _, _, typ, schma) => (typ.get,schma.get)}).unzip
+                      overs: List[Overloading])
+                     (implicit ta: TypeAnalyzer): FunctionalRef = {
+    val (typs,schms) = overs.map { x => x match {
+      case SOverloading(_, _, _, typ, schma) => (typ.get,schma.get)
+    }}.unzip
     val tsa = new TypeSchemaAnalyzer(ta)
     val ityps = tsa.duplicateFreeIntersection(typs)
     val ischms = tsa.duplicateFreeIntersection(schms)
