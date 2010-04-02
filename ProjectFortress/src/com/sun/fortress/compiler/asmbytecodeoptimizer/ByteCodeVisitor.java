@@ -70,7 +70,7 @@ class ByteCodeVisitor implements ClassVisitor {
 
     public void toAsm(JarOutputStream jos) {
         ClassWriter cw = new ClassWriter(1);
-        cw.visit(version, access, name, sig, superName, null);
+        cw.visit(version, access, name, sig, superName, interfaces);
         Iterator it = fieldVisitors.entrySet().iterator();
 
         while (it.hasNext()) {
@@ -104,6 +104,7 @@ class ByteCodeVisitor implements ClassVisitor {
         this.name = name;
         this.sig = sig;
         this.superName = superName;
+        this.interfaces = interfaces;
     }
 
     public void visitSource(String file, String debug) {
@@ -124,7 +125,7 @@ class ByteCodeVisitor implements ClassVisitor {
 
     public MethodVisitor visitMethod(int access, String name, String desc, String sig, String[] exceptions) {
         ByteCodeMethodVisitor foo = new ByteCodeMethodVisitor(access, name, desc, sig, exceptions);
-        methodVisitors.put(name, foo);
+        methodVisitors.put(name + desc, foo);
         return foo;
     }
 
