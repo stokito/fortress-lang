@@ -20,7 +20,10 @@ import java.util.ArrayList;
 
 public class AddOptimizeString {
     public static void Optimize(ByteCodeVisitor bcv) {
-        ByteCodeMethodVisitor bcvm = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main");
+
+        // These strings should be pulled out in a naming file somewhere.
+
+        ByteCodeMethodVisitor bcvm = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main([Ljava/lang/String;)V");
 
         if (bcvm != null) {
             bcvm.insns.add(0, new FieldInsn("GETSTATIC", bcvm.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));

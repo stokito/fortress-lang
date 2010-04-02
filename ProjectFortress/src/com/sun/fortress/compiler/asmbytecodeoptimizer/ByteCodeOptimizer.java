@@ -35,6 +35,7 @@ import org.objectweb.asm.util.*;
 class ByteCodeOptimizer {
 
     HashMap classes = new HashMap();
+    HashMap files = new HashMap();
 
     void readInClassFile(String name) {
         System.out.println("readClassFile " + name);
@@ -66,18 +67,21 @@ class ByteCodeOptimizer {
                 byte tempbuf[] = new byte[bufchunk];
                 int bytepos = 0;
                 int lastread = 0;
-                System.out.println("entry = " + entry);
+
+                while ((bytesread = jario.read(tempbuf, lastread, bufchunk)) > 0) {
+                    System.arraycopy(tempbuf, 0, buf, bytepos, bytesread);
+                    bytepos = bytepos + bytesread;
+                }
 
                 if (entry.getName().endsWith(".class")) {
-                    while ((bytesread = jario.read(tempbuf, lastread, bufchunk)) > 0) {
-                        System.arraycopy(tempbuf, 0, buf, bytepos, bytesread);
-                        System.out.println("bytepos = " + bytepos + " bytesread = " + bytesread);
-                        bytepos = bytepos + bytesread;
-                    }
                     ClassReader cr = new ClassReader(buf);
                     ByteCodeVisitor bcv = new ByteCodeVisitor();
                     cr.accept(bcv, 0);
                     classes.put(entry.getName(), bcv);
+                } else {
+                    byte rsbuf[] = new byte[bytepos];
+                    System.arraycopy(buf, 0, rsbuf, 0, bytepos);
+                    files.put(entry.getName(), rsbuf);
                 }
             }
         } catch (Exception e) {
@@ -105,6 +109,16 @@ class ByteCodeOptimizer {
                 ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
                 bcv.toAsm(jos);
             }
+
+            it = files.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pairs = (Map.Entry)it.next();
+                byte[] buf = (byte[]) pairs.getValue();
+                JarEntry entry = new JarEntry((java.lang.String) pairs.getKey());
+                jos.putNextEntry(entry);
+                jos.write(buf);
+            }
+            
             jos.close();
         } catch (Exception e) {
             System.out.println("ClassFormatError:"  + e );
