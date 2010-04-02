@@ -71,6 +71,7 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   protected def syntacticEqGeneric(s: Type, t: Type): Boolean = {
     
     // Extract out the explicit static params of each.
+    // TODO: What to do about lifted static params?
     val s_sp = getStaticParams(s).filterNot(_.isLifted)
     val t_sp = getStaticParams(t).filterNot(_.isLifted)
     
@@ -95,7 +96,7 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
       }
     } // List of Option[Type], where Some(bd) is an instantiated type param bd
     
-    // Clear the static params of s since t has none now.
+    // Clear the static params of s. (t has already been instantiated.)
     val s_typ = clearStaticParams(s)
     
     // Check that the instantiated body of t is equal to s, and that each
@@ -120,5 +121,5 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   
   /** Remove syntactically equivalent duplicates and take the intersection. */
   def duplicateFreeIntersection(ts: List[Type]): Type =
-    NF.makeIntersectionType(toJavaList(removeDuplicates(ts)))
+    NF.makeMaybeIntersectionType(toJavaList(removeDuplicates(ts)))
 }
