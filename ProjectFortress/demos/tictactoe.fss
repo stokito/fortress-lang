@@ -85,40 +85,40 @@ object Board(rows)
     end
 
     private winnerHorizontal(row) = do
-        first = element(rows,row boardSize)
-        all = BIG AND[i <- 0#boardSize] element(rows,row boardSize + i) = first
+        head = element(rows,row boardSize)
+        all = BIG AND[i <- 0#boardSize] element(rows,row boardSize + i) = head
         if all then
-            first
+            head
         else
             0
         end
     end
 
     private winnerVertical(column) = do
-        first = element(rows, column)
-        all = BIG AND[i <- 0#boardSize] element(rows,i boardSize + column) = first
+        head = element(rows, column)
+        all = BIG AND[i <- 0#boardSize] element(rows,i boardSize + column) = head
         if all then
-            first
+            head
         else
             0
         end
     end
 
     private winnerLeftDiagonal() = do
-        first = element(rows, 0)
-        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + i) = first
+        head = element(rows, 0)
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + i) = head
         if all then
-            first
+            head
         else
             0
         end
     end
 
     private winnerRightDiagonal() = do
-        first = element(rows, boardSize - 1)
-        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + boardSize - i - 1) = first
+        head = element(rows, boardSize - 1)
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + boardSize - i - 1) = head
         if all then
-            first
+            head
         else
             0
         end
