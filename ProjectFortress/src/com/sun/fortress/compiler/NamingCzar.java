@@ -451,7 +451,7 @@ public class NamingCzar {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
-        bl(fortLib, "IntLiteral", "FIntLiteral");
+    //    bl(fortLib, "IntLiteral", "FIntLiteral");
         bl(fortLib, "Boolean", "FBoolean");
         bl(fortLib, "Char", "FChar");
         bl(fortLib, "RR32", "FRR32");

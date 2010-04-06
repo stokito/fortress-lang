@@ -41,6 +41,8 @@ public class Naming {
     
     public final static String HEAVY_X = "\u2716"; // heavy X -- stop rewriting in an instantiation, for schema tags
 
+    public static final String UP_INDEX = "\u261d"; // Special static parameter for static type of self in generic method invocation
+    
     public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
     public static final String SCALES = "\u2696"; // dimension static param
     public static final String MUSIC_SHARP = "\u266f"; // int static param
@@ -107,7 +109,7 @@ public class Naming {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
-        bl(COMPILER_BUILTIN, "$IntLiteral", "FIntLiteral");
+    //    bl(COMPILER_BUILTIN, "$IntLiteral", "FIntLiteral");
         bl(COMPILER_BUILTIN, "$Boolean", "FBoolean");
         bl(COMPILER_BUILTIN, "$Char", "FChar");
         bl(COMPILER_BUILTIN, "$RR32", "FRR32");

@@ -1260,6 +1260,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * @param x
      * @param name
+     * @param sparams 
      * @param params
      * @param selfIndex
      * @param savedInATrait 
@@ -1268,7 +1269,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param body
      */
     private void generateGenericMethod(FnDecl x, IdOrOp name,
-            List<Param> params, int selfIndex,
+            List<StaticParam> sparams, List<Param> params, int selfIndex,
             boolean savedInATrait, Type returnType,
             boolean inAMethod, Expr body) {
 
@@ -1286,6 +1287,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * that works yet).
          * 
          */
+        Span sp_span = x.getInfo().getSpan();
+        IdOrOp sp_name = NodeFactory.makeId(sp_span, Naming.UP_INDEX);
+        StaticParam new_sp = NodeFactory.makeTypeParam(sp_span, Naming.UP_INDEX);
 
         
         if (savedInATrait) {
@@ -1613,7 +1617,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // A generic method in a trait or object.
                         sayWhat(x, "Generic methods not yet implemented.");
                         generateGenericMethod(x, (IdOrOp)name,
-                                params, selfIndex, savedInATrait, returnType, inAMethod, body);
+                                sparams, params, selfIndex, savedInATrait, returnType, inAMethod, body);
 
                     } else {
                         generateGenericFunctionClass(x, (IdOrOp)name, selfIndex);
