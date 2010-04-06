@@ -25,4 +25,8 @@ abstract public class Insn {
 
     public String toString() { return name;}
     public abstract void toAsm(MethodVisitor mv);
+
+    public boolean matches(Insn i) {
+        return false;
+    }
 }

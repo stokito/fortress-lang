@@ -36,4 +36,8 @@ public class VisitLineNumberInsn extends Insn {
     public void toAsm(MethodVisitor mv) {
         mv.visitLineNumber(line, start);
     }
+
+    public boolean matches(VisitLineNumberInsn vlni) {
+        return true;
+    }
 }

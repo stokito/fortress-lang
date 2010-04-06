@@ -27,11 +27,6 @@ import org.objectweb.asm.util.*;
 
 public class RemoveLiteralCoercions {
 
-    static String intLiteral = "com/sun/fortress/compiler/runtimeValues/FIntLiteral";
-    static String ZZ32 = "com/sun/fortress/compiler/runtimeValues/FZZ32";
-    static String coerce = "fortress/CompilerBuiltin.coerce_ZZ32";
-    
-
     public static void Optimize(ByteCodeVisitor bcv) {
         Iterator it = bcv.methodVisitors.entrySet().iterator();
         while (it.hasNext()) {
@@ -40,28 +35,59 @@ public class RemoveLiteralCoercions {
             removeCoercions(bcmv);
         }
     }
+
+    public static Substitution removeIntLiterals(ByteCodeMethodVisitor bcmv) {
+        String intLiteral = "com/sun/fortress/compiler/runtimeValues/FIntLiteral";
+        String ZZ32 = "com/sun/fortress/compiler/runtimeValues/FZZ32";
+
+        ArrayList<Insn> matches = new ArrayList<Insn>();
+        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC,
+                                             intLiteral, 
+                                             "make",
+                                             "(I)L" + intLiteral + ";"));
+        matches.add(new LabelInsn("LabelInsn", new Label()));
+        matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label()));
+        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, "fortress/CompilerBuiltin", 
+                                             "coerce_ZZ32", 
+                                             "(Lfortress/CompilerBuiltin$IntLiteral;)L" + ZZ32 + ";"));
+        ArrayList<Insn> replacements = new ArrayList<Insn>();
+        replacements.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, 
+                                            ZZ32,
+                                            "make",
+                                            "(I)L" + ZZ32 + ";"));
+        return new Substitution(matches, replacements);
+    }
+
+    public static Substitution removeFloatLiterals(ByteCodeMethodVisitor bcmv) {
+        String floatLiteral = "com/sun/fortress/compiler/runtimeValues/FFloatLiteral";
+        String RR64 = "com/sun/fortress/compiler/runtimeValues/FRR64";
+
+        ArrayList<Insn> matches = new ArrayList<Insn>();
+        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC,
+                                             floatLiteral, 
+                                             "make",
+                                             "(D)L" + floatLiteral + ";"));
+        matches.add(new LabelInsn("LabelInsn", new Label()));
+        matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label()));
+        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, "fortress/CompilerBuiltin", 
+                                             "coerce_RR64", 
+                                             "(Lfortress/CompilerBuiltin$FloatLiteral;)L" + RR64 + ";"));
+        ArrayList<Insn> replacements = new ArrayList<Insn>();
+        replacements.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, 
+                                            RR64,
+                                            "make",
+                                            "(D)L" + RR64 + ";"));
+        return new Substitution(matches, replacements);
+    }
+
+
     public static void removeCoercions(ByteCodeMethodVisitor bcmv) {
         for (int i = 0; i < bcmv.insns.size(); i++) {
-            if (bcmv.insns.get(i) instanceof MethodInsn) {
-                MethodInsn mi = (MethodInsn) bcmv.insns.get(i);
-                if (mi.matches(bcmv.INVOKESTATIC, intLiteral, "make", "(I)L" + intLiteral + ";"))  {
-                    // i+1 is the label, i+2 is visitLineNumber, i+3 the next instruction
-                    if (bcmv.insns.get(i+3) instanceof MethodInsn) {
-                        MethodInsn mi2 = (MethodInsn) bcmv.insns.get(i+3);
-                        if (mi2.matches(bcmv.INVOKESTATIC, "fortress/CompilerBuiltin", "coerce_ZZ32",
-                                        "(L" + intLiteral + ";)L" + ZZ32 + ";")) {
-                            bcmv.insns.remove(i);
-                            bcmv.insns.remove(i);
-                            bcmv.insns.remove(i);
-                            bcmv.insns.remove(i);
-                            bcmv.insns.add(i, new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, 
-                                                             ZZ32, 
-                                                             "make",
-                                                             "(I)L" + ZZ32 + ";"));
-                        }
-                    }
-                }
-            }
+            System.out.println("Insn " + i + "=" + bcmv.insns.get(i));
         }
+                           
+        removeIntLiterals(bcmv).makeSubstitution(bcmv);
+        removeFloatLiterals(bcmv).makeSubstitution(bcmv);
     }
+
 }
