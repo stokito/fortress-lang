@@ -783,7 +783,8 @@ public class FileTests {
                 break;
             }
             boolean decrement = true;
-            if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss")) {
+            if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss") ||
+                s.contains("GenomeUtil")) {
                 System.out.println("Not compiling file " + s);
                 decrement = false;
             } else if (!s.startsWith(".")) {

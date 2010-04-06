@@ -23,7 +23,7 @@ export Executable
 var coverage: Map[\String, Map[\ZZ32,ZZ32\]\] := {[\String, Map [\ZZ32, ZZ32\] \] }
 
 homeDir: String = getProperty("fortress.autohome",".")
-referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head"
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
 sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
@@ -75,10 +75,10 @@ getAdjustedSequence(negativeOri:Boolean, sequence:String, refColorsSnip: String)
   end
 end
 
-readASnip(r:ReadStream, refACGT: String, refColors: String): Snip = do
+readASnip(r:ReadStream, refACGT: String, refColors: String): Maybe[\Snip\] = do
   header: String = r.uncheckedReadLine()
   sequence: String = r.uncheckedReadLine()
-  if sequence = "" then Snip(header, sequence, "", 0, 0, 0, "", "", "") else
+  if sequence = "" then Just(Snip(header, sequence, "", 0, 0, 0, "", "", "")) else
     name: String = header.upto(',')
     loc: String = header.beyond(',').beyond('_').upto('.')
     length: ZZ32 = |sequence| - 1
@@ -88,7 +88,7 @@ readASnip(r:ReadStream, refACGT: String, refColors: String): Snip = do
     refColorsSnip: String = refColors[adjustedLocation:sequenceEnd+1].asFlatString
     adjustedSequence:FlatString = getAdjustedSequence(negativeOri, sequence, refColorsSnip).asFlatString
     refACGTSnip:String = refACGT[adjustedLocation : sequenceEnd + 1].asFlatString
-    Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, refColorsSnip, adjustedSequence, refACGTSnip)
+    Just(Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, refColorsSnip, adjustedSequence, refACGTSnip))
   end
 end
 
@@ -149,9 +149,6 @@ opr BIG UNIONCAT[\T\](): BigReduction[\Map[\T, List[\Event\]\],Map[\T, List[\Eve
 opr UNIONPLUS[\T\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
   a.union(fn(k,x,y) => x + y, b)
 
-opr BIG UNIONPLUS[\T\](): BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
-  embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
-
 readSize:ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
 calculateCoverage(fileName: String, refEnd: ZZ32):ZZ32 =
@@ -199,7 +196,7 @@ end
 eventGenerator(s: Snip, name: String, singleErrorRates: List[\RR64\], multipleErrorRates: List[\RR64\]): Map[\ZZ32, List[\Event\]\] = do
   ref = s.refColorsSnip
   sample = s.sampleColorsSnip
-  ranges = runRanges <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |>
+  ranges = runRanges <|[\Boolean\] q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |>
   diffs = BIG || [i <- seq(0 # |sample|)] (if (sample[i]=/=ref[i]) OR: (BIG OR[r <- seq(ranges)] (i IN r)) then "X" else ".")
   {[\ZZ32, List[\Event\]\] s.pos + r.lower |->
    <|[\Event\] Event(s, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, singleErrorRates, multipleErrorRates), name) |> |

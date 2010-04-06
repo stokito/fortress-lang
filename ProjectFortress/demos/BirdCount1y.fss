@@ -7,11 +7,11 @@ Sun Microsystems, Inc. is the Copyright owner of the Fortress programming langua
 Use is subject to license terms accompanying the software.
  ******************************************************************************)
 
-component BirdCount1z
+component BirdCount1y
 
 import File.{...}; import FileSupport.{...}; import FlatString.{...}; import List.{...}
 import Map.{...}; import Pairs.{...}; import Set.{...}; import System.{getProperty}
-import GenomeUtil1z.{...}
+import GenomeUtil1y.{...}
 
 export Executable
 
