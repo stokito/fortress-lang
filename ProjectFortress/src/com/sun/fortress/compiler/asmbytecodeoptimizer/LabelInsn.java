@@ -35,4 +35,8 @@ public class LabelInsn extends Insn {
     public void toAsm(MethodVisitor mv) { 
         mv.visitLabel(label);
     }
+
+    public boolean matches(LabelInsn li) {
+        return true;
+    }
 }
