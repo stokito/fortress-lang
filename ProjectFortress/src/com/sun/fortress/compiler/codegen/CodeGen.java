@@ -407,6 +407,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    /**
+     * 
+     * Generate a an instance method forwarding calls from fromTrait.fnl to
+     * the static method toTrait.fnl.
+     * 
+     * @param fnl
+     * @param inst
+     * @param toTrait
+     * @param fromTrait
+     */
     private void generateForwardingFor(Functional fnl, StaticTypeReplacer inst,
                                        TraitType toTrait, TraitType fromTrait) {
         IdOrOp name = fnl.name();
@@ -471,6 +481,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              (due to joins in type hierarchy)
 
           3) Are not overridden by a method in the present trait or object
+          
+     Note the assumption that trait inheritance is normalized.
+     If "A extends {B,C}" has been normalized,
+     then B does not extend C and C does not extend B.
+     That is, the extends clause is minimal.
+     (There may be some issues with normalized inheritance and
+      comprises clauses.)
     */
     private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
 
@@ -483,7 +500,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         if (!includeCurrent && superInterfaces.length <= 1) return;
 
-        TraitType tt = STypesUtil.declToTraitType(currentTraitObjectDecl);
+        TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             alreadyIncluded;
@@ -513,7 +530,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause, then it needs to be disambiguated in this type).
          */
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.allMethods(tt, ta);
+            toConsider = STypesUtil.allMethods(currentTraitObjectType, ta);
         // System.err.println("Considering chains for "+tt);
         for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
@@ -526,9 +543,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (!fnl.body().isSome()) continue;
 
             /* If defined in the current trait. */
-            if (tupTrait.equals(tt)) {
+            if (tupTrait.equals(currentTraitObjectType)) {
                 if (includeCurrent) {
-                    generateForwardingFor(fnl, inst, tupTrait, tt);
+                    generateForwardingFor(fnl, inst, tupTrait, currentTraitObjectType);
                 }
                 continue;
             }
@@ -555,7 +572,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
             }
             if (alreadyThere) continue;
-            generateForwardingFor(fnl, inst, tupTrait, tt);
+            generateForwardingFor(fnl, inst, tupTrait, currentTraitObjectType);
         }
     }
 
@@ -755,6 +772,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      *
      *  The code cannot do blind forwarding because casts must be
      *  supplied for the erased types in the forwarding method.
+     *  
+     *  NOTE: the code that this generates is not yet executed, as far as I know.
      *
      * @param fnl
      * @param inst
@@ -1111,7 +1130,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                      NamingCzar.descFortressFloatLiteral));
     }
 
-    private void generateGenericMethodClass(FnDecl x, IdOrOp name,
+    /**
+     * Generate the closure class (instea
+     * @param x
+     * @param name
+     * @param selfIndex
+     */
+    private void generateGenericFunctionClass(FnDecl x, IdOrOp name,
                                             int selfIndex) {
         /*
          * Different plan for static parameter decls;
@@ -1144,14 +1169,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        Map<String, String> xlation = new HashMap<String, String>();
-        List<String> splist = new ArrayList<String>();
+        Map<String, String> xlation = null; // this may disappear
+        List<String> splist = new ArrayList<String>(); // necessary for metadata
         String sparams_part = genericDecoration(x, xlation, splist);
 
-        // FnDecl y = x;
-        // NO // x = (FnDecl) x.accept(new GenericNumberer(xlation));
-
-        // Get rewritten parts.
         FnHeader header = x.getHeader();
         List<Param> params = header.getParams();
         Type returnType = header.getReturnType().unwrap();
@@ -1169,7 +1190,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         ArrowType at = fndeclToType(x); // use the pre-rewritten type.
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
         String mname;
-        // at = fndeclToType(x); // Use the new name now.
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
@@ -1182,10 +1202,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         // TODO refactor, this is computed in another place.
-        String PCN =
+        
+        /* 
+         * This may be a mistake, but class name and the file name do not match.
+         * The reason for this is that the class is not really a class; it is 
+         * a template to be filled in.  The class name needs parameter slots
+         * embedded in it so that they can be replaced at instantiation time,
+         * but it is more convenient (but perhaps not 100% necessary at this
+         * point, given the use of metadata) to omit the parameters from the
+         * container's file name.
+         */
+        String PCN_for_class =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
-        String PCNOuter =
+        
+        String PCN_for_file =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         makeTemplateSParams(sparams_part) , generic_arrow_type);
 
@@ -1195,7 +1226,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
+        InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
@@ -1203,8 +1234,69 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
-        cg.cw.dumpClass(PCNOuter, splist);
+        cg.cw.dumpClass(PCN_for_file, splist);
     }
+    
+    /**
+     * Generate a generic method with a body.
+     * 
+     * Two methods must be generated.
+     * 
+     * One method is an instance method, like
+     * a forwarding method, that takes a precomputed hashcode and a String
+     * encoding the static parameters of the generic method (as they were
+     * inferred or provided).  It returns a closure (one that has no particularly
+     * interesting environment, really just a function pointer) made by specializing
+     * the second method.  Obviously, these are cached.
+     * 
+     * The static parameters are slightly modified to include an encoding of
+     * the static type of "self" at the call site; this is necessary to get
+     * the type right on the returned arrow type, which makes "self" explicit.
+     * 
+     * The second method is a static method as if for a generic function, with
+     * the signature of the original method, except that self is explicitly
+     * prepended.  This is very similar to a trait default method, except that
+     * it is generic.
+     * 
+     * @param x
+     * @param name
+     * @param params
+     * @param selfIndex
+     * @param savedInATrait 
+     * @param returnType
+     * @param inAMethod
+     * @param body
+     */
+    private void generateGenericMethod(FnDecl x, IdOrOp name,
+            List<Param> params, int selfIndex,
+            boolean savedInATrait, Type returnType,
+            boolean inAMethod, Expr body) {
+
+        /*
+         * First, create a modified FnDecl that looks like a top-level generic
+         * method.
+         * 
+         * Add a new static parameter onto the front of the SP list; that will
+         * be the call-site type of "self".
+         * 
+         * Next remove any explicit self parameter from within the parameter
+         * list, and create a new explicit self parameter, with type given by
+         * the new SP, and put that at the front of the parameter list (this
+         * may require a minor bit of type-replumbing for self, not clear how
+         * that works yet).
+         * 
+         */
+
+        
+        if (savedInATrait) {
+            
+        } else {
+            
+        }
+        
+    }
+
+
 
     private void generateTraitDefaultMethod(FnDecl x, IdOrOp name,
                                             List<Param> params,
@@ -1476,8 +1568,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> sparams = header.getStaticParams();
 
         boolean canCompile =
-            (sparams.isEmpty() || // no static parameter
-             !(inAnObject || inATrait || emittingFunctionalMethodWrappers)) &&
+            
         header.getWhereClause().isNone() && // no where clause
         header.getThrowsClause().isNone() && // no throws clause
         header.getContract().isNone() && // no contract
@@ -1497,7 +1588,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             inATrait = false;
 
             if (emittingFunctionalMethodWrappers) {
-                functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
+                if (! sparams.isEmpty()) {
+                    sayWhat(x, "Generic functional methods not yet implemented.");
+                } else {
+                    functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
+                }
             } else {
 
                 Option<Expr> optBody = x.getBody();
@@ -1514,7 +1609,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // class files for one Fortress component
 
                 if (! sparams.isEmpty()) {
-                    generateGenericMethodClass(x, (IdOrOp)name, selfIndex);
+                    if (inAMethod) {
+                        // A generic method in a trait or object.
+                        sayWhat(x, "Generic methods not yet implemented.");
+                        generateGenericMethod(x, (IdOrOp)name,
+                                params, selfIndex, savedInATrait, returnType, inAMethod, body);
+
+                    } else {
+                        generateGenericFunctionClass(x, (IdOrOp)name, selfIndex);
+                    }
                  } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
                             params, selfIndex, returnType, inAMethod, body);

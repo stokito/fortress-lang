@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -275,10 +275,31 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     /**
+     * Emits code for the common prefix of a closure class.
+     * 
+     * Note that names may contain "illegal" characters; these are on the
+     * dangerous side of the "dangerous characters" transformation.
+     * 
+     * A closure class has a name of the form
+     * 
+     * apiComponent DOLLAR functionName ENVELOPE DOLLAR functionType
+     * 
+     * functionType may contain a HEAVY_X_CHAR; if it does, the characters
+     * following it are part of the function's schema (declared type syntax),
+     * not actual type, used only to locate the appropriate generic function
+     * to instantiate.
+     * 
+     * 
+     * 
      * @param name
      * @param cw
+     * @param staticClass
+     * @param sig
      */
-    public static void closureClassPrefix(String name, ManglingClassWriter cw, String staticClass, String sig) {
+    public static void closureClassPrefix(String name,
+                                          ManglingClassWriter cw,
+                                          String staticClass,
+                                          String sig) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
 
@@ -286,7 +307,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String suffix = name.substring(last_dot+1);
         env_loc = suffix.indexOf(Naming.ENVELOPE); // followed by $
         String fn = suffix.substring(0,env_loc);
-        String ft = suffix.substring(env_loc+2); // skip $
+        String ft = suffix.substring(env_loc+2); // skip $ following ENVELOPE
 
         // Normalize out leading HEAVY_X, if there is one.
         if (ft.charAt(0) == Naming.HEAVY_X_CHAR)
@@ -308,68 +329,65 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
          *   }
          */
 
-
         FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
-        //String superClass = Naming.mangleFortressIdentifier("Abstract"+ft);
         String superClass = "Abstract"+ft;
         name = api.replace(".", "/") + '$' + suffix;
-        // name = Naming.mangleFortressIdentifier(name);
         String desc = "L" + name + ";";
-        // String field_desc = "L" + Naming.mangleFortressIdentifier(ft) + ";";
         String field_desc = "L" +(ft) + ";";
+        // Begin with a class
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
-        {
-            fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
-            fv.visitEnd();
+        // Static field closure of appropriate arrow type.
+        fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
+        fv.visitEnd();
 
+        // Class init allocates a singleton and initializes previous field
+        mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+        mv.visitCode();
+        mv.visitTypeInsn(NEW, name);
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, name, "<init>", "()V");
+        mv.visitFieldInsn(PUTSTATIC, name, "closure", field_desc);
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(2, 0);
+        mv.visitEnd();
+
+        // Instance init does nothing special
+        mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        // Supertype is mangle("Abstract"+ft)
+        mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", "()V");
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
+        // What if staticClass is compiler builtin?  How do we know?
+        if (staticClass == null)
+            staticClass = api;
+        staticClass = staticClass.replace(".","/");
+
+        if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
+
+        // Monkey business to deal with case of "void" args.
+        int sz = parameters.size();
+        // Last parameter is actually result type!
+        // But we need to include an extra arg in sz to represent the closure itself (this).
+        if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
+            // Arity 1 (sz 2) with void parameter should actually be arity 0 (sz 1).
+            sz = 1;
         }
 
-        {
-            mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-            mv.visitCode();
-            mv.visitTypeInsn(NEW, name);
-            mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, name, "<init>", "()V");
-            mv.visitFieldInsn(PUTSTATIC, name, "closure", field_desc);
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(2, 0);
-            mv.visitEnd();
-        }
+        // Emit a method with well-known name ("apply", most likely)
+        // to forward calls from the instance to the static, which our
+        // caller will supply.  Note that the static class can be a
+        // different class.
+        forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
+                staticClass, fn, INVOKESTATIC,
+                sig, sz, false);
 
-
-        {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-            mv.visitCode();
-            mv.visitVarInsn(ALOAD, 0);
-            // Supertype is mangle("Abstract"+ft)
-            mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", "()V");
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(1, 1);
-            mv.visitEnd();
-        }
-        {
-            // What if staticClass is compiler builtin?  How do we know?
-            if (staticClass == null)
-                staticClass = api;
-            staticClass = staticClass.replace(".","/");
-
-            if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
-
-            int sz = parameters.size();
-            // Last parameter is actually result type!
-            // But we need to include an extra arg in sz to represent the closure itself (this).
-            if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
-                // Arity 1 (sz 2) with void parameter should actually be arity 0 (sz 1).
-                sz = 1;
-            }
-
-            forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
-                             staticClass, fn, INVOKESTATIC,
-                             sig, sz, false);
-        }
     }
 
     /** Create forwarding method that re-pushes its arguments and
