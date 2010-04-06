@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public interface StringMap {
+ 
     String get(String s);
 
     boolean isEmpty();
@@ -282,4 +283,29 @@ public interface StringMap {
 
         }
     }
+    
+    public class FromPair extends FromBase {
+
+        private final  String from;
+        private final  String to;
+        
+        
+        public FromPair(String from, String to) {
+            this.from = from;
+            this.to = to;
+        }
+        
+        @Override
+        public String get(String s) {
+            return s.equals(from) ? to : null;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+
+    }
+
 }

@@ -460,7 +460,8 @@ public class FileTests {
         public void testFile() throws Throwable {
             String scriptName = ProjectProperties.FORTRESS_AUTOHOME + "/bin/fortress";
             Runtime runtime = Runtime.getRuntime();
-            System.out.print(" run  ");
+            String runner = props.get("run.script", "run");
+            System.out.print(" " + runner + " ");
             System.out.print(f);
             System.out.print(" ");
             System.out.flush();
@@ -971,6 +972,16 @@ public class FileTests {
 
             for (Test test : runTests) {
                 suite.addTest(test);
+            }
+            
+            if (runTests.size() > 0) {
+                // Run the bytecode optimizer as a test.
+                suite.addTest(new ShellTest(ProjectProperties.FORTRESS_AUTOHOME+"/bin", ProjectProperties.FORTRESS_AUTOHOME+"/bin", "BytecodeOptimizeEverything", failsOnly, expect_failure));
+                for (Test test : runTests) {
+                    if (test instanceof TestTest) {
+                        suite.addTest(new TestTest(new StringMap.FromPair("run.script", "runOpt"), (TestTest) test));
+                    }
+                }
             }
         }
         return suite;
