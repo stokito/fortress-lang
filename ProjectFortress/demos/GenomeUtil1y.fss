@@ -15,7 +15,7 @@ import FlatString.{...}
 import List.{...}
 import Pairs.{...}
 
-export GenomeUtil
+export GenomeUtil1y
 
 encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
 

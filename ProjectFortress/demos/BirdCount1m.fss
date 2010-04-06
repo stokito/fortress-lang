@@ -53,11 +53,12 @@ end
 
 var coverage:Map[\String, Map[\ZZ32,ZZ32\]\]:= {[\String, Map [\ZZ32, ZZ32\] \] }
 
-referenceChickenFile:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
-sampleFilesDir:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/test_data"
-errorRateFilesDir:String = getProperty("fortress.automhome",".") || "/ProjectFortress/demos/chickenData/error_rates"
-sampleFilesFileName:String = "chr10.csfasta.ma.sorted.head"
-errorFilesFileName:String = "composite_error_model.txt"
+homeDir: String = getProperty("fortress.autohome", ".")
+referenceChickenFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head"
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
 
 sampleChickens:List[\String\] = <|[\String\]
     "10a_LA_Frag35_20080704_white_leghorn_A",
@@ -198,11 +199,11 @@ getAdjustedSequence(negativeOri:Boolean, sequence:String, refChickenColorsSnip:F
     end
 end
 
-readASnip(r:ReadStream):Snip = do
+readASnip(r:ReadStream):Maybe[\Snip\] = do
    header:String = r.uncheckedReadLine()
    var sequence:String = r.uncheckedReadLine()
 
-   if sequence = "" then Snip(header, sequence,"", 0, 0, 0, "","","") else
+   if sequence = "" then Just(Snip(header, sequence,"", 0, 0, 0, "","","")) else
       name:String = header.asFlatString().javaRegExpSplit(",",0)
       loc:String = header.asFlatString().javaRegExpSplit(",",1).asFlatString().javaRegExpSplit("_",1).asFlatString().javaRegExpSplit("\\.",0)
       length:ZZ32 = sequence.asFlatString().size() - 1
@@ -213,7 +214,7 @@ readASnip(r:ReadStream):Snip = do
       adjustedSequence:FlatString := getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip)
       referenceChickenACGTSnip:String = referenceChickenACGT.asFlatString().javaSubstr(adjustedLocation, sequenceEnd + 2)
 
-      Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenACGTSnip)
+      Just(Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenACGTSnip))
    end
 end
 

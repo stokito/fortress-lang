@@ -58,10 +58,10 @@ getAdjustedSequence(negativeOri:Boolean, sequence:String, refColorsSnip: String)
   end
 end
 
-parseOneRead(r: ReadStream, refACGT: String, refColors: String): Read = do
+parseOneRead(r: ReadStream, refACGT: String, refColors: String): Maybe[\Read\] = do
   header: String = r.uncheckedReadLine()
   sequence: String = r.uncheckedReadLine()
-  if sequence = "" then Read(header, sequence, "", 0, 0, 0, "", "", "") else
+  if sequence = "" then Just(Read(header, sequence, "", 0, 0, 0, "", "", "")) else
     name: String = header.upto(',')
     loc: String = header.beyond(',').beyond('_').upto('.')
     length: ZZ32 = |sequence| - 1
@@ -71,7 +71,7 @@ parseOneRead(r: ReadStream, refACGT: String, refColors: String): Read = do
     refColorsSnip: String = refColors[adjustedLocation:sequenceEnd+1].asFlatString
     adjustedSequence:FlatString = getAdjustedSequence(negativeOri, sequence, refColorsSnip).asFlatString
     refACGTSnip:String = refACGT[adjustedLocation : sequenceEnd + 1].asFlatString
-    Read(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, refColorsSnip, adjustedSequence, refACGTSnip)
+    Just(Read(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, refColorsSnip, adjustedSequence, refACGTSnip))
   end
 end
 
@@ -159,7 +159,7 @@ end
 eventGenerator(s: Read, name: String, sampleErrorRates: ErrorRates): Map[\ZZ32, List[\Event\]\] = do
   ref = s.refColorsSnip
   sample = s.sampleColorsSnip
-  mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  mismatches = <|[\Boolean\] q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
   diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")
   {[\ZZ32, List[\Event\]\] s.pos + r.lower |->
    <|[\Event\] Event(s, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, sampleErrorRates), name) |> |

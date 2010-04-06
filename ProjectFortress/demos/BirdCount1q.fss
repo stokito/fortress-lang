@@ -30,10 +30,10 @@ end
 
 var coverage: Map[\String, Map[\ZZ32,ZZ32\]\] := {[\String, Map [\ZZ32, ZZ32\] \] }
 
-homeDir: String = getProperty("fortress.automhome",".")
-referenceFile = homeDir || "/ProjectFortress/demos/chickenData/chr10.fa.head" 
-sampleFilesDir = homeDir || "/ProjectFortress/demos/chickenData/test_data"
-errorRateFilesDir = homeDir || "/ProjectFortress/demos/chickenData/error_rates"
+homeDir: String = getProperty("fortress.autohome", ".")
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head"
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
 sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
 errorFilesFileName = "composite_error_model.txt"
 
@@ -85,10 +85,10 @@ getAdjustedSequence(negativeOri:Boolean, sequence:String, refColorsSnip: String)
     end
 end
 
-readASnip(r:ReadStream):Snip = do
+readASnip(r:ReadStream):Maybe[\Snip\] = do
    header: String = r.uncheckedReadLine()
    sequence: String = r.uncheckedReadLine()
-   if sequence = "" then Snip(header, sequence, "", 0, 0, 0, "", "", "") else
+   if sequence = "" then Just(Snip(header, sequence, "", 0, 0, 0, "", "", "")) else
       name: String = header.upto(',')
       loc: String = header.beyond(',').beyond('_').upto('.')
       length: ZZ32 = |sequence| - 1
@@ -99,7 +99,7 @@ readASnip(r:ReadStream):Snip = do
       adjustedSequence:FlatString = getAdjustedSequence(negativeOri, sequence, referenceColorsSnip).asFlatString
       referenceACGTSnip:String = referenceACGT[adjustedLocation : sequenceEnd + 1].asFlatString
 
-      Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceColorsSnip, adjustedSequence, referenceACGTSnip)
+      Just(Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceColorsSnip, adjustedSequence, referenceACGTSnip))
    end
 end
 
@@ -162,8 +162,10 @@ opr BIG UNIONCAT[\T\](): BigReduction[\Map[\T, List[\Event\]\],Map[\T, List[\Eve
    
 opr UNIONPLUS[\T\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] = a.union(fn(k,x,y) => x + y, b)
 
+(*
 opr BIG UNIONPLUS[\T\](): BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
     embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
+*)
 
 readSize:ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
