@@ -1171,6 +1171,8 @@ maintain proper indentation.
             classpath="${xtc}/xtc.jar">
         <arg value="-in"/>
         <arg value="${src}"/>
+        <arg value="-enc-out"/>
+        <arg value="UTF-8"/>
         <arg value="@{file}"/>
       </java>
     </sequential>
