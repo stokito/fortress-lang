@@ -41,7 +41,19 @@ sampleNames: List[\String\] = <|[\String\]
 (*)    "22.1_LA_Frag35_20081114_RJF"
 |>
 
-object Event(s: Read, diffs: String, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+(* An `Event` object records an observation that some subsequence of a `Read` does not
+   match the corresponding subsequence of the reference genome.
+   ; `s`: the `Read` in question
+   ; `startPos`: the index within the `Read` sequence of the start of the mismatching subsequence
+   ; `len`: the length of the mismatching subsequence
+   ; `errorProb`: the probability that (?)
+   ; `fileName`: the name of the file from which the read came
+   Methods are provided for easily retrieving the relevant subsequence from either the read or
+   the reference genome, and as either a color sequence of an ACGT sequence.  (When retrieving
+   an ACGT subsequence for the read, a starting ACGT base from the reference genome is used
+   to initialize the conversion from colors to ACGT.)
+                                                                                                              *)
+object Event(s: Read, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
   refStart: ZZ32 = s.pos + startPos
   refEnd: ZZ32 = refStart + len - 1
   refACGTSequence: String = s.refACGT[startPos # len+1]
@@ -131,13 +143,13 @@ readErrorRateFile(name: String): ErrorRates =
 eventGenerator(rd: Read, name: String, er: ErrorRates, range: CompactFullRange[\ZZ32\]): Map[\ZZ32, List[\Event\]\] = do
   (sample, ref) = (rd.sampleColors, rd.refColors)
   mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
-  diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")
+  (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")`
   {[\ZZ32, List[\Event\]\] rd.pos + r.lower |->
-   <|[\Event\] Event(rd, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+   <|[\Event\] Event(rd, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
      r <- runRanges mismatches, |r| > 1, (rd.pos + r.lower) IN range }
 end
 
-processSample(name:String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
   eventData = <| (eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
   database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] first(sd)
   coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
