@@ -54,19 +54,6 @@ ignore(_:Any):() = ()
 
 identity[\T extends Any\](x:T):T = x
 
-(* Should we deprecate tuple and use identity instead?  Decision: no. *)
-tuple[\T\](x:T):T = x
-
-first[\T1,T2\](x:(T1,T2)): T1 = do (a,_) = x; a end
-second[\T1,T2\](x:(T1,T2)): T2 = do (_,b) = x; b end
-first[\T1,T2,T3\](x:(T1,T2,T3)): T1 = do (a,_,_) = x; a end
-second[\T1,T2,T3\](x:(T1,T2,T3)): T2 = do (_,b,_) = x; b end
-third[\T1,T2,T3\](x:(T1,T2,T3)): T3 = do (_,_,c) = x; c end
-first[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T1 = do (a,_,_,_) = x; a end
-second[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T2 = do (_,b,_,_) = x; b end
-third[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T3 = do (_,_,c,_) = x; c end
-fourth[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T4 = do (_,_,_,d) = x; d end
-
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
 
@@ -3729,8 +3716,8 @@ trait CompactFullRange[\I\] extends FullRange[\I\]
       (l, u) = (self.lower, self.upper)
       typecase l of
         ZZ32 => 0 MAX ((u - l) + 1)
-        (ZZ32, ZZ32) => (0 MAX ((first u - first l) + 1)) (0 MAX ((second u - second l) + 1))
-        (ZZ32, ZZ32, ZZ32) => (0 MAX ((first u - first l) + 1)) (0 MAX ((second u - second l) + 1)) (0 MAX ((third u - third l) + 1))
+        (ZZ32, ZZ32) => do (l1, l2) = l; (u1, u2) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) end
+        (ZZ32, ZZ32, ZZ32) => do (l1, l2, l3) = l; (u1, u2, u3) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) (0 MAX ((u3 - l3) + 1)) end
       end
     end
     forward(): CompactFullRange[\I\] = self
