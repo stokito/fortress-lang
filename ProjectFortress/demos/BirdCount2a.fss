@@ -12,6 +12,7 @@ component BirdCount2a
 import File.{...}; import FileSupport.{...}; import FlatString.{...}; import List.{...}
 import Map.{...}; import Pairs.{...}; import Set.{...}; import System.{getProperty}
 import GenomeUtil2a.{...}
+import Tuple.{...}
 
 export Executable
 

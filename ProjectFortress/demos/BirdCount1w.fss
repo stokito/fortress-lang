@@ -11,6 +11,7 @@ component BirdCount1w
 
 import File.{...}; import FileSupport.{...}; import FlatString.{...}; import List.{...}
 import Map.{...}; import Pairs.{...}; import Set.{...}; import System.{getProperty}
+import Tuple.{...}
 
 export Executable
 

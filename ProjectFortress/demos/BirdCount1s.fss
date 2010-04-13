@@ -16,6 +16,8 @@ import Map.{...}
 import Pairs.{...}
 import Set.{...}
 import System.{getProperty}
+import Tuple.{...}
+
 export Executable
 
 (* Returns the single error rates and the multiple error rates. *)
