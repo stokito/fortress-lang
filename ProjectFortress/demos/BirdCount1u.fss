@@ -17,6 +17,7 @@ import Map.{...}
 import Pairs.{...}
 import Set.{...}
 import System.{getProperty}
+import Tuple.{...}
 
 export Executable
 
