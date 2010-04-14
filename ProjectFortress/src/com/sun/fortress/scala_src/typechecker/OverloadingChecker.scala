@@ -276,7 +276,6 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                                 firstO + "\n and " + secondO
                                               else
                                                 secondO + "\n and " + firstO
-                               val do_over =  validOverloading(first, second, signatures)
                                error(mergeSpan(first, second),
                                      "Invalid overloading of " + name +
                                      ":\n     " + mismatch)
