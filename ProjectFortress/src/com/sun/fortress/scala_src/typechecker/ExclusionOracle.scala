@@ -72,6 +72,16 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case (_, SBottomType(_)) => true
       case (SAnyType(_), _) => false
       case (_, SAnyType(_)) => false
+      case (f:TupleType, s:TupleType) =>
+        NodeUtil.differentArity(f, s) || {
+          f.getVarargs.isNone && s.getVarargs.isNone &&
+          f.getKeywords.isEmpty && s.getKeywords.isEmpty &&
+          f.getElements.size == s.getElements.size &&
+          toListFromImmutable(f.getElements).zip(toListFromImmutable(s.getElements)).exists((e:(Type,Type)) =>
+                                                                  excludes(e._1,e._2))
+        }
+      case (f:TupleType ,_) if NodeUtil.isVoidType(f) => true
+      case (_, s:TupleType) if NodeUtil.isVoidType(s) => true
       case (f@SVarType(_,_,_), s@SVarType(_,_,_)) =>
         ( toOption(typeAnalyzer.env.staticParam(f.getName)),
           toOption(typeAnalyzer.env.staticParam(s.getName)) ) match {
@@ -136,14 +146,6 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
       case (_:ArrowType, _:ArrowType) => false
       case (_:ArrowType, _) => true
       case (_, _:ArrowType) => true
-      case (f:TupleType, s:TupleType) =>
-        NodeUtil.differentArity(f, s) || {
-          f.getVarargs.isNone && s.getVarargs.isNone &&
-          f.getKeywords.isEmpty && s.getKeywords.isEmpty &&
-          f.getElements.size == s.getElements.size &&
-          toListFromImmutable(f.getElements).zip(toListFromImmutable(s.getElements)).exists((e:(Type,Type)) =>
-                                                                  excludes(e._1,e._2))
-        }
       case (_:TupleType ,_) => true
       case (_, _:TupleType) => true
       case (f:TraitSelfType, s:TraitSelfType) => excludes(f.getNamed, s.getNamed)
