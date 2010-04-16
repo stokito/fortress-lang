@@ -155,7 +155,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
   private def eq(x: Type, y:Type): ConstraintFormula  = {
-    and(sub(x, y), sub(x, y))
+    and(sub(x, y), sub(y, x))
   }
 
   private def eq(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {

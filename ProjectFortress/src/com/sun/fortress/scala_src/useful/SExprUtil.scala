@@ -133,13 +133,16 @@ object SExprUtil {
     }}.unzip
     val tsa = new TypeSchemaAnalyzer(ta)
     val ityps = tsa.duplicateFreeIntersection(typs)
+//    println("*** %s".format(typs))
+//    println("*** %s".format(ityps))
+//    println()
     val ischms = tsa.duplicateFreeIntersection(schms)
     //Todo: Put ityps and ischms into the FunctionalRef
     fnRef match {
-      case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, None, None)
-      case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, None, None)
-      // case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
-      // case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
+      //case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, None, None)
+      //case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, None, None)
+      case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
+      case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
       case _ => NI.nyi()
     }
   }

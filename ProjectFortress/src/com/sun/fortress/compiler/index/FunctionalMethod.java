@@ -165,7 +165,13 @@ public class FunctionalMethod extends Function implements HasSelfType {
 
     @Override
     public String toString() {
-        return String.format("%s.%s", _declaringTrait.getText(), super.toString());
+        String receiver;
+        if (selfType().isSome()) {
+            receiver = selfType().unwrap().toString();
+        } else {
+            receiver = declaringTrait().getText();
+        }
+        return String.format("%s.%s", receiver, super.toString());
     }
 
     public Option<SelfType> selfType() {

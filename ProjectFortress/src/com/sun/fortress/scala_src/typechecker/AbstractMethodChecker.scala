@@ -99,7 +99,7 @@ class AbstractMethodChecker(component: ComponentIndex,
     // Add static parameters of the enclosing trait or object
     typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
-    for ( (owner, d) <- toCheck; if (!implement(d, decls, owner)) ) {
+    for ((owner, d) <- toCheck; if !implement(d, decls, owner)) {
         // for (pair <- inheritedMethods(extendsC, typeAnalyzer)) {
         //     val uname = pair.first
         //     val (fnl, _, t) = pair.second
@@ -154,29 +154,40 @@ class AbstractMethodChecker(component: ComponentIndex,
       return false;
 
     val tci = typeAnalyzer.traits.typeCons(t.getName)
-    var sparams = List[StaticParam]()
-    if ( tci.isSome && tci.unwrap.isInstanceOf[TraitIndex] )
-      sparams = toListFromImmutable(NU.getStaticParams(tci.unwrap.asInstanceOf[TraitIndex].ast.asInstanceOf[TraitObjectDecl])).asInstanceOf[List[StaticParam]]
+    val sparams = toOption(tci) match {
+      case Some(ti:TraitIndex) =>
+        toListFromImmutable(NU.getStaticParams(ti.ast.asInstanceOf[TraitObjectDecl]))
+      case _ =>
+        Nil
+    }
     val sargs = toListFromImmutable(t.getArgs)
 
-    // Extend the type analyzer with the collected static parameters
-    def subst(ty: Type) =
-      staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
+    // This function will replace the abstract decl's static params with those
+    // static args applied to the trait in the concrete instantiation.
+    def subst(ty: Type) = staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
+    
     val result =
-      ( typeAnalyzer.equivalent(subst(NU.getParamType(d).asInstanceOf[Type]),
-                                subst(NU.getParamType(decl))).isTrue ||
-        implement(toListFromImmutable(NU.getParams(d)), toListFromImmutable(NU.getParams(decl))) ) &&
-      typeAnalyzer.subtype(subst(NU.getReturnType(decl).unwrap),
+      ( typeAnalyzer.equivalent(subst(NU.getParamType(d)),
+                                NU.getParamType(decl)).isTrue ||
+        implement(toListFromImmutable(NU.getParams(d)),
+                  toListFromImmutable(NU.getParams(decl)),
+                  subst _) ) &&
+      typeAnalyzer.subtype(NU.getReturnType(decl).unwrap,
                            subst(NU.getReturnType(d).unwrap)).isTrue
     result
   }
 
-  /* Returns true if the parameters of the concrete method declaration "params"
-   * `implements' the parameters of the abstract method declaration "ps".
+  /**
+   * Returns true if the parameters of the concrete method declaration `params`
+   * `implements' the parameters of the abstract method declaration `ps`. The
+   * `subst` function is used to instantiate the params of `ps`.
    */
-  private def implement(ps: List[Param], params: List[Param]): Boolean =
-    ! ps.zip(params).exists( (p:(Param,Param)) =>
-                             typeAnalyzer.equivalent(NU.getParamType(p._1),
-                                                     NU.getParamType(p._2)).isFalse &&
-                             ! p._1.getName.getText.equals("self") )
+  private def implement(ps: List[Param],
+                        params: List[Param],
+                        subst: Type => Type): Boolean =
+    !(ps, params).zipped.exists { (p1, p2) =>
+      typeAnalyzer.equivalent(subst(NU.getParamType(p1)),
+                              NU.getParamType(p2)).isFalse &&
+      !p1.getName.getText.equals("self")
+    }
 }

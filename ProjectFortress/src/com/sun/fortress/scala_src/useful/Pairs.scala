@@ -28,7 +28,7 @@ object Pairs {
     (Some(pair._1), Some(pair._2))
     
   /** Return the list of all (i, j)-indexed pairs in xs where i < j. */
-  def distinctPairsFrom[A](xs: List[A]): List[(A, A)] =
+  def distinctPairsFrom[A](xs: Iterator[A]): Iterator[(A, A)] =
     for ((x, i) <- xs.zipWithIndex ;
          (y, j) <- xs.zipWithIndex ;
          if i < j)

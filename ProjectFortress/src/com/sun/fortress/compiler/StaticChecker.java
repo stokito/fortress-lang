@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Nodes;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.linker.ApiLinker;
@@ -297,7 +298,8 @@ public class StaticChecker {
 
             if (!isApi) {
                 // Check the set of exported APIs in this component.
-                errors.addAll(ExportChecker.checkExports((ComponentIndex)index, env));
+                List<? extends StaticError> foo = ExportChecker.checkExports((ComponentIndex)index, env);
+                errors.addAll(foo);
                 result = addErrors(errors, result);
             }
 
