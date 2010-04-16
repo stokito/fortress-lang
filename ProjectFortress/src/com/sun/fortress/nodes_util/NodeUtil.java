@@ -19,10 +19,14 @@ package com.sun.fortress.nodes_util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -1642,5 +1646,18 @@ public class NodeUtil {
 
     public static boolean isTraitType(Type t) {
         return (t instanceof TraitType);
+    }
+    
+    /** Returns a String of the entire node AST. */
+    public static String toStringAst(Node x) throws IOException {
+      int indent = 2;
+      OutputStream fout = new ByteArrayOutputStream();
+      BufferedWriter utf8out =
+          new BufferedWriter(new OutputStreamWriter(fout, Charset.forName("UTF-8")));
+      TreeWalker tpw = new FortressSerializationWalker(utf8out, indent);
+      x.walk(tpw);
+      utf8out.write('\n');
+      utf8out.flush();
+      return fout.toString();
     }
 }

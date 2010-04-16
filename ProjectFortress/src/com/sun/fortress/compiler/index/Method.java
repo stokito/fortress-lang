@@ -53,7 +53,13 @@ public abstract class Method extends Functional implements HasSelfType {
 
     @Override
     public String toString() {
-        return String.format("%s.%s", declaringTrait().getText(), super.toString());
+        String receiver;
+        if (selfType().isSome()) {
+            receiver = selfType().unwrap().toString();
+        } else {
+            receiver = declaringTrait().getText();
+        }
+        return String.format("%s.%s", receiver, super.toString());
     }
 
     public int selfPosition() {

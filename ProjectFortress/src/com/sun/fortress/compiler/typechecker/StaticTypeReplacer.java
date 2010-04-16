@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.TraitSelfType;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarType;
@@ -148,10 +149,18 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     public Node forUnitRef(UnitRef that) {
         return updateNode(that, that.getName());
     }
+    
+    
 
 //    @Override
 //    public Node forVarRef(VarRef that) {
 //        return updateNode(that, that.getVar());
+//    }
+
+//    @Override
+//    public Node forTraitSelfType(TraitSelfType that) {
+//      // TODO Auto-generated method stub
+//      return super.forTraitSelfType(that);
 //    }
 
     /**

@@ -137,9 +137,9 @@ object STypesUtil {
     }
     val info = f match {
       case m:HasSelfType if m.selfType.isNone =>
-          bug("No selfType on functional %s".format(f))
+        bug("No selfType on functional %s".format(f))
       case m:HasSelfType =>
-          Some(SMethodInfo(m.selfType.get, m.selfPosition))
+        Some(SMethodInfo(m.selfType.get, m.selfPosition))
       case _ => None
     }
     Some(NF.makeArrowType(NF.typeSpan,
@@ -488,8 +488,7 @@ object STypesUtil {
   /**
    * Replaces occurrences of static parameters with corresponding static
    * arguments in the given body type. In the end, any static parameters
-   * in the replaced type will be cleared. If `ignoreLifted` is true, then
-   * don't consider lifted static parameters at all.
+   * in the replaced type will be cleared.
    *
    * @param args A list of static arguments to apply to the generic type body.
    * @param sparams A list of static parameters
@@ -851,8 +850,8 @@ object STypesUtil {
     val (newDomain1, newDomain2) = (mi1, mi2) match {
       case (Some(SMethodInfo(selfType1, -1)),
             Some(SMethodInfo(selfType2, -1))) =>
-        (STupleType(domain1.getInfo, List(selfType1, domain1), None, Nil),
-         STupleType(domain2.getInfo, List(selfType2, domain2), None, Nil))
+        (getDomainAndSelfType(candidate1.arrow),
+         getDomainAndSelfType(candidate2.arrow))
       case _ => (domain1, domain2)
     }
 
@@ -915,6 +914,7 @@ object STypesUtil {
 
     val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
     var newOvType: ArrowType = ovType
+    val bestArrowDomainAndSelfType = getDomainAndSelfType(bestArrow)
 
     // If unlifted static args, then instantiate the unlifted static params.
     if (!unliftedSargs.isEmpty)
@@ -930,7 +930,8 @@ object STypesUtil {
     // so it's not applicable. If this is not a subtype of the best arrow, then
     // it cannot be picked at runtime.
     if (hasStaticParams(newOvType) ||
-            !isSubtype(newOvType.getDomain, bestArrow.getDomain))
+            !isSubtype(getDomainAndSelfType(newOvType),
+                       bestArrowDomainAndSelfType))
       return None
 
     Some(SOverloading(ovInfo, ovName, origName, Some(newOvType), schema))
@@ -1216,4 +1217,15 @@ object STypesUtil {
     candidates.filterNot(c => pruned.contains(c))
   }
 
+  /**
+   * If this arrow type has a self type in the dotted method position, then
+   * return the pair `(st, dom)`, where `st` is the self type and `dom` is the
+   * domain. Otherwise, just return the domain.
+   */
+  def getDomainAndSelfType(t: ArrowType): Type =
+    toOption(t.getMethodInfo) match {
+      case Some(SMethodInfo(st, -1)) =>
+        STupleType(t.getDomain.getInfo, List(st, t.getDomain), None, Nil)
+      case _ => t.getDomain
+    }
 }

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.sun.fortress.Shell;
@@ -30,6 +31,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
@@ -128,7 +130,7 @@ public class Desugarer {
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
 Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
-
+        
         /**
          * When Shell.getObjExprDesugaring is true,
          * the closure conversion pass for object expressions is called.
@@ -169,8 +171,6 @@ Component comp = (Component) component.ast();
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);
         }
-
-        // Coercion desugarer goes here
 
         return comp;
     }
