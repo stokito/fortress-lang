@@ -62,11 +62,7 @@ trait Common { self: STypeChecker =>
           case Some(ti : TraitIndex) =>
             val trait_params = ti.staticParameters
             val trait_args = ty.getArgs
-            if (!ty.getArgs.isEmpty) {(ty.getName, ty.getArgs.get(0)) match {
-              case (t, STypeArg(_, _, x)) /*if x.toString == "S"*/ =>
-                println("inheriting from %s; sp, sa = %s, %s".format(t, toList(trait_params), toList(trait_args)))
-              case _ =>
-            }}
+
             // Instantiate methods with static args
             val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => (t.first, t.second))
             for ( pair <- dotted ) {

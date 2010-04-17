@@ -24,37 +24,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.KindType;
-import com.sun.fortress.nodes.KindInt;
-import com.sun.fortress.nodes.KindNat;
-import com.sun.fortress.nodes.KindBool;
-import com.sun.fortress.nodes.KindDim;
-import com.sun.fortress.nodes.KindUnit;
-import com.sun.fortress.nodes.KindOp;
-import com.sun.fortress.nodes.BoolRef;
-import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.TraitSelfType;
-import com.sun.fortress.nodes.UnitRef;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.OpArg;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.UnitArg;
-import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.IntArg;
-import com.sun.fortress.nodes.BoolArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
 
@@ -149,19 +119,6 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     public Node forUnitRef(UnitRef that) {
         return updateNode(that, that.getName());
     }
-    
-    
-
-//    @Override
-//    public Node forVarRef(VarRef that) {
-//        return updateNode(that, that.getVar());
-//    }
-
-//    @Override
-//    public Node forTraitSelfType(TraitSelfType that) {
-//      // TODO Auto-generated method stub
-//      return super.forTraitSelfType(that);
-//    }
 
     /**
      * Do the static arguments and parameters "match" in the limited sense that there

@@ -17,7 +17,6 @@
 
 package com.sun.fortress.compiler;
 
-import java.io.IOException;
 import java.util.*;
 
 import com.sun.fortress.Shell;
@@ -31,7 +30,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
