@@ -77,7 +77,7 @@ minSize : ZZ32 := 44
 
 private scale(x : ZZ32): ZZ32 = minSize MAX (2 x)
 
-private expansion(curr: ZZ32, new: ZZ32) =
+private expansion(curr: ZZ32, new: ZZ32): ZZ32 =
     if new > curr then
         (* Common case? *)
         (1 + scale curr) MAX new
@@ -482,7 +482,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
       end
 end
 
-private fromImmutableArray[\E\](under: ImmutableArray[\E,ZZ32\]) =
+private fromImmutableArray[\E\](under: ImmutableArray[\E,ZZ32\]): ArrayList[\E\] =
     ArrayList[\E\](under, 0, noShot, |under|, noShot)
 
 emptyList[\E\](): List[\E\] =
