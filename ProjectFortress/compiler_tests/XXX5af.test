@@ -19,6 +19,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.af.fss:28:22-26:\n\
 \ Could not check call to function foo\n\
-\ - [\\T\\]T->T is not applicable to an argument of type A.\n\
+\ - [\\T extends B\\]T->T is not applicable to an argument of type A.\n\
 File Compiled5.af.fss has 1 error.\n
 compile_out_equals=
