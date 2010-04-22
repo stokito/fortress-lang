@@ -3108,7 +3108,7 @@ opr BIG MINMAXN[\T extends Number\](g: Generator[\T\]): (Number, Number) =
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter asString(): String = "MinReduction"
-    simpleJoin(a:T, b:T):T = a MIN b
+    simpleJoin(a, b) = a MIN b
 end
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MinReduction[\T\])
@@ -3117,7 +3117,7 @@ opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter asString(): String = "MaxReduction"
-    simpleJoin(a:T, b:T):T = a MAX b
+    simpleJoin(a, b) = a MAX b
 end
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
