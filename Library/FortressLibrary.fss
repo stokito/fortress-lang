@@ -2210,9 +2210,9 @@ end
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
   mem: PrimitiveArray[\T,s0\] = PrimitiveArray[\T,s0\]()
   get(i:ZZ32):T = mem.get(i)
-  put(i:ZZ32, v:T) = mem.put(i,v)
-  init0(i:ZZ32, v:T) = mem.init0(i,v)
-  replica[\U\]() = array1[\U,s0\]()
+  put(i:ZZ32, v:T):() = mem.put(i,v)
+  init0(i:ZZ32, v:T):() = mem.init0(i,v)
+  replica[\U\]():Array1[\U,0,s0\] = array1[\U,s0\]()
 end
 
 (* builtinFactory1 must be a non-overloaded 0-parameter factory for
@@ -2435,7 +2435,7 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0((j,i),v) end
   put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
   get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
-  t() = mem
+  t():Array2[\T,b1,s1,b0,s0\] = mem
   (** 2-D subarray given static subarray parameters.
       (bo1,bo2)#(so1,so2) are output bounds.
       The result is the subarray starting at (o0,o1) in the original array,
@@ -3108,7 +3108,7 @@ opr BIG MINMAXN[\T extends Number\](g: Generator[\T\]): (Number, Number) =
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter asString(): String = "MinReduction"
-    simpleJoin(a, b) = a MIN b
+    simpleJoin(a:T, b:T):T = a MIN b
 end
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MinReduction[\T\])
@@ -3117,7 +3117,7 @@ opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter asString(): String = "MaxReduction"
-    simpleJoin(a, b) = a MAX b
+    simpleJoin(a:T, b:T):T = a MAX b
 end
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
@@ -3231,7 +3231,7 @@ end
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
     getter asString(): String = "NewlineReduction"
-    simpleJoin(a, b) = a // b
+    simpleJoin(a:String, b:String): String = a // b
 end
 
 (** This operator performs string concatenation, first converting
@@ -3591,8 +3591,8 @@ trait OpenRange[\I\] extends PartialRange[\I\]
     opr FORWARD_CMP(self, other:Range[\I\]): Comparison = GreaterThan
     opr IN(n:I, self): Boolean = true
     forward(): OpenRange[\I\]
-    shiftLeft(shift: I) = self
-    shiftRight(shift: I) = self
+    shiftLeft(shift: I): OpenRange[\I\] = self
+    shiftRight(shift: I): OpenRange[\I\] = self
 end
 
 object TrivialOpenRange extends OpenRange[\Any\]
