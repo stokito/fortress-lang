@@ -211,7 +211,7 @@ object SNodeUtil {
     def matches(x: IdOrOp)(repl: (IdOrOp, IdOrOp)): Boolean = {
       val SIdOrOp(_, xApi, xText) = x
       val SIdOrOp(_, oApi, oText) = repl._1
-      xApi == oApi && oText == oText
+      xApi == oApi && xText == oText
     }
     
     // Walker that replaces the names.

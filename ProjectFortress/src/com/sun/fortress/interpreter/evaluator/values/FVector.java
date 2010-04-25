@@ -18,12 +18,13 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import com.sun.fortress.interpreter.evaluator.types.FTypeVector;
+import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 
 public class FVector extends FConstructedValue implements IndexedShape {
     final Indexed val;
 
-    public FVector(Indexed v) {
-        super(new FTypeVector());
+    public FVector(Indexed v, FTypeVector ft) {
+        super(new FTypeVector(v.elementType, TypeRange.make(v)));
         val = v;
     }
 

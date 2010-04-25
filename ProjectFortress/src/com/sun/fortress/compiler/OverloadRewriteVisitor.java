@@ -128,12 +128,13 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             }
             buffer.append('}');
             String overloadingName = buffer.toString();
-            if (!overloadedFunctions.containsKey(overloadingName)) {
+            // Type mismatch!!
+            //if (!overloadedFunctions.containsKey(overloadingName)) {
                 overloadedFunctions.put(the_overloads,
                                         new TypedIdOrOpList(NodeUtil.getSpan(that),
                                                             overloadingName, fns,
                                                             that.getInfo().getExprType()));
-            }
+            //}
             IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.singletonList(overloadingId);
         } else if (the_overloads.size() == 1 ){
@@ -193,11 +194,12 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             }
             buffer.append('}');
             String overloadingName = buffer.toString();
-            if (!overloadedOperators.containsKey(overloadingName)) {
+            // Type mismatch!!
+            //if (!overloadedOperators.containsKey(overloadingName)) {
                 overloadedOperators.put(the_overloads, new TypedIdOrOpList(NodeUtil.getSpan(that),
                                                                            overloadingName, ops,
                                                                            that.getInfo().getExprType()));
-            }
+            //}
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeUtil.getSpan(that), overloadingName);
             ops = Collections.singletonList(overloadingOp);
         } else if (the_overloads.size() == 1 ){
