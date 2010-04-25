@@ -1102,14 +1102,14 @@ public class NodeFactory {
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
-        TypeInfo info = makeTypeInfo(NodeUtil.getSpan(t),
-                                     NodeUtil.isParenthesized(t));
-        return new TaggedUnitType(info, s, t.getUnitExpr());
+        return makeTaggedUnitType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t),
+                                  s, t.getUnitExpr());
     }
 
     public static TaggedUnitType makeTaggedUnitType(Span span, boolean parenthesized,
                                                     Type elem, Expr unit) {
-        return makeTaggedUnitType(span, parenthesized, elem, unit);
+        TypeInfo info = makeTypeInfo(span, parenthesized);
+        return new TaggedUnitType(info, elem, unit);
     }
 
 

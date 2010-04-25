@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -200,8 +200,14 @@ public final class FreeNameCollection {
         return freeExitLabels;
     }
 
-    public boolean equals(FreeNameCollection other) {
-        return( this.freeVarRefs.equals( other.freeVarRefs ) &&
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+            return false;
+        }
+        else {
+            FreeNameCollection other = (FreeNameCollection) obj;
+            return( this.freeVarRefs.equals( other.freeVarRefs ) &&
                 this.freeFnRefs.equals( other.freeFnRefs ) &&
                 this.freeMethodRefs.equals( other.freeMethodRefs ) &&
                 this.freeOpRefs.equals( other.freeOpRefs ) &&
@@ -212,6 +218,7 @@ public final class FreeNameCollection {
                 this.freeVarTypes.equals( other.freeVarTypes ) &&
                 this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) &&
                 this.freeExitLabels.equals( other.freeExitLabels) );
+        }
     }
 
     public FreeNameCollection add(VarRef n) {

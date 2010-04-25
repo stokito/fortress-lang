@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -63,6 +63,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         this.exceptions = exceptions;
         this.argumentTypes = NamingCzar.parseArgs(desc);
         this.resultType = NamingCzar.parseResult(desc);
+        this.localVariableCount = 0;
 
         int sz = 5 + this.localVariableCount + this.argumentTypes.size();
         this.varNames = new ArrayList(sz);

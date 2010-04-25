@@ -200,7 +200,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
                     } else if (outerType instanceof FTypeVector) {
                         Indexed it = new Indexed(iuo_tuple, bestGuess);
                         iuo_tuple.copyTo(it);
-                        evaluator.e.putValue(s, new FVector(it));
+                        evaluator.e.putValue(s, new FVector(it, (FTypeVector) outerType));
                     }
                 }
 

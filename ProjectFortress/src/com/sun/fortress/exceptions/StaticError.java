@@ -98,10 +98,14 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
                 try { num2 = Integer.parseInt(m2.group(i)); }
                 catch (Exception e) {}
 
-                if (num1 == num2) { continue; }
-                if (num1 == null) { return -1; }
-                if (num2 == null) { return 1; }
-                if (num1 != num2) { return num1.compareTo(num2); }
+                if (num1 == null) {
+                    if (num2 == null) continue;
+                    else return -1;
+                } else {
+                    if (num2 == null) return 1;
+                    else if (num1.equals(num2)) continue;
+                    else return num1.compareTo(num2);
+                }
             }
         }
         return this.toString().compareTo(that.toString());
