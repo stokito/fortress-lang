@@ -1,19 +1,20 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
+
 package com.sun.fortress.scala_src.disambiguator
 
 import _root_.java.util.List
@@ -49,13 +50,13 @@ class SelfParamDisambiguator extends Walker {
    * by the innermost enclosing trait or object declaration or object expression.
    */
   override def walk(node: Any): Any = node match {
-    case SObjectDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_), _, _) =>
+    case SObjectDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_,_), _) =>
       // Add a type to self parameters of methods
       val self_type = NF.makeSelfType(NF.makeTraitType(name.asInstanceOf[Id],
                                                        staticParamsToArgs(toJavaList(sparams))))
       replaceSelfParamsWithType(node, self_type).asInstanceOf[ObjectDecl] match {
-        case SObjectDecl(info, header, _, params) =>
-          super.walk(SObjectDecl(info, header, some(self_type), params))
+        case SObjectDecl(info, header, _) =>
+          super.walk(SObjectDecl(info, header, some(self_type)))
       }
 
     /* The type of 'self' is the type of the trait or object being declared
@@ -67,7 +68,7 @@ class SelfParamDisambiguator extends Walker {
      * '(T & (U_1 | U_2 | ... | U_n))', where '&' indicates type intersection and
      * '|' indicates type union.
      */
-    case STraitDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_),
+    case STraitDecl(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_,_),
                     _, _, comprisesC, _) =>
       // Add a type to self parameters of methods
       val type_name = NF.makeTraitType(name.asInstanceOf[Id],
@@ -83,7 +84,7 @@ class SelfParamDisambiguator extends Walker {
                                 excludes, comprises, ellipses))
       }
 
-    case oe@SObjectExpr(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_), _) =>
+    case oe@SObjectExpr(_, STraitTypeHeader(sparams,_,name,_,_,_,_,_,_), _) =>
       // Add a type to self parameters of methods
       val self_type = getObjectExprType(oe)
       replaceSelfParamsWithType(oe, self_type) match {

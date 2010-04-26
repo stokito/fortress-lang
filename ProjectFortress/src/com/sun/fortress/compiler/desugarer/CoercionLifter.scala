@@ -61,14 +61,14 @@ class CoercionLifter(env: GlobalEnvironment) extends Walker {
   override def walk(node: Any) = node match {
 
     // Lift out this trait's coercions.
-    case t @ STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, _), t3, t4, t5, t6) =>
+    case t @ STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, h8, _), t3, t4, t5, t6) =>
       val decls = liftCoercionsFromTrait(t)
-      STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, decls), t3, t4, t5, t6)
+      STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, h8, decls), t3, t4, t5, t6)
 
     // Lift out this object's coercions.
-    case t @ SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, _), o3, o4) =>
+    case t @ SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, h8, _), o3) =>
       val decls = liftCoercionsFromTrait(t)
-      SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, decls), o3, o4)
+      SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, h8, decls), o3)
 
     case _ => super.walk(node)
   }

@@ -86,9 +86,9 @@ trait Decls { self: STypeChecker with Common =>
 
     case t@STraitDecl(info,
                       STraitTypeHeader(sparams, mods, name, where,
-                                       throwsC, contract, extendsC, decls),
+                                       throwsC, contract, extendsC, params, decls),
                       selfType, excludes, comprises, hasEllipses) => {
-      val checkerWSparams:STypeChecker = this.extend(sparams, where)
+      val checkerWSparams: STypeChecker = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
       // Add field declarations (getters/setters?) to method_checker
@@ -124,7 +124,7 @@ trait Decls { self: STypeChecker with Common =>
                                         case _ => checkerWSparams.check(d).asInstanceOf[Decl] } )
               STraitDecl(info,
                          STraitTypeHeader(sparams, mods, name, where,
-                                          throwsC, contract, extendsC, newDecls),
+                                          throwsC, contract, extendsC, params, newDecls),
                          selfType, excludes, comprises, hasEllipses)
             case _ => signal(t, errorMsg("Self type is not inferred for ", t)); t
           }
@@ -133,8 +133,8 @@ trait Decls { self: STypeChecker with Common =>
 
     case o@SObjectDecl(info,
                        STraitTypeHeader(sparams, mods, name, where,
-                                        throwsC, contract, extendsC, decls),
-                       selfType, params) => {
+                                        throwsC, contract, extendsC, params, decls),
+                       selfType) => {
       val checkerWSparams: STypeChecker = this.extend(sparams, params, where)
       var method_checker = checkerWSparams
       var field_checker = checkerWSparams
@@ -176,8 +176,8 @@ trait Decls { self: STypeChecker with Common =>
                                         case _ => checkerWSparams.check(d).asInstanceOf[Decl] } )
               SObjectDecl(info,
                           STraitTypeHeader(sparams, mods, name, where,
-                                           throwsC, newContract, extendsC, newDecls),
-                          selfType, params)
+                                           throwsC, newContract, extendsC, params, newDecls),
+                          selfType)
             case _ => signal(o, errorMsg("Self type is not inferred for ", o)); o
           }
       }

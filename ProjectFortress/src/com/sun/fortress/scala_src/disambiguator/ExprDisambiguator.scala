@@ -104,7 +104,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        */
       case STraitDecl(info@SASTNodeInfo(span),
                       STraitTypeHeader(sparams, mods, old_name, where,
-                                       throwsC, contract, extendsC, decls),
+                                       throwsC, contract, extendsC,
+                                       old_params, decls),
                       self, excludes, comprises, ellipses) =>
         inTraitOrObject = true
         val name = old_name.asInstanceOf[Id]
@@ -125,20 +126,53 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             }
           case _ =>
         }
+        old_params match {
+          case Some(ps) =>
+/* Not yet checking for modifiers of the trait parameters
+            for (param <- ps) {
+              val mods = param.getMods
+              if (!mods.isHidden && NU.isVarargsParam(param) )
+                error("Varargs object parameters should not define getters.", param)
+              if ( (mods.isSettable || mods.isVar) && NU.isVarargsParam(param) )
+                error("Varargs object parameters should not define setters.", param)
+              if (param.getMods.isWrapped) {
+                toOption(param.getIdType) match {
+                  case Some(ty) if ty.isInstanceOf[VarType] =>
+                    val tyVar = ty.asInstanceOf[VarType].getName
+                    if (env.typeConsIndex(tyVar) == null)
+                      error("A wrapped field " + param.getName + " must not have " +
+                            "a naked type variable " + tyVar + ".", tyVar)
+                  case _ =>
+                }
+                toOption(param.getVarargsType) match {
+                  case Some(ty) if ty.isInstanceOf[VarType] =>
+                    val tyVar = ty.asInstanceOf[VarType].getName
+                    if (env.typeConsIndex(tyVar) == null)
+                      error("A wrapped field " + param.getName + " must not have " +
+                            "a naked type variable " + tyVar + ".", tyVar)
+                  case _ =>
+                }
+              }
+            }
+*/
+          case _ =>
+        }
         val old_env = env
         extendWithVars(extractStaticExprVars(sparams))
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
+        val params = extractParamNames(old_params)
         // Include trait declarations and inherited methods
-        val (vars, gettersAndSetters, fns) = partitionDecls(decls, Set[Id]())
+        val (vars, gettersAndSetters, fns) = partitionDecls(decls, params)
         val inheritedMs = inheritedMethods(extendsClause)
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
         extendWithVars(Set(NF.makeId(span, "self")))
-        extendWithFields(vars)
+        extendWithFields(joinFields(params, vars))
         extendWithMethods(inheritedMs ++ fns)
         val result = STraitDecl(info,
                                 STraitTypeHeader(sparams, mods, name, where, throwsC,
                                                  contract, extendsClause,
+                                                 walk(old_params).asInstanceOf[Option[List[Param]]],
                                                  walk(decls).asInstanceOf[List[Decl]]),
                                 self, excludes, comprises, ellipses)
         env = old_env
@@ -154,8 +188,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        */
       case SObjectDecl(info@SASTNodeInfo(span),
                        STraitTypeHeader(sparams, mods, old_name, where,
-                                        throwsC, contract, extendsC, decls),
-                       self, old_params) =>
+                                        throwsC, contract, extendsC,
+                                        old_params, decls),
+                       self) =>
         inTraitOrObject = true
         val name = old_name.asInstanceOf[Id]
         checkForShadowingType(name)
@@ -226,8 +261,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                                  STraitTypeHeader(sparams, mods, name, where, throwsC,
                                                   walk(contract).asInstanceOf[Option[Contract]],
                                                   extendsClause,
+                                                  walk(old_params).asInstanceOf[Option[List[Param]]],
                                                   walk(decls).asInstanceOf[List[Decl]]),
-                                 self, walk(old_params).asInstanceOf[Option[List[Param]]])
+                                 self)
         env = old_env
         inTraitOrObject = false
         result
@@ -298,7 +334,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
        */
       case SObjectExpr(info@SASTNodeInfo(span),
                        STraitTypeHeader(sparams, mods, name, where,
-                                        throwsC, contract, extendsC, decls),
+                                        throwsC, contract, extendsC,
+                                        params, decls),
                        self) =>
         val extendsClause = walk(extendsC).asInstanceOf[List[TraitTypeWhere]]
         // Include trait declarations and inherited methods
@@ -310,7 +347,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         extendWithMethods(inheritedMs ++ fns)
         val result = SObjectExpr(info,
                                  STraitTypeHeader(sparams, mods, name, where, throwsC,
-                                                  contract, extendsClause,
+                                                  contract, extendsClause, params,
                                                   walk(decls).asInstanceOf[List[Decl]]),
                                  self)
         env = old_env

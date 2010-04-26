@@ -138,8 +138,8 @@ class HygienicRenamer(constituent: APIName,
              SKeywordExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getInit).asInstanceOf[com.sun.fortress.nodes.Expr])
          case SLValue(getInfo, getName, getMods, getIdType, isMutable) =>
              SLValue(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getMods).asInstanceOf[com.sun.fortress.nodes_util.Modifiers], walk(getIdType).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(isMutable).asInstanceOf[Boolean])
-         case SObjectDecl(getInfo, getHeader, getParams, getSelfType) =>
-             SObjectDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.SelfType]], walk(getParams).asInstanceOf[Option[List[com.sun.fortress.nodes.Param]]])
+         case SObjectDecl(getInfo, getHeader, getSelfType) =>
+             SObjectDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.SelfType]])
          case SObjectExpr(getInfo, getHeader, getSelfType) =>
              SObjectExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.SelfType]])
          case SOp(getInfo, getApiName, getText, getFixity, isEnclosing) =>
@@ -211,8 +211,8 @@ class HygienicRenamer(constituent: APIName,
                              walk(getExtended).asInstanceOf[List[com.sun.fortress.nodes.BaseType]])
          case STraitType(getInfo, getName, getArgs, getStaticParams) =>
              STraitType(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.TypeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getArgs).asInstanceOf[List[com.sun.fortress.nodes.StaticArg]], walk(getStaticParams).asInstanceOf[List[com.sun.fortress.nodes.StaticParam]])
-         case STraitTypeHeader(getStaticParams, getMods, getName, getWhereClause, getThrowsClause, getContract, getExtendsClause, getDecls) =>
-             STraitTypeHeader(walk(getStaticParams).asInstanceOf[List[com.sun.fortress.nodes.StaticParam]], walk(getMods).asInstanceOf[com.sun.fortress.nodes_util.Modifiers], walk(getName).asInstanceOf[com.sun.fortress.nodes.IdOrOpOrAnonymousName], walk(getWhereClause).asInstanceOf[Option[com.sun.fortress.nodes.WhereClause]], walk(getThrowsClause).asInstanceOf[Option[List[com.sun.fortress.nodes.BaseType]]], walk(getContract).asInstanceOf[Option[com.sun.fortress.nodes.Contract]], walk(getExtendsClause).asInstanceOf[List[com.sun.fortress.nodes.TraitTypeWhere]], walk(getDecls).asInstanceOf[List[com.sun.fortress.nodes.Decl]])
+         case STraitTypeHeader(getStaticParams, getMods, getName, getWhereClause, getThrowsClause, getContract, getExtendsClause, getParams, getDecls) =>
+             STraitTypeHeader(walk(getStaticParams).asInstanceOf[List[com.sun.fortress.nodes.StaticParam]], walk(getMods).asInstanceOf[com.sun.fortress.nodes_util.Modifiers], walk(getName).asInstanceOf[com.sun.fortress.nodes.IdOrOpOrAnonymousName], walk(getWhereClause).asInstanceOf[Option[com.sun.fortress.nodes.WhereClause]], walk(getThrowsClause).asInstanceOf[Option[List[com.sun.fortress.nodes.BaseType]]], walk(getContract).asInstanceOf[Option[com.sun.fortress.nodes.Contract]], walk(getExtendsClause).asInstanceOf[List[com.sun.fortress.nodes.TraitTypeWhere]], walk(getParams).asInstanceOf[Option[List[com.sun.fortress.nodes.Param]]], walk(getDecls).asInstanceOf[List[com.sun.fortress.nodes.Decl]])
          case STraitTypeWhere(getInfo, getBaseType, getWhereClause) =>
              STraitTypeWhere(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getBaseType).asInstanceOf[com.sun.fortress.nodes.BaseType], walk(getWhereClause).asInstanceOf[Option[com.sun.fortress.nodes.WhereClause]])
          case STry(getInfo, getBody, getCatchClause, getForbidClause, getFinallyClause) =>
@@ -285,8 +285,8 @@ class HygienicRenamer(constituent: APIName,
              S_RewriteFnRef(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getFnExpr).asInstanceOf[com.sun.fortress.nodes.Expr], walk(getStaticArgs).asInstanceOf[List[com.sun.fortress.nodes.StaticArg]])
          case S_RewriteFunctionalMethodDecl(getInfo, getFunctionalMethodNames) =>
              S_RewriteFunctionalMethodDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getFunctionalMethodNames).asInstanceOf[List[String]])
-         case S_RewriteObjectExpr(getInfo, getHeader, getImplicitTypeParameters, getGenSymName, getStaticArgs, getParams) =>
-             S_RewriteObjectExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getImplicitTypeParameters).asInstanceOf[Map[String, com.sun.fortress.nodes.StaticParam]], walk(getGenSymName).asInstanceOf[String], walk(getStaticArgs).asInstanceOf[List[com.sun.fortress.nodes.StaticArg]], walk(getParams).asInstanceOf[Option[List[com.sun.fortress.nodes.Param]]])
+         case S_RewriteObjectExpr(getInfo, getHeader, getImplicitTypeParameters, getGenSymName, getStaticArgs) =>
+             S_RewriteObjectExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getImplicitTypeParameters).asInstanceOf[Map[String, com.sun.fortress.nodes.StaticParam]], walk(getGenSymName).asInstanceOf[String], walk(getStaticArgs).asInstanceOf[List[com.sun.fortress.nodes.StaticArg]])
          case S_RewriteObjectExprDecl(getInfo, getObjectExprs) =>
              S_RewriteObjectExprDecl(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getObjectExprs).asInstanceOf[List[com.sun.fortress.nodes._RewriteObjectExpr]])
          case S_RewriteObjectExprRef(getInfo, getGenSymName, getStaticArgs) =>

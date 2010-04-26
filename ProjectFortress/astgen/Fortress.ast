@@ -90,8 +90,7 @@ interface Node() extends HasAt;
              * implemented by object declaration and
              * object expressions in components or APIs
              */
-            interface ObjectConstructor(TraitTypeHeader header,
-                                        Option<List<Param>> params);
+            interface ObjectConstructor(TraitTypeHeader header);
         /**
          * top-level node abstract class
          */
@@ -182,7 +181,10 @@ interface Node() extends HasAt;
                      * trait declaration in APIs
                      * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
                      *                  AbsGoInATrait? end
-                     * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
+                     * TraitHeaderFront ::= trait Id StaticParams? TraitValParam? ExtendsWhere?
+                     * TraitValParam ::= ( TraitParams? )
+                     * TraitParams ::= TraitParam (, TraitParam)*
+                     * TraitParam ::= BindId IsType
                      * ExtendsWhere ::= extends TraitTypeWheres
                      * AbsTraitClause ::= Excludes | AbsComprises | Where
                      * Excludes ::= excludes TraitTypes
@@ -261,8 +263,7 @@ interface Node() extends HasAt;
                      *         length() = 0
                      *       end
                      */
-                    ObjectDecl(Option<List<Param>> params)
-                              implements ObjectConstructor;
+                    ObjectDecl() implements ObjectConstructor;
                 /**
                  * variable declaration in components or APIs
                  *
@@ -567,8 +568,7 @@ interface Node() extends HasAt;
                      */
                     _RewriteObjectExpr(Map<String, StaticParam> implicitTypeParameters,
                                        String genSymName,
-                                       List<StaticArg> staticArgs,
-                                       Option<List<Param>> params)
+                                       List<StaticArg> staticArgs)
                                       implements ObjectConstructor;
                 /**
                  * try expression
@@ -1942,6 +1942,7 @@ interface Node() extends HasAt;
                          * common header for trait/object declaration/expression
                          */
                         TraitTypeHeader(List<TraitTypeWhere> extendsClause,
+                                        Option<List<Param>> params,
                                         List<Decl> decls);
                         /**
                          * common header for function declaration/expression

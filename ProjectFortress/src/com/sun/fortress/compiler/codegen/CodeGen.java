@@ -2304,7 +2304,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        Option<List<Param>> original_params = x.getParams();
+        Option<List<Param>> original_params = NodeUtil.getParams(x);
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         Id classId = NodeUtil.getName(x);
@@ -2347,7 +2347,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        Option<List<Param>> original_params = x.getParams();
+        Option<List<Param>> original_params = NodeUtil.getParams(x);
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         ObjectDecl y = x;
@@ -2397,10 +2397,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forObjectDeclPrePass ",x," classFile = ", classFile);
 
 
-        boolean hasParameters = x.getParams().isSome();
+        boolean hasParameters = NodeUtil.getParams(x).isSome();
         List<Param> params;
         if (hasParameters) {
-            params = x.getParams().unwrap();
+            params = NodeUtil.getParams(x).unwrap();
             String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
 
              // Generate the factory method

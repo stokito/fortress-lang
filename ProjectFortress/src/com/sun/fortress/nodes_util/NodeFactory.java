@@ -330,10 +330,25 @@ public class NodeFactory {
                                           Option<List<NamedType>> comprisesC,
                                           boolean comprisesEllipses,
                                           Option<SelfType> selfType) {
+        return makeTraitDecl(span, mods, name, sparams, Option.<List<Param>>none(),
+                             extendsC, whereC, decls,
+                             excludesC, comprisesC, false, selfType);
+    }
+
+    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
+                                          List<StaticParam> sparams,
+                                          Option<List<Param>> params,
+                                          List<TraitTypeWhere> extendsC,
+                                          Option<WhereClause> whereC,
+                                          List<Decl> decls,
+                                          List<BaseType> excludesC,
+                                          Option<List<NamedType>> comprisesC,
+                                          boolean comprisesEllipses,
+                                          Option<SelfType> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      Option.<List<Type>>none(),
                                                      Option.<Contract>none(),
-                                                     extendsC, decls);
+                                                     extendsC, params, decls);
         return makeTraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
                              comprisesEllipses,selfType);
     }
@@ -412,8 +427,8 @@ public class NodeFactory {
                                             Option<SelfType> selfType) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
-                                                     decls);
-        return new ObjectDecl(makeSpanInfo(span), header, selfType, params);
+                                                     params, decls);
+        return new ObjectDecl(makeSpanInfo(span), header, selfType);
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
@@ -1567,18 +1582,28 @@ public class NodeFactory {
                                    extendsC, header.getDecls());
     }
 
+    public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
+                                                      List<TraitTypeWhere> extendsC,
+                                                      Option<List<Param>> params) {
+        return makeTraitTypeHeader(header.getMods(), header.getName(),
+                                   header.getStaticParams(), header.getWhereClause(),
+                                   header.getThrowsClause(), header.getContract(),
+                                   extendsC, params, header.getDecls());
+    }
+
     public static TraitTypeHeader makeTraitTypeHeaderWithDecls(TraitTypeHeader header,
                                                                List<Decl> decls) {
-        return makeTraitTypeHeader(header, decls, header.getContract());
+        return makeTraitTypeHeader(header, decls, header.getContract(), header.getParams());
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
                                                       List<Decl> decls,
-                                                      Option<Contract> contract) {
+                                                      Option<Contract> contract,
+                                                      Option<List<Param>> params) {
         return makeTraitTypeHeader(header.getMods(), header.getName(),
                                    header.getStaticParams(), header.getWhereClause(),
                                    header.getThrowsClause(), contract,
-                                   header.getExtendsClause(), decls);
+                                   header.getExtendsClause(), params, decls);
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(Span span,
@@ -1594,7 +1619,7 @@ public class NodeFactory {
                                    Collections.<StaticParam>emptyList(),
                                    Option.<WhereClause>none(),
                                    Option.<List<Type>>none(), Option.<Contract>none(),
-                                   extendsClause, decls);
+                                   extendsClause, Option.<List<Param>>none(), decls);
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(Modifiers mods,
@@ -1605,9 +1630,22 @@ public class NodeFactory {
                                                       Option<Contract> contract,
                                                       List<TraitTypeWhere> extendsClause,
                                                       List<Decl> decls) {
+        return makeTraitTypeHeader(mods, name, staticParams, whereClause, throwsClause,
+                                   contract, extendsClause, Option.<List<Param>>none(), decls);
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(Modifiers mods,
+                                                      IdOrOpOrAnonymousName name,
+                                                      List<StaticParam> staticParams,
+                                                      Option<WhereClause> whereClause,
+                                                      Option<List<Type>> throwsClause,
+                                                      Option<Contract> contract,
+                                                      List<TraitTypeWhere> extendsClause,
+                                                      Option<List<Param>> params,
+                                                      List<Decl> decls) {
         return new TraitTypeHeader(staticParams, mods, name, whereClause,
                                    throwsClause, contract, extendsClause,
-                                   decls);
+                                   params, decls);
     }
 
     public static AnyType makeAnyType(Span span) {

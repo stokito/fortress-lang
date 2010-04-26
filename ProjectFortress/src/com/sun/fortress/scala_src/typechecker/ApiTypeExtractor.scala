@@ -54,14 +54,14 @@ class ApiTypeExtractor(component: ComponentIndex,
   def getErrors() = errors
   private def error(s:String, n:Node) = errors.add(TypeError.make(s,n))
 
-  private def isExported(o: ObjectDecl): Option[(APIName, Type)] = {
+  private def isExported(o: TraitObjectDecl): Option[(APIName, Type)] = {
     val name = NodeUtil.getName(o)
     for ( api <- exports.keySet ) {
       val typeConses = exports.get(api).get.typeConses
       if ( typeConses.keySet.contains(name) &&
            NodeUtil.isObject(typeConses.get(name)) ) {
         val od = typeConses.get(name).ast.asInstanceOf[ObjectDecl]
-        toOption(od.getParams) match {
+        toOption(NodeUtil.getParams(od)) match {
           case Some(_) => return Some((api, NodeUtil.getParamType(od).unwrap))
           case _ =>
         }
@@ -193,33 +193,43 @@ class ApiTypeExtractor(component: ComponentIndex,
     node match {
       case t@STraitDecl(info,
                         STraitTypeHeader(sparams, mods, name, where,
-                                         throwsC, contract, extendsC, decls),
+                                         throwsC, contract, extendsC, params, decls),
                         self, excludes, comprises, ellipses) =>
         inTraitOrObject = Some(name)
+        val newParams =
+          if ( params.isSome && params.unwrap.exists(paramWithoutType) )
+            isExported(t) match {
+              // If this object o is exported by an API api
+              case Some((api, paramTypeInAPI)) =>
+                Some(forParams(params.unwrap, paramTypeInAPI))
+              case _ => params
+            }
+          else params
         val newHeader = STraitTypeHeader(sparams, mods, name, where,
-                                         throwsC, contract, extendsC,
+                                         throwsC, contract, extendsC, newParams,
                                          walk(decls).asInstanceOf[List[Decl]])
         inTraitOrObject = None
         STraitDecl(info, newHeader, self, excludes, comprises, ellipses)
 
       case o@SObjectDecl(info,
                          STraitTypeHeader(sparams, mods, name, where,
-                                          throwsC, contract, extendsC, decls),
-                         self, params) =>
+                                          throwsC, contract, extendsC, params, decls),
+                         self) =>
         inTraitOrObject = Some(name)
+        val newParams =
+          if ( params.isSome && params.unwrap.exists(paramWithoutType) )
+            isExported(o) match {
+              // If this object o is exported by an API api
+              case Some((api, paramTypeInAPI)) =>
+                Some(forParams(params.unwrap, paramTypeInAPI))
+              case _ => params
+            }
+          else params
         val newHeader = STraitTypeHeader(sparams, mods, name, where,
-                                         throwsC, contract, extendsC,
+                                         throwsC, contract, extendsC, newParams,
                                          walk(decls).asInstanceOf[List[Decl]])
         inTraitOrObject = None
-        if ( params.isSome && params.unwrap.exists(paramWithoutType) )
-          isExported(o) match {
-            // If this object o is exported by an API api
-            case Some((api, paramTypeInAPI)) =>
-              SObjectDecl(info, newHeader, self,
-                          Some(forParams(params.unwrap, paramTypeInAPI)))
-            case _ => SObjectDecl(info, newHeader, self, params)
-          }
-        else SObjectDecl(info, newHeader, self, params)
+        SObjectDecl(info, newHeader, self)
 
       case f@SFnDecl(info,
                      SFnHeader(sparams, mods, name, where,
