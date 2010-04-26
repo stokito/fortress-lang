@@ -238,10 +238,7 @@ public class NodeUtil {
     }
 
     public static Option<List<Param>> getParams(TraitObjectDecl o) {
-        if ( o instanceof ObjectDecl )
-            return ((ObjectDecl)o).getParams();
-        else
-            return bug("ObjectDecl expected, but got " + o);
+        return o.getHeader().getParams();
     }
 
     /* Getters for TraitDecl */
@@ -255,7 +252,7 @@ public class NodeUtil {
 
     /* Getters for ObjectDecl */
     public static Option<List<Param>> getParams(ObjectDecl o) {
-        return o.getParams();
+        return o.getHeader().getParams();
     }
 
     public static Option<List<Type>> getThrowsClause(ObjectDecl o) {
@@ -331,8 +328,9 @@ public class NodeUtil {
     }
 
     public static Option<Type> getParamType(ObjectDecl o) {
-        if ( o.getParams().isSome() ) {
-            return Option.<Type>some(getParamType(o.getParams().unwrap(), getSpan(o)));
+        Option<List<Param>> params = getParams(o);
+        if ( params.isSome() ) {
+            return Option.<Type>some(getParamType(params.unwrap(), getSpan(o)));
         } else return Option.<Type>none();
     }
 
@@ -384,7 +382,7 @@ public class NodeUtil {
 
     /* Getters for ObjectConstructor */
     public static Option<List<Param>> getParams(ObjectConstructor g) {
-        return g.getParams();
+        return g.getHeader().getParams();
     }
 
     public static List<Decl> getDecls(ObjectConstructor g) {

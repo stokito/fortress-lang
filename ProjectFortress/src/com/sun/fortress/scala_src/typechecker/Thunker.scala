@@ -53,9 +53,9 @@ class Thunker(var typeChecker: STypeChecker)
     }
 
     case t@STraitDecl(info,
-                      STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, decls),
+                      STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, params, decls),
                       selfType, excludes, comprises, hasEllipses) => {
-      typeChecker = typeChecker.extend(sparams, where)
+      typeChecker = typeChecker.extend(sparams, params, where)
       // Add field declarations (getters/setters?) to method_checker
       typeChecker = decls.foldRight(typeChecker)
                                       {(d:Decl, c:STypeChecker) => d match {
@@ -87,8 +87,8 @@ class Thunker(var typeChecker: STypeChecker)
     }
 
     case o@SObjectDecl(info,
-                       STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, decls),
-                       selfType, params) => {
+                       STraitTypeHeader(sparams, mods, name, where, throwsC, contract, extendsC, params, decls),
+                       selfType) => {
       typeChecker = typeChecker.extend(sparams, params, where)
       // Add field declarations (getters/setters?) to method_checker
       typeChecker = decls.foldRight(typeChecker)

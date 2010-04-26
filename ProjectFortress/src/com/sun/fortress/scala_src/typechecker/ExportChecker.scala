@@ -634,9 +634,9 @@ object ExportChecker {
                                     inComp: TraitTypeHeader): (Boolean, String) =
     (inAPI, inComp) match {
       case (STraitTypeHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
-                             extendsL, declsL),
+                             extendsL, paramsL, declsL),
             STraitTypeHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
-                             extendsR, declsR)) =>
+                             extendsR, paramsR, declsR)) =>
         var cause = ""
         if ( ! equalListStaticParams(sparamsL, sparamsR) )
           cause = addMessage(cause, "different static parameters")
@@ -646,6 +646,8 @@ object ExportChecker {
           cause = addMessage(cause, "different throws clauses")
         if ( ! equalListTraitTypeWheres(extendsL, extendsR) )
           cause = addMessage(cause, "different extends clauses")
+        if ( ! equalOptListParams(paramsL, paramsR) )
+          cause = addMessage(cause, "different parameters")
         val equalDecls = equalListMembers(declsL, declsR, cause)
         if ( ! equalDecls._1 )
           cause = addMessage(cause, equalDecls._2)

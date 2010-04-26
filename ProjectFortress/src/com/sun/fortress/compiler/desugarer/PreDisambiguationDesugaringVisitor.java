@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -102,12 +102,12 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     @Override
         public Node forObjectDecl(ObjectDecl that) {
         TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
-        Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
-
+        Option<List<Param>> params_result = recurOnOptionOfListOfParam(NodeUtil.getParams(that));
         header_result = NodeFactory.makeTraitTypeHeader(header_result,
-                                                        rewriteExtendsClause(that, header_result.getExtendsClause()));
+                                                        rewriteExtendsClause(that, header_result.getExtendsClause()),
+                                                        params_result);
         return super.forObjectDeclOnly(that, that.getInfo(),
-                                       header_result, that.getSelfType(), params_result);
+                                       header_result, that.getSelfType());
     }
 
     @Override

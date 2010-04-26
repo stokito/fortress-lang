@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -559,8 +559,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
 
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getHeader(), gettersAndDecls, contract_result);
-        return forObjectDeclOnly(that, that.getInfo(), header, that.getSelfType(), params_result);
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getHeader(), gettersAndDecls,
+                                                                 contract_result, params_result);
+        return forObjectDeclOnly(that, that.getInfo(), header, that.getSelfType());
     }
 
     @Override

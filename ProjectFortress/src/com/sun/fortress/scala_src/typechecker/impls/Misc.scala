@@ -222,9 +222,9 @@ trait Misc { self: STypeChecker with Common =>
 
     //ToDo: Why isn't this a Decl?
     case o@SObjectExpr(SExprInfo(span,parenthesized,_),
-                     STraitTypeHeader(sparams, mods, name, where,
-                                      throwsC, contract, extendsC, decls),
-                     selfType) => {
+                       STraitTypeHeader(sparams, mods, name, where,
+                                        throwsC, contract, extendsC, params, decls),
+                       selfType) => {
       // Verify that no extends clauses try to extend an object.
       extendsC.foreach( (t:TraitTypeWhere) =>
                         assertTrait(t.getBaseType,
@@ -264,7 +264,7 @@ trait Misc { self: STypeChecker with Common =>
                                     case _ => check(d).asInstanceOf[Decl] } )
           SObjectExpr(SExprInfo(span,parenthesized,Some(normalize(ty))),
                       STraitTypeHeader(sparams, mods, name, where,
-                                       throwsC, newContract, extendsC, newDecls),
+                                       throwsC, newContract, extendsC, params, newDecls),
                       selfType)
         case _ => signal(o, errorMsg("Self type is not inferred for ", o)); o
       }

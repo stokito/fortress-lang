@@ -63,13 +63,13 @@ class AbstractMethodChecker(component: ComponentIndex,
   override def walk(node:Any):Any = {
     node match {
       case o@SObjectDecl(SSpanInfo(span),
-                         STraitTypeHeader(sparams, _, name, _, _, _, extendsC, decls),
-                         _, _) =>
+                         STraitTypeHeader(sparams, _, name, _, _, _, extendsC, _, decls),
+                         _) =>
         checkObject(span, sparams, name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])
 
       case o@SObjectExpr(SExprInfo(span, _, _),
-                         STraitTypeHeader(_, _, name, _, _, _, extendsC, decls),
+                         STraitTypeHeader(_, _, name, _, _, _, extendsC, _, decls),
                          _) =>
         checkObject(span, List(), name, extendsC,
                     walk(decls).asInstanceOf[List[Decl]])

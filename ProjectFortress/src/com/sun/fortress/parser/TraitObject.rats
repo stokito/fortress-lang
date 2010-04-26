@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -44,28 +44,49 @@ TraitDecl TraitDecl =
        if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
-                                           a2.getStaticParams(),
+                                           a2.getStaticParams(), a2.getParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
                                            a3.getComprises(), a3.getEllipses(),
                                            Option.<SelfType>none());
      };
 
-/* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
+/* TraitHeaderFront ::= trait w Id (w StaticParams)? (w TraitValParam)? (w ExtendsWhere)? */
 private TraitHeader TraitHeaderFront =
      <ErrorProduction>
-     trait w a1:OpName a2:(w StaticParams)? a3:(w ExtendsWhere)?
+     trait w a1:OpName a2:(w StaticParams)? a3:(w TraitValParam)? a4:(w ExtendsWhere)?
      { Span span = createSpan(yyStart,yyCount);
-       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
-       if (a3 == null) a3 = Collections.<TraitTypeWhere>emptyList();
        log(span, a1 + " is not a valid trait name.");
-       yyValue = new TraitHeader(NodeFactory.bogusId(span), a2, a3);
+       yyValue = new TraitHeader(NodeFactory.bogusId(span),
+                                 Collections.<StaticParam>emptyList(),
+                                 Option.<List<Param>>none(),
+                                 Collections.<TraitTypeWhere>emptyList());
      }
-   / trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
+     / trait w a1:Id a2:(w StaticParams)? a3:(w TraitValParam)? a4:(w ExtendsWhere)?
      { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
-       if (a3 == null) a3 = Collections.<TraitTypeWhere>emptyList();
-       yyValue = new TraitHeader(a1, a2, a3);
+       if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
+       yyValue = new TraitHeader(a1, a2, Option.<List<Param>>wrap(a3), a4);
      };
+
+/* TraitValParam ::= ( (w TraitParams)? w ) */
+private List<Param> TraitValParam = openparen a1:(w TraitParams)? w closeparen
+     { yyValue = (a1 == null) ? Collections.<Param>emptyList() : a1; };
+
+/* TraitParams ::= TraitParam (w , w TraitParam)* */
+transient List<Param> TraitParams =
+     a1:TraitParam a2s:(w comma w TraitParam)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:TraitParam a2s:(w commaOrNot w TraitParam)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:TraitParam
+     { yyValue = Useful.list(a1); };
+
+/* TraitParam ::= BindId w IsType */
+transient Param TraitParam =
+     a1:BindId w a2:IsType
+     { yyValue = NodeFactory.makeParam(a1, a2); };
 
 /* Each trait clause cannot appear more than once. */
 /* TraitClauses ::= (w TraitClause)* */
@@ -222,7 +243,7 @@ TraitDecl AbsTraitDecl =
        if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
-                                           a2.getStaticParams(),
+                                           a2.getStaticParams(), a2.getParams(),
                                            a2.getExtendsClause(), a3.getWhere(),
                                            a4, a3.getExcludes(),
                                            a3.getComprises(), a3.getEllipses(),

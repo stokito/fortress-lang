@@ -357,7 +357,7 @@ object IndexBuilder {
         case _ =>
       }
     }
-    val constructor = toOption(ast.getParams) match {
+    val constructor = toOption(NU.getParams(ast)) match {
       case Some(params) =>
         for (p <- params) {
           val mods = p.getMods
@@ -369,7 +369,7 @@ object IndexBuilder {
               setters.put(paramName, new JavaFieldSetterMethod(p, ast))
         }
         val c = new JavaConstructor(name, NU.getStaticParams(ast),
-                                    ast.getParams, NU.getThrowsClause(ast),
+                                    NU.getParams(ast), NU.getThrowsClause(ast),
                                     NU.getWhereClause(ast))
         functions.add(name, c)
         some[JavaConstructor](c)
