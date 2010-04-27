@@ -33,7 +33,7 @@ public class MethodInsn extends Insn {
         this.desc = desc;
     }
     public String toString() { 
-        return "MethodInsn:" +  opcode + " " + owner + " " + name + " " + desc;
+        return "MethodInsn:" +  opcode + " " + owner + " " + _name + " " + desc;
     }
     
     public void toAsm(MethodVisitor mv) { 
