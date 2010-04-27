@@ -23,8 +23,6 @@ import java.util.Map;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-/* We are looking for two instructions in a row.  FIntLiteral.make() followed by coerce_ZZ32().  If the number on the stack is small enough we can replace these two function calls by a single call to ZZ32.make(); */
-
 public class RemoveLiteralCoercions {
 
     public static void Optimize(ByteCodeVisitor bcv) {
@@ -82,9 +80,9 @@ public class RemoveLiteralCoercions {
 
 
     public static void removeCoercions(ByteCodeMethodVisitor bcmv) {
-        for (int i = 0; i < bcmv.insns.size(); i++) {
-            System.out.println("Insn " + i + "=" + bcmv.insns.get(i));
-        }
+        //        for (int i = 0; i < bcmv.insns.size(); i++) {
+        //            System.out.println("Insn " + i + "=" + bcmv.insns.get(i));
+        //        }
                            
         removeIntLiterals(bcmv).makeSubstitution(bcmv);
         removeFloatLiterals(bcmv).makeSubstitution(bcmv);

@@ -132,7 +132,8 @@ class ByteCodeOptimizer {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
             AddOptimizeString.Optimize(bcv);
-            RemoveLiteralCoercions.Optimize(bcv);
+            BasicBlockGenerator.Optimize(bcv);
+            // RemoveLiteralCoercions.Optimize(bcv);
         }
     }
         

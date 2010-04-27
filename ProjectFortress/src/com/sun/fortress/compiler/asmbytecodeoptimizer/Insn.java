@@ -20,8 +20,39 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 abstract public class Insn {
     String name;
+    Boolean StartOfBasicBlock = false;
+    Boolean EndOfBasicBlock = false;
+
+    Set<Integer> NextInsns = new TreeSet<Integer>();
+    List<String> Stack = new ArrayList<String>();
+    List<String> locals = new ArrayList<String>();
+
+    public void markStartOfBasicBlock() {
+        StartOfBasicBlock = true;
+    }
+
+    public Boolean isStartOfBasicBlock() {
+        return StartOfBasicBlock;
+    }
+
+    public void markEndOfBasicBlock() {
+        EndOfBasicBlock = true;
+    }
+
+    public Boolean isEndOfBasicBlock() {
+        return EndOfBasicBlock;
+    }
+
+    public void addNext(Integer n) {
+        NextInsns.add(n);
+    }
 
     public String toString() { return name;}
     public abstract void toAsm(MethodVisitor mv);

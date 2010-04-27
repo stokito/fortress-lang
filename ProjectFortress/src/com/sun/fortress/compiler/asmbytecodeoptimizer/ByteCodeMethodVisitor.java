@@ -21,16 +21,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.jar.*;
 import java.util.List;
+import java.util.Set;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisitor {
 
-    HashMap labelNames;
-    ArrayList<Insn> insns;
+    public HashMap labelNames;
+    public ArrayList<Insn> insns;
     int access;
-    String name;
+    public String name;
     String desc;
     String sig;
     String[] exceptions;
@@ -38,7 +39,9 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     static int INVOKESTATIC = Opcodes.INVOKESTATIC;
     static int GETSTATIC = Opcodes.GETSTATIC;
     static int INVOKEVIRTUAL = Opcodes.INVOKEVIRTUAL;
+    static int INVOKEINTERFACE = Opcodes.INVOKEINTERFACE;
 
+    boolean changed;
 
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
         this.labelNames = new HashMap();
@@ -48,6 +51,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.desc = desc;
         this.sig = sig;
         this.exceptions = exceptions;
+        changed = false;
     }
 
     public void toAsm(ClassWriter cw) {
@@ -117,6 +121,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitLabel(Label label) {
+        labelNames.put(label.toString(), new Integer(insns.size()));
         insns.add(new LabelInsn("Label", label));
     }
 
