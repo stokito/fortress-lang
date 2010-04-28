@@ -111,7 +111,7 @@ class SelfParamDisambiguator extends Walker {
           case Some(_) => super.walk(node)
           case None =>
             // my type is broken I need to qualify the type name
-            val new_type: Option[Type] =
+            val new_type: Option[TypeOrPattern] =
               if (name.equals(NamingCzar.SELF_NAME)) some(self_type)
               else idType
             SParam(info, name, mods, new_type, defaultExpr, None)

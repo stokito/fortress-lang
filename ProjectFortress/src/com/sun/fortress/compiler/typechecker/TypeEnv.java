@@ -64,6 +64,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrPattern;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -118,7 +119,7 @@ public abstract class TypeEnv {
      */
     protected static Option<Type> typeFromParam(Param param) {
         if ( ! NodeUtil.isVarargsParam(param) ) {
-            return param.getIdType();
+            return NodeUtil.optTypeOrPatternToType(param.getIdType());
         } else { // a varargs param
             // Convert the declared varargs type into a reference to
             // FortressBuiltin.ImmutableHeapSequence.
@@ -148,7 +149,7 @@ public abstract class TypeEnv {
 
         for (Param param: params) {
             if ( ! NodeUtil.isVarargsParam(param) ) {
-                Option<Type> maybeType = param.getIdType();
+                Option<Type> maybeType = NodeUtil.optTypeOrPatternToType(param.getIdType());
 
                 if (maybeType.isSome()) { // An explicit type is declared.
                     if (param.getDefaultExpr().isSome()) { // We have a keyword param.

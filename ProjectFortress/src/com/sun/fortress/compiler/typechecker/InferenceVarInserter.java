@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrPattern;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -48,10 +49,10 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
             public Node forLValueOnly(LValue that, ASTNodeInfo info,
-                                  Id name_result,
-                                  Option<Type> type_result) {
+                                      Id name_result,
+                                      Option<TypeOrPattern> type_result) {
 		if( type_result.isNone() ) {
-			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that.getName())));
+			Option<TypeOrPattern> new_type = Option.<TypeOrPattern>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that.getName())));
 			return NodeFactory.makeLValue(NodeUtil.getSpan(that), name_result,
                                                       that.getMods(), new_type,
                                                       that.isMutable());
@@ -109,14 +110,14 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
             public Node forParamOnly(Param that, ASTNodeInfo info, Id name_result,
-                                 Option<Type> type_result,
-                                 Option<Expr> defaultExpr_result,
-                                 Option<Type> varargsType_result) {
+                                     Option<TypeOrPattern> type_result,
+                                     Option<Expr> defaultExpr_result,
+                                     Option<Type> varargsType_result) {
             if ( ! NodeUtil.isVarargsParam(that) ) {
 		// Is the type given?
-		Option<Type> new_type =
+		Option<TypeOrPattern> new_type =
 			type_result.isNone() ?
-					Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that))) :
+					Option.<TypeOrPattern>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that))) :
 						type_result;
 
 		return super.forParamOnly(that, info, name_result, new_type,

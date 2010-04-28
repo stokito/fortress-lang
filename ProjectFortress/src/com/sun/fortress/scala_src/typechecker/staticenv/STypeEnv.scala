@@ -21,6 +21,7 @@ import _root_.java.util.{Map => JMap}
 import _root_.java.util.{Set => JSet}
 // import collection.jcl.Hashtable
 import com.sun.fortress.compiler.index._
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Modifiers
@@ -185,12 +186,18 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       case SParam(_, name, mods, _, _, Some(vaTyp)) =>
         List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
-        List(makeBinding(name, typ, mods, false))
+        typ match {
+          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case t@SType(_) => List(makeBinding(name, t, mods, false))
+        }
       case SParam(_, name, mods, _, _, _) =>
         throw TypeError.make("Missing parameter type for " + name, node)
 
       case SLValue(_, name, mods, Some(typ), mutable) =>
-        List(makeBinding(name, typ, mods, mutable))
+        typ match {
+          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case t@SType(_) => List(makeBinding(name, t, mods, mutable))
+        }
 
       case SLocalVarDecl(_, _, lValues, _) =>
         lValues.flatMap(extractNodeBindings)

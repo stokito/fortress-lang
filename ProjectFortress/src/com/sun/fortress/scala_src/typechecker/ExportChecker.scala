@@ -44,6 +44,7 @@ import com.sun.fortress.compiler.index.{Unit => JavaUnit}
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful._
@@ -229,9 +230,18 @@ object ExportChecker {
           (api.variables.get(v), component.variables.get(v)) match {
             case (DeclaredVariable(lvalueInAPI),
                   DeclaredVariable(lvalueInComp)) =>
+              val ltopt = toOption(lvalueInAPI.getIdType) match {
+                  case Some(p@SPattern(_)) => bug("Pattern should be desugared away: " + p)
+                  case Some(t@SType(_)) => Some(t)
+                  case None => None
+                }
+              val rtopt = toOption(lvalueInComp.getIdType) match {
+                  case Some(p@SPattern(_)) => bug("Pattern should be desugared away: " + p)
+                  case Some(t@SType(_)) => Some(t)
+                  case None => None
+                }
               // should be with the same type and the same mutability
-              val diffType = ! equalOptTypes(toOption(lvalueInAPI.getIdType),
-                                             toOption(lvalueInComp.getIdType))
+              val diffType = ! equalOptTypes(ltopt, rtopt)
               val diffMods = ! lvalueInAPI.getMods.equals(lvalueInComp.getMods)
               val diffMuts = ! lvalueInAPI.isMutable == lvalueInComp.isMutable
               var cause = ""
@@ -612,7 +622,11 @@ object ExportChecker {
       case (SParam(_, nameL, modsL, typeL, initL, varargsL),
             SParam(_, nameR, modsR, typeR, initR, varargsR)) =>
         modsL.equals(modsR) &&
-        equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
+        ((typeL, typeR) match {
+           case (Some(tl@SType(_)), Some(tr@SType(_))) => equalTypes(tl, tr)
+           case _ => false
+         }) &&
+        equalOptTypes(varargsL, varargsR)
     }
 
   /* Returns true if two lists of parameters are same. */
@@ -738,7 +752,10 @@ object ExportChecker {
       case (SLValue(_, nameL, modsL, typeL, _),
             SLValue(_, nameR, modsR, typeR, _)) =>
         equalIds(nameL, nameR) && modsL.equals(modsR)
-        equalOptTypes(typeL, typeR)
+        (typeL, typeR) match {
+          case (Some(tl@SType(_)), Some(tr@SType(_))) => equalTypes(tl, tr)
+          case _ => false
+        }
   }
 
   private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =

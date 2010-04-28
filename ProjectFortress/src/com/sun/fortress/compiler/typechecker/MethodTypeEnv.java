@@ -69,15 +69,15 @@ class MethodTypeEnv extends TypeEnv {
                 Binding binding = _method.ast();
                 overloads.add(makeArrowType(NodeUtil.getSpan(binding),
                                             Types.VOID,
-                                             // all types have been filled in at this point
-                                            binding.getIdType().unwrap()));
+                                            // all types have been filled in at this point
+                                            NodeUtil.optTypeOrPatternToType(binding.getIdType()).unwrap()));
 
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
                 Binding binding = _method.ast();
 
                 overloads.add(makeArrowType(NodeUtil.getSpan(binding),
-                                            binding.getIdType().unwrap(),
+                                            NodeUtil.optTypeOrPatternToType(binding.getIdType()).unwrap(),
                                             // all types have been filled in at this point
                                             Types.VOID));
             }

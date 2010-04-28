@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -581,7 +581,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                                           NodeUtil.getExprType(exit),
                                                           exit.getTarget(), var);
                         exitFnExprParams.add(
-                            NodeFactory.makeParam(exitWithId, exitWithTypeOp) );
+                            NodeFactory.makeParam(exitWithId, NodeUtil.optTypeToTypeOrPattern(exitWithTypeOp)) );
                     } else {
                         throw new DesugarerError( exitSpan,
                                     "Exit with expr of an unknown type!" );
@@ -730,7 +730,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
                     type = NodeUtil.getExprType(var);
-                    param = NodeFactory.makeParam(var.getVarId(), type);
+                    param = NodeFactory.makeParam(var.getVarId(), NodeUtil.optTypeToTypeOrPattern(type));
                     params.add(param);
                 }
             }
@@ -745,7 +745,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 IdOrOp name = fn.getOriginalName();
                 if ( ! (name instanceof Id) )
                     bug(name, "The name field of FnRef should be Id.");
-                param = NodeFactory.makeParam((Id)name, type);
+                param = NodeFactory.makeParam((Id)name, NodeUtil.optTypeToTypeOrPattern(type));
                 params.add(param);
             }
         }
@@ -773,7 +773,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 type = Option.<Type>some(exitFnType);
                 Id exitFnId = NodeFactory.makeId(exitSpan,
                         MANGLE_CHAR + EXIT_FUNC_PREFIX + "_" + exitIndex);
-                param = NodeFactory.makeParam(exitFnId, type);
+                param = NodeFactory.makeParam(exitFnId, NodeUtil.optTypeToTypeOrPattern(type));
                 params.add(param);
                 Pair<Span, Id> exitKey = new Pair<Span,Id>(exitSpan, label);
                 Pair<Id, Type> exitFnInfo = new Pair<Id,Type>(exitFnId, exitFnType);
@@ -803,7 +803,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // id of the newly created param for implicit self
         Id enclosingParamId = NodeFactory.makeId(paramSpan,
                 MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
-        param = NodeFactory.makeParam(enclosingParamId, enclosingSelfType);
+        param = NodeFactory.makeParam(enclosingParamId,
+                                      NodeUtil.optTypeToTypeOrPattern(enclosingSelfType));
 
         return param;
     }
@@ -867,7 +868,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     private VarRef makeVarRefFromParam(Param param) {
         VarRef varRef = ExprFactory.makeVarRef( NodeUtil.getSpan(param),
-                                                param.getIdType(),
+                                                NodeUtil.optTypeOrPatternToType(param.getIdType()),
                                                 param.getName() );
         return varRef;
     }

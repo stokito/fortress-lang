@@ -119,7 +119,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
 
     public Voidoid forLValue(LValue x) {
         Id name = x.getName();
-        Option<Type> type = x.getIdType();
+        Option<TypeOrPattern> type = x.getIdType();
         String s = NodeUtil.nameString(name);
         boolean mutable = x.isMutable();
 
@@ -130,7 +130,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
             FType outerType = null;
             // Perhaps the LHS has a type?
             if (type.isSome()) {
-                Type t = type.unwrap();
+                Type t = NodeUtil.optTypeOrPatternToType(type).unwrap();
                 outerType = EvalType.getFType(t, evaluator.e);
 
                 //                if (outerType instanceof FAggregateType) {
@@ -216,7 +216,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
             // Perhaps the LHS has a type?
             try {
                 if (type.isSome()) {
-                    Type t = type.unwrap();
+                    Type t = NodeUtil.optTypeOrPatternToType(type).unwrap();
                     outerType = EvalType.getFType(t, evaluator.e);
                     if (value.type().subtypeOf(outerType)) evaluator.e.putVariable(s, value, outerType);
                     else {

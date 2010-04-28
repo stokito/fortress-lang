@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -90,7 +90,7 @@ class FnTypeEnv extends TypeEnv {
         for( Param param : NodeUtil.getParams(fn) ) {
             if( param.getName().equals(NamingCzar.SELF_NAME) ) {
                     if( ! NodeUtil.isVarargsParam(param) )
-                        self_type_ = param.getIdType();
+                        self_type_ = NodeUtil.optTypeOrPatternToType(param.getIdType());
                     else
                         InterpreterBug.bug("self cannot be a varargs.");
             }

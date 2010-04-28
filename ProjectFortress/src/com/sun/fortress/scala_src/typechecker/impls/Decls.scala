@@ -24,6 +24,7 @@ import com.sun.fortress.compiler.index.Method
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.Types
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -279,7 +280,14 @@ trait Decls { self: STypeChecker with Common =>
 
     case d@SLocalVarDecl(SExprInfo(span, paren,_), body, lhses, maybeRhs) => {
       // Gather declared types of LHS as a big tuple type.
-      val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType))
+      val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType) match {
+                                        case Some(pt) => pt match {
+                                          case p@SPattern(_) =>
+                                            bug("Pattern should be desugared away: " + p)
+                                          case t@SType(_) => Some(t)
+                                        }
+                                        case None => None
+                                        })
       val declaredType =
         if (declaredTypes.length == lhses.length)
           Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))

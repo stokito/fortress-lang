@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrPattern;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
@@ -77,7 +78,7 @@ class VarTypeEnv extends TypeEnv {
             } else { // result instanceof ParamVariable
                 ParamVariable _result = (ParamVariable)result;
                 Param param = _result.ast();
-                Option<Type> type = typeFromParam(param);
+                Option<TypeOrPattern> type = NodeUtil.optTypeToTypeOrPattern(typeFromParam(param));
 
                 return some(new BindingLookup(makeLValue(NodeUtil.getSpan(param), param.getName(),
                                                          param.getMods(), type, false)));

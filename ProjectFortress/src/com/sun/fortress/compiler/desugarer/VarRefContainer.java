@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -89,14 +89,16 @@ public class VarRefContainer {
 
     public Param containerTypeParam() {
         return NodeFactory.makeParam( NodeUtil.getSpan(origDeclNode),
-                                      containerVarId(), containerType() );
+                                      containerVarId(),
+                                      NodeUtil.optTypeToTypeOrPattern(containerType()) );
     }
 
     public VarDecl containerField() {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode), containerVarId(),
-                                        containerType()) );
+        lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode),
+                                        containerVarId(),
+                                        NodeUtil.optTypeToTypeOrPattern(containerType())) );
         VarDecl field = NodeFactory.makeVarDecl( NodeUtil.getSpan(origDeclNode),
                                      lhs, Option.<Expr>some(makeCallToContainerObj()) );
 
@@ -119,7 +121,7 @@ public class VarRefContainer {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
         lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode), containerVarId(),
-                                        containerType()) );
+                                        NodeUtil.optTypeToTypeOrPattern(containerType())) );
         LocalVarDecl ret = ExprFactory.makeLocalVarDecl( NodeUtil.getSpan(origDeclNode),
                             lhs, makeCallToContainerObj(), bodyExprs );
 
@@ -128,8 +130,9 @@ public class VarRefContainer {
 
     private Param makeVarParamFromVarRef(VarRef var,
                                          Span paramSpan,
-                                               Option<Type> typeOp) {
-        Param param = NodeFactory.makeParam(paramSpan, Modifiers.Settable, var.getVarId(), typeOp);
+                                         Option<Type> typeOp) {
+        Param param = NodeFactory.makeParam(paramSpan, Modifiers.Settable, var.getVarId(),
+                                            NodeUtil.optTypeToTypeOrPattern(typeOp));
         return param;
     }
 

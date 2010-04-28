@@ -183,9 +183,16 @@ object STypesUtil {
       case SParam(_, _, _, _, _, Some(vaType)) => // Vararg
         varargsType = Some(vaType)
       case SParam(_, name, _, Some(idType), Some(expr), _) => // Keyword
-        keywordTypes.add(NF.makeKeywordType(name, idType))
+        idType match {
+          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case t@SType(_) =>
+            keywordTypes.add(NF.makeKeywordType(name, t))
+        }
       case SParam(_, _, _, Some(idType), _, _) => // Normal
-        paramTypes.add(idType)
+        idType match {
+          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case t@SType(_) => paramTypes.add(t)
+        }
       case _ => return None
     })
     Some(NF.makeDomain(span,
@@ -220,12 +227,16 @@ object STypesUtil {
     subst.map(s =>
       params.map(p => p match {
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
-          SParam(info,
-                 name,
-                 mods,
-                 Some(substituteTypesForInferenceVars(s, idType)),
-                 defaultExpr,
-                 None)
+          idType match {
+            case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+            case t@SType(_) =>
+              SParam(info,
+                     name,
+                     mods,
+                     Some(substituteTypesForInferenceVars(s, t)),
+                     defaultExpr,
+                     None)
+          }
         case _ => p
       }))
   }
@@ -240,7 +251,10 @@ object STypesUtil {
       case _ => NU.spanTwo(NU.getSpan(ls.head), NU.getSpan(ls.last))
     }
     val types = ls.map(lv => lv match {
-      case SLValue(_, _, _, Some(typ), _) => typ
+      case SLValue(_, _, _, Some(typ), _) => typ match {
+        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+        case t@SType(_) => t
+      }
       case _ => return None
     })
     Some(NF.makeMaybeTupleType(span, toJavaList(types)))
@@ -1151,7 +1165,10 @@ object STypesUtil {
   /* Returns the type of the given parameter. */
   def paramToType(param: Param): Option[Type] =
     toOption(param.getIdType) match {
-      case Some(ty) => Some(ty)
+      case Some(ty) => ty match {
+        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+        case t@SType(_) => Some(t)
+      }
       case _ => toOption(param.getVarargsType) match {
         case Some(ty) => Some(ty)
         case _ => None

@@ -869,7 +869,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
             int element_index = 0;
             for (LValue lv : lhs) {
                 Id newName = NodeFactory.makeId(at, "$" + element_index);
-                Option<Type> type = lv.getIdType();
                 newdecls.add(NodeFactory.makeVarDecl(at, Useful.list(lv), Option.<Expr>some(ExprFactory.makeFieldRef(at,
                                                                                                                      init,
                                                                                                                      newName))));
