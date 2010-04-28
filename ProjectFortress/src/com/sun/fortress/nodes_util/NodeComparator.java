@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -212,7 +212,8 @@ public class NodeComparator {
 			.compareTo(NodeUtil.nameString(right.getName()));
 	if (x != 0) return x;
 	if ( ! NodeUtil.isVarargsParam(left) && ! NodeUtil.isVarargsParam(right)) {
-	    x = compareOptionalType(left.getIdType(), right.getIdType());
+	    x = compareOptionalType(NodeUtil.optTypeOrPatternToType(left.getIdType()),
+                                    NodeUtil.optTypeOrPatternToType(right.getIdType()));
 	}
 	if ( NodeUtil.isVarargsParam(left) && NodeUtil.isVarargsParam(right)) {
 	    x = compareOptionalType(left.getVarargsType(), right.getVarargsType());

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -412,7 +412,7 @@ interface Node() extends HasAt;
              * left-hand side of variable declaration or value parameter
              */
             abstract Binding(Id name, Modifiers mods,
-                             Option<Type> idType) implements Lhs;
+                             Option<TypeOrPattern> idType) implements Lhs;
                 /**
                  * left-hand side of top-level variable declaration,
                  * local variable declaration, or field declaration
@@ -1021,7 +1021,7 @@ interface Node() extends HasAt;
             /**
              * type
              */
-            root abstract Type(TypeInfo info);
+            root abstract Type(TypeInfo info) implements TypeOrPattern;
                 /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */
@@ -1218,6 +1218,11 @@ interface Node() extends HasAt;
                      */
                     DimBinaryOp(DimExpr left, DimExpr right, Op op);
             /** End Type nodes ************************************************* */
+
+            /**
+             * pattern
+             */
+            Pattern() implements TypeOrPattern;
 
             /** Begin StaticArg nodes ****************************************** */
             /**
@@ -1897,6 +1902,10 @@ interface Node() extends HasAt;
          * top-level variable declarations
          */
         interface Lhs();
+        /**
+         * a type or a pattern in bindings
+         */
+        interface TypeOrPattern();
         /**
          * functional declaration or function expression
          * nodes_util.NodeUtil declares the following static methods:

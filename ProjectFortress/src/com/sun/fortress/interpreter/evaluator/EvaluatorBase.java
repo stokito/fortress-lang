@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
@@ -25,8 +25,10 @@ import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.Pattern;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrPattern;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.DefaultComparator;
@@ -150,7 +152,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T> {
             }
             try {
                 if (!NodeUtil.isVarargsParam(p)) {
-                    Option<Type> t = p.getIdType();
+                    Option<TypeOrPattern> t = p.getIdType();
                     // why can't we just skip if missing?
                     if (t.isNone()) {
                         /*
@@ -170,7 +172,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T> {
                             error("Parameter needs type for generic resolution");
                         }
                     } else {
-                        Type ty = t.unwrap();
+                        Type ty = NodeUtil.optTypeOrPatternToType(t).unwrap();
                         if (DUMP_INFERENCE) System.err.println("Unifying " + at + " and " + ty);
                         at.unify(envForInference, tp_set, abm, ty);
                     }

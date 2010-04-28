@@ -309,7 +309,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (Param p : params) {
             // TODO need to spot for "final" fields.  Right now we assume final.
             String pn = p.getName().getText();
-            Type pt = p.getIdType().unwrap();
+            Type pt = (Type)p.getIdType().unwrap();
             cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, pn,
                     NamingCzar.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
         }
@@ -324,7 +324,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int pno = 1;
         for (Param p : params) {
             String pn = p.getName().getText();
-            Type pt = p.getIdType().unwrap();
+            Type pt = (Type)p.getIdType().unwrap();
 
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, pno);
@@ -355,7 +355,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private VarCodeGen addParam(Param p) {
         VarCodeGen v =
-            new VarCodeGen.ParamVar(p.getName(), p.getIdType().unwrap(), this);
+            new VarCodeGen.ParamVar(p.getName(), (Type)p.getIdType().unwrap(), this);
         addLocalVar(v);
         return v;
     }
@@ -1661,13 +1661,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             dt = NodeFactory.makeVoidType(x.getInfo().getSpan());
             break;
         case 1:
-            dt = lp.get(0).getIdType().unwrap(); // TODO varargs
+            dt = (Type)lp.get(0).getIdType().unwrap(); // TODO varargs
             break;
         default:
             dt = NodeFactory.makeTupleType(Useful.applyToAll(lp, new Fn<Param,Type>() {
                 @Override
                 public Type apply(Param x) {
-                    return x.getIdType().unwrap(); // TODO varargs
+                    return (Type)x.getIdType().unwrap(); // TODO varargs
                 }}));
             break;
         }
@@ -2252,7 +2252,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
 
             // Introduce variable
-            Type ty = v.getIdType().unwrap();
+            Type ty = (Type)v.getIdType().unwrap();
             VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
             vcgs.add(vcg);
         }
@@ -2521,7 +2521,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // need to add locals to the environment.
         // each one has name, mangled with a preceding "$"
         for (Param p : params) {
-            Type param_type = p.getIdType().unwrap();
+            Type param_type = (Type)p.getIdType().unwrap();
             String objectFieldName = p.getName().getText();
             Id id =
                NodeFactory.makeId(NodeUtil.getSpan(p.getName()), objectFieldName);
@@ -3039,7 +3039,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             sayWhat(v,"VarDecl "+v+" mutable bindings not yet handled.");
         }
         Id var = lv.getName();
-        Type ty = lv.getIdType().unwrap();
+        Type ty = (Type)lv.getIdType().unwrap();
         Expr exp = oinit.unwrap();
         String classFile = NamingCzar.jvmClassForToplevelDecl(var, packageAndClassName);
         String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());

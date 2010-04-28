@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2010 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler;
@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -104,8 +105,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (int j = 0; j < p.size(); j++) {
                 Param pp = p.get(i);
                 Param qq = q.get(i);
-                Type tp = pp.getIdType().unwrap();
-                Type tq = qq.getIdType().unwrap();
+                if (! (pp.getIdType().unwrap() instanceof Type &&
+                       qq.getIdType().unwrap() instanceof Type) )
+                    InterpreterBug.bug("Types are expected.");
+                Type tp = (Type)pp.getIdType().unwrap();
+                Type tq = (Type)qq.getIdType().unwrap();
                 Class cp = tp.getClass();
                 Class cq = tq.getClass();
                 if (cp.equals(cq)) {
@@ -345,15 +349,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     i++;
                     continue;
                 }
-                Option<Type> ot = p.getIdType();
+                Option<TypeOrPattern> ot = p.getIdType();
                 Option<Type> ovt = p.getVarargsType();
                 if (ovt.isSome()) {
-                    InterpreterBug.bug("Not ready to handle compilation of overloaded varargs yet, function is " + f);
+                    bug("Not ready to handle compilation of overloaded varargs yet, function is " + f);
                 }
-                if (ot.isNone()) {
-                    InterpreterBug.bug("Missing type for parameter " + i + " of " + f);
+                if (ot.isNone() || ot.unwrap() instanceof Pattern) {
+                    bug("Missing type for parameter " + i + " of " + f);
                 }
-                Type t = ot.unwrap();
+                Type t = (Type)ot.unwrap();
                 typeSets[i++].putItem(t, f);
             }
         }
@@ -430,7 +434,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
                 List<Param> parameters = f.tagParameters();
                 Param p = parameters.get(dispatchParameterIndex);
-                Type pt = p.getIdType().unwrap();
+                if (! (p.getIdType().unwrap() instanceof Type))
+                    bug("Type is expected: " + p.getIdType().unwrap());
+                Type pt = (Type)p.getIdType().unwrap();
                 if (tweakedSubtypeTest(ta, t, pt)) {
                     childLSTSF.add(f);
                 }
@@ -470,9 +476,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int i = 0; i < px.size(); i++) {
                     if (childTestedIndices.contains(i))
                         continue;
-                    Type tx = px.get(i).getIdType().unwrap();
-                    Type ty = px.get(i).getIdType().unwrap();
-                    if (!tx.equals(ty))
+                    TypeOrPattern tx = px.get(i).getIdType().unwrap();
+                    TypeOrPattern ty = px.get(i).getIdType().unwrap();
+                    if (! (tx instanceof Type && ty instanceof Type))
+                        bug("Types are expected.");
+                    if (!((Type)tx).equals((Type)ty))
                         return false;
                 }
                 return true;
@@ -486,8 +494,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int i = 0; i < px.size(); i++) {
                     if (childTestedIndices.contains(i))
                         continue;
-                    Type tx = px.get(i).getIdType().unwrap();
-                    h = h * MagicNumbers.t + tx.hashCode();
+                    h = h * MagicNumbers.t + px.get(i).getIdType().unwrap().hashCode();
                 }
                 return h;
             }
@@ -556,12 +563,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         boolean cand_better = true;
         for (int i = 0; i < msf_parameters.size(); i++) {
             // Not handling varargs yet!
-            Type msf_t = msf_parameters.get(i).getIdType().unwrap();
-            Type cand_t = cand_parameters.get(i).getIdType().unwrap();
+            TypeOrPattern msf_t = msf_parameters.get(i).getIdType().unwrap();
+            TypeOrPattern cand_t = cand_parameters.get(i).getIdType().unwrap();
+            if (! (msf_t instanceof Type && cand_t instanceof Type))
+                bug("Types are expected.");
             // if any type of the candidate is not a subtype(or eq)
             // of the corresponding type of the msf, then the candidate
             // is NOT better.
-            if (!tweakedSubtypeTest(ta, cand_t, msf_t)) {
+            if (!tweakedSubtypeTest(ta, (Type)cand_t, (Type)msf_t)) {
                 cand_better = false;
                 break;
             }
@@ -771,16 +780,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         // TODO this check is imperfect in a land of intersection types.
         // ought to iteratively ask the question, not reify the parameter type.
         for (Param p : params) {
-            com.sun.fortress.nodes.Type ti = getParamType(ty, i, l, ta);
-            com.sun.fortress.nodes.Type tp = p.getIdType().unwrap();
+            Type ti = getParamType(ty, i, l, ta);
+            TypeOrPattern tp = p.getIdType().unwrap();
+            if (! (tp instanceof Type))
+                bug("Type is expected: " + tp);
             if (ti == null)
                 return false;
             /*
              * TraitSelfTypes yielded the wrong result here.
              */
             ti = normalizeSelfType(ti);
-            tp = normalizeSelfType(tp);
-            if (!tweakedSubtypeTest(ta, tp, ti))
+            tp = normalizeSelfType((Type)tp);
+            if (!tweakedSubtypeTest(ta, (Type)tp, ti))
                 return false;
             i++;
         }
@@ -841,7 +852,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<Param> params = f.tagParameters();
             Param p = params.get(param);
-            typesToJoin.add(normalizeSelfType(p.getIdType().unwrap()));
+            if (! (p.getIdType().unwrap() instanceof Type))
+                bug("Type is expected: " + p.getIdType().unwrap());
+            typesToJoin.add(normalizeSelfType((Type)p.getIdType().unwrap()));
         }
         return join(ta,typesToJoin);
     }
@@ -878,8 +891,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             for (Param p : params) {
                 mv.visitVarInsn(Opcodes.ALOAD, i);
 
-                Type ty = p.getIdType().unwrap();
-                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc(ty, ifNone, false));
+                TypeOrPattern ty = p.getIdType().unwrap();
+                if (! (ty instanceof Type))
+                    bug("Type is expected: " + ty);
+                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc((Type)ty, ifNone, false));
                 i++;
             }
             if (CodeGenerationPhase.debugOverloading)

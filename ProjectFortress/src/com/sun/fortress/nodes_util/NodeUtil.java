@@ -156,6 +156,30 @@ public class NodeUtil {
         return e.getInfo().getExprType();
     }
 
+    /* Getters for TypeOrPattern */
+
+    public static Span getSpan(TypeOrPattern t) {
+        if (t instanceof Type)
+            return ((Type)t).getInfo().getSpan();
+        else
+            return ((Pattern)t).getInfo().getSpan();
+    }
+
+    public static Option<Type> optTypeOrPatternToType(Option<TypeOrPattern> tpopt) {
+        if (tpopt.isNone()) return Option.<Type>none();
+        else {
+            TypeOrPattern tp = tpopt.unwrap();
+            if (tp instanceof Type)
+                return Option.<Type>some((Type)tp);
+            else return bug(tp, "Type is expected.");
+        }
+    }
+
+    public static Option<TypeOrPattern> optTypeToTypeOrPattern(Option<Type> tyopt) {
+        if (tyopt.isNone()) return Option.<TypeOrPattern>none();
+        else return Option.<TypeOrPattern>some(tyopt.unwrap());
+    }
+
     /* Getters for Type */
 
     public static Span getSpan(Type t) {
@@ -306,8 +330,8 @@ public class NodeUtil {
     }
 
     public static Type getParamType(Param p) {
-        if ( p.getIdType().isSome() )
-            return p.getIdType().unwrap();
+        if ( p.getIdType().isSome() && p.getIdType().unwrap() instanceof Type )
+            return (Type)p.getIdType().unwrap();
         else if ( p.getVarargsType().isSome() )
             return NodeFactory.makeVarargsType(getSpan(p),
                                                p.getVarargsType().unwrap());

@@ -37,6 +37,7 @@ import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.compiler.index.{Variable => JavaVariable}
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug
+import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
@@ -181,13 +182,18 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     // Setter declarations are guaranteed to have a single parameter.
                     val param = traitOrObject.setters.get(f).parameters.get(0)
                     val span = getter.getSpan
-                    if ( param.getIdType.isSome &&
-                         ! typeAnalyzer.equivalent(param.getIdType.unwrap,
-                                                   getter.getReturnType.unwrap).isTrue )
-                        error(span,
-                              "The parameter type of a setter must be " +
-                              "the same as\n    the return type of a getter " +
-                              "with the same name, if any.")
+                    if ( param.getIdType.isSome ) {
+                      param.getIdType.unwrap match {
+                        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+                        case t@SType(_) =>
+                          if (! typeAnalyzer.equivalent(t,
+                                                        getter.getReturnType.unwrap).isTrue )
+                            error(span,
+                                  "The parameter type of a setter must be " +
+                                  "the same as\n    the return type of a getter " +
+                                  "with the same name, if any.")
+                      }
+                    }
                 }
             }
             val identity = new StaticTypeReplacer(new ArrayList[StaticParam](),

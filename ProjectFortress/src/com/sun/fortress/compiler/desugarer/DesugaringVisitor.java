@@ -223,7 +223,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                              mangleName(obj.getVarId()));
                 ExprInfo info = NodeFactory.makeExprInfo(span,
                                                          NodeUtil.isParenthesized(rewrite),
-                                                         field.getIdType());
+                                                         NodeUtil.optTypeOrPatternToType(field.getIdType()));
                 body = (Expr)forFieldRefOnly(rewrite, info,
                                              obj, rewrite.getField());
             } else {
@@ -235,11 +235,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         if ( inTrait )
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
                                           Collections.<Param>emptyList(),
-                                          field.getIdType(), Option.<Expr>none());
+                                          NodeUtil.optTypeOrPatternToType(field.getIdType()),
+                                          Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
                                           Collections.<Param>emptyList(),
-                                          field.getIdType(), Option.<Expr>some(body));
+                                          NodeUtil.optTypeOrPatternToType(field.getIdType()),
+                                          Option.<Expr>some(body));
     }
 
     private static final Modifiers setterNonMods =
@@ -248,13 +250,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
         Span span = NodeUtil.getSpan(field);
         Type voidType = NodeFactory.makeVoidType(span);
-        Option<Type> ty = field.getIdType();
+        Option<TypeOrPattern> ty = field.getIdType();
         Modifiers mods = field.getMods().remove(setterNonMods);
         Id name = field.getName();
         List<Param> params = new ArrayList<Param>();
         Id param = NodeFactory.makeId(span, "param_"+name);
         params.add((Param)NodeFactory.makeParam(param, ty));
-        Expr rhs = ExprFactory.makeVarRef(span, ty, param);
+        Option<Type> typ = NodeUtil.optTypeOrPatternToType(ty);
+        Expr rhs = ExprFactory.makeVarRef(span, typ, param);
         Expr assign;
         if ( boxedRefMap.isSome() ) {
             Map<Pair<Id,Id>,FieldRef> map = boxedRefMap.unwrap();
@@ -271,13 +274,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                           rewrite.getField(), rhs);
             } else {
                 List<Lhs> lhs = new ArrayList<Lhs>();
-                lhs.add(ExprFactory.makeVarRef(span, ty, mangleName(name)));
+                lhs.add(ExprFactory.makeVarRef(span, typ, mangleName(name)));
                 assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                     lhs, rhs);
             }
         } else {
             List<Lhs> lhs = new ArrayList<Lhs>();
-            lhs.add(ExprFactory.makeVarRef(span, ty, mangleName(name)));
+            lhs.add(ExprFactory.makeVarRef(span, typ, mangleName(name)));
             assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                 lhs, rhs);
         }

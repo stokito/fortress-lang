@@ -740,9 +740,9 @@ public class NamingCzar {
         String args = "";
         // This special case handles single void argument type properly.
         if (domain.size() == 1)
-            return jvmSignatureFor(domain.get(0).getIdType().unwrap(), rangeDesc, ifNone);
+            return jvmSignatureFor(NodeUtil.optTypeOrPatternToType(domain.get(0).getIdType()).unwrap(), rangeDesc, ifNone);
         for (Param p : domain) {
-            args += jvmTypeDesc(p.getIdType(), ifNone);
+            args += jvmTypeDesc(NodeUtil.optTypeOrPatternToType(p.getIdType()), ifNone);
         }
         return makeMethodDesc(args, rangeDesc);
     }
@@ -893,7 +893,7 @@ public class NamingCzar {
              List<com.sun.fortress.nodes.Param> params) {
         List<com.sun.fortress.nodes.Type> res = new ArrayList(params.size());
         for (com.sun.fortress.nodes.Param p : params) {
-            res.add(p.getIdType().unwrap());
+            res.add(NodeUtil.optTypeOrPatternToType(p.getIdType()).unwrap());
         }
         return res;
     }

@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.index;
@@ -36,7 +36,7 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
 
         // If the Binding has a declared type, use it for the thunk.
         if (_ast.getIdType().isSome())
-            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(_ast.getIdType()));
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.optTypeOrPatternToType(_ast.getIdType())));
     }
     
     /** Create an explicit getter from a function. */
@@ -61,7 +61,7 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
         return new LValue(f.getInfo(),
                           (Id) NodeUtil.getName(f),
                           mods,
-                          NodeUtil.getReturnType(f),
+                          NodeUtil.optTypeToTypeOrPattern(NodeUtil.getReturnType(f)),
                           mods.isMutable());
     }
 

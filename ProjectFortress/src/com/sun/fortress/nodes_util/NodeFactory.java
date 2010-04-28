@@ -612,16 +612,16 @@ public class NodeFactory {
         return new UnitDecl(makeSpanInfo(span), si_unit, units, dim, def);
     }
 
-    public static LValue makeLValue(Span span, Id name, Option<Type> type) {
+    public static LValue makeLValue(Span span, Id name, Option<TypeOrPattern> type) {
         return makeLValue(span, name, Modifiers.None, type, false);
     }
 
-    public static LValue makeLValue(Span span, Id id, Type ty) {
-        return makeLValue(span, id, Option.<Type>some(ty));
+    public static LValue makeLValue(Span span, Id id, TypeOrPattern ty) {
+        return makeLValue(span, id, Option.<TypeOrPattern>some(ty));
     }
 
     public static LValue makeLValue(Span span, Id id) {
-        return makeLValue(span, id, Option.<Type>none());
+        return makeLValue(span, id, Option.<TypeOrPattern>none());
     }
 
     public static LValue makeLValue(Id id) {
@@ -633,21 +633,21 @@ public class NodeFactory {
                           Modifiers.None);
     }
 
-    public static LValue makeLValue(Id id, Type ty) {
+    public static LValue makeLValue(Id id, TypeOrPattern ty) {
         return makeLValue(id, ty, Modifiers.None);
     }
 
-    public static LValue makeLValue(Id id, Type ty, Modifiers mods) {
-        return makeLValue(NodeUtil.getSpan(id), id, mods, Option.<Type>some(ty),
+    public static LValue makeLValue(Id id, TypeOrPattern ty, Modifiers mods) {
+        return makeLValue(NodeUtil.getSpan(id), id, mods, Option.<TypeOrPattern>some(ty),
                           mods.isMutable());
     }
 
-    public static LValue makeLValue(String name, Type type) {
+    public static LValue makeLValue(String name, TypeOrPattern type) {
         Span span = NodeUtil.getSpan(type);
         return makeLValue(span, makeId(span, name), type);
     }
 
-    public static LValue makeLValue(String name, Type type, Modifiers mods) {
+    public static LValue makeLValue(String name, TypeOrPattern type, Modifiers mods) {
         return makeLValue(makeId(NodeUtil.getSpan(type), name), type, mods);
     }
 
@@ -657,7 +657,7 @@ public class NodeFactory {
 
     //
     public static LValue makeLValue(LValue lvb, Modifiers mods,
-                                    Option<Type> ty, boolean mutable) {
+                                    Option<TypeOrPattern> ty, boolean mutable) {
         return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, ty, mutable);
     }
 
@@ -675,7 +675,7 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(Span span, Id name, Modifiers mods,
-                                    Option<Type> type, boolean mutable) {
+                                    Option<TypeOrPattern> type, boolean mutable) {
         return new LValue(makeSpanInfo(span), name, mods, type, mutable);
     }
 
@@ -684,30 +684,30 @@ public class NodeFactory {
     }
 
     public static Param makeParam(Span span, Modifiers mods, Id name,
-                                  Type type) {
-        return makeParam(span, mods, name, Option.<Type>some(type));
+                                  TypeOrPattern type) {
+        return makeParam(span, mods, name, Option.<TypeOrPattern>some(type));
     }
 
     public static Param makeParam(Span span, Modifiers mods, Id name,
-                                  Option<Type> type) {
+                                  Option<TypeOrPattern> type) {
         return makeParam(span, mods, name, type,
                          Option.<Expr>none(), Option.<Type>none());
     }
 
     public static Param makeParam(Id name) {
-        return makeParam(name, Option.<Type>none());
+        return makeParam(name, Option.<TypeOrPattern>none());
     }
 
-    public static Param makeParam(Id id, Type type) {
+    public static Param makeParam(Id id, TypeOrPattern type) {
         return makeParam(NodeUtil.getSpan(id), Modifiers.None, id,
-                         Option.<Type>some(type));
+                         Option.<TypeOrPattern>some(type));
     }
 
-    public static Param makeParam(Id id, Option<Type> type) {
+    public static Param makeParam(Id id, Option<TypeOrPattern> type) {
         return makeParam(NodeUtil.getSpan(id), Modifiers.None, id, type);
     }
 
-    public static Param makeParam(Span span, Id id, Option<Type> type) {
+    public static Param makeParam(Span span, Id id, Option<TypeOrPattern> type) {
         return makeParam(span, Modifiers.None, id, type);
     }
 
@@ -731,29 +731,30 @@ public class NodeFactory {
 
     public static Param makeVarargsParam(Id name, Type type) {
         return makeParam(NodeUtil.getSpan(name), Modifiers.None, name,
-                         Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
+                         Option.<TypeOrPattern>none(), Option.<Expr>none(),
+                         Option.<Type>some(type));
     }
 
     public static Param makeVarargsParam(Param param, Modifiers mods) {
         return makeParam(NodeUtil.getSpan(param), mods, param.getName(),
-                         Option.<Type>none(), Option.<Expr>none(),
+                         Option.<TypeOrPattern>none(), Option.<Expr>none(),
                          param.getVarargsType());
     }
 
     public static Param makeVarargsParam(Span span, Modifiers mods,
                                          Id name, Type type) {
         return makeParam(span, mods, name,
-                         Option.<Type>none(), Option.<Expr>none(),
+                         Option.<TypeOrPattern>none(), Option.<Expr>none(),
                          Option.<Type>some(type));
     }
 
-    public static Param makeAbsParam(Type type) {
+    public static Param makeAbsParam(TypeOrPattern type) {
         return makeParam(NodeUtil.getSpan(type), Modifiers.None,
                          makeId(NodeUtil.getSpan(type), "_"), type);
     }
 
     public static Param makeParam(Span span, Modifiers mods, Id name,
-                                  Option<Type> type, Option<Expr> expr,
+                                  Option<TypeOrPattern> type, Option<Expr> expr,
                                   Option<Type> varargsType) {
         return new Param(makeSpanInfo(span), name, mods, type, expr, varargsType);
     }
@@ -2063,7 +2064,7 @@ public class NodeFactory {
         Id id = makeId(span, name);
         LValue bind = new LValue(makeSpanInfo(span), id,
                                  Modifiers.None,
-                                 Option.<Type>none(), false);
+                                 Option.<TypeOrPattern>none(), false);
         return makeVarDecl(span, Useful.<LValue>list(bind),
                            Option.<Expr>some(init));
     }
@@ -2091,7 +2092,7 @@ public class NodeFactory {
                                       Span span, Id name, Expr init) {
         NodeUtil.validId(writer, name);
         LValue bind = new LValue(makeSpanInfo(span), name, Modifiers.None,
-                                 Option.<Type>none(), true);
+                                 Option.<TypeOrPattern>none(), true);
         return makeVarDecl(writer, span, Useful.<LValue>list(bind),
                            Option.<Expr>some(init));
     }
@@ -2102,7 +2103,7 @@ public class NodeFactory {
         NodeUtil.validId(writer, id);
         LValue bind = new LValue(makeSpanInfo(span), id,
                                  Modifiers.None,
-                                 Option.<Type>none(), false);
+                                 Option.<TypeOrPattern>none(), false);
         return makeVarDecl(writer, span, Useful.<LValue>list(bind),
                            Option.<Expr>some(init));
     }
@@ -2441,7 +2442,7 @@ public class NodeFactory {
         List<LValue> lvs = new ArrayList<LValue>(ids.size());
         for (Id id : ids) {
             lvs.add(makeLValue(NodeUtil.getSpan(id), id, Modifiers.None,
-                               Option.<Type>none(), false));
+                               Option.<TypeOrPattern>none(), false));
         }
         return lvs;
     }
@@ -2463,7 +2464,7 @@ public class NodeFactory {
     }
 
     public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
-                                       Option<Modifiers> mods, Option<Type> ty,
+                                       Option<Modifiers> mods, Option<TypeOrPattern> ty,
                                        boolean colonEqual) {
         List<LValue> lvs = new ArrayList<LValue>(vars.size());
         boolean mutable;
@@ -2492,10 +2493,10 @@ public class NodeFactory {
         for (LValue l : vars) {
             if ( mods.isSome() )
                 lvs.add(makeLValue(l, mods.unwrap(),
-                                   Option.<Type>some(tys.get(ind)), mutable));
+                                   Option.<TypeOrPattern>some(tys.get(ind)), mutable));
             else
                 lvs.add(makeLValue(l, Modifiers.None,
-                                   Option.<Type>some(tys.get(ind)), mutable));
+                                   Option.<TypeOrPattern>some(tys.get(ind)), mutable));
             ind += 1;
         }
         NodeUtil.validId(writer, lvs);

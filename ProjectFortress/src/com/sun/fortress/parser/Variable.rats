@@ -46,7 +46,7 @@ VarDecl VarDecl =
    / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
                                               Option.<Modifiers>wrap(a1),
-                                              Option.<Type>none(), false);
+                                              Option.<TypeOrPattern>none(), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>some(a3));
      }
@@ -54,7 +54,7 @@ VarDecl VarDecl =
      a4:InitVal
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
                                               Option.<Modifiers>wrap(a1),
-                                              Option.<Type>some(a3), a4.getB());
+                                              Option.<TypeOrPattern>some(a3), a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>some(a4.getA()));
      }
@@ -113,7 +113,7 @@ VarDecl AbsVarDecl =
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
                                               Option.<Modifiers>wrap(a1),
-                                              Option.<Type>some(a3), false);
+                                              Option.<TypeOrPattern>some(a3), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>none());
      }

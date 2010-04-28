@@ -34,6 +34,35 @@ import Keyword;
 import Symbol;
 import Spacing;
 
+/* Pattern ::=
+     Type w PatternValParam
+   | PatternValParam
+ */
+/* PatternValParm ::= ( (w PatternParams)? w ) */
+/* TypeOrPattern ::=
+     Type
+   | Pattern
+ */
+/* IsPattern ::= : w Pattern */
+/* IsTypeOrPattern ::=
+     IsType
+   | IsPattern
+ */
+/* PatternParams ::=
+     (PatternParam w , w)* PatternKeyword (w , w PatternKeyword)*
+   | PatternParam (w , w PatternParam)*
+ */
+/* PatternParam ::=
+     PatternPlainParam
+   | PatternValParam
+ */
+/* PatternKeyword ::= PatternPlainParam w = w Id */
+/* PatternPlainParam ::=
+     BindId (w IsTypeOrPattern)?
+   | Type
+   | Pattern
+ */
+
 /* IsType ::= : w Type */
 Type IsType = void:colon w Type ;
 

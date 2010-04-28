@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
@@ -675,7 +675,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Expr init = x.getInit().unwrap();
         LValue lvb = lhs.get(0);
 
-        Option<Type> type = lvb.getIdType();
+        Option<TypeOrPattern> type = lvb.getIdType();
         Id name = lvb.getName();
         String sname = NodeUtil.nameString(name);
 
@@ -704,7 +704,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Expr init = x.getInit().unwrap();
         LValue lvb = lhs.get(0);
 
-        Option<Type> type = lvb.getIdType();
+        Option<TypeOrPattern> type = lvb.getIdType();
         Id name = lvb.getName();
         String sname = NodeUtil.nameString(name);
 
@@ -715,7 +715,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 * late in the game (with the now-available type);
                 * cannot reallocate, because it may have been exported.
                 */
-                FType ft = (new EvalType(containing)).evalType(type.unwrap());
+                FType ft = (new EvalType(containing)).evalType(NodeUtil.optTypeOrPatternToType(type).unwrap());
                 FValue value = new LazilyEvaluatedCell(init, containing);
                 bindInto.assignValue(x, sname, value);
                 bindInto.storeType(x, sname, ft);
@@ -743,11 +743,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
         {
-            Option<Type> type = lvb.getIdType();
+            Option<TypeOrPattern> type = lvb.getIdType();
             Id name = lvb.getName();
             String sname = NodeUtil.nameString(name);
 
-            FType ft = type.isSome() ? (new EvalType(containing)).evalType(type.unwrap()) : null;
+            FType ft = type.isSome() ? (new EvalType(containing)).evalType(NodeUtil.optTypeOrPatternToType(type).unwrap()) : null;
 
             if (lvb.isMutable()) {
                 Expr rhs = init;

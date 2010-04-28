@@ -178,11 +178,11 @@ LocalVarDecl LocalVarDecl =
        if ( a4 != null ) {
            init = Option.<Expr>some(a4.getA());
            a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
-                                    Option.<Type>some(a3), a4.getB());
+                                    Option.<TypeOrPattern>some(a3), a4.getB());
        } else {
            init = Option.<Expr>none();
            a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
-                                    Option.<Type>some(a3), false);
+                                    Option.<TypeOrPattern>some(a3), false);
        }
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2,
                                              init);
