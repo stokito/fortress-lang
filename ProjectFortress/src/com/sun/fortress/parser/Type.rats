@@ -196,7 +196,7 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 
 /* TypeRef ::= DottedIdChain (w StaticArgs)? */
 /* TypeRef ::= Id (w StaticArgs)? */
-private Type TypeRef =
+Type TypeRef =
      "Unity"
      { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,yyCount), false); }
    / a1:Id w a2:StaticArgs

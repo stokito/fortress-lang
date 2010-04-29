@@ -187,7 +187,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         List(makeBinding(name, vaTyp, mods, false))
       case SParam(_, name, mods, Some(typ), _, _) =>
         typ match {
-          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
           case t@SType(_) => List(makeBinding(name, t, mods, false))
         }
       case SParam(_, name, mods, _, _, _) =>
@@ -195,7 +195,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
 
       case SLValue(_, name, mods, Some(typ), mutable) =>
         typ match {
-          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
           case t@SType(_) => List(makeBinding(name, t, mods, mutable))
         }
 

@@ -230,16 +230,8 @@ object ExportChecker {
           (api.variables.get(v), component.variables.get(v)) match {
             case (DeclaredVariable(lvalueInAPI),
                   DeclaredVariable(lvalueInComp)) =>
-              val ltopt = toOption(lvalueInAPI.getIdType) match {
-                  case Some(p@SPattern(_)) => bug("Pattern should be desugared away: " + p)
-                  case Some(t@SType(_)) => Some(t)
-                  case None => None
-                }
-              val rtopt = toOption(lvalueInComp.getIdType) match {
-                  case Some(p@SPattern(_)) => bug("Pattern should be desugared away: " + p)
-                  case Some(t@SType(_)) => Some(t)
-                  case None => None
-                }
+              val ltopt = NodeUtil.optTypeOrPatternToType(lvalueInAPI.getIdType)
+              val rtopt = NodeUtil.optTypeOrPatternToType(lvalueInComp.getIdType)
               // should be with the same type and the same mutability
               val diffType = ! equalOptTypes(ltopt, rtopt)
               val diffMods = ! lvalueInAPI.getMods.equals(lvalueInComp.getMods)

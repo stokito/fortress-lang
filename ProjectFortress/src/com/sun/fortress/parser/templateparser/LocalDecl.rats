@@ -18,12 +18,14 @@
 /*
  * Definition of Fortress local declarations.
  */
-module com.sun.fortress.parser.templateparser.LocalDecl(Variable, Header, Type,
+module com.sun.fortress.parser.templateparser.LocalDecl(Variable, NoNewlineHeader,
+                                                        MayNewlineHeader, Type,
                                                         NoNewlineExpr, DelimitedExpr,
                                                         Identifier, Keyword, Symbol,
                                                         Spacing);
 import Variable;
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import Type;
 import NoNewlineExpr;
 import DelimitedExpr;
@@ -32,6 +34,6 @@ import Keyword;
 import Symbol;
 import Spacing;
 
-modify com.sun.fortress.parser.LocalDecl(Variable, Header, Type, NoNewlineExpr,
+modify com.sun.fortress.parser.LocalDecl(Variable, NoNewlineHeader, MayNewlineHeader, Type, NoNewlineExpr,
                                          DelimitedExpr, Identifier, Keyword,
                                          Symbol, Spacing);

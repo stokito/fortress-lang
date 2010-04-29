@@ -1221,8 +1221,48 @@ interface Node() extends HasAt;
 
             /**
              * pattern
+             *
+             * Pattern ::= TypeRef w PatternValParam
+             *           | PatternValParam
+             * TypeOrPattern ::= Type
+             *                 | Pattern
+             * IsPattern ::= : w Pattern
+             * IsTypeOrPattern ::= IsType
+             *                   | IsPattern
+             * PatternParams ::= (PatternParam w , w)* PatternKeyword (w , w PatternKeyword)*
+             *                 | PatternParam (w , w PatternParam)*
+             * PatternParam ::= PatternPlainParam
+             *                | PatternValParam
              */
-            Pattern() implements TypeOrPattern;
+            Pattern(Option<Type> name, PatternArgs patterns) implements TypeOrPattern;
+            /**
+             * pattern binding
+             * PatternValParm ::= ( (w PatternParams)? w )
+             */
+            PatternArgs(List<PatternBinding> patterns);
+            /**
+             * pattern binding
+             * PatternKeyword ::= PatternPlainParam w = w Id
+             * PatternPlainParam ::= BindId (w IsTypeOrPattern)?
+             *                     | Type
+             *                     | Pattern
+             */
+            abstract PatternBinding(Option<Id> field);
+                /**
+                 * plain pattern
+                 * PatternPlainParam ::= BindId (w IsTypeOrPattern)?
+                 */
+                PlainPattern(Id name, Modifiers mods, Option<TypeOrPattern> idType);
+                /**
+                 * type pattern
+                 * PatternPlainParam ::= Type
+                 */
+                TypePattern(Type typ);
+                /**
+                 * nested pattern
+                 * PatternPlainParam ::= Pattern
+                 */
+                NestedPattern(Pattern pat);
 
             /** Begin StaticArg nodes ****************************************** */
             /**

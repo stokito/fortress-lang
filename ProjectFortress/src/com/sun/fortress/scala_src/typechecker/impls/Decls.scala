@@ -282,7 +282,7 @@ trait Decls { self: STypeChecker with Common =>
       // Gather declared types of LHS as a big tuple type.
       val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType) match {
                                         case Some(pt) => pt match {
-                                          case p@SPattern(_) =>
+                                          case p@SPattern(_,_,_) =>
                                             bug("Pattern should be desugared away: " + p)
                                           case t@SType(_) => Some(t)
                                         }

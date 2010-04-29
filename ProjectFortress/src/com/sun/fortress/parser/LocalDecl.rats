@@ -18,11 +18,12 @@
 /*
  * Definition of Fortress local declarations.
  */
-module com.sun.fortress.parser.LocalDecl(Variable, Header, NoNewlineType,
+module com.sun.fortress.parser.LocalDecl(Variable, NoNewlineHeader, MayNewlineHeader, NoNewlineType,
                                          NoNewlineExpr, DelimitedExpr, Identifier,
                                          Keyword, Symbol, Spacing);
 import Variable;
-import Header;
+import NoNewlineHeader;
+import MayNewlineHeader;
 import NoNewlineType;
 import NoNewlineExpr;
 import DelimitedExpr;
@@ -135,12 +136,14 @@ transient List<Param> Params =
    / a1:Param a2s:(w comma w Param)*
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* Param ::= BindId (s : s NoNewlineIsType)? */
+/* Param ::= BindId (s : s NoNewlineIsTypeOrPattern)? */
 transient Param Param =
-     a1:BindId a2:(s void:colon s NoNewlineType)?
-     { yyValue = (a2 != null) ? NodeFactory.makeParam(a1, a2)
-                              : NodeFactory.makeParam(a1);
-     };
+     a1:BindId s void:colon s a2:NoNewlineType
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / a1:BindId s void:colon s a2:Pattern
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / a1:BindId
+     { yyValue = NodeFactory.makeParam(a1); };
 
 /* Varargs ::= BindId s : s NoNewlineType s ... */
 transient Param Varargs = a1:BindId s colon s a2:NoNewlineType s ellipses
@@ -152,7 +155,7 @@ transient Param Keyword = a1:Param s equals w a2:NoNewlineExpr
 
 /* LocalVarDecl ::=
      (var w)? VarMayTypes s = w NoNewlineExpr
-   | (var w)? NoNewlineVarWTypes s := w NoNewlineExpr
+   | (var w)? NoNewlineVarWTypeOrPatterns s := w NoNewlineExpr
    | (var w)? NoNewlineVarWTypes
    |          VarWoTypes s = w NoNewlineExpr
    | (var w)? VarWoTypes s : s NoNewlineType s ... (s InitVal)?
@@ -163,7 +166,7 @@ LocalVarDecl LocalVarDecl =
      { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
-   / a1:Mods? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
+   / a1:Mods? a2:NoNewlineVarWTypeOrPatterns s colonequals w a3:NoNewlineExpr
      { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), true);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
@@ -241,6 +244,29 @@ LValue VarWoType =
        log(span, "Matrix unpasting is not yet implemented.");
        yyValue = NodeFactory.makeLValue(span, NodeFactory.makeId(span, "_"));
      };
+
+/* NoNewlineVarWTypeOrPatterns ::=
+     NoNewlineVarWTypeOrPattern
+   | ( w NoNewlineVarWTypeOrPattern (w , w NoNewlineVarWTypeOrPattern)+ w )
+ */
+List<LValue> NoNewlineVarWTypeOrPatterns =
+     a1:NoNewlineVarWTypeOrPattern
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:NoNewlineVarWTypeOrPattern a2s:(w comma w NoNewlineVarWTypeOrPattern)+ w
+     closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* NoNewlineVarWTypeOrPattern ::= BindId s NoNewlineIsTypeOrPattern */
+LValue NoNewlineVarWTypeOrPattern = a1:BindId s a2:NoNewlineIsTypeOrPattern
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); };
+
+/* NoNewlineIsTypeOrPattern ::=
+     : w NoNewlineType
+   | : w Pattern
+ */
+TypeOrPattern NoNewlineIsTypeOrPattern =
+     void:colon w NoNewlineType
+   / void:colon w Pattern ;
 
 /* Unpasting ::= [ w UnpastingElems w ] */
 private void Unpasting =
