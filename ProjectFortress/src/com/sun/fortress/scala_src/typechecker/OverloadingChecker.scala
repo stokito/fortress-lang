@@ -183,16 +183,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     val param = traitOrObject.setters.get(f).parameters.get(0)
                     val span = getter.getSpan
                     if ( param.getIdType.isSome ) {
-                      param.getIdType.unwrap match {
-                        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
-                        case t@SType(_) =>
-                          if (! typeAnalyzer.equivalent(t,
-                                                        getter.getReturnType.unwrap).isTrue )
+                        if (! typeAnalyzer.equivalent(NodeUtil.optTypeOrPatternToType(param.getIdType).unwrap,
+                                                      getter.getReturnType.unwrap).isTrue )
                             error(span,
                                   "The parameter type of a setter must be " +
                                   "the same as\n    the return type of a getter " +
                                   "with the same name, if any.")
-                      }
                     }
                 }
             }

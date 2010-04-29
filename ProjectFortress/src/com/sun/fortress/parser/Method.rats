@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -84,7 +84,7 @@ FnHeaderFront AbsNamedMdHeaderFront =
      };
 
 /* Coercion ::=
-     coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
+     coerce (w StaticParams)? w ( w BindId w IsTypeOrPattern w ) CoercionClauses (w widens)?
      w = w NoNewlineExpr
    AbsCoercion ::=
      coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
@@ -96,7 +96,7 @@ FnHeaderFront AbsNamedMdHeaderFront =
      CoercionWhereConstraint (w , w CoercionWhereConstraint)*
  */
 Decl Coercion =
-     coerce a1:(w StaticParams)? w openparen w a2:BindId a3:(w IsType)? w closeparen
+     coerce a1:(w StaticParams)? w openparen w a2:BindId a3:(w IsTypeOrPattern)? w closeparen
      a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
      { Span span = createSpan(yyStart,yyCount);
        if (a1 == null) a1 = Collections.<StaticParam>emptyList();

@@ -777,6 +777,70 @@ public class NodeFactory {
         return new ExprInfo(span, parenthesized, ty);
     }
 
+    public static Pattern makePattern(Span span, Type type, PatternArgs args) {
+        return makePattern(span, Option.<Type>some(type), args);
+    }
+
+    public static Pattern makePattern(Span span, PatternArgs args) {
+        return makePattern(span, Option.<Type>none(), args);
+    }
+
+    public static Pattern makePattern(Span span, Option<Type> type, PatternArgs args) {
+        return new Pattern(makeSpanInfo(span), type, args);
+    }
+
+    public static PatternArgs makePatternArgs(Span span) {
+        return makePatternArgs(span, Collections.<PatternBinding>emptyList());
+    }
+
+    public static PatternArgs makePatternArgs(Span span,
+                                              List<PatternBinding> patterns) {
+        return new PatternArgs(makeSpanInfo(span), patterns);
+    }
+
+    public static PlainPattern makePlainPattern(Span span, Id name, Modifiers mods,
+                                                Option<TypeOrPattern> type) {
+        return makePlainPattern(span, Option.<Id>none(), name, mods, type);
+    }
+
+    public static PlainPattern makePlainPattern(Span span, Option<Id> field,
+                                                Id name, Modifiers mods,
+                                                Option<TypeOrPattern> type) {
+        return new PlainPattern(makeSpanInfo(span), field, name, mods, type);
+    }
+
+    public static TypePattern makeTypePattern(Span span, Type type) {
+        return makeTypePattern(span, Option.<Id>none(), type);
+    }
+
+    public static TypePattern makeTypePattern(Span span, Option<Id> field, Type type) {
+        return new TypePattern(makeSpanInfo(span), field, type);
+    }
+
+    public static NestedPattern makeNestedPattern(Span span, Pattern pattern) {
+        return makeNestedPattern(span, Option.<Id>none(), pattern);
+    }
+
+    public static NestedPattern makeNestedPattern(Span span, Option<Id> field, Pattern pattern) {
+        return new NestedPattern(makeSpanInfo(span), field, pattern);
+    }
+
+    public static PatternBinding makePatternKeyword(final Span span, PatternBinding pb, Id name) {
+        final Option<Id> field = Option.<Id>some(name);
+        return pb.accept(new NodeAbstractVisitor<PatternBinding>() {
+                public PatternBinding forPlainPattern(PlainPattern pp) {
+                    return makePlainPattern(span, field, pp.getName(),
+                                            pp.getMods(), pp.getIdType());
+                }
+                public PatternBinding forTypePattern(TypePattern tp) {
+                    return makeTypePattern(span, field, tp.getTyp());
+                }
+                public PatternBinding forNestedPattern(NestedPattern np) {
+                    return makeNestedPattern(span, field, np.getPat());
+                }
+            });
+    }
+
     public static TypeInfo makeTypeInfo(TypeInfo org, Span span) {
         return makeTypeInfo(span, org.isParenthesized(), org.getStaticParams(),
                             org.getWhereClause());

@@ -184,13 +184,13 @@ object STypesUtil {
         varargsType = Some(vaType)
       case SParam(_, name, _, Some(idType), Some(expr), _) => // Keyword
         idType match {
-          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
           case t@SType(_) =>
             keywordTypes.add(NF.makeKeywordType(name, t))
         }
       case SParam(_, _, _, Some(idType), _, _) => // Normal
         idType match {
-          case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+          case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
           case t@SType(_) => paramTypes.add(t)
         }
       case _ => return None
@@ -228,7 +228,7 @@ object STypesUtil {
       params.map(p => p match {
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
           idType match {
-            case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+            case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
             case t@SType(_) =>
               SParam(info,
                      name,
@@ -252,7 +252,7 @@ object STypesUtil {
     }
     val types = ls.map(lv => lv match {
       case SLValue(_, _, _, Some(typ), _) => typ match {
-        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+        case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
         case t@SType(_) => t
       }
       case _ => return None
@@ -1166,7 +1166,7 @@ object STypesUtil {
   def paramToType(param: Param): Option[Type] =
     toOption(param.getIdType) match {
       case Some(ty) => ty match {
-        case p@SPattern(_) => bug("Pattern should be desugared away: " + p)
+        case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
         case t@SType(_) => Some(t)
       }
       case _ => toOption(param.getVarargsType) match {

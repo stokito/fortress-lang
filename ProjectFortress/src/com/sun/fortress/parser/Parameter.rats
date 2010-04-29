@@ -99,9 +99,9 @@ transient Param Varargs = VarargsParam ;
 transient Param Keyword = a1:Param w equals w a2:Expr
      { yyValue = NodeFactory.makeParam(a1, a2); };
 
-/* Param ::= BindId (w IsType)? */
+/* Param ::= BindId (w IsTypeOrPattern)? */
 transient Param PlainParam =
-     a1:BindId a2:(w IsType)?
+     a1:BindId a2:(w IsTypeOrPattern)?
      { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
        else            yyValue = NodeFactory.makeParam(a1);
      };
