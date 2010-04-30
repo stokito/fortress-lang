@@ -851,6 +851,42 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+  <target name="testParser" depends="compileAll"
+          description="Run parser tests to debug CruiseControl (Temporary debugging target)">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${PF}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${junit.dir}">
+        <formatter type="brief" usefile="false" />
+        <formatter type="xml" />
+        <fileset dir="${build}">
+          <include name="**/ParserJUTest.class"/>
+          <exclude name="**/CompilerJUTest.class"/>
+
+          <!-- TopLevelEnvGen tests are broken, comment out for now -->
+          <exclude name="**/TopLevelEnvGenJUTest.class"/>
+          <exclude name="**/*$*.class"/>
+          <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+          <exclude name="**/ObjectExpressionVisitorJUTest.class"/>
+          <exclude name="**/tools/AstJUTest.class"/>
+
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${PF}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+
   <target name="testCruiseControl" depends="compileAll"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
