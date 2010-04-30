@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+(* Pattern Matching Test 5
+   with a nested patterns       *)
+
+export Executable
+
+trait T(a:U, b:V) end
+trait U(c:ZZ) end
+trait V(d:RR64, e:W) end
+trait W(f:ZZ, g:ZZ) end
+
+object TT(a:U, b:V) extends T end
+object UU(c:ZZ) entends U end
+object VV(d:RR64, e:W) extends V end
+object WW(f:ZZ, g:ZZ) extends W end
+
+run():() = do
+   u_x : U = UU(4) (*) u_x -> U(x)
+   w_pq : W = WW(7, 8) (*) w_pq -> W(p, q)
+   v_yw : V = VV(3.2, w_pq) (*) v_yw -> V(y, W(p,q))
+   ss : T(U(x), V(y, W(p, q))) = TT(u_x, v_yw)
+
+   assert(x, 4, "The test failed!!")
+   assert(y, 3.2, "The test failed!!")
+   assert(p, 7, "The test failed!!")
+   assert(q, 8, "The test failed!!")
+   println "The test is successful."
+end
