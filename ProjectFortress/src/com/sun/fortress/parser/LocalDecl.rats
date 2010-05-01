@@ -138,9 +138,9 @@ transient List<Param> Params =
 
 /* Param ::= BindId (s : s NoNewlineIsTypeOrPattern)? */
 transient Param Param =
-     a1:BindId s void:colon s a2:NoNewlineType
+     a1:BindId s void:colon s a2:Pattern
      { yyValue = NodeFactory.makeParam(a1, a2); }
-   / a1:BindId s void:colon s a2:Pattern
+   / a1:BindId s void:colon s a2:NoNewlineType
      { yyValue = NodeFactory.makeParam(a1, a2); }
    / a1:BindId
      { yyValue = NodeFactory.makeParam(a1); };
@@ -216,11 +216,14 @@ List<LValue> VarMayTypes =
    / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* VarMayType ::= BindId (s : s NoNewlineType)? */
-LValue VarMayType = a1:BindId a2:(s void:colon s NoNewlineType)?
-     { yyValue = (a2 == null) ? NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1)
-                              : NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
-     };
+/* VarMayType ::= BindId (s : s (Pattern | NoNewlineType))? */
+LValue VarMayType =
+     a1:BindId s void:colon s a2:Pattern
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
+   / a1:BindId s void:colon s a2:NoNewlineType
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
+   / a1:BindId
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1); };
 
 /* VarWoTypes ::=
      VarWoType
@@ -261,12 +264,12 @@ LValue NoNewlineVarWTypeOrPattern = a1:BindId s a2:NoNewlineIsTypeOrPattern
      { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); };
 
 /* NoNewlineIsTypeOrPattern ::=
-     : w NoNewlineType
-   | : w Pattern
+     : w Pattern
+   | : w NoNewlineType
  */
 TypeOrPattern NoNewlineIsTypeOrPattern =
-     void:colon w NoNewlineType
-   / void:colon w Pattern ;
+     void:colon w NoNewlinePattern
+   / void:colon w NoNewlineType ;
 
 /* Unpasting ::= [ w UnpastingElems w ] */
 private void Unpasting =

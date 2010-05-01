@@ -26,7 +26,7 @@ trait V(d:RR64, e:W) end
 trait W(f:ZZ, g:ZZ) end
 
 object TT(a:U, b:V) extends T end
-object UU(c:ZZ) entends U end
+object UU(c:ZZ) extends U end
 object VV(d:RR64, e:W) extends V end
 object WW(f:ZZ, g:ZZ) extends W end
 
