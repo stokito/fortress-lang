@@ -1224,11 +1224,12 @@ interface Node() extends HasAt;
              *
              * Pattern ::= TypeRef w PatternValParam
              *           | PatternValParam
-             * TypeOrPattern ::= Type
-             *                 | Pattern
+             * PatternValParm ::= ( (w PatternParams)? w )
+             * TypeOrPattern ::= Pattern
+             *                 | Type
              * IsPattern ::= : w Pattern
-             * IsTypeOrPattern ::= IsType
-             *                   | IsPattern
+             * IsTypeOrPattern ::= IsPattern
+             *                   | IsType
              * PatternParams ::= (PatternParam w , w)* PatternKeyword (w , w PatternKeyword)*
              *                 | PatternParam (w , w PatternParam)*
              * PatternParam ::= PatternPlainParam
@@ -1244,8 +1245,8 @@ interface Node() extends HasAt;
              * pattern binding
              * PatternKeyword ::= PatternPlainParam w = w Id
              * PatternPlainParam ::= BindId (w IsTypeOrPattern)?
-             *                     | Type
              *                     | Pattern
+             *                     | Type
              */
             abstract PatternBinding(Option<Id> field);
                 /**

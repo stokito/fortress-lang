@@ -2864,6 +2864,30 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String forMethodInfoOnly(MethodInfo that, String selfType_result) {
         return "";
     }
-    
-    
+
+    @Override
+    public String forPatternOnly(Pattern that, String info, Option<String> name, String patterns) {
+        return "Pattern @ " + NodeUtil.getSpan((TypeOrPattern)that);
+    }
+
+    @Override
+    public String forPatternArgsOnly(PatternArgs that, String info, List<String> patterns) {
+        return "PatternArgs @ " + NodeUtil.getSpan(that);
+    }
+
+    @Override
+    public String forPlainPatternOnly(PlainPattern that, String info, Option<String> field,
+                                      String name, Option<String> type) {
+        return "PlainPattern @ " + NodeUtil.getSpan(that);
+    }
+
+    @Override
+    public String forTypePatternOnly(TypePattern that, String info, Option<String> field, String type) {
+        return "TypePattern @ " + NodeUtil.getSpan(that);
+    }
+
+    @Override
+    public String forNestedPatternOnly(NestedPattern that, String info, Option<String> field, String pat) {
+        return "NestedPattern @ " + NodeUtil.getSpan(that);
+    }
 }

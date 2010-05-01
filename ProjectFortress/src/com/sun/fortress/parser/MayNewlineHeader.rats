@@ -41,11 +41,12 @@ import Spacing;
 Pattern Pattern =
      a1:TypeRef w a2:PatternValParam
      { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1, a2); }
-   / a1:PatternValParam
+   / !(openparen w closeparen / TupleType) a1:PatternValParam
+     !(w (rightarrow / DOT / slash / per / square / cubic / inverse / squared / cubed))
      { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1); };
 
 /* PatternValParm ::= ( (w PatternParams)? w ) */
-transient PatternArgs PatternValParam =
+private transient PatternArgs PatternValParam =
      openparen a1:(w PatternParams)? w closeparen
      { if (a1 == null)
            yyValue = NodeFactory.makePatternArgs(createSpan(yyStart,yyCount));
@@ -53,29 +54,29 @@ transient PatternArgs PatternValParam =
      };
 
 /* TypeOrPattern ::=
-     Type
-   | Pattern
+     Pattern
+   | Type
  */
 TypeOrPattern TypeOrPattern =
-     Type
-   / Pattern ;
+     Pattern
+   / Type ;
 
 /* IsPattern ::= : w Pattern */
-Pattern IsPattern = void:colon w Pattern ;
+private Pattern IsPattern = void:colon w Pattern ;
 
 /* IsTypeOrPattern ::=
-     IsType
-   | IsPattern
+     IsPattern
+   | IsType
  */
 TypeOrPattern IsTypeOrPattern =
-     IsType
-   / IsPattern ;
+     IsPattern
+   / IsType ;
 
 /* PatternParams ::=
      (PatternParam w , w)* PatternKeyword (w , w PatternKeyword)*
    | PatternParam (w , w PatternParam)*
  */
-transient List<PatternBinding> PatternParams =
+private transient List<PatternBinding> PatternParams =
      a1s:(PatternParam w comma w)* a2:PatternKeyword a3s:(w comma w PatternKeyword)*
      { yyValue = new ArrayList<PatternBinding>();
        for (List<PatternBinding> pb: a1s.list())
@@ -93,30 +94,46 @@ transient List<PatternBinding> PatternParams =
      PatternPlainParam
    | PatternValParam
  */
-transient List<PatternBinding> PatternParam =
+private transient List<PatternBinding> PatternParam =
      a1:PatternPlainParam { yyValue = Useful.list(a1); }
    / a1:PatternValParam   { yyValue = a1.getPatterns(); };
 
 /* PatternKeyword ::= PatternPlainParam w = w Id */
-transient PatternBinding PatternKeyword =
+private transient PatternBinding PatternKeyword =
      a1:PatternPlainParam w equals w a2:Id
      { yyValue = NodeFactory.makePatternKeyword(createSpan(yyStart,yyCount), a1, a2); };
 
 /* PatternPlainParam ::=
      BindId (w IsTypeOrPattern)?
-   | Type
    | Pattern
+   | Type
  */
-transient PatternBinding PatternPlainParam =
-     a1:BindId a2:(w IsTypeOrPattern)?
+private transient PatternBinding PatternPlainParam =
+     a1:BindId w a2:IsTypeOrPattern
      { yyValue = NodeFactory.makePlainPattern(createSpan(yyStart,yyCount),
                                               a1, Modifiers.None,
-                                              Option.<TypeOrPattern>wrap(a2));
+                                              Option.<TypeOrPattern>some(a2));
      }
-   / a1:Type
-     { yyValue = NodeFactory.makeTypePattern(createSpan(yyStart,yyCount), a1); }
    / a1:Pattern
-     { yyValue = NodeFactory.makeNestedPattern(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeNestedPattern(createSpan(yyStart,yyCount), a1); }
+   / !(BindId) a1:Type
+     { yyValue = NodeFactory.makeTypePattern(createSpan(yyStart,yyCount), a1); }
+   / a1:BindId
+     { yyValue = NodeFactory.makePlainPattern(createSpan(yyStart,yyCount),
+                                              a1, Modifiers.None,
+                                              Option.<TypeOrPattern>none());
+     };
+
+/* NoNewlinePattern ::=
+     TypeRef s PatternValParam
+   | PatternValParam
+ */
+Pattern NoNewlinePattern =
+     a1:TypeRef s a2:PatternValParam
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1, a2); }
+   / !(openparen w closeparen / TupleType) a1:PatternValParam
+     !(w (rightarrow / DOT / slash / per / square / cubic / inverse / squared / cubed))
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1); };
 
 /* IsType ::= : w Type */
 Type IsType = void:colon w Type ;
