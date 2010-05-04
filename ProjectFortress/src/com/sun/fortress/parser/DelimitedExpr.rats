@@ -46,7 +46,7 @@ import Spacing;
    | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
    | case w Expr (w (Encloser | Op))? w of w CaseClauses (br CaseElse)? w end
    | case w most w (Encloser | Op) w of w CaseClauses w end
-   | typecase w Expr w of w TypecaseClauses (br CaseElse)? w end
+   | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
      (w finally w BlockElems)? w end
  */
@@ -125,15 +125,14 @@ Expr DelimitedExpr =
        yyValue = ExprFactory.makeCaseExpr(span, Option.<Expr>none(), compare, a3,
                                           Option.<Block>none());
      }
-   / typecase w a1:Expr w a2:(of / do / in) w a3:TypecaseClauses
+   / typecase w a1:TypecaseBindings w a2:(of / do / in) w a3:TypecaseClauses
      a4:(br CaseElse)? w end
      { Span span = createSpan(yyStart,yyCount);
        if ( ! a2.equals("of") )
            log(span, "In a typecase expression, '" + a2 +
                "' is used incorrectly.  Use 'of' instead.");
        yyValue = ExprFactory.makeTypecase(span, false, Option.<Type>none(),
-                                          Collections.<Id>emptyList(),
-                                          Option.<Expr>some(a1), a3,
+                                          a1.getA(), a1.getB(), a3,
                                           Option.<Block>wrap(a4));
      }
    / <ErrorProduction>
@@ -237,27 +236,40 @@ private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
 /* CaseElse ::= else w => w BlockElems */
 Block CaseElse = else w match w BlockElems ;
 
+/* TypecaseBindings ::= BindIdOrBindIdTuple (w = w Expr)? */
+private com.sun.fortress.useful.Pair<List<Id>,Option<Expr>> TypecaseBindings =
+     a1:BindIdOrBindIdTuple w void:equals w a2:Expr &(w of)
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>some(a2)); }
+   / a1:BindIdOrBindIdTuple &(w of)
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>none()); }
+   / <ErrorProduction> Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "In a typecase expression, an identifier is required.\n" +
+           "    Use a binding such as 'x = exp' instead.");
+       yyValue = new com.sun.fortress.useful.Pair(Collections.<Id>emptyList(),
+                                                  Option.<Expr>none());
+     }
+   ;
+
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =
      a1:TypecaseClause a2s:(br TypecaseClause)*
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* TypecaseClause ::= TypeOrPattern w => w BlockElems */
+/* TypecaseClause ::= TypecaseTypes w => w BlockElems */
 TypecaseClause TypecaseClause =
-     a1:TypeOrPattern w match w a2:BlockElems
-     { Span span = createSpan(yyStart,yyCount);
-       if (a1 instanceof TupleType)
-           yyValue = NodeFactory.makeTypecaseClause(span,
-                                                    ((TupleType)a1).getElements(), a2);
-       else if (a1 instanceof Type)
-           yyValue = NodeFactory.makeTypecaseClause(span,
-                                                    Useful.list((Type)a1), a2);
-       else {
-           log(createSpan(yyStart,yyCount),
-               "Patterns in typecase expressions are not yet supported.");
-           yyValue = NodeFactory.makeTypecaseClause(span, Collections.<Type>emptyList(), a2);
-       }
-     };
+    a1:TypecaseTypes w match w a2:BlockElems
+    { yyValue = NodeFactory.makeTypecaseClause(createSpan(yyStart,yyCount),
+                                               a1, a2);
+    };
+
+/* TypecaseTypes ::=
+    ( w TypeList w )
+  | Type
+*/
+List<Type> TypecaseTypes =
+    openparen w TypeList w closeparen
+  / a1:Type { yyValue = Useful.list(a1); };
 
 /* Catch ::= catch w BindId w CatchClauses */
 Catch Catch = catch w a1:BindId w a2:CatchClauses
