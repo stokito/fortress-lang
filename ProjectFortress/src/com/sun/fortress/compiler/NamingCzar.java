@@ -114,7 +114,20 @@ public class NamingCzar {
     public static final String COERCION_NAME = "coerce";
     public static final String LIFTED_COERCION_PREFIX = "coerce_";
 
+    /**
+     * For use in equality testing only; do not incorporate this node
+     * into any generated tress.  For that purpose, use selfName(Span).
+     */
     public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
+    /**
+     * Generates a "self" at a particular location.
+     * 
+     * @param sp
+     * @return
+     */
+    public static final Id selfName(Span sp) {
+        return NodeFactory.makeId(sp, "self");
+    }
 
     /** Name for sole field of top-level singleton class representing a
      *  top-level binding.  Should not need to be particularly
@@ -266,11 +279,31 @@ public class NamingCzar {
      *
      */
 
-    static Span span = NodeFactory.internalSpan;
+    static private Span span = NodeFactory.makeSpan("Internally generated library name , in source code NamingCzar. ");
 
     static APIName fortLib =
         NodeFactory.makeAPIName(span, WellKnownNames.fortressBuiltin());
 
+    static APIName anyLib =
+        NodeFactory.makeAPIName(span, WellKnownNames.anyTypeLibrary());
+
+    public static boolean jvmTypeExtendsAny(String jvmArgType ) {
+        if (jvmArgType.startsWith("L")) {
+            String class_desc = Useful.substring(jvmArgType, 1, -1);
+            class_desc = Useful.replace(class_desc, "/", "."); // Leave $ alone for inner classes.
+            try {
+                Class cl = Class.forName(class_desc);
+                if (fortress.AnyType.Any.class.isAssignableFrom(cl)) {
+                    // If so, this is a fortress implementation type, allowed to flow through unmolested.
+                    return true;
+                }
+            } catch (ClassNotFoundException e) {
+                // Ignore error, report by other route below.
+            }
+        }
+        return false;
+    }
+    
     /**
      * Given an ASM Type t from foreign Java, what is the corresponding type
      * in Fortress (expressed as an AST Type node)?
@@ -280,7 +313,18 @@ public class NamingCzar {
      */
     // One reference, from ForeignJava.recurOnOpaqueClass
     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
-        return fortressTypeForForeignJavaType(t.getDescriptor());
+        String s = t.getDescriptor();
+        com.sun.fortress.nodes.Type y =  fortressTypeForForeignJavaType(t.getDescriptor());
+        if (y == null) {
+            if (jvmTypeExtendsAny(s)) {
+                // Special case for now, will generalize later.
+                if (s.equals("Lfortress/AnyType$Any;"))
+                    return
+                    NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, anyLib, "Any"));
+                throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
+            }
+        }
+        return y;
     }
 
     /**
@@ -291,7 +335,7 @@ public class NamingCzar {
      * If it is not defined in the current foreign interface implementation,
      * null is returned.
      */
-    // Used in this class, in test, and in SignatureParser.toImplFFFF
+    // Used in this class, in test, and in FortressMethodAdapter.toImplFFFF
     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
         return specialForeignJavaTranslations.get(s);
     }
@@ -306,6 +350,16 @@ public class NamingCzar {
     // Widely used
     public static String internalToDesc(String type) {
         return "L" + type + ";";
+    }
+    /**
+     * Strips L and ; off of type; they are assumed to exist.
+     * @param desc
+     * @return
+     */
+    public static String descToInternal(String desc) {
+        if (desc.startsWith("L") && desc.endsWith(";"))
+            return Useful.substring(desc, 1, -1);
+        throw new IllegalArgumentException(desc + " did not begin with 'L' and end with ';'");
     }
     /**
      * Returns "(" + param + ")" + result ; converts
@@ -371,12 +425,12 @@ public class NamingCzar {
         s(Type.FLOAT_TYPE, fortLib, "RR32");
         s(Double.class, fortLib, "RR64");
         s(Type.DOUBLE_TYPE, fortLib, "RR64");
-        s(Object.class, fortLib, "Any");
+        s(Object.class, anyLib, "Any");
         s(String.class, fortLib, "String");
         s(BigInteger.class, fortLib, "ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
-    }
-
+     }
+    
     /**
      * Package prefix for runtime values
      */
@@ -451,7 +505,6 @@ public class NamingCzar {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
-    //    bl(fortLib, "IntLiteral", "FIntLiteral");
         bl(fortLib, "Boolean", "FBoolean");
         bl(fortLib, "Char", "FChar");
         bl(fortLib, "RR32", "FRR32");

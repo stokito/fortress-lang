@@ -44,6 +44,7 @@ public class UsefulJUTest extends com.sun.fortress.useful.TestCaseWrapper {
 
     static Set<String> wordsSet = new HashSet<String>(wordsList);
 
+    
     /*
      * Test method for 'com.sun.fortress.interpreter.useful.Useful.setProduct(Set<List<T>>, Set<T>) <T>'
      */

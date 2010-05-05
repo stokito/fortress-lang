@@ -109,7 +109,6 @@ public class Naming {
          * This code is duplicated, mostly, in runtime Naming.java,
          * except that it deals only in strings.
          */
-    //    bl(COMPILER_BUILTIN, "$IntLiteral", "FIntLiteral");
         bl(COMPILER_BUILTIN, "$Boolean", "FBoolean");
         bl(COMPILER_BUILTIN, "$Char", "FChar");
         bl(COMPILER_BUILTIN, "$RR32", "FRR32");

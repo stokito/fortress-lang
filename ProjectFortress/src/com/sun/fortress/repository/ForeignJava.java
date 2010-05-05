@@ -50,7 +50,7 @@ public class ForeignJava {
     public static final ForeignJava only = new ForeignJava();
 
     private ForeignJava() {
-
+        
     }
 
     /**
@@ -84,7 +84,8 @@ public class ForeignJava {
     /**
      * Given a foreign API Name, what other (foreign) APIs does it import?
      */
-    MapOfMapOfSet<APIName, APIName, Id> generatedImports = new MapOfMapOfSet<APIName, APIName, Id>();
+    MapOfMapOfSet<APIName, Pair<APIName, Option<String>>, Id> generatedImports =
+        new MapOfMapOfSet<APIName, Pair<APIName, Option<String>>, Id>();
 
     /**
      * Given an API Name, what are the decls in it?
@@ -170,9 +171,9 @@ public class ForeignJava {
     static CheapSerializer<Map<Type, Long>> dependenceSerializer = new CheapSerializer.MAP<Type, Long>(typeSerializer,
                                                                                                        CheapSerializer.LONG);
 
-    private static Span span() {
-        return NodeFactory.internalSpan;
-    }
+//    private static Span span() {
+//        return NodeFactory.internalSpan;
+//    }
 
     private static Span span(APIName a) {
         return NodeFactory.makeSpan(a.getText());
@@ -284,6 +285,7 @@ public class ForeignJava {
             Debug.debug(Debug.Type.REPOSITORY, 1,
                         "Hunting for java match for ", pkg_name_string, ".", suffix);
             String candidate_suffix = suffix;
+            ArrayList<String> trials = new ArrayList<String>();
             while (last_dot > 0) {
                  candidate_suffix = candidate_suffix.substring(0, last_dot);
                  String candidate_class = pkg_name_string + "." +
@@ -291,6 +293,7 @@ public class ForeignJava {
                 Debug.debug(Debug.Type.REPOSITORY, 1,
                             "Looking for java class ", candidate_class);
                 try {
+                    trials.add(candidate_class);
                     imported_class = findClass(candidate_class);
                     if (imported_class != null) break;
                     // exit with imported_class and last_dot
@@ -302,8 +305,8 @@ public class ForeignJava {
             }
             if (imported_class == null) {
                 // Could not match a class to any prefix
-                throw StaticError.make("Could not find Java entity to match " +
-                                       pkg_name_string + "." + suffix, i);
+                throw StaticError.make("Could not find Java entity for foreign import " +
+                                       pkg_name_string + "." + suffix + ", tried classes " + trials, i);
             }
             /* imported_class specifies the class,
              * the item is the unused portion of the suffix.
@@ -331,7 +334,7 @@ public class ForeignJava {
 
     }
 
-    /**
+     /**
      * @param imported_type
      */
     private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package,
@@ -352,7 +355,7 @@ public class ForeignJava {
          * may still need to be recorded.  Re-recording an existing import
          * is harmless.
          */
-        generatedImports.putItem(importing_package, api_name, name);
+        generatedImports.putItem(importing_package, Pair.make(api_name, Option.some("java")), name);
 
         /*
          * Ensure that the API and class appear.
@@ -480,7 +483,7 @@ public class ForeignJava {
             }
         }
 
-        Id name = NodeFactory.makeId(span(), getSimpleName(imported_class));
+        Id name = NodeFactory.makeId(span("Internally generated ast node, compiler method ForeignJava.recurOnClass"), getSimpleName(imported_class));
         classToTraitType(t, pkg_name, name, trait_decls);
 
     }
@@ -565,10 +568,18 @@ public class ForeignJava {
         if (result == null) {
             foreignApisNeedingCompilation.add(name);
             //generateWrappersForApi(name);
+            
+            /* Doing this seems to cause other problems.
+            Span my_span = NodeFactory.makeSpan("Internally generated import added to synthesized API for a foreign import; compiler source code is ForeignJava.fakeApi");
+            generatedImports.putItem(name, Pair.make(NodeFactory.makeAPIName(my_span, "AnyType"), Option.<String>none()),
+                    NodeFactory.makeId(my_span, "Any"));
+                    */
 
+
+            // This looks wrong -- it seems to depend on the generateWrappersForApi call that is commented out.
             List<Import> imports = new ArrayList<Import>();
-            IMultiMap<APIName, Id> gi = generatedImports.get(name);
-            if (gi != null) for (APIName a : gi.keySet()) {
+            IMultiMap<Pair<APIName,Option<String>>, Id> gi = generatedImports.get(name);
+            if (gi != null) for (Pair<APIName,Option<String>> a : gi.keySet()) {
                 importAnApi(imports, a, gi.get(a));
             }
 
@@ -586,7 +597,7 @@ public class ForeignJava {
 
     }
 
-    private void importAnApi(List<Import> imports, APIName a, Set<Id> items) {
+    private void importAnApi(List<Import> imports, Pair<APIName,Option<String>> a, Set<Id> items) {
 
         List<AliasedSimpleName> lasn = new ArrayList<AliasedSimpleName>();
         lasn = Useful.applyToAllAppending(items, new F<Id, AliasedSimpleName>() {
@@ -596,7 +607,9 @@ public class ForeignJava {
             }
         }, lasn);
 
-        ImportNames imp_names = NodeFactory.makeImportNames(span(), Option.some("java"), a, lasn);
+        ImportNames imp_names = NodeFactory.makeImportNames(
+                span("Internally generated import for a native import, compiler method ForeignJava.importAnApi"),
+                a.getB(),a.getA(), lasn);
 
         imports.add(imp_names);
     }

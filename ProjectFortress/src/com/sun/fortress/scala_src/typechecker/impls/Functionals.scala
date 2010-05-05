@@ -434,6 +434,10 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Sort the arrows and instantiations to find the statically most
     // applicable. Then update each candidate's Overloading node.
+    
+    /* WARNING: Blindly following the deprecated-warning advice causes ONE test to fail.
+     * Don't think that it is okay, just because it compiles okay (DRC 2010-05-04).
+     */
     Some(candidates.sort(moreSpecificCandidate))
   }
 

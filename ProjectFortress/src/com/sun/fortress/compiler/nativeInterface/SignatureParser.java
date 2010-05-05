@@ -29,21 +29,12 @@ public class SignatureParser {
      * Tokenization of input signature into its single Java type elements.
      */
     private List<String> arguments;
-    /**
-     * Tokenization and double translation of input signature into the
-     * Java types implementing the Fortress types corresponding to the
-     * Java types in the original signature.
-     */
-    private List<String> fortressArguments;
+   
     /**
      * result Java type from signature
      */
     private String result;
-    /**
-     * Double translation of foreign Java type to corresponding Fortress type
-     * and then into imlementing Java type. 
-     */
-    private String fortressResult;
+   
     /**
      * Input signature to constructor.
      */
@@ -100,7 +91,6 @@ public class SignatureParser {
      */
     SignatureParser(String s) {
         arguments = new ArrayList<String>();
-        fortressArguments = new ArrayList<String>();
         signature = s;
 
         if (s.charAt(0) != '(') error(s);
@@ -123,8 +113,7 @@ public class SignatureParser {
             {
                 String arg_desc = String.valueOf((char)ch);
                 arguments.add(arg_desc);
-                String desc = toImplFFFF(arg_desc);
-                fortressArguments.add(desc);    
+                 
                 index++;
             } break;
                  
@@ -133,8 +122,7 @@ public class SignatureParser {
                 int end = s.indexOf(';', index) + 1;
                 String javaType = s.substring(index, end);
                 arguments.add(javaType);
-                String desc = toImplFFFF(javaType);
-                fortressArguments.add(desc);    
+                    
                 index = end;
             } break;
             
@@ -163,7 +151,6 @@ public class SignatureParser {
         {
             String arg_desc = String.valueOf((char)ch);
             result = arg_desc;
-            fortressResult = toImplFFFF(arg_desc);
         }
         break;
         
@@ -172,8 +159,6 @@ public class SignatureParser {
                 int end = s.indexOf(';', index) + 1;
                 String javaType = s.substring(index, end);
                 result = javaType;
-                String desc = toImplFFFF(javaType);
-                fortressResult = desc;    
             } 
             
             break;
@@ -181,39 +166,12 @@ public class SignatureParser {
         }
     }
 
-    /**
-     * converts an input, foreign, Java type descriptor into the Java type
-     * descriptor for the implementation of the corresponding Fortress type.
-     * 
-     * The name is an abbreviation for toImplForFortressForForeign.
-     * 
-     * @param arg_desc
-     * @return
-     */
-    private String toImplFFFF(String arg_desc) {
-        com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(arg_desc);
-        if (ftype == null)
-            error("No Fortress type (yet) for foreign Java type descriptor '" + arg_desc + "'");
-        String desc = NamingCzar.jvmTypeDesc(ftype, null);
-        if (desc == null)
-            error("No Java impl type (yet) for Fortress type " + ftype + " for foreign descriptor '" + arg_desc + "'");
-        return desc;
-    }
+  
 
-    List<String> getArguments() { return arguments;}
-    List<String> getFortressArguments() { return fortressArguments;}
-    String getResult() {return result;}
-    String getFortressResult() {return fortressResult;}
+    List<String> getJVMArguments() { return arguments;}
+    String getJVMResult() {return result;}
 
-    String getFortressifiedSignature() {
-        String result = "(";
-        for (String s : fortressArguments) {
-            result = result + s;
-        }
-        result = result + ")" + fortressResult;
-
-        return result;
-    }
+   
         
     String getSignature() {
         return signature;
