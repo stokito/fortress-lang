@@ -30,7 +30,7 @@ class TypeAnalyzerJUTest extends TestCase {
   def testNormalize() = {
     val ta = typeAnalyzer("{trait Tt comprises {Oo, Pp}, object Oo extends {Tt}, object Pp extends {Tt}}")
     assert(ta.normalize(typ("&&{Tt, ||{Oo, Pp}}")) == typ("||{Oo, Pp}"))
-    //assert(ta.normalize(typ("(BOTTOM, Tt)")) == typ("BOTTOM"))
+    assert(ta.normalize(typ("(BOTTOM, Tt)")) == typ("BOTTOM"))
   }
   
   def testMeet() = {
