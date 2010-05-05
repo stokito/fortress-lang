@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
+ Copyright 2010 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -15,21 +15,39 @@
  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.nativeHelpers;
+/*
+ * Created on Apr 24, 2007
+ *
+ */
+package com.sun.fortress.useful;
 
-public class simpleSystem {
+import java.util.AbstractList;
+import java.util.List;
 
-    public static int nativeArgcount() {
-        if (systemHelper.cmdline != null) {
-            return systemHelper.cmdline.length;
-        } else {
-            return 0;
-        }
+/**
+ * A copy of list l, except that e has been Deleted at index i.
+ * Thus, new DeletedList(l,0,e) inserts e at the beginning of the list.
+ * @author dr2chase
+ */
+public class DeletedList<T> extends AbstractList<T> {
+    List<T> l;
+    int i;
+
+    public DeletedList(List<T> l, int i) {
+        this.l = l;
+        this.i = i;
     }
 
-    public static String nativeArg(int n) {
-        if (n >= 0 && n < nativeArgcount()) return systemHelper.cmdline[n];
-        else throw new RuntimeException("Can't get command line arg " + n + " because it wasn't provided");
+    @Override
+    public T get(int arg0) {
+        if (arg0 < i)
+            return l.get(arg0);
+        return l.get(arg0+1);
     }
-    
- }
+
+    @Override
+    public int size() {
+        return l.size() - 1;
+    }
+
+}

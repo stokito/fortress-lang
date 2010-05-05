@@ -21,7 +21,7 @@ import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRa
                                             LocalRandom.localRandomInt => jRandomInt }
 *)
 import CompilerBuiltin.{...}
-(*) import java com.sun.fortress.nativeHelpers.equality.SEQV => jSEQV
+import java com.sun.fortress.nativeHelpers.{equality.sEquiv => jSEQUIV}
 export CompilerLibrary
 
 
@@ -47,7 +47,14 @@ ignore(_:Any):() = ()
  * Equality and ordering
  ************************************************************)
 
-(*) opr =(a:Any, b:Any):Boolean = a SEQV b
+(* This is incomplete *)
+opr ===(a:Object, b:Object):Boolean = jSEQUIV(a,b)
+opr ===(a:ZZ64, b:ZZ64):Boolean = a=b
+opr ===(a:ZZ32, b:ZZ32):Boolean = a=b
+opr ===(a:RR64, b:RR64):Boolean = a=b
+opr ===(a:RR32, b:RR32):Boolean = a=b
+opr ===(a:String, b:String):Boolean = a=b
+opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
 (*) opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 

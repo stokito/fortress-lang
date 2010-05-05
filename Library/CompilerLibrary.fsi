@@ -53,6 +53,7 @@ opr ->(a: Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:()->Boolean):Boolean
 opr <->(a: Boolean, b:Boolean):Boolean
 
+opr ===(a:Object, b:Object):Boolean
 
 (************************************************************
  * Simple Range support

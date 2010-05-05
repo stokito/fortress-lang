@@ -25,6 +25,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.nativeHelpers.*;
@@ -32,16 +33,17 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.MultiMap;
+import com.sun.fortress.useful.Useful;
 
 class fortressConverter {
-    String shortName;
-    String fortressRuntimeType;
-    String toJavaTypeMethod;
-    String toJavaTypeMethodDesc;
-    String constructor;
-    String constructorType;
+    final String shortName;
+    final String fortressRuntimeType;
+    final String toJavaTypeMethod;
+    final String toJavaTypeMethodDesc;
+    final String constructor;
+    final String constructorType;
 
-    private final String prefix = "com/sun/fortress/compiler/runtimeValues";
+    private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
 
     fortressConverter(String _fortressRuntimeType,
                       String _toJavaTypeMethod,
@@ -56,7 +58,40 @@ class fortressConverter {
         constructor = _constructor;
         constructorType = _constructorType;
     }
+    
+    int opcode() {
+        return Opcodes.INVOKEVIRTUAL;
+    }
+    
+    String wrapStrippedClass(String strippedClass) {
+        return prefix + strippedClass;
+    }
+    
+    void convertArg(MethodVisitor mv, String classDesc) {
+        mv.visitMethodInsn(opcode(),FortressMethodAdapter.descToType(classDesc),
+                toJavaTypeMethod, toJavaTypeMethodDesc);
+    }
+    
+    void convertResult(MethodVisitor mv, String classDesc) {
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, FortressMethodAdapter.descToType(classDesc),
+                constructor, constructorType);
+       
+    }
 
+}
+
+class emptyConverter extends fortressConverter {
+    static final emptyConverter ONLY = new emptyConverter();
+    private emptyConverter() {
+        super(null, null, null, null, null);
+    }
+    void convertArg(MethodVisitor mv, String classDesc) {
+        // do nothing
+    }
+    
+    void convertResult(MethodVisitor mv, String classDesc) {
+        // do nothing
+    }
 }
 
 public class FortressMethodAdapter extends ClassAdapter {
@@ -100,16 +135,19 @@ public class FortressMethodAdapter extends ClassAdapter {
 
     // Strip off the leading L + prefix, and trailing ;"
 
-    private String strip(String s) {
-        String header = "L" + prefix;
+    static String strip(String s) {
+        // String header = "L" + prefix;
         String trailer = ";";
         int end = s.lastIndexOf(";");
-        int start = header.length();
+        int start = s.lastIndexOf("/") + 1; // header.length();
         return s.substring(start,end);
     }
 
-    private String addWrap(String s) {
-        return "L" + prefix + s + ";" ;
+    static String descToType(String s) {
+        if (! (s.startsWith("L") && s.endsWith(";")))
+            throw new IllegalArgumentException("Input string " + s + " must begin with 'L' and end with ';'");
+        
+        return Useful.substring(s,1,-1);
     }
 
     public FortressMethodAdapter(CodeGenClassWriter cv,
@@ -163,6 +201,47 @@ public class FortressMethodAdapter extends ClassAdapter {
         return new EmptyVisitor();// super.visitMethod(access, name, desc, signature, exceptions);
     }
 
+    static class SignatureAndConverter {
+        final fortressConverter converter;
+        final String signature;
+        SignatureAndConverter(String signature, fortressConverter converter) {
+            this.converter = converter;
+            this.signature = signature;
+        }
+    }
+    
+    /**
+     * converts an input, foreign, Java type descriptor into the Java type
+     * descriptor for the implementation of the corresponding Fortress type.
+     * 
+     * The name is an abbreviation for toImplForFortressForForeign.
+     * 
+     * @param arg_desc
+     * @return
+     */
+    private SignatureAndConverter toImplFFFF(String jvmArgType, String method_name) {
+        com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(jvmArgType);
+        if (ftype == null) {
+            // Perhaps this type is in the Fortress implementation hierarchy.
+            if (NamingCzar.jvmTypeExtendsAny(jvmArgType))
+                return new SignatureAndConverter(jvmArgType, emptyConverter.ONLY);;
+            
+            throw new Error("No Fortress type (yet) for foreign Java type descriptor '" + jvmArgType + "'");
+        }
+        String fortressArgType = NamingCzar.jvmTypeDesc(ftype, null);
+        if (fortressArgType == null)
+            throw new Error("No Java impl type (yet) for Fortress type " + ftype + " for foreign descriptor '" + jvmArgType + "'");
+        String stripped = strip(fortressArgType);
+        fortressConverter converter = (fortressConverter) conversionTable
+                .get(stripped);
+        
+        if (converter == null)
+            throw new RuntimeException("Can't generate header for method "
+                    + method_name + " with jvm desc =" + jvmArgType + " stripped = " + stripped);
+        
+        return new SignatureAndConverter(fortressArgType, converter);
+    }
+    
     private MethodVisitor generateNewBody(int access, String desc, String signature,
             String[] exceptions, String name, String newName) {
 
@@ -170,8 +249,26 @@ public class FortressMethodAdapter extends ClassAdapter {
                     " with desc ", desc);
 
         SignatureParser sp = new SignatureParser(desc);
-        String fsig = sp.getFortressifiedSignature();
+        
+        List<String> desc_args = sp.getJVMArguments();
+        String desc_result = sp.getJVMResult();
+        List<String> fortress_args = new ArrayList<String>();
+        List<fortressConverter> convert_args = new ArrayList<fortressConverter>();
 
+        String fsig = "(";
+        for (String s : desc_args) {
+             
+            SignatureAndConverter s_a_c = toImplFFFF(s, name);
+            fsig = fsig + s_a_c.signature;
+            fortress_args.add(s_a_c.signature);
+            
+            convert_args.add(s_a_c.converter);
+        }
+        SignatureAndConverter s_a_c = toImplFFFF(desc_result, name);
+        fsig = fsig + ")" + s_a_c.signature;
+        
+        fortressConverter convert_result = s_a_c.converter;
+    
         // FORWARDING METHOD, only with type conversions on the way in/out!
         MethodVisitor mv = cv.visitMethod(access, name, fsig, signature,
                 exceptions);
@@ -179,17 +276,10 @@ public class FortressMethodAdapter extends ClassAdapter {
         Label l0 = new Label();
         mv.visitLabel(l0);
         int count = 0;
-        List<String> args = sp.getFortressArguments();
-        for (String s : args) {
+        for (String s : fortress_args) {
+            fortressConverter converter = convert_args.get(count);
             mv.visitVarInsn(Opcodes.ALOAD, count++);
-            String stripped = strip(s);
-            fortressConverter converter = (fortressConverter) conversionTable
-                    .get(stripped);
-            if (converter == null)
-                throw new RuntimeException("Can't generate header for method "
-                        + name + " problem =" + s + " stripped = " + stripped);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, prefix + stripped,
-                    converter.toJavaTypeMethod, converter.toJavaTypeMethodDesc);
+            converter.convertArg(mv, s);
         }
 
         Debug.debug(Debug.Type.COMPILER, 1, "className = ", inputClassName,
@@ -197,18 +287,8 @@ public class FortressMethodAdapter extends ClassAdapter {
 
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, inputClassName, name, sp
                 .getSignature());
-
-        String result = sp.getFortressResult();
-        String stripped = strip(result);
-
-        fortressConverter converter = (fortressConverter) conversionTable
-                .get(stripped);
-        if (converter == null)
-            throw new RuntimeException("Can't generate return type for method "
-                    + name + " value " + result);
-
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, prefix + strip(result),
-                converter.constructor, converter.constructorType);
+        
+        convert_result.convertResult(mv, s_a_c.signature);
 
         mv.visitInsn(Opcodes.ARETURN);
         mv.visitMaxs(2, 1);

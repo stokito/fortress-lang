@@ -98,7 +98,7 @@ public class ManglingClassWriter extends ClassWriter {
             String innerName, int access) {
         name = Naming.mangleFortressIdentifier(name);
         outerName = Naming.mangleFortressIdentifier(outerName);
-        innerName = Naming.mangleMethodSignature(innerName);
+        innerName = Naming.mangleFortressIdentifier(innerName);
         super.visitInnerClass(name, outerName, innerName, access);
     }
 

@@ -214,5 +214,29 @@ public final class MagicNumbers {
         int ls = list.length;
         return hashArrayLong(list, ls * array[(ls + 512) & 1023]);
     }
+    
+    /* This is still a little half-baked, just need something decently random */
+    public static long hashStringLong(String s) {
+        int ls = s.length();
+        long xx = array[ls * ls & 1023];
+        xx = xx ^ (xx << 29);
+        int ff = array[ls & 1023]; // Depends on array being large enough
+        for (int i = 0; i < ls; i++) {
+            int hh = s.charAt(i) * array[i];
+            xx = hashStepLong(xx, ff, hh);
+        }
+        xx = hashStepLong(xx, ff, ls);
+        
+        return xx;
+    }
+
+    public static void  main(String[] args) {
+        String ss[] = { "", "a", "b", "c", "A", "aa", "aaa", "aaaa", "aaaaa", "bbbbb", "bbbbbb", "bbbbbbb", "bbbbbbbb"};
+        for (int i = 0; i < ss.length; i++) {
+            String s = ss[i];
+            long l = MagicNumbers.hashStringLong(s);
+            System.err.println(s + " " + l);
+        }
+    }
 
 }

@@ -273,6 +273,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
 
     }
+    
+    static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
+        System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
+        throw new Error("You're supposed to put a breakpoint here...");
+    }
+    
+
 
     /**
      * Emits code for the common prefix of a closure class.
@@ -386,7 +393,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // different class.
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
-                sig, sz, false);
+                sig, sig, sz, false);
 
     }
 
@@ -403,14 +410,36 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static void forwardingMethod(ClassWriter cw,
             String thisName, int thisModifiers, int selfIndex,
             String fwdClass, String fwdName, int fwdOp,
-            String maximalSig,
+            String maximalSig, String selfCastSig,
             int nparamsIncludingSelf, boolean pushSelf) {
         forwardingMethod(cw, thisName, thisModifiers, selfIndex,
-                fwdClass, fwdName, fwdOp, maximalSig, maximalSig, maximalSig,
+                fwdClass, fwdName, fwdOp, maximalSig, maximalSig, selfCastSig,
                 nparamsIncludingSelf, pushSelf
                 );
     }
     
+    
+    /**
+     * Emits a forwarding method.
+     * 
+     * Cases:
+     * apply static, target static
+     * apply instance, target static
+     * apply instance, target instance
+     * 
+     * @param cw Classwriter that will write the forwarding method
+     * @param thisName       name of the generated (forwarding) method
+     * @param thisModifiers  modifiers for the generated (forwarding) method
+     * @param selfIndex      index of the self parameter, if any
+     * @param fwdClass       class for the target method
+     * @param fwdName        name of the target method
+     * @param fwdOp          the appropriate INVOKE opcode for the forward
+     * @param thisSig        the signature of the generated (forwarding) method
+     * @param fwdSig         the signature of the target (called) method
+     * @param selfCastSig    a full signature containing self at selfIndex
+     * @param nparamsIncludingSelf number of parameters, including self (if any)
+     * @param pushSelf       if true, push self first, using selfIndex to find it
+     */
     public static void forwardingMethod(ClassWriter cw,
                                         String thisName, int thisModifiers, int selfIndex,
                                         String fwdClass, String fwdName, int fwdOp,
