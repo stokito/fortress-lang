@@ -61,7 +61,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           if (t.getComprised.isEmpty) t.getNamed
           else NF.makeIntersectionType(t.getNamed,
                                        NF.makeMaybeUnionType(t.getComprised))
-        case t:ObjectExprType => NF.makeIntersectionType(t.getExtended)
+        case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
         case _ => super.walk(y)
       }
     }
@@ -256,9 +256,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
             case _ => super.walk(t)
           }
         //ToDo: Handle keywords
-        //ToDo: Make sure that a tuple of bottom is bottom
         case t:TupleType => super.walk(t) match {
           case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
+          case STupleType(i, e, vt, k) if e.contains(bottom) => bottom
           case _ => t
         }
         case u@SUnionType(_, e) =>
