@@ -974,12 +974,15 @@ public class FileTests {
                 suite.addTest(test);
             }
             
-            if (runTests.size() > 0) {
-                // Run the bytecode optimizer as a test.
-                suite.addTest(new ShellTest(ProjectProperties.FORTRESS_AUTOHOME+"/bin", ProjectProperties.FORTRESS_AUTOHOME+"/bin", "BytecodeOptimizeEverything", failsOnly, expect_failure));
-                for (Test test : runTests) {
-                    if (test instanceof TestTest) {
-                        suite.addTest(new TestTest(new StringMap.FromPair("run.script", "runOpt"), (TestTest) test));
+            if (! ProjectProperties.getBoolean("fortress.unittests.noopt", false)) {
+
+                if (runTests.size() > 0) {
+                    // Run the bytecode optimizer as a test.
+                    suite.addTest(new ShellTest(ProjectProperties.FORTRESS_AUTOHOME+"/bin", ProjectProperties.FORTRESS_AUTOHOME+"/bin", "BytecodeOptimizeEverything", failsOnly, expect_failure));
+                    for (Test test : runTests) {
+                        if (test instanceof TestTest) {
+                            suite.addTest(new TestTest(new StringMap.FromPair("run.script", "runOpt"), (TestTest) test));
+                        }
                     }
                 }
             }
