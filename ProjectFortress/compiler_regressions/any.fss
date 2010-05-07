@@ -15,22 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component seqv
+component any
 export Executable
 
-trait T end
-object P extends T end
-object Q extends T end
+import java com.sun.fortress.nativeHelpers.{equality.sEquiv => jSEQUIV}
+
+anyeq(x:Any, y:Any):Boolean = jSEQUIV(x,y)
+anyeq(x:String, y:String):Boolean = (x=y)
+
+object O end
 
 run() = do
- println ""
- println( if P===P then "PASS P===P" else "FAIL P===P" end )
- println( if "cat"==="cat" then "PASS 'cat'==='cat'" else "FAIL 'cat'==='cat'" end )
- 
- println( if P NEQV Q then "PASS P NEQV Q" else "FAIL P NEQV Q" end )
- println( if "cat" NEQV "dog" then "PASS 'cat' NEQV 'dog'" else "FAIL 'cat' NEQV 'dog'" end )
 
- println("Hello, World!")
+ println(if anyeq(O,O) then "PASS" else "FAIL")
+
 end
 
 end
