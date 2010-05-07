@@ -15,22 +15,20 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component seqv
+component parent_method_override
 export Executable
 
-trait T end
-object P extends T end
-object Q extends T end
-
-run() = do
- println ""
- println( if P===P then "PASS P===P" else "FAIL P===P" end )
- println( if "cat"==="cat" then "PASS 'cat'==='cat'" else "FAIL 'cat'==='cat'" end )
- 
- println( if P NEQV Q then "PASS P NEQV Q" else "FAIL P NEQV Q" end )
- println( if "cat" NEQV "dog" then "PASS 'cat' NEQV 'dog'" else "FAIL 'cat' NEQV 'dog'" end )
-
- println("Hello, World!")
+trait Parent
+  foo(x: Parent) = 1
 end
+
+trait Child extends Parent
+  foo(x: Child) = 2
+  foo(x: Parent) = 3
+end
+
+object SomeChild extends Child end
+
+run() = println SomeChild.foo(SomeChild)
 
 end

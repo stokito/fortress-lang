@@ -48,7 +48,7 @@ ignore(_:Any):() = ()
  ************************************************************)
 
 (* This is incomplete *)
-opr ===(a:Object, b:Object):Boolean = jSEQUIV(a,b)
+opr ===(a:Any, b:Any):Boolean = jSEQUIV(a,b)
 opr ===(a:ZZ64, b:ZZ64):Boolean = a=b
 opr ===(a:ZZ32, b:ZZ32):Boolean = a=b
 opr ===(a:RR64, b:RR64):Boolean = a=b
@@ -56,7 +56,7 @@ opr ===(a:RR32, b:RR32):Boolean = a=b
 opr ===(a:String, b:String):Boolean = a=b
 opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
-(*) opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
 
 (*
 (** Assertion *)

@@ -53,7 +53,8 @@ opr ->(a: Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:()->Boolean):Boolean
 opr <->(a: Boolean, b:Boolean):Boolean
 
-opr ===(a:Object, b:Object):Boolean
+opr ===(a:Any, b:Any):Boolean
+opr NEQV(a:Any, b:Any):Boolean
 
 (************************************************************
  * Simple Range support

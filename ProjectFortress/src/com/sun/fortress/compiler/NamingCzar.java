@@ -1075,7 +1075,7 @@ public class NamingCzar {
             }
             @Override
             public String forAnyType (AnyType t) {
-                return descFortressAny;
+                return withLSemi ? descFortressAny : fortressAny;
             }
             @Override
             public String forVarType (VarType t) {
