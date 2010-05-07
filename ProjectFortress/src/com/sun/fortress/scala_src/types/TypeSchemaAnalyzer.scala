@@ -48,8 +48,19 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   
   def meet(s: Type, t: Type): Type = s
   def join(s: Type, t: Type): Type = s
-  def lteq(s: Type, t:Type): Boolean = false
+  def lteq(s: Type, t:Type): Boolean = (s,t) match {
+    case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
+      // I think lifted static params need to be handled just like unlifted ones
+      val s_sp = getStaticParams(s)
+      val s_bds = s_sp.map(staticParamBoundType)
+      
+      false
+    case (s,t) if !t.getInfo.getStaticParams.isEmpty => false
+    case (s,t) => ta.lteq(s, t)
+  }
 
+  
+  
   /**
    * Checks if two types `s` and `t` are syntactically equivalent. If either
    * type has static parameters, then the `syntacticEqGeneric` method is called.
@@ -122,4 +133,6 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   /** Remove syntactically equivalent duplicates and take the intersection. */
   def duplicateFreeIntersection(ts: List[Type]): Type =
     NF.makeMaybeIntersectionType(toJavaList(removeDuplicates(ts)))
+    
+  def extend(): TypeSchemaAnalyzer = this
 }

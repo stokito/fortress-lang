@@ -134,7 +134,7 @@ trait Common { self: STypeChecker =>
    */
   protected def traitTypesCallable(typ: Type): Set[TraitType] = typ match {
     case t:TraitSelfType => traitTypesCallable(t.getNamed)
-
+    case t@SObjectExprType(_, extended) => Set(extended.flatMap(traitTypesCallable):_*)
     case t:TraitType => Set(t)
 
     // Combine all the trait types callable from constituents.
