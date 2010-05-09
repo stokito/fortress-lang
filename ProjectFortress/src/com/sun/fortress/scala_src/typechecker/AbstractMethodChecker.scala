@@ -116,7 +116,14 @@ class AbstractMethodChecker(component: ComponentIndex,
 
   private def inheritedAbstractMethods(extended_traits: List[TraitTypeWhere]):
       Iterator[(TraitType, FnDecl)] = {
-    val inherited = inheritedMethods(extended_traits, typeAnalyzer)
+      val supers = extended_traits.filter(t => !t.getBaseType().isInstanceOf[NamedType] ||
+                                          !t.getBaseType().asInstanceOf[NamedType].getName().getApiName().isSome())
+
+      for (t <- supers) {
+          System.out.println(t.toStringVerbose)
+      }
+
+    val inherited = inheritedMethods(supers, typeAnalyzer)
     for {
       (meth : HasSelfType, _, tt) <- inherited.secondSet
       decl <- meth match {
@@ -127,8 +134,8 @@ class AbstractMethodChecker(component: ComponentIndex,
         case o => System.err.println("inheritedAbstractMethods: skipped "+o)
             empty
       }
-      SFnDecl(_,SFnHeader(_,mods,_,_,_,_,_,_),_,body,_) <- single(decl)
-      if (mods.isAbstract || ! body.isDefined)
+      SFnDecl(_,SFnHeader(_,mods,name,_,_,_,_,_),_,body,_) <- single(decl)
+      if (mods.isAbstract || (! body.isDefined && name.getApiName.isNone))
     } yield (tt,decl)
   }
 
