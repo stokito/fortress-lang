@@ -245,19 +245,17 @@ object STypesUtil {
    * Make a type for the given list of bindings. Returns None if not all
    * bindings had types.
    */
-  def makeLhsType(ls: List[LValue]): Option[Type] = {
-    val span = ls match {
-      case Nil => NF.typeSpan
-      case _ => NU.spanTwo(NU.getSpan(ls.head), NU.getSpan(ls.last))
-    }
-    val types = ls.map(lv => lv match {
-      case SLValue(_, _, _, Some(typ), _) => typ match {
-        case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
-        case t@SType(_) => t
-      }
-      case _ => return None
-    })
-    Some(NF.makeMaybeTupleType(span, toJavaList(types)))
+  def makeLhsType(ls: List[LValue]): Option[Type] = ls match {
+    case Nil => Some(NF.makeMaybeTupleType(NF.typeSpan, toJavaList(Nil)))
+    case _ =>
+      Some(NF.makeMaybeTupleType(NU.spanTwo(NU.getSpan(ls.head), NU.getSpan(ls.last)),
+                                 toJavaList(ls.map(lv => lv match {
+                                         case SLValue(_, _, _, Some(typ), _) => typ match {
+                                         case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
+                                         case t@SType(_) => t
+                                         }
+                                         case _ => return None
+                                         }))))
   }
 
   /**

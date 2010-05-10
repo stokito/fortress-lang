@@ -363,7 +363,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
          * visitGenerators returns a tuple of ((BIG OT, f), gg)
          *  (this should be refactored, though)
          */
-        Expr res = null;
+        Expr res;
         if (body instanceof FnExpr) {
             Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
             res = ExprFactory.make_RewriteFnApp(span,
@@ -390,7 +390,8 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             res = ExprFactory.make_RewriteFnApp(span,
                       BIGOP2_NAME,
                       ExprFactory.makeTupleExpr(span,opexpO,opexpI,gg, innerBody));
-        }
+        } else
+            res = bug(body, "Function expressions or tuple expressions are expected.");
         if ( isParen ) res = ExprFactory.makeInParentheses(res);
         return (Expr)recur(res);
     }
