@@ -423,8 +423,9 @@ trait Functionals { self: STypeChecker with Common =>
     val args = partitionArgs(iargs).getOrElse(return None)
 
     // Filter the overloadings that are applicable.
+    val es = preCandidates.map(pc => checkApplicable(pc, context, args))
     val (candidates, overloadingErrors) =
-      List.separate(preCandidates.map(pc => checkApplicable(pc, context, args)))
+        (for (Left(x) <- es) yield x, for (Right(x) <- es) yield x)
 
     // If there were no candidates, report errors.
     if (candidates.isEmpty) {

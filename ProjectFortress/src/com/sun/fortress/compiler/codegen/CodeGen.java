@@ -2796,12 +2796,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private List<VarCodeGen> getFreeVars(Node n) {
         BASet<IdOrOp> allFvs = fv.freeVars(n);
         List<VarCodeGen> vcgs = new ArrayList<VarCodeGen>();
-        if (allFvs == null) sayWhat((ASTNode)n," null free variable information!");
-        for (IdOrOp v : allFvs) {
-            VarCodeGen vcg = getLocalVarOrNull(v);
-            if (vcg != null) vcgs.add(vcg);
+        if (allFvs == null)
+            return sayWhat((ASTNode)n," null free variable information!");
+        else {
+            for (IdOrOp v : allFvs) {
+                VarCodeGen vcg = getLocalVarOrNull(v);
+                if (vcg != null) vcgs.add(vcg);
+            }
+            return vcgs;
         }
-        return vcgs;
     }
 
     private BATree<String, VarCodeGen>

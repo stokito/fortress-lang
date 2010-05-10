@@ -231,9 +231,9 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(that);
         if( objExprTypeEnv == null ) {
-            new DesugarerError( NodeUtil.getSpan(that), "The typeEnv associated " +
-                "with node " + that + " at span " + NodeUtil.getSpan(that) +
-                " is null!" );
+            throw new DesugarerError( NodeUtil.getSpan(that), "The typeEnv associated " +
+                                      "with node " + that + " at span " + NodeUtil.getSpan(that) +
+                                      " is null!" );
         }
 
         if( objExprStack.isEmpty() &&
