@@ -74,43 +74,22 @@ public class OperatorStuffGenerator {
 
         MultiMap<String, Element> groups = new MultiMap<String, Element>();
 
-        ArrayList<Element> chars = null;
         try {
-            chars = Element.readUnicodeFile(unicodeFile);
-        }
-        catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        HashMap<String, Element> namesToElements = Element.generateAbbreviated(chars);
-        HashSet<Element> allElements = new HashSet<Element>();
-        try {
-
+            ArrayList<Element> chars = Element.readUnicodeFile(unicodeFile);
+            HashMap<String, Element> namesToElements = Element.generateAbbreviated(chars);
+            HashSet<Element> allElements = new HashSet<Element>();
             readOperators(operatorFile, groups, namesToElements, allElements);
             generateJavaFile(theJavaFile, groups, namesToElements, allElements, pkg, cls);
+            System.out.println("Groups:  " + groups.keySet());
         }
         catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         catch (IOException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-        // for (String k : groups.keySet()) {
-        // System.out.println("Group " + k);
-        // Set<Element> els = groups.get(k);
-        // for (Element e : els) {
-        // System.out.println(e.spaceFreeAliases.toString());
-        // }
-        // }
-        // System.out.println();
-        System.out.println("Groups:  " + groups.keySet());
-
     }
 
     /**

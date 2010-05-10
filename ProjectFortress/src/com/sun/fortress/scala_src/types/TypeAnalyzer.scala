@@ -282,10 +282,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val l2 = l.filter(!sub(a,_).isTrue)
         l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
       })
-      val (ts, ss) = List.separate(ds.map(_ match {
+      val es = ds.map(_ match {
         case t:TupleType => Left(t)
         case s => Right(s)
-      }))
+      })
+      val (ts, ss) = (for (Left(x) <- es) yield x, for (Right(x) <- es) yield x)
       ss ++ normTuples(ts)
     }
   }
@@ -325,10 +326,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def minimalCovering(x: Type): Type = normalize(x) match {
     case SIntersectionType(_, e) =>
-      val (as, ts) = List.separate(e.map(_ match {
+      val es = e.map(_ match {
         case a:ArrowType => Left(a)
         case t => Right(minimalCovering(t))
-      }))
+      })
+      val (as, ts) = (for (Left(x) <- es) yield x, for (Right(x) <- es) yield x)
       meet(minimalArrows(as) ++ ts)
     case SUnionType(_, e) => join(e.map(minimalCovering))
     case t:TraitType => join(comprisesLeaves(t))

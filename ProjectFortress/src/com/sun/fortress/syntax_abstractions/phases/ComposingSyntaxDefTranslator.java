@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
@@ -194,10 +194,10 @@ public class ComposingSyntaxDefTranslator {
                     @Override
                     public CharRange forCharacterInterval(CharacterInterval that) {
                         if (that.getBeginSymbol().length() != 1) {
-                            new MacroError(mess + that.getBeginSymbol());
+                            throw new MacroError(mess + that.getBeginSymbol());
                         }
                         if (that.getEndSymbol().length() != 1) {
-                            new MacroError(mess + that.getEndSymbol());
+                            throw new MacroError(mess + that.getEndSymbol());
                         }
                         return new CharRange(that.getBeginSymbol().charAt(0), that.getEndSymbol().charAt(0));
                     }
@@ -205,7 +205,7 @@ public class ComposingSyntaxDefTranslator {
                     @Override
                     public CharRange forCharSymbol(CharSymbol that) {
                         if (that.getString().length() != 1) {
-                            new MacroError(mess + that.getString());
+                            throw new MacroError(mess + that.getString());
                         }
                         return new CharRange(that.getString().charAt(0));
                     }

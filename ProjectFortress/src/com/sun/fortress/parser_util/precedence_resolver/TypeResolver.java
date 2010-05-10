@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /*
@@ -284,27 +284,22 @@ public class TypeResolver {
                                                                                                        stack));
             }
             // Errors
-            if (first instanceof JuxtInfix) {
-                Op op = ((JuxtInfix) first).getOp();
-                throw new ReadError(NodeUtil.getSpan(op),
-                                    "Interpreted " + op.getText() + " with no left operand as infix.");
-            } else { // first instanceof RealType
-                PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>) opTypes).getRest();
-                if (rest.isEmpty()) {
-                    throw new ReadError(NodeUtil.getSpan(((RealType) first).getType()),
-                                        "Nonexhaustive pattern matching.");
-                } else { // !rest.isEmpty()
-                    Cons<InfixOpExpr> _rest = (Cons<InfixOpExpr>) rest;
-                    InfixOpExpr second = _rest.getFirst();
+            // first instanceof RealType
+            PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>) opTypes).getRest();
+            if (rest.isEmpty()) {
+                throw new ReadError(NodeUtil.getSpan(((RealType) first).getType()),
+                                    "Nonexhaustive pattern matching.");
+            } else { // !rest.isEmpty()
+                Cons<InfixOpExpr> _rest = (Cons<InfixOpExpr>) rest;
+                InfixOpExpr second = _rest.getFirst();
 
-                    if (second instanceof RealType) {
-                        Span span = spanTwo(((RealType) first).getType(), ((RealType) second).getType());
-                        throw new ReadError(span, "Failed to process juxtaposition.");
-                    } else { // second instanceof JuxtInfix
-                        Op op = ((JuxtInfix) second).getOp();
-                        throw new ReadError(NodeUtil.getSpan(op),
-                                            "Interpreted " + op.getText() + " with no right operand as infix.");
-                    }
+                if (second instanceof RealType) {
+                    Span span = spanTwo(((RealType) first).getType(), ((RealType) second).getType());
+                    throw new ReadError(span, "Failed to process juxtaposition.");
+                } else { // second instanceof JuxtInfix
+                    Op op = ((JuxtInfix) second).getOp();
+                    throw new ReadError(NodeUtil.getSpan(op),
+                                        "Interpreted " + op.getText() + " with no right operand as infix.");
                 }
             }
         }
@@ -493,8 +488,8 @@ public class TypeResolver {
                     return resolvePostfix(restRest.cons(new RealType(dim)));
                 }
                 catch (TypeConvertFailure x) {
-                    throw new ReadError(NodeUtil.getSpan(((Postfix) first).getOp()),
-                                        "Postfix operator %s without argument.");
+                    throw new ReadError(NodeUtil.getSpan(((RealType) first).getType()),
+                                        "Type conversion failed.");
                 }
             } else if (first instanceof Postfix) {
                 throw new ReadError(NodeUtil.getSpan(((Postfix) first).getOp()),
