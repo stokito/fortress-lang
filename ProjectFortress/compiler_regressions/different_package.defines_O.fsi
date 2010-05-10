@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api defines_O
+api different_package.defines_O
 
 object O(x: String) end
 
