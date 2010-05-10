@@ -1334,8 +1334,15 @@
     result))
 
 (defun fortress-render-operator-word (str)
-  (or (gethash (cadr token) *fortress-operator-word-hashtable*)
+  (or (gethash str *fortress-operator-word-hashtable*)
+      (fortress-render-operator-word-having-prefix str "PREFIX_" "\\overrightarrow{" "}")
+      (fortress-render-operator-word-having-prefix str "SUFFIX_" "\\overleftarrow{" "}")
       (concat "\\OPR{" (fortress-render-string-contents str) "}")))
+
+(defun fortress-render-operator-word-having-prefix (str prefix before after)
+  (and (> (length str) (length prefix))
+       (string= (substring str 0 (length prefix)) prefix)
+       (concat "\\mathbin{" before (fortress-render-operator-word (substring str (length prefix))) after "}")))
 
 (defun fortress-render-operator (str)
   (or (cond ((= (length str) 1)

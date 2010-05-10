@@ -150,6 +150,24 @@ eventGenerator(rd: Read, name: String, er: ErrorRates, range: CompactFullRange[\
      r <- runRanges mismatches, |r| > 1, (rd.pos + r.lower) IN range }
 end
 
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+   ; `rl`:       a list of the reads in the sample that overlap the reference genome chunk
+   ; `er`:       the error rates table for the sample
+   ; `refChunk`: the chunk of the reference genome
+
+   =Results=
+   # A map from positions in the reference genome to events that begin at that position
+   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
+
+   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
+   by calling `eventGenerator`.
+*)
+
+
 processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
   eventData = <| (eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
   database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] first(sd)
