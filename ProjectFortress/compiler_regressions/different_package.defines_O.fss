@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component defines_O
-export defines_O
+component different_package.defines_O
+export different_package.defines_O
 
 object O(x: String) end
 

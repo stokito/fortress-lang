@@ -15,12 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component object_from_diff_component
+import different_package.defines_O.{...}
 export Executable
-import defines_O.{O}
 
 run(): () = do
-   o:O =  O("")
+   o =  O("")
 end
 
-end
+

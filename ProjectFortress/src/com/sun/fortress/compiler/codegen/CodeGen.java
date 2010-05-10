@@ -2612,7 +2612,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
 
             CodeGenClassWriter cw = cg.cw;
-            CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
+            CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC,
                     mname,
                     sig,
                     null,
