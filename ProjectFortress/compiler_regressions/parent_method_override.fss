@@ -19,12 +19,12 @@ component parent_method_override
 export Executable
 
 trait Parent
-  foo(x: Parent) = 1
+  foo(x: Parent) = "Parent.foo(Parent) FAIL"
 end
 
 trait Child extends Parent
-  foo(x: Child) = 2
-  foo(x: Parent) = 3
+  foo(x: Child) = "Child.foo(Child) PASS"
+  foo(x: Parent) = "Child.foo(Parent) FAIL"
 end
 
 object SomeChild extends Child end

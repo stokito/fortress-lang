@@ -996,7 +996,7 @@ public class FileTests {
      * @param dirname
      * @param testname
      * @param expect_not_passing Test does not pass yet
-     * @param shouldFail         Test passes, if it fails (e.g., is an error printed?)
+     * @param shouldFail         Test passes, if and only if it fails (e.g., is an error printed?)
      * @param failsOnly
      * @param commandTests
      * @param runTests
