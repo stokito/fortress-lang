@@ -40,26 +40,46 @@ import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil.getFreshName
 import com.sun.fortress.useful.NI
 
-class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
+class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   def top = ANY
   def bottom = BOTTOM
   
   def meet(s: Type, t: Type): Type = s
   def join(s: Type, t: Type): Type = s
+  
+  // I am going to need to alpha rename bound params to make this work
   def lteq(s: Type, t:Type): Boolean = (s,t) match {
     case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
-      // I think lifted static params need to be handled just like unlifted ones
-      val s_sp = getStaticParams(s)
-      val s_bds = s_sp.map(staticParamBoundType)
-      
-      false
-    case (s,t) if !t.getInfo.getStaticParams.isEmpty => false
+      /* Extend the type analyzer with the static parameters
+       * from s. Then strip s of it's type parameters to get s'
+       * and call lteq(s',t) */
+      // Q: What about lifted/unlifted
+      val sparams = getStaticParams(s)
+      val where = getWhere(s)
+      val tsa = extend(sparams, where)
+      val ss = clearStaticParams(s)
+      ta.lteq(ss,t)
+    case (s,t) if !t.getInfo.getStaticParams.isEmpty =>
+      /* Try and infer an instantiation sigma of t such that 
+       * s <: sigma(t) */
+      val sparams = getStaticParams(t)
+      def constraintMaker(tt: Type) = ta.subtype(s, tt)
+      !inferStaticParamsHelper(t, sparams, constraintMaker).isEmpty
     case (s,t) => ta.lteq(s, t)
   }
-
   
+  /***
+   * Returns a type with all bound static parameters replaced
+   * with unique identifiers.
+   */
+  def alphaRename(t: Type): Type = {
+    if(getStaticParams(t).isEmpty)
+      return t
+    return t
+  }
   
   /**
    * Checks if two types `s` and `t` are syntactically equivalent. If either
@@ -134,5 +154,7 @@ class TypeSchemaAnalyzer(val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   def duplicateFreeIntersection(ts: List[Type]): Type =
     NF.makeMaybeIntersectionType(toJavaList(removeDuplicates(ts)))
     
-  def extend(): TypeSchemaAnalyzer = this
+  
+  def extend(params: List[StaticParam], where: Option[WhereClause]) =
+    new TypeSchemaAnalyzer()(ta.extend(params, where))
 }

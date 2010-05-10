@@ -131,7 +131,7 @@ object SExprUtil {
     val (typs,schms) = overs.map {
       case SOverloading(_, _, _, typ, schma) => (typ.get,schma.get)
     }.unzip
-    val tsa = new TypeSchemaAnalyzer(ta)
+    val tsa = new TypeSchemaAnalyzer()
     val ityps = tsa.duplicateFreeIntersection(typs)
     val ischms = tsa.duplicateFreeIntersection(schms)
     fnRef match {

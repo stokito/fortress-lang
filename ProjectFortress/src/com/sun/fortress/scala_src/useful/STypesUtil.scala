@@ -333,6 +333,9 @@ object STypesUtil {
   def getStaticParams(typ: Type): List[StaticParam] =
     toListFromImmutable(typ.getInfo.getStaticParams)
 
+  def getWhere(typ: Type): Option[WhereClause] =
+    toOption(typ.getInfo.getWhereClause)
+    
   /**
    * Return an identical type but with the given static params removed from it.
    */
@@ -509,13 +512,13 @@ object STypesUtil {
    *         one of its declared static parameters replaced by corresponding
    *         static args. If None, then the instantiation failed.
    */
-  def staticInstantiation(sparamsAndSargs: List[(StaticParam, StaticArg)],
+  def staticInstantiationHelper(sparamsAndSargs: List[(StaticParam, StaticArg)],
                           body: Type)
                          (implicit analyzer: TypeAnalyzer): Option[Type] = body match {
 
     case t:IntersectionType =>
       val cs = conjuncts(t)
-      val ts = cs.flatMap(staticInstantiation(sparamsAndSargs, _))
+      val ts = cs.flatMap(staticInstantiationHelper(sparamsAndSargs, _))
       if (ts.isEmpty && !cs.isEmpty)
         None
       else
@@ -561,10 +564,14 @@ object STypesUtil {
       }
 
       // Get the replaced type and clear out its static params, if any.
-      Some(clearStaticParams(staticReplacer(body).asInstanceOf[Type],
-                             sparamsAndSargs.map(_._1)))
+      Some(staticReplacer(body).asInstanceOf[Type])
   }
 
+  def staticInstantiation(sparamsAndSargs: List[(StaticParam, StaticArg)],
+                          body: Type)
+                         (implicit analyzer: TypeAnalyzer): Option[Type] = 
+                           staticInstantiationHelper(sparamsAndSargs, body).map(x => clearStaticParams(x, sparamsAndSargs.map(_._1)))
+  
 
   /**
    * Instantiate only the unlifted static parameters with the given static args
@@ -774,20 +781,20 @@ object STypesUtil {
   }
 
   /** Helper that performs the inference. */
-  def inferStaticParamsHelper(fnType: ArrowType,
+  def inferStaticParamsHelper[T <: Type](typ: T,
                               sparams: List[StaticParam],
-                              constraintMaker: ArrowType => ConstraintFormula)
+                              constraintMaker: T => ConstraintFormula)
                              (implicit analyzer: TypeAnalyzer)
-                              : Option[(ArrowType, List[StaticArg])] = {
+                              : Option[(T, List[StaticArg])] = {
 
     // Substitute inference variables for static parameters in fnType.
 
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
     val sargs = sparams.map(makeInferenceArg)
-    val infArrow = staticInstantiation(sparams zip sargs, fnType).
-      getOrElse(return None).asInstanceOf[ArrowType]
-    val constraint = constraintMaker(infArrow)
+    val infTyp = staticInstantiation(sparams zip sargs, typ).
+      getOrElse(return None).asInstanceOf[T]
+    val constraint = constraintMaker(infTyp)
 
     // Get an inference variable type out of a static arg.
     def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
@@ -805,9 +812,9 @@ object STypesUtil {
     val subst = constraint.solve(boundsMap).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
-    val resultArrow =
-      analyzer.normalize(substituteTypesForInferenceVars(subst, infArrow)).
-               asInstanceOf[ArrowType]
+    val resultTyp =
+      analyzer.normalize(substituteTypesForInferenceVars(subst, infTyp)).
+               asInstanceOf[T]
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
@@ -818,7 +825,7 @@ object STypesUtil {
       case sarg => sarg
     }
 
-    Some((resultArrow, resultArgs))
+    Some((resultTyp, resultArgs))
   }
 
   def inferLiftedStaticParams(fnType: ArrowType,
