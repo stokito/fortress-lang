@@ -477,7 +477,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     if (childTestedIndices.contains(i))
                         continue;
                     TypeOrPattern tx = px.get(i).getIdType().unwrap();
-                    TypeOrPattern ty = px.get(i).getIdType().unwrap();
+                    TypeOrPattern ty = py.get(i).getIdType().unwrap();
                     if (! (tx instanceof Type && ty instanceof Type))
                         bug("Types are expected.");
                     if (!((Type)tx).equals((Type)ty))
@@ -926,10 +926,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     String jvmSignatureFor(TaggedFunctionName f) {
         Function fu = f.tagF;
         List<StaticParam> params = staticParametersOf(fu);
+        /*
         TypeAnalyzer eta = ta;
         if (params != null) {
             eta = ta.extend(params, Option.<WhereClause>none());
         }
+        */
 
         return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); // eta
     }
@@ -1024,8 +1026,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             sargs = staticParametersOf(principalMember.tagF);
         }
 
-        String tstr = (exceptions.length==0) ? "" : (" throws " + Useful.list(exceptions));
-        String astr = (sargs==null)? "" : Useful.listInOxfords(sargs);
+        //String tstr = (exceptions.length==0) ? "" : (" throws " + Useful.list(exceptions));
+        //String astr = (sargs==null)? "" : Useful.listInOxfords(sargs);
         // System.err.println(astr + signature + tstr);
         if (CodeGenerationPhase.debugOverloading)
             System.err.println("Emitting overload " + name + signature);

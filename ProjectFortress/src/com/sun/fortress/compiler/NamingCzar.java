@@ -973,9 +973,9 @@ public class NamingCzar {
 
     private static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
         Id id = t.getName();
-        APIName apiName = id.getApiName().unwrap(ifNone);
-        String tag = "";
-        String sep = ".";
+        //APIName apiName = id.getApiName().unwrap(ifNone);
+        //String tag = "";
+        //String sep = ".";
 //        if (false)
 //         {
 //            if (WellKnownNames.exportsDefaultLibrary(apiName.getText())) {
@@ -1198,7 +1198,6 @@ public class NamingCzar {
                     return result;
                 }
                 Id id = t.getName();
-                Option<APIName> maybeApi = id.getApiName();
                 APIName api = id.getApiName().unwrap(ifNone);
                 if (api == null) {
                     throw new CompilerError(id,"no api name given for id");
@@ -1474,7 +1473,7 @@ public class NamingCzar {
 
         @Override
         public String forDimArg(DimArg that) {
-            DimExpr arg = that.getDimArg();
+            //DimExpr arg = that.getDimArg();
             return Naming.SCALES;
         }
 
@@ -1520,7 +1519,7 @@ public class NamingCzar {
 
         @Override
         public String forUnitArg(UnitArg that) {
-            UnitExpr arg = that.getUnitArg();
+            //UnitExpr arg = that.getUnitArg();
             return Naming.ATOM;
         }
 

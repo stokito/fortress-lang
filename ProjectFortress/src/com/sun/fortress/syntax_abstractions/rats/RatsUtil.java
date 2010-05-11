@@ -1,19 +1,19 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.rats;
 
@@ -83,17 +83,17 @@ public abstract class RatsUtil {
     }
 
     public static void writeRatsModule(Module module, String tempDir) {
-        FileOutputStream fo;
+        FileOutputStream fo = null;
+        PrettyPrinter pp = null;
         try {
             makeSureDirectoryExists(tempDir);
             String name = getModulePath(module.name.name);
             File file = new File(tempDir + name + ".rats");
             fo = new FileOutputStream(file);
-            PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(), true);
+            pp = new PrettyPrinter(new Printer(fo), new JavaAST(), true);
             pp.visit(module);
             pp.flush();
             fo.flush();
-            fo.close();
         }
         catch (FileNotFoundException e) {
             if (Debug.isOnMax()) {
@@ -109,6 +109,12 @@ public abstract class RatsUtil {
                 e.printStackTrace();
             } else {
                 System.err.println(Shell.turnOnDebugMessage);
+            }
+        }
+        finally {
+            if (fo != null) {
+                try { fo.close(); }
+                catch (IOException e) {}
             }
         }
     }

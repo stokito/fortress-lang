@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
@@ -95,9 +95,6 @@ public class ScalaAstGenerator extends CodeGenerator {
             // Parent has fields that we need to initialize during construction.
             superFields = parent.unwrap().allFields(ast);
         }
-
-        Iterable<Field> allFields = box.allFields(ast);
-        Iterable<Field> declaredFields = box.declaredFields(ast);
 
         TypeName superName = box.superClass();
 
@@ -567,9 +564,6 @@ public class ScalaAstGenerator extends CodeGenerator {
         if (args.length == 0) {
             return s;
         }
-
-        Map<String, String> map = new HashMap<String, String>();
-
         return sub(String.format(s.replaceAll(args[0], "%1\\$s"), args[1]), Arrays.asList(args).subList(2, args.length).toArray(new String[0]));
     }
 
