@@ -3352,8 +3352,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 methodCall(methodName, (TraitType)receiverType, genericMethodClosureFinderSig);
                 
                 // cast the result
+                // Cast-to-type is Arrow[\ receiverType; domain; range \]
+                Type prepended_domain = null;
+                /* I think we start to have a problem here in the future,
+                 * when generics can be parametrized by tuples.
+                 * We need to figure out what this means.
+                 */
+                if (domain_type instanceof TupleType) {
+                    TupleType tt = (TupleType) domain_type;
+                    prepended_domain = NodeFactory.makeTupleType(tt, Useful.prepend(receiverType, tt.getElements()));
+                } else {
+                    prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
+                }
                 
-                 
+                String castToArrowType = NamingCzar.makeArrowDescriptor(prepended_domain, range_type, thisApi()); 
+                mv.visitTypeInsn(Opcodes.CHECKCAST, castToArrowType);
+
                 // swap w/ TOS
                 mv.visitInsn(Opcodes.SWAP);
 
@@ -3361,6 +3375,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 evalArg(arg);
 
                 // method call (calling a closure, really) 
+                String sig = NamingCzar.jvmSignatureFor(prepended_domain, range_type, thisApi());
+                
+                // System.err.println(desc+".apply"+sig+" call");
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, castToArrowType,
+                                   Naming.APPLY_METHOD, sig);
+
                 
             } else {
                 // put object on stack
