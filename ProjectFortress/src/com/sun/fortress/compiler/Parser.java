@@ -358,7 +358,6 @@ public class Parser {
             if ( parseResult.hasValue() ) {
                 CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
                 cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
-                File syntaxLog = new File( syntaxLogFile );
                 errors.addAll(getSyntaxErrors(syntaxLogFile));
             }
             reportSyntaxErrors( errors );

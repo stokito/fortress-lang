@@ -1419,7 +1419,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forTry(Try x) {
-        Evaluator ev = new Evaluator(this, x);
         Block body = x.getBody();
         FValue res = FVoid.V;
         try {

@@ -370,7 +370,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                         }
                     }
 
-                    OverloadedFunction.OverloadComparisonResult ocr = new OverloadedFunction.OverloadComparisonResult();
+                    // OverloadedFunction.OverloadComparisonResult ocr = new OverloadedFunction.OverloadComparisonResult();
                     // DEAD CODE?
                     // Thin allMethods by removing anything covered by an overriding function.
                     // for (String s : overrides.keySet()) {

@@ -407,7 +407,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // Always needs context-sensitive null handling anyway.  TO FIX.
     // private VarCodeGen getLocalVar( ASTNode ctxt, IdOrOp nm ) {
     //     VarCodeGen r = getLocalVarOrNull(nm);
-    //     if (r==null) return sayWhat(ctxt, "Can't find lexEnv mapping for local var");
+    //     if (r==null) return throw sayWhat(ctxt, "Can't find lexEnv mapping for local var");
     //     return r;
     // }
 
@@ -434,10 +434,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void dumpTraitDecls(List<Decl> decls) {
         debug("dumpDecls", decls);
         for (Decl d : decls) {
-            if (!(d instanceof FnDecl)) {
-                sayWhat(d);
-                return;
-            }
+            if (!(d instanceof FnDecl))
+                throw sayWhat(d);
             d.accept(this);
         }
     }
@@ -456,7 +454,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                        TraitType toTrait, TraitType fromTrait) {
         IdOrOp name = fnl.name();
         if (!(fnl instanceof HasSelfType))
-            sayWhat(name, " method "+fnl+" doesn't appear to have self type.");
+            throw sayWhat(name, " method "+fnl+" doesn't appear to have self type.");
         HasSelfType st = (HasSelfType)fnl;
         List<Param> params = fnl.parameters();
         int arity = params.size();
@@ -829,8 +827,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         IdOrOp name = fnl.name();
         if (!(fnl instanceof HasSelfType))
-            sayWhat(name, " method " + fnl
-                    + " doesn't appear to have self type.");
+            throw sayWhat(name, " method " + fnl
+                          + " doesn't appear to have self type.");
         HasSelfType st = (HasSelfType) fnl;
         List<Param> params = fnl.parameters();
         int arity = params.size();
@@ -961,7 +959,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             signature = OverloadSet.getSignature(it, paramCount, ta);
 
         } else {
-                sayWhat( x, "Neither arrow nor intersection type: " + arrow );
+                throw sayWhat( x, "Neither arrow nor intersection type: " + arrow );
         }
         return new Pair<String,String>(methodName, signature);
     }
@@ -1004,21 +1002,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return; // This is a great place for a breakpoint!
     }
 
-    private <T> T sayWhat(ASTNode x) {
+    private CompilerError sayWhat(ASTNode x) {
         allSayWhats();
-        throw new CompilerError(x, "Can't compile " + x);
+        return new CompilerError(x, "Can't compile " + x);
     }
 
-    private <T> T sayWhat(Node x) {
+    private CompilerError sayWhat(Node x) {
         if (x instanceof ASTNode)
-            sayWhat((ASTNode) x);
+            throw sayWhat((ASTNode) x);
         allSayWhats();
-        throw new CompilerError("Can't compile " + x);
+        return new CompilerError("Can't compile " + x);
     }
 
-    private <T> T sayWhat(ASTNode x, String message) {
+    private CompilerError sayWhat(ASTNode x, String message) {
         allSayWhats();
-        throw new CompilerError(x, message + " node = " + x);
+        return new CompilerError(x, message + " node = " + x);
     }
 
     private void debug(Object... message){
@@ -1045,7 +1043,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void defaultCase(Node x) {
         System.out.println("defaultCase: " + x + " of class " + x.getClass());
-        sayWhat(x);
+        throw sayWhat(x);
     }
 
     public void forImportStar(ImportStar x) {
@@ -1054,7 +1052,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forBlock(Block x) {
         if (x.isAtomicBlock()) {
-            sayWhat(x, "Can't generate code for atomic block yet.");
+            throw sayWhat(x, "Can't generate code for atomic block yet.");
         }
         boolean oldInABlock = inABlock;
         inABlock = true;
@@ -1135,7 +1133,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void forDecl(Decl x) {
-        sayWhat(x, "Can't handle decl class "+x.getClass().getName());
+        throw sayWhat(x, "Can't handle decl class "+x.getClass().getName());
     }
 
 
@@ -1588,11 +1586,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void generateAllWrappersForFn(FnDecl x, List<Param> params,
             String sig, int modifiers,
             String mname) {
-        CodeGen cg = new CodeGen(this);
         /* This code generates forwarding wrappers for
          * the (local) unambiguous name of the function.
          */
-
     }
 
 
@@ -1724,7 +1720,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<com.sun.fortress.nodes.Type> optReturnType = header.getReturnType();
 
         if (optReturnType.isNone())
-            sayWhat(x, "Return type is not inferred.");
+            throw sayWhat(x, "Return type is not inferred.");
 
         com.sun.fortress.nodes.Type returnType = optReturnType.unwrap();
 
@@ -1739,7 +1735,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             debug("forOp ", op, " fixity = ", fixity, " isEnclosing = ",
                     isEnclosing, " class = ", NamingCzar.jvmClassForSymbol(op));
         } else {
-            sayWhat(x, "Unhandled function name.");
+            throw sayWhat(x, "Unhandled function name.");
         }
 
         List<StaticParam> sparams = header.getStaticParams();
@@ -1753,7 +1749,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         !inABlock; // no local functions
 
         if (!canCompile)
-            sayWhat(x, "Don't know how to compile this kind of FnDecl.");
+            throw sayWhat(x, "Don't know how to compile this kind of FnDecl.");
 
         boolean inAMethod = inAnObject || inATrait;
         boolean savedInAnObject = inAnObject;
@@ -1766,7 +1762,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (emittingFunctionalMethodWrappers) {
                 if (! sparams.isEmpty()) {
-                    sayWhat(x, "Generic functional methods not yet implemented.");
+                    throw sayWhat(x, "Generic functional methods not yet implemented.");
                 } else {
                     functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
                 }
@@ -1775,7 +1771,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Option<Expr> optBody = x.getBody();
                 if (optBody.isNone()) {
                     if (savedInATrait) return; // Nothing concrete to do; dumpSigs already generated abstract signature.
-                    sayWhat(x, "Abstract function declarations are only supported in traits.");
+                    throw sayWhat(x, "Abstract function declarations are only supported in traits.");
                 }
                 Expr body = optBody.unwrap();
 
@@ -1791,7 +1787,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                         generateGenericMethod(x, (IdOrOp)name,
                                 sparams, params, selfIndex, savedInATrait, returnType, inAMethod, body);
-                        // sayWhat(x, "Generic methods not yet implemented.");
+                        // throw sayWhat(x, "Generic methods not yet implemented.");
 
                     } else {
                         generateGenericFunctionClass(x, (IdOrOp)name, selfIndex);
@@ -2144,10 +2140,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Not entirely sure about this next bit; how are function-valued parameters referenced?
         VarCodeGen fn = getLocalVarOrNull(x.getOriginalName());
-        if (fn != null) {
-            sayWhat(x, "Haven't figured out references to local/parameter functions yet");
-            return;
-        }
+        if (fn != null)
+            throw sayWhat(x, "Haven't figured out references to local/parameter functions yet");
 
         // need to deal with generics.
         List<StaticArg> sargs = x.getStaticArgs();
@@ -2262,7 +2256,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<IdOrOp> names = x.getNames();
 
         if ( names.size() != 1) {
-            return sayWhat(x,"Non-unique overloading after rewrite " + x);
+            throw sayWhat(x,"Non-unique overloading after rewrite " + x);
         }
 
         IdOrOp n = names.get(0);
@@ -2334,7 +2328,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             GeneratorClause cond = ifclause.getTestClause();
 
             if (!cond.getBind().isEmpty())
-                sayWhat(x, "Undesugared generalized if expression.");
+                throw sayWhat(x, "Undesugared generalized if expression.");
 
             // emit code for condition and to check resulting boolean
             Expr testExpr = cond.getInit();
@@ -2413,16 +2407,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // consistent; basically we need to create the definition
             // here, and the use that VarCodeGen object for the
             // subsequent true definitions.
-            sayWhat(d, "Can't yet handle forward binding declarations.");
+            throw sayWhat(d, "Can't yet handle forward binding declarations.");
         }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
         for (LValue v : lhs) {
             if (v.isMutable()) {
-                sayWhat(d, "Can't yet generate code for mutable variable declarations.");
+                throw sayWhat(d, "Can't yet generate code for mutable variable declarations.");
             }
             if (!v.getIdType().isSome()) {
-                sayWhat(d, "Variable being bound lacks type information!");
+                throw sayWhat(d, "Variable being bound lacks type information!");
             }
 
             // Introduce variable
@@ -2442,8 +2436,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    ((TupleExpr)rhs).getExprs().size() == n) {
             rhss = ((TupleExpr)rhs).getExprs();
         } else {
-            sayWhat(d, "Can't yet generate multiple-variable bindings unless rhs is a manifest tuple of the same size.");
-            return;
+            throw sayWhat(d, "Can't yet generate multiple-variable bindings unless rhs is a manifest tuple of the same size.");
         }
 
         if (false && pa.worthParallelizing(rhs)) {
@@ -2516,7 +2509,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // ( extendsC.size() <= 1 ); // 0 or 1 super trait
             ;
 
-        if ( !canCompile ) sayWhat(x);
+        if ( !canCompile ) throw sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
@@ -2797,7 +2790,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         BASet<IdOrOp> allFvs = fv.freeVars(n);
         List<VarCodeGen> vcgs = new ArrayList<VarCodeGen>();
         if (allFvs == null)
-            return sayWhat((ASTNode)n," null free variable information!");
+            throw sayWhat((ASTNode)n," null free variable information!");
         else {
             for (IdOrOp v : allFvs) {
                 VarCodeGen vcg = getLocalVarOrNull(v);
@@ -2934,7 +2927,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int [] taskVars = new int[n];
 
         if (vcgs != null && vcgs.size() != n) {
-            sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+            throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
         }
 
         // Push arg tasks from right to left, so
@@ -2946,7 +2939,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // Make sure arg has type info (we'll need it to generate task)
             Option<Type> ot = NodeUtil.getExprType(arg);
             if (!ot.isSome())
-                sayWhat(arg, "Missing type information for argument " + arg);
+                throw sayWhat(arg, "Missing type information for argument " + arg);
             Type t = ot.unwrap();
             String tDesc = NamingCzar.jvmTypeDesc(t, component.getName());
             // Find free vars of arg
@@ -2998,7 +2991,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             int n = args.size();
             if (args.size() != vcgs.size()) {
-                sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+                throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
             }
             for (int i = 0; i < n; i++) {
                 VarCodeGen vcg = vcgs.get(i);
@@ -3053,7 +3046,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<Op> maybe_op = x.getOp();
         List<StaticArg> staticArgs = x.getStaticArgs();
         boolean canCompile = staticArgs.isEmpty() && maybe_op.isSome() && (obj instanceof VarRef);
-        if (!canCompile) { sayWhat(x); return; }
+        if (!canCompile) throw sayWhat(x);
         Op op = maybe_op.unwrap();
         VarRef var = (VarRef) obj;
         Id id = var.getVarId();
@@ -3090,7 +3083,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Modifiers.TraitMod.containsAll(header.getMods());
         debug("forTraitDecl", x,
                     " decls = ", header.getDecls(), " extends = ", extendsC);
-        if ( !canCompile ) sayWhat(x);
+        if ( !canCompile ) throw sayWhat(x);
 
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
@@ -3226,7 +3219,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<LValue> lhs = v.getLhs();
         Option<Expr> oinit = v.getInit();
         if (lhs.size() != 1) {
-            sayWhat(v,"VarDecl "+v+" tupled lhs not handled.");
+            throw sayWhat(v,"VarDecl "+v+" tupled lhs not handled.");
         }
         if (!oinit.isSome()) {
             debug("VarDecl ", v, " skipping abs var decl.");
@@ -3234,7 +3227,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         LValue lv = lhs.get(0);
         if (lv.isMutable()) {
-            sayWhat(v,"VarDecl "+v+" mutable bindings not yet handled.");
+            throw sayWhat(v,"VarDecl "+v+" mutable bindings not yet handled.");
         }
         Id var = lv.getName();
         Type ty = (Type)lv.getIdType().unwrap();
@@ -3310,7 +3303,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         Type receiverType = exprType(obj);
         if (!(receiverType instanceof TraitType)) {
-            sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
+            throw sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
         }
 
         int savedParamCount = paramCount;
@@ -3390,7 +3383,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<Type> exprType = expr.getInfo().getExprType();
 
         if (!exprType.isSome()) {
-            sayWhat(expr, "Missing type information for " + expr);
+            throw sayWhat(expr, "Missing type information for " + expr);
         }
 
         Type ty = exprType.unwrap();
@@ -3426,7 +3419,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void generateHigherOrderCall(Type t) {
         if (!(t instanceof ArrowType)) {
-            sayWhat(t,"Higher-order call to non-arrow type " + t);
+            throw sayWhat(t,"Higher-order call to non-arrow type " + t);
         }
         ArrowType at = (ArrowType)t;
         String desc = NamingCzar.makeArrowDescriptor(at, thisApi());
@@ -3641,7 +3634,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     varToNode.put((IdOrOp)name, node);
                 }
             } else {
-                sayWhat(d, " can't sort non-value-creating decl by dependencies.");
+                throw sayWhat(d, " can't sort non-value-creating decl by dependencies.");
             }
         }
         for (TopSortItemImpl<Decl> node : nodes) {
@@ -3671,10 +3664,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("dumpSigs", decls);
         for (Decl d : decls) {
             debug("dumpSigs decl =", d);
-            if (!(d instanceof FnDecl)) {
-                sayWhat(d);
-                return;
-            }
+            if (!(d instanceof FnDecl))
+                throw sayWhat(d);
 
             FnDecl f = (FnDecl) d;
             FnHeader h = f.getHeader();
