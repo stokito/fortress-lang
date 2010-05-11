@@ -900,9 +900,16 @@ public class NamingCzar {
     // Local, and Codegen.generateHigherOrderCall
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
 
+          return makeArrowDescriptor(t.getDomain(), t.getRange(), ifNone);
+
+    }
+
+    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type domain,
+            com.sun.fortress.nodes.Type range, final APIName ifNone) {
+
         String res =
-         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(t.getDomain(), ifNone) + ";" +
-            makeArrowDescriptor(t.getRange(), ifNone) + Naming.RIGHT_OXFORD;
+         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(domain, ifNone) + ";" +
+            makeArrowDescriptor(range, ifNone) + Naming.RIGHT_OXFORD;
         return res;
 
     }
