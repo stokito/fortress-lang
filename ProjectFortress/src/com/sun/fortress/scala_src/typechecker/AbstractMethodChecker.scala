@@ -37,6 +37,7 @@ import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
@@ -63,10 +64,14 @@ class AbstractMethodChecker(component: ComponentIndex,
   override def walk(node:Any):Any = {
     node match {
       case o@SObjectDecl(SSpanInfo(span),
-                         STraitTypeHeader(sparams, _, name, _, _, _, extendsC, _, decls),
-                         _) =>
-        checkObject(span, sparams, name, extendsC,
-                    walk(decls).asInstanceOf[List[Decl]])
+                         STraitTypeHeader(sparams, _, name, _, _, _, extendsC, ps, decls),
+                         _) => ps match {
+        case Some(params) if ! params.isEmpty =>
+          checkObject(span, sparams, name, extendsC,
+                      List(NF.makeVarDecl(toJavaList(params.map(NF.makeLValue(_))))) ::: walk(decls).asInstanceOf[List[Decl]])
+        case _ =>
+          checkObject(span, sparams, name, extendsC, walk(decls).asInstanceOf[List[Decl]])
+      }
 
       case o@SObjectExpr(SExprInfo(span, _, _),
                          STraitTypeHeader(_, _, name, _, _, _, extendsC, _, decls),
@@ -75,7 +80,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                     walk(decls).asInstanceOf[List[Decl]])
         val methods = inheritedMethods(extendsC, typeAnalyzer)
         val inherited = toSet(methods.firstSet)
-                        .map(t => t.asInstanceOf[IdOrOpOrAnonymousName])
+                        .map(_.asInstanceOf[IdOrOpOrAnonymousName])
         for {
           d <- decls;
           if d.isInstanceOf[FnDecl];
@@ -100,12 +105,6 @@ class AbstractMethodChecker(component: ComponentIndex,
     typeAnalyzer = typeAnalyzer.extend(sparams, None)
     val toCheck = inheritedAbstractMethods(extendsC)
     for ((owner, d) <- toCheck; if !implement(d, decls, owner)) {
-        // for (pair <- inheritedMethods(extendsC, typeAnalyzer)) {
-        //     val uname = pair.first
-        //     val (fnl, _, t) = pair.second
-        //     System.err.println(name + ": " + fnl + " in " + t);
-        // }
-        // System.err.println("******");
         error(span,
               "The inherited abstract method " + d + " from the trait " + owner +
               "\n    in the object " + name +
@@ -119,18 +118,18 @@ class AbstractMethodChecker(component: ComponentIndex,
       val supers = extended_traits.filter(t => !t.getBaseType().isInstanceOf[NamedType] ||
                                           !t.getBaseType().asInstanceOf[NamedType].getName().getApiName().isSome())
 
-      for (t <- supers) {
-          System.out.println(t.toStringVerbose)
-      }
-
     val inherited = inheritedMethods(supers, typeAnalyzer)
     for {
       (meth : HasSelfType, _, tt) <- inherited.secondSet
       decl <- meth match {
         case f : JavaFunctionalMethod => single(f.ast())
         case m : JavaDeclaredMethod => single(m.ast())
-        case gs : FieldGetterOrSetterMethod if gs.fnDecl.isSome =>
-            single(gs.fnDecl.unwrap)
+        case gs : FieldGetterOrSetterMethod =>
+            if (gs.fnDecl.isSome)
+                single(gs.fnDecl.unwrap)
+            else
+                single(NF.mkFnDecl(gs.getSpan, gs.ast.getMods, gs.name, toJavaList(List[Param]()),
+                                   NU.optTypeOrPatternToType(gs.ast.getIdType).unwrap))
         case o => System.err.println("inheritedAbstractMethods: skipped "+o)
             empty
       }
@@ -145,20 +144,26 @@ class AbstractMethodChecker(component: ComponentIndex,
   private def implement(d: FnDecl, decls: List[Decl], ast: TraitType): Boolean =
     decls.exists( (decl: Decl) => decl match {
                   case fd:FnDecl => implement(d, fd, ast)
+                  case vd:VarDecl => implement(d, vd, ast)
                   case _ => false
                 } )
 
   /* Returns true if the concrete method declaration "decl"
    * implements the abstract method declaration "d".
    */
-  private def implement(d: FnDecl, decl: FnDecl, t: TraitType): Boolean = {
+  private def implement(d: FnDecl, decl: Decl, t: TraitType): Boolean = {
     // Quickly reject unmatched decls.  Note that we're still doing an O(n^2) search here.
-    if (!NU.getName(d).asInstanceOf[IdOrOp].getText.equals(
-         NU.getName(decl).asInstanceOf[IdOrOp].getText))
-      return false;
-    // Quickly reject unmatched modifiers.
-    if (!NU.getMods(d).containsAll(NU.getMods(decl)))
-      return false;
+    decl match {
+      case fd:FnDecl =>
+        if (!NU.getName(d).asInstanceOf[IdOrOp].getText.equals(
+             NU.getName(fd).asInstanceOf[IdOrOp].getText))
+          return false
+      case vd:VarDecl if vd.getLhs.size == 1 =>
+        if (!NU.getName(d).asInstanceOf[IdOrOp].getText.equals(
+             vd.getLhs.get(0).getName.getText))
+          return false
+      case _ =>
+    }
 
     val tci = typeAnalyzer.traits.typeCons(t.getName)
     val sparams = toOption(tci) match {
@@ -173,14 +178,21 @@ class AbstractMethodChecker(component: ComponentIndex,
     // static args applied to the trait in the concrete instantiation.
     def subst(ty: Type) = staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
     
-    val result =
-      ( typeAnalyzer.equivalent(subst(NU.getParamType(d)),
-                                NU.getParamType(decl)).isTrue ||
-        implement(toListFromImmutable(NU.getParams(d)),
-                  toListFromImmutable(NU.getParams(decl)),
-                  subst _) ) &&
-      typeAnalyzer.subtype(NU.getReturnType(decl).unwrap,
-                           subst(NU.getReturnType(d).unwrap)).isTrue
+    val result = decl match {
+      case fd:FnDecl =>
+        ( typeAnalyzer.equivalent(subst(NU.getParamType(d)),
+                                  NU.getParamType(fd)).isTrue ||
+          implement(toListFromImmutable(NU.getParams(d)),
+                    toListFromImmutable(NU.getParams(fd)),
+                    subst _) ) &&
+        typeAnalyzer.subtype(NU.getReturnType(fd).unwrap,
+                             subst(NU.getReturnType(d).unwrap)).isTrue
+      case vd:VarDecl if vd.getLhs.size == 1 =>
+        NU.isVoidType(NU.getParamType(d)) &&
+        typeAnalyzer.subtype(NU.optTypeOrPatternToType(vd.getLhs.get(0).getIdType).unwrap,
+                             subst(NU.getReturnType(d).unwrap)).isTrue
+      case _ => false
+    }
     result
   }
 
