@@ -37,6 +37,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     protected final Id _declaringTrait;
     protected final Option<SelfType> _selfType;
     protected final Option<FnDecl> _fnDecl;
+    protected final Method _originalMethod;
 
     /** Create an implicit getter/setter from a variable binding. */
     public FieldGetterOrSetterMethod(Binding b, TraitObjectDecl traitDecl) {
@@ -44,6 +45,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
         _fnDecl = Option.<FnDecl>none();
+        _originalMethod = this;
     }
 
     /** Create an explicit getter/setter from a function. */
@@ -52,6 +54,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
         _fnDecl = Option.some(f);
+        _originalMethod = this;
     }
     
     /**
@@ -66,11 +69,15 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         } else {
             _fnDecl = Option.<FnDecl>none();
         }
+        _originalMethod = that.originalMethod();
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
     }
+    
+    @Override
+    public Method originalMethod() {return _originalMethod;}
     
     public Option<FnDecl> fnDecl() {
         return _fnDecl;

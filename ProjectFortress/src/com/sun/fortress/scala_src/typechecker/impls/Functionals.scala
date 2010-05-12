@@ -456,21 +456,29 @@ trait Functionals { self: STypeChecker with Common =>
       case m => Some(m)
     }
     val methods = findMethodsInTraitHierarchy(name, recvrType).toList.flatMap(noGetterSetter)
-    var arrows = methods.flatMap(makeArrowFromFunctional)
+    var arrowsAndSchemata = methods.flatMap{ m =>
+      (makeArrowFromFunctional(m), makeArrowFromFunctional(m.originalMethod)) match {
+        case (Some(s), Some(t)) => Some((s,t))
+        case _ => None
+      }
+    }
     // Make sure all of the functions had return types declared or inferred
     // TODO: This could be handled more gracefully
-    if (arrows.size != methods.size) {
+    if (arrowsAndSchemata.size != methods.size) {
       signal(loc, "The return type for %s could not be inferred".format(name))
       return None
     }
 
     // Instantiate the arrows if you were given static args
     if (!sargs.isEmpty) {
-      arrows = arrows.flatMap(a => instantiateStaticParams(sargs, a).map(_.asInstanceOf[ArrowType]))
+      arrowsAndSchemata = arrowsAndSchemata.
+        flatMap(a => instantiateStaticParams(sargs, a._1).
+            map(x => (x.asInstanceOf[ArrowType],a._2)))
     }
 
     // Methods have no Overloading nodes.
-    Some(arrows.map(a => PreAppCandidate(a, None)))
+    Some(arrowsAndSchemata.map(a => PreAppCandidate(a._1, 
+        Some(SOverloading(a._1.getInfo, name, name, Some(a._1), Some(a._2))))))
   }
 
   /**
@@ -575,7 +583,7 @@ trait Functionals { self: STypeChecker with Common =>
       // We only care about the most specific one. We know the args pattern
       // match succeeds because all app candidates generated for method
       // invocations include only a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.head
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), Some(bestOver)) = candidates.head
       val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -585,7 +593,7 @@ trait Functionals { self: STypeChecker with Common =>
                         newSargs,
                         bestArg,
                         Some(bestArrow),
-                        None)
+                        bestOver.getSchema)
     }
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _, _) => {
