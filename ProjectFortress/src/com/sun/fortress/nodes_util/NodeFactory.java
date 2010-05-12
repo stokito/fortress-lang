@@ -674,6 +674,11 @@ public class NodeFactory {
                           lvb.getIdType(), lvb.isMutable());
     }
 
+    public static LValue makeLValue(Param param) {
+        return makeLValue(NodeUtil.getSpan(param), param.getName(), param.getMods(),
+                          param.getIdType(), false);
+    }
+
     public static LValue makeLValue(Span span, Id name, Modifiers mods,
                                     Option<TypeOrPattern> type, boolean mutable) {
         return new LValue(makeSpanInfo(span), name, mods, type, mutable);
@@ -2117,6 +2122,10 @@ public class NodeFactory {
 
     public static OpArg makeOpArg(Span span, FunctionalRef op, boolean lifted) {
         return new OpArg(makeSpanInfo(span), lifted, op);
+    }
+
+    public static VarDecl makeVarDecl(List<LValue> lvalues) {
+        return makeVarDecl(NodeUtil.spanAll(lvalues), lvalues, Option.<Expr>none());
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals,
