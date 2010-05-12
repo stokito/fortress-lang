@@ -202,9 +202,11 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             for ( pltPair <- toSet(traitOrObject.dottedMethods) ) {
                 methodsR.add(pltPair.first, (pltPair.second, identity, tt))
             }
-            STypesUtil.inheritedMethods(toListFromImmutable(traitOrObject.extendsTypes),
-                                        methodsR, typeAnalyzer)
-
+            for ( pltPair <- toSet(STypesUtil.inheritedMethods(toListFromImmutable(traitOrObject.extendsTypes),
+                                                               methodsR, typeAnalyzer)) ) {
+                val second = pltPair.second
+                methodsR.add(pltPair.first, (second._1, second._2, second._3))
+            }
             val methods =
               toSet(methodsR)
               .asInstanceOf[Set[JavaPair[IdOrOpOrAnonymousName,
