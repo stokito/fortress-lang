@@ -35,12 +35,13 @@ public class DeclaredMethod extends Method {
     private final FnDecl _ast;
     private final Id _declaringTrait;
     private final Option<SelfType> _selfType;
-
+    private final Method _originalMethod;
+    
     public DeclaredMethod(FnDecl ast, TraitObjectDecl traitDecl) {
+        _originalMethod = this;
         _ast = ast;
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
-
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
@@ -49,19 +50,22 @@ public class DeclaredMethod extends Method {
      * Copy another DeclaredMethod, performing a substitution with the visitor.
      */
     public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
+        _originalMethod = that.originalMethod();
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
-
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
     }
-
+    
     public FnDecl ast() {
         return _ast;
     }
 
+    @Override
+    public Method originalMethod() {return _originalMethod;}
+    
     @Override
     public Span getSpan() {
         return NodeUtil.getSpan(_ast);

@@ -896,40 +896,6 @@ object STypesUtil {
                               liftedSargs: List[StaticArg])
                              (implicit analyzer: TypeAnalyzer)
                               : Option[Overloading] = {
-//    // Note that after type checking, the type, static args, and args for this
-//    // overloading will be present.
-//    val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
-//
-//    // If there were lifted, inferred static args, then instantiate those.
-//    val (liftedOvSargs, unliftedOvSargs) = ovSargs.partition(_.isLifted)
-//    val typ1 =
-//      if (!liftedOvSargs.isEmpty)
-//        instantiateLiftedStaticParams(liftedOvSargs, ovType).getOrElse(return None)
-//      else
-//        ovType
-//
-//    // If there were explicit static args, then instantiate them.
-//    val typ2 = explicitSargs match {
-//      case Some(expSargs) =>
-//        instantiateStaticParams(expSargs, typ1).getOrElse(return None)
-//      case None if !unliftedOvSargs.isEmpty =>
-//        instantiateStaticParams(unliftedOvSargs, typ1).getOrElse(return None)
-//      case None => typ1
-//    }
-//
-//    // If there are still some static params in it, then we can't infer them
-//    // so it's not applicable.
-//    val newOvType = typ2.asInstanceOf[ArrowType]
-//    if (!hasStaticParams(newOvType) && isSubtype(newOvType.getDomain, bestArrow.getDomain))
-//      Some(SOverloading(ovInfo,
-//                        ovName,
-//                        origName,
-//                        Some(newOvType),
-//                        schema,
-//                        Some(ovSargs),
-//                        Some(ovArgs)))
-//    else
-//      None
 
     val SOverloading(ovInfo, ovName, origName, Some(ovType), schema) = overloading
     var newOvType: ArrowType = ovType

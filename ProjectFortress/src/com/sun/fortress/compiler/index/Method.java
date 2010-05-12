@@ -33,7 +33,8 @@ import java.util.List;
  */
 public abstract class Method extends Functional implements HasSelfType {
     public abstract Node ast();
-
+    public abstract Method originalMethod();
+    
     /**
      * Returns a version of this Functional, with params replaced with args.
      * The contract of this method requires
