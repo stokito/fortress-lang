@@ -19,7 +19,7 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 import java.util.ArrayList;
 
 public class AddOptimizeString {
-    public static void Optimize(ByteCodeVisitor bcv) {
+    public static void optimize(ByteCodeVisitor bcv) {
 
         // These strings should be pulled out in a naming file somewhere.
 

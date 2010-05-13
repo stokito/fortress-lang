@@ -19,6 +19,6 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 public abstract class Optimization {
 
     
-    abstract void Optimize(ByteCodeVisitor bcv);
+    abstract void optimize(ByteCodeVisitor bcv);
 
 }

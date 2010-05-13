@@ -574,7 +574,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // the
     // best matches so far, it should only get added to the result list once.
 
-    public List<TypecaseClause> BestMatches(TypecaseClause candidate, List<TypecaseClause> bestSoFar, Evaluator ev) {
+    public List<TypecaseClause> bestMatches(TypecaseClause candidate, List<TypecaseClause> bestSoFar, Evaluator ev) {
         List<TypecaseClause> result = new ArrayList<TypecaseClause>();
         boolean addedCandidate = false;
 
