@@ -40,6 +40,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.SNodeUtil
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil.getFreshName
 import com.sun.fortress.useful.NI
@@ -55,22 +56,22 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
   def lteq(s: Type, t:Type): Boolean = lteqHelper(alphaRename(s),alphaRename(t)) 
   
   private def lteqHelper(s: Type, t: Type) = (s,t) match {
-    case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
-      /* Extend the type analyzer with the static parameters
-       * from s. Then strip s of it's type parameters to get s'
-       * and call lteq(s',t) */
-      // Q: What about lifted/unlifted
-      val sparams = getStaticParams(s)
-      val where = getWhere(s)
-      val tsa = extend(sparams, where)
-      val ss = clearStaticParams(s)
-      ta.lteq(ss,t)
     case (s,t) if !t.getInfo.getStaticParams.isEmpty =>
-      /* Try and infer an instantiation sigma of t such that 
-       * s <: sigma(t) */
+      /* Extend the type analyzer with the static parameters
+       * from t. Then strip t of it's type parameters to get t'
+       * and call lteq(s,t') */
+      // Q: What about lifted/unlifted
       val sparams = getStaticParams(t)
-      def constraintMaker(tt: Type) = ta.subtype(s, tt)
-      !inferStaticParamsHelper(t, constraintMaker, true, true).isEmpty
+      val where = getWhere(t)
+      val tsa = extend(sparams, where)
+      val tt = clearStaticParams(t)
+      tsa.lteq(s, tt)
+    case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
+      /* Try and infer an instantiation sigma of s such that 
+       * sigma(s) <: t */
+      val sparams = getStaticParams(s)
+      def constraintMaker(ss: Type) = ta.subtype(ss, t)
+      !inferStaticParamsHelper(s, constraintMaker, true, true).isEmpty
     case (s,t) => ta.lteq(s, t)
   }
   
@@ -79,11 +80,17 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
    * with unique identifiers.
    */
   def alphaRename(t: Type): Type = {
-    if(getStaticParams(t).isEmpty)
+    if (t.getInfo.getStaticParams.isEmpty)
       return t
-    val sparams = getStaticParams(t)
-    val newsargs = sparams.map(generateFreshArg)
-    staticInstantiation(newsargs, t, true, true, true).get
+    val subst = getStaticParams(t).map { sp =>
+      val srcName = sp.getName
+      val dstName = SNodeUtil.makeFreshName(srcName, ta.env)
+      (srcName, dstName)
+    }
+    SNodeUtil.alphaRename(subst, t).asInstanceOf[Type]
+    // val newsargs = sparams.map(generateFreshArg)
+    // staticInstantiation(newsargs, t, true, true, true).get
+    
   }
   
   def generateFreshArg(sparam: StaticParam): StaticArg = sparam.getKind match {
@@ -176,4 +183,11 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
   
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeSchemaAnalyzer()(ta.extend(params, where))
+  
+  def toString(t: Type): String = {
+    if (t.getInfo.getStaticParams.isEmpty)
+      return t.toString
+    val sparams = getStaticParams(t)
+    "[" + sparams.mkString(", ") + "]" + t.toString
+  }
 }

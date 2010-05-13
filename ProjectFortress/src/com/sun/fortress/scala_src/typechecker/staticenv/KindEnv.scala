@@ -94,7 +94,7 @@ class NestedKindEnv protected (protected val parent: KindEnv,
   val subtypeCache: SubtypeCache = new ChildSubtypeCache(parent.subtypeCache)
 
   /** Internal representation of `bindings` is a map. */
-  protected val bindings: Map[Name, KindBinding] =
+  val bindings: Map[Name, KindBinding] =
     Map(_bindings.map(b => (b.name, b)).toSeq:_*)
 }
 

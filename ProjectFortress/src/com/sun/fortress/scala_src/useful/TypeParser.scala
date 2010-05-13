@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.useful
+import _root_.java.util.{List => JList}
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.WellKnownNames._
 import com.sun.fortress.compiler.index._
@@ -23,6 +24,7 @@ import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.nodes_util.NodeUtil._
 import com.sun.fortress.scala_src.nodes._
@@ -66,9 +68,11 @@ object TypeParser extends RegexParsers {
   def tupleType: Parser[Type] = "(" ~> repsep(typ, ",") <~ ")" ^^
     {typs => makeMaybeTupleType(typeSpan, toJavaList(typs))}
 
-  def baseType: Parser[BaseType] = anyType | bottomType | traitType | varType
+  def baseType: Parser[BaseType] = anyType | bottomType | namedType
+  
+  def objectType: Parser[TraitType] = literal("Object") ^^ {x => OBJECT}
 
-  def namedType: Parser[NamedType] = traitType | varType
+  def namedType: Parser[NamedType] = objectType | traitType | varType
 
   def anyType: Parser[AnyType] = literal("ANY") ^^ {x => ANY}
 
@@ -89,16 +93,35 @@ object TypeParser extends RegexParsers {
   def staticArg: Parser[StaticArg] = typ ^^
     {t => makeTypeArg(typeSpan, t)}
 
-  def traitIndex: Parser[TraitIndex] = "trait" ~> traitSchema ~
+  def traitIndex: Parser[TraitIndex] = "trait" ~> regex(TRAIT) ~ opt(staticParams) ~
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ~
     opt("excludes {" ~> repsep(baseType, ",") <~ "}") ~
     opt("comprises {" ~> repsep(namedType, ",") <~ "}") ^^
-    {case tType~mSupers~mExcludes~mComprises =>
+    {case tName~mSparams~mSupers~mExcludes~mComprises =>
+      val tId = makeId(typeSpan, tName)
       val supers = mSupers.getOrElse(Nil)
       val excludes = mExcludes.getOrElse(Nil)
       val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
-      val ast = makeTraitDecl(tType, toJavaList(superWheres), toJavaList(excludes),
-                              toJavaOption(mComprises.map(toJavaList(_))))
+      val comprises = mComprises.map(toJavaList(_))
+      val sparams = mSparams.getOrElse(Nil)
+      val sargs = sparams.map(staticParamToArg)
+      val tType = makeTraitType(typeSpan, tName, toJavaList(sargs))
+      val selfType = comprises match {
+        case Some(cs) => makeSelfType(tType, cs)
+        case None => makeSelfType(tType)
+      }
+       
+      // Construct the AST trait declaration node.
+      val ast = makeTraitDecl(typeSpan,
+                              Modifiers.None,
+                              tId,
+                              toJavaList(sparams),
+                              toJavaList(superWheres),
+                              none[WhereClause],
+                              toJavaList[Decl](Nil),
+                              toJavaList(excludes),
+                              toJavaOption(comprises),
+                              some(selfType))
       val ti = new ProperTraitIndex(ast,
                                     toJavaMap(Map()),
                                     toJavaMap(Map()),
@@ -110,12 +133,29 @@ object TypeParser extends RegexParsers {
      ti
   }
 
-  def objectIndex: Parser[TraitIndex] = "object" ~> traitSchema ~
+  def objectIndex: Parser[TraitIndex] = "object" ~> regex(TRAIT) ~ opt(staticParams) ~
     opt("extends {" ~> repsep(baseType, ",") <~ "}") ^^
-    {case tType~mSupers =>
+    {case tName~mSparams~mSupers =>
+      val tId = makeId(typeSpan, tName)
       val supers = mSupers.getOrElse(Nil)
       val superWheres = supers.map(makeTraitTypeWhere(_, none[WhereClause]))
-      val ast = makeObjectDecl(tType, toJavaList(superWheres))
+      val sparams = mSparams.getOrElse(Nil)
+      val sargs = sparams.map(staticParamToArg)
+      val tType = makeTraitType(typeSpan, tName, toJavaList(sargs))
+      val selfType = makeSelfType(tType)
+      
+      // Make object declaration AST node.
+      val ast = makeObjectDecl(typeSpan,
+                               Modifiers.None,
+                               tId,
+                               toJavaList(sparams),
+                               toJavaList(superWheres),
+                               none[WhereClause],
+                               toJavaList[Decl](Nil),
+                               none[JList[Param]],
+                               none[JList[Type]],
+                               none[Contract],
+                               some(selfType))
       new ObjectTraitIndex(ast,
                            toJavaOption(None),
                            toJavaMap(Map()),

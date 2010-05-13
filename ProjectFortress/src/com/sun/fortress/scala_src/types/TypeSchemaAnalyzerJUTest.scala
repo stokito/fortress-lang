@@ -17,12 +17,14 @@
 
 package com.sun.fortress.scala_src.types
 
-import junit.framework.TestCase
+import junit.framework._
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.scala_src.useful.TypeParser
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
+
+import Assert._
 
 class TypeSchemaAnalyzerJUTest extends TestCase {
   
@@ -31,29 +33,67 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
   def typeSchema(str: String) = TypeParser.parse(TypeParser.typeSchema, str).get
   def typeSchemaAnalyzer(str: String) = new TypeSchemaAnalyzer()(typeAnalyzer(str))
   
-  def toString(t: Type) = {
-    if(t.getInfo.getStaticParams.isEmpty)
-      t.toString
-    val sparams = getStaticParams(t)
-    "[" + sparams.mkString(", ") + "]" + t.toString
+  def testRenaming() = {
+    val tsa = typeSchemaAnalyzer("{trait Eq[T]}")
     
-  }
-  
-  def testAlphaRename(){
-    val tsa = typeSchemaAnalyzer("{}")
-    val t = typeSchema("[T extends {Eq[T]}]T")
-    
-    object staticReplacer extends Walker {
-      override def walk(a: Any): Any = a match{
-        case a: VarType => NF.makeVarType(a.getInfo.getSpan, "S")
-        case _ => super.walk(a)
-      }
+    {
+      val t1 = typeSchema("[T]T")
+      val t2 = typeSchema("[U]U")
+      assertTrue(tsa.lteq(t1, t2))
+      assertTrue(tsa.lteq(t2, t1))
     }
     
-    val tt = tsa.alphaRename(t)
+    {
+      val t1 = typeSchema("[T extends {Eq[T]}]T")
+      val t2 = typeSchema("[U extends {Eq[U]}]U")
+      assertTrue(tsa.lteq(t1, t2))
+      assertTrue(tsa.lteq(t2, t1))
+    }
     
-    println(toString(tt))
+    {
+      val t1 = typeSchema("[T extends {Eq[U]}, U extends {Eq[T]}](T, U)")
+      val t2 = typeSchema("[A extends {Eq[B]}, B extends {Eq[A]}](A, B)")
+      assertTrue(tsa.lteq(t1, t2))
+      assertTrue(tsa.lteq(t2, t1))
+    }
+  }
+  
+  def testLteq() = {
+    val tsa = typeSchemaAnalyzer("""{
+      trait Aa,
+      trait Eq[T],
+      trait List[T],
+      trait Array[T],
+      trait ArrayList[T] extends {List[T], Array[T]},
+      trait Zz extends {Eq[Zz]}}""")
     
+    {
+      val t1 = typeSchema("[T]T")
+      val t2 = typeSchema("Object")
+      assertTrue(tsa.lteq(t1, t2))
+      assertFalse(tsa.lteq(t2, t1))
+    }
+    
+    {
+      val t1 = typeSchema("[T] List[T] -> ()")
+      val t2 = typeSchema("[T] ArrayList[T] -> ()")
+      assertTrue(tsa.lteq(t1, t2))
+      assertFalse(tsa.lteq(t2, t1))
+    }
+    
+    {
+      val t1 = typeSchema("[T extends {Eq[T]}] List[T]")
+      val t2 = typeSchema("[T extends {Zz}] List[T]")
+      val t3 = typeSchema("List[Zz]")
+      assertFalse(tsa.lteq(t1, t2))
+      assertFalse(tsa.lteq(t2, t1))
+      
+      assertTrue(tsa.lteq(t1, t3))
+      assertFalse(tsa.lteq(t3, t1))
+      
+      assertTrue(tsa.lteq(t2, t3))
+      assertFalse(tsa.lteq(t3, t2))
+    }
   }
   
   
