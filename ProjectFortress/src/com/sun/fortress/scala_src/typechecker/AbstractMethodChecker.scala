@@ -41,6 +41,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeAnalyzerUtil
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -176,7 +177,7 @@ class AbstractMethodChecker(component: ComponentIndex,
 
     // This function will replace the abstract decl's static params with those
     // static args applied to the trait in the concrete instantiation.
-    def subst(ty: Type) = staticInstantiation(sparams zip sargs, ty).getOrElse(ty)
+    def subst(ty: Type) = TypeAnalyzerUtil.substitute(sargs, sparams, ty)
     
     val result = decl match {
       case fd:FnDecl =>

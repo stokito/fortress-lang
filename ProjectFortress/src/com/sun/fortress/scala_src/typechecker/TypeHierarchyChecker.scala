@@ -230,9 +230,10 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 		  getTypes(name, errors) match {
 		    case tti:TraitIndex =>
                       val subst_extends =
-                        toListFromImmutable(tti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
-                                                     toListFromImmutable(tti.staticParameters) zip args,
-                                                     tw.getBaseType)(new_analyzer))
+                        toListFromImmutable(tti.extendsTypes).map(tw => substitute(
+                                                     args,
+                                                     toListFromImmutable(tti.staticParameters),
+                                                     tw.getBaseType))
                       if ( ! extendsContains(tt, subst_extends,
 					     new_analyzer, errors) )
 			error(errors, "Invalid comprises clause: " + ty +
@@ -285,25 +286,24 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
    *  If any type in 'extendsC' is a subtype of 'comprises', then OK.
    *  Otherwise, check the supertypes of the types in 'extendsC'.
    */
-  private def extendsContains(comprises: TraitType, extendsC: List[Option[Type]],
+  private def extendsContains(comprises: TraitType, extendsC: List[Type],
                               analyzer: TypeAnalyzer,
-			      errors:JavaList[StaticError]): Boolean = {
-    for (ty <- extendsC if ty.isDefined)
-      if (analyzer.subtype(ty.get, comprises).isTrue) return true
-    extendsC.map(ty => ty match {
-      case Some(tty) => tty match {
+                              errors:JavaList[StaticError]): Boolean = {
+    for (ty <- extendsC )
+      if (analyzer.subtype(ty, comprises).isTrue) return true
+    extendsC.map(tty => 
+      tty match {
         case STraitType(_, name, args, _) =>
           getTypes(name, errors) match {
             case ti:TraitIndex =>
               val subst_extends =
-                toListFromImmutable(ti.extendsTypes).map(tw => STypesUtil.staticInstantiation(
-                                            toListFromImmutable(ti.staticParameters) zip args,
-                                            tw.getBaseType)(analyzer))
+                toListFromImmutable(ti.extendsTypes).map(tw => substitute(
+                                            args,
+                                            toListFromImmutable(ti.staticParameters),
+                                            tw.getBaseType))
               extendsContains(comprises, subst_extends, analyzer,
                               errors)
           }
-        case _ => false
-      }
       case _ => false}).foldLeft(false)((a,b) => a || b)
   }
 }
