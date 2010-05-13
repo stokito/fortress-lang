@@ -362,7 +362,7 @@ object STypesUtil {
    */
   def insertStaticParams(typ: Type, sparams: List[StaticParam]): Type = {
 
-    // A walker that clears static params out of TypeInfos.
+    // A walker that adds static params to TypeInfos.
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
         case STypeInfo(a, b, Nil, c) => STypeInfo(a, b, sparams, c)
@@ -502,8 +502,8 @@ object STypesUtil {
 
   /**
    * Replaces occurrences of static parameters with corresponding static
-   * arguments in the given body type. In the end, any static parameters
-   * in the replaced type will be cleared.
+   * arguments in the given body type. If alpha is not selected the static parameters
+   * will be cleared
    *
    * @param args A list of static arguments to apply to the generic type body.
    * @param sparams A list of static parameters
@@ -512,78 +512,68 @@ object STypesUtil {
    *         one of its declared static parameters replaced by corresponding
    *         static args. If None, then the instantiation failed.
    */
-  def staticInstantiationHelper(sparamsAndSargs: List[(StaticParam, StaticArg)],
-                          body: Type)
-                         (implicit analyzer: TypeAnalyzer): Option[Type] = body match {
-
-    case t:IntersectionType =>
-      val cs = conjuncts(t)
-      val ts = cs.flatMap(staticInstantiationHelper(sparamsAndSargs, _))
-      if (ts.isEmpty && !cs.isEmpty)
-        None
-      else
-        Some(NF.makeMaybeIntersectionType(toJavaSet(ts)))
-    case t:UnionType =>
-      val ds = disjuncts(t)
-      val ts = ds.flatMap(staticInstantiation(sparamsAndSargs, _))
-      if (ts.isEmpty && !ds.isEmpty)
-        None
-      else
-        Some(NF.makeMaybeUnionType(toJavaSet(ts)))
-    case _ =>
-
-      // Check that the args match.
-      if (!staticArgsMatchStaticParams(sparamsAndSargs)) return None
-
-      // Create mapping from parameter names to static args.
-      val paramMap = Map(sparamsAndSargs.map(pa => (pa._1.getName, pa._2)):_*)
-
-      // Gets the actual value out of a static arg.
-      def sargToVal(sarg: StaticArg): Node = sarg match {
-        case sarg:TypeArg => sarg.getTypeArg
-        case sarg:IntArg => sarg.getIntVal
-        case sarg:BoolArg => sarg.getBoolArg
-        case sarg:OpArg => sarg.getName
-        case sarg:DimArg => sarg.getDimArg
-        case sarg:UnitArg => sarg.getUnitArg
-        case _ => bug("unexpected kind of static arg")
+  def staticInstantiation(sargs: List[StaticArg],
+                          body: Type, lifted: Boolean, unlifted: Boolean, alpha: Boolean)
+                         (implicit analyzer: TypeAnalyzer): Option[Type] = {
+    
+    val sparams = getStaticParams(body)
+    val sparamsAndSargs = sparams.filter(s => (s.isLifted && lifted) || (!s.isLifted && unlifted)) zip sargs
+    
+    //Need to add a check to ensure if aliased is true all the args have names
+    if (!(sparamsAndSargs.size == sargs.size)) return None
+    if (!staticArgsMatchStaticParams(sparamsAndSargs)) return None
+    
+    // Create mapping from parameter names to static args.
+    val paramMap = Map(sparamsAndSargs.map(pa => (pa._1.getName, pa._2)):_*)
+    // Gets the actual value out of a static arg.
+    def sargToVal(sarg: StaticArg): Node = sarg match {
+      case sarg:TypeArg => sarg.getTypeArg
+      case sarg:IntArg => sarg.getIntVal
+      case sarg:BoolArg => sarg.getBoolArg
+      case sarg:OpArg => sarg.getName
+      case sarg:DimArg => sarg.getDimArg
+      case sarg:UnitArg => sarg.getUnitArg
+      case _ => bug("unexpected kind of static arg")
+    }
+    
+    //Clear the static params
+    val cleared = clearStaticParams(body)
+    
+    // Replaces all the params with args in a node.
+    object staticReplacer extends Walker {
+      override def walk(node: Any): Any = node match {
+        case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+        case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case _ => super.walk(node)
       }
-
-      // Replaces all the params with args in a node.
-      object staticReplacer extends Walker {
-        override def walk(node: Any): Any = node match {
-          case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-          // TODO: Check proper name for OpArgs.
-          case n:OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
-          case n:IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-          case n:BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-          case n:DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-          case n:UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-          case _ => super.walk(node)
-        }
-      }
-
-      // Get the replaced type and clear out its static params, if any.
-      Some(staticReplacer(body).asInstanceOf[Type])
+    }
+    // Get the replaced type
+    val replaced = staticReplacer(cleared).asInstanceOf[Type]
+    
+    //Fix up the static params
+    // ToDo: Make this work for more that Type params
+    val leftover = sparams.filter(s => alpha || !((s.isLifted && lifted) || (!s.isLifted && unlifted)))
+    val newsparams = leftover.map{
+      case s@SStaticParam(i,n,e,d,a,k:KindType,l) if (paramMap.contains(n) && alpha) =>
+        val SVarType(_,nn,_) = sargToVal(paramMap.get(n).get)
+        SStaticParam(i,nn,e.map(x => staticReplacer.walk(x).asInstanceOf[BaseType]),d,a,k,l)
+      case SStaticParam(i,n,e,d,a,k,l) => SStaticParam(i,n,e.map(x =>staticReplacer.walk(x).asInstanceOf[BaseType]),d,a,k,l)
+    }
+    
+    Some(insertStaticParams(replaced, newsparams))
   }
-
-  def staticInstantiation(sparamsAndSargs: List[(StaticParam, StaticArg)],
-                          body: Type)
-                         (implicit analyzer: TypeAnalyzer): Option[Type] = 
-                           staticInstantiationHelper(sparamsAndSargs, body).map(x => clearStaticParams(x, sparamsAndSargs.map(_._1)))
   
-
   /**
    * Instantiate only the unlifted static parameters with the given static args
    * in the given body type.
    */
   def instantiateStaticParams(sargs: List[StaticArg],
                               body: Type)
-                             (implicit analyzer: TypeAnalyzer): Option[Type] = {
-    val sparams = getStaticParams(body).filter(!_.isLifted)
-    if (sargs.length != sparams.length) return None
-    staticInstantiation(sparams zip sargs, body)
-  }
+                             (implicit analyzer: TypeAnalyzer): Option[Type] = staticInstantiation(sargs, body, false, true, false)
 
   /**
    * Instantiate only the lifted static parameters with the given static args
@@ -591,11 +581,7 @@ object STypesUtil {
    */
   def instantiateLiftedStaticParams(sargs: List[StaticArg],
                                     body: Type)
-                                   (implicit analyzer: TypeAnalyzer): Option[Type] = {
-    val sparams = getStaticParams(body).filter(_.isLifted)
-    if (sargs.length != sparams.length) return None
-    staticInstantiation(sparams zip sargs, body)
-  }
+                                   (implicit analyzer: TypeAnalyzer): Option[Type] = staticInstantiation(sargs, body, true, false, false)
 
   /**
    * Determines if the kinds of the given static args match those of the static
@@ -761,9 +747,6 @@ object STypesUtil {
                        (implicit analyzer: TypeAnalyzer)
                         : Option[(ArrowType, List[StaticArg])] = {
 
-    // Pull out the unlifted static params.
-    val sparams = getStaticParams(fnType).filter(!_.isLifted)
-
     // Builds a constraint given the arrow with inference variables.
     def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
 
@@ -777,13 +760,13 @@ object STypesUtil {
     }
 
     // Do the inference.
-    inferStaticParamsHelper(fnType, sparams, makeConstraint)
+    inferStaticParamsHelper(fnType, makeConstraint, false, true)
   }
 
   /** Helper that performs the inference. */
   def inferStaticParamsHelper[T <: Type](typ: T,
-                              sparams: List[StaticParam],
-                              constraintMaker: T => ConstraintFormula)
+                              constraintMaker: T => ConstraintFormula,
+                              lifted: Boolean, unlifted: Boolean)
                              (implicit analyzer: TypeAnalyzer)
                               : Option[(T, List[StaticArg])] = {
 
@@ -791,8 +774,9 @@ object STypesUtil {
 
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
+    val sparams = getStaticParams(typ).filter(s => (s.isLifted && lifted) || (!s.isLifted && unlifted))
     val sargs = sparams.map(makeInferenceArg)
-    val infTyp = staticInstantiation(sparams zip sargs, typ).
+    val infTyp = staticInstantiation(sargs, typ, lifted, unlifted, false).
       getOrElse(return None).asInstanceOf[T]
     val constraint = constraintMaker(infTyp)
 
@@ -805,7 +789,7 @@ object STypesUtil {
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
     val sparamBounds = sparams.flatMap(staticParamBoundType).
-      map(t => staticInstantiation(sparams zip sargs, insertStaticParams(t, sparams)).get)
+      flatMap(t => staticInstantiation(sargs, insertStaticParams(t, sparams), lifted, unlifted, false))
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
@@ -848,7 +832,7 @@ object STypesUtil {
     }
 
     // Do the inference.
-    inferStaticParamsHelper(fnType, sparams, makeConstraint)
+    inferStaticParamsHelper(fnType, makeConstraint, true, false)
   }
 
 
