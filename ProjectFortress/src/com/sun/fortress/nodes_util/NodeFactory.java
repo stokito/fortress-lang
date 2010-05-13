@@ -281,23 +281,6 @@ public class NodeFactory {
         return new AliasedAPIName(makeSpanInfo(span), api, alias);
     }
 
-    public static TraitDecl makeTraitDecl(TraitType selfType,
-                                          List<TraitTypeWhere> extendsC,
-                                          List<BaseType> excludesC,
-                                          Option<List<NamedType>> comprisesC) {
-        return makeTraitDecl(NodeUtil.getSpan(selfType),
-                             Modifiers.None,
-                             selfType.getName(),
-                             NodeUtil.getStaticParams(selfType),
-                             extendsC,
-                             Option.<WhereClause>none(),
-                             Collections.<Decl>emptyList(),
-                             excludesC,
-                             comprisesC,
-                             Option.<SelfType>some(makeSelfType(selfType)));
-    }
-
-
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,
@@ -399,21 +382,6 @@ public class NodeFactory {
                               params,
                               Option.<List<Type>>none(),
                               Option.<Contract>none(),selfType);
-    }
-
-    public static ObjectDecl makeObjectDecl(TraitType selfType,
-                                            List<TraitTypeWhere> extendsC) {
-        return makeObjectDecl(NodeUtil.getSpan(selfType),
-                              Modifiers.None,
-                              selfType.getName(),
-                              NodeUtil.getStaticParams(selfType),
-                              extendsC,
-                              Option.<WhereClause>none(),
-                              Collections.<Decl>emptyList(),
-                              Option.<List<Param>>none(),
-                              Option.<List<Type>>none(),
-                              Option.<Contract>none(),
-                              Option.<SelfType>some(makeSelfType(selfType)));
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,

@@ -102,6 +102,8 @@ trait EmptyStaticEnv[T] extends StaticEnv[T] {
       
   /** Every call to `getType` fails. */
   override def getType(x: Name): Option[Type] = None
+  
+  override def toString: String = "[]"
 }
 
 /**
@@ -117,13 +119,15 @@ trait NestedStaticEnv[T] extends StaticEnv[T] {
   }
     
   /** The bindings explicitly declared in this environment. */
-  protected val bindings: Map[Name, EnvBinding]
+  val bindings: Map[Name, EnvBinding]
   
   /** Find it among `bindings` or else in `parent`. */
   def lookup(x: Name): Option[EnvBinding] = bindings.get(stripApi(x)) match {
     case Some(v) => Some(v)
     case None => parent.lookup(x)
   }
+  
+  override def toString: String = bindings.mkString("[", ", ", "]")
 }
 
 /**

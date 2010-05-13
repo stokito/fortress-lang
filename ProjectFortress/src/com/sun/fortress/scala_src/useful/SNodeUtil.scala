@@ -205,7 +205,7 @@ object SNodeUtil {
    * `orig` is replaced with the name `repl`. The span of the original name is
    * preserved on the new occurrence of `repl`.
    */
-  def alphaRename(repls: List[(IdOrOp, IdOrOp)], body: Node): Node = {
+  def alphaRename(repls: Iterable[(IdOrOp, IdOrOp)], body: Node): Node = {
     
     // Predicate that says the replacement matches the name x.
     def matches(x: IdOrOp)(repl: (IdOrOp, IdOrOp)): Boolean = {
@@ -301,6 +301,9 @@ object SNodeUtil {
     makeFreshNameHelper(tempId, y => !env.contains(y))
   }
   
+  /** Counter used for generating fresh names. */
+  private var freshNameCounter = 1
+  
   /**
    * Helper for the companion method that takes in an arbitrary predicate
    * for determining if a name is fresh.
@@ -311,7 +314,7 @@ object SNodeUtil {
     
     // Creates a duplicate of `x` with a mangled name.
     def mkname(i: Int): IdOrOp = {
-      val s = "%s$%d".format(x.getText, i)
+      val s = "%s$%d".format(x.getText, freshNameCounter)
       x match {
         case SId(info, _, _) => SId(info, None, s)
         case SOp(info, _, _, f, e) => SOp(info, None, s, f, e)
@@ -321,9 +324,12 @@ object SNodeUtil {
     
     // Keep trying to generate a name not already in `env`.
     val MAX_I = 10000
-    for (i <- 1.to(MAX_I)) {
+    for (i <- freshNameCounter.to(MAX_I)) {
       val fresh = mkname(i)
-      if (isFresh(fresh)) return fresh
+      if (isFresh(fresh)) {
+        freshNameCounter += 1
+        return fresh
+      }
     }
     bug("Failed to create a fresh name for %s".format(x))
   }

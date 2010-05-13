@@ -130,7 +130,7 @@ class NestedSTypeEnv protected (protected val parent: STypeEnv,
     extends STypeEnv with NestedStaticEnv[Type] {
 
   /** Internal representation of `bindings` is a map. */
-  protected val bindings: Map[Name, TypeBinding] =
+  val bindings: Map[Name, TypeBinding] =
     Map(_bindings.map(b => (b.name, b)).toSeq:_*)
 }
 

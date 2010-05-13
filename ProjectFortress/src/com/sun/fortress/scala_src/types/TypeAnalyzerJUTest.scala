@@ -17,9 +17,11 @@
 
 package com.sun.fortress.scala_src.types
 
-import _root_.junit.framework.TestCase
+import _root_.junit.framework._
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.useful.TypeParser
+
+import Assert._
 
 class TypeAnalyzerJUTest extends TestCase {
   
@@ -29,16 +31,16 @@ class TypeAnalyzerJUTest extends TestCase {
   
   def testNormalize() = {
     val ta = typeAnalyzer("{trait Tt comprises {Oo, Pp}, object Oo extends {Tt}, object Pp extends {Tt}}")
-    assert(ta.normalize(typ("&&{Tt, ||{Oo, Pp}}")) == typ("||{Oo, Pp}"))
-    assert(ta.normalize(typ("(BOTTOM, Tt)")) == typ("BOTTOM"))
+    assertTrue(ta.normalize(typ("&&{Tt, ||{Oo, Pp}}")) == typ("||{Oo, Pp}"))
+    assertTrue(ta.normalize(typ("(BOTTOM, Tt)")) == typ("BOTTOM"))
   }
   
   def testMeet() = {
     val ta = typeAnalyzer("{trait Aa, trait Bb extends {Aa}, trait Cc excludes {Aa}}")
-    assert(ta.meet(typ("(Aa, Bb)"), typ("(Bb, Aa)")) == typ("(Bb, Bb)"))
-    assert(ta.meet(typ("(Aa, Bb, Bb)"), typ("(Aa, Bb)")) == typ("BOTTOM"))
-    assert(ta.meet(typ("Bb"), typ("Cc")) == typ("BOTTOM"))
-    assert(ta.meet(typ("((Aa, Bb), Cc)"), typ("((Bb, Aa), Cc)")) == typ("((Bb, Bb), Cc)"))
+    assertTrue(ta.meet(typ("(Aa, Bb)"), typ("(Bb, Aa)")) == typ("(Bb, Bb)"))
+    assertTrue(ta.meet(typ("(Aa, Bb, Bb)"), typ("(Aa, Bb)")) == typ("BOTTOM"))
+    assertTrue(ta.meet(typ("Bb"), typ("Cc")) == typ("BOTTOM"))
+    assertTrue(ta.meet(typ("((Aa, Bb), Cc)"), typ("((Bb, Aa), Cc)")) == typ("((Bb, Bb), Cc)"))
   }
   
   def testExcludes() = {
@@ -47,8 +49,8 @@ class TypeAnalyzerJUTest extends TestCase {
       trait Ss,
       trait Uu extends {Tt},
       trait Vv extends {Uu, Ss}}""")
-    assert(ta.excludes(typ("Vv"), typ("Uu")))
-    assert(ta.excludes(typ("Vv"), typ("Ss")))
+    assertTrue(ta.excludes(typ("Vv"), typ("Uu")))
+    assertTrue(ta.excludes(typ("Vv"), typ("Ss")))
   }
   
   def testCovering() = {
@@ -61,7 +63,7 @@ class TypeAnalyzerJUTest extends TestCase {
       trait Ff extends {Ee},
       object Gg extends {Ee}}""")
     
-    assert(ta.minimalCovering(typ("&&{Aa, Ee}")) == typ("Dd"))
+    assertTrue(ta.minimalCovering(typ("&&{Aa, Ee}")) == typ("Dd"))
   }
   
 }
