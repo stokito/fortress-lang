@@ -131,9 +131,9 @@ class ByteCodeOptimizer {
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
-            AddOptimizeString.Optimize(bcv);
-            BasicBlockGenerator.Optimize(bcv);
-            // RemoveLiteralCoercions.Optimize(bcv);
+            AddOptimizeString.optimize(bcv);
+            BasicBlockGenerator.optimize(bcv);
+            // RemoveLiteralCoercions.optimize(bcv);
         }
     }
         

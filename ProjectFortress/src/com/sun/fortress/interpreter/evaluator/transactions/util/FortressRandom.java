@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions.util;
@@ -26,7 +26,7 @@ import java.io.ObjectStreamField;
  * Lightweight random number generator.  <I>Not thread-safe.</I> Synchronization in the
  * <CODE>java.util.Randome</CODE> can distort the performance of multithreaded benchmarks.
  */
-public class Random extends java.util.Random {
+public class FortressRandom extends java.util.Random {
 
     /**
      * use serialVersionUID from JDK 1.1 for interoperability
@@ -44,7 +44,7 @@ public class Random extends java.util.Random {
      * the seed of the random number generator to a value very likely
      * to be distinct from any other invocation of this constructor.
      */
-    public Random() {
+    public FortressRandom() {
         this(++seedUniquifier + System.nanoTime());
     }
 
@@ -54,14 +54,14 @@ public class Random extends java.util.Random {
      * Creates a new random number generator using a single
      * <code>long</code> seed:
      * <blockquote><pre>
-     * public Random(long seed) { setSeed(seed); }</pre></blockquote>
+     * public FortressRandom(long seed) { setSeed(seed); }</pre></blockquote>
      * Used by method <tt>next</tt> to hold
      * the state of the pseudorandom number generator.
      *
      * @param seed the initial seed.
      * @see java.util.Random#setSeed(long)
      */
-    public Random(long seed) {
+    public FortressRandom(long seed) {
         this.seed = 0L;
         setSeed(seed);
     }
@@ -215,7 +215,7 @@ public class Random extends java.util.Random {
         long seedVal;
 
         seedVal = (long) fields.get("seed", -1L);
-        if (seedVal < 0) throw new java.io.StreamCorruptedException("Random: invalid seed");
+        if (seedVal < 0) throw new java.io.StreamCorruptedException("FortressRandom: invalid seed");
         seed = seedVal;
         nextNextGaussian = fields.get("nextNextGaussian", 0.0);
         haveNextNextGaussian = fields.get("haveNextNextGaussian", false);
@@ -223,8 +223,8 @@ public class Random extends java.util.Random {
 
 
     /**
-     * Save the <tt>Random</tt> instance to a stream.
-     * The seed of a Random is serialized as a long for
+     * Save the <tt>FortressRandom</tt> instance to a stream.
+     * The seed of a FortressRandom is serialized as a long for
      * historical reasons.
      */
     synchronized private void writeObject(ObjectOutputStream s) throws IOException {

@@ -25,7 +25,7 @@ import org.objectweb.asm.util.*;
 
 public class RemoveLiteralCoercions {
 
-    public static void Optimize(ByteCodeVisitor bcv) {
+    public static void optimize(ByteCodeVisitor bcv) {
         Iterator it = bcv.methodVisitors.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();
