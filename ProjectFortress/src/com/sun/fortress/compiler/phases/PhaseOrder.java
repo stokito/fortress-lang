@@ -96,18 +96,18 @@ public enum PhaseOrder {
 //        }
 //    }
 
-    static public PhaseOrder[] disambiguatePhaseOrder = {
+    static public final PhaseOrder[] disambiguatePhaseOrder = {
         PREDISAMBIGUATEDESUGAR,
         DISAMBIGUATE
     };
     
-    static public PhaseOrder[] grammarPhaseOrder = {
+    static public final PhaseOrder[] grammarPhaseOrder = {
         PREDISAMBIGUATEDESUGAR,
         DISAMBIGUATE,
         GRAMMAR
     };
 
-     static public PhaseOrder[] typecheckPhaseOrder = {
+     static public final PhaseOrder[] typecheckPhaseOrder = {
         PREDISAMBIGUATEDESUGAR,
         DISAMBIGUATE,
         GRAMMAR,
@@ -115,7 +115,7 @@ public enum PhaseOrder {
         TYPECHECK
     };
      
-     static public PhaseOrder[] desugarPhaseOrder = {
+     static public final PhaseOrder[] desugarPhaseOrder = {
          PREDISAMBIGUATEDESUGAR,
          DISAMBIGUATE,
          GRAMMAR,
@@ -124,7 +124,7 @@ public enum PhaseOrder {
          DESUGAR,
      };
  
-    static public PhaseOrder[] interpreterPhaseOrder = {
+    static public final PhaseOrder[] interpreterPhaseOrder = {
             PREDISAMBIGUATEDESUGAR,
             DISAMBIGUATE,
             GRAMMAR,
@@ -136,7 +136,7 @@ public enum PhaseOrder {
             //,ENVGEN
     };
     
-   static public PhaseOrder[] compilerPhaseOrder = {
+   static public final PhaseOrder[] compilerPhaseOrder = {
         PREDISAMBIGUATEDESUGAR,
         DISAMBIGUATE,
         GRAMMAR,

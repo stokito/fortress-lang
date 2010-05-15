@@ -84,7 +84,7 @@ public final class MagicNumbers {
     public final static int y = 0x1317529f;
     public final static int z = 0x1244f6db;
 
-    public final static int[] array = { // 96*13=1248
+    protected final static int[] array = { // 96*13=1248
                                         A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, a,
                                         b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, M, K,
                                         e, a, s, g, z, F, O, p, G, b, E, U, v, W, C, i, d, n, R, o, Z, P, y, k, w, j, r,

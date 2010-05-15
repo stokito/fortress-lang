@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.astgen;
@@ -31,15 +31,15 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     private TypeName idType = Types.parse("Id", ast);
     private TypeName listIdType = Types.parse("List<Id>", ast);
 
-    public static List<Field> TEMPLATEGAPFIELDS; {
+    protected static List<Field> TEMPLATEGAPFIELDS; {
         TEMPLATEGAPFIELDS = asList(new Field(Types.parse("ASTNodeInfo", ast), "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 
-    public static List<Field> TEMPLATEGAPEXPRFIELDS; {
+    protected static List<Field> TEMPLATEGAPEXPRFIELDS; {
         TEMPLATEGAPEXPRFIELDS = asList(new Field(Types.parse("ExprInfo", ast), "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 
-    public static List<Field> TEMPLATEGAPTYPEFIELDS; {
+    protected static List<Field> TEMPLATEGAPTYPEFIELDS; {
         TEMPLATEGAPTYPEFIELDS = asList(new Field(Types.parse("TypeInfo", ast), "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true), new Field(idType, "gapId", Option.<String>none(), false, false, true), new Field(listIdType, "templateParams", Option.<String>none(), false, false, true));
     }
 

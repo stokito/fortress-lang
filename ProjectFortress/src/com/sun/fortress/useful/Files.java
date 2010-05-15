@@ -43,14 +43,19 @@ public class Files {
     }
 
     public static void cp(String src, String dest) throws FileNotFoundException, IOException {
-        FileInputStream input = new FileInputStream(new File(src));
-        FileOutputStream output = new FileOutputStream(new File(dest));
+        FileInputStream input = null;
+        FileOutputStream output = null;
+        try {
+            input = new FileInputStream(new File(src));
+            output = new FileOutputStream(new File(dest));
 
-        for (int next = input.read(); next != -1; next = input.read()) {
-            output.write(next);
+            for (int next = input.read(); next != -1; next = input.read()) {
+                output.write(next);
+            }
+        } finally {
+            if (input != null) input.close();
+            if (output != null) output.close();
         }
-        input.close();
-        output.close();
     }
 
     /* Convenience method for creating a BufferedReader from a file name. */

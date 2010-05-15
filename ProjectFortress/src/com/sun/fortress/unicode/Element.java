@@ -106,7 +106,7 @@ public class Element {
         if (t != null) addAlias(s, m, x, t, false);
     }
 
-    public final static String[] keyswordsTriggeringErrorIgnore =
+    protected final static String[] keyswordsTriggeringErrorIgnore =
             {"YOGH", "CYRILLIC", "GEORGIAN", "HANGUL", "GUJARATI"};
 
     static void Systemerrprintln(String s) {

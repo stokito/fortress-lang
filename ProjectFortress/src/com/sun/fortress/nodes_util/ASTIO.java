@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -51,9 +51,9 @@ public class ASTIO {
         ProjectProperties.getBoolean("fortress.astio.astgenserialization", false);
     private static String logFileName =
         ProjectProperties.get("fortress.astio.logfile",LOG_FILE_NONE);
-    public static boolean useIndentation =
+    public static final boolean useIndentation =
         ProjectProperties.getBoolean("fortress.astio.indent",true);
-    public static boolean useFieldLabels =
+    public static final boolean useFieldLabels =
         ProjectProperties.getBoolean("fortress.astio.fieldlabels",true);
 
     private static volatile BufferedWriter logFile = null;

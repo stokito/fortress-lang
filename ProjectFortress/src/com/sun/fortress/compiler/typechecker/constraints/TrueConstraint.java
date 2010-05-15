@@ -26,7 +26,7 @@ import com.sun.fortress.nodes.VarType;
 import edu.rice.cs.plt.lambda.Lambda;
 
 public class TrueConstraint extends ConstraintFormula{
-	public static TrueConstraint TRUE = new TrueConstraint();
+	public static final TrueConstraint TRUE = new TrueConstraint();
 	private TrueConstraint(){}
 	@Override public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return f; }
 	@Override public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }

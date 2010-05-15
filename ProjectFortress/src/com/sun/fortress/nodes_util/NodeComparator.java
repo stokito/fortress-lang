@@ -100,7 +100,7 @@ public class NodeComparator {
     }
     public final static StaticParamComparer staticParamComparer =
 	new StaticParamComparer();
-    public static AnyListComparer<StaticParam> staticParamListComparer =
+    public static final AnyListComparer<StaticParam> staticParamListComparer =
 	new AnyListComparer<StaticParam>(staticParamComparer);
 
     static class StaticArgComparer implements Comparator<StaticArg> {

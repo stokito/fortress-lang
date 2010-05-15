@@ -28,8 +28,8 @@ import java.util.Date;
 
 public class ISO8601 {
 
-    static String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
-    static public DateFormat localMilliDateFormat = new SimpleDateFormat(localMilliIso8601Format);
+    static final String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
+    static public final DateFormat localMilliDateFormat = new SimpleDateFormat(localMilliIso8601Format);
 
     public static String localThen(java.util.Date d) {
         return localMilliDateFormat.format(d);
