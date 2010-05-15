@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -280,7 +280,7 @@ abstract public class NodeReflection {
         }
     }
 
-    protected static Comparator<Field> fieldComparator = new Comparator<Field>() {
+    protected static final Comparator<Field> fieldComparator = new Comparator<Field>() {
 
         public int compare(Field arg0, Field arg1) {
             Class c0 = arg0.getType();

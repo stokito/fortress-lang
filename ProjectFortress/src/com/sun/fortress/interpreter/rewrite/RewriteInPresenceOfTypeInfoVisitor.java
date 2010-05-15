@@ -27,7 +27,7 @@ import java.util.List;
 
 public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
-    public static RewriteInPresenceOfTypeInfoVisitor Only = new RewriteInPresenceOfTypeInfoVisitor();
+    public static final RewriteInPresenceOfTypeInfoVisitor Only = new RewriteInPresenceOfTypeInfoVisitor();
 
     public Node visit(Node n) {
         return n.accept(this);

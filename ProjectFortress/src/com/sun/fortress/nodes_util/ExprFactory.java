@@ -44,7 +44,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
 
-    public static int defaultLexicalDepth = -2147483648;
+    public static final int defaultLexicalDepth = -2147483648;
 
     public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that,
                                                                       boolean parenthesized) {

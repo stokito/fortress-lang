@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -14,7 +14,9 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
+
 package com.sun.fortress.compiler.codegen.stubs.compiled2;
+
 import com.sun.fortress.nativeHelpers.*;
 import com.sun.fortress.compiler.runtimeValues.*;
 import com.sun.fortress.compiler.codegen.stubs.compiled2.fortress.*;
@@ -26,5 +28,5 @@ public class CompilerSystem {
             return FString.make(simpleSystem.nativeArg(n.getValue()));
         }
     }
-    public static args default_args = new args();
+    public static final args default_args = new args();
 }

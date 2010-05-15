@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions;
@@ -54,7 +54,7 @@ public class Transaction {
     private int count;
     private static AtomicInteger counter = new AtomicInteger();
 
-    public static boolean debug = false;
+    public static final boolean debug = false;
 
     // Used for debugging
     private ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>> updates;
@@ -101,36 +101,42 @@ public class Transaction {
 
     // Used for debugging, called from ReferenceCell
     public void addRead(ReferenceCell rc, FValue f) {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
-        ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
-        if (!m.containsKey(runner)) {
-            m.put(runner, "(read " + f + ")");
-        } else {
-            m.put(runner, m.get(runner) + "(read " + f + ")");
+        if (debug) {
+            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+            updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
+            ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+            if (!m.containsKey(runner)) {
+                m.put(runner, "(read " + f + ")");
+            } else {
+                m.put(runner, m.get(runner) + "(read " + f + ")");
+            }
         }
     }
 
     // Used for debugging, called from ReferenceCell
     public void addWrite(ReferenceCell rc, FValue f) {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
-        ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
-        if (!m.containsKey(runner)) {
-            m.put(runner, "( write " + f + ")");
-        } else {
-            String temp = m.get(runner) + "(write " + f + ")";
-            m.put(runner, temp);
+        if (debug) {
+            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+            updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
+            ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+            if (!m.containsKey(runner)) {
+                m.put(runner, "( write " + f + ")");
+            } else {
+                String temp = m.get(runner) + "(write " + f + ")";
+                m.put(runner, temp);
+            }
         }
     }
 
     // Used for debugging, called from ReferenceCell
     public void mergeUpdates(String s, Transaction t, ReferenceCell rc) {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
-        ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
-        if (!m.containsKey(runner)) m.put(runner, s);
-        else m.put(runner, m.get(runner) + s);
+        if (debug) {
+            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+            updates.putIfAbsent(rc, new ConcurrentHashMap<FortressTaskRunner, String>());
+            ConcurrentHashMap<FortressTaskRunner, String> m = updates.get(rc);
+            if (!m.containsKey(runner)) m.put(runner, s);
+            else m.put(runner, m.get(runner) + s);
+        }
     }
 
     public int getNestingDepth() {

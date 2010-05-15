@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 
 public class Useful {
 
-    static String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
+    static final String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
 
-    static public DateFormat localMilliDateFormat = new SimpleDateFormat(localMilliIso8601Format);
+    static public final DateFormat localMilliDateFormat = new SimpleDateFormat(localMilliIso8601Format);
 
     public static String localNow(java.util.Date d) {
         return localMilliDateFormat.format(d);
@@ -1089,7 +1089,7 @@ public class Useful {
         return e;
     }
 
-    public static StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
+    public static final StringMap sysMap = new StringMap.ComposedMaps(new StringMap.FromSysProps(), new StringMap.FromEnv());
 
     public static String substituteVars(String e, Pattern varPat, int intro_len, int outro_len) {
         return substituteVars(e, varPat, intro_len, outro_len, sysMap);

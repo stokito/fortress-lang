@@ -46,16 +46,16 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class NodeFactory {
-    public static int lexicalDepth = -2147483648;
-    public static Span internalSpan = makeSpan("Compiler internal generated.");
-    public static Span parserSpan = makeSpan("Parser generated.");
-    public static Span macroSpan = makeSpan("Syntactic abstraction generated.");
-    public static Span typeSpan = makeSpan("Type checker generated.");
-    public static Span desugarerSpan = makeSpan("Desugarer generated.");
-    public static Span interpreterSpan = makeSpan("Interpreter generated.");
-    public static Span shellSpan = makeSpan("Shell generated.");
-    public static Span unprinterSpan = makeSpan("Unprinter generated.");
-    public static Span testSpan = makeSpan("Test generated.");
+    public static final int lexicalDepth = -2147483648;
+    public static final Span internalSpan = makeSpan("Compiler internal generated.");
+    public static final Span parserSpan = makeSpan("Parser generated.");
+    public static final Span macroSpan = makeSpan("Syntactic abstraction generated.");
+    public static final Span typeSpan = makeSpan("Type checker generated.");
+    public static final Span desugarerSpan = makeSpan("Desugarer generated.");
+    public static final Span interpreterSpan = makeSpan("Interpreter generated.");
+    public static final Span shellSpan = makeSpan("Shell generated.");
+    public static final Span unprinterSpan = makeSpan("Unprinter generated.");
+    public static final Span testSpan = makeSpan("Test generated.");
 
     /**
      * For use only when there is no hope of
@@ -1266,7 +1266,7 @@ public class NodeFactory {
         return new IntersectionType(info, elems);
     }
 
-    public static Effect emptyEffect = makeEffect(makeSpan("singleton"));
+    public static final Effect emptyEffect = makeEffect(makeSpan("singleton"));
 
     /** Create an "empty" effect at the given location. */
     public static Effect makeEffect(SourceLoc loc) {

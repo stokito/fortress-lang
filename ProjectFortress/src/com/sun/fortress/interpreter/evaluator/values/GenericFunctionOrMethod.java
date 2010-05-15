@@ -69,7 +69,7 @@ public interface GenericFunctionOrMethod {
 
 
     static public class FunctionsAndState {
-        public static BATree<GenericFunctionOrMethod, List<FType>> symbolicStaticsByPartition =
+        protected static BATree<GenericFunctionOrMethod, List<FType>> symbolicStaticsByPartition =
                 new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
 
         public static void reset() {
