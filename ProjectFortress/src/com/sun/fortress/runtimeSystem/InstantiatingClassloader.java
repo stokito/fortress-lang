@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -55,13 +56,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final static ClassLoadChecker _classLoadChecker = new ClassLoadChecker();
 
+    private final Vector<String> history = new Vector<String>();
+
     private InstantiatingClassloader() {
-        // TODO Auto-generated constructor stub
+        throw new Error(); // Really do not call this.
     }
 
     private InstantiatingClassloader(ClassLoader parent) {
         super(parent);
-        // TODO Auto-generated constructor stub
+        // System.err.println("I am the one true class loader!");
+        if (ONLY != null)
+            throw new Error();
     }
 
     public static String dotToSlash(String s) {
@@ -117,7 +122,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // System.out.println("Loading class:" + name);
         return classData;
     }
-
+    
     protected Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException {
         Class clazz;
@@ -135,6 +140,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (_classLoadChecker.mustUseSystemLoader(name)) {
             clazz = findSystemClass(name);
         } else {
+            history.add(name);
             byte[] classData = null;
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
@@ -179,6 +185,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                                                            dename, left, right);
                     if (stem.equals("Arrow")) {
                         classData = instantiateArrow(dename, parameters);
+                        resolve = true;
                     } else if (stem.equals("AbstractArrow")) {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else {
@@ -274,13 +281,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     }
     
-    static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
-        System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
-        throw new Error("You're supposed to put a breakpoint here...");
-    }
-    
-
-
     /**
      * Emits code for the common prefix of a closure class.
      * 
@@ -303,7 +303,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param staticClass
      * @param sig
      */
-    public static void closureClassPrefix(String name,
+    public static String closureClassPrefix(String name,
                                           ManglingClassWriter cw,
                                           String staticClass,
                                           String sig) {
@@ -394,6 +394,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
                 sig, sig, sz, false);
+        
+        return fn;
 
     }
 
