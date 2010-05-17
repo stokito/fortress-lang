@@ -320,14 +320,17 @@ public final class StaticTestSuite extends TestSuite {
             System.setOut(oldOut);
 
             String message = "Source " + f + " produces static errors:";
+            StringBuffer buf = new StringBuffer();
+            buf.append(message);
             for (StaticError error : errors) {
                 try { throw error; }
                 catch (WrappedException e) {
                     e.getCause().printStackTrace();
-                    message += "\nStaticError (wrapped): " + e.getCause().toString();
+                    buf.append("\nStaticError (wrapped): " + e.getCause().toString());
                 }
-                catch (StaticError e) { message += "\nStaticError: " + e.toString(); }
+                catch (StaticError e) { buf.append("\nStaticError: " + e.toString()); }
             }
+            message = buf.toString();
             assertTrue(message, IterUtil.isEmpty(errors));
             if (VERBOSE) { System.out.println(f + "  OK"); }
         }

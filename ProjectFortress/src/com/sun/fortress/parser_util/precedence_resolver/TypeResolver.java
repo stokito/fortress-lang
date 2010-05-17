@@ -748,9 +748,12 @@ public class TypeResolver {
         }
         catch (Throwable e) {
             String msg = e.getMessage();
+            StringBuffer buf = new StringBuffer();
+            buf.append(msg);
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
-                msg += "\n  " + type.toString();
+                buf.append("\n  " + type.toString());
             }
+            msg = buf.toString();
             return error("Resolution of operator property failed for:\n" + msg);
         }
     }
@@ -768,9 +771,12 @@ public class TypeResolver {
         }
         catch (Throwable e) {
             String msg = e.getMessage();
+            StringBuffer buf = new StringBuffer();
+            buf.append(msg);
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
-                msg += "\n  " + type.toString();
+                buf.append("\n  " + type.toString());
             }
+            msg = buf.toString();
             return error("Resolution of operator property failed for:\n" + msg);
         }
     }

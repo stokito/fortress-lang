@@ -1053,9 +1053,12 @@ public class Resolver {
         }
         catch (ReadError e) {
             String msg = e.getMessage();
+            StringBuffer buf = new StringBuffer();
+            buf.append(msg);
             for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
-                msg += "\n  " + expr.toString();
+                buf.append("\n  " + expr.toString());
             }
+            msg = buf.toString();
             NodeUtil.log(writer, span, "Resolution of operator property failed for:\n    " + msg);
             return ExprFactory.makeVoidLiteralExpr(span);
         }

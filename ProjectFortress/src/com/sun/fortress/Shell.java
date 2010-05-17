@@ -980,10 +980,11 @@ public final class Shell {
     public static void assertStaticErrors(Iterable<? extends StaticError> errors,
                                          String expected) throws UserError {
         errors = IterUtil.sort(errors, StaticError.comparator);
-        String message = "";
+        StringBuffer buf = new StringBuffer();
         for ( StaticError error : errors ) {
-            message += error.getMessage() + "\n";
+            buf.append(error.getMessage() + "\n");
         }
+        String message = buf.toString();
         message = message.substring(0,message.length()-1);
         if ( ! message.equals(expected) )
             throw new UserError("Bad error message: " + message + "\n" +

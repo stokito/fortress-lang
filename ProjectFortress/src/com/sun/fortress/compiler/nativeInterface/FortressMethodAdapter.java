@@ -256,14 +256,17 @@ public class FortressMethodAdapter extends ClassAdapter {
         List<fortressConverter> convert_args = new ArrayList<fortressConverter>();
 
         String fsig = "(";
+        StringBuffer buf = new StringBuffer();
+        buf.append(fsig);
         for (String s : desc_args) {
              
             SignatureAndConverter s_a_c = toImplFFFF(s, name);
-            fsig = fsig + s_a_c.signature;
+            buf.append(s_a_c.signature);
             fortress_args.add(s_a_c.signature);
             
             convert_args.add(s_a_c.converter);
         }
+        fsig = buf.toString();
         SignatureAndConverter s_a_c = toImplFFFF(desc_result, name);
         fsig = fsig + ")" + s_a_c.signature;
         

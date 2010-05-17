@@ -129,16 +129,19 @@ public abstract class FortressException extends RuntimeException {
     @Override
     public String getMessage() {
         String msg = super.getMessage();
+        StringBuffer buf = new StringBuffer();
+        buf.append(msg);
         if (msg == null)
             msg = "";
         if (staticErrors != null) {
             for (StaticError se : staticErrors) {
                 if (msg.length() > 0) {
-                    msg = msg + "\n";
+                    buf.append("\n");
                 }
-                msg = msg + se.getMessage();
+                buf.append(se.getMessage());
             }
         }
+        msg = buf.toString();
         if (where.size() > 0) {
             StringBuffer res = new StringBuffer();
             res.append(where.get(0).at());
