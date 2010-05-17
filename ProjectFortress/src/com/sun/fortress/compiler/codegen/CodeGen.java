@@ -1259,7 +1259,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig);
+        String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
@@ -1455,7 +1455,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(GETSTATIC, class_file, table_name,"L"+table_type+";");
         mv.visitLdcInsn(template_class_name);
         mv.visitVarInsn(ALOAD, 3);
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassLoader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/Naming", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
         mv.visitVarInsn(ASTORE, 4);
         mv.visitLabel(l2);
         //mv.visitLineNumber(1335, l2);
