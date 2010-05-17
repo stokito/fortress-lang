@@ -280,9 +280,12 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                     List<BaseType> supers = node.getExtendsClause();
                     if (! supers.isEmpty()) {
                         bound += " extends";
+                        StringBuffer buf = new StringBuffer();
+                        buf.append(bound);
                         for (BaseType t : supers) {
-                            bound = bound + " " + t;
+                            buf.append(" " + t);
                         }
+                        bound = buf.toString();
                     }
                     return name + bound;
                 }

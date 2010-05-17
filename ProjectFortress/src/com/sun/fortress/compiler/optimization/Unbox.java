@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -59,13 +59,14 @@ abstract public class Unbox {
             return "S";
         if (b <= 32)
             return "I";
-        
-        String s = "J";
+
+        StringBuffer buf = new StringBuffer();
+        buf.append("J");
         while (b > 64) {
             b = b - 64;
-            s = s + "J";
+            buf.append("J");
         }
-        return s;
+        return buf.toString();
     }
     
     /**

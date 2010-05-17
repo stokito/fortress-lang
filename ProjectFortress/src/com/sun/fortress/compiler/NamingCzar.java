@@ -790,13 +790,15 @@ public class NamingCzar {
     // CodeGen, several methods
     public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
             String rangeDesc, APIName ifNone) {
-        String args = "";
         // This special case handles single void argument type properly.
         if (domain.size() == 1)
             return jvmSignatureFor(NodeUtil.optTypeOrPatternToType(domain.get(0).getIdType()).unwrap(), rangeDesc, ifNone);
+        String args = "";
+        StringBuffer buf = new StringBuffer();
         for (Param p : domain) {
-            args += jvmTypeDesc(NodeUtil.optTypeOrPatternToType(p.getIdType()), ifNone);
+            buf.append(jvmTypeDesc(NodeUtil.optTypeOrPatternToType(p.getIdType()), ifNone));
         }
+        args = buf.toString();
         return makeMethodDesc(args, rangeDesc);
     }
 
@@ -804,19 +806,21 @@ public class NamingCzar {
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
             String rangeDesc, int spliceAt, com.sun.fortress.nodes.Type spliceType, APIName ifNone) {
         String args = "";
-
         if (spliceAt == 0)
             args += jvmTypeDesc(spliceType, ifNone);
 
         if (domain instanceof com.sun.fortress.nodes.TupleType) {
             TupleType tt = (TupleType) domain;
             int i = 0;
+            StringBuffer buf = new StringBuffer();
+            buf.append(args);
             for (com.sun.fortress.nodes.Type p : tt.getElements()) {
-                args += jvmTypeDesc(p, ifNone);
+                buf.append(jvmTypeDesc(p, ifNone));
                 i++;
                 if (spliceAt == i)
-                    args += jvmTypeDesc(spliceType, ifNone);
+                    buf.append(jvmTypeDesc(spliceType, ifNone));
             }
+            args = buf.toString();
         } else {
             if (spliceAt < 0)
                 return jvmSignatureFor(domain, rangeDesc, ifNone);
@@ -937,11 +941,14 @@ public class NamingCzar {
             List<com.sun.fortress.nodes.Type> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone, String result) {
         result += Naming.LEFT_OXFORD;
-        if (params.size() > 0)
+        if (params.size() > 0) {
+            StringBuffer buf = new StringBuffer();
+            buf.append(result);
             for (com.sun.fortress.nodes.Type t : params) {
-                result += makeArrowDescriptor(t, ifNone) + ";";
+                buf.append(makeArrowDescriptor(t, ifNone) + ";");
             }
-        else {
+            result = buf.toString();
+        } else {
             result = result + Naming.INTERNAL_SNOWMAN + ";";
         }
 
@@ -1028,9 +1035,11 @@ public class NamingCzar {
         if (!t.getKeywords().isEmpty())
             throw new CompilerError(t,"Can't compile Keyword args yet");
         String res = "";
+        StringBuffer buf = new StringBuffer();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            res += makeArrowDescriptor(ty, ifNone) +  ';';
+            buf.append(makeArrowDescriptor(ty, ifNone) +  ';');
         }
+        res = buf.toString();
         return Useful.substring(res, 0, -1);
     }
 
@@ -1049,9 +1058,11 @@ public class NamingCzar {
     private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
                                       final APIName ifNone) {
         String r = "";
+        StringBuffer buf = new StringBuffer();
         for (com.sun.fortress.nodes.Type t : types) {
-            r += jvmTypeDesc(t, ifNone);
+            buf.append(jvmTypeDesc(t, ifNone));
         }
+        r = buf.toString();
         return r;
     }
 
@@ -1183,9 +1194,11 @@ public class NamingCzar {
                 if (!t.getKeywords().isEmpty())
                     throw new CompilerError(t,"Can't compile Keyword args yet");
                 String res = "";
+                StringBuffer buf = new StringBuffer();
                 for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-                    res += jvmTypeDesc(ty, ifNone);
+                    buf.append(jvmTypeDesc(ty, ifNone));
                 }
+                res = buf.toString();
                 return res;
             }
             @Override
@@ -1549,6 +1562,8 @@ public class NamingCzar {
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
+        StringBuffer buf = new StringBuffer();
+        buf.append(frag);
         int index = 1;
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
@@ -1559,9 +1574,10 @@ public class NamingCzar {
                 xlation.put(spn.getText(), tag);
             if (splist != null)
                 splist.add(spn.getText());
-            frag += spn.getText() + ";";
+            buf.append(spn.getText() + ";");
             index++;
         }
+        frag = buf.toString();
         // TODO Auto-generated method stub
         return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
     }
@@ -1575,13 +1591,16 @@ public class NamingCzar {
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
+        StringBuffer buf = new StringBuffer();
+        buf.append(frag);
         int index = 1;
         for (StaticArg sp : sargs) {
             String tag = sp.accept(spkTagger);
-            frag += tag;
-            frag += ";";
+            buf.append(tag);
+            buf.append(";");
             index++;
         }
+        frag = buf.toString();
         return Useful.substring(frag,0,-1) + Naming.RIGHT_OXFORD;
     }
 }

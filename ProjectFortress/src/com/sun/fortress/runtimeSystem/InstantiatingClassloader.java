@@ -585,11 +585,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         int l = parameters.size();
 
+        StringBuffer buf = new StringBuffer();
+        buf.append(sig);
         for (int i = 0; i < l-1; i++) {
             String s = parameters.get(i);
             if (! s.equals(Naming.INTERNAL_SNOWMAN))
-                sig += Naming.javaDescForTaggedFortressType(parameters.get(i));
+                buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
         }
+        sig = buf.toString();
         sig += ")";
         // nothing special here, yet, but AbstractArrow will be different.
         String rt = parameters.get(l-1);

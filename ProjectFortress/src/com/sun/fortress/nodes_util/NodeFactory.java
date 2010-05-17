@@ -1362,9 +1362,11 @@ public class NodeFactory {
         if ( id.getApiName().isSome() ) {
             APIName apiName = id.getApiName().unwrap();
             String name = "";
+            StringBuffer buf = new StringBuffer();
             for (Id n: apiName.getIds()) {
-                name += (n.getText() + ".");
+                buf.append(n.getText() + ".");
             }
+            name = buf.toString();
             return makeId(NodeUtil.getSpan(id), name + id.getText());
         } else
             return id;

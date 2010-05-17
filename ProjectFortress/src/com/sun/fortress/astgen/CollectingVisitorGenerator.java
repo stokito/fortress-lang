@@ -80,6 +80,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
     protected void outputForCaseOnly(NodeType t, TabPrintWriter writer, NodeType root) {
         List<String> recurDecls = new ArrayList<String>();
         String combArgs = "";
+        StringBuffer buf = new StringBuffer();
         for (Field f : t.allFields(ast)) {
             if (canRecurOn(f.type(), root)) {
                 TypeName result = resultType(f.type());
@@ -88,13 +89,14 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
                 String resultId = f.name() + "_result";
                 recurDecls.add(resultTy + " " + resultId);
                 if (combiner==null) {
-                    combArgs +=  ", " + resultId;
+                    buf.append(", " + resultId);
                 } else {
                     encounteredResultTypes.put(result, combiner);
-                    combArgs += ", " + combiner + resultId + ")";
+                    buf.append(", " + combiner + resultId + ")");
                 }
             }
         }
+        combArgs = buf.toString();
         outputForCaseHeader(t, writer, "RetType", "Only", recurDecls);
         writer.indent();
         writer.startLine("return combine(that");
@@ -212,10 +214,13 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         List<TypeArgumentName> tArgs = c.typeArguments();
         if (tArgs.size() == 0) return null;
         String res = c.className();
+        StringBuffer buf = new StringBuffer();
+        buf.append(res);
         for (TypeArgumentName ta : tArgs) {
             String in = combineInner(ta);
-            if (in != null) res += in;
+            if (in != null) buf.append(in);
         }
+        res = buf.toString();
         return res;
     }
 
@@ -227,15 +232,18 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         List<TypeArgumentName> tArgs = c.typeArguments();
         if (tArgs.size() == 0) return "combine(";
         boolean useRes = false;
+        StringBuffer buf = new StringBuffer();
+        buf.append(res);
         for (TypeArgumentName ta : tArgs) {
             String in = combineInner(ta);
             if (in==null) {
-                res += ta.name();
+                buf.append(ta.name());
             } else {
                 useRes = true;
-                res += in;
+                buf.append(in);
             }
         }
+        res = buf.toString();
         if (!useRes) return "combine(";
         return "combine" + res + "(";
     }

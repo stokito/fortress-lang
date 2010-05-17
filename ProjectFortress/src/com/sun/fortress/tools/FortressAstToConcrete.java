@@ -92,11 +92,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     /* returns number copies of s */
     private String makeCopies(int number, String s) {
-        String result = s;
+        StringBuffer buf = new StringBuffer();
+        buf.append(s);
         for (int index = 1; index < number; index++) {
-            result += s;
+            buf.append(s);
         }
-        return result;
+        return buf.toString();
     }
 
     /* returns a string beginning with 'kind' followed by a sequence of elements

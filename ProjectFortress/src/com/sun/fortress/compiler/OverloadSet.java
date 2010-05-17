@@ -821,20 +821,24 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     private static String overloadedDomainSig(IntersectionType t, int paramCount, TypeAnalyzer ta) {
         String s = "(";
-
+        StringBuffer buf = new StringBuffer();
+        buf.append(s);
         for (int i = 0; i < paramCount; i++) {
-            s += NamingCzar.jvmTypeDesc(getParamType(t, i, paramCount, ta), null);
+            buf.append(NamingCzar.jvmTypeDesc(getParamType(t, i, paramCount, ta), null));
         }
+        s = buf.toString();
         s += ")";
         return s;
     }
 
     private String overloadedDomainSig() {
         String s = "(";
-
+        StringBuffer buf = new StringBuffer();
+        buf.append(s);
         for (Type t : overloadedDomain()) {
-            s += NamingCzar.jvmTypeDesc(t, ifNone);
+            buf.append(NamingCzar.jvmTypeDesc(t, ifNone));
         }
+        s = buf.toString();
         s += ")";
         return s;
     }

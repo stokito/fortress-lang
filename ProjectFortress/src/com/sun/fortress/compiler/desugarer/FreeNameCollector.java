@@ -664,9 +664,12 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             LocalVarDecl cast = (LocalVarDecl) declSite;
             String name = "LocalVarDecl";
             List<LValue> lhs = cast.getLhs();
+            StringBuffer buf = new StringBuffer();
+            buf.append(name);
             for(LValue lvalue : lhs) {
-                name += ( "_" + lvalue.getName().getText() );
+                buf.append( "_" + lvalue.getName().getText() );
             }
+            name = buf.toString();
             return new Pair<String,Span>( name, NodeUtil.getSpan(cast) );
         } else {
             throw new DesugarerError("Unexpected node type to " +
