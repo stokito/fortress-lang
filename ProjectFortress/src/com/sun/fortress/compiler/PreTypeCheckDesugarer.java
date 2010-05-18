@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -114,13 +114,7 @@ public class PreTypeCheckDesugarer {
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
         Component comp = (Component) component.ast();
-
-        /* To add a desugaring over a component, go to method desugarComponent
-         * and assign to variable comp the result of running your desugaring over comp. If you have
-         * written your desugaring as a visitor, simply write:
-         *
-         * comp = comp.accept(<your visitor>);
-         */
+        comp = (Component) new PatternMatchingDesugarer().walk(comp);
         return comp;
     }
 }

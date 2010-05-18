@@ -93,6 +93,10 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                                             rewriteExtendsClause(that, header_result.getExtendsClause()));
         }
 
+        TraitDecl td = (TraitDecl)super.forTraitDeclOnly(that, that.getInfo(), header_result,
+                                      that.getSelfType(),
+                                      excludesClause_result,
+                                      comprisesClause_result);
         return super.forTraitDeclOnly(that, that.getInfo(), header_result,
                                       that.getSelfType(),
                                       excludesClause_result,

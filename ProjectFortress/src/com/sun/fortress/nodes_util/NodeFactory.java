@@ -281,43 +281,6 @@ public class NodeFactory {
         return new AliasedAPIName(makeSpanInfo(span), api, alias);
     }
 
-    public static TraitDecl makeTraitDecl(Span span, Id name,
-                                          List<StaticParam> sparams,
-                                          List<TraitTypeWhere> extendsC,
-                                          Option<SelfType> selfType) {
-        return makeTraitDecl(span, Modifiers.None, name,
-                             sparams, extendsC, Option.<WhereClause>none(),
-                             Collections.<Decl>emptyList(),
-                             Collections.<BaseType>emptyList(),
-                             Option.<List<NamedType>>none(),selfType);
-    }
-
-    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
-                                          List<StaticParam> sparams,
-                                          List<TraitTypeWhere> extendsC,
-                                          Option<WhereClause> whereC,
-                                          List<Decl> decls,
-                                          List<BaseType> excludesC,
-                                          Option<List<NamedType>> comprisesC,
-                                          Option<SelfType> selfType) {
-        return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
-                             excludesC, comprisesC, false, selfType);
-    }
-
-    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
-                                          List<StaticParam> sparams,
-                                          List<TraitTypeWhere> extendsC,
-                                          Option<WhereClause> whereC,
-                                          List<Decl> decls,
-                                          List<BaseType> excludesC,
-                                          Option<List<NamedType>> comprisesC,
-                                          boolean comprisesEllipses,
-                                          Option<SelfType> selfType) {
-        return makeTraitDecl(span, mods, name, sparams, Option.<List<Param>>none(),
-                             extendsC, whereC, decls,
-                             excludesC, comprisesC, false, selfType);
-    }
-
     public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
                                           List<StaticParam> sparams,
                                           Option<List<Param>> params,
@@ -1619,7 +1582,7 @@ public class NodeFactory {
         return makeTraitTypeHeader(header.getMods(), header.getName(),
                                    header.getStaticParams(), header.getWhereClause(),
                                    header.getThrowsClause(), header.getContract(),
-                                   extendsC, header.getDecls());
+                                   extendsC, header.getParams(), header.getDecls());
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
@@ -1660,18 +1623,6 @@ public class NodeFactory {
                                    Option.<WhereClause>none(),
                                    Option.<List<Type>>none(), Option.<Contract>none(),
                                    extendsClause, Option.<List<Param>>none(), decls);
-    }
-
-    public static TraitTypeHeader makeTraitTypeHeader(Modifiers mods,
-                                                      IdOrOpOrAnonymousName name,
-                                                      List<StaticParam> staticParams,
-                                                      Option<WhereClause> whereClause,
-                                                      Option<List<Type>> throwsClause,
-                                                      Option<Contract> contract,
-                                                      List<TraitTypeWhere> extendsClause,
-                                                      List<Decl> decls) {
-        return makeTraitTypeHeader(mods, name, staticParams, whereClause, throwsClause,
-                                   contract, extendsClause, Option.<List<Param>>none(), decls);
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(Modifiers mods,

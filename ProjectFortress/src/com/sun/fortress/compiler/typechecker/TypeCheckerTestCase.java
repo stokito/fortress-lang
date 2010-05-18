@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -74,8 +75,13 @@ public abstract class TypeCheckerTestCase extends TestCase {
             BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
-        TraitDecl ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name), sparams,
-                                                  extendsClause, Option.<SelfType>none());
+        TraitDecl ast = NodeFactory.makeTraitDecl(span, Modifiers.None, NodeFactory.makeId(span, name),
+                                                  sparams, Option.<List<Param>>none(),
+                                                  extendsClause, Option.<WhereClause>none(),
+                                                  Collections.<Decl>emptyList(),
+                                                  Collections.<BaseType>emptyList(),
+                                                  Option.<List<NamedType>>none(), false,
+                                                  Option.<SelfType>none());
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),

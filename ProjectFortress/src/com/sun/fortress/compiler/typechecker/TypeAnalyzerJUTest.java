@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -38,6 +38,7 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -478,14 +479,26 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         TraitDecl ast;
         if (absDecl) {
-            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
+            ast = NodeFactory.makeTraitDecl(span, Modifiers.None, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause, Option.<SelfType>none());
+                                            Option.<List<Param>>none(),
+                                            extendsClause,
+                                            Option.<WhereClause>none(),
+                                            Collections.<Decl>emptyList(),
+                                            Collections.<BaseType>emptyList(),
+                                            Option.<List<NamedType>>none(), false,
+                                            Option.<SelfType>none());
         }
         else {
-            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
+            ast = NodeFactory.makeTraitDecl(span, Modifiers.None, NodeFactory.makeId(span, name),
                                             Collections.<StaticParam>emptyList(),
-                                            extendsClause, Option.<SelfType>none());
+                                            Option.<List<Param>>none(),
+                                            extendsClause,
+                                            Option.<WhereClause>none(),
+                                            Collections.<Decl>emptyList(),
+                                            Collections.<BaseType>emptyList(),
+                                            Option.<List<NamedType>>none(), false,
+                                            Option.<SelfType>none());
         }
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),

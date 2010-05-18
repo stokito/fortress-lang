@@ -116,11 +116,13 @@ object TypeParser extends RegexParsers {
                               Modifiers.None,
                               tId,
                               toJavaList(sparams),
+                              toJavaOption(None),
                               toJavaList(superWheres),
                               none[WhereClause],
                               toJavaList[Decl](Nil),
                               toJavaList(excludes),
                               toJavaOption(comprises),
+                              false,
                               some(selfType))
       val ti = new ProperTraitIndex(ast,
                                     toJavaMap(Map()),
