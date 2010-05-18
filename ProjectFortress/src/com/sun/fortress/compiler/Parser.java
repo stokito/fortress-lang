@@ -149,6 +149,8 @@ public class Parser {
         } finally {
             try {
                 Files.rm( f.getCanonicalPath() + ".preparserError.log" );
+            } catch (IOException ioe) {}
+            try {
                 Files.rm( f.getCanonicalPath() + ".macroError.log" );
             } catch (IOException ioe) {}
         }
@@ -365,6 +367,8 @@ public class Parser {
         } finally {
             try {
                 Files.rm( parserLogFile );
+            } catch (IOException ioe) {}
+            try {
                 Files.rm( syntaxLogFile );
                 in.close();
             } catch (IOException ioe) {}
@@ -379,12 +383,17 @@ public class Parser {
             BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
             String line = reader.readLine();
             String message = "";
+            StringBuffer buf = new StringBuffer();
             while ( line != null ) {
                 if ( beginError(line) && !message.equals("") ) {
                     errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                    message = line + "\n";
-                } else
-                    message += line + "\n";
+                    buf = new StringBuffer();
+                    buf.append(line + "\n");
+                    message = buf.toString();
+                } else {
+                    buf.append(line + "\n");
+                    message = buf.toString();
+                }
                 line = reader.readLine();
             }
             if ( ! message.equals("") )
@@ -417,8 +426,10 @@ public class Parser {
             List<StaticError> errors = getSyntaxErrors( preparserLogFile );
             return errors;
         } finally {
-            Files.rm( preparserLogFile );
-            in.close();
+            try {
+                Files.rm( preparserLogFile );
+                in.close();
+            } catch (IOException e) {}
         }
     }
 

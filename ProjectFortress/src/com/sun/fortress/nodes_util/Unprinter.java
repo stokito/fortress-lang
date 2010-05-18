@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -512,19 +512,19 @@ public class Unprinter extends NodeReflection {
     private static Character afterBackslash(char c) {
         switch (c) {
         case '\b':
-            return new Character('b');
+            return Character.valueOf('b');
         case '\t':
-            return new Character('t');
+            return Character.valueOf('t');
         case '\n':
-            return new Character('n');
+            return Character.valueOf('n');
         case '\f':
-            return new Character('f');
+            return Character.valueOf('f');
         case '\r':
-            return new Character('r');
+            return Character.valueOf('r');
         case '\"':
-            return new Character('\"');
+            return Character.valueOf('\"');
         case '\\':
-            return new Character('\\');
+            return Character.valueOf('\\');
         default:
             return bug("Invalid input, character value 0x" + Integer.toHexString(c));
         }

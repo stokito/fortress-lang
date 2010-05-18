@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -134,8 +134,9 @@ Op Op =
 
 transient private String Symbols =
      a1s:Symbol+
-     { yyValue = "";
-       for (String n: a1s.list()) yyValue += n;
+     { StringBuffer buf = new StringBuffer();
+       for (String n: a1s.list()) buf.append(n);
+       yyValue = buf.toString();
      };
 
 transient private String Symbol = [+] ;

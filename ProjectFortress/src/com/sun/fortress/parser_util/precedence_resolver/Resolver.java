@@ -46,7 +46,6 @@ import java.util.List;
  */
 public class Resolver {
 
-    private BufferedWriter writer;
     private static boolean noSpace = false;
 
     // let is_div op = op.node_data = "/"

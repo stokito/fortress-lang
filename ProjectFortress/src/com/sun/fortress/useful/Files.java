@@ -26,16 +26,19 @@ import java.io.*;
  * This convenience class provides a simple API for common file actions.
  */
 public class Files {
-    public static void rm(String name) {
-        new File(name).delete();
+    public static void rm(String name) throws IOException {
+        if (! new File(name).delete())
+            throw new IOException();
     }
 
-    public static void mkdir(String name) {
-        new File(name).mkdir();
+    public static void mkdir(String name) throws IOException {
+        if (! new File(name).mkdir())
+            throw new IOException();
     }
 
-    public static void mv(String src, String dest) {
-        new File(src).renameTo(new File(dest));
+    public static void mv(String src, String dest) throws IOException {
+        if (! new File(src).renameTo(new File(dest)))
+            throw new IOException();
     }
 
     public static File[] ls(String name) {

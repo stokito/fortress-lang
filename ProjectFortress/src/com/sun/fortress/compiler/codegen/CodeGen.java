@@ -3343,7 +3343,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv.visitInsn(Opcodes.DUP);
                 
                 // compute hashcode statically, push constant,
-                mv.visitLdcInsn(new Long(hash_sargs));
+                mv.visitLdcInsn(Long.valueOf(hash_sargs));
                 
                 // compute String, push constant
                 mv.visitLdcInsn(string_sargs);

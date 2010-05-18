@@ -64,8 +64,6 @@ public final class Shell {
     public static final String turnOnDebugMessage =
         "Turn on \"-debug interpreter\" for Java-level stack trace.";
 
-    static boolean test;
-
     /* This object groups in one place all the public static flags that
      * we had lying around before.  To set a flag on / off, one must
      * invoke its corresonding static method in Shell to do so.
@@ -127,14 +125,15 @@ public final class Shell {
         removeFiles(cache);
     }
 
-    private static void removeFiles(File file) {
+    private static void removeFiles(File file) throws IOException {
         if (file.exists() && file.isDirectory()) {
             for (File f : file.listFiles()) {
                 removeFiles(f);
             }
         }
         else if (file.exists() && ! file.isDirectory()) {
-            file.delete();
+            if (! file.delete())
+                throw new IOException();
         }
     }
 
@@ -536,10 +535,12 @@ public final class Shell {
                 System.err.println( line );
                 line = reader.readLine();
             }
-            Files.rm( logFile );
+            try { Files.rm( logFile ); }
+            catch (IOException e) {}
             throw new UserError("Missing types from the component.");
         }
-        Files.rm( logFile );
+        try { Files.rm( logFile ); }
+        catch (IOException e) {}
         if ( result.isNone() )
             throw new UserError("The api command needs a Fortress component file.");
         Api a = (Api) result.unwrap();
@@ -694,7 +695,8 @@ public final class Shell {
         } catch ( FileNotFoundException f ){
             throw new UserError(file + " not found");
         } finally {
-            Files.rm( file + ".preparserError.log" );
+            try { Files.rm( file + ".preparserError.log" ); }
+            catch (IOException e) {}
         }
         return return_code;
     }
