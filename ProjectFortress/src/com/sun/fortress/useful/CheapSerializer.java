@@ -293,7 +293,7 @@ abstract public class CheapSerializer<T> {
 
         @Override
         public Integer read(InputStream i) throws IOException {
-            return new Integer(readInt(i));
+            return Integer.valueOf(readInt(i));
         }
 
         @Override

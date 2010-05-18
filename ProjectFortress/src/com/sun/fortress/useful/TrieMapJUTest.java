@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -107,7 +107,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, screwsMap.size());
         for (int i = 0; i < screws.length; i++) {
             boolean b = screwsMap.containsKey(screws[i]);
-            assertEquals(new Integer(i), screwsMap.get(screws[i]));
+            assertEquals(Integer.valueOf(i), screwsMap.get(screws[i]));
         }
         for (int i = 0; i < animals.length; i++) {
             assertFalse(screwsMap.containsKey(animals[i]));
@@ -131,11 +131,11 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, bothMap.size());
         for (int i = 0; i < animals.length; i++) {
             boolean b = bothMap.containsKey(animals[i]);
-            assertEquals(new Integer(i), bothMap.get(animals[i]));
+            assertEquals(Integer.valueOf(i), bothMap.get(animals[i]));
         }
         for (int i = 0; i < screws.length; i++) {
             boolean b = bothMap.containsKey(screws[i]);
-            assertEquals(new Integer(i), bothMap.get(screws[i]));
+            assertEquals(Integer.valueOf(i), bothMap.get(screws[i]));
         }
         assertEquals(bothMap, bothMap);
     }
@@ -151,7 +151,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, animalsMap.size());
         for (int i = 0; i < animals.length; i++) {
             boolean b = animalsMap.containsKey(animals[i]);
-            assertEquals(new Integer(i), animalsMap.get(animals[i]));
+            assertEquals(Integer.valueOf(i), animalsMap.get(animals[i]));
         }
         for (int i = 0; i < screws.length; i++) {
             assertFalse(animalsMap.containsKey(screws[i]));
@@ -194,7 +194,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         TrieMap<Integer> srcMap = new TrieMap<Integer>();
         for (int i = 0; i < src.length; i++) {
             assertFalse(initialMap.equals(srcMap));
-            srcMap.put(src[i], new Integer(perm[i]));
+            srcMap.put(src[i], Integer.valueOf(perm[i]));
             srcMap.check();
         }
         // System.out.println("permuted: "+srcMap);

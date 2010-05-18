@@ -47,8 +47,11 @@ transient IntLiteralExpr IntLiteralExpr =
 NumberLiteralExpr NumericLiteralExpr =
      NumericLiteralWithRadix
    / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
-     { String numeral = a1;
-       for (String n: a2s.list()) numeral += n;
+     { String numeral;
+       StringBuffer buf = new StringBuffer();
+       buf.append(a1);
+       for (String n: a2s.list()) buf.append(n);
+       numeral = buf.toString();
        Span span = createSpan(yyStart,yyCount);
        NodeUtil.validNumericLiteral(writer, span, numeral);
        if ( NodeUtil.validIntLiteral(numeral) )
@@ -58,8 +61,11 @@ NumberLiteralExpr NumericLiteralExpr =
 
 private NumberLiteralExpr NumericLiteralWithRadix =
      a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
-     { String numeral = a1;
-       for (String n: a2s.list()) numeral += n;
+     { String numeral;
+       StringBuffer buf = new StringBuffer();
+       buf.append(a1);
+       for (String n: a2s.list()) buf.append(n);
+       numeral = buf.toString();
        Span span = createSpan(yyStart,yyCount);
        NodeUtil.validNumericLiteral(writer, span, numeral, a3);
        numeral += "_"+NodeUtil.radix2Number(a3);
@@ -71,7 +77,9 @@ private NumberLiteralExpr NumericLiteralWithRadix =
 private transient String NumericWord =
      a1s:NumericCharacter+
      { yyValue = "";
-       for (String n: a1s.list()) yyValue += n;
+       StringBuffer buf = new StringBuffer();
+       for (String n: a1s.list()) buf.append(n);
+       yyValue = buf.toString();
      };
 private transient String NumericCharacter = [0-9a-zA-Z];
 

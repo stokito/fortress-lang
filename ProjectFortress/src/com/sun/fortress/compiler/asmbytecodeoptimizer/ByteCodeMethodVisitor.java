@@ -121,7 +121,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitLabel(Label label) {
-        labelNames.put(label.toString(), new Integer(insns.size()));
+        labelNames.put(label.toString(), Integer.valueOf(insns.size()));
         insns.add(new LabelInsn("Label", label));
     }
 

@@ -52,7 +52,7 @@ public class BasicBlockGenerator {
                 Integer destination = (Integer) bcmv.labelNames.get(l.toString());
                 bcmv.insns.get(destination.intValue()).markStartOfBasicBlock();
                 bcmv.insns.get(i-1).addNext(destination);
-                bcmv.insns.get(i-1).addNext(new Integer(i));
+                bcmv.insns.get(i-1).addNext(Integer.valueOf(i));
             } else if ((bcmv.insns.get(i-1) instanceof LookupSwitchInsn) ||
                 (bcmv.insns.get(i-1) instanceof TableSwitchInsn))
                 throw new RuntimeException("NYI: Switch Insns are not implemented yet");

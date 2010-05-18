@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
@@ -80,13 +80,13 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
 
             // tuple case
             if (i instanceof IUOTuple) {
-                element_rank = new Integer(((IUOTuple) i).rank);
+                element_rank = Integer.valueOf(((IUOTuple) i).rank);
                 if (rank_seen < 0) {
                     rank_seen = element_rank.intValue();
                 } else if (rank_seen != element_rank.intValue()) {
                     element_rank = error(at, errorMsg("Mixed-rank pastings within array/matrix paste"));
                 }
-                element_rank = new Integer(((IUOTuple) i).elementRank);
+                element_rank = Integer.valueOf(((IUOTuple) i).elementRank);
 
                 // non-tuple #1 -- there should be no other tuple elements
             } else if (rank_seen > 0) {
@@ -94,7 +94,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                 // The rank is negative or zero, make it zero
             } else {
                 rank_seen = 0;
-                element_rank = new Integer(Glue.arrayRank(i));
+                element_rank = Integer.valueOf(Glue.arrayRank(i));
             }
 
             // Sanity-check the element rank; they had better all match.
