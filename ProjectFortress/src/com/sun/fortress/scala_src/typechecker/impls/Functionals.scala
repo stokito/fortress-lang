@@ -472,7 +472,7 @@ trait Functionals { self: STypeChecker with Common =>
     // Instantiate the arrows if you were given static args
     if (!sargs.isEmpty) {
       arrowsAndSchemata = arrowsAndSchemata.
-        flatMap(a => instantiateStaticParams(sargs, a._1).
+        flatMap(a => staticInstantiation(sargs, a._1).
             map(x => (x.asInstanceOf[ArrowType],a._2)))
     }
 
@@ -622,7 +622,7 @@ trait Functionals { self: STypeChecker with Common =>
         case ov@SOverloading(_, _, _, Some(ty), _) if sargs.isEmpty => Some(ov)
 
         case SOverloading(info, name, origName, Some(ty), schema) =>
-          instantiateStaticParams(sargs, ty).map { t =>
+          staticInstantiation(sargs, ty).map { t =>
             SOverloading(info, name, origName, Some(t.asInstanceOf[ArrowType]), schema)
           }
 
