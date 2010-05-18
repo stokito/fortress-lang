@@ -1264,7 +1264,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
 
-        cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
+        cg.generateActualMethodCode(modifiers, applied_method, sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
         cg.cw.dumpClass(PCN_for_file, splist);
@@ -1455,7 +1455,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(GETSTATIC, class_file, table_name,"L"+table_type+";");
         mv.visitLdcInsn(template_class_name);
         mv.visitVarInsn(ALOAD, 3);
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/Naming", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
         mv.visitVarInsn(ASTORE, 4);
         mv.visitLabel(l2);
         //mv.visitLineNumber(1335, l2);
@@ -1969,9 +1969,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
         // This creates the closure bits
-        InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
+        String forwarding_method_name =
+            InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
 
-        InstantiatingClassloader.forwardingMethod(cg.cw, mname, modifiers,
+        InstantiatingClassloader.forwardingMethod(cg.cw, forwarding_method_name, modifiers,
                 selfIndex,
                 //traitOrObjectName+sparams_part,
                 traitOrObjectName,
@@ -2213,6 +2214,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Pair<String, String> calleeInfo = functionalRefToPackageClassAndMethod(x);
 
         String pkgClass = calleeInfo.first();
+        String theFunction = calleeInfo.second();
 
         if (decoration.length() > 0) {
             // debugging reexecute
@@ -2238,13 +2240,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             pkgClass =
                 Naming.genericFunctionPkgClass(pkgClass, calleeInfo.second(),
                                                    decoration, arrow_type);
+            theFunction = Naming.APPLIED_METHOD;
 
             // pkgClass = pkgClass.replace(".", "/");
             // DEBUG, for looking at the schema append to a reference.
             // System.err.println("At " + x.getInfo().getSpan() + ", " + pkgClass);
         }
 
-        callStaticSingleOrOverloaded(x, arrow, pkgClass, calleeInfo.second());
+        callStaticSingleOrOverloaded(x, arrow, pkgClass, theFunction);
     }
 
     /**
@@ -2599,7 +2602,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
                 // This creates the closure bits
-                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
+                // The name is disambiguated by the class in which it appears.
+                mname = InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
             } else {
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, "");
             }

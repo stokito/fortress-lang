@@ -82,6 +82,7 @@ public class Naming {
     public final static String NATIVE_PREFIX_DOT = "native.";
 
     public final static String APPLY_METHOD = "apply";
+    public final static String APPLIED_METHOD = "the_function";
 
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
 
@@ -722,46 +723,5 @@ public class Naming {
             String static_parameters, String generic_arrow_schema) {
         return component_pkg_class + GEAR +"$" +
         simple_name + static_parameters + ENVELOPE + "$" + HEAVY_X + generic_arrow_schema;
-    }
-
-    static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
-        System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
-        
-        // Sample tcn = Compiled15GEAR$UPINDEXf⟦☝;S⟧ENVELOPE$✖Arrow⟦☝;com/sun/fortress/compiler/runtimeValues/FZZ32⟧
-        int up_index = tcn.indexOf(UP_INDEX);
-        int envelope = tcn.indexOf(ENVELOPE); // Preceding char is RIGHT_OXFORD;
-        int begin_static_params = tcn.indexOf(LEFT_OXFORD, up_index);
-        int gear_index = tcn.indexOf(GEAR);
-        String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
-        
-        String class_we_want = tcn.substring(0,begin_static_params+1) + self_class + ";" + sig.substring(1) + tcn.substring(envelope);
-        class_we_want = mangleFortressIdentifier(class_we_want);
-        Class cl;
-        try {
-            cl = Class.forName(class_we_want);
-            synchronized (t) {
-                Object o = t.get(l);
-                if (o == null) {
-                    o = cl.newInstance();
-                    t.put(l,o);
-                }
-                Class scl = cl.getSuperclass();
-                Class[] ifs = cl.getInterfaces();
-                Class[] sifs = scl.getInterfaces();
-                boolean castWorks = sifs[0].isAssignableFrom(o.getClass());
-                return o;
-            }
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        throw new Error("Not supposed to happen; some template class must be missing.");
     }
 }

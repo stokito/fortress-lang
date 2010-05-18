@@ -1038,6 +1038,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         String PCNOuter = null;
         List<String> splist = null;
+        
+        String overloaded_name = oMangle(name);
+        
         if (sargs != null) {
             Map<String, String> xlation = new HashMap<String, String>();
             splist = new ArrayList<String>();
@@ -1074,11 +1077,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             //                    "\n    PCN " + PCN +
             //                    "\n    PCNOuter " + PCNOuter);
             cv = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cv);
-            InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature);
+            overloaded_name = InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature);
         }
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
                     + Opcodes.ACC_STATIC, // access,
-                    oMangle(name), // name,
+                    overloaded_name, // name,
                     signature, // sp.getFortressifiedSignature(),
                     null, // signature, // depends on generics, I think
                     exceptions); // exceptions);
@@ -1149,6 +1152,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 ownerName =
                     Naming.genericFunctionPkgClass(ownerName, mname,
                                                        sparamsType, genericArrowType);
+                mname = Naming.APPLIED_METHOD;
             }
             
             if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
