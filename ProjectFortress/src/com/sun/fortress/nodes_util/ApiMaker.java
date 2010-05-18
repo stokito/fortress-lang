@@ -138,11 +138,13 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                     NodeUtil.getMods(that),
                                                     NodeUtil.getName(that),
                                                     NodeUtil.getStaticParams(that),
+                                                    NodeUtil.getParams(that),
                                                     NodeUtil.getExtendsClause(that),
                                                     NodeUtil.getWhereClause(that),
                                                     absDecls,
                                                     NodeUtil.getExcludesClause(that),
                                                     NodeUtil.getComprisesClause(that),
+                                                    NodeUtil.isComprisesEllipses(that),
                                                     that.getSelfType()));
         } else return Option.<Node>none();
     }

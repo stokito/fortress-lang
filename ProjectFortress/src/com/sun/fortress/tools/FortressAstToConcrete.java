@@ -405,6 +405,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> staticParams_result = recurOnListOfStaticParam(NodeUtil.getStaticParams(that));
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
             Option<String> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
+            Option<List<String>> params_result = recurOnOptionOfListOfParam(NodeUtil.getParams(that));
             List<String> excludes_result = recurOnListOfBaseType(NodeUtil.getExcludesClause(that));
             Option<List<String>> comprises_result = recurOnOptionOfListOfNamedType(NodeUtil.getComprisesClause(that));
             List<String> decls_result = myRecurOnListOfDecl(NodeUtil.getDecls(that));
@@ -414,6 +415,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                     extendsClause_result,
                                     where_result,
                                     decls_result,
+                                    params_result,
                                     excludes_result,
                                     comprises_result);
         }
@@ -425,6 +427,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                    List<String> extendsClause_result,
                                    Option<String> where_result,
                                    List<String> decls_result,
+                                   Option<List<String>> params_result,
                                    List<String> excludes_result,
                                    Option<List<String>> comprises_result) {
         StringBuilder s = new StringBuilder();
@@ -433,6 +436,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         showMods(s, NodeUtil.getMods(that));
         s.append("trait ").append(name_result);
         inOxfordBrackets(s, staticParams_result);
+        if (params_result.isSome()) {
+            s.append(inParentheses(inParentheses(params_result.unwrap())));
+        }
         s = optCurlyBraces(s, " extends ", extendsClause_result, "");
         if (where_result.isSome()) s.append(" ").append(where_result.unwrap());
         s = optCurlyBraces(s, " excludes ", excludes_result, "");
