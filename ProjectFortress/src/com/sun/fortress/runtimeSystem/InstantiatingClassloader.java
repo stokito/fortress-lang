@@ -271,10 +271,48 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return Naming.mangleFortressIdentifier(s);
     }
 
+    static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
+        if (LOG_LOADS)
+            System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
+        
+        // Sample tcn = Compiled15GEAR$UPINDEXf⟦☝;S⟧ENVELOPE$✖Arrow⟦☝;com/sun/fortress/compiler/runtimeValues/FZZ32⟧
+        int up_index = tcn.indexOf(Naming.UP_INDEX);
+        int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
+        int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
+        int gear_index = tcn.indexOf(Naming.GEAR);
+        String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
+        
+        String class_we_want = tcn.substring(0,begin_static_params+1) + self_class + ";" + sig.substring(1) + tcn.substring(envelope);
+        class_we_want = Naming.mangleFortressIdentifier(class_we_want);
+        Class cl;
+        try {
+            cl = Class.forName(class_we_want);
+            synchronized (t) {
+                Object o = t.get(l);
+                if (o == null) {
+                    o = cl.newInstance();
+                    t.put(l,o);
+                }
+                return o;
+            }
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        throw new Error("Not supposed to happen; some template class must be missing.");
+    }
+
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
-        closureClassPrefix(name, cw, null, null);
+        closureClassPrefix(name, cw, null, null, true);
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -304,16 +342,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param sig
      */
     public static String closureClassPrefix(String name,
+            ManglingClassWriter cw,
+            String staticClass,
+            String sig) {
+        return closureClassPrefix(name, cw, staticClass, sig, false);
+        
+    }
+        public static String closureClassPrefix(String name,
                                           ManglingClassWriter cw,
                                           String staticClass,
-                                          String sig) {
+                                          String sig,
+                                          boolean is_forwarding_closure) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
 
         String api = name.substring(0,last_dot);
         String suffix = name.substring(last_dot+1);
         env_loc = suffix.indexOf(Naming.ENVELOPE); // followed by $
-        String fn = suffix.substring(0,env_loc);
+        String fn = is_forwarding_closure ? suffix.substring(0,env_loc): Naming.APPLIED_METHOD; 
         String ft = suffix.substring(env_loc+2); // skip $ following ENVELOPE
 
         // Normalize out leading HEAVY_X, if there is one.
