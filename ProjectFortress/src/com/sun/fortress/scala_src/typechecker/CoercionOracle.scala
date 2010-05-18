@@ -108,8 +108,11 @@ class CoercionOracle(traits: TraitTable,
     // Get the instantiated coercion arrow.
     def instantiateArrow(c: Coercion): Option[LiftedCoercion] = {
       makeArrowFromFunctional(c).flatMap(arrow =>
-        instantiateLiftedStaticParams(sargs, arrow).map(instArrow =>
-          (c, instArrow.asInstanceOf[ArrowType], arrow)))
+        staticInstantiation(sargs,
+                            arrow,
+                            applyLifted = true,
+                            applyUnlifted = false)
+          .map(instArrow => (c, instArrow.asInstanceOf[ArrowType], arrow)))
     }
 
     // Get all the arrows that were found.

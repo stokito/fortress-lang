@@ -502,29 +502,39 @@ object STypesUtil {
 
   /**
    * Replaces occurrences of static parameters with corresponding static
-   * arguments in the given body type. If alpha is not selected the static parameters
-   * will be cleared
+   * arguments in the given body type. By default, only the unlifted static
+   * params will be instantiated. Use the `applyLifted` and `applyUnlifted`
+   * named args to switch behavior at call site.
    *
    * @param args A list of static arguments to apply to the generic type body.
    * @param sparams A list of static parameters
    * @param body The generic type whose static parameters are to be replaced.
+   * @param applyLifted If true, the static args should instantiate lifted
+   *     static params. Should always be given as a named arg. Default is false.
+   * @param applyUnlifted If true, the static args should instantiate unlifted
+   *     static params. Should always be given as a named arg. Default is true.
    * @return An option of a type identical to body but with every occurrence of
    *         one of its declared static parameters replaced by corresponding
    *         static args. If None, then the instantiation failed.
    */
   def staticInstantiation(sargs: List[StaticArg],
-                          body: Type, lifted: Boolean, unlifted: Boolean, alpha: Boolean)
+                          body: Type,
+                          applyLifted: Boolean = false,
+                          applyUnlifted: Boolean = true)
                          (implicit analyzer: TypeAnalyzer): Option[Type] = {
     
     val sparams = getStaticParams(body)
-    val sparamsAndSargs = sparams.filter(s => (s.isLifted && lifted) || (!s.isLifted && unlifted)) zip sargs
+    val sparamsAndSargs = sparams.filter { s =>
+      (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted)
+    } zip sargs
     
-    //Need to add a check to ensure if aliased is true all the args have names
-    if (!(sparamsAndSargs.size == sargs.size)) return None
+    // Need to add a check to ensure if aliased is true all the args have names
+    if (sparamsAndSargs.size != sargs.size) return None
     if (!staticArgsMatchStaticParams(sparamsAndSargs)) return None
     
     // Create mapping from parameter names to static args.
     val paramMap = Map(sparamsAndSargs.map(pa => (pa._1.getName, pa._2)):_*)
+    
     // Gets the actual value out of a static arg.
     def sargToVal(sarg: StaticArg): Node = sarg match {
       case sarg:TypeArg => sarg.getTypeArg
@@ -536,10 +546,10 @@ object STypesUtil {
       case _ => bug("unexpected kind of static arg")
     }
     
-    //Clear the static params
+    // Clear the static params.
     val cleared = clearStaticParams(body)
     
-    // Replaces all the params with args in a node.
+    // Replaces all the occurrences of static params as variables with args.
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
         case n:VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
@@ -551,37 +561,10 @@ object STypesUtil {
         case _ => super.walk(node)
       }
     }
+    
     // Get the replaced type
-    val replaced = staticReplacer(cleared).asInstanceOf[Type]
-    
-    //Fix up the static params
-    // ToDo: Make this work for more that Type params
-    val leftover = sparams.filter(s => alpha || !((s.isLifted && lifted) || (!s.isLifted && unlifted)))
-    val newsparams = leftover.map{
-      case s@SStaticParam(i,n,e,d,a,k:KindType,l) if (paramMap.contains(n) && alpha) =>
-        val SVarType(_,nn,_) = sargToVal(paramMap.get(n).get)
-        SStaticParam(i,nn,e.map(x => staticReplacer.walk(x).asInstanceOf[BaseType]),d,a,k,l)
-      case SStaticParam(i,n,e,d,a,k,l) => SStaticParam(i,n,e.map(x =>staticReplacer.walk(x).asInstanceOf[BaseType]),d,a,k,l)
-    }
-    
-    Some(insertStaticParams(replaced, newsparams))
+    Some(staticReplacer(cleared).asInstanceOf[Type])
   }
-  
-  /**
-   * Instantiate only the unlifted static parameters with the given static args
-   * in the given body type.
-   */
-  def instantiateStaticParams(sargs: List[StaticArg],
-                              body: Type)
-                             (implicit analyzer: TypeAnalyzer): Option[Type] = staticInstantiation(sargs, body, false, true, false)
-
-  /**
-   * Instantiate only the lifted static parameters with the given static args
-   * in the given body type.
-   */
-  def instantiateLiftedStaticParams(sargs: List[StaticArg],
-                                    body: Type)
-                                   (implicit analyzer: TypeAnalyzer): Option[Type] = staticInstantiation(sargs, body, true, false, false)
 
   /**
    * Determines if the kinds of the given static args match those of the static
@@ -763,20 +746,42 @@ object STypesUtil {
     inferStaticParamsHelper(fnType, makeConstraint, false, true)
   }
 
-  /** Helper that performs the inference. */
-  def inferStaticParamsHelper[T <: Type](typ: T,
-                              constraintMaker: T => ConstraintFormula,
-                              lifted: Boolean, unlifted: Boolean)
-                             (implicit analyzer: TypeAnalyzer)
-                              : Option[(T, List[StaticArg])] = {
+  /**
+   * Helper that performs the inference of static params in `typ`. Infers all
+   * static params, lifted and unlifted, by default; behavior can be changed at
+   * the call site by setting the `inferLifted` and `inferUnlifted` flags.
+   * 
+   * @param typ The type schema for which we want to infer an instantiation.
+   * @param constraintMaker A function that, given a type with inference
+   *     variables, returns the constraints to be satisfied for the
+   *     instantiation.
+   * @param inferLifted If true, lifted static parameters will be inferred. The
+   *     default value is true.
+   * @param inferUnlifted If true, unlifted static parameters will be inferred.
+   *     The default value is false.
+   * @return If successful, a pair of the instantiated type and the static args
+   *     that instantiated it.
+   */
+  def inferStaticParamsHelper[T <: Type]
+        (typ: T,
+         constraintMaker: T => ConstraintFormula,
+         inferLifted: Boolean = true,
+         inferUnlifted: Boolean = true)
+        (implicit analyzer: TypeAnalyzer)
+         : Option[(T, List[StaticArg])] = {
 
-    // Substitute inference variables for static parameters in fnType.
+    // Substitute inference variables for static parameters in typ.
 
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
-    val sparams = getStaticParams(typ).filter(s => (s.isLifted && lifted) || (!s.isLifted && unlifted))
+    val sparams = getStaticParams(typ).filter { s =>
+      (s.isLifted && inferLifted) || (!s.isLifted && inferUnlifted)
+    }
     val sargs = sparams.map(makeInferenceArg)
-    val infTyp = staticInstantiation(sargs, typ, lifted, unlifted, false).
+    val infTyp = staticInstantiation(sargs,
+                                     typ,
+                                     applyLifted = inferLifted,
+                                     applyUnlifted = inferUnlifted).
       getOrElse(return None).asInstanceOf[T]
     val constraint = constraintMaker(infTyp)
 
@@ -788,8 +793,12 @@ object STypesUtil {
 
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
-    val sparamBounds = sparams.flatMap(staticParamBoundType).
-      flatMap(t => staticInstantiation(sargs, insertStaticParams(t, sparams), lifted, unlifted, false))
+    val sparamBounds = sparams.flatMap(staticParamBoundType).flatMap { t =>
+      staticInstantiation(sargs,
+                          insertStaticParams(t, sparams),
+                          applyLifted = inferLifted,
+                          applyUnlifted = inferUnlifted)
+    }
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
@@ -887,12 +896,15 @@ object STypesUtil {
 
     // If unlifted static args, then instantiate the unlifted static params.
     if (!unliftedSargs.isEmpty)
-      newOvType = instantiateStaticParams(unliftedSargs, newOvType)
+      newOvType = staticInstantiation(unliftedSargs, newOvType)
                       .getOrElse(return None).asInstanceOf[ArrowType]
 
     // If there were lifted, inferred static args, then instantiate those.
     if (!liftedSargs.isEmpty)
-      newOvType = instantiateLiftedStaticParams(liftedSargs, newOvType)
+      newOvType = staticInstantiation(liftedSargs,
+                                      newOvType,
+                                      applyLifted = true,
+                                      applyUnlifted = false)
                       .getOrElse(return None).asInstanceOf[ArrowType]
 
     // If there are still some static params in it, then we can't infer them

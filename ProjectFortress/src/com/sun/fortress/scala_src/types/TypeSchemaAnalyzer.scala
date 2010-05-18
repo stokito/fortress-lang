@@ -40,7 +40,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
-import com.sun.fortress.scala_src.useful.SNodeUtil
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil.getFreshName
 import com.sun.fortress.useful.NI
@@ -52,60 +52,63 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
   def meet(s: Type, t: Type): Type = s
   def join(s: Type, t: Type): Type = s
   
-  // I am going to need to alpha rename bound params to make this work
-  def lteq(s: Type, t:Type): Boolean = lteqHelper(alphaRename(s),alphaRename(t)) 
+  /**
+   * Determine if the type schema `s` is a subtype of the type schema `t`,
+   * according to the full F-sub system extended with a couple rules for
+   * computing the subtype relation between a schema and a type.
+   *
+   * Note that this is not necessarily the same relation as "more specific."
+   * For example, `[T] List[T]->()   <:  [T] ArrayList[T]->()`.
+   */
+  def lteq(s: Type, t: Type): Boolean =
+    lteqHelper(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
   
-  private def lteqHelper(s: Type, t: Type) = (s,t) match {
-    case (s,t) if !t.getInfo.getStaticParams.isEmpty =>
+  
+  /**
+   * Same as `lteq()` but assumes `s` and `t` bind distinctly named static
+   * parameters; i.e. the static parameters bound by `s` and `t` have been
+   * alpha renamed.
+   */
+  protected def lteqHelper(s: Type, t: Type) = (s, t) match {
+    
+    // t has static parameters
+    case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
       /* Extend the type analyzer with the static parameters
        * from t. Then strip t of it's type parameters to get t'
        * and call lteq(s,t') */
       // Q: What about lifted/unlifted
-      val sparams = getStaticParams(t)
-      val where = getWhere(t)
-      val tsa = extend(sparams, where)
+      val tsa = extend(getStaticParams(t), getWhere(t))
       val tt = clearStaticParams(t)
       tsa.lteq(s, tt)
-    case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
+    
+    // s has static parameters and t does not
+    case (s, t) if !s.getInfo.getStaticParams.isEmpty =>
       /* Try and infer an instantiation sigma of s such that 
        * sigma(s) <: t */
       val sparams = getStaticParams(s)
       def constraintMaker(ss: Type) = ta.subtype(ss, t)
       !inferStaticParamsHelper(s, constraintMaker, true, true).isEmpty
-    case (s,t) => ta.lteq(s, t)
+      
+    // neither has static parameters; use normal subtyping
+    case (s, t) => ta.lteq(s, t)
   }
   
-  /***
-   * Returns a type with all bound static parameters replaced
-   * with unique identifiers.
+  /**
+   * Returns a type with all bound static parameters replaced with unique
+   * identifiers for this static environment. Each call should generate
+   * entirely different names.
    */
-  def alphaRename(t: Type): Type = {
-    if (t.getInfo.getStaticParams.isEmpty)
-      return t
+  def alphaRenameTypeSchema(t: Type): Type = {
+    if (t.getInfo.getStaticParams.isEmpty) return t
+    
+    // Make a substitution of [Ti -> Xi] for each static parameter Ti where
+    // Xi is fresh in the static environment.
     val subst = getStaticParams(t).map { sp =>
       val srcName = sp.getName
-      val dstName = SNodeUtil.makeFreshName(srcName, ta.env)
+      val dstName = makeFreshName(srcName, ta.env)
       (srcName, dstName)
     }
-    SNodeUtil.alphaRename(subst, t).asInstanceOf[Type]
-    // val newsargs = sparams.map(generateFreshArg)
-    // staticInstantiation(newsargs, t, true, true, true).get
-    
-  }
-  
-  def generateFreshArg(sparam: StaticParam): StaticArg = sparam.getKind match {
-    case _:KindType => {
-      // Create a new inference var type.
-      val t = NF.makeVarType(NU.getSpan(sparam), getFreshName(sparam.getName.getText))
-      NF.makeTypeArg(NF.makeSpan(t), t, sparam.isLifted)
-    }
-    case _:KindInt => NI.nyi()
-    case _:KindBool => NI.nyi()
-    case _:KindDim => NI.nyi()
-    case _:KindOp => NI.nyi()
-    case _:KindUnit => NI.nyi()
-    case _:KindNat => NI.nyi()
-    case _ => bug("unexpected kind of static parameter")
+    alphaRename(subst, t).asInstanceOf[Type]
   }
   
   /**
@@ -146,10 +149,10 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
     val s_sp_args = s_sp.map(staticParamToArg)
     
     // Instantiate t and its bounds with s's static params.
-    val t_inst = staticInstantiation(s_sp_args, t, false, true, false)(ta).getOrElse{return false}
+    val t_inst = staticInstantiation(s_sp_args, t).getOrElse{return false}
     val t_bds_inst = t_bds.map { bd_opt =>
       bd_opt.map { bd =>
-        staticInstantiation(s_sp_args, bd, false, true, false)(ta).getOrElse{return false}
+        staticInstantiation(s_sp_args, bd).getOrElse{return false}
       }
     } // List of Option[Type], where Some(bd) is an instantiated type param bd
     
