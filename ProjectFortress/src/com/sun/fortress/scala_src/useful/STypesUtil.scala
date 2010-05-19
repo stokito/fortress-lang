@@ -338,6 +338,7 @@ object STypesUtil {
     
   /**
    * Return an identical type but with the given static params removed from it.
+   * TodDo: Handle where clauses
    */
   def clearStaticParams(typ: Type, sparams: List[StaticParam]): Type = {
 
@@ -359,6 +360,8 @@ object STypesUtil {
   /**
    * Insert static parameters into a type. If the type already has static
    * parameters, a bug is thrown.
+   * 
+   * ToDo: Handle where clauses
    */
   def insertStaticParams(typ: Type, sparams: List[StaticParam]): Type = {
 
@@ -516,6 +519,8 @@ object STypesUtil {
    * @return An option of a type identical to body but with every occurrence of
    *         one of its declared static parameters replaced by corresponding
    *         static args. If None, then the instantiation failed.
+   *         
+   * ToDo: Handle where clauses
    */
   def staticInstantiation(sargs: List[StaticArg],
                           body: Type,

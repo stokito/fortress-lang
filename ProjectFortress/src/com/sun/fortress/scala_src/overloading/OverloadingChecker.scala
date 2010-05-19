@@ -65,7 +65,7 @@ import com.sun.fortress.scala_src.useful.Sets._
 class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                          globalEnv: GlobalEnvironment,
                          errors: List[StaticError])
-                        (analyzer: TypeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))) {
+                        (implicit analyzer: TypeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))) {
   
   def extend(params: List[StaticParam], where: Option[WhereClause]) = 
     new OverloadingChecker(compilation_unit, globalEnv, errors)(analyzer.extend(params, where))

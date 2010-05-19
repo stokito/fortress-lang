@@ -361,7 +361,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   private def minimalTypeInfo(x: TypeInfo, y: TypeInfo) = x
 
-  private def minimalEffect(x: Effect, y: Effect) = {
+  def minimalEffect(x: Effect, y: Effect) = {
     val SEffect(i1, t1, io1) = x
     val SEffect(i2, t2, io2) = y
     val tc = minimalCovering(meet(join(t1.getOrElse(Nil)), join(t2.getOrElse(Nil)))) match {
@@ -370,7 +370,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       case t => Some(List(t))
     }
     //merge ASTNodeInfo?
-    SEffect(i1, tc, io1 || io2)
+    SEffect(i1, tc, io1 && io2)
   }
 
   private def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
