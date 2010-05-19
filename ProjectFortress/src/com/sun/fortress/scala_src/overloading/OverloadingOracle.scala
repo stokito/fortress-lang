@@ -34,6 +34,7 @@ import com.sun.fortress.scala_src.typechecker.CnOr
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
@@ -43,7 +44,22 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
 
-class OverloadingOracle(val compilationUnit: CompilationUnitIndex,
-                        val globalEnv: GlobalEnvironment,
-                        val kindEnv: KindEnv) {
+class OverloadingOracle(implicit analyzer: TypeAnalyzer) {
+  val schemaAnalyzer = new TypeSchemaAnalyzer()
+  
+  //ToDo: handle where clauses
+  def moreSpecific(s: ArrowType, t: ArrowType): Boolean = {
+    val edom1 = insertStaticParams(s.getDomain, getStaticParams(s))
+    val edom2 = insertStaticParams(t.getDomain, getStaticParams(t))
+    schemaAnalyzer.lteqExistential(edom1, edom2)
+  }
+  
+  //ToDo: handle where clauses
+  def typeSafe(s: ArrowType, t: ArrowType) = (schemaAnalyzer.alphaRenameTypeSchema(s),schemaAnalyzer.alphaRenameTypeSchema(t)) match {
+    case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1),SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) => {
+      val meet = SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), analyzer.meet(d1,d2), r2, analyzer.minimalEffect(e1,e2), i1 && i2, None)
+      schemaAnalyzer.lteq(s, meet)
+    }
+  }
+  
 }

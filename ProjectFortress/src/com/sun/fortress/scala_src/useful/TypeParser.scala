@@ -56,7 +56,7 @@ object TypeParser extends RegexParsers {
   def staticParams: Parser[List[StaticParam]] = "[" ~> repsep(staticParam, ",") <~ "]"
   
   def staticParam: Parser[StaticParam] = regex(VAR) ~ opt("extends {" ~> repsep(baseType, ",") <~ "}") ^^
-    {case id~bounds => makeTypeParam(typeSpan, makeId(typeSpan, id), toJavaList(bounds.getOrElse(Nil)), none[Type], false)}
+    {case id~bounds => makeTypeParam(typeSpan, makeId(typeSpan, id), toJavaList(bounds.getOrElse(List(OBJECT))), none[Type], false)}
 
   def typ: Parser[Type] = arrowType | nonArrowType
 

@@ -97,4 +97,33 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
   }
   
   
+  def testLtEqExistential() = {
+      val tsa = typeSchemaAnalyzer("""{
+      trait Aa,
+      trait Eq[T],
+      trait List[T],
+      trait Array[T],
+      trait ArrayList[T] extends {List[T], Array[T]},
+      trait Zz extends {Eq[Zz]}}""")
+      
+      {
+        val t1 = typeSchema("[T]T")
+        val t2 = typeSchema("Object")
+        assertTrue(tsa.lteqExistential(t1, t2))
+        assertTrue(tsa.lteqExistential(t2, t1))
+      }
+      {
+        val t1 = typeSchema("[T]ArrayList[T]")
+        val t2 = typeSchema("[T]List[T]")
+        assertTrue(tsa.lteqExistential(t1, t2))
+      }
+      {
+        val t1 = typeSchema("[T extends {Zz}]Array[T]")
+        val t2 = typeSchema("[T extends {Eq[T]}] Array[T]")
+        assertFalse(tsa.lteqExistential(t1, t2))
+        val t3 = typeSchema("Array[Zz]")
+        assertTrue(tsa.lteqExistential(t3, t2))
+      }
+  }
+  
 }

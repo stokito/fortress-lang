@@ -45,6 +45,17 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil.getFreshName
 import com.sun.fortress.useful.NI
 
+/* This class implements methods for dealing with type schema such as
+ * subtyping, alpha renaming, checking for equality up to renaming and 
+ * so forth.
+ * 
+ * The biggest weakness of this implementation is that we do
+ * not syntactically distinguish types and type schema.
+ * Therefore we cannot tell the difference betwen parameters that are
+ * supposed to be universally and existentially quantified. If we were to
+ * rewrite the front end fixing this would be a high priority. 
+ */
+
 class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[Type] {
   def top = ANY
   def bottom = BOTTOM
@@ -69,18 +80,16 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
    * parameters; i.e. the static parameters bound by `s` and `t` have been
    * alpha renamed.
    */
-  protected def lteqHelper(s: Type, t: Type) = (s, t) match {
+  protected def lteqHelper(s: Type, t: Type): Boolean = (s, t) match {
     
     // t has static parameters
     case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
       /* Extend the type analyzer with the static parameters
        * from t. Then strip t of it's type parameters to get t'
        * and call lteq(s,t') */
-      // Q: What about lifted/unlifted
       val tsa = extend(getStaticParams(t), getWhere(t))
       val tt = clearStaticParams(t)
-      tsa.lteq(s, tt)
-    
+      tsa.lteqHelper(s, tt)
     // s has static parameters and t does not
     case (s, t) if !s.getInfo.getStaticParams.isEmpty =>
       /* Try and infer an instantiation sigma of s such that 
@@ -88,9 +97,35 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
       val sparams = getStaticParams(s)
       def constraintMaker(ss: Type) = ta.subtype(ss, t)
       !inferStaticParamsHelper(s, constraintMaker, true, true).isEmpty
-      
     // neither has static parameters; use normal subtyping
     case (s, t) => ta.lteq(s, t)
+  }
+  
+
+  /* This method implements subtyping for type schema with type parameters that
+   * are existentially quantified. Note that these rules are dual to those for
+   * universal quantification.
+   */
+  def lteqExistential(s: Type, t: Type) = lteqExistentialHelper(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+  
+  private def lteqExistentialHelper(s: Type, t: Type): Boolean = (s,t) match {
+    // t has static parameters
+    case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
+      /* Extend the type analyzer with the static parameters
+       * from s. Then strip s of it's type parameters to get s'
+       * and call lteq(s',t) */
+      val tsa = extend(getStaticParams(s), getWhere(s))
+      val ss = clearStaticParams(s)
+      tsa.lteqExistentialHelper(ss, t)
+    // s has static parameters and t does not
+    case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
+      /* Try and infer an instantiation sigma of t such that 
+       * s <: sigma(t) */
+      val sparams = getStaticParams(t)
+      def constraintMaker(tt: Type) = ta.subtype(s, tt)
+      !inferStaticParamsHelper(t, constraintMaker, true, true).isEmpty
+    // neither has static parameters; use normal subtyping
+    case (s,t) => ta.lteq(s, t)
   }
   
   /**
