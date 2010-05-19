@@ -65,8 +65,8 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
         assertEquals(parseType(s).toString(), replacer.replaceIn(parseType(t)).toString());
     }
 
-    private void assertEqualTypes(String s, String t, Lambda<Type, Type> subst) {
-        assertEquals(parseType(s).toString(), subst.value(parseType(t)).toString());
-    }
+    // private void assertEqualTypes(String s, String t, Lambda<Type, Type> subst) {
+    //     assertEquals(parseType(s).toString(), subst.value(parseType(t)).toString());
+    // }
 
 }

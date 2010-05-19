@@ -80,7 +80,7 @@ public class TraitHeader {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("trait ");
         sb.append(NodeUtil.nameString(name));
         return sb.toString();

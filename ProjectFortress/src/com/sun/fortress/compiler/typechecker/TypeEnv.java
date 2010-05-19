@@ -301,7 +301,7 @@ public abstract class TypeEnv {
 
     public abstract List<BindingLookup> contents();
     public final String description() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append('(');
         for (BindingLookup b : contents()) {
             sb.append(b);

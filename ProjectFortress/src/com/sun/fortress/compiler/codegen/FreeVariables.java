@@ -59,11 +59,11 @@ public class FreeVariables extends NodeCollectingVisitor<BASet<IdOrOp>> {
         return res;
     }
 
-    private static BASet<IdOrOp> set(IdOrOp e1, IdOrOp e2) {
-        BASet<IdOrOp> res = set(e1);
-        res.add(e2);
-        return res;
-    }
+    // private static BASet<IdOrOp> set(IdOrOp e1, IdOrOp e2) {
+    //     BASet<IdOrOp> res = set(e1);
+    //     res.add(e2);
+    //     return res;
+    // }
 
     // public BASet<IdOrOp> combine(BASet<IdOrOp>... sets) {
     //     BASet<IdOrOp> result = set();

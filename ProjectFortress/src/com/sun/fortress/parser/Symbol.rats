@@ -134,7 +134,7 @@ Op Op =
 
 transient private String Symbols =
      a1s:Symbol+
-     { StringBuffer buf = new StringBuffer();
+     { StringBuilder buf = new StringBuilder();
        for (String n: a1s.list()) buf.append(n);
        yyValue = buf.toString();
      };

@@ -92,7 +92,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     /* returns number copies of s */
     private String makeCopies(int number, String s) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(s);
         for (int index = 1; index < number; index++) {
             buf.append(s);
@@ -1821,7 +1821,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     private String unmangle(String name) {
         // There can be multiple $ signs in a generated name.
         // Multiple desugarings prepend $ signs to names.
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < name.length(); i++) {
             char next = name.charAt(i);
             if (next == '$') {

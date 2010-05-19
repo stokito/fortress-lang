@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.reader;
@@ -132,7 +132,7 @@ public class Lex {
      * @throws IOException
      */
     public String string() throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         white();
         int i = read();
         if (i == '(' || i == ')') {
@@ -193,7 +193,7 @@ public class Lex {
      * @throws IOException
      */
     public String name(boolean skipLeadingWhite) throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (skipLeadingWhite) white();
         int c = read();
         if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@' || c == '=' || c == ',' || c == ':' || c == '~' ||
@@ -235,7 +235,7 @@ public class Lex {
      * @param sb
      * @throws IOException
      */
-    private void readQuoted(StringBuffer sb) throws IOException {
+    private void readQuoted(StringBuilder sb) throws IOException {
         int i;
         i = read();
         int state = NORMAL;

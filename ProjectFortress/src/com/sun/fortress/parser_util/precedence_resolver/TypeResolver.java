@@ -748,7 +748,7 @@ public class TypeResolver {
         }
         catch (Throwable e) {
             String msg = e.getMessage();
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(msg);
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
                 buf.append("\n  " + type.toString());
@@ -771,7 +771,7 @@ public class TypeResolver {
         }
         catch (Throwable e) {
             String msg = e.getMessage();
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(msg);
             for (PrecedenceOpExpr type : opTypes.toJavaList()) {
                 buf.append("\n  " + type.toString());

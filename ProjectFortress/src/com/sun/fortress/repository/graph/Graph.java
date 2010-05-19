@@ -55,7 +55,7 @@ public class Graph<GNode extends GraphNode> {
     }
 
     public String getDebugString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (Map.Entry<GNode, List<GNode>> entry : edges.entrySet()) {
             buf.append(entry.getKey() + " -> " + entry.getValue() + "\n");
         }

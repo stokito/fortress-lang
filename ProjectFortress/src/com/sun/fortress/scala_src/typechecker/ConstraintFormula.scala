@@ -249,7 +249,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
   }
 
   override def toString():String = {
-    val result = new StringBuffer("[") 
+    val result = new StringBuilder("[") 
     val allKeys = uppers.keySet ++ lowers.keySet
     var counter = 1
     for(ivar <- allKeys){
@@ -322,7 +322,7 @@ case class CnOr(conjuncts: List[CnAnd], ta: TypeAnalyzer) extends ConstraintForm
   }
   
   override def toString():String = {
-    val result = new StringBuffer()
+    val result = new StringBuilder()
     var counter = 1
     for(conjunct <-conjuncts){
       result.append(conjunct)

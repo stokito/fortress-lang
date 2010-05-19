@@ -46,7 +46,7 @@ abstract public class CheapSerializer<T> {
             throw new IndexOutOfBoundsException();
         if (len == 0)
             return "";
-        StringBuffer result = new StringBuffer(len); // make an optimistic
+        StringBuilder result = new StringBuilder(len); // make an optimistic
                                                      // guess
         synchronized (result) {
             int i = off;
@@ -320,7 +320,7 @@ abstract public class CheapSerializer<T> {
 
         @Override
         public Long read(InputStream i) throws IOException {
-            return new Long(readLong(i));
+            return Long.valueOf(readLong(i));
         }
 
         @Override

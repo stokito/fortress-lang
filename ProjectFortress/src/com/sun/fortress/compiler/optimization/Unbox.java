@@ -60,7 +60,7 @@ abstract public class Unbox {
         if (b <= 32)
             return "I";
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("J");
         while (b > 64) {
             b = b - 64;

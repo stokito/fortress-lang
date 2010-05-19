@@ -129,7 +129,7 @@ public abstract class FortressException extends RuntimeException {
     @Override
     public String getMessage() {
         String msg = super.getMessage();
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(msg);
         if (msg == null)
             msg = "";
@@ -143,7 +143,7 @@ public abstract class FortressException extends RuntimeException {
         }
         msg = buf.toString();
         if (where.size() > 0) {
-            StringBuffer res = new StringBuffer();
+            StringBuilder res = new StringBuilder();
             res.append(where.get(0).at());
             if (where2 != null) {
                 res.append(": and\n");

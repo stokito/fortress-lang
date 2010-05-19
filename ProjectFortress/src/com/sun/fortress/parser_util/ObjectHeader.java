@@ -88,7 +88,7 @@ public class ObjectHeader {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("object ");
         sb.append(NodeUtil.nameString(name));
         return sb.toString();

@@ -1052,7 +1052,7 @@ public class Resolver {
         }
         catch (ReadError e) {
             String msg = e.getMessage();
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(msg);
             for (PrecedenceOpExpr expr : opExprs.toJavaList()) {
                 buf.append("\n  " + expr.toString());

@@ -1325,7 +1325,7 @@ public class NodeFactory {
         if ( id.getApiName().isSome() ) {
             APIName apiName = id.getApiName().unwrap();
             String name = "";
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             for (Id n: apiName.getIds()) {
                 buf.append(n.getText() + ".");
             }

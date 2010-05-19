@@ -67,7 +67,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             return "extends " + fieldType(interfaces.get(0));
         }
 
-        StringBuffer buffer = new StringBuffer("extends ");
+        StringBuilder buffer = new StringBuilder("extends ");
         boolean first = true;
 
         for (TypeName name : interfaces) {
@@ -98,7 +98,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
         TypeName superName = box.superClass();
 
-        StringBuffer buffer = new StringBuffer("extends " + superName.name());
+        StringBuilder buffer = new StringBuilder("extends " + superName.name());
 
 
         // Classes defined outside ASTGen and extended by an ASTGen class
@@ -187,7 +187,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
             // A type for which none of the other cases apply.
             public String forGeneralClass(ClassName t) {
-                StringBuffer name = new StringBuffer();
+                StringBuilder name = new StringBuilder();
 
                 // Handle types for which ASTGen provides no hooks,
                 // but that we still want to treat specially.
@@ -295,7 +295,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
             // A type for which none of the other cases apply.
             public String forGeneralClass(ClassName t) {
-                StringBuffer name = new StringBuffer();
+                StringBuilder name = new StringBuilder();
 
                 // Handle types for which ASTGen provides no hooks,
                 // but that we still want to treat specially.
@@ -350,7 +350,7 @@ public class ScalaAstGenerator extends CodeGenerator {
      * field declarations in String form.
      */
     private String traitFields(List<Field> fields) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         boolean first = true;
         for (Field field : fields) {
             if (first) {
@@ -360,13 +360,6 @@ public class ScalaAstGenerator extends CodeGenerator {
             buffer.append(sub("  def @name:@type\n", "@name", field.getGetterName(), "@type", fieldType(field.type())));
         }
         return buffer.toString();
-    }
-
-    /**
-     * Given a NodeInterface, return its fields in String form.
-     */
-    private String fields(NodeInterface box) {
-        return traitFields(box.fields());
     }
 
     /**
@@ -384,7 +377,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         if (mkList(box.allFields(ast)).isEmpty()) {
             return "";
         } else {
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
 
             for (Field field : box.allFields(ast)) {
                 if (firstPass) {
@@ -410,8 +403,8 @@ public class ScalaAstGenerator extends CodeGenerator {
      * Return a string including all field declarations, including inherited declarations,
      * without enclosing parentheses.
      */
-    private StringBuffer allFieldsNoParens(NodeClass box, boolean firstPass) {
-        StringBuffer buffer = new StringBuffer();
+    private StringBuilder allFieldsNoParens(NodeClass box, boolean firstPass) {
+        StringBuilder buffer = new StringBuilder();
 
         if (ast.isTopClass(box)) {
             return buffer;
@@ -447,7 +440,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         if (mkList(box.allFields(ast)).isEmpty()) {
             return "";
         } else {
-            StringBuffer buffer = new StringBuffer("(");
+            StringBuilder buffer = new StringBuilder("(");
             boolean first = true;
             for (Field field : box.allFields(ast)) {
                 if (first) {
@@ -471,7 +464,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         if (mkList(box.allFields(ast)).isEmpty()) {
             return "";
         } else {
-            StringBuffer buffer = new StringBuffer("(");
+            StringBuilder buffer = new StringBuilder("(");
             boolean first = true;
             for (Field field : box.allFields(ast)) {
                 if (first) {
@@ -495,7 +488,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         if (mkList(box.allFields(ast)).isEmpty()) {
             return "()";
         } else {
-            StringBuffer buffer = new StringBuffer("(");
+            StringBuilder buffer = new StringBuilder("(");
             boolean first = true;
             for (Field field : box.allFields(ast)) {
                 if (first) {
@@ -537,7 +530,7 @@ public class ScalaAstGenerator extends CodeGenerator {
                 receiver = receiver + ".";
             }
 
-            StringBuffer buffer = new StringBuffer("(");
+            StringBuilder buffer = new StringBuilder("(");
             boolean first = true;
 
             for (Field field : box.allFields(ast)) {

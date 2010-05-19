@@ -383,11 +383,11 @@ public class Parser {
             BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
             String line = reader.readLine();
             String message = "";
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             while ( line != null ) {
                 if ( beginError(line) && !message.equals("") ) {
                     errors.add(StaticError.make(message.substring(0,message.length()-1)));
-                    buf = new StringBuffer();
+                    buf = new StringBuilder();
                     buf.append(line + "\n");
                     message = buf.toString();
                 } else {

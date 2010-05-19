@@ -94,7 +94,7 @@ public class ClosureMaker implements Opcodes {
         String fvalue = "Lcom/sun/fortress/interpreter/evaluator/values/FValue;";
 
         String signature = "(";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(signature);
         for (int i = 1; i <= nargs; i++) {
             buf.append(fvalue);

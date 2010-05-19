@@ -91,7 +91,7 @@ public class Useful {
      * @return
      */
     public static <T> String listInDelimiters(String left, Collection<T> l, String right, String sep) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(left);
         boolean first = true;
         for (T x : l) {
@@ -112,7 +112,7 @@ public class Useful {
     }
 
     public static String coordInDelimiters(String left, int[] l, int lo, int hi, String right) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(left);
         boolean first = true;
         for (int i = lo; i < hi; i++) {
@@ -135,7 +135,7 @@ public class Useful {
      * @return
      */
     public static <T, U> String listsInParens(List<T> l1, List<U> l2) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("(");
         boolean first = true;
         for (T x : l1) {
@@ -166,7 +166,7 @@ public class Useful {
      */
     public static <T> String dottedList(List<T> l) {
         if (l.size() == 1) /* Itty-bitty performance hack */ return String.valueOf(l.get(0));
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (T x : l) {
             if (first) first = false;
@@ -178,7 +178,7 @@ public class Useful {
 
     public static String backtrace(int start, int count) {
         StackTraceElement[] trace = (new Throwable()).getStackTrace();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = start; i < start + count && i < trace.length; i++) {
             if (i > start) sb.append("\n");
             sb.append(String.valueOf(trace[i]));
@@ -848,7 +848,7 @@ public class Useful {
         if (searchLength == 0) throw new IllegalArgumentException("Cannot replace empty string");
         // arbitrary guess at the new size. Assume zero or one replacements
         // ignore the pathological search == "" case.
-        StringBuffer sb = new StringBuffer(original.length() + Math.max(0, replace.length() - search.length()));
+        StringBuilder sb = new StringBuilder(original.length() + Math.max(0, replace.length() - search.length()));
         int start = 0;
         int at = original.indexOf(search);
         while (at != -1) {
@@ -877,7 +877,7 @@ public class Useful {
         if (searchLength == 0) throw new IllegalArgumentException("Cannot replace empty string");
         // arbitrary guess at the new size. Assume zero or one replacements
         // ignore the pathological search == "" case.
-        StringBuffer sb = new StringBuffer(original.length() + Math.max(0, replace.length() - search.length()));
+        StringBuilder sb = new StringBuilder(original.length() + Math.max(0, replace.length() - search.length()));
         int start = 0;
         int at = original.indexOf(search);
         while (at != -1 && --count >= 0) {
@@ -1099,9 +1099,9 @@ public class Useful {
         Matcher m = varPat.matcher(e);
 
         int lastMatchEnd = 0;
-        StringBuffer newE = null;
+        StringBuilder newE = null;
         while (m.find()) {
-            if (newE == null) newE = new StringBuffer();
+            if (newE == null) newE = new StringBuilder();
             MatchResult mr = m.toMatchResult();
             newE.append(e.substring(lastMatchEnd, mr.start()));
             lastMatchEnd = mr.end();

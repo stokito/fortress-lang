@@ -48,7 +48,7 @@ public class TNFoo extends NativeConstructor {
             super(con);
             this.con = con;
 
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(s);
             while (theCount > 0) {
                 buf.append(" " + s);

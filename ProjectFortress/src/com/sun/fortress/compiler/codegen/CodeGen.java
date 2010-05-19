@@ -2117,7 +2117,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private static String makeBoring(String name) {
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
 
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);

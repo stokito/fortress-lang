@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
@@ -301,7 +301,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper {
     }
 
     public void testWriteList() throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<String> l = new ArrayList<String>();
         l.add("cat");
         l.add("dog");
@@ -321,7 +321,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper {
     }
 
     public void testWriteOptionList() throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<Option<String>> l = new ArrayList<Option<String>>();
         Option<String> oc = Option.some("cat");
         Option<String> none = Option.<String>none();
@@ -347,7 +347,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper {
     }
 
     public void testWriteMess() throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<Option<Pair<Option<String>, Option<String>>>> l =
                 new ArrayList<Option<Pair<Option<String>, Option<String>>>>();
         Option<Pair<Option<String>, Option<String>>> oc =
@@ -376,7 +376,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper {
     }
 
     public void testWriteBigMess() throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<Option<Pair<Option<String>, List<String>>>> l =
                 new ArrayList<Option<Pair<Option<String>, List<String>>>>();
         Option<Pair<Option<String>, List<String>>> oc = Option.some(new Pair<Option<String>, List<String>>(Option.some(
