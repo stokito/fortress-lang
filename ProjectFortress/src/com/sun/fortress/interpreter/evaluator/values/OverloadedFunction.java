@@ -855,10 +855,10 @@ public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fc
      * @param o
      * @return
      */
-    private boolean argsMatchTypes(List<FValue> args, Overload o) {
-        List<FType> l = o.getParams();
-        return argsMatchTypes(args, l);
-    }
+    // private boolean argsMatchTypes(List<FValue> args, Overload o) {
+    //     List<FType> l = o.getParams();
+    //     return argsMatchTypes(args, l);
+    // }
 
     public static boolean argsMatchTypes(List<FValue> args, List<FType> l) {
         for (int j = 0; j < args.size(); j++) {

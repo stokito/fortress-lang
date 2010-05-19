@@ -387,7 +387,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 
     @Override
         public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         Set<_InferenceVarType> all_ivars = CollectUtil.union(ivarUpperBounds.keySet(),
                                                              ivarLowerBounds.keySet());
         result.append("{");

@@ -48,7 +48,7 @@ NumberLiteralExpr NumericLiteralExpr =
      NumericLiteralWithRadix
    / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
      { String numeral;
-       StringBuffer buf = new StringBuffer();
+       StringBuilder buf = new StringBuilder();
        buf.append(a1);
        for (String n: a2s.list()) buf.append(n);
        numeral = buf.toString();
@@ -62,7 +62,7 @@ NumberLiteralExpr NumericLiteralExpr =
 private NumberLiteralExpr NumericLiteralWithRadix =
      a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
      { String numeral;
-       StringBuffer buf = new StringBuffer();
+       StringBuilder buf = new StringBuilder();
        buf.append(a1);
        for (String n: a2s.list()) buf.append(n);
        numeral = buf.toString();
@@ -77,7 +77,7 @@ private NumberLiteralExpr NumericLiteralWithRadix =
 private transient String NumericWord =
      a1s:NumericCharacter+
      { yyValue = "";
-       StringBuffer buf = new StringBuffer();
+       StringBuilder buf = new StringBuilder();
        for (String n: a1s.list()) buf.append(n);
        yyValue = buf.toString();
      };

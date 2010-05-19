@@ -373,8 +373,8 @@ public class Unprinter extends NodeReflection {
         if (s.charAt(l - 1) != '\"') {
             bug("Malformed input, missing final \"");
         }
-        StringBuffer sb = new StringBuffer(l - 2);
-        StringBuffer escaped = null;
+        StringBuilder sb = new StringBuilder(l - 2);
+        StringBuilder escaped = null;
         int state = NORMAL;
         for (int i = 1; i < l - 1; i++) {
             char c = s.charAt(i);
@@ -412,7 +412,7 @@ public class Unprinter extends NodeReflection {
                     state = NORMAL;
                 } else if (c == '\'') {
                     state = SAW_BACKSLASH_TICK;
-                    escaped = new StringBuffer();
+                    escaped = new StringBuilder();
                 } else if (File.separator.equals("\\")) {
                     sb.append('\\');
                     state = NORMAL;
@@ -460,7 +460,7 @@ public class Unprinter extends NodeReflection {
      * @param escaped
      * @param sb
      */
-    public static void translateUnicode(String escaped, StringBuffer sb) {
+    private static void translateUnicode(String escaped, StringBuilder sb) {
         // TODO Need to implement full generality of Unicode name encoding.
         StringTokenizer st = new StringTokenizer(escaped, "&", false);
         while (st.hasMoreTokens()) {
@@ -474,7 +474,7 @@ public class Unprinter extends NodeReflection {
     }
 
     public static String enQuote(CharSequence s) {
-        StringBuffer sb = new StringBuffer(s.length() + 2);
+        StringBuilder sb = new StringBuilder(s.length() + 2);
         int l = s.length();
         for (int i = 0; i < l; i++) {
             char c = s.charAt(i);

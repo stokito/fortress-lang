@@ -280,7 +280,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                     List<BaseType> supers = node.getExtendsClause();
                     if (! supers.isEmpty()) {
                         bound += " extends";
-                        StringBuffer buf = new StringBuffer();
+                        StringBuilder buf = new StringBuilder();
                         buf.append(bound);
                         for (BaseType t : supers) {
                             buf.append(" " + t);
@@ -303,7 +303,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forParam(Param node) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(NodeUtil.nameString(node.getName()));
         if ( ! NodeUtil.isVarargsParam(node) ) {
             if (node.getIdType().isSome()) {

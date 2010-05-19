@@ -100,11 +100,6 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
      * variable to the corresponding VarCodeGen. */
 
     // Non-user-accessible local variable
-    private int createCompilerLocal(String name) {
-        return createCompilerLocal(name, null);
-    }
-
-    // Non-user-accessible local variable
     public int createCompilerLocal(String name, String type) {
         if (localVariableCount != varNames.size()) {
             throw new CompilerError("Trying to create local " + name +

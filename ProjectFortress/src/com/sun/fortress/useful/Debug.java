@@ -67,7 +67,7 @@ public final class Debug {
 
     /* Return a string specifying the debugging types suppored */
     public static String typeStrings() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (Type type : Type.values()) {
             buf.append(type.toString() + " ");
         }
@@ -148,7 +148,7 @@ public final class Debug {
      */
     public static void debug(Type type, Object... msgs) {
         if (type.isOn() && Debug.level == MAX_LEVEL) {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append("[" + type.toString() + "] ");
             for (Object s : msgs) {
                 buf.append(s.toString());
@@ -163,7 +163,7 @@ public final class Debug {
      */
     public static void debug(Type type, int level, Object... msgs) {
         if (type.isOn() && level <= Debug.level) {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append("[" + type.toString() + "] ");
             for (Object s : msgs) {
                 buf.append(s.toString());

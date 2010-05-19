@@ -1005,7 +1005,7 @@ public class NodeUtil {
     /* dump ****************************************************************/
     public static String dump(AbstractNode n) {
         try {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             dump(sb, n);
             return sb.toString();
         } catch (Throwable ex) {

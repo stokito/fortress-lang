@@ -664,7 +664,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             LocalVarDecl cast = (LocalVarDecl) declSite;
             String name = "LocalVarDecl";
             List<LValue> lhs = cast.getLhs();
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(name);
             for(LValue lvalue : lhs) {
                 buf.append( "_" + lvalue.getName().getText() );

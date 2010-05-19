@@ -73,7 +73,7 @@ public class NameAndImportCollection {
     }
 
     public String toString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("Component " + this.getComponentName() + " has the following imports\n");
         for (Import i : this.imports) {
             buf.append("  a)" + i.toString() +"\n");

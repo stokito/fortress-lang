@@ -158,7 +158,7 @@ public class DisjunctiveFormula extends ConstraintFormula {
 
     @Override
         public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         int i=0;
         for(ConjunctiveFormula form : this.conjuncts){
             result.append(form.toString());

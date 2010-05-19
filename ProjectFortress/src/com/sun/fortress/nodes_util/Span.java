@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -101,7 +101,7 @@ public class Span implements Serializable, HasAt {
     @Override
     public String toString() {
         try {
-            return appendTo(new StringBuffer(), true).toString();
+            return appendTo(new StringBuilder(), true).toString();
         } catch (IOException ex) {
             return NI.np();
         }
@@ -109,7 +109,7 @@ public class Span implements Serializable, HasAt {
 
     public String toStringWithoutFiles() {
         try {
-            return appendTo(new StringBuffer(), false).toString();
+            return appendTo(new StringBuilder(), false).toString();
         } catch (IOException ex) {
             return NI.np();
         }

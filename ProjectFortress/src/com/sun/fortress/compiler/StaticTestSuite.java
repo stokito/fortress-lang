@@ -320,7 +320,7 @@ public final class StaticTestSuite extends TestSuite {
             System.setOut(oldOut);
 
             String message = "Source " + f + " produces static errors:";
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(message);
             for (StaticError error : errors) {
                 try { throw error; }

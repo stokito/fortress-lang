@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.useful;
@@ -34,7 +34,7 @@ public class StringEncodedAggregate {
         return set;
     }
 
-    public static StringBuffer setToString(Set<String> set, char d, StringBuffer sb) {
+    public static StringBuilder setToString(Set<String> set, char d, StringBuilder sb) {
         for (String s : set) {
             if (s.indexOf(d) != -1) throw new Error("String " + s + " in set contains delimiter " + d);
             sb.append(s);
@@ -43,7 +43,7 @@ public class StringEncodedAggregate {
         return sb;
     }
 
-    public static StringBuffer setToFormattedString(Set<String> set, char d, StringBuffer sb) {
+    public static StringBuilder setToFormattedString(Set<String> set, char d, StringBuilder sb) {
         boolean first = true;
         sb.append("\n\t\"");
         for (String s : set) {
@@ -110,7 +110,7 @@ public class StringEncodedAggregate {
         return null;
     }
 
-    public static StringBuffer mapToFormattedString(Map<String, String> map, char d, StringBuffer sb) {
+    public static StringBuilder mapToFormattedString(Map<String, String> map, char d, StringBuilder sb) {
         boolean first = true;
         sb.append("\n\t\"");
         for (String key : map.keySet()) {
@@ -134,16 +134,16 @@ public class StringEncodedAggregate {
         return sb;
     }
 
-    public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d) {
-        return mapPairToString(from1, to1, from2, to2, d, new StringBuffer());
+    public static StringBuilder mapPairToString(String from1, String to1, String from2, String to2, char d) {
+        return mapPairToString(from1, to1, from2, to2, d, new StringBuilder());
     }
 
-    public static StringBuffer mapPairToString(String from1,
+    public static StringBuilder mapPairToString(String from1,
                                                String to1,
                                                String from2,
                                                String to2,
                                                char d,
-                                               StringBuffer sb) {
+                                               StringBuilder sb) {
 
 
         if (from1.indexOf(d) != -1) throw new Error("Key " + from1 + " in map contains delimiter " + d);

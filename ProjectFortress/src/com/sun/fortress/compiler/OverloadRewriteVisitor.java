@@ -117,7 +117,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
         if (the_overloads.size() > 1) {
             // Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append(NodeUtil.nameString(originalName));
             buffer.append('{');
             for(int i = 0; i < fns.size(); i++) {
@@ -183,7 +183,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         if (the_overloads.size() > 1) {
             // Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
 
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append(NodeUtil.nameString(originalName));
             buffer.append('{');
             for(int i = 0; i < ops.size(); i++) {

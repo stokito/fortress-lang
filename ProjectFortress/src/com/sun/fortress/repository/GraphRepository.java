@@ -427,9 +427,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     }
 
-    private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
-        return collectComponentDependencies(nodeToComponent(node));
-    }
+    // private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
+    //     return collectComponentDependencies(nodeToComponent(node));
+    // }
 
     private boolean inApiList(APIName name, List<ApiGraphNode> nodes) {
         for (ApiGraphNode node : nodes) {

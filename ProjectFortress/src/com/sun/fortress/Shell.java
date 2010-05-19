@@ -982,7 +982,7 @@ public final class Shell {
     public static void assertStaticErrors(Iterable<? extends StaticError> errors,
                                          String expected) throws UserError {
         errors = IterUtil.sort(errors, StaticError.comparator);
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for ( StaticError error : errors ) {
             buf.append(error.getMessage() + "\n");
         }

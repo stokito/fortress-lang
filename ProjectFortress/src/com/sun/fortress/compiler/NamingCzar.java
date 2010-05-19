@@ -794,7 +794,7 @@ public class NamingCzar {
         if (domain.size() == 1)
             return jvmSignatureFor(NodeUtil.optTypeOrPatternToType(domain.get(0).getIdType()).unwrap(), rangeDesc, ifNone);
         String args = "";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (Param p : domain) {
             buf.append(jvmTypeDesc(NodeUtil.optTypeOrPatternToType(p.getIdType()), ifNone));
         }
@@ -812,7 +812,7 @@ public class NamingCzar {
         if (domain instanceof com.sun.fortress.nodes.TupleType) {
             TupleType tt = (TupleType) domain;
             int i = 0;
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(args);
             for (com.sun.fortress.nodes.Type p : tt.getElements()) {
                 buf.append(jvmTypeDesc(p, ifNone));
@@ -942,7 +942,7 @@ public class NamingCzar {
             com.sun.fortress.nodes.Type rt, APIName ifNone, String result) {
         result += Naming.LEFT_OXFORD;
         if (params.size() > 0) {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             buf.append(result);
             for (com.sun.fortress.nodes.Type t : params) {
                 buf.append(makeArrowDescriptor(t, ifNone) + ";");
@@ -986,7 +986,7 @@ public class NamingCzar {
     }
 
     private static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
-        Id id = t.getName();
+        //Id id = t.getName();
         //APIName apiName = id.getApiName().unwrap(ifNone);
         //String tag = "";
         //String sep = ".";
@@ -1035,7 +1035,7 @@ public class NamingCzar {
         if (!t.getKeywords().isEmpty())
             throw new CompilerError(t,"Can't compile Keyword args yet");
         String res = "";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
             buf.append(makeArrowDescriptor(ty, ifNone) +  ';');
         }
@@ -1058,7 +1058,7 @@ public class NamingCzar {
     private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
                                       final APIName ifNone) {
         String r = "";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type t : types) {
             buf.append(jvmTypeDesc(t, ifNone));
         }
@@ -1145,7 +1145,7 @@ public class NamingCzar {
             private String forStaticParams(List<StaticParam> sparams) {
                 if (sparams.size() == 0)
                     return "";
-                StringBuffer sparams_part = new StringBuffer();
+                StringBuilder sparams_part = new StringBuilder();
                 String pfx = Naming.LEFT_OXFORD;
                 for (StaticParam p : sparams) {
                     sparams_part.append(pfx);
@@ -1194,7 +1194,7 @@ public class NamingCzar {
                 if (!t.getKeywords().isEmpty())
                     throw new CompilerError(t,"Can't compile Keyword args yet");
                 String res = "";
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for (com.sun.fortress.nodes.Type ty : t.getElements()) {
                     buf.append(jvmTypeDesc(ty, ifNone));
                 }
@@ -1562,7 +1562,7 @@ public class NamingCzar {
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(frag);
         int index = 1;
         for (StaticParam sp : sparams) {
@@ -1591,7 +1591,7 @@ public class NamingCzar {
         NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(frag);
         int index = 1;
         for (StaticArg sp : sargs) {

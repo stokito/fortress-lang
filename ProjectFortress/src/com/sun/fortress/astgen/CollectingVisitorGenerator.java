@@ -80,7 +80,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
     protected void outputForCaseOnly(NodeType t, TabPrintWriter writer, NodeType root) {
         List<String> recurDecls = new ArrayList<String>();
         String combArgs = "";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (Field f : t.allFields(ast)) {
             if (canRecurOn(f.type(), root)) {
                 TypeName result = resultType(f.type());
@@ -214,7 +214,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         List<TypeArgumentName> tArgs = c.typeArguments();
         if (tArgs.size() == 0) return null;
         String res = c.className();
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(res);
         for (TypeArgumentName ta : tArgs) {
             String in = combineInner(ta);
@@ -232,7 +232,7 @@ public class CollectingVisitorGenerator extends DepthFirstVisitorGenerator {
         List<TypeArgumentName> tArgs = c.typeArguments();
         if (tArgs.size() == 0) return "combine(";
         boolean useRes = false;
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(res);
         for (TypeArgumentName ta : tArgs) {
             String in = combineInner(ta);

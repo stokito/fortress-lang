@@ -89,7 +89,7 @@ public class FortressAstGenerator extends CodeGenerator {
         if (interfaces.size() == 1) {
             return "extends " + fieldType(interfaces.get(0));
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("extends { ");
         int i = 0;
         for (TypeName name : interfaces) {
@@ -117,7 +117,7 @@ public class FortressAstGenerator extends CodeGenerator {
                 names.add(fieldType(name));
             }
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("extends ");
         if (names.size() == 1) {
             buffer.append(names.get(0));
@@ -244,7 +244,7 @@ public class FortressAstGenerator extends CodeGenerator {
          */
         return "";
         /*
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         boolean first = true;
         for ( Field field : filterFields(fields) ){
             if ( first ){
@@ -273,7 +273,7 @@ public class FortressAstGenerator extends CodeGenerator {
             if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
                 return "";
             } else {
-                StringBuffer buffer = new StringBuffer();
+                StringBuilder buffer = new StringBuilder();
                 buffer.append("(");
                 int i = 0;
                 for ( Field field : filterFields(box.allFields(ast)) ){
