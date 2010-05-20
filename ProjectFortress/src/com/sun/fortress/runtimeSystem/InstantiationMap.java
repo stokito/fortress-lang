@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -46,7 +46,7 @@ public class InstantiationMap  {
         if (s == null)
             return s;
         s = Naming.demangleFortressIdentifier(s);
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         maybeBareVar(s, 0, b, false);
         
         s = b.toString();
@@ -60,7 +60,7 @@ public class InstantiationMap  {
         if (s == null)
             return s;
         s = Naming.demangleFortressIdentifier(s);
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         maybeBareVar(s, 0, b, false);
         
         s =  b.toString();
@@ -73,7 +73,7 @@ public class InstantiationMap  {
         String t = s;
         if (s == null)
             return s;
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         maybeVarInTypeDesc(s, 0, b);
         
         s =  b.toString();
@@ -86,7 +86,7 @@ public class InstantiationMap  {
             return s;        
         s = Naming.demangleFortressDescriptor(s);
 
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         maybeVarInTypeDesc(s, 0, b);
 
         s = b.toString();
@@ -99,7 +99,7 @@ public class InstantiationMap  {
             return s;
         s = Naming.demangleFortressDescriptor(s);
         
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         maybeVarInMethodSig(s, 0, b);
 
         s = b.toString();
@@ -124,7 +124,7 @@ public class InstantiationMap  {
             
             if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
                 // Found a variable
-                StringBuffer b = new StringBuffer();
+                StringBuilder b = new StringBuilder();
                 int j = 0;
                 while (j < l) {
                      ch = s.charAt(j);
@@ -136,7 +136,7 @@ public class InstantiationMap  {
                          oxLevel--;
                          b.append(ch);
                      } else if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
-                         StringBuffer v = new StringBuffer(8);
+                         StringBuilder v = new StringBuilder(8);
                          v.append(ch);
                          while (j < l) {
                              ch = s.charAt(j);
@@ -211,7 +211,7 @@ public class InstantiationMap  {
      * unnested right Oxford is seen.  At semicolons, check to see if the
      * previous string is a variable, if it has not been disqualified.
      */
-    int maybeVarInOxfords(String input, int begin, StringBuffer accum) {
+    int maybeVarInOxfords(String input, int begin, StringBuilder accum) {
          int at = maybeBareVar(input, begin, accum, true);
          char ch = input.charAt(at++);
          
@@ -241,7 +241,7 @@ public class InstantiationMap  {
      * @param at
      * @param accum
      */
-     int maybeVarInLSemi(String input, int begin, StringBuffer accum) {
+     int maybeVarInLSemi(String input, int begin, StringBuilder accum) {
         int at = maybeBareVar(input, begin, accum, false);
         char ch = input.charAt(at++);
         if (ch != ';')
@@ -271,7 +271,7 @@ public class InstantiationMap  {
      * @param inOxfords
      * @return
      */
-    int maybeBareVar(String input, int begin, StringBuffer accum, boolean inOxfords) {
+    int maybeBareVar(String input, int begin, StringBuilder accum, boolean inOxfords) {
         int at = begin;
         char ch = input.charAt(at++);
         boolean maybeVar = true;
@@ -324,7 +324,7 @@ public class InstantiationMap  {
         return at;
     }
     
-     int maybeVarInMethodSig(String input, int begin, StringBuffer accum) {
+     int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
          int at = begin;
          char ch = input.charAt(at++);
          // Begin with "("
@@ -354,7 +354,7 @@ public class InstantiationMap  {
      * @param at
      * @return
      */
-    private int maybeVarInTypeDesc(String input, int at, StringBuffer accum) {
+    private int maybeVarInTypeDesc(String input, int at, StringBuilder accum) {
         char ch;
         ch = input.charAt(at++);
          accum.append(ch);

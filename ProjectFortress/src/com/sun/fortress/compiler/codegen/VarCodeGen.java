@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -187,12 +187,10 @@ public abstract class VarCodeGen {
                 // need to rewrite the classDesc given static args.
                 Map<String, String> xlation = new HashMap<String, String>();
                 ArrayList<String> sargs = new ArrayList<String>();
-                String rewritten =
-                    InstantiationMap.canonicalizeStaticParameters(
-                            static_args,
-                            static_args.indexOf(Naming.LEFT_OXFORD),
-                            static_args.indexOf(Naming.RIGHT_OXFORD),
-                            xlation, sargs);
+                InstantiationMap.canonicalizeStaticParameters(static_args,
+                                                              static_args.indexOf(Naming.LEFT_OXFORD),
+                                                              static_args.indexOf(Naming.RIGHT_OXFORD),
+                                                              xlation, sargs);
 
                 xlation = Useful.map(sparams, sargs);
 

@@ -65,12 +65,12 @@ Expr ExprFront =
                                         Option.<Type>wrap(a2),
                                         Option.<List<Type>>wrap(a3), a4);
      }
-   / <ErrorProduction1> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
+   / <ErrorProduction1> fn w ValParam (w IsType)? (w Throws)? w match w Expr
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Parentheses are required around the parameter of an anonymous function expression.");
        yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
-   / <ErrorProduction2> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w a4:Expr
+   / <ErrorProduction2> fn w ValParam (w IsType)? (w Throws)? w Expr
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Anonymous function expression is missing \"=>\".");
        yyValue = ExprFactory.makeVoidLiteralExpr(span);
@@ -527,8 +527,6 @@ constant inline Action<Expr> SubscriptingLeft =
                Span span = NodeUtil.spanTwo(NodeUtil.getSpan(base),
                                             createSpan(yyStart,yyCount));
                if (PrecedenceMap.ONLY.matchedBrackets(a1, a4)) {
-                   Span spanOpen = createSpan(yyStart, yyStart+1);
-                   Span spanClose = createSpan(yyCount-1,1);
                    List<StaticArg> ss =
                        (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
                    return ExprFactory.makeSubscripting(span, a1, a4, base, a3, ss);

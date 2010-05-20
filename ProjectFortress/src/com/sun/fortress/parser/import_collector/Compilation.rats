@@ -42,7 +42,6 @@ CompilationUnit Program =
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(null, span, file, "\\.");
        if ( ! a1.getB().isEmpty() ) {
-           List<Import>  imports = a1.getA();
            List<APIName> exports = a1.getB();
            yyValue = NodeFactory.makeComponent(span, name, a1.getA(), a2, exports);
        } else
@@ -221,8 +220,8 @@ private String EscapeSequence =
            default: { yyValue = ""; }
        }
      }
-   / '\\' a1:[\u201c] { yyValue = "\u201c"; }
-   / '\\' a1:[\u201d] { yyValue = "\u201d"; };
+   / '\\' [\u201c] { yyValue = "\u201c"; }
+   / '\\' [\u201d] { yyValue = "\u201d"; };
 /* '*/
 
 /* ImportedNames ::=

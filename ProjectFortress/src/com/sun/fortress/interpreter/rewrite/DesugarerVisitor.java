@@ -1446,7 +1446,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
     private AbstractNode translateJuxtOfDotted(Juxt node) {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
-        Id qidn = first.getVarId();
+        //Id qidn = first.getVarId();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
@@ -1498,7 +1498,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {
         VarRef first = (VarRef) node.getFront();
-        Id qidn = first.getVarId();
+        //Id qidn = first.getVarId();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general

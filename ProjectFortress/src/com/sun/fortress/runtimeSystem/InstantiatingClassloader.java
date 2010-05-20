@@ -387,7 +387,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         AnnotationVisitor av0;
         String superClass = "Abstract"+ft;
         name = api.replace(".", "/") + '$' + suffix;
-        String desc = "L" + name + ";";
+        //String desc = "L" + name + ";";
         String field_desc = "L" +(ft) + ";";
         // Begin with a class
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
@@ -633,7 +633,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         int l = parameters.size();
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(sig);
         for (int i = 0; i < l-1; i++) {
             String s = parameters.get(i);

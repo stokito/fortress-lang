@@ -118,7 +118,6 @@ public class PreParserState implements State {
             if ( open.getText().equals("(if") && close.getText().equals("end") ) {
                 lefts.add(0, NodeFactory.makeId(NodeUtil.getSpan(open), "("));
             } else if ( open.getText().startsWith("label$") ) {
-                String openLabel = open.getText().substring(6);
                 log(NodeUtil.spanTwo(open, close),
                     "Missing label at the end of a label expression.");
             } else if ( ! matches(open, close) ) {

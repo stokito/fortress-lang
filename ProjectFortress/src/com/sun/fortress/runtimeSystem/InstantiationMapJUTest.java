@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -35,23 +35,23 @@ public class InstantiationMapJUTest extends TestCase {
     }
     
     public void testMaybeVarInOxfords() {
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         int i = map.maybeVarInOxfords("A"+Naming.RIGHT_OXFORD, 0, b);
   
         assertEquals(2, i);
         assertEquals("ant"+Naming.RIGHT_OXFORD, b.toString());
  
-        b = new StringBuffer();
+        b = new StringBuilder();
         i = map.maybeVarInOxfords("BB"+Naming.RIGHT_OXFORD, 0, b);
         assertEquals(3, i);
         assertEquals("BB"+Naming.RIGHT_OXFORD, b.toString());
 
-        b = new StringBuffer();
+        b = new StringBuilder();
         i = map.maybeVarInOxfords("C;D"+Naming.RIGHT_OXFORD, 0, b);
         assertEquals(4, i);
         assertEquals("cat;dog"+Naming.RIGHT_OXFORD, b.toString());
         
-        b = new StringBuffer();
+        b = new StringBuilder();
         i = map.maybeVarInOxfords("C=C;D=D"+Naming.RIGHT_OXFORD, 0, b);
         assertEquals(8, i);
         assertEquals("C=cat;D=dog"+Naming.RIGHT_OXFORD, b.toString());
@@ -62,17 +62,17 @@ public class InstantiationMapJUTest extends TestCase {
     }
 
     public void testMaybeBareVar() {
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         int i = map.maybeBareVar("A", 0, b, false);
         assertEquals(1, i);
         assertEquals("ant", b.toString());
  
-        b = new StringBuffer();
+        b = new StringBuilder();
         i = map.maybeBareVar("B;", 0, b, false);
         assertEquals(1, i);
         assertEquals("bat", b.toString());
 
-        b = new StringBuffer();
+        b = new StringBuilder();
         i = map.maybeBareVar("CC;", 0, b, false);
         assertEquals(2, i);
         assertEquals("CC", b.toString());

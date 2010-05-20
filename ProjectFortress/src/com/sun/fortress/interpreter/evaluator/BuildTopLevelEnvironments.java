@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
@@ -224,10 +224,10 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     }
 
     public Boolean forComponent1(Component x) {
-        APIName name = x.getName();
+        //APIName name = x.getName();
         List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
-        List<Decl> defs = x.getDecls();
+        //List<Decl> defs = x.getDecls();
 
         // SComponent comp = new SComponent(BetterEnv.primitive(x), x);
         //containing.putComponent(name, comp);
@@ -260,7 +260,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
             if (staticParams.isEmpty()) {
                 FTypeTrait ftt = (FTypeTrait) containing.getRootType(NodeUtil.nameString(name)); // top level
-                Environment interior = ftt.getWithin();
+                //Environment interior = ftt.getWithin();
                 ftt.getMembers();
             }
             return null;

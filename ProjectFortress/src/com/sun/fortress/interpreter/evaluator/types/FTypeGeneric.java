@@ -222,7 +222,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                                                             bind_args,
                                                             key_args,
                                                             gen.members);
-            FTraitOrObject old = map.put(key_args, ftt); // Must put
+            map.put(key_args, ftt); // Must put
             // early to
             // expose for
             // second pass.

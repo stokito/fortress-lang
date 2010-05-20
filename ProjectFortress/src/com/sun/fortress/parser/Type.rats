@@ -494,7 +494,7 @@ private Type TypeRefWithError =
      }
    / a1:Id
      { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); }
-   / a1:Op a2:(w StaticArgs)?
+   / a1:Op (w StaticArgs)?
      { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount),
                                          a1.getText());
      };
