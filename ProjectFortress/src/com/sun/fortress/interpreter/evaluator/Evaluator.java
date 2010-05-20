@@ -251,7 +251,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Block f = x.getFronts().get(0);
             if (f.getLoc().isSome()) {
                 Expr regionExp = f.getLoc().unwrap();
-                FValue region = regionExp.accept(this);
+                regionExp.accept(this);
             }
             if (f.isAtomicBlock()) {
                 res = forAtomicExpr(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f));
@@ -268,7 +268,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
             if (f.getLoc().isSome()) {
                 Expr regionExp = f.getLoc().unwrap();
-                FValue region = regionExp.accept(this);
+                regionExp.accept(this);
             }
             if (f.isAtomicBlock()) tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
             else {
@@ -673,8 +673,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFnExpr(FnExpr x) {
-        Option<Type> return_type = NodeUtil.getReturnType(x);
-        List<Param> params = NodeUtil.getParams(x);
+        //Option<Type> return_type = NodeUtil.getReturnType(x);
+        //List<Param> params = NodeUtil.getParams(x);
         FunctionClosure cl = new FunctionClosure(e, x); // , return_type, params);
         cl.finishInitializing();
         return cl;
@@ -1405,7 +1405,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (BaseType forbidType : x.getForbidClause()) {
             if (excType.subtypeOf(EvalType.getFType(forbidType, e))) {
                 Environment libE = Driver.getFortressLibrary();
-                FType ftype = libE.getRootTypeNull(WellKnownNames.forbiddenException); // toplevel
+                //FType ftype = libE.getRootTypeNull(WellKnownNames.forbiddenException); // toplevel
                 List<FValue> args = new ArrayList<FValue>();
                 args.add(exc);
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);

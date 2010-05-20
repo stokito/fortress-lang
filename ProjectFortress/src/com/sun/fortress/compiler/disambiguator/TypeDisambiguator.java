@@ -256,7 +256,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             Option<APIName> realApiOpt = _env.apiName(originalApi);
             if (realApiOpt.isNone()) {
                 // retry for debugging purposes
-                realApiOpt = _env.apiName(originalApi);
+                //realApiOpt = _env.apiName(originalApi);
                 error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
                 return that;
             }

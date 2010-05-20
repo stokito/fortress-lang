@@ -168,7 +168,7 @@ public class NodeComparator {
 	x = compareOptionalStaticArg(left.getSize(), right.getSize());
 	if (x != 0) return x;
 	x = compareOptionalOp(left.getOp(), right.getOp());
-	return 0;
+	return x;
     }
 
     public static int compare(FnDecl left, FnDecl right) {

@@ -152,7 +152,7 @@ public class ReferenceCell extends IndirectionCell {
             if (!me.isActive()) throw new AbortedException(me, "Somebody killed me ");
 
             Transaction w = node.getWriter();
-            ValueNode old = node.getOld();
+            //ValueNode old = node.getOld();
 
             if (w == null || w.isAncestorOf(me)) {
                 node = new ValueNode(f2, me, node.getReaders(), node);

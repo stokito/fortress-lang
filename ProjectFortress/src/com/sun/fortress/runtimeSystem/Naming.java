@@ -144,7 +144,7 @@ public class Naming {
 
     public static String javaDescForTaggedFortressType(String ft) {
 
-        char ch = ft.charAt(0);
+        //char ch = ft.charAt(0);
         String tx = specialFortressDescriptors.get(ft);
         if (tx != null) {
             return tx; // Should be correct by construction
@@ -169,7 +169,7 @@ public class Naming {
         if (lox == -1)
             return s.replace(".", "/");
         // don't de-dot inside of oxford brackets.
-        int rox = s.indexOf(RIGHT_OXFORD_CHAR);
+        //int rox = s.indexOf(RIGHT_OXFORD_CHAR);
         return s.substring(0, lox).replace(".", "/") +
                s.substring(lox);
     }
@@ -186,7 +186,7 @@ public class Naming {
         int l = s.length();
         if (l == 0)
             return s;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         boolean sawback = false;
         for (int i = 0; i < l; i++) {
             char ch = s.charAt(i);
@@ -356,7 +356,7 @@ public class Naming {
     }
 
     public static String mangleMethodSignature(String s) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int l = s.length();
         int i = 0;
         while (i < l) {
@@ -390,7 +390,7 @@ public class Naming {
     }
 
     public static String demangleMethodSignature(String s) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int l = s.length();
         int i = 0;
         while (i < l) {
@@ -435,18 +435,18 @@ public class Naming {
      * @param sb the stringbuffer to which the transformed string is appended.
      * @return the index of the next character to process (if any).
      */
-    private static int mangleFortressIdentifier(String s, int start, StringBuffer sb) {
+    private static int mangleFortressIdentifier(String s, int start, StringBuilder sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,true);
     }
 
     public static String mangleFortressIdentifier(String s) {
         if (s == null)
             return null;
-        int l = s.length();
+        //int l = s.length();
         // Special case of <init> and <clinit>
         if (pointyDelimitedInitMethod(s))
             return s;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
          mangleOrNotFortressIdentifier(s,0, sb,true);
          String t = sb.toString();
          if (t.startsWith("\\-=Arrow"))
@@ -458,7 +458,7 @@ public class Naming {
         if (s == null)
             return null;
        
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
          mangleOrNotFortressFileName(s,0, sb,true);
          String t = sb.toString();
          
@@ -494,7 +494,7 @@ public class Naming {
     public static String mangleMemberName(String s) {
         if (s == null)
             return null;
-        int l = s.length();
+        //int l = s.length();
         // Special case of <init> and <clinit>
         if (pointyDelimitedInitMethod(s))
             return s;
@@ -513,20 +513,20 @@ public class Naming {
      * @param sb the stringbuffer to which the transformed string is appended.
      * @return the index of the next character to process (if any).
      */
-    private static int demangleFortressIdentifier(String s, int start, StringBuffer sb) {
+    private static int demangleFortressIdentifier(String s, int start, StringBuilder sb) {
         return mangleOrNotFortressIdentifier(s,start, sb,false);
     }
 
     public static String demangleFortressIdentifier(String s) {
         if (s == null)
             return null;
-        int l = s.length();
+        //int l = s.length();
 
         // Special case of <init> and <clinit>
         if (pointyDelimitedInitMethod(s))
             return s;
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
          mangleOrNotFortressIdentifier(s,0, sb, false);
          return sb.toString();
     }
@@ -537,22 +537,22 @@ public class Naming {
      * @return
      */
     private static boolean pointyDelimitedInitMethod(String s) {
-        int l = s.length();
+        //int l = s.length();
         return s.charAt(0) == '<' && s.endsWith("init>");
     }
 
 
-    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuilder sb, boolean mangleOrNot) {
         // specials = $/;
         return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;");
     }
 
-    private static int mangleOrNotFortressFileName(String s, int start, StringBuffer sb, boolean mangleOrNot) {
+    private static int mangleOrNotFortressFileName(String s, int start, StringBuilder sb, boolean mangleOrNot) {
         // specials = $/;
         return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;.");
     }
 
-    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuffer sb, boolean mangleOrNot, String specials) {
+    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuilder sb, boolean mangleOrNot, String specials) {
         int l = s.length();
         int nesting = 0;
 
@@ -581,7 +581,7 @@ public class Naming {
      * @param start
      * @param i
      */
-    private static void appendNonEmptyMangledSubstring(StringBuffer sb,
+    private static void appendNonEmptyMangledSubstring(StringBuilder sb,
             String s, int start, int i, boolean mangleOrNot) {
         if (i - start > 0) {
             s = s.substring(start, i);
@@ -609,7 +609,7 @@ public class Naming {
              */
 
             // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-            StringBuffer mangledStringBuffer = null;
+            StringBuilder mangledStringBuilder = null;
             String mangledString = identifier;
 
             int l = identifier.length();
@@ -622,24 +622,24 @@ public class Naming {
                     ch = identifier.charAt(j+1);
                     if (-1 != SF_ESCAPES.indexOf(ch) || j == 0 && ch == '=') {
                         // found one, do the translation.
-                        mangledStringBuffer = new StringBuffer(mangledString.substring(0, j+1));
-                        mangledStringBuffer.append('-');
-                        mangledStringBuffer.append(ch);
+                        mangledStringBuilder = new StringBuilder(mangledString.substring(0, j+1));
+                        mangledStringBuilder.append('-');
+                        mangledStringBuilder.append(ch);
                          for (int i = j+2; i < l-1; i++) {
                             ch = identifier.charAt(i);
-                            mangledStringBuffer.append(ch);
+                            mangledStringBuilder.append(ch);
                             if (ch == '\\') {
                                 ch = identifier.charAt(i+1);
                                 if (-1 !=  SF_ESCAPES.indexOf(ch)) {
                                     // found one, do the translation.
-                                    mangledStringBuffer.append('-');
+                                    mangledStringBuilder.append('-');
                                 }
                             }
 
                         }
                          if (j + 2 < l)
-                             mangledStringBuffer.append(identifier.charAt(l-1));
-                        mangledString = mangledStringBuffer.toString();
+                             mangledStringBuilder.append(identifier.charAt(l-1));
+                        mangledString = mangledStringBuilder.toString();
                         break;
                     }
                 }

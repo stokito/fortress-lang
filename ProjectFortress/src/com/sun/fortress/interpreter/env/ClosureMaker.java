@@ -61,7 +61,7 @@ public class ClosureMaker implements Opcodes {
                                              String aClass,
                                              String aMethod) throws Exception {
 
-        IdOrOp ua_name = fd.getUnambiguousName();
+        //IdOrOp ua_name = fd.getUnambiguousName();
         /*
          This is a cheat; ought to be more algorithmic, so this will
          work in general, not just for native wrappers.  Proper

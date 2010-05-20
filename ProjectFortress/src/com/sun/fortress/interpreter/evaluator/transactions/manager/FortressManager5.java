@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 /* Based on Backoff Manager */
@@ -31,7 +31,7 @@ import java.util.Collection;
 
 public class FortressManager5 extends BaseManager {
 
-    private final int MaxRetries = 5;
+    private final static int MaxRetries = 5;
 
     public FortressManager5() {
     }
@@ -41,7 +41,7 @@ public class FortressManager5 extends BaseManager {
         double sleepTime = 0;
 
         sleepTime = Math.random() * Math.pow(2.0, (double) runner.retries());
-        long current = System.currentTimeMillis();
+        //long current = System.currentTimeMillis();
         sleep((long) sleepTime);
     }
 
@@ -120,7 +120,7 @@ public class FortressManager5 extends BaseManager {
     public void resolveConflict(Transaction me, Transaction other) {
         if (me == null || other == null || !me.isActive() || !other.isActive()) return;
         FortressTaskRunner runner = (FortressTaskRunner) FortressTaskRunner.currentThread();
-        int retries = runner.retries();
+        //int retries = runner.retries();
         if (runner.retries() > 5) {
             FortressTaskRunner.debugPrintln("Going GREEDY");
             other.abort();
@@ -130,7 +130,7 @@ public class FortressManager5 extends BaseManager {
     public void resolveConflict(Transaction me, Collection<Transaction> others) {
         if (me == null || !me.isActive()) return;
         FortressTaskRunner runner = (FortressTaskRunner) FortressTaskRunner.currentThread();
-        int retries = runner.retries();
+        //int retries = runner.retries();
         if (runner.retries() > 10) {
             FortressTaskRunner.debugPrintln("Going GREEDY");
             for (Transaction t : others) {

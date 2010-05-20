@@ -222,7 +222,7 @@ object OverloadingError {
    * arrow type.
    */
   def getSignature(sargs: List[StaticArg], arrow: ArrowType): String = {
-    val sb = new StringBuffer
+    val sb = new StringBuilder
     val sparams = toJavaList(getStaticParams(arrow).filter(!_.isLifted))
 
     // Append static params, if any.

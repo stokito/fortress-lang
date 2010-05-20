@@ -1,19 +1,19 @@
 /*******************************************************************************
-  Copyright 2010 Sun Microsystems, Inc.,
-  4150 Network Circle, Santa Clara, California 95054, U.S.A.
-  All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
-  U.S. Government Rights - Commercial software.
-  Government users are subject to the Sun Microsystems, Inc. standard
-  license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
-  Use is subject to license terms.
+    Use is subject to license terms.
 
-  This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
-  Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
-  ******************************************************************************/
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
 
 package com.sun.fortress.compiler.typechecker;
 
@@ -512,11 +512,13 @@ public class TypeAnalyzer {
 
         @Override
         public Type forArrowType(ArrowType that) {
+            /*
             Type d = that.getDomain();
             Type r = that.getRange();
             Effect e = that.getEffect();
             Option<MethodInfo> om = that.getMethodInfo();
             TypeInfo ti = that.getInfo();
+            */
             // TODO Not correct if there are type params in the arrow type.
             // TODO Contravariance is not our friend here.
             return that;
@@ -580,8 +582,8 @@ public class TypeAnalyzer {
 
         @Override
         public Type forVarType(VarType that) {
-            Id i = that.getName();
-            TypeInfo ti = that.getInfo();
+            //Id i = that.getName();
+            //TypeInfo ti = that.getInfo();
 
             Option<StaticParam> osp = toJavaOption(_kindEnv.staticParam(that.getName()));
             if (osp.isSome()) {
@@ -734,9 +736,9 @@ public class TypeAnalyzer {
         @Override
         public Boolean forTraitType(TraitType that) {
             List<StaticArg> lsa = that.getArgs();
-            TypeInfo ti = that.getInfo();
-            Id i = that.getName();
-            List <StaticParam> lsp = that.getStaticParams();
+            //TypeInfo ti = that.getInfo();
+            //Id i = that.getName();
+            //List <StaticParam> lsp = that.getStaticParams();
 
             for (StaticArg sa : lsa) {
                 if (sa instanceof TypeArg) {
@@ -759,7 +761,7 @@ public class TypeAnalyzer {
 
         @Override
         public Boolean forVarType(VarType that) {
-            Id i = that.getName();
+            //Id i = that.getName();
             // is it necessarily false?  I don't think so, really.
             return false;
         }

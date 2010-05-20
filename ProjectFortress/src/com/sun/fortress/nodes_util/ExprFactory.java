@@ -332,12 +332,12 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(Span span, Id name) {
-        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
+        //List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
         return makeFnRef(span, name, Collections.<StaticArg>emptyList());
     }
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
-        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
+        //List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
         return makeFnRef(span, false, Option.<Type>none(), sargs,
                          defaultLexicalDepth, name,
                          Collections.<IdOrOp>singletonList(name),
@@ -1971,7 +1971,7 @@ public class ExprFactory {
     }
 
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
-        Expr body = makeVarRef(id);
+        //Expr body = makeVarRef(id);
         return new TemplateGapFnExpr(NodeFactory.makeExprInfo(s), id, params);
     }
 

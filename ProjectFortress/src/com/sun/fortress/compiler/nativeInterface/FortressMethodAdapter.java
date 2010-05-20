@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
     Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -43,7 +43,7 @@ class fortressConverter {
     final String constructor;
     final String constructorType;
 
-    private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
+    private final static String prefix = "com/sun/fortress/compiler/runtimeValues/";
 
     fortressConverter(String _fortressRuntimeType,
                       String _toJavaTypeMethod,
@@ -98,8 +98,8 @@ public class FortressMethodAdapter extends ClassAdapter {
 
     String inputClassName;
     String outputClassName;
-    private final String prefix = "com/sun/fortress/compiler/runtimeValues/";
-    private final String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
+    private final static String prefix = "com/sun/fortress/compiler/runtimeValues/";
+    private final static String prefixDotted = "com.sun.fortress.compiler.runtimeValues";
     private HashMap conversionTable;
 
     private APIName apiName;

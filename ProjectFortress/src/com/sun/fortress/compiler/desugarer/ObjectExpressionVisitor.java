@@ -394,7 +394,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         ObjectDecl lifted = liftObjectExpr(that, freeNames, exitFnParamMap);
 
-        final List<Exit> freeExitLabels = freeNames.getFreeExitLabels();
+        //final List<Exit> freeExitLabels = freeNames.getFreeExitLabels();
 
         /*
          * Anonymous inner class that rewrites the Exit node which captured

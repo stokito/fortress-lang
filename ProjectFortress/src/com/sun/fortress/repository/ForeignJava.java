@@ -645,7 +645,7 @@ public class ForeignJava {
      */
     public boolean dependenceChanged(GraphNode node, GraphNode next) {
         APIName node_name = node.getName();
-        APIName next_name = next.getName();
+        //APIName next_name = next.getName();
 
         Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld =
                 (node instanceof ApiGraphNode) ? classesImportedByAPIOld : classesImportedByCompOld;

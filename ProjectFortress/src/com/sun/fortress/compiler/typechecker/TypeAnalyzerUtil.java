@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -165,7 +165,7 @@ public class TypeAnalyzerUtil {
             }
             @Override public Boolean forArrowType(ArrowType t) {
                 Type d = t.getDomain();
-                Effect e = t.getEffect();
+                //Effect e = t.getEffect();
                 if ( d instanceof TupleType ) {
                     TupleType _d = (TupleType)d;
                     return recurOnList(_d.getElements()) ||

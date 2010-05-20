@@ -277,7 +277,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     // Overridden in BuildTraitEnvironment
     protected void forFnDecl3(FnDecl x) {
-        List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
+        //List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
         Fcn fcn = (Fcn) containing.getLeafValue(fname);
         fcn.finishInitializing();
@@ -560,7 +560,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) containing.getRootType(fname); // top level
-                FValue xxx = containing.getLeafValue(fname);
+                containing.getLeafValue(fname); // Must be done!!!
                 //Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
             }
@@ -591,7 +591,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         if (!staticParams.isEmpty()) {
             // Do nothing
         } else if (params.isSome()) {
-            FTypeObject fto = (FTypeObject) ft;
+            //FTypeObject fto = (FTypeObject) ft;
             Fcn cl = (Fcn) containing.getLeafValue(fname);
             //                List<Parameter> fparams = EvalType.paramsToParameters(
             //                        containing, params.unwrap());
@@ -608,12 +608,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     private void forObjectDecl4(ObjectDecl x) {
-
-        Environment e = containing;
+        //Environment e = containing;
         Id name = NodeUtil.getName(x);
-
         Option<List<Param>> params = NodeUtil.getParams(x);
-
         String fname = NodeUtil.nameString(name);
 
         if (params.isSome()) {
@@ -622,7 +619,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             // TODO - Blindly assuming a non-generic singleton.
             // TODO - Need to insert the name much, much, earlier; this is too late.
 
-            FValue value = bindInto.getLeafValue(fname);
+            bindInto.getLeafValue(fname); // Must be done!!!
 
             //            Constructor cl = (Constructor) containing
             //                    .getValue(obfuscated(fname));
@@ -675,7 +672,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Expr init = x.getInit().unwrap();
         LValue lvb = lhs.get(0);
 
-        Option<TypeOrPattern> type = lvb.getIdType();
+        //Option<TypeOrPattern> type = lvb.getIdType();
         Id name = lvb.getName();
         String sname = NodeUtil.nameString(name);
 
@@ -770,7 +767,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                                                          ")"));
                     }
                 } else {
-                    ft = FTypeTop.ONLY;
+                    //ft = FTypeTop.ONLY;
                 }
                 /* Finally, can finish this initialiation. */
                 // bindInto.storeType(x, sname, ft);
@@ -897,7 +894,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));
         }
-        List<Decl> fns = NodeUtil.getDecls(x);
+        //List<Decl> fns = NodeUtil.getDecls(x);
 
         // doTraitMethodDefs(ftt, null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 

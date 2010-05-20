@@ -928,9 +928,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     String jvmSignatureFor(TaggedFunctionName f) {
+        /*
         Function fu = f.tagF;
         List<StaticParam> params = staticParametersOf(fu);
-        /*
         TypeAnalyzer eta = ta;
         if (params != null) {
             eta = ta.extend(params, Option.<WhereClause>none());

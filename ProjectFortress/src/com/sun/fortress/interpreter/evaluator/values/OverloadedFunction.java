@@ -39,12 +39,12 @@ import java.util.*;
 
 public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fcn, HasAt> {
 
-    private final boolean debug = false;
-    private final boolean debugMatch = false;
+    private final static boolean debug = false;
+    private final static boolean debugMatch = false;
     /**
      * Disables ALL consistency checking of overloaded functions.
      */
-    private final boolean noCheck = false;
+    private final static boolean noCheck = false;
 
     protected volatile List<Overload> overloads = new ArrayList<Overload>();
     protected List<Overload> pendingOverloads = new ArrayList<Overload>();
@@ -334,7 +334,7 @@ public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fc
                                              Collection<Overload> new_overloads,
                                              Environment within) {
 
-            OverloadComparisonResult ocr = this;
+            //OverloadComparisonResult ocr = this;
 
             List<FType> pl1 = o1.getParams();
             List<FType> pl2 = o2.getParams();
@@ -522,7 +522,7 @@ public class OverloadedFunction extends Fcn implements Factory1P<List<FType>, Fc
                                                 List<FType> pl1,
                                                 List<FType> pl2) {
             if (distinct) return;
-            OverloadComparisonResult ocr = this;
+            //OverloadComparisonResult ocr = this;
             if (sawSymbolic1 || sawSymbolic2) {
                 exclDumpSkip();
                 String explanation;

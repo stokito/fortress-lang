@@ -830,6 +830,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             throw sayWhat(name, " method " + fnl
                           + " doesn't appear to have self type.");
         HasSelfType st = (HasSelfType) fnl;
+        /*
         List<Param> params = fnl.parameters();
         int arity = params.size();
 
@@ -861,29 +862,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 .jvmTypeDesc(erasedReturnType, component.getName()), -1, eta.groundBound(toTrait),
                 component.getName());
         String mname;
-        int selfIndex = st.selfPosition();
 
         List<Type> from_type_list =
             normalizeParamsToList(erasedParamType);
 
         List<Type> to_type_list =
             normalizeParamsToList(paramType);
+        */
 
+        int selfIndex = st.selfPosition();
         if (selfIndex != NO_SELF) {
-            erasedSig = Naming.removeNthSigParameter(erasedSig, selfIndex );
-            sig = Naming.removeNthSigParameter(sig, selfIndex );
-            mname = fmDottedName(singleName(name), selfIndex);
-            from_type_list = Useful.removeIndex(selfIndex, from_type_list);
-            to_type_list = Useful.removeIndex(selfIndex, to_type_list);
+            //erasedSig = Naming.removeNthSigParameter(erasedSig, selfIndex );
+            //sig = Naming.removeNthSigParameter(sig, selfIndex );
+            //mname = fmDottedName(singleName(name), selfIndex);
+            //from_type_list = Useful.removeIndex(selfIndex, from_type_list);
+            //to_type_list = Useful.removeIndex(selfIndex, to_type_list);
         } else {
-            mname = nonCollidingSingleName(name, erasedSig, ""); // Need to figure this out later.
+            //mname = nonCollidingSingleName(name, erasedSig, ""); // Need to figure this out later.
             // I think it might need to have $ERASED added to it anyway.
             // But we could overload those, too, couldn't we?
-            arity++;
+            //arity++;
         }
 
-        String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component
-                .getName(), false);
+        //String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component
+        //.getName(), false);
 
 //        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
 //                receiverClass, mname, INVOKEVIRTUAL, sig, arity, true);
@@ -906,8 +908,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         m.visitLabel(bogus_label);
         Span span = NodeUtil.getSpan(x);
         SourceLoc begin = span.getBegin();
-        SourceLoc end = span.getEnd();
-        String fileName = span.getFileName();
         m.visitLineNumber(begin.getLine(), bogus_label);
     }
 
@@ -1498,13 +1498,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO different collision rules for top-level and for
         // methods.
         String mname;
-        int n = params.size();
+        //int n = params.size();
         if (selfIndex != NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex+1);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
             mname = nonCollidingSingleName(name, sig, ""); // static params?
-            n++;
+            //n++;
         }
 
         CodeGen cg = new CodeGen(this);
@@ -1710,7 +1710,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Someone had better get rid of anonymous names before they get to CG.
         IdOrOp name = (IdOrOp) header.getName();
-        IdOrOp uaname = (IdOrOp) x.getUnambiguousName();
+        //IdOrOp uaname = (IdOrOp) x.getUnambiguousName();
 
         if (emittingFunctionalMethodWrappers) {
             if (selfIndex==NO_SELF)
@@ -1885,7 +1885,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // FnHeader header = x.getHeader();
         TraitTypeHeader trait_header = currentTraitObjectDecl.getHeader();
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
-        String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
+        //String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
 
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
@@ -2145,7 +2145,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             throw sayWhat(x, "Haven't figured out references to local/parameter functions yet");
 
         // need to deal with generics.
-        List<StaticArg> sargs = x.getStaticArgs();
+        //List<StaticArg> sargs = x.getStaticArgs();
 
         // Get it from top level.
         Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
@@ -2276,7 +2276,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (s.size() != 0) {
                 IdOrOp nn = NodeFactory.makeIdOrOp(a, x.getOriginalName());
                 Pair<String, String> trial = idToPackageClassAndName(nn);
-                Pair<String, String> rval = idToPackageClassAndName(n);
+                //Pair<String, String> rval = idToPackageClassAndName(n);
 //                if (! (trial.first().equals(rval.first()) &&
 //                       trial.second().equals(rval.second()))) {
 //                    System.err.println("Substitute " +
@@ -2297,7 +2297,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (s.size() == 1) {
                 IdOrOp nn = x.getOriginalName();
                 Pair<String, String> trial = idToPackageClassAndName(nn);
-                Pair<String, String> rval = idToPackageClassAndName(n);
+                //Pair<String, String> rval = idToPackageClassAndName(n);
 //                if (!(trial.first().equals(rval.first()) && trial.second()
 //                        .equals(rval.second()))) {
 //                    System.err.println("Substitute " + trial.first() + "."
@@ -2306,8 +2306,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //                }
                 return trial;
             } else {
-                IdOrOp nn = x.getOriginalName();
-                Pair<String, String> trial = idToPackageClassAndName(nn);
+                //IdOrOp nn = x.getOriginalName();
+                //Pair<String, String> trial = idToPackageClassAndName(nn);
                 Pair<String, String> rval = idToPackageClassAndName(n);
                 return rval;
             }
@@ -2322,7 +2322,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forIf(If x) {
         Debug.debug( Debug.Type.CODEGEN, 1,"forIf ", x);
         List<IfClause> clauses = x.getClauses();
-        Option<Block> elseClause = x.getElseClause();
+        //Option<Block> elseClause = x.getElseClause();
 
         org.objectweb.asm.Label done = new org.objectweb.asm.Label();
         org.objectweb.asm.Label falseBranch = new org.objectweb.asm.Label();
@@ -2474,7 +2474,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        Option<List<Param>> original_params = NodeUtil.getParams(x);
+        //Option<List<Param>> original_params = NodeUtil.getParams(x);
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
         Id classId = NodeUtil.getName(x);
@@ -2520,7 +2520,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
-        ObjectDecl y = x;
+        //ObjectDecl y = x;
         // Rewrite the generic.
         // need to do more differently if it is a constructor.
         if (sparams_part.length() > 0 ) {
@@ -2756,7 +2756,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                    packageAndClassName);
 
         traitOrObjectName = classFile;
-        String classDesc = NamingCzar.internalToDesc(classFile);
+        //String classDesc = NamingCzar.internalToDesc(classFile);
 
         // need to adapt this code
 
@@ -3094,7 +3094,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> original_static_params = header.getStaticParams();
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
-        TraitDecl y = x;
+        //TraitDecl y = x;
 
 
 //       First let's do the interface class

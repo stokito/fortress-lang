@@ -309,7 +309,7 @@ public class FileTests {
 
 
             long start = System.nanoTime();
-            String fssFile = f + ".fss";
+            //String fssFile = f + ".fss";
             int rc = 0;
 
             try {
@@ -459,7 +459,7 @@ public class FileTests {
 
         public void testFile() throws Throwable {
             String scriptName = ProjectProperties.FORTRESS_AUTOHOME + "/bin/fortress";
-            Runtime runtime = Runtime.getRuntime();
+            //Runtime runtime = Runtime.getRuntime();
             String runner = props.get("run.script", "run");
             System.out.print(" " + runner + " ");
             System.out.print(f);
@@ -597,7 +597,7 @@ public class FileTests {
 
         public void testFile() throws Throwable {
             String scriptName = f + ".sh";
-            Runtime runtime = Runtime.getRuntime();
+            //Runtime runtime = Runtime.getRuntime();
             System.out.print("  ");
             System.out.print(f);
             System.out.print(" ");
@@ -719,7 +719,7 @@ public class FileTests {
             //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
 
             {
-                Component p = (Component) ci.ast();
+                //Component p = (Component) ci.ast();
 
                 // oldOut.print(" RUNNING"); oldOut.flush();
                 if (!unexpectedOnly) System.out.println();
@@ -888,7 +888,7 @@ public class FileTests {
             if (slashi != -1) {
                 String candidatedir = s.substring(0, slashi);
                 s = s.substring(slashi + 1);
-                dir_name_from_user = candidatedir;
+                //dir_name_from_user = candidatedir;
                 dir_name_slashes_normalized = candidatedir;
                 dir_name_canonical = directoryAsFile(dir_name_slashes_normalized).getCanonicalPath();
             }
