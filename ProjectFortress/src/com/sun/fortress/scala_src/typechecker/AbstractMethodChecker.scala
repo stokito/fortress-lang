@@ -22,7 +22,6 @@ import scala.collection.Map
 import scala.collection.Set
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-// import scala.collection.jcl.MutableIterator.Wrapper
 import scala.Iterator._
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -69,7 +68,7 @@ class AbstractMethodChecker(component: ComponentIndex,
                          _) => ps match {
         case Some(params) if ! params.isEmpty =>
           checkObject(span, sparams, name, extendsC,
-                      List(NF.makeVarDecl(toJavaList(params.map(NF.makeLValue(_))))) ::: walk(decls).asInstanceOf[List[Decl]])
+                      params.map(p => NF.makeVarDecl(toJavaList(List(NF.makeLValue(p))))) ::: walk(decls).asInstanceOf[List[Decl]])
         case _ =>
           checkObject(span, sparams, name, extendsC, walk(decls).asInstanceOf[List[Decl]])
       }
@@ -178,7 +177,7 @@ class AbstractMethodChecker(component: ComponentIndex,
     // This function will replace the abstract decl's static params with those
     // static args applied to the trait in the concrete instantiation.
     def subst(ty: Type) = TypeAnalyzerUtil.substitute(sargs, sparams, ty)
-    
+
     val result = decl match {
       case fd:FnDecl =>
         ( typeAnalyzer.equivalent(subst(NU.getParamType(d)),

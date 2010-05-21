@@ -328,6 +328,8 @@ public class Disambiguator {
                 throw new IllegalArgumentException("Missing component index");
             }
 
+            comp = (Component) new PatternMatchingDesugarer(index, globalEnv).desugar();
+
             // Filter env based on what this component imports
 //       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
 //       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
