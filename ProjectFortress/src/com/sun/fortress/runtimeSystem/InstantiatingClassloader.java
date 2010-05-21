@@ -97,7 +97,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         InputStream origStream = getResourceAsStream(fileName);
         if (origStream == null) {
-            throw new IOException("Resource not found: " + fileName);
+            throw new IOException("Resource not found : " + fileName);
         }
 
         InputStream stream = new java.io.BufferedInputStream(origStream);
@@ -275,7 +275,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (LOG_LOADS)
             System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
         
-        // Sample tcn = Compiled15GEAR$UPINDEXf⟦☝;S⟧ENVELOPE$✖Arrow⟦☝;com/sun/fortress/compiler/runtimeValues/FZZ32⟧
+
         int up_index = tcn.indexOf(Naming.UP_INDEX);
         int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
         int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
