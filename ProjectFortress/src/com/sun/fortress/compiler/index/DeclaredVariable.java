@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeOrPattern;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -47,10 +48,9 @@ public class DeclaredVariable extends Variable {
             ++i;
         }
 
-        Option<Type> idType = NodeUtil.optTypeOrPatternToType(_lvalue.getIdType());
-        if (idType.isSome()) {
-            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(idType));
-        }
+        Option<TypeOrPattern> tp = _lvalue.getIdType();
+        if (tp.isSome() && tp.unwrap() instanceof Type)
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.optTypeOrPatternToType(tp)));
     }
 
     public LValue ast() {

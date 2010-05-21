@@ -113,8 +113,6 @@ public class PreTypeCheckDesugarer {
 
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
-        Component comp = (Component) component.ast();
-        comp = (Component) new PatternMatchingDesugarer().walk(comp);
-        return comp;
+        return (Component) component.ast();
     }
 }
