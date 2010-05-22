@@ -85,7 +85,7 @@ public class ParserJUTest extends TestCaseWrapper {
             }
         }
 
-        private class ParserTestCase extends TestCase {
+        private static class ParserTestCase extends TestCase {
 
             private final File file;
 

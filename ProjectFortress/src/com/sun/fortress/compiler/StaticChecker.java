@@ -143,10 +143,10 @@ public class StaticChecker {
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
-        for (APIName apiName : apis.keySet()) {
-            TypeCheckerResult checked = checkCompilationUnit(apis.get(apiName), env, true);
+        for (Map.Entry<APIName, ApiIndex> api : apis.entrySet()) {
+            TypeCheckerResult checked = checkCompilationUnit(api.getValue(), env, true);
             checkedApis.add((Api)checked.ast());
-            if (!checked.isSuccessful()) failedApis.add(apiName);
+            if (!checked.isSuccessful()) failedApis.add(api.getKey());
             errors = IterUtil.compose(checked.errors(), errors);
             type_checker_output = new TypeCheckerOutput( type_checker_output,
                                                          checked.getTypeCheckerOutput() );
@@ -169,11 +169,11 @@ public class StaticChecker {
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
-        for (APIName componentName : components.keySet()) {
-            TypeCheckerResult checked = checkCompilationUnit(components.get(componentName),
+        for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
+            TypeCheckerResult checked = checkCompilationUnit(component.getValue(),
                                                              env, false);
             checkedComponents.add((Component)checked.ast());
-            if (!checked.isSuccessful()) failedComponents.add(componentName);
+            if (!checked.isSuccessful()) failedComponents.add(component.getKey());
             errors = IterUtil.compose(checked.errors(), errors);
             type_checker_output = new TypeCheckerOutput( type_checker_output,
                                                          checked.getTypeCheckerOutput() );

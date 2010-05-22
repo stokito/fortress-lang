@@ -581,8 +581,9 @@ public class ForeignJava {
             // This looks wrong -- it seems to depend on the generateWrappersForApi call that is commented out.
             List<Import> imports = new ArrayList<Import>();
             IMultiMap<Pair<APIName,Option<String>>, Id> gi = generatedImports.get(name);
-            if (gi != null) for (Pair<APIName,Option<String>> a : gi.keySet()) {
-                importAnApi(imports, a, gi.get(a));
+            if (gi != null)
+                for (Map.Entry<Pair<APIName,Option<String>>, Set<Id>> a : gi.entrySet()) {
+                    importAnApi(imports, a.getKey(), a.getValue());
             }
 
             List<Decl> decls = new ArrayList<Decl>();

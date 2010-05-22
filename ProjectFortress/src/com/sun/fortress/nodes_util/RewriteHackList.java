@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -34,11 +34,10 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
  */
 public class RewriteHackList extends AbstractNode {
 
-    transient private List<? extends AbstractNode> nodes;
+    transient private List<? extends AbstractNode> nodes = java.util.Collections.<AbstractNode>emptyList();
 
     public RewriteHackList() {
         super(NodeFactory.makeExprInfo(NodeFactory.interpreterSpan));
-        nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
     public RewriteHackList(List<? extends AbstractNode> n) {

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.File;
+import java.io.Serializable;
 
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
@@ -126,7 +127,7 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
         return this.toString().compareTo(that.toString());
     }
 
-    private static class StaticErrorComparator implements Comparator<StaticError> {
+    private static class StaticErrorComparator implements Comparator<StaticError>, Serializable {
         public int compare(StaticError left, StaticError right) {
             // System.err.println("compare");
             return left.compareTo(right);

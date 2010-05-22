@@ -211,15 +211,15 @@ public class Constructor extends NonPrimitive {
         // and plugged into the trait/object and overloading definition
         // machinery.
         Map<String, List<FType>> genericArgs = new HashMap<String, List<FType>>();
-        for (String s : generics.keySet()) {
+        for (Map.Entry<String, Set<GenericMethod>> s : generics.entrySet()) {
             // All the methods are similarly parameterized, so the
             // first generic in the set (generics is a multimap)
             // is as good as any other for this purpose.
-            GenericMethod g = generics.get(s).iterator().next();
+            GenericMethod g = s.getValue().iterator().next();
 
             Applicable ap = g.getDef();
             List<FType> instantiationTypes = SingleFcn.createSymbolicInstantiation(bte, ap, getAt());
-            genericArgs.put(s, instantiationTypes);
+            genericArgs.put(s.getKey(), instantiationTypes);
         }
 
         final Set<String> overridden = new HashSet<String>();

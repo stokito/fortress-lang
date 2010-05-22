@@ -237,8 +237,8 @@ public class OperatorStuffGenerator {
                 new StringBuilder()) + ";");
         tjf.newLine();
 
-        for (String k : groups.keySet()) {
-            Set<Element> els = groups.get(k);
+        for (Map.Entry<String, Set<Element>> k : groups.entrySet()) {
+            Set<Element> els = k.getValue();
             Set<String> s_e = new BASet<String>(DefaultComparator.<String>normal());
 
             for (Element e : els) {
@@ -246,7 +246,7 @@ public class OperatorStuffGenerator {
                 s_e.add(ename);
             }
 
-            String enc_group = "encoded_" + k;
+            String enc_group = "encoded_" + k.getKey();
 
             tjf.write(
                     "   final private static String " + enc_group + " =" + StringEncodedAggregate.setToFormattedString(
@@ -275,11 +275,11 @@ public class OperatorStuffGenerator {
                 "   static Map<String, String> aliases = StringEncodedAggregate.stringToMap(encodedAliases,';',new BATree<String, String>(DefaultComparator.<String>normal()));");
         tjf.newLine();
 
-        for (String k : groups.keySet()) {
+        for (Map.Entry<String, Set<Element>> k : groups.entrySet()) {
 
-            String enc_group = "encoded_" + k;
+            String enc_group = "encoded_" + k.getKey();
 
-            tjf.write("   static Set<String> p_" + k + " = StringEncodedAggregate.stringToSet(" + enc_group +
+            tjf.write("   static Set<String> p_" + k.getKey() + " = StringEncodedAggregate.stringToSet(" + enc_group +
                       ",';',new BASet<String>(DefaultComparator.<String>normal()));");
             tjf.newLine();
 
@@ -384,9 +384,10 @@ public class OperatorStuffGenerator {
             lex.newLine();
         }
 
-        for (String k : groups.keySet()) {
+        for (Map.Entry<String, Set<Element>> pair : groups.entrySet()) {
+            String k = pair.getKey();
             prc.write("let " + k + " = set ");
-            Set<Element> els = groups.get(k);
+            Set<Element> els = pair.getValue();
             boolean sawOne = false;
             String sep = "[";
             for (Element e : els) {

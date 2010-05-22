@@ -60,9 +60,8 @@ public class OverloadRewriter {
         HashSet<Component> rewrittenComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
-        for (APIName componentName : components.keySet()) {
-            Component rewrite = rewriteComponent(components.get(componentName), env, forInterpreter);
-            rewrittenComponents.add(rewrite);
+        for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
+            rewrittenComponents.add(rewriteComponent(component.getValue(), env, forInterpreter));
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(rewrittenComponents,
