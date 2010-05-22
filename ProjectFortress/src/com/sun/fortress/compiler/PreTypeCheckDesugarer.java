@@ -101,9 +101,8 @@ public class PreTypeCheckDesugarer {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
-        for (APIName componentName : components.keySet()) {
-            Component desugared = desugarComponent(components.get(componentName), env);
-            desugaredComponents.add(desugared);
+        for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
+            desugaredComponents.add(desugarComponent(component.getValue(), env));
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(desugaredComponents,

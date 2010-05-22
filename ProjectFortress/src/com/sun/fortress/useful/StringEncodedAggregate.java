@@ -113,8 +113,9 @@ public class StringEncodedAggregate {
     public static StringBuilder mapToFormattedString(Map<String, String> map, char d, StringBuilder sb) {
         boolean first = true;
         sb.append("\n\t\"");
-        for (String key : map.keySet()) {
-            String value = map.get(key);
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
             if (first) {
                 first = false;
             } else {

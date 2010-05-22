@@ -28,6 +28,7 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public interface GenericFunctionOrMethod {
 
     Simple_fcn typeApply(List<FType> argValues, HasAt site);
 
-    static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
+    static class GenericComparer implements Comparator<GenericFunctionOrMethod>, Serializable {
 
         public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
 

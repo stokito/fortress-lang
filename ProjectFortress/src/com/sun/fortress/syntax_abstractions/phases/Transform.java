@@ -928,7 +928,7 @@ public class Transform extends TemplateUpdateVisitor {
         throw new MacroError("No repeated variables!");
     }
 
-    private class CurriedTransformer implements Node {
+    private static class CurriedTransformer implements Node {
         private String original;
         private Map<String, Level> vars;
         private List<String> parameters;

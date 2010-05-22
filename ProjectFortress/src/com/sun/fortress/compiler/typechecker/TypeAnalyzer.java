@@ -705,7 +705,7 @@ public class TypeAnalyzer {
         }
     }
 
-    class isGround extends NodeAbstractVisitor<Boolean> implements F<Type, Boolean> {
+    static class isGround extends NodeAbstractVisitor<Boolean> implements F<Type, Boolean> {
 
         @Override
         public Boolean apply(Type x) {

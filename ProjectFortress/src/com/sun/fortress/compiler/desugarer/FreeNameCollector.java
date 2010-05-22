@@ -919,7 +919,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         return traitIndex;
     }
 
-    private class DecledNamesCollector extends NodeDepthFirstVisitor_void {
+    private static class DecledNamesCollector extends NodeDepthFirstVisitor_void {
         private ASTNode root;
         private HashSet<Id> decledNames;
         private HashSet<Id> extendedTypeNames;

@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.environments;
@@ -73,12 +73,12 @@ public class TopLevelEnvGen {
         Map<APIName, Pair<String, byte[]>> compiledApis = new HashMap<APIName, Pair<String, byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
-        for (APIName apiName : apis.keySet()) {
-            String className = NamingCzar.classNameForApiEnvironment(apiName);
+        for (Map.Entry<APIName, ApiIndex> api : apis.entrySet()) {
+            String className = NamingCzar.classNameForApiEnvironment(api.getKey());
 
             try {
-                byte[] envClass = generateForCompilationUnit(className, apis.get(apiName));
-                compiledApis.put(apiName, new Pair<String, byte[]>(className, envClass));
+                byte[] envClass = generateForCompilationUnit(className, api.getValue());
+                compiledApis.put(api.getKey(), new Pair<String, byte[]>(className, envClass));
             }
             catch (StaticError staticError) {
                 errors.add(staticError);
@@ -101,11 +101,11 @@ public class TopLevelEnvGen {
         Map<APIName, Pair<String, byte[]>> compiledComponents = new HashMap<APIName, Pair<String, byte[]>>();
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
-        for (APIName componentName : components.keySet()) {
-            String className = NamingCzar.classNameForComponentEnvironment(componentName);
+        for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
+            String className = NamingCzar.classNameForComponentEnvironment(component.getKey());
             try {
-                byte[] envClass = generateForCompilationUnit(className, components.get(componentName));
-                compiledComponents.put(componentName, new Pair<String, byte[]>(className, envClass));
+                byte[] envClass = generateForCompilationUnit(className, component.getValue());
+                compiledComponents.put(component.getKey(), new Pair<String, byte[]>(className, envClass));
             }
             catch (StaticError staticError) {
                 errors.add(staticError);
@@ -657,8 +657,8 @@ public class TopLevelEnvGen {
     }
 
     private static void outputClassFiles(Map<APIName, Pair<String, byte[]>> compiledCompUnits, String classSuffix, HashSet<StaticError> errors) {
-        for (APIName componentName : compiledCompUnits.keySet()) {
-            Pair<String, byte[]> compOutput = compiledCompUnits.get(componentName);
+        for (Map.Entry<APIName, Pair<String, byte[]>> component : compiledCompUnits.entrySet()) {
+            Pair<String, byte[]> compOutput = component.getValue();
             String fileName = ProjectProperties.ENVIRONMENT_CACHE_DIR + File.separator + compOutput.getA() + ".class";
             outputClassFile(compOutput.getB(), fileName, errors);
         }

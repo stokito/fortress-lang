@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
@@ -61,7 +62,7 @@ public class NodeComparator {
 	return 0;
     }
     /* list comparers ****************************************************/
-    static class ExtentRangeComparer implements Comparator<ExtentRange> {
+    static class ExtentRangeComparer implements Comparator<ExtentRange>, Serializable {
 	public int compare(ExtentRange left, ExtentRange right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -70,7 +71,7 @@ public class NodeComparator {
     public final static AnyListComparer<ExtentRange> extentRangeListComparer =
 	new AnyListComparer<ExtentRange>(extentRangeComparer);
 
-    static class KeywordTypeComparer implements Comparator<KeywordType> {
+    static class KeywordTypeComparer implements Comparator<KeywordType>, Serializable {
 	public int compare(KeywordType left, KeywordType right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -79,7 +80,7 @@ public class NodeComparator {
     public final static AnyListComparer<KeywordType> keywordTypeListComparer =
 	new AnyListComparer<KeywordType>(keywordTypeComparer);
 
-    static class ParamComparer implements Comparator<Param> {
+    static class ParamComparer implements Comparator<Param>, Serializable {
 	public int compare(Param left, Param right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -88,7 +89,7 @@ public class NodeComparator {
     public final static AnyListComparer<Param> paramListComparer =
 	new AnyListComparer<Param>(paramComparer);
 
-    static class StaticParamComparer implements Comparator<StaticParam> {
+    static class StaticParamComparer implements Comparator<StaticParam>, Serializable {
 	public int compare(StaticParam left, StaticParam right) {
 	    Class<? extends StaticParam> tclass = left.getClass();
 	    Class<? extends StaticParam> oclass = right.getClass();
@@ -103,7 +104,7 @@ public class NodeComparator {
     public static final AnyListComparer<StaticParam> staticParamListComparer =
 	new AnyListComparer<StaticParam>(staticParamComparer);
 
-    static class StaticArgComparer implements Comparator<StaticArg> {
+    static class StaticArgComparer implements Comparator<StaticArg>, Serializable {
 	public int compare(StaticArg left, StaticArg right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -112,7 +113,7 @@ public class NodeComparator {
     public final static AnyListComparer<StaticArg> staticArgListComparer =
 	new AnyListComparer<StaticArg>(staticArgComparer);
 
-    static class BaseTypeComparer implements Comparator<BaseType> {
+    static class BaseTypeComparer implements Comparator<BaseType>, Serializable {
 	public int compare(BaseType left, BaseType right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -121,7 +122,7 @@ public class NodeComparator {
     public final static AnyListComparer<BaseType> traitTypeListComparer =
 	new AnyListComparer<BaseType>(traitTypeComparer);
 
-    public static class TypeComparer implements Comparator<Type> {
+    public static class TypeComparer implements Comparator<Type>, Serializable {
 	public int compare(Type left, Type right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -130,7 +131,7 @@ public class NodeComparator {
     public final static AnyListComparer<Type> typeListComparer =
 	new AnyListComparer<Type>(typeComparer);
 
-    public static class IdOrOpComparer implements Comparator<IdOrOp> {
+    public static class IdOrOpComparer implements Comparator<IdOrOp>, Serializable {
 	public int compare(IdOrOp left, IdOrOp right) {
 	    return NodeComparator.compare(left, right);
 	}
@@ -182,7 +183,7 @@ public class NodeComparator {
 	return x;
     }
 
-    static class FnDeclComparer implements Comparator<FnDecl> {
+    static class FnDeclComparer implements Comparator<FnDecl>, Serializable {
 	public int compare(FnDecl left, FnDecl right) {
 	    return NodeComparator.compare(left, right);
 	}

@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -439,7 +440,7 @@ public class NamingCzar {
     public static final String FValueType = runtimeValues + "FValue";
     // static final String FValueDesc = internalToDesc(FValueType);
 
-    static class PartialTypeComparator implements Comparator<com.sun.fortress.nodes.Type> {
+    static class PartialTypeComparator implements Comparator<com.sun.fortress.nodes.Type>, Serializable {
 
         @Override
         public int compare(com.sun.fortress.nodes.Type o1,

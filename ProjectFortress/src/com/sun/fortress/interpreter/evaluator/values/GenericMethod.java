@@ -31,6 +31,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -145,7 +146,7 @@ public class GenericMethod extends MethodClosure
         return;
     }
 
-    static class GenericComparer implements Comparator<GenericMethod> {
+    static class GenericComparer implements Comparator<GenericMethod>, Serializable {
 
         public int compare(GenericMethod arg0, GenericMethod arg1) {
             Applicable a0 = arg0.getDef();

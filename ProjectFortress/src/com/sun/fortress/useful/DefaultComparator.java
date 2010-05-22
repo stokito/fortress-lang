@@ -17,6 +17,7 @@
 
 package com.sun.fortress.useful;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -32,7 +33,7 @@ public class DefaultComparator<T extends Comparable> implements Comparator<T> {
         return arg0.compareTo(arg1);
     }
 
-    final static class Reversed extends DefaultComparator {
+    final static class Reversed extends DefaultComparator implements Serializable {
         public int compare(String arg0, String arg1) {
             int rc = arg0.compareTo(arg1);
             // Don't forget that -MININT = MININT
