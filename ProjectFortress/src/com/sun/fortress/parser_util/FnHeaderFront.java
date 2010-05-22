@@ -99,6 +99,7 @@ public class FnHeaderFront {
     }
 
     public boolean equals(Object o) {
+        if (o == null) return false;
         if (o.getClass().equals(this.getClass())) {
             FnHeaderFront fhf = (FnHeaderFront) o;
             return receiver.equals(fhf.getReceiver()) && name.equals(fhf.getName()) &&

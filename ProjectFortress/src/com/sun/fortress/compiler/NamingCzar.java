@@ -1295,13 +1295,13 @@ public class NamingCzar {
             while (ch != ']') {
                 ch = desc.charAt(++i);
             }
-            return new String(desc.substring(start, ++i));
+            return desc.substring(start, ++i);
         case 'L':
             start = i;
             while (ch != ';') {
                 ch = desc.charAt(++i);
             }
-            return new String(desc.substring(start, ++i));
+            return desc.substring(start, ++i);
         default: throw new CompilerError("Bad Type Descriptor:" + desc);
         }
     }

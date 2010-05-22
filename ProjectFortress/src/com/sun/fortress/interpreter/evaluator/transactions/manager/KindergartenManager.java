@@ -31,7 +31,7 @@ public class KindergartenManager extends BaseManager {
     static final int SLEEP_PERIOD = 1000; // was 100
     static final int MAX_RETRIES = 100; // was 10
     TreeSet<KindergartenManager> otherChildren;
-    FortressRandom random;
+    //FortressRandom random;
 
     /**
      * Creates new <code>Kindergarten</code> manager
@@ -40,7 +40,7 @@ public class KindergartenManager extends BaseManager {
         super();
         otherChildren = new TreeSet<KindergartenManager>();
         otherChildren.add(this);
-        random = new FortressRandom();
+        //random = new FortressRandom();
     }
 
     public void resolveConflict(Transaction me, Transaction other) {

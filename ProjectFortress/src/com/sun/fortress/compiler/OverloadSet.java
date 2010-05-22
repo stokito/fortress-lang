@@ -1185,6 +1185,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return subset;
         }
 
-    }
+        public int hashCode() {
+            return super.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) return false;
+            if ((o.getClass() != this.getClass()) || (o.hashCode() != this.hashCode())) {
+                return false;
+            }
+            else {
+                return super.equals(o);
+            }
+        }
+
+   }
 
 }

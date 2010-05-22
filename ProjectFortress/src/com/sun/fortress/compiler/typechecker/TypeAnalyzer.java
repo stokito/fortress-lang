@@ -490,8 +490,6 @@ public class TypeAnalyzer {
         return makeUnion(reduceDisjuncts(disjuncts, h));
     }
 
-    NAVandF groundingBoundingVisitor = new NAVandF();
-
     /**
      * It's a visitor AND a function.
      *
@@ -707,8 +705,6 @@ public class TypeAnalyzer {
         }
     }
 
-    isGround isGroundInstance = new isGround();
-
     class isGround extends NodeAbstractVisitor<Boolean> implements F<Type, Boolean> {
 
         @Override
@@ -783,7 +779,7 @@ public class TypeAnalyzer {
     }
 
     public boolean isGround(final Type t) {
-        return t.accept(isGroundInstance).booleanValue();
+        return t.accept(new isGround()).booleanValue();
     }
 
     /**
@@ -796,7 +792,7 @@ public class TypeAnalyzer {
     public Type groundBound( final Type t ) {
         if (isGround(t))
             return t;
-        return t.accept(groundingBoundingVisitor);
+        return t.accept(new NAVandF());
     }
 
     /**

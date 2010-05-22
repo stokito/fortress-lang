@@ -136,6 +136,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         return containing;
     }
 
+    /*
     static FunctionClosure instantiate(FGenericFunction x) {
         return null;
     }
@@ -147,6 +148,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     static FTypeTrait instantiate(TypeGeneric x) {
         return null;
     }
+    */
 
     protected static void doDefs(BuildEnvironments inner, List<Decl> defs) {
         for (Decl def : defs) {
@@ -309,7 +311,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 forFnDecl4(x);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     //    public void putOrOverloadOrShadow(HasAt x, BetterEnv e, IdOrOpOrAnonymousName name,
@@ -447,7 +449,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 forObjectDecl4(x);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     protected void forObjectDecl1(ObjectDecl x) {
@@ -657,7 +659,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 forVarDecl4(x);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     private void forVarDecl1(VarDecl x) {
@@ -814,7 +816,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 forTraitDecl4(x);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     private void forTraitDecl1(TraitDecl x) {
@@ -988,75 +990,43 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeAlias(com.sun.fortress.interpreter.nodes.TypeAlias)
-     */
     @Override
     public Boolean forTypeAlias(TypeAlias x) {
         // Id name;
         // List<Id> params;
         // Type type;
         // TODO Auto-generated method stub
-        return null;
+        return Boolean.valueOf(false);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimUnitDecl(com.sun.fortress.interpreter.nodes.DimUnitDecl)
-     */
     @Override
     public Boolean forDimUnitDecl(DimUnitDecl x) {
         // TODO Auto-generated method stub
-
-        return null;
+        return Boolean.valueOf(false);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimArg(com.sun.fortress.interpreter.nodes.DimArg)
-     */
     @Override
     public Boolean forDimArg(DimArg x) {
         // TODO Auto-generated method stub
-        return null;
+        return Boolean.valueOf(false);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportApi(com.sun.fortress.interpreter.nodes.ImportApi)
-     */
     @Override
     public Boolean forImportApi(ImportApi x) {
         // TODO Auto-generated method stub
-        return null;
+        return Boolean.valueOf(false);
     }
 
-
-    /*
-    * (non-Javadoc)
-    *
-    * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportNames(com.sun.fortress.interpreter.nodes.ImportNames)
-    */
     @Override
     public Boolean forImportNames(ImportNames x) {
         // TODO Auto-generated method stub
-        return null;
+        return Boolean.valueOf(false);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportStar(com.sun.fortress.interpreter.nodes.ImportStar)
-     */
     @Override
     public Boolean forImportStar(ImportStar x) {
         // TODO Auto-generated method stub
-        return null;
+        return Boolean.valueOf(false);
     }
 
     public Environment getBindingEnv() {
@@ -1065,7 +1035,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forGrammarDecl(GrammarDecl that) {
-        return null; // Do nothing
+        return Boolean.valueOf(false); // Do nothing
     }
 
     public void setPass(int pass) {

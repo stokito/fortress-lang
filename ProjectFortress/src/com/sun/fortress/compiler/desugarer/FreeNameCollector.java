@@ -126,6 +126,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         return declSiteToVarRefs;
     }
 
+    public TraitTable getTraitTable() {
+        return traitTable;
+    }
+
     /*
     public Map<Pair<Id,Id>, TypeParam> getStaticArgToTypeParam() {
         return staticArgToTypeParam;

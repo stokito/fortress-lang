@@ -23,11 +23,8 @@ import com.sun.fortress.nodes.Component;
 
 public class SComponent extends Base {
 
-    Component x;
-
     public SComponent(Environment environment, Component component) {
         super(environment);
-        x = component;
     }
 
 }

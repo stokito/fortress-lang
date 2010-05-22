@@ -35,7 +35,7 @@ import java.util.*;
 
 public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
-    private boolean suppressDebugDump;
+    private static boolean suppressDebugDump;
     private final static boolean debug = false;
 
     public class Thing implements InterpreterNameRewriter {
@@ -47,7 +47,12 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
             lexicalNestedness = lexicalNestingDepth;
         }
 
+        public int hashCode() {
+            return super.hashCode();
+        }
+
         public boolean equals(Object o) {
+            if (o == null) return false;
             if (o.getClass() == getClass()) {
                 Thing that = (Thing) o;
                 if (that.objectNestedness == this.objectNestedness && that.lexicalNestedness == this.lexicalNestedness)
@@ -125,6 +130,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
         public String toString() {
             return "Trait=" + defOrDecl;
+        }
+
+        public int hashCode() {
+            return super.hashCode();
         }
 
         public boolean equals(Object o) {
@@ -266,7 +275,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V));
-        this.suppressDebugDump = suppressDebugDump;
+        suppressDebugDump = suppressDebugDump;
     }
 
     /**
@@ -299,8 +308,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
      * as is convenient to the implementation.
      */
     int lexicalNestingDepth;
-
-    boolean inTrait;
 
     boolean atTopLevelInsideTraitOrObject = false; // true immediately within a trait/object
 
@@ -594,7 +601,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
         List<Decl> defs = com.getDecls();
         defsToLocals(defs);
 
-        if (debug && !suppressDebugDump) System.err.println("BEFORE\n" + NodeUtil.dump(com));
+        if (debug && !this.suppressDebugDump) System.err.println("BEFORE\n" + NodeUtil.dump(com));
 
         APIName name_result = (APIName) recur(com.getName());
         List<Import> imports_result = recurOnListOfImport(com.getImports());
@@ -617,7 +624,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
                                                     com.is_native(),
                                                     exports_result);
 
-        if (debug && !suppressDebugDump) System.err.println("AFTER\n" + NodeUtil.dump(nn));
+        if (debug && !this.suppressDebugDump) System.err.println("AFTER\n" + NodeUtil.dump(nn));
 
         return nn;
     }
@@ -996,9 +1003,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
         accumulateMembersFromExtends(td);
 
-        inTrait = true;
         AbstractNode n = visitNodeTO(td);
-        inTrait = false;
         return n;
     }
 

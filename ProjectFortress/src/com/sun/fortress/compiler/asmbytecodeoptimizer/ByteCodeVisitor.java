@@ -46,7 +46,7 @@ class ByteCodeVisitor implements ClassVisitor {
     String superName;
     String[] interfaces;
 
-    String sourceFile;
+    //String sourceFile;
 
     public void print() {
         Iterator it = fieldVisitors.entrySet().iterator();
@@ -108,7 +108,7 @@ class ByteCodeVisitor implements ClassVisitor {
     }
 
     public void visitSource(String file, String debug) {
-        this.sourceFile = file;
+        //this.sourceFile = file;
     }
 
     public void visitOuterClass(String owner, String name, String desc) {

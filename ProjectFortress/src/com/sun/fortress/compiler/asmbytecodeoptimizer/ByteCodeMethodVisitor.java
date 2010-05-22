@@ -41,8 +41,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     static int INVOKEVIRTUAL = Opcodes.INVOKEVIRTUAL;
     static int INVOKEINTERFACE = Opcodes.INVOKEINTERFACE;
 
-    boolean changed;
-
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
         this.labelNames = new HashMap();
         this.insns = new ArrayList<Insn>();
@@ -51,7 +49,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.desc = desc;
         this.sig = sig;
         this.exceptions = exceptions;
-        changed = false;
     }
 
     public void toAsm(ClassWriter cw) {

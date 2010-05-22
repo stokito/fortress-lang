@@ -34,8 +34,6 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
 
-    private Span span = NodeFactory.makeSpan("StaticTypeReplacerJUTest.BOGUS");
-
     private StaticTypeReplacer replacer;
 
     public void testLeafNodes() {

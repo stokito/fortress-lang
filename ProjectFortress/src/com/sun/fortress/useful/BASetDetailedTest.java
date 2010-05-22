@@ -30,6 +30,7 @@ public class BASetDetailedTest extends TestCase {
 
     BASet<String> t = new BASet<String>(String.CASE_INSENSITIVE_ORDER);
 
+    /*
     String[] adds = {
             "auk25", "eel83", "gar37", "vole91", "bass28", "giraffe37", "eland64", "octopus34", "buffalo3", "bison28",
             "octopus28", "dog0", "cow61", "elephant20", "armadillo1", "caiman65", "aardwolf37", "deer23", "cow41",
@@ -130,6 +131,7 @@ public class BASetDetailedTest extends TestCase {
             "owl68", "cavy36", "cavy39", "buffalo3", "gar11", "hyena95", "shark19", "hedgehog14", "gnu38",
             "cassowary84", "sheep91", "lamprey61", "buffalo69", "gull22", "eland28", "gharial10", "spider87", "cat41",
     };
+    */
 
     String[] animals = {
             "aardvark", "aardwolf", "alpaca", "anole", "ant", "armadillo", "auk", "bass", "bat", "bear", "beetle",

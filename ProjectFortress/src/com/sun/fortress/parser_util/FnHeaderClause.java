@@ -69,6 +69,7 @@ public class FnHeaderClause {
     }
 
     public boolean equals(Object o) {
+        if (o == null) return false;
         if (o.getClass().equals(this.getClass())) {
             FnHeaderClause fhc = (FnHeaderClause) o;
             return throwsClause.equals(fhc.getThrowsClause()) && whereClause.equals(fhc.getWhereClause()) &&

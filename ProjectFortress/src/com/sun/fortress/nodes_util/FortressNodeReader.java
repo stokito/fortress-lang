@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,8 +29,6 @@ import com.sun.fortress.nodes.NodeReader;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class FortressNodeReader extends NodeReader {
-
-    private ArrayList<Object> seen = new ArrayList<Object>(1024);
 
     public FortressNodeReader(BufferedReader r) {
         super(r);

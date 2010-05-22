@@ -70,21 +70,21 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             APIName imported = aliased_api.getApiName();
             importAPIName(imported);
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     @Override
     public Boolean forImportNames(ImportNames x) {
         APIName imported = x.getApiName();
         importAPIName(imported);
-        return null;
+        return Boolean.valueOf(false);
     }
 
     @Override
     public Boolean forImportStar(ImportStar x) {
         APIName imported = x.getApiName();
         importAPIName(imported);
-        return null;
+        return Boolean.valueOf(false);
     }
 
     private void importAPIName(APIName imported) {
@@ -119,16 +119,16 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 doDefs(this, decls);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
     public Boolean for_RewriteObjectExprDecl(_RewriteObjectExprDecl x) {
-        return null;
+        return Boolean.valueOf(false);
     }
 
     public Boolean for_RewriteFunctionalMethodDecl(_RewriteFunctionalMethodDecl x) {
-        return null;
+        return Boolean.valueOf(false);
     }
 
     public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
@@ -183,7 +183,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             }
 
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     /*
@@ -214,13 +214,13 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 doDefs(this, defs);
                 break;
         }
-        return null;
+        return Boolean.valueOf(false);
     }
 
     public Boolean forComponentDefs(Component x) {
         List<Decl> defs = x.getDecls();
         doDefs(this, defs);
-        return null;
+        return Boolean.valueOf(false);
     }
 
     public Boolean forComponent1(Component x) {
@@ -238,7 +238,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             imp.accept(this);
         }
 
-        return null;
+        return Boolean.valueOf(false);
     }
 
     class ForceTraitFinish extends NodeAbstractVisitor<Boolean> {
@@ -247,7 +247,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
          * Make the default behavior return null, no throw an exception.
          */
         public Boolean defaultCase(Node x) {
-            return null;
+            return Boolean.valueOf(false);
         }
 
         /* (non-Javadoc)
@@ -263,7 +263,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 //Environment interior = ftt.getWithin();
                 ftt.getMembers();
             }
-            return null;
+            return Boolean.valueOf(false);
         }
 
         void visit(Decl def) {

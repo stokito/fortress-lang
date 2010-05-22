@@ -42,14 +42,14 @@ public class ComposingSyntaxDefTranslator {
     private static final String BOUND_VARIABLES = "boundVariables";
 
     @SuppressWarnings ("unused")
-    private Id nt;
+    //private Id nt;
     private Mangler mangler;
     private String type;
     private NTEnv ntEnv;
 
     public ComposingSyntaxDefTranslator(Mangler mangler, Id nt, String type, NTEnv ntEnv) {
         this.mangler = mangler;
-        this.nt = nt;
+        //this.nt = nt;
         this.type = type;
         this.ntEnv = ntEnv;
     }

@@ -36,6 +36,10 @@ public class Common extends NodeAbstractVisitor_void {
     
     Environment e;
     
+    public Environment getEnv() {
+        return this.e;
+    }
+
     /*
      * For each top-level function in a component, generate two things:
      * 
