@@ -77,6 +77,21 @@ public class StaticError extends RuntimeException implements HasAt, Comparable<S
         return String.format("%s:\n    %s", at(), description());
     }
 
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if ((obj.getClass() != this.getClass()) || (obj.hashCode() != this.hashCode())) {
+            return false;
+        }
+        else {
+            return super.equals(obj);
+        }
+    }
+
     public int compareTo(StaticError that) {
         Pattern numMatcher = Pattern.compile("(.+\\.fs[si]:)(\\d+)(?::(\\d+)(?:-(\\d+))?)?");
         Matcher m1 = numMatcher.matcher(this.toString());

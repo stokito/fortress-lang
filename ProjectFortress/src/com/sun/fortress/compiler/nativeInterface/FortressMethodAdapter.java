@@ -184,6 +184,10 @@ public class FortressMethodAdapter extends ClassAdapter {
                 sizePartitionedOverloads, ta, cw, /* cg= */null);
     }
 
+    private Set<String> getOverloadedNamesAndSigs() {
+        return overloadedNamesAndSigs;
+    }
+
     public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
         // Don't know how to do these, or if we need them...

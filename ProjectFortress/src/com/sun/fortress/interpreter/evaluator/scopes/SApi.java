@@ -22,11 +22,8 @@ import com.sun.fortress.nodes.Api;
 
 public class SApi extends Base {
 
-    Api x;
-
     public SApi(Environment environment, Api api) {
         super(environment);
-        x = api;
     }
 
 }

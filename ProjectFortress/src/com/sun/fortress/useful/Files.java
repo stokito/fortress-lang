@@ -56,8 +56,11 @@ public class Files {
                 output.write(next);
             }
         } finally {
-            if (input != null) input.close();
-            if (output != null) output.close();
+            try {
+                if (input != null) input.close();
+            } finally {
+                if (output != null) output.close();
+            }
         }
     }
 

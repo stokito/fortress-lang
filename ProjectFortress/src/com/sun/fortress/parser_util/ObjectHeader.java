@@ -78,6 +78,7 @@ public class ObjectHeader {
     }
 
     public boolean equals(Object o) {
+        if (o == null) return false;
         if (o.getClass().equals(this.getClass())) {
             ObjectHeader oh = (ObjectHeader) o;
             return name.equals(oh.getName()) && staticParams.equals(oh.getStaticParams()) &&

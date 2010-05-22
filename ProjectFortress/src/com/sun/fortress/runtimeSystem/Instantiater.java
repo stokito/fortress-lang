@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -40,7 +40,10 @@ public class Instantiater extends ClassAdapter {
         this.instanceName = instanceName;
     }
 
-    
+    public String getInstanceName() {
+        return instanceName;
+    }
+
     @Override
     public void visit(int version, int access, String name, String signature,
             String superName, String[] interfaces) {

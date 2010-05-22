@@ -14,6 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
+
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 
@@ -31,8 +32,8 @@ abstract public class Insn {
     Boolean EndOfBasicBlock = false;
 
     Set<Integer> NextInsns = new TreeSet<Integer>();
-    List<String> Stack = new ArrayList<String>();
-    List<String> locals = new ArrayList<String>();
+    //List<String> Stack = new ArrayList<String>();
+    //List<String> locals = new ArrayList<String>();
 
     public void markStartOfBasicBlock() {
         StartOfBasicBlock = true;

@@ -78,6 +78,14 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
     }
 
+    public void dump() {
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "MethodVisitor: name = " , name , " desc = " , desc ,
+                    " access = " , access , " signature = " , signature ,
+                    " exceptions " , exceptions ,
+                    " argumentTypes = " , argumentTypes , " resultType " , resultType);
+    }
+
     public void visitMaxs(int maxStack, int maxLocals) {
         dumpBytecodes();
         super.visitMaxs(maxStack, maxLocals);

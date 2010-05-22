@@ -1,19 +1,19 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
 
@@ -32,7 +32,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forApi(Api x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -41,7 +41,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forComponent(Component x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -50,7 +50,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forDimUnitDecl(DimUnitDecl x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -59,7 +59,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forFnDecl(FnDecl x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -68,7 +68,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forImportApi(ImportApi x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -77,7 +77,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forImportNames(ImportNames x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -86,7 +86,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forImportStar(ImportStar x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -95,7 +95,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forObjectDecl(ObjectDecl x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -104,7 +104,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forTraitDecl(TraitDecl x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -113,7 +113,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forTypeAlias(TypeAlias x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 
@@ -122,7 +122,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forDimArg(DimArg x) {
-        return null;
+        return Boolean.valueOf(false);
 
     }
 

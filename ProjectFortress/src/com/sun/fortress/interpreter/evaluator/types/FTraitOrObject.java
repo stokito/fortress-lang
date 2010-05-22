@@ -53,11 +53,6 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
      */
     volatile BetterEnv requiredMembers = null; // never written...
 
-    /**
-     * Generics defined by this type and supertypes.
-     */
-    volatile MultiMap<String, GenericMethod> generics = new MultiMap<String, GenericMethod>();
-
     abstract protected void finishInitializing();
 
     abstract public BetterEnv getMembers();
