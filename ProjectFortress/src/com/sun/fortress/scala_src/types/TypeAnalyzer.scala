@@ -38,6 +38,7 @@ import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Pairs
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
@@ -54,7 +55,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = meet(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
-  private def removeSelf(x: Type) = {
+  protected def removeSelf(x: Type) = {
     object remover extends Walker {
       override def walk(y: Any): Any = y match {
         case t:TraitSelfType =>
@@ -71,7 +72,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def subtype(x: Type, y: Type): ConstraintFormula =
     sub(normalize(x), normalize(y))
 
-  private def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
+  protected def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
     case (s, t: AnyType) => TRUE
@@ -127,7 +128,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => FALSE
   }
 
-  private def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
+  protected def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
     val xmap = Map(x.map(toPair):_*)
     val ymap = Map(y.map(toPair):_*)
@@ -139,7 +140,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     xmap.keysIterator.map(compare).foldLeft(TRUE)(and)
   }
 
-  private def sub(x: Effect, y: Effect): ConstraintFormula = {
+  protected def sub(x: Effect, y: Effect): ConstraintFormula = {
     val (SEffect(_, tc1, io1), SEffect(_, tc2, io2)) = (x,y)
     if (!io1 || io2)
       sub(makeUnionType(tc1.getOrElse(Nil)), makeUnionType(tc2.getOrElse(Nil)))
@@ -154,11 +155,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     eq(s,t)
   }
 
-  private def eq(x: Type, y:Type): ConstraintFormula  = {
+  protected def eq(x: Type, y:Type): ConstraintFormula  = {
     and(sub(x, y), sub(y, x))
   }
 
-  private def eq(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
+  protected def eq(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => eq(s, t)
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
     case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
@@ -173,19 +174,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
   /** Determine if a collection of types all exclude each other. */
-  def excludes(tsCollection: Iterable[Type]): Boolean = {
+  def excludes(ts: Iterable[Type]): Boolean =
+    Pairs.distinctPairsFrom(ts).forall(tt => excludes(tt._1, tt._2))
 
-    // Cache as array for faster lookups.
-    val ts = tsCollection.toArray
-
-    // Check that each symmetric, irreflexive pair excludes.
-    for (i <- ts.indices; j <- ts.indices if i < j)
-      if (!excludes(ts(i), ts(j)))
-        return false
-    true
-  }
-
-  private def exc(x: Type, y: Type): Boolean = (x, y) match {
+  protected def exc(x: Type, y: Type): Boolean = (x, y) match {
     case (s: BottomType, _) => true
     case (_, t: BottomType) => true
     case (s: AnyType, _) => false
@@ -274,7 +266,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     normalizer(x).asInstanceOf[Type]
   }
 
-  private def normConjunct(x: Iterable[Type]): List[Type] = {
+  protected def normConjunct(x: Iterable[Type]): List[Type] = {
     if(x.exists(y => x.exists(z => exc(y, z))))
       List(BOTTOM)
     else {
@@ -291,13 +283,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     }
   }
 
-  private def normTuples(ts: List[TupleType]): List[TupleType] = ts match {
+  protected def normTuples(ts: List[TupleType]): List[TupleType] = ts match {
     case Nil => Nil
     case _ => List(ts.reduceLeft(normTuples))
   }
 
   //ToDo: Keywords
-  private def normTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
+  protected def normTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
     case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
       STupleType(makeInfo(e1), (e1, e2).zipped.map(meet), None, Nil)
     case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
@@ -311,14 +303,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     }
   }
 
-  private def normDisjunct(x: Iterable[Type]): List[Type] = {
+  protected def normDisjunct(x: Iterable[Type]): List[Type] = {
       x.foldLeft(List[Type]())((l, a) => {
         val l2 = l.filter(!sub(_,a).isTrue)
         l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
       })
   }
 
-  private def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
+  protected def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
     x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
   }
 
@@ -342,7 +334,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => x
   }
 
-  private def minimalArrows(x: ArrowType, y: ArrowType): ArrowType = {
+  protected def minimalArrows(x: ArrowType, y: ArrowType): ArrowType = {
     val SArrowType(i1, d1, r1, e1, io1, mi1) = x
     val SArrowType(i2, d2, r2, e2, io2, mi2) = y
     //merge methodInfo?
@@ -354,12 +346,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
                mi1)
   }
 
-  private def minimalArrows(x: List[ArrowType]): List[ArrowType] = x match {
+  protected def minimalArrows(x: List[ArrowType]): List[ArrowType] = x match {
     case Nil => Nil
     case _ => List(x.reduceLeft(minimalArrows))
   }
 
-  private def minimalTypeInfo(x: TypeInfo, y: TypeInfo) = x
+  protected def minimalTypeInfo(x: TypeInfo, y: TypeInfo) = x
 
   def minimalEffect(x: Effect, y: Effect) = {
     val SEffect(i1, t1, io1) = x
@@ -373,7 +365,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     SEffect(i1, tc, io1 && io2)
   }
 
-  private def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
+  protected def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
     case ts if ts.isEmpty => Set(x)
     case ts => ts.flatMap(comprisesLeaves)
   }
@@ -417,15 +409,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   private val TRUE: ConstraintFormula = CnTrue
   private val FALSE: ConstraintFormula = CnFalse
-  private def and(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
+  protected def and(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
     x.and(y, this)
-  private def or(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
+  protected def or(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
     x.or(y, this)
-  private def upperBound(i: _InferenceVarType, t: Type): ConstraintFormula =
+  protected def upperBound(i: _InferenceVarType, t: Type): ConstraintFormula =
     CnAnd(Map((i,t)), Map(), this)
-  private def lowerBound(i: _InferenceVarType, t: Type): ConstraintFormula =
+  protected def lowerBound(i: _InferenceVarType, t: Type): ConstraintFormula =
     CnAnd(Map(), Map((i,t)), this)
-  private def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
+  protected def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
 
 }
 

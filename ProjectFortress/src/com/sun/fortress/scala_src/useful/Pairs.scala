@@ -27,8 +27,15 @@ object Pairs {
   def mapSome[A,B](pair: (A, B)): (Option[A], Option[B]) =
     (Some(pair._1), Some(pair._2))
     
-  /** Return the list of all (i, j)-indexed pairs in xs where i < j. */
+  /** Return the iterator of all (i, j)-indexed pairs in xs where i < j. */
   def distinctPairsFrom[A](xs: Iterator[A]): Iterator[(A, A)] =
+    for ((x, i) <- xs.zipWithIndex ;
+         (y, j) <- xs.zipWithIndex ;
+         if i < j)
+      yield (x, y)
+    
+  /** Like the other overloading but stays within the Iterable. */
+  def distinctPairsFrom[A](xs: Iterable[A]): Iterable[(A, A)] =
     for ((x, i) <- xs.zipWithIndex ;
          (y, j) <- xs.zipWithIndex ;
          if i < j)
