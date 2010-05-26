@@ -116,14 +116,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
     //Intersection types
     case (s, SIntersectionType(_,ts)) =>
-      ts.map(sub(s, _)).foldLeft(TRUE)(and)
+      mapAnd(ts)(sub(s, _))
     case (SIntersectionType(_,ss), t) =>
-      ss.map(sub(_, t)).foldLeft(FALSE)(or)
+      mapOr(ss)(sub(_, t))
     //Union types
     case (SUnionType(_,ss), t) =>
-      ss.map(sub(_, t)).foldLeft(TRUE)(and)
+     mapAnd(ss)(sub(_, t))
     case (s, SUnionType(_, ts)) =>
-      ts.map(sub(s, _)).foldLeft(FALSE)(or)
+      mapOr(ts)(sub(s, _))
     //Otherwise
     case _ => FALSE
   }
@@ -170,13 +170,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
 
-  def excludes(x: Type, y: Type) =
+  def excludes(x: Type, y: Type): Boolean =
     exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
   /** Determine if a collection of types all exclude each other. */
   def excludes(ts: Iterable[Type]): Boolean =
     Pairs.distinctPairsFrom(ts).forall(tt => excludes(tt._1, tt._2))
-
+  
   protected def exc(x: Type, y: Type): Boolean = (x, y) match {
     case (s: BottomType, _) => true
     case (_, t: BottomType) => true
@@ -234,6 +234,62 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       elts.forall(exc(_, t))
     case (s, t: UnionType) => exc(t, s)
     case _ => false
+  }
+    
+  def doesNotExcludeIf(x: Type , y: Type): ConstraintFormula = 
+    nexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
+     
+  protected def nsub(x: Type, y: Type): ConstraintFormula = FALSE
+    
+  protected def nexc(x: Type, y: Type): ConstraintFormula = (x, y) match {
+    case (s: BottomType, _) => FALSE
+    case (_, t: BottomType) => FALSE
+    case (s: AnyType, _) => TRUE
+    case (_, t: AnyType) => TRUE
+    case (s@SVarType(_, id, _), t) =>
+      val sParam = staticParam(id)
+      val supers = toListFromImmutable(sParam.getExtendsClause)
+      mapAnd(supers)(nexc(_,t))
+    case (s, t:VarType) => nexc(t, s)
+    case (a:TraitType, b:TraitType) =>
+      def helper(s: TraitType, t: TraitType) = {
+        val notExcludesClause = mapAnd(excludesClause(s))(nsub(t, _))
+        val notComprises = typeCons(s.getName) match {
+          case i: ProperTraitIndex => 
+            val comprises = comprisesClause(s)
+            if(comprises.isEmpty)
+              TRUE
+            else
+              mapAnd(comprises)(nexc(t,_))
+          case _ => nsub(s, t)
+        }
+        and(notExcludesClause, notComprises)
+      }
+      and(helper(a, b), helper(b, a))
+    case (s: ArrowType, t: ArrowType) => TRUE
+    case (s: ArrowType, _) => FALSE
+    case (_, t: ArrowType) => FALSE
+    // ToDo: Handle keywords
+    case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
+      val notElements = (e1,e2).zipped.map((a, b) => nexc(a,b)).foldLeft(TRUE)(and)
+      val notDifferent = (mv1, mv2) match {
+        case (Some(v1), _) if (e1.size < e2.size) =>
+          mapAnd(e2.drop(e1.size))(nexc(_, v1))
+        case (_, Some(v2)) if (e2.size < e1.size)=>
+          mapAnd(e1.drop(e2.size))(nexc(_, v2))
+        case _ if (e1.size == e2.size) => TRUE
+        case _ => FALSE
+      }
+      and(notElements, notDifferent)
+    case (s: TupleType, _) => FALSE
+    case (_, t: TupleType) => FALSE
+    case (s@SIntersectionType(_, elts), t) =>
+      mapAnd(elts)(nexc(_, t))
+    case (s, t: IntersectionType) => nexc(t, s)
+    case (s@SUnionType(_, elts), t) =>
+      mapOr(elts)(nexc(_, t))
+    case (s, t: UnionType) => nexc(t, s)
+    case _ => TRUE
   }
 
   def normalize(x: Type): Type = {
@@ -418,6 +474,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def lowerBound(i: _InferenceVarType, t: Type): ConstraintFormula =
     CnAnd(Map(), Map((i,t)), this)
   protected def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
+  
+  protected def mapAnd[T](x: Iterable[T])(f: T=>ConstraintFormula): ConstraintFormula = 
+    x.map(f).foldLeft(TRUE)(and)
+  protected def mapOr[T](x: Iterable[T])(f: T=>ConstraintFormula): ConstraintFormula = 
+    x.map(f).foldLeft(FALSE)(or)
 
 }
 
