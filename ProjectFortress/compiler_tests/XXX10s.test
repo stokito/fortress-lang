@@ -17,10 +17,13 @@ tests=Compiled10.s
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33:\n\
-${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33:\n\
-\ Invalid overloading of f:\n\
-\ (Bar[\\O,P\\], Bar[\\O,P\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
-\ and (Bar[\\P,O\\], Bar[\\P,O\\]) -> () @ ${STATIC_TESTS_DIR}/Compiled10.s.fss:20:3-33\n\
-File Compiled10.s.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled10.s.fss:22:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:22:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:23:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  P must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:23:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  P must not extend them.\n\
+File Compiled10.s.fss has 4 errors.\n
 compile_out_equals=

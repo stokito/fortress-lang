@@ -20,5 +20,7 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.c.fss:24:1-25:2:\n\
 \ Invalid comprises clause: T has a comprises clause\n\
 \ but its immediate subtype Mumble is not eligible to extend it.\n\
-File Compiled6.c.fss has 1 error.\n
+${STATIC_TESTS_DIR}/Compiled6.c.fss:24:23:\n\
+\ Type Mumble excludes T but it extends T.\n\
+File Compiled6.c.fss has 2 errors.\n
 compile_out_equals=

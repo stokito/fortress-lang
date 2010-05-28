@@ -23,5 +23,13 @@ ${STATIC_TESTS_DIR}/Compiled10.q.fss:20:13-21:\n\
 ${STATIC_TESTS_DIR}/Compiled10.q.fss:20:13-21:\n\
 \ Ill-formed type: Bar[\\S,T\\]\n\
 \ The static argument T does not satisfy the corresponding bound Bar[\\S,T\\].\n\
-File Compiled10.q.fss has 2 errors.\n
+${STATIC_TESTS_DIR}/Compiled10.q.fss:22:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:22:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:23:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  P must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:23:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  P must not extend them.\n\
+File Compiled10.q.fss has 6 errors.\n
 compile_out_equals=
