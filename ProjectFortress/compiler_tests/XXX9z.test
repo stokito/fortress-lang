@@ -23,5 +23,7 @@ ${STATIC_TESTS_DIR}/Compiled9.z.fss:21:1-40:\n\
 ${STATIC_TESTS_DIR}/Compiled9.z.fss:21:1-40:\n\
 \ Invalid comprises clause: Foo has a comprises clause\n\
 \ but its immediate subtype Bar is not eligible to extend it.\n\
-File Compiled9.z.fss has 2 errors.\n
+${STATIC_TESTS_DIR}/Compiled9.z.fss:21:27-36:\n\
+\ Type Bar[\\V,W\\] excludes Foo but it extends Foo.\n\
+File Compiled9.z.fss has 3 errors.\n
 compile_out_equals=

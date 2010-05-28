@@ -71,7 +71,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def subtype(x: Type, y: Type): ConstraintFormula =
     sub(normalize(x), normalize(y))
-
+  
+  def notSubtype(x: Type, y: Type): ConstraintFormula = nsub(normalize(x), normalize(y))
+    
   protected def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
@@ -128,6 +130,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => FALSE
   }
 
+  protected def nsub(x: Type, y: Type): ConstraintFormula = fromBoolean(sub(x,y).isFalse)
+  
   protected def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
     val xmap = Map(x.map(toPair):_*)
@@ -187,29 +191,26 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val supers = toListFromImmutable(sParam.getExtendsClause)
       supers.exists(exc(_, t))
     case (s, t:VarType) => exc(t, s)
-    // ToDo: Make sure that two traits with the same exclude each other
+    // Make sure that two traits with the same exclude each other
     // if their parameters are definitely different
-    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) =>
-      val sExcludes = excludesClause(s)
-      val tExcludes = excludesClause(t)
-      if (sExcludes.exists(sub(t, _).isTrue))
-        return true
-      if (tExcludes.exists(sub(s, _).isTrue))
-        return true
-      val sIndex = typeCons(n1).asInstanceOf[TraitIndex]
-      val tIndex = typeCons(n2).asInstanceOf[TraitIndex]
-      (sIndex, tIndex) match {
-        case (si: ProperTraitIndex, ti: ProperTraitIndex) =>
-          val sComprises = comprisesClause(s)
-          val tComprises = comprisesClause(t)
-          if (!sComprises.isEmpty && sComprises.forall(exc(t, _)))
-            return true
-          if (!tComprises.isEmpty && tComprises.forall(exc(s, _)))
-            return true
-          false
-        case _ =>
-          or(sub(s, t), sub(t, s)).isFalse
+    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
+      //Todo: Handle int, nat, bool args
+      (a1, a2).zipped.exists{
+        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => equivalent(t1, t2).isFalse
+        case _ => false
       }
+    case (s: TraitType, t: TraitType) =>
+      def helper(s: TraitType, t: TraitType): Boolean = {
+        if (excludesClause(s).exists(sub(t, _).isTrue))
+          return true
+        typeCons(s.getName) match {
+          case index: ProperTraitIndex =>
+            val comprises = comprisesClause(s)
+            !comprises.isEmpty && comprises.forall(exc(t, _))
+          case _ => sub(s, t).isFalse
+        }
+      }
+      helper(s, t) || helper(t, s)
     case (s: ArrowType, t: ArrowType) => false
     case (s: ArrowType, _) => true
     case (_, t: ArrowType) => true
@@ -236,10 +237,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => false
   }
     
-  def doesNotExcludeIf(x: Type , y: Type): ConstraintFormula = 
+  def notExclude(x: Type , y: Type): ConstraintFormula = 
     nexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
-     
-  protected def nsub(x: Type, y: Type): ConstraintFormula = FALSE
     
   protected def nexc(x: Type, y: Type): ConstraintFormula = (x, y) match {
     case (s: BottomType, _) => FALSE
@@ -251,6 +250,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val supers = toListFromImmutable(sParam.getExtendsClause)
       mapAnd(supers)(nexc(_,t))
     case (s, t:VarType) => nexc(t, s)
+    /* If a trait A[T] does not have variance annotations then 
+     * A[B] excludes A[C] unless B=C.
+     */
+    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
+      //Todo: Handle int, nat, bool args
+      (a1, a2).zipped.flatMap{
+        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => Some(equivalent(t1, t2))
+        case _ => None
+      }.foldLeft(TRUE)(and)
     case (a:TraitType, b:TraitType) =>
       def helper(s: TraitType, t: TraitType) = {
         val notExcludesClause = mapAnd(excludesClause(s))(nsub(t, _))
