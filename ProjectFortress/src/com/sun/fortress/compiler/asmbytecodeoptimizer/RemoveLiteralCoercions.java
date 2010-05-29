@@ -39,17 +39,17 @@ public class RemoveLiteralCoercions {
         String ZZ32 = "com/sun/fortress/compiler/runtimeValues/FZZ32";
 
         ArrayList<Insn> matches = new ArrayList<Insn>();
-        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC,
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC,
                                              intLiteral, 
                                              "make",
                                              "(I)L" + intLiteral + ";"));
         matches.add(new LabelInsn("LabelInsn", new Label()));
         matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label()));
-        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, "fortress/CompilerBuiltin", 
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, "fortress/CompilerBuiltin", 
                                              "coerce_ZZ32", 
                                              "(Lfortress/CompilerBuiltin$IntLiteral;)L" + ZZ32 + ";"));
         ArrayList<Insn> replacements = new ArrayList<Insn>();
-        replacements.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, 
+        replacements.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
                                             ZZ32,
                                             "make",
                                             "(I)L" + ZZ32 + ";"));
@@ -61,17 +61,17 @@ public class RemoveLiteralCoercions {
         String RR64 = "com/sun/fortress/compiler/runtimeValues/FRR64";
 
         ArrayList<Insn> matches = new ArrayList<Insn>();
-        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC,
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC,
                                              floatLiteral, 
                                              "make",
                                              "(D)L" + floatLiteral + ";"));
         matches.add(new LabelInsn("LabelInsn", new Label()));
         matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label()));
-        matches.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, "fortress/CompilerBuiltin", 
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, "fortress/CompilerBuiltin", 
                                              "coerce_RR64", 
                                              "(Lfortress/CompilerBuiltin$FloatLiteral;)L" + RR64 + ";"));
         ArrayList<Insn> replacements = new ArrayList<Insn>();
-        replacements.add(new MethodInsn("INVOKESTATIC", bcmv.INVOKESTATIC, 
+        replacements.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
                                             RR64,
                                             "make",
                                             "(D)L" + RR64 + ";"));
@@ -81,7 +81,7 @@ public class RemoveLiteralCoercions {
 
     public static void removeCoercions(ByteCodeMethodVisitor bcmv) {
         //        for (int i = 0; i < bcmv.insns.size(); i++) {
-        //            System.out.println("Insn " + i + "=" + bcmv.insns.get(i));
+        //            System.out.println("Insn " + i + "=" + bcmvinsns.get(i));
         //        }
                            
         removeIntLiterals(bcmv).makeSubstitution(bcmv);

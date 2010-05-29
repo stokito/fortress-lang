@@ -19,16 +19,33 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-public class NYIInsn extends Insn {
-    int opcode;
-    NYIInsn(int opcode) {
-        this.opcode = opcode;
+public class VisitFrame extends Insn {
+    int type;
+    int nLocal;
+    Object local[];
+    int nStack;
+    Object stack[];
+
+    VisitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
+        this.type = type;
+        this.nLocal = nLocal;
+        this.local = local;
+        this.nStack = nStack;
+        this.stack = stack;
     }
+
     public String toString() { 
-        return "NYIInsn:" +  opcode;
+        String result = "VisitFrame locals = [";
+        for (int i = 0; i < nLocal; i++)
+            result = result + local[i] + "  ";
+        result = result + "] Stack = [";
+        for (int i = 0; i < nStack; i++)
+            result = result + stack[i] + "  ";
+        result = result + "]";
+        return result;
     }
     
-    public void toAsm(MethodVisitor mv) { 
-        throw new RuntimeException("NYI:" + opcode);
+    public void toAsm(MethodVisitor mv) {
+        mv.visitFrame(type, nLocal, local, nStack, stack);
     }
 }

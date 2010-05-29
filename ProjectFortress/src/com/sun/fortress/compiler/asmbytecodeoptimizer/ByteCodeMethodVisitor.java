@@ -26,6 +26,8 @@ import java.util.Set;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.compiler.NamingCzar;
+
 public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisitor {
 
     public HashMap labelNames;
@@ -35,11 +37,17 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     String desc;
     String sig;
     String[] exceptions;
+    List<String> args;
+    String result; 
+    int maxStack;
+    int maxLocals;
+    boolean changed;
 
-    static int INVOKESTATIC = Opcodes.INVOKESTATIC;
-    static int GETSTATIC = Opcodes.GETSTATIC;
-    static int INVOKEVIRTUAL = Opcodes.INVOKEVIRTUAL;
-    static int INVOKEINTERFACE = Opcodes.INVOKEINTERFACE;
+    // Is useful for debugging
+
+    void addInsn(Insn i) {
+        insns.add(i);
+    }
 
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
         this.labelNames = new HashMap();
@@ -49,7 +57,14 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.desc = desc;
         this.sig = sig;
         this.exceptions = exceptions;
+        this.args = NamingCzar.parseArgs(desc);
+        this.result = NamingCzar.parseResult(desc);
+        changed = false;
     }
+
+    public boolean isStaticMethod() {return ((access & Opcodes.ACC_STATIC) > 0);}
+
+    public boolean isAbstractMethod() {return ((access & Opcodes.ACC_ABSTRACT) > 0); }
 
     public void toAsm(ClassWriter cw) {
         MethodVisitor mv = cw.visitMethod(access, name, desc, sig, exceptions);
@@ -60,9 +75,14 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     public void print() {
         System.out.println("Method " + name + " desc = " + desc + " sig = " + sig);
+        System.out.println("BCMV = " + this);
+        System.out.println("Args = " + args);
+        System.out.println("result = " + result);
+
         for (Insn i : insns) {
-            System.out.println(i);
+            System.out.println(i.toString());
         }
+        
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
@@ -90,52 +110,52 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
         
     public void visitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
-
+        addInsn(new VisitFrame(type, nLocal, local, nStack, stack));
     }
         
     public void visitInsn(int opcode) {
-        insns.add(new SingleInsn(OPCODES[opcode], opcode));
+        addInsn(new SingleInsn(OPCODES[opcode], opcode));
     }
 
     public void visitIntInsn(int opcode, int operand) {
-        insns.add(new IntInsn(OPCODES[opcode], opcode, operand));
+        addInsn(new IntInsn(OPCODES[opcode], opcode, operand));
     }
 
     public void visitVarInsn(int opcode, int var) {
-        insns.add(new VarInsn(OPCODES[opcode], opcode, var));
+        addInsn(new VarInsn(OPCODES[opcode], opcode, var));
     }
     
     public void visitTypeInsn(int opcode, String type) {
-        insns.add(new TypeInsn(OPCODES[opcode], opcode, type));
+        addInsn(new TypeInsn(OPCODES[opcode], opcode, type));
     }
 
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        insns.add(new FieldInsn(OPCODES[opcode], opcode, owner, name, desc));
+        addInsn(new FieldInsn(OPCODES[opcode], opcode, owner, name, desc));
     }
 
     public void visitJumpInsn(int opcode, Label label) {
-        insns.add(new JumpInsn(OPCODES[opcode], opcode, label));
+        addInsn(new JumpInsn(OPCODES[opcode], opcode, label));
     }
 
     public void visitLabel(Label label) {
         labelNames.put(label.toString(), Integer.valueOf(insns.size()));
-        insns.add(new LabelInsn("Label", label));
+        addInsn(new LabelInsn("Label", label));
     }
 
     public void visitLdcInsn(Object cst) {
-        insns.add(new LdcInsn("LdcInsn", cst));
+        addInsn(new LdcInsn("LdcInsn", cst));
     }
 
     public void visitIincInsn(int var, int increment) {
-        insns.add(new IincInsn("IincInsn", var, increment));
+        addInsn(new IincInsn("IincInsn", var, increment));
     }
 
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
-        insns.add(new TableSwitchInsn("TableSwitchInsn", min, max, dflt, labels));
+        addInsn(new TableSwitchInsn("TableSwitchInsn", min, max, dflt, labels));
     }
 
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-        insns.add(new LookupSwitchInsn("LookupSwitchInsn", dflt, keys, labels));
+        addInsn(new LookupSwitchInsn("LookupSwitchInsn", dflt, keys, labels));
     }
 
     public void visitMultiNewArrayInsn(String desc, int dims) {
@@ -143,31 +163,34 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-        insns.add(new NotYetImplementedInsn("visitTryCatchBlock"));
+        addInsn(new NotYetImplementedInsn("visitTryCatchBlock"));
     }
 
     public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int index) {
-        insns.add(new LocalVariable("visitLocalVariable", name, desc, sig, start, end, index));
+        addInsn(new LocalVariable("visitLocalVariable", name, desc, sig, start, end, index));
     }
 
     public void visitMultiANewArrayInsn(String name, int i) {
-        insns.add(new NotYetImplementedInsn("visitMultiANewArrayInsn"));
+        addInsn(new NotYetImplementedInsn("visitMultiANewArrayInsn"));
     }
 
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        insns.add(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc));
+        System.out.println("Visit method instruction method = " + name + " method visitor = " + this.name);
+        addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc));
     }
 
     public void visitLineNumber(int line, Label start) {
-        insns.add(new VisitLineNumberInsn("visitLineNumber", line, start));
+        addInsn(new VisitLineNumberInsn("visitLineNumber", line, start));
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
-        insns.add(new VisitMaxs("visitMaxs", maxStack, maxLocals));
+        this.maxStack = maxStack;
+        this.maxLocals = maxLocals;
+        addInsn(new VisitMaxs("visitMaxs", maxStack, maxLocals));
     }
 
     public void visitEnd() {
-        insns.add(new VisitEnd("visitEnd"));
+        addInsn(new VisitEnd("visitEnd"));
     }
     
 

@@ -28,34 +28,13 @@ import java.util.TreeSet;
 
 abstract public class Insn {
     String name;
-    Boolean StartOfBasicBlock = false;
-    Boolean EndOfBasicBlock = false;
+    Object locals[];
+    Object stack[];
 
-    Set<Integer> NextInsns = new TreeSet<Integer>();
-    //List<String> Stack = new ArrayList<String>();
-    //List<String> locals = new ArrayList<String>();
+    public String toString() { return name; }
+    public void setStack(Object stack[]) {this.stack = stack;}
+    public void setLocals(Object locals[]) {this.locals = locals;}
 
-    public void markStartOfBasicBlock() {
-        StartOfBasicBlock = true;
-    }
-
-    public Boolean isStartOfBasicBlock() {
-        return StartOfBasicBlock;
-    }
-
-    public void markEndOfBasicBlock() {
-        EndOfBasicBlock = true;
-    }
-
-    public Boolean isEndOfBasicBlock() {
-        return EndOfBasicBlock;
-    }
-
-    public void addNext(Integer n) {
-        NextInsns.add(n);
-    }
-
-    public String toString() { return name;}
     public abstract void toAsm(MethodVisitor mv);
 
     public boolean matches(Insn i) {

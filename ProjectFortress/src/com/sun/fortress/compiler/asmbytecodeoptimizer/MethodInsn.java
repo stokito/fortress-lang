@@ -41,7 +41,6 @@ public class MethodInsn extends Insn {
     }
 
     public boolean matches(int opcode, String owner, String _name, String desc) {
-        
         return ((this.opcode == opcode) &&
                 (this.owner.equals(owner)) &&
                 (this._name.equals(_name)) &&
@@ -51,5 +50,7 @@ public class MethodInsn extends Insn {
     public boolean matches(MethodInsn mi) {
         return matches(mi.opcode, mi.owner, mi._name, mi.desc);
     }
-        
+
+    public void interpret(ByteCodeMethodVisitor bcmv) {
+    }
 }
