@@ -27,7 +27,7 @@ public class SingleInsn extends Insn {
         this.opcode = opcode;
     }
     public String toString() { 
-        return "MethodInsn:" + name;
+        return "SingleInsn:" + name;
     }
     
     public void toAsm(MethodVisitor mv) { 

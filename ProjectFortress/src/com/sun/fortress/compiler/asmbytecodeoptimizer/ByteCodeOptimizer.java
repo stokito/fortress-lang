@@ -76,6 +76,7 @@ class ByteCodeOptimizer {
                 if (entry.getName().endsWith(".class")) {
                     ClassReader cr = new ClassReader(buf);
                     ByteCodeVisitor bcv = new ByteCodeVisitor();
+                    System.out.println("entry = " + entry);
                     cr.accept(bcv, 0);
                     classes.put(entry.getName(), bcv);
                 } else {
@@ -131,9 +132,9 @@ class ByteCodeOptimizer {
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
-            AddOptimizeString.optimize(bcv);
-            BasicBlockGenerator.optimize(bcv);
-            // RemoveLiteralCoercions.optimize(bcv);
+            AddString.optimize(bcv);
+            AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
+            RemoveLiteralCoercions.optimize(bcv);
         }
     }
         

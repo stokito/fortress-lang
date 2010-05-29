@@ -18,17 +18,17 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import java.util.ArrayList;
 
-public class AddOptimizeString {
+public class AddString {
     public static void optimize(ByteCodeVisitor bcv) {
 
         // These strings should be pulled out in a naming file somewhere.
 
-        ByteCodeMethodVisitor bcvm = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main([Ljava/lang/String;)V");
+        ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main([Ljava/lang/String;)V");
 
-        if (bcvm != null) {
-            bcvm.insns.add(0, new FieldInsn("GETSTATIC", bcvm.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
-            bcvm.insns.add(1, new LdcInsn("LdcInsn", "Running Optimized Version"));
-            bcvm.insns.add(2, new MethodInsn("INVOKEVIRTUAL", bcvm.INVOKEVIRTUAL, "java/io/PrintStream", "println",
+        if (bcmv != null) {
+            bcmv.insns.add(0, new FieldInsn("GETSTATIC", Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+            bcmv.insns.add(1, new LdcInsn("LdcInsn", "Running Optimized Version"));
+            bcmv.insns.add(2, new MethodInsn("INVOKEVIRTUAL", Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println",
                                           "(Ljava/lang/String;)V"));
         }
     }

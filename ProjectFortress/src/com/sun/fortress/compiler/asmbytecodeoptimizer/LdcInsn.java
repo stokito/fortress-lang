@@ -28,7 +28,7 @@ public class LdcInsn extends Insn {
     }
 
     public String toString() { 
-        return "MethodInsn:" + name;
+        return "LdcInsn:" + name + " cst = " + cst;
     }
     
     public void toAsm(MethodVisitor mv) { 
