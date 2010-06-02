@@ -265,10 +265,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val notComprises = typeCons(s.getName) match {
           case i: ProperTraitIndex => 
             val comprises = comprisesClause(s)
-            if(comprises.isEmpty)
-              TRUE
-            else
-              mapAnd(comprises)(nexc(t,_))
+            or(fromBoolean(comprises.isEmpty), mapOr(comprises)(nexc(t,_)))
           case _ => nsub(s, t)
         }
         and(notExcludesClause, notComprises)
