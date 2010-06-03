@@ -282,7 +282,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int gear_index = tcn.indexOf(Naming.GEAR);
         String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
         
-        String class_we_want = tcn.substring(0,begin_static_params+1) + self_class + ";" + sig.substring(1) + tcn.substring(envelope);
+        String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
+            sig.substring(1) + tcn.substring(envelope);
         class_we_want = Naming.mangleFortressIdentifier(class_we_want);
         Class cl;
         try {
