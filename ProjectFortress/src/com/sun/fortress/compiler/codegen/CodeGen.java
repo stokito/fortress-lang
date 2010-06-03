@@ -131,6 +131,47 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private List<InitializedStaticField> initializedStaticFields_TO;
     
+    /**
+     * Generates the popular variants of the class name for a
+     * Fortress trait or object.
+     * 
+     * @author dr2chase
+     */
+    static class ClassNameBundle {
+        /** The name of the class. */
+        final String className;
+        /**
+         * Descriptor form of the class name.  ( L ... ; )
+         */
+        final String classDesc;
+
+        /** Template file naming convention so 
+         * generic expander can locate it.
+         * Same as className for non-generic.
+         */
+        final String fileName;
+        /** No static parameters;
+         * the ilk of the generic.
+         */
+        final String ilkClassName; 
+        ClassNameBundle(Id id, String sparams_part, String PCN) {
+            className =
+                NamingCzar.jvmClassForToplevelTypeDecl(id,
+                        sparams_part,
+                        PCN);
+            fileName =
+                NamingCzar.jvmClassForToplevelTypeDecl(id,
+                        makeTemplateSParams(sparams_part),
+                        PCN);
+            ilkClassName =
+                NamingCzar.jvmClassForToplevelTypeDecl(id,"",PCN);
+            
+             classDesc = NamingCzar.internalToDesc(className);
+        }
+    }
+
+
+    
     // Create a fresh codegen object for a nested scope.  Technically,
     // we ought to be able to get by with a single lexEnv, because
     // variables ought to be unique by location etc.  But in practice
@@ -1347,8 +1388,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         if (savedInATrait) {
             // does this get generated at the forwarding site instead?
+            generateGenericMethodClosureFinder(method_name, template_class_name, traitOrObjectName +  NamingCzar.springBoard);
         } else {
-            generateGenericMethodClosureFinder(method_name, template_class_name);
+            generateGenericMethodClosureFinder(method_name, template_class_name, traitOrObjectName);
         }
         
     }
@@ -1404,10 +1446,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      *  
      * @param template_class_name
      */
-    private void generateGenericMethodClosureFinder(final String method_name, String template_class_name) {
+    private void generateGenericMethodClosureFinder(final String method_name, String template_class_name, final String class_file) {
 
         // DRC-WIP
-        final String class_file = traitOrObjectName;
+        // final String class_file = traitOrObjectName;
         final String table_name = method_name + Naming.HEAVY_X + "table";
         final String table_type = "com/sun/fortress/runtimeSystem/BAlongTree";
         
@@ -2520,30 +2562,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
 
-        //ObjectDecl y = x;
-        // Rewrite the generic.
-        // need to do more differently if it is a constructor.
-        if (sparams_part.length() > 0 ) {
-
-            // NO // x = (ObjectDecl) y.accept(new GenericNumberer(xlation));
-            // Refresh these post-rewrite
-            header = x.getHeader();
-            extendsC = header.getExtendsClause();
-
-        }
 
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         Id classId = NodeUtil.getName(x);
+
+        ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
+
         String erasedSuperI = sparams_part.length() > 0 ?
-                NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                "",
-                packageAndClassName) : "";
+                cnb.ilkClassName : "";
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
 
         if (sparams_part.length() > 0) {
-            emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
+            emitErasedClassFor(cnb, (TraitObjectDecl) x);
         }
 
         String abstractSuperclass;
@@ -2552,29 +2584,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             abstractSuperclass = NamingCzar.internalObject;
         }
-        String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    sparams_part,
-                    packageAndClassName);
-        String classFileOuter =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    makeTemplateSParams(sparams_part),
-                    packageAndClassName);
-        String classFileMinusSparams =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,"",packageAndClassName);
-        traitOrObjectName = classFile;
-        String classDesc = NamingCzar.internalToDesc(classFile);
-        debug("forObjectDeclPrePass ",x," classFile = ", classFile);
+        
+        
+        traitOrObjectName = cnb.className;
+        debug("forObjectDeclPrePass ",x," classFile = ", traitOrObjectName);
 
 
-        boolean hasParameters = NodeUtil.getParams(x).isSome();
+        boolean isSingletonObject = NodeUtil.getParams(x).isNone();
         List<Param> params;
-        if (hasParameters) {
+        if (!isSingletonObject) {
             params = NodeUtil.getParams(x).unwrap();
             String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
 
              // Generate the factory method
-            String sig = NamingCzar.jvmSignatureFor(params, classDesc, thisApi());
+            String sig = NamingCzar.jvmSignatureFor(params, cnb.classDesc, thisApi());
 
             String mname ;
 
@@ -2615,7 +2638,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     null,
                     null);
 
-            mv.visitTypeInsn(Opcodes.NEW, classFile);
+            mv.visitTypeInsn(Opcodes.NEW, cnb.className);
             mv.visitInsn(Opcodes.DUP);
 
             // iterate, pushing parameters, beginning at zero.
@@ -2628,7 +2651,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 stack_offset++;
             }
 
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile, "<init>", init_sig);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cnb.className, "<init>", init_sig);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
             mv.visitEnd();
@@ -2655,17 +2678,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         //            cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
         cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
-                  classFile, null, abstractSuperclass, superInterfaces);
+                cnb.className, null, abstractSuperclass, superInterfaces);
 
-        if (!hasParameters) {
+        if (isSingletonObject) {
             // Singleton; generate field in class to hold sole instance.
             cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
-                          NamingCzar.SINGLETON_FIELD_NAME, classDesc,
+                          NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
                           null /* for non-generic */, null /* instance has no value */);
         }
 
         // Emit fields here, one per parameter.
-        generateFieldsAndInitMethod(classFile, abstractSuperclass, params);
+        generateFieldsAndInitMethod(cnb.className, abstractSuperclass, params);
 
          BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
@@ -2678,7 +2701,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                NodeFactory.makeId(NodeUtil.getSpan(p.getName()), objectFieldName);
             addStaticVar(new VarCodeGen.FieldVar(id,
                     param_type,
-                    classFile,
+                    cnb.className,
                     objectFieldName,
                     NamingCzar.jvmTypeDesc(param_type, component.getName(), true)));
         }
@@ -2693,48 +2716,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         lexEnv = savedLexEnv;
 
-        if (!hasParameters || initializedStaticFields_TO.size() > 0) {
+        if (isSingletonObject || initializedStaticFields_TO.size() > 0) {
             
-            MethodVisitor imv = cw.visitMethod(Opcodes.ACC_STATIC,
-                                               "<clinit>",
-                                               NamingCzar.voidToVoid,
-                                               null,
-                                               null);
-
-            if (! hasParameters) {
-                imv.visitTypeInsn(Opcodes.NEW, classFile);
-                imv.visitInsn(Opcodes.DUP);
-                imv.visitMethodInsn(Opcodes.INVOKESPECIAL, classFile,
-                        "<init>", NamingCzar.voidToVoid);
-                imv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
-                        NamingCzar.SINGLETON_FIELD_NAME, classDesc);
- 
-                addStaticVar(new VarCodeGen.StaticBinding(
-                        classId, NodeFactory.makeTraitType(classId),
-                        classFileMinusSparams,
-                        NamingCzar.SINGLETON_FIELD_NAME, classDesc,
-                        splist));
-            }
-            
-            for (InitializedStaticField isf : initializedStaticFields_TO) {
-                isf.forClinit(imv);
-                cw.visitField(
-                        Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
-                        isf.asmName(), isf.asmSignature(),
-                        null /* for non-generic */, null /* instance has no value */);
-                // DRC-WIP
-            }
-            
-            imv.visitInsn(Opcodes.RETURN);
-            imv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-            imv.visitEnd();
+            optionalStaticsAndClassInitForTO(splist, classId, cnb,
+                    isSingletonObject);
 
         }
         
         if (sparams_part.length() > 0) {
-            cw.dumpClass( classFileOuter, splist );
+            cw.dumpClass( cnb.fileName, splist );
         } else {
-            cw.dumpClass( classFile );
+            cw.dumpClass( cnb.className );
         }
         cw = prev;
         initializedStaticFields_TO = null;
@@ -2745,15 +2737,53 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = savedInAnObject;
     }
 
+    /**
+     * @param splist
+     * @param classId
+     * @param cnb
+     * @param isSingletonObject
+     */
+    private void optionalStaticsAndClassInitForTO(List<String> splist,
+            Id classId, ClassNameBundle cnb, boolean isSingletonObject) {
+        MethodVisitor imv = cw.visitMethod(Opcodes.ACC_STATIC,
+                                           "<clinit>",
+                                           NamingCzar.voidToVoid,
+                                           null,
+                                           null);
 
-    private void emitErasedClassFor(String erasedSuperI, TraitObjectDecl x) {
-        Id classId = NodeUtil.getName(x);
-        String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId, "",
-                                                   packageAndClassName);
-        String classFileOuter =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId, "",
-                                                   packageAndClassName);
+        if (isSingletonObject) {
+            imv.visitTypeInsn(Opcodes.NEW, cnb.className);
+            imv.visitInsn(Opcodes.DUP);
+            imv.visitMethodInsn(Opcodes.INVOKESPECIAL, cnb.className,
+                    "<init>", NamingCzar.voidToVoid);
+            imv.visitFieldInsn(Opcodes.PUTSTATIC, cnb.className,
+                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);
+ 
+            addStaticVar(new VarCodeGen.StaticBinding(
+                    classId, NodeFactory.makeTraitType(classId),
+                    cnb.ilkClassName,
+                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
+                    splist));
+        }
+        
+        for (InitializedStaticField isf : initializedStaticFields_TO) {
+            isf.forClinit(imv);
+            cw.visitField(
+                    Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
+                    isf.asmName(), isf.asmSignature(),
+                    null /* for non-generic */, null /* instance has no value */);
+            // DRC-WIP
+        }
+        
+        imv.visitInsn(Opcodes.RETURN);
+        imv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        imv.visitEnd();
+    }
+
+
+    private void emitErasedClassFor(ClassNameBundle cnb, TraitObjectDecl x) {
+        String classFile = cnb.ilkClassName;
+        String classFileOuter = cnb.ilkClassName;
 
         traitOrObjectName = classFile;
         //String classDesc = NamingCzar.internalToDesc(classFile);
@@ -2780,8 +2810,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     }
 
-
-    private String makeTemplateSParams(String sparamsPart) {
+    private static String makeTemplateSParams(String sparamsPart) {
         if (sparamsPart.length() == 0)
             return "";
         else
@@ -3103,43 +3132,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         /*
          * This will want refactoring into NamingCzar sooner or later.
-         * I decided that the least-confusion convention for implementation
+         * I decided that the least-confusion convention for implementing
          * classes for generic traits was to use the Generic[\parameters\]$whatever
          * convention.  This may require enhancements to the mangling code, but
          * once that is done it will cause least-confusion for everyone else
          * later.
          */
         Id classId = NodeUtil.getName(x);
-        String classFile =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    sparams_part,
-                    packageAndClassName);
-
-        // Used just for the name of the class file, nothing else.
-        String classFileOuter =
-            NamingCzar.jvmClassForToplevelTypeDecl(classId,
-                    makeTemplateSParams(sparams_part) ,
-                    packageAndClassName);
-
-        String erasedSuperI = sparams_part.length() > 0 ? NamingCzar
-                .jvmClassForToplevelTypeDecl(classId, "", packageAndClassName)
+        
+        ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
+        
+        String erasedSuperI = sparams_part.length() > 0 ? cnb.ilkClassName
                 : "";
-                if (sparams_part.length() > 0) {
-                    emitErasedClassFor(erasedSuperI, (TraitObjectDecl) x);
-                }
+                
+        if (sparams_part.length() > 0) {
+           emitErasedClassFor(cnb, (TraitObjectDecl) x);
+        }
 
 
         inATrait = true;
         currentTraitObjectDecl = x;
 
-        springBoardClass = classFile + NamingCzar.springBoard;
-        String springBoardClassOuter = classFileOuter + NamingCzar.springBoard;
+        springBoardClass = cnb.className + NamingCzar.springBoard;
+        String springBoardClassOuter = cnb.fileName + NamingCzar.springBoard;
 
         String abstractSuperclass;
-        traitOrObjectName = classFile;
+        traitOrObjectName = cnb.className;
         String[] superInterfaces = NamingCzar.extendsClauseToInterfaces(
                 extendsC, component.getName(), erasedSuperI);
-        if (classFile.equals("fortress/AnyType$Any")) {
+        if (cnb.className.equals("fortress/AnyType$Any")) {
             superInterfaces = new String[0];
             abstractSuperclass = NamingCzar.FValueType;
         } else {
@@ -3150,12 +3171,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( Opcodes.V1_5,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
-                  classFile, null, NamingCzar.internalObject, superInterfaces);
+                  cnb.className, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
         if (sparams_part.length() > 0 ) {
-            cw.dumpClass( classFileOuter, splist );
+            cw.dumpClass( cnb.fileName, splist );
         } else {
-            cw.dumpClass( classFileOuter );
+            cw.dumpClass( cnb.fileName );
         }
 
         // Now let's do the springboard inner class that implements this interface.
@@ -3164,15 +3185,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Springboard *must* be abstract if any methods / fields are abstract!
         // In general Springboard must not be directly instantiable.
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
-                 null, abstractSuperclass, new String[] { classFile } );
+                 null, abstractSuperclass, new String[] { cnb.className } );
         debug("Start writing springboard class ",
               springBoardClass);
         generateFieldsAndInitMethod(springBoardClass, abstractSuperclass,
                                     Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
+
+        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
+
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
         dumpErasedMethodChaining(superInterfaces, true);
+        
+        if (initializedStaticFields_TO.size() > 0) {      
+            optionalStaticsAndClassInitForTO(splist, classId, cnb,
+                    false);
+        }
+ 
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
             cw.dumpClass( springBoardClassOuter, splist );
@@ -3185,6 +3215,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         emittingFunctionalMethodWrappers = true;
         // Have to use the origial header to get the signatures right.
         dumpTraitDecls(original_header.getDecls());
+        
+       
         emittingFunctionalMethodWrappers = false;
 
         debug("Finished dumpDecls for parent");
@@ -3192,6 +3224,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         currentTraitObjectDecl = null;
         traitOrObjectName = null;
         springBoardClass = null;
+        initializedStaticFields_TO = null;
+
     }
 
     public void forVarDecl(VarDecl v) {
@@ -3331,9 +3365,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * InstantiatingClassloader.findGenericMethodClosure
                  */
                 
+                /*
+                 * We will be casting to a particular arrow type;
+                 * we need to pass in the receiver type (the prepended first
+                 * parameter for the arrow type) to be sure that we get back
+                 * exactly the right sort of closure.  There is a variance
+                 * problem here: if object extends trait, note that
+                 * 
+                 * object -> result is NOT a subtype of trait -> result.
+                 * 
+                 * Contravariance bites us here.
+                 */
+                StaticArg receiverStaticArg = NodeFactory.makeTypeArg(receiverType);
+                List<StaticArg> prepended_method_sargs = Useful.prepend(receiverStaticArg, method_sargs);
+                
+                Type prepended_domain = null;
+                /* I think we start to have a problem here in the future,
+                 * when generics can be parametrized by tuples.
+                 * We need to figure out what this means.
+                 */
+                if (domain_type instanceof TupleType) {
+                    TupleType tt = (TupleType) domain_type;
+                    prepended_domain = NodeFactory.makeTupleType(tt, Useful.prepend(receiverType, tt.getElements()));
+                } else {
+                    prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
+                }
+                
                 // DRC-WIP
                 
-                String string_sargs = NamingCzar.genericDecoration(method_sargs, thisApi());
+                String string_sargs = NamingCzar.genericDecoration(prepended_method_sargs, thisApi());
               
                 long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
                 
@@ -3357,17 +3417,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 // cast the result
                 // Cast-to-type is Arrow[\ receiverType; domain; range \]
-                Type prepended_domain = null;
-                /* I think we start to have a problem here in the future,
-                 * when generics can be parametrized by tuples.
-                 * We need to figure out what this means.
-                 */
-                if (domain_type instanceof TupleType) {
-                    TupleType tt = (TupleType) domain_type;
-                    prepended_domain = NodeFactory.makeTupleType(tt, Useful.prepend(receiverType, tt.getElements()));
-                } else {
-                    prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
-                }
+                
                 
                 String castToArrowType = NamingCzar.makeArrowDescriptor(prepended_domain, range_type, thisApi()); 
                 mv.visitTypeInsn(Opcodes.CHECKCAST, castToArrowType);
@@ -3693,30 +3743,39 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             FnDecl f = (FnDecl) d;
             FnHeader h = f.getHeader();
+            List<StaticParam> sparams = h.getStaticParams();
 
-            List<Param> params = h.getParams();
-            int selfIndex = selfParameterIndex(params);
-            boolean  functionalMethod = selfIndex != NO_SELF;
+            if (sparams.size() > 0) {
+                String method_name = genericMethodName(f);
+                CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
+                mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+                mv.visitEnd();
+            } else {
+            
+                List<Param> params = h.getParams();
+                int selfIndex = selfParameterIndex(params);
+                boolean  functionalMethod = selfIndex != NO_SELF;
 
-            IdOrOpOrAnonymousName xname = h.getName();
-            IdOrOp name = (IdOrOp) xname;
+                IdOrOpOrAnonymousName xname = h.getName();
+                IdOrOp name = (IdOrOp) xname;
 
-            String desc = NamingCzar.jvmSignatureFor(f,component.getName());
-            if (functionalMethod) {
-                desc = Naming.removeNthSigParameter(desc, selfIndex);
-            }
+                String desc = NamingCzar.jvmSignatureFor(f,component.getName());
+                if (functionalMethod) {
+                    desc = Naming.removeNthSigParameter(desc, selfIndex);
+                }
 
-            // TODO what about overloading collisions in an interface?
-            // it seems wrong to publicly mangle.
-            String mname = functionalMethod ? fmDottedName(
-                            singleName(name), selfIndex) : nonCollidingSingleName(
-                                    name, desc, ""); // static params?
+                // TODO what about overloading collisions in an interface?
+                // it seems wrong to publicly mangle.
+                String mname = functionalMethod ? fmDottedName(
+                        singleName(name), selfIndex) : nonCollidingSingleName(
+                                name, desc, ""); // static params?
 
-            mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
+                CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
                                 mname, desc, null, null);
 
-            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
-            mv.visitEnd();
+                mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+                mv.visitEnd();
+            }
         }
     }
 
