@@ -78,17 +78,17 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s,t) if (s==t) => TRUE
     case (s: BottomType, _) => TRUE
     case (s, t: AnyType) => TRUE
-    //Inference variables
+    // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       and(upperBound(s, t), lowerBound(t,s))
     case (s: _InferenceVarType, t) => upperBound(s,t)
     case (s, t: _InferenceVarType) => lowerBound(t,s)
-    //Type variables
+    // Type variables
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
       val supers = toListFromImmutable(sParam.getExtendsClause)
       supers.map(sub(_, t)).foldLeft(FALSE)(or)
-    //Trait types
+    // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
       (a1, a2).zipped.map((a, b) => eq(a, b)).foldLeft(TRUE)(and)
@@ -100,10 +100,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s: TraitSelfType, t) => sub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => sub(t,named)
     case (s: ObjectExprType, t) => sub(removeSelf(s), t)
-    //Arrow types
+    // Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
       and(and(sub(d2, d1), sub(r1, r2)), sub(e1, e2))
-    //Tuple types
+    // Tuple types
     case (s: AnyType, t@STupleType(_, e, Some(v), _)) =>
       sub(s, disjunctFromTuple(t,1))
     case (s: TraitType, t@STupleType(_, e, Some(v), _)) =>
@@ -116,21 +116,21 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2))
       if (e1.size == e2.size) =>
         (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
-    //Intersection types
+    // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       mapAnd(ts)(sub(s, _))
+    // If we can generate interesting constraints for when two types exclude
+    // we can add a special case for when an intersection is a subtype of bottom
     case (SIntersectionType(_,ss), t) =>
       mapOr(ss)(sub(_, t))
-    //Union types
+    // Union types
     case (SUnionType(_,ss), t) =>
      mapAnd(ss)(sub(_, t))
     case (s, SUnionType(_, ts)) =>
       mapOr(ts)(sub(s, _))
-    //Otherwise
+    // Otherwise
     case _ => FALSE
   }
-
-  protected def nsub(x: Type, y: Type): ConstraintFormula = fromBoolean(sub(x,y).isFalse)
   
   protected def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
@@ -152,7 +152,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       FALSE
   }
 
-
+  // The current algorithm conservatively approximates not subtype
+  protected def nsub(x: Type, y: Type): ConstraintFormula = fromBoolean(sub(x,y).isFalse)
+  
   def equivalent(x: Type, y: Type): ConstraintFormula = {
     val s = normalize(x)
     val t = normalize(y)
@@ -237,6 +239,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => false
   }
     
+  /*
+   * Given two types x and y this method computes the constraints
+   * under which x and y do not exclude on another. For example if
+   * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
+   * unless $i=$j. Note that this method only generates equality constraints.
+   */
   def notExclude(x: Type , y: Type): ConstraintFormula = 
     nexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
     

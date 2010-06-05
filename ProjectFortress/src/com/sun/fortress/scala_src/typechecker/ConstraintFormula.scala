@@ -32,10 +32,11 @@ import com.sun.fortress.scala_src.useful.STypesUtil
 import edu.rice.cs.plt.lambda.Lambda
 
 /**
- * This class represents the constraints accummulated on inference variables. All
+ * This class represents the constraints accumulated on inference variables. All
  * constraints are kept in disjunctive normal form. In order to keep the size of
- * the or method eliminates redundant constraints. Further information can be found
- * in Section 3.2.2 of Dan Smith's paper Java Type Inference is Broken.
+ * the constraints reasonable the or method eliminates redundant constraints. Further 
+ * information can be found in Section 3.2.2 of Dan Smith's paper Java Type Inference
+ * is Broken.
  * 
  * Currently it also works as a wrapper to interface with the Java Constraint Formulas
  * 
@@ -321,15 +322,5 @@ case class CnOr(conjuncts: List[CnAnd], ta: TypeAnalyzer) extends ConstraintForm
     this
   }
   
-  override def toString():String = {
-    val result = new StringBuilder()
-    var counter = 1
-    for(conjunct <-conjuncts){
-      result.append(conjunct)
-      if(counter < conjuncts.size)
-        result.append(" OR ")
-      counter += 1
-    }
-    result.toString
-  }
+  override def toString():String = conjuncts.mkString(" OR ")
 }
