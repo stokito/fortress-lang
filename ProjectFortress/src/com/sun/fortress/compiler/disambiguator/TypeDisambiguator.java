@@ -224,7 +224,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         final Span span = NodeUtil.getSpan(that);
         // if it is a type name, replace PlainPattern with TypePattern
         if (that.getIdType().isNone() && isTypeName)
-            return NodeFactory.makeTypePattern(span, NodeFactory.makeVarType(span, id));
+            return super.forTypePattern(NodeFactory.makeTypePattern(span, NodeFactory.makeVarType(span, id)));
         else
             return super.forPlainPattern(that);
     }
