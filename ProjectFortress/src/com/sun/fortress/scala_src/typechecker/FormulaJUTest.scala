@@ -38,21 +38,21 @@ class FormulaJUTest extends TestCase {
     assert(False==and(True, False), "AND(True,False)=/=False")
     assert(True==and(True, True), "AND(True,True)=/=True")
     //Test that And(Empty,Empty) acts like True
-    val alternateTrue = And(Map.empty,Map.empty)
+    val alternateTrue = And(Map(),Map())
     assert(isTrue(alternateTrue),"!And(Empty,Empty).isTrue")
     assert(and(alternateTrue, True)==True, "AND(alternateTrue,True) =/= True")
     assert(and(alternateTrue, False)==False, "AND(alternateTrue,False) =/= False")
     assert(and(True, alternateTrue)==True, "AND(True, alternateTrue) =/= True")
     assert(and(False, alternateTrue)==False, "AND(False, alternateTrue) =/= False")
     //Test that Or(And(Empty,Empty)) acts like True
-    val alternateTrue2 = Or(List(And(Map.empty,Map.empty)))
+    val alternateTrue2 = Or(Set(And(Map(),Map())))
     assert(isTrue(alternateTrue2),"Or(And(Empty,Empty)).isTrue")
     assert(and(alternateTrue2, True)==True, "AND(alternateTrue2,True) =/= True")
     assert(and(alternateTrue2, False)==False, "AND(alternateTrue2,False) =/= False")
     assert(and(True, alternateTrue2)==True, "AND(True, alternateTrue2) =/= True")
     assert(and(False, alternateTrue2)==False, "AND(False, alternateTrue2) =/= False")
     //Test that Or(Empty) acts like False
-    val alternateFalse = Or(List())
+    val alternateFalse = Or(Set())
     assert(isFalse(alternateFalse),"Or(Empty).isFalse")
     assert(and(alternateFalse, True)==False, "AND(alternateFalse,True) =/= True")
     assert(and(alternateFalse, False)==False, "AND(alternateFalse,False) =/= False")
@@ -78,20 +78,20 @@ class FormulaJUTest extends TestCase {
     assert(True==or(True, False), "OR(True,False)=/=True")
     assert(True==or(True, True), "OR(True,True)=/=True")
     //Test that And(Empty,Empty) acts like True
-    val alternateTrue = And(Map.empty,Map.empty)
+    val alternateTrue = And(Map(),Map())
     assert(or(alternateTrue, True)==True, "OR(alternateTrue,True) == True")
     assert(or(alternateTrue, False)==True, "OR(alternateTrue,False) == True")
     assert(or(True, alternateTrue)==True, "OR(True, alternateTrue) == True")
     assert(or(False, alternateTrue)==True, "OR(False, alternateTrue) == True")
     //Test that Or(And(Empty,Empty)) acts like True
-    val alternateTrue2 = Or(List(alternateTrue))
+    val alternateTrue2 = Or(Set(alternateTrue))
     assert(isTrue(alternateTrue2),"Or(And(Empty,Empty)).isTrue")
     assert(or(alternateTrue2, True)==True, "OR(alternateTrue2,True) == True")
     assert(or(alternateTrue2, False)==True, "OR(alternateTrue2,False) == True")
     assert(or(True, alternateTrue2)==True, "OR(True, alternateTrue2) == True")
     assert(or(False, alternateTrue2)==True, "OR(False, alternateTrue2) == True")
     //Test that Or(Empty) acts like False
-    val alternateFalse = Or(List())
+    val alternateFalse = Or(Set())
     assert(or(alternateFalse, True)==True, "OR(alternateFalse,True) == True")
     assert(or(alternateFalse, False)==False, "OR(alternateFalse,False) == False")
     assert(or(True, alternateFalse)==True, "OR(False, alternateFalse) == True")
@@ -121,13 +121,13 @@ class FormulaJUTest extends TestCase {
       assert(implies(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]),
              "True -> True =/= true")
       //Test that And(Empty,Empty) is equivalent to True
-      val alternateTrue = And(Map.empty,Map.empty)
+      val alternateTrue = And(Map(),Map())
       assert(isTrue(alternateTrue),"!And(Empty,Empty).isTrue")
       //Test that And(Empty,Empty) is equivalent to True
-      val alternateTrue2 = Or(List(alternateTrue))
+      val alternateTrue2 = Or(Set(alternateTrue))
       assert(isTrue(alternateTrue2),"Or(And(Empty,Empty)).isTrue")
       //Test that Or(Empty) is equivalent to False
-      val alternateFalse = Or(List())
+      val alternateFalse = Or(Set())
       assert(isFalse(alternateFalse),"Or(Empty).isFalse")
     }
     {
@@ -139,14 +139,14 @@ class FormulaJUTest extends TestCase {
       val typeb = Set(typ("Bb"))
       val typec = Set(typ("Cc"))
       val typed = Set(typ("Dd"))
-      val map1a = Map.empty.updated(ivar1,typea)
-      val map1b = Map.empty.updated(ivar1,typeb)
-      val map1c = Map.empty.updated(ivar1,typec)
-      val map1d = Map.empty.updated(ivar1,typed)
-      val map2a = Map.empty.updated(ivar2,typea)
-      val map2b = Map.empty.updated(ivar2,typeb)
-      val map2c = Map.empty.updated(ivar2,typec)
-      val map2d = Map.empty.updated(ivar2,typed)
+      val map1a = Map().updated(ivar1,typea)
+      val map1b = Map().updated(ivar1,typeb)
+      val map1c = Map().updated(ivar1,typec)
+      val map1d = Map().updated(ivar1,typed)
+      val map2a = Map().updated(ivar2,typea)
+      val map2b = Map().updated(ivar2,typeb)
+      val map2c = Map().updated(ivar2,typec)
+      val map2d = Map().updated(ivar2,typed)
       
       //Test that unsatisfiable formulas are equivalent to False
       val c1b = And(map1b,map1c)
@@ -155,15 +155,15 @@ class FormulaJUTest extends TestCase {
       val b1a = And(map1b,map1a)
       assert(!isFalse(b1a),"b <: 1 <: a is false")
       //Test that implication works for conjunctions and disjunctions
-      val bot1b = And(Map.empty, map1b)
-      val bot1a = And(Map.empty, map1a)
+      val bot1b = And(Map(), map1b)
+      val bot1a = And(Map(), map1a)
       assert(implies(bot1b, bot1a),"(1 <: B) -> (1 <: A) =/= true")
-      val a1any = And(map1a, Map.empty)
-      val b1any = And(map1b, Map.empty)
+      val a1any = And(map1a, Map())
+      val b1any = And(map1b, Map())
       assert(implies(a1any, b1any),"(A <: 1) -> (B <: 1) =/= true")
-      val a2any = And(map2a, Map.empty)
+      val a2any = And(map2a, Map())
       assert(!implies(a1any, a2any),"(A <: 1) -> (A <: 2) =/= false")
-      val b2any = And(map2b, Map.empty)
+      val b2any = And(map2b, Map())
       val a1anyAnda2any = and(a1any, a2any)
       val b1anyAndb2any = and(b1any, b2any)
       assert(implies(a1anyAnda2any, b1anyAndb2any),"(A<:1 and A<:2)->(B<:1 and B<:2) =/= true")
@@ -175,18 +175,28 @@ class FormulaJUTest extends TestCase {
       assert(implies(a1anyOrb1any, a1any),"(A<:1 or B<:1)->(A<:1) =/= false")
     }
   }
+  
+  def testReduce(){
+    {
+      implicit val ta = typeAnalyzer("{}")
+      val ivar = make_InferenceVarType(typeSpan)
+      assert(reduce(And(Map(ivar -> Set[Type](ivar)), Map()))==True)
+      assert(reduce(And(Map(), Map(ivar -> Set[Type](ivar))))==True)
+    }
+  }
+  
   /*
   def testSolve() = {
     {
       val analyzer = typeAnalyzer("{ }")
-      assert(False.solve(Map.empty).isEmpty, "SOLVE(False) =/= None")
-      assert(True.solve(Map.empty).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
-      val alternateTrue = And(Map.empty,Map.empty)
+      assert(False.solve(Map()).isEmpty, "SOLVE(False) =/= None")
+      assert(True.solve(Map()).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
+      val alternateTrue = And(Map(),Map())
       val alternateTrue2 = Or(List(alternateTrue))
       val alternateFalse = Or(List())
-      assert(alternateFalse.solve(Map.empty).isEmpty, "SOLVE(False) =/= None")
-      assert(alternateTrue.solve(Map.empty).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
-      assert(alternateTrue2.solve(Map.empty).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
+      assert(alternateFalse.solve(Map()).isEmpty, "SOLVE(False) =/= None")
+      assert(alternateTrue.solve(Map()).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
+      assert(alternateTrue2.solve(Map()).get.isEmpty, "SOLVE(True) =/= Some(Nil)")
     }
     {
       val analyzer = typeAnalyzer("{trait Aa, trait Bb extends {Aa}, trait Cc, trait Dd extends {Cc}}")
@@ -197,21 +207,21 @@ class FormulaJUTest extends TestCase {
       val typeb = typ("Bb")
       val typec = typ("Cc")
       val typed = typ("Dd")
-      val map1a = Map.empty.updated(ivar1,typea)
-      val map1b = Map.empty.updated(ivar1,typeb)
-      val map1c = Map.empty.updated(ivar1,typec)
-      val map1d = Map.empty.updated(ivar1,typed)
-      val map2a = Map.empty.updated(ivar2,typea)
-      val map2b = Map.empty.updated(ivar2,typeb)
-      val map2c = Map.empty.updated(ivar2,typec)
-      val map2d = Map.empty.updated(ivar2,typed)
+      val map1a = Map().updated(ivar1,typea)
+      val map1b = Map().updated(ivar1,typeb)
+      val map1c = Map().updated(ivar1,typec)
+      val map1d = Map().updated(ivar1,typed)
+      val map2a = Map().updated(ivar2,typea)
+      val map2b = Map().updated(ivar2,typeb)
+      val map2c = Map().updated(ivar2,typec)
+      val map2d = Map().updated(ivar2,typed)
       val b1a = And(map1a,map1b)
       //Check that solving a contradictory formula gives you nothing
       val c1b = And(map1b,map1c)
-      val solved_c1b = c1b.solve(Map.empty)
+      val solved_c1b = c1b.solve(Map())
       //Check that solving a constraint with no bounds works
       assert(solved_c1b.isEmpty,"solve(C<:1<:B, {}) is not empty")
-      val solved_b1a = b1a.solve(Map.empty)
+      val solved_b1a = b1a.solve(Map())
       assert(solved_b1a.isDefined && solved_b1a.get==map1b,"SOLVE(B<:1<:A , {}) = 1:=B")
       //Check that if the solution to a constraint is out of bounds it fails
       val solved_b1a_1c = b1a.solve(map1c)

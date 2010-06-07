@@ -92,7 +92,7 @@ public abstract class VarCodeGen {
      * Specific kinds of Variables.
      ************************************************************/
 
-    private static abstract class StackVar extends VarCodeGen {
+    public static abstract class StackVar extends VarCodeGen {
         protected final int offset;
 
         protected StackVar(IdOrOp name, Type fortressType, CodeGen cg) {
