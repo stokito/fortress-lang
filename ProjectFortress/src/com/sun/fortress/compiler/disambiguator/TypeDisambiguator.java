@@ -196,6 +196,40 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
+    public Node forPlainPattern(final PlainPattern that) {
+        Id id = that.getName();
+        Boolean isTypeName = true;
+        if (id.getApiName().isSome()) {
+            APIName originalApi = id.getApiName().unwrap();
+            Option<APIName> realApiOpt = _env.apiName(originalApi);
+            if (realApiOpt.isNone()) isTypeName = false;
+            else {
+                APIName realApi = realApiOpt.unwrap();
+                Id newN;
+                if (originalApi == realApi)
+                    newN = id;
+                else newN = NodeFactory.makeId(realApi, id);
+                if (!_env.hasQualifiedTypeCons(newN))
+                    isTypeName = false;
+            }
+        } else if (_env.hasTypeParam(id).isNone()) {
+            Set<Id> typeConses = _env.explicitTypeConsNames(id);
+            if (typeConses.isEmpty()) {
+                typeConses = _env.onDemandTypeConsNames(id);
+                _onDemandImports.add(id);
+            }
+            if (typeConses.isEmpty()) isTypeName = false;
+            else if (typeConses.size() > 1) isTypeName = false;
+        }
+        final Span span = NodeUtil.getSpan(that);
+        // if it is a type name, replace PlainPattern with TypePattern
+        if (that.getIdType().isNone() && isTypeName)
+            return NodeFactory.makeTypePattern(span, NodeFactory.makeVarType(span, id));
+        else
+            return super.forPlainPattern(that);
+    }
+
+    @Override
     public Node forTraitType(final TraitType that) {
         Thunk<Type> varHandler = new Thunk<Type>() {
             public Type value() {
