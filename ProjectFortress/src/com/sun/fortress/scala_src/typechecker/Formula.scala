@@ -69,19 +69,14 @@ object Formula{
   private def maximalTypes(s: Set[Type])(implicit ta: TypeAnalyzer) =
       TU.disjuncts(ta.join(s))
   
-  def implies(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = (c1, c2) match {
+  def implies(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer) =
+    imp(reduce(c1), reduce(c2))
+    
+  private def imp(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = (c1, c2) match {
     case (False, _) => true
+    case (_, False) => false
     case (_, True) => true
-    case (True, False) => false
-    // Checks if c2 is vacuous
-    case (True, And(l, u)) => 
-      l.forall{case (i,b) => ta.eq(ta.join(b.filter(!ta.lteq(_, i))), BOTTOM)} &&
-      u.forall{case (i,b) => ta.eq(ta.meet(b.filter(!ta.lteq(i, _))), ANY)}
-    // Checks if c2 is contradictory
-    case (And(l, u), False) => 
-      (l.keySet ++ u.keySet).exists(i => 
-        ta.subtype(ta.join(get(i, l).filter(!ta.lteq(_, i))),
-                   ta.meet(get(i, u).filter(!ta.lteq(i, _)))).isFalse)
+    case (True, _) => false
     // Checks whether every constraint in c2 is in c1
     case (And(l1, u1), And(l2, u2)) =>
       val lowers = l2.keySet.forall(i =>
@@ -91,36 +86,47 @@ object Formula{
         ta.lteq(ta.meet(get(i, u1).filter(!ta.lteq(i, _))),
                 ta.meet(get(i, u1).filter(!ta.lteq(i, _)))))
       uppers && lowers
-    case (c1, Or(cs)) => cs.exists(implies(c1, _))
-    case (Or(cs), c2) => cs.forall(implies(_, c2))
+    case (c1, Or(cs)) => cs.exists(imp(c1, _))
+    case (Or(cs), c2) => cs.forall(imp(_, c2))
   }
   
-  def implies(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): Boolean = (e1,e2) match {
+  private def isContradictory(l: Map[_InferenceVarType, Set[Type]], u: Map[_InferenceVarType, Set[Type]])(implicit ta: TypeAnalyzer) =
+    (l.keySet ++ u.keySet).exists(i => 
+        ta.subtype(ta.join(get(i, l).filter(!ta.lteq(_, i))),
+                   ta.meet(get(i, u).filter(!ta.lteq(i, _)))).isFalse)
+  
+                   
+  def implies(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer) =
+    imp(reduce(e1), reduce(e2))
+    
+  private def imp(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): Boolean = (e1, e2) match {
     case (False, _) => true
-    case (_, True) => false
-    case (True, False) => false
-    // Checks if c2 is vacuous (relies on eq being transitive)
-    case (True, Equality(eq)) => eq.forall{e =>
-      e.isEmpty || e.tail.foldLeft((e.head, true)){ case ((s, b), t) =>
-       (t, ta.eq(s,t) && b)
-      }._2 
-    }    
-    // Checks if c1 is contradictory
-    case (Equality(eq), False) => eq.forall{e => 
+    case (_, False) => false
+    case (_, True) => true
+    case (True, _) => false
+    case (Equality(eq1), Equality(eq2)) =>
+      eq2.forall{e2 => eq1.exists(e1 => e2.forall(e => e1.exists(ta.eq(e, _))))}
+  }
+  
+  private def isContradictory(eq: Set[Set[Type]])(implicit ta: TypeAnalyzer) =
+    eq.forall{e => 
       !e.isEmpty && e.tail.foldLeft((e.head, false)){ case ((s, b), t) =>
         (t, ta.equivalent(s,t).isFalse || b)
       }._2
     }
-    case (Equality(eq1), Equality(eq2)) =>
-      eq2.forall{e2 => eq1.exists(e1 => e2.subsetOf(e1))}
+  
+  def equivalent(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = {
+    val rc1 = reduce(c1)
+    val rc2 = reduce(c2)
+    imp(rc1, rc2) && imp(rc2, rc1)
   }
   
-  def equivalent(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean =
-    implies(c1, c2) && implies(c2, c1)
+  def equivalent(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): Boolean = {
+    val re1 = reduce(e1)
+    val re2 = reduce(e2)
+    imp(re1, re2) && imp(re2, re1)
+  }
   
-  def equivalent(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): Boolean =
-    implies(e1, e2) && implies(e2, e1)
-    
   def isFalse(c: CFormula)(implicit ta: TypeAnalyzer): Boolean = implies(c, False)
   
   def isFalse(e: EFormula)(implicit ta: TypeAnalyzer): Boolean = implies(e, False)
@@ -143,7 +149,6 @@ object Formula{
   }
 
   def reduce(c: CFormula)(implicit ta: TypeAnalyzer): CFormula =  c match {
-    case _ if isFalse(c) => False
     case And(l, u) => 
       val nl = l.map{case (i, ls) => (i, maximalTypes(ls.filter(!ta.lteq(_, i))))}.
         filter{case (i,b) => !b.isEmpty}
@@ -151,6 +156,8 @@ object Formula{
         filter{case (i,b) => !b.isEmpty}
       if(nu.isEmpty && nl.isEmpty)
         True
+      else if(isContradictory(nl, nu))
+        False
       else
         And(nl, nu)
     case Or(cs) =>
@@ -169,16 +176,54 @@ object Formula{
   }
   
   def reduce(e: EFormula)(implicit ta: TypeAnalyzer): EFormula = e match {
-    case _ if isFalse(e) => False
-    case Equality(eq) => Equality(eq.map{e => removeDuplicates(e, (a: Type, b: Type) => ta.eq(a, b))})
+    // Should also merge connected components
+    case Equality(eq) => 
+      val req = merge(eq).map{e => removeDuplicates(e, (a: Type, b: Type) => ta.eq(a, b))}.
+        filterNot{_.isEmpty}
+      if(req.forall(_.size==1))
+        True
+      else if(isContradictory(req))
+        False
+      else
+        Equality(req)  
     case _ => e
   }
   
+  /*
+   * Given a set of sets of types that are supposed to represent
+   * equivalence classes, this method merges together any classes
+   * that share a type to give a reduced set of sets of types.
+   */
+  
+  private def merge(es: Set[Set[Type]])(implicit ta: TypeAnalyzer): Set[Set[Type]] =
+    if(es.isEmpty)
+      es
+    else {
+      val h = es.first
+      val t = es diff Set(h)
+      merge(h, merge(t))
+    }
+  
+  /*
+   * Given a set of types and a reduced set of sets of types
+   * return a reduced set of set of types.
+   */
+  
+  private def merge(e1: Set[Type], es: Set[Set[Type]])(implicit ta: TypeAnalyzer): Set[Set[Type]] =
+    if(es.isEmpty)
+      Set(e1)
+    else {
+      // Since es is reduced there will be 0 or 1 matches
+      val e2 = es.filter(e => e.exists(a => e1.exists(ta.eq(_, a)))).firstOption
+      val nes = es.filterNot(e => e.exists(a => e1.exists(ta.eq(_, a))))
+      Set(e2.getOrElse(Set()) ++ e1) ++ nes
+    }
+  
   def solve(c: CFormula, b: Map[_InferenceVarType, Set[Type]])(implicit ta: TypeAnalyzer) = c match {
     // False cannot be solved
-    case False => null
+    case False => List()
     // True has the trivial solution
-    case True => null
+    case True => List(Map())
     // We solve an Or by solving one of its branches
     case Or(cs) => null
     /* To solve an And:
@@ -207,7 +252,7 @@ object Formula{
       (eq ++ Set(k), ((k, ls diff eq), (k, us.filterNot(u => ls.exists(ta.eq(u, _))))))
     }.unzip
     val (ls, us) = temp.unzip
-    (Equality(eq.asInstanceOf[Set[Set[Type]]]), And(Map(ls.toSeq:_*), Map(us.toSeq:_*)))
+    (reduce(Equality(eq.asInstanceOf[Set[Set[Type]]])), reduce(And(Map(ls.toSeq:_*), Map(us.toSeq:_*))))
   }
   
   /*
