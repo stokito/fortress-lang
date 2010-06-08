@@ -32,6 +32,10 @@ case class Or(conjuncts: Set[And]) extends CFormula {
 
 case class Equality(eq: Set[Set[Type]]) extends EFormula {}
 
+case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
+  override def apply(t: Type): Type = t
+}
+
 object Formula{
 
   private def merge[S, T](a: Map[S, Set[T]], b: Map[S, Set[T]]): Map[S, Set[T]] =
@@ -219,31 +223,34 @@ object Formula{
       Set(e2.getOrElse(Set()) ++ e1) ++ nes
     }
   
-  def solve(c: CFormula, b: Map[_InferenceVarType, Set[Type]])(implicit ta: TypeAnalyzer) = c match {
+  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = c match {
     // False cannot be solved
-    case False => List()
+    case False => None
     // True has the trivial solution
-    case True => List(Map())
+    case True => Some(Substitution(Map()))
     // We solve an Or by solving one of its branches
     case Or(cs) => null
     /* To solve an And:
-     * 1) Factor the constraint formula into the conjunction of an equality constraint
-     * and an inequality constraint
-     * 2) Find the principal unifier of the equality constraints
-     * 3) Use the solution of the equality constraint to eliminate degrees
-     * of freedom in the inequality constraint
-     * 4) Solve the inequality constraint if possible
+     * 1) Factor the constraint formula into the conjunction of an equality constraint E
+     * and an inequality constraint I
+     * 2) Find the principal unifier U of E
+     * 3) Apply U to I to get I'
+     * 4) Solve I' to get a substitution S
+     * 5) Return S composed with U
      */
     case c@And(l, u) => 
-      val (equality, inequality) = factorConstraint(c)
+      val (eq, ineq) = factorEquality(c)
+      val uni = unify(eq).getOrElse(return None)
       null
   }
   
   /*
-   * T
+   * This method factors all of the type equalities out of an inequality constraint
+   * since they are better solved through unification than the algorithm in Dan Smith's
+   * "Java Type Inference is Broken" paper.
    */
   
-  def factorConstraint(c: And)(implicit ta: TypeAnalyzer): (EFormula, CFormula) = {
+  def factorEquality(c: And)(implicit ta: TypeAnalyzer): (EFormula, CFormula) = {
     val And(l, u) = c
     val (eq, temp) = (l.keySet ++ u.keySet).map{k =>
       val ls = get(k, l)
@@ -260,8 +267,8 @@ object Formula{
    * the principal unifier.
    */
   
-  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Map[_InferenceVarType, Type] = {
-    null
+  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = {
+    None
   }
 
 }
