@@ -653,6 +653,12 @@ public class NodeFactory {
                          param.getVarargsType());
     }
 
+    public static Param makeParam(Param param, TypeOrPattern type) {
+        return makeParam(NodeUtil.getSpan(param), param.getMods(), param.getName(),
+                         Option.<TypeOrPattern>some(type), param.getDefaultExpr(),
+                         param.getVarargsType());
+    }
+
     public static Param makeParam(Param param, Modifiers mods) {
         return makeParam(NodeUtil.getSpan(param), mods, param.getName(),
                          param.getIdType(), param.getDefaultExpr(),

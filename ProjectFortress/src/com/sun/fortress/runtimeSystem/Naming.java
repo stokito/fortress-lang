@@ -696,6 +696,24 @@ public class Naming {
         return sig.substring(0,start) + sig.substring(end+1);
     }
 
+    /**
+     * Need to generalize to include BCDFIJS, too.
+     * @param sig
+     * @param selfIndex
+     * @return
+     */
+public static String replaceNthSigParameter(String sig, int selfIndex, String newParamDesc) {
+    // start, end, are inclusive bounds of nth parameter in sig.
+    int start = 1;
+    int end = sig.indexOf(';');
+    for (int i = 0; i < selfIndex; i++) {
+        start = end+1;
+        end = sig.indexOf(';', start);
+    }
+
+    return sig.substring(0,start) + newParamDesc + sig.substring(end+1);
+}
+
     public static String nthSigParameter(String sig, int selfIndex) {
         // start, end, are inclusive bounds of nth parameter in sig.
         int start = 1;
@@ -714,6 +732,10 @@ public class Naming {
     }
 
     /**
+     * Returns the package+class name for the class generated for the closure
+     * implementing a generic method.  Includes GEAR  (generic function),
+     * ENVELOPE (closure), static parameters, and schema.
+     * 
      * @param simple_name
      * @param static_parameters
      * @param generic_arrow_schema

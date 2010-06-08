@@ -313,7 +313,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
-        closureClassPrefix(name, cw, null, null, true);
+        closureClassPrefix(name, cw, null, null, true, null);
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -345,15 +345,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static String closureClassPrefix(String name,
             ManglingClassWriter cw,
             String staticClass,
-            String sig) {
-        return closureClassPrefix(name, cw, staticClass, sig, false);
+            String sig,
+            String forceCastParam0) {
+        return closureClassPrefix(name, cw, staticClass, sig, false, forceCastParam0);
         
     }
         public static String closureClassPrefix(String name,
                                           ManglingClassWriter cw,
                                           String staticClass,
                                           String sig,
-                                          boolean is_forwarding_closure) {
+                                          boolean is_forwarding_closure,
+                                          String forceCastParam0) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
 
@@ -440,7 +442,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // different class.
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
-                sig, sig, sz, false);
+                sig, sig, sz, false, forceCastParam0);
         
         return fn;
 
@@ -460,10 +462,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String thisName, int thisModifiers, int selfIndex,
             String fwdClass, String fwdName, int fwdOp,
             String maximalSig, String selfCastSig,
-            int nparamsIncludingSelf, boolean pushSelf) {
+            int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
         forwardingMethod(cw, thisName, thisModifiers, selfIndex,
                 fwdClass, fwdName, fwdOp, maximalSig, maximalSig, selfCastSig,
-                nparamsIncludingSelf, pushSelf
+                nparamsIncludingSelf, pushSelf, forceCastParam0
                 );
     }
     
@@ -488,12 +490,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param selfCastSig    a full signature containing self at selfIndex
      * @param nparamsIncludingSelf number of parameters, including self (if any)
      * @param pushSelf       if true, push self first, using selfIndex to find it
+     * @param forceCastParam0 cast param 0, even if it is not self.  This is for
+     *                        implementation of generic methods.  It may need
+     *                        to be generalized to all params, not entirely sure.
      */
     public static void forwardingMethod(ClassWriter cw,
                                         String thisName, int thisModifiers, int selfIndex,
                                         String fwdClass, String fwdName, int fwdOp,
                                         String thisSig, String fwdSig, String selfCastSig,
-                                        int nparamsIncludingSelf, boolean pushSelf) {
+                                        int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
         String selfSig = null;
         if (pushSelf) {
             selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
@@ -510,6 +515,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // Dropping explicit self parameter, so remove from signature.
             fwdSig = Naming.removeNthSigParameter(fwdSig, selfIndex);
         }
+        
+        if (forceCastParam0 != null) {
+            fwdSig = Naming.replaceNthSigParameter(fwdSig, 0, "L" + forceCastParam0 + ";");
+        }
+        
         // System.err.println("Forwarding "+thisName+":"+thisSig+
         //                    " arity "+nparamsIncludingSelf+"\n"+
         //                    "  to       "+fwdClass+"."+fwdName+":"+fwdSig);
@@ -522,6 +532,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         for (int i = 0; i < nparamsIncludingSelf; i++) {
             if (i==selfIndex) continue;
             mv.visitVarInsn(ALOAD, i);
+            // TODO Need to get counting right here.  P0 is "really" P1
+            if (i == 1 && forceCastParam0 != null) {
+                mv.visitTypeInsn(CHECKCAST, forceCastParam0);
+            }
         }
         mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
         mv.visitInsn(ARETURN);

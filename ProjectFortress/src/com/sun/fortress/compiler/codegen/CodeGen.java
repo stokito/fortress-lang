@@ -521,7 +521,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (toTrait.equals(fromTrait)) receiverClass = springBoardClass;
         InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
                                                   receiverClass, mname, INVOKESTATIC,
-                                                  sig, sig, arity, true);
+                                                  sig, sig, arity, true, null);
     }
 
 
@@ -1211,7 +1211,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param selfIndex
      */
     private String generateGenericFunctionClass(FnDecl x, IdOrOp name,
-                                            int selfIndex) {
+                                            int selfIndex, String forceCastParam0InApply) {
         /*
          * Different plan for static parameter decls;
          * instead of a method name, we are looking for an
@@ -1243,14 +1243,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        Map<String, String> xlation = null; // this may disappear
         List<String> splist = new ArrayList<String>(); // necessary for metadata
-        String sparams_part = genericDecoration(x, xlation, splist);
+        String sparams_part = genericDecoration(x, null, splist);
 
         FnHeader header = x.getHeader();
-        List<Param> params = header.getParams();
         Type returnType = header.getReturnType().unwrap();
-        Expr body = x.getBody().unwrap();
 
         String sig =
             NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
@@ -1261,8 +1258,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * at the reference site, so for now we are using the declared
          * names.  In rare cases, this might lead to a problem.
          */
-        ArrowType at = fndeclToType(x); // use the pre-rewritten type.
-        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(fndeclToType(x), thisApi(), false);
         String mname;
 
         // TODO different collision rules for top-level and for
@@ -1274,7 +1270,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             mname = nonCollidingSingleName(name, sig, generic_arrow_type);
         }
-
+        
         // TODO refactor, this is computed in another place.
         
         /* 
@@ -1300,12 +1296,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
         // This creates the closure bits
-        String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig);
+        String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig, forceCastParam0InApply);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC ;
 
-        cg.generateActualMethodCode(modifiers, applied_method, sig, params, selfIndex,
+        Expr body = x.getBody().unwrap();
+        List<Param> params = header.getParams();
+        String modified_sig = sig;
+        if (forceCastParam0InApply != null) {
+            modified_sig = Naming.replaceNthSigParameter(sig, 0, "L" + forceCastParam0InApply + ";");
+            // Ought to rewrite params for better debugging info, but yuck, it is hard.
+        }
+
+        cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
         cg.cw.dumpClass(PCN_for_file, splist);
@@ -1380,18 +1384,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // This is not right yet -- the name is wrong.
         String TO_method_name = currentTraitObjectDecl.getHeader().getName().stringName() + Naming.UP_INDEX + name.getText();
         
+        String selfType = savedInATrait ? traitOrObjectName +  NamingCzar.springBoard : traitOrObjectName;
+        // Bug here, not getting the type name right.
+        Id gfid = NodeFactory.makeId(sp_span, TO_method_name);
         String template_class_name = 
-            generateGenericFunctionClass(new_fndecl, NodeFactory.makeId(sp_span, TO_method_name), NO_SELF);
-        
+            generateGenericFunctionClass(new_fndecl, gfid, NO_SELF, traitOrObjectName);
         
         String method_name = genericMethodName(x);
         
-        if (savedInATrait) {
-            // does this get generated at the forwarding site instead?
-            generateGenericMethodClosureFinder(method_name, template_class_name, traitOrObjectName +  NamingCzar.springBoard);
-        } else {
-            generateGenericMethodClosureFinder(method_name, template_class_name, traitOrObjectName);
-        }
+        generateGenericMethodClosureFinder(method_name, template_class_name, selfType);
+        
         
     }
     
@@ -1832,7 +1834,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // throw sayWhat(x, "Generic methods not yet implemented.");
 
                     } else {
-                        generateGenericFunctionClass(x, (IdOrOp)name, selfIndex);
+                        generateGenericFunctionClass(x, (IdOrOp)name, selfIndex, null);
                     }
                  } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
@@ -1948,7 +1950,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             InstantiatingClassloader.forwardingMethod(cw, mname, modifiers,
                     selfIndex, traitOrObjectName, dottedName, invocation, sig, sig,
-                    params.size(), true);
+                    params.size(), true, null);
 
         } else {
             int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
@@ -2012,14 +2014,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // This creates the closure bits
         String forwarding_method_name =
-            InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
+            InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
 
         InstantiatingClassloader.forwardingMethod(cg.cw, forwarding_method_name, modifiers,
                 selfIndex,
                 //traitOrObjectName+sparams_part,
                 traitOrObjectName,
                 dottedName, invocation, sig, sig,
-                params.size(), true);
+                params.size(), true, null);
 
         cg.cw.dumpClass(PCNOuter, splist);
     }
@@ -2626,7 +2628,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 // This creates the closure bits
                 // The name is disambiguated by the class in which it appears.
-                mname = InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig);
+                mname = InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
             } else {
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, "");
             }

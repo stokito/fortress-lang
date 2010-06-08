@@ -1077,7 +1077,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             //                    "\n    PCN " + PCN +
             //                    "\n    PCNOuter " + PCNOuter);
             cv = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cv);
-            overloaded_name = InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature);
+            overloaded_name = InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature, null);
         }
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
                     + Opcodes.ACC_STATIC, // access,
