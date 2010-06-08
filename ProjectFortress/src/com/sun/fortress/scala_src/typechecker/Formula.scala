@@ -50,9 +50,8 @@ case class Or(conjuncts: Set[And]) extends CFormula {
 case class Equality(eq: Set[Set[Type]]) extends EFormula {}
 
 case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
-  override def apply(t: Type): Type = t
-  def apply(c: CFormula)(implicit ta: TypeAnalyzer): Option[CFormula] = None
-  def apply(e: EFormula)(implicit ta: TypeAnalyzer): Option[EFormula] = None
+  override def apply(t: Type): Type =
+    TU.substituteTypesForInferenceVars(m, t)
 }
 
 object Formula{
@@ -242,7 +241,7 @@ object Formula{
       Set(e2.getOrElse(Set()) ++ e1) ++ nes
     }
   
-  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = c match {
+  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Substitution] = c match {
     // False cannot be solved
     case False => None
     // True has the trivial solution
@@ -286,8 +285,12 @@ object Formula{
    * the principal unifier.
    */
   
-  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = {
+  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Substitution] = {
     None
   }
+  
+  def map(c: CFormula, s: Type=>Type)(implicit ta: TypeAnalyzer): CFormula = null
+  
+  def map(e: EFormula, s: Type => Type)(implicit ta: TypeAnalyzer): EFormula = null
   
 }
