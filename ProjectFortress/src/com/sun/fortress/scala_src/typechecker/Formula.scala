@@ -34,6 +34,8 @@ case class Equality(eq: Set[Set[Type]]) extends EFormula {}
 
 case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
   override def apply(t: Type): Type = t
+  def apply(c: CFormula)(implicit ta: TypeAnalyzer): Option[CFormula] = None
+  def apply(e: EFormula)(implicit ta: TypeAnalyzer): Option[EFormula] = None
 }
 
 object Formula{
@@ -270,5 +272,5 @@ object Formula{
   def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = {
     None
   }
-
+  
 }
