@@ -74,14 +74,16 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                 walk(params).asInstanceOf[List[Param]], returnType),
                 new_body)
       else {
-        val right = EF.makeMaybeTupleExpr(NU.getSpan(body),
+        val span = NU.getSpan(body)
+        val right = EF.makeMaybeTupleExpr(span,
                                           toJavaList(desugaredParams.map(_._3).flatten))
         val desugared = SBlock(info, None, false, false, List(new_body))
         val new_decl = SLocalVarDecl(info, desugared, left, Some(right))
         val result = SFnExpr(info, SFnHeader(sps, mods, name, where, throwsC,
                                              walk(contract).asInstanceOf[Option[Contract]],
                                              desugaredParams.map(_._1), returnType),
-                             SBlock(info, None, false, false, List(new_decl)))
+                             EF.makeDo(span,
+                                       Useful.list(SBlock(info, None, false, true, List(new_decl)))))
         if (left.exists(p => isPattern(p.getIdType))) walk(result).asInstanceOf[FnExpr]
         else result
       }
