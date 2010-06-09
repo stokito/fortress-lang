@@ -1223,4 +1223,66 @@ object STypesUtil {
         STupleType(t.getDomain.getInfo, List(st, t.getDomain), None, Nil)
       case _ => t.getDomain
     }
+    
+  /**
+   * Return a set of all the VarTypes found within the given type.
+   */
+  def getVarTypes(t: Type): Set[VarType] = {
+    val varTypes = new HashSet[VarType]
+    
+    // Add all VarTypes to the set.
+    object varTypeFinder extends Walker {
+      override def walk(node: Any) = node match {
+        case x:VarType => varTypes += x
+        case _ => super.walk(node)
+      }
+    }
+    varTypeFinder(t)
+    
+    // Return the VarTypes as an immutable set.
+    varTypes.toSet
+  }
+    
+  /**
+   * Return a set of all the inference vars found within the given type.
+   */
+  def getInferenceVars(t: Type): Set[_InferenceVarType] = {
+    val infVars = new HashSet[_InferenceVarType]
+    
+    // Add all inference vars to the set.
+    object infVarFinder extends Walker {
+      override def walk(node: Any) = node match {
+        case x:_InferenceVarType => infVars += x
+        case _ => super.walk(node)
+      }
+    }
+    infVarFinder(t)
+    
+    // Return the inference vars as an immutable set.
+    infVars.toSet
+  }
+  
+  /**
+   * Given a partial function from types to types, return a new function that
+   * will recursively apply the former to each VarType or _InferenceVarType.
+   * Effectively, a substitution of the form {T -> U} will be lifted to
+   * recursively replace any occurrence of T with U inside another type, where
+   * T and U can be either VarTypes or _InferenceVarTypes.
+   */
+  def liftTypeSubstitution(subst: PartialFunction[Type, Type]): Type => Type =
+    (t: Type) => {
+      
+      // Create a walker that replace any occurrence of the parameter found
+      // within an AST.
+      object replacer extends Walker {
+        override def walk(node: Any): Any = node match {
+          case x:VarType if subst.isDefinedAt(x) => subst(x)
+          case x:_InferenceVarType if subst.isDefinedAt(x) => subst(x)
+          case _ => super.walk(node)
+        }
+      }
+      
+      // Apply the walker to t.
+      replacer(t).asInstanceOf[Type]
+    }
 }
