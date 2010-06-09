@@ -33,10 +33,10 @@ class FormulaJUTest extends TestCase {
   def testAnd() = {
     implicit val analyzer = typeAnalyzer("{}")
     //Test basic formulas
-    assert(False==and(False, False), "AND(False,False)=/=False")
-    assert(False==and(False, True), "AND(False,True)=/=False")
-    assert(False==and(True, False), "AND(True,False)=/=False")
-    assert(True==and(True, True), "AND(True,True)=/=True")
+    assert(False==and(False.asInstanceOf[CFormula], False.asInstanceOf[CFormula]), "AND(False,False)=/=False")
+    assert(False==and(False.asInstanceOf[CFormula], True.asInstanceOf[CFormula]), "AND(False,True)=/=False")
+    assert(False==and(True.asInstanceOf[CFormula], False.asInstanceOf[CFormula]), "AND(True,False)=/=False")
+    assert(True==and(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]), "AND(True,True)=/=True")
     //Test that And(Empty,Empty) acts like True
     val alternateTrue = And(Map(),Map())
     assert(isTrue(alternateTrue),"!And(Empty,Empty).isTrue")
