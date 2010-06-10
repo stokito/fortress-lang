@@ -92,7 +92,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
-      (a1, a2).zipped.map((a, b) => eq(a, b)).foldLeft(TRUE)(and)
+      (a1, a2).zipped.map((a, b) => eqv(a, b)).foldLeft(TRUE)(and)
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
       val index = typeCons(n).asInstanceOf[TraitIndex]
       val supers = toListFromImmutable(index.extendsTypes).
@@ -159,15 +159,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def equivalent(x: Type, y: Type): ConstraintFormula = {
     val s = normalize(x)
     val t = normalize(y)
-    eq(s,t)
+    eqv(s,t)
   }
 
-  protected def eq(x: Type, y:Type): ConstraintFormula  = {
+  protected def eqv(x: Type, y:Type): ConstraintFormula  = {
     and(sub(x, y), sub(y, x))
   }
 
-  protected def eq(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
-    case (STypeArg(_, _, s), STypeArg(_, _, t)) => eq(s, t)
+  protected def eqv(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
+    case (STypeArg(_, _, s), STypeArg(_, _, t)) => eqv(s, t)
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
     case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
     case (SOpArg(_, _, a), SOpArg(_, _, b)) => fromBoolean(a==b)
@@ -265,7 +265,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
       //Todo: Handle int, nat, bool args
       (a1, a2).zipped.flatMap{
-        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => Some(equivalent(t1, t2))
+        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => Some(eqv(t1, t2))
         case _ => None
       }.foldLeft(TRUE)(and)
     case (a:TraitType, b:TraitType) =>

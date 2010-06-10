@@ -39,9 +39,9 @@ case class And(lowers: Map[_InferenceVarType, Set[Type]], uppers: Map[_Inference
 
 case class Or(conjuncts: Set[And]) extends CFormula {}
 
-case class Equality(eq: Set[Set[Type]]) extends EFormula {}
+case class Conjuncts(eq: Set[Set[Type]]) extends EFormula {}
 
-case class Disjuncts(es: Set[Equality]) extends EFormula {}
+case class Disjuncts(es: Set[Conjuncts]) extends EFormula {}
 
 case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
   // Cache the lifted type substitution.
@@ -70,10 +70,10 @@ object Formula{
   def and(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): EFormula = (e1, e2) match {
     case (True, _) => reduce(e2)
     case (False, _) => False
-    case (Equality(eq1), Equality(eq2)) => reduce(Equality(eq1 ++ eq2))
+    case (Conjuncts(eq1), Conjuncts(eq2)) => reduce(Conjuncts(eq1 ++ eq2))
     case (Disjuncts(e1), Disjuncts(e2)) => 
       disjuncts(for(c <- e1; d <- e2) yield and(c,d))
-    case (e1: Disjuncts, e2: Equality) => and(e1, Disjuncts(Set(e2)))
+    case (e1: Disjuncts, e2: Conjuncts) => and(e1, Disjuncts(Set(e2)))
     case _ => and(e2, e1)
   }
 
@@ -127,8 +127,8 @@ object Formula{
     case (_, False) => false
     case (_, True) => true
     case (True, _) => false
-    case (Equality(eq1), Equality(eq2)) =>
-      eq2.forall{e2 => eq1.exists(e1 => e2.forall(e => e1.exists(ta.eq(e, _))))}
+    case (Conjuncts(eq1), Conjuncts(eq2)) =>
+      eq2.forall{e2 => eq1.exists(e1 => e2.forall(e => e1.exists(ta.equiv(e, _))))}
     case (_, Disjuncts(es)) => es.exists(imp(e1, _))
     case (Disjuncts(es), _) => es.forall(imp(_, e2))
   }
@@ -202,23 +202,23 @@ object Formula{
   
   def reduce(e: EFormula)(implicit ta: TypeAnalyzer): EFormula = e match {
     // Should also merge connected components
-    case Equality(eq) => 
-      val req = merge(eq).map{e => removeDuplicates(e, (a: Type, b: Type) => ta.eq(a, b))}.
+    case Conjuncts(eq) => 
+      val req = merge(eq).map{e => removeDuplicates(e, (a: Type, b: Type) => ta.equiv(a, b))}.
         filter{_.size > 1}
       if(req.isEmpty)
         True
       else if(isContradictory(req))
         False
       else
-        Equality(req)  
+        Conjuncts(req)  
     case True => True
     case False => False
     case Disjuncts(es) => 
-      val nes = es.map(reduce).filter{_.isInstanceOf[Equality]}
+      val nes = es.map(reduce).filter{_.isInstanceOf[Conjuncts]}
       nes.size match {
         case 0 => False
         case 1 => nes.head
-        case _ => Disjuncts(nes.asInstanceOf[Set[Equality]])
+        case _ => Disjuncts(nes.asInstanceOf[Set[Conjuncts]])
       }
   }
 
@@ -241,12 +241,23 @@ object Formula{
       Set(e1)
     else {
       // Since es is reduced there will be 0 or 1 matches
-      val e2 = es.filter(e => e.exists(a => e1.exists(ta.eq(_, a)))).headOption
-      val nes = es.filterNot(e => e.exists(a => e1.exists(ta.eq(_, a))))
+      val e2 = es.filter(e => e.exists(a => e1.exists(ta.equiv(_, a)))).headOption
+      val nes = es.filterNot(e => e.exists(a => e1.exists(ta.equiv(_, a))))
       Set(e2.getOrElse(Set()) ++ e1) ++ nes
     }
   
-  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = c match {
+  /*
+   * Solves a constraint formula by first unifying away all the equality constraints
+   * and then using Dan's simple algorithm from "Java Type Inference is Broken." Dan's
+   * algorithm does not do very well when inference variables have bounds that contain
+   * other inference variables such as those that arise from the self type idiom. At some
+   * point it would be a good idea to replace this with a smarter algorithm.
+   */
+  
+  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = 
+    slv(reduce(c))
+  
+  private def slv(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = c match {
     // False cannot be solved
     case False => None
     // True has the trivial solution
@@ -261,12 +272,28 @@ object Formula{
      * 4) Solve I' to get a substitution S
      * 5) Return S composed with U
      */
-    case c@And(l, u) => None      
+    case _:And => 
+      val (nc, unifier) = unify(c).getOrElse(return None)
+      nc match {
+        case True => Some(unifier)
+        case False => None
+        case nc@And(l, u) =>
+          val sub = Substitution(l.map{case (k, v) => 
+            (k, ta.join(v.filterNot(TU.hasInferenceVars)))})
+          val remainder = And(l.mapValues{_.filter(TU.hasInferenceVars)}, 
+                              u.mapValues{_.filter(TU.hasInferenceVars)})
+          if(isTrue(map(remainder, sub)))
+            Some(sub compose unifier)
+          else
+            None
+        // Should never occur
+        case _:Or => bug("Applied a subsitution to an And and got an Or")
+      }      
   }
   
   def unify(c: CFormula)(implicit ta: TypeAnalyzer): Option[(CFormula, Type => Type)] = {
       val (eq, ineq) = factorEquality(c)
-      val uni = unify(eq).getOrElse(return None)
+      val uni = un(eq).getOrElse(return None)
       Some((map(ineq, uni), uni))
   }
   
@@ -276,19 +303,23 @@ object Formula{
    * "Java Type Inference is Broken" paper.
    */
   
-  def factorEquality(c: CFormula)(implicit ta: TypeAnalyzer): (EFormula, CFormula) = c match {
+  def factorEquality(c: CFormula)(implicit ta: TypeAnalyzer): (EFormula, CFormula) = reduce(c) match {
     case False => (False, False)
     case True => (True, True)
     case And(l, u) =>
       val teq = (l.keySet ++ u.keySet).asInstanceOf[Set[_InferenceVarType]].map{k =>
         val ls = get(k, l)
         val us = get(k, u)
-        ls.filter(a => us.exists(b => ta.eq(a, b))) ++ Set(k) ++ us.filter(a => ls.exists(b => ta.eq(a, b)))
+        ls.filter(a => us.exists(b => ta.equiv(a, b))) ++ Set(k) ++ us.filter(a => ls.exists(b => ta.equiv(a, b)))
       }
-      val e@Equality(eq) = reduce(Equality(teq))
-      val nls = l.map{case (k, v) => (k, v.filter(t => eq.find(_.contains(k)).get.exists(ta.eq(_,k))))}
-      val nus = u.map{case (k, v) => (k, v.filter(t => eq.find(_.contains(k)).get.exists(ta.eq(_,k))))}
-      (e, reduce(And(nls, nus)))
+      reduce(Conjuncts(teq)) match {
+        case e@Conjuncts(eq) =>
+          val nls = l.map{case (k, v) => (k, v.filterNot(t => eq.find(_.contains(k)).get.exists(ta.equiv(_,k))))}
+          val nus = u.map{case (k, v) => (k, v.filterNot(t => eq.find(_.contains(k)).get.exists(ta.equiv(_,k))))}
+          (e, reduce(And(nls, nus)))
+        case True => (True, c)
+        case False => (False, False)
+      }
     case Or(cs) => 
       val (eq, ncs) = cs.map(factorEquality).unzip
       (disjuncts(eq), disjuncts(ncs))
@@ -298,7 +329,7 @@ object Formula{
     if (eq.contains(True))
       True
     else
-      reduce(Disjuncts(eq.filter(_.isInstanceOf[Equality]).asInstanceOf[Set[Equality]]))
+      reduce(Disjuncts(eq.filter(_.isInstanceOf[Conjuncts]).asInstanceOf[Set[Conjuncts]]))
   }
   
   private def disjuncts(cs: Set[CFormula])(implicit ta: TypeAnalyzer): CFormula = {
@@ -313,10 +344,14 @@ object Formula{
    * the principal unifier.
    */
   
-  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = e match {
+  
+  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] =
+    un(reduce(e))
+  
+  private def un(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = e match {
     case False => None
-    case True => Some(x => x)
-    case e@Equality(eq) =>
+    case True => Some(Substitution(Map()))
+    case e@Conjuncts(eq) =>
       val split = eq.map{e => e.partition(_.isInstanceOf[_InferenceVarType])}
       if(split.forall{case (a, b) => b.flatMap(TU.getInferenceVars).exists(i => a.contains(i))})
         return None
@@ -328,7 +363,7 @@ object Formula{
       // If there were any inference variables to be unified, then recurse
       if(!subs.isEmpty) {
         val sub = subs.tail.foldRight((x: Type) => x)((a, b) => a compose b)
-        return unify(map(e, sub)).map(_ compose sub)
+        return un(map(e, sub)).map(_ compose sub)
       }
       /* Gets all equivalence classes with more than two non inference variables and computes the 
        * constraints under which they are equivalent.
@@ -339,7 +374,7 @@ object Formula{
       if(!neqs.isEmpty) {
         val neq = neqs.foldLeft(True.asInstanceOf[EFormula])(and)
         val oeq = split.map{case (iv, niv) => iv ++ Set(niv.head)}
-        return unify(and(neq, Equality(oeq)))
+        return un(and(neq, Conjuncts(oeq)))
       }
       /* Now each equivalence class must consist of one inference variable 
        * and one non inference variable. Unify them.
@@ -360,13 +395,20 @@ object Formula{
   }
   
   def map(e: EFormula, s: Type => Type)(implicit ta: TypeAnalyzer): EFormula = e match {
-    case Equality(eq) => reduce(Equality(eq.map(ts => ts.map(s))))
+    case Conjuncts(eq) => reduce(Conjuncts(eq.map(ts => ts.map(s))))
     case Disjuncts(es) => disjuncts(es.map(map(_, s)))
     case _ => e
   }
   
-  def temp(c: ConstraintFormula): CFormula = null
-  def temp2(c: ConstraintFormula): EFormula = null
+  def temp(c: ConstraintFormula)(implicit ta: TypeAnalyzer): CFormula = c match {
+    case CnTrue => True
+    case CnFalse => False
+    case CnAnd(u, l, _) => And(l.mapValues(TU.disjuncts(_)), u.mapValues(TU.conjuncts(_)))
+    case CnOr(cs, _) => disjuncts(Set(cs.map(temp).toSeq:_*))
+  }
+  def temp2(c: ConstraintFormula)(implicit ta: TypeAnalyzer): EFormula = {
+    factorEquality(temp(c))._1
+  }
   
   /**
    * Given a constraint formula, return the triples corresponding to each
