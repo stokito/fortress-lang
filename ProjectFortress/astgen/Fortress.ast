@@ -1065,7 +1065,7 @@ interface Node() extends HasAt;
                          * TraitType ::= QualifiedName
                          * e.g.) T
                          */
-                        VarType(int lexicalDepth);
+                        VarType(int lexicalDepth) implements TypeVariable;
                         /**
                          * a trait (object, alias, or proper trait) type; traits
                          * without params are referenced with an empty arg list
@@ -1151,7 +1151,7 @@ interface Node() extends HasAt;
                  * inferred type
                  * Used internally for type analysis
                  */
-                _InferenceVarType(Object id) implements OutAfterTypeChecking;
+                _InferenceVarType(Object id) implements OutAfterTypeChecking, TypeVariable;
                 /**
                  * An intersection or union.
                  */
@@ -1954,6 +1954,10 @@ interface Node() extends HasAt;
          *  - Option<Expr> getBody(Applicable)
          */
         interface Applicable(FnHeader header);
+        /**
+         * an inference variable or type variable
+         */
+        interface TypeVariable();
         /**
          * templates
          */

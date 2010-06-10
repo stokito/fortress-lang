@@ -210,7 +210,7 @@ object STypesUtil {
                    (implicit analyzer: TypeAnalyzer): Option[List[Param]] = {
 
     // Get all the params with inference vars filled in.
-    val params = oldParams.map(p => p match {
+    val params = oldParams.map {
       case SParam(info, name, mods, None, defaultExpr, None) =>
         SParam(info,
                name,
@@ -218,14 +218,14 @@ object STypesUtil {
                Some(NF.make_InferenceVarType(info.getSpan)),
                defaultExpr,
                None)
-      case _ => p
-    })
+      case p => p
+    }
 
     // Get the substitution resulting from params :> expectedDomain
     val paramsDomain = makeDomainType(params).get
-    val subst = analyzer.subtype(expectedDomain, paramsDomain).solve(Map())
-    subst.map(s =>
-      params.map(p => p match {
+    analyzer.subtype(expectedDomain, paramsDomain).solve(Map.empty) map { s =>
+      val subst = liftTypeSubstitution(s)
+      params.map {
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
           idType match {
             case p@SPattern(_,_,_) => bug("Pattern should be desugared away: " + p)
@@ -233,12 +233,13 @@ object STypesUtil {
               SParam(info,
                      name,
                      mods,
-                     Some(substituteTypesForInferenceVars(s, t)),
+                     Some(subst(t)),
                      defaultExpr,
                      None)
           }
-        case _ => p
-      }))
+        case p => p
+      }
+    }
   }
 
   /**
@@ -404,24 +405,6 @@ object STypesUtil {
       }
       case _ => isArrows(ty)
     }
-
-  /**
-   * Performs the given substitution on the body type. Does not replace any
-   * inference variables that appear in body but not in the substitution.
-   */
-  def substituteTypesForInferenceVars(substitution: Map[_InferenceVarType, Type],
-                                      body: Type): Type = {
-
-    object substitutionWalker extends Walker {
-      override def walk(node: Any): Any = node match {
-        case ty:_InferenceVarType => substitution.get(ty).getOrElse(ty)
-        case _ => super.walk(node)
-      }
-    }
-
-    // Perform the substitution on the body type.
-    substitutionWalker(body).asInstanceOf[Type]
-  }
 
   /**
    * Returns the type of the static parameter's bound if it is a type parameter.
@@ -807,19 +790,16 @@ object STypesUtil {
     val boundsMap = Map(infVars.zip(sparamBounds): _*)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
-    val subst = constraint.solve(boundsMap).getOrElse(return None)
+    val mapping = constraint.solve(boundsMap).getOrElse(return None)
+    val subst = liftTypeSubstitution(mapping)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
-    val resultTyp =
-      analyzer.normalize(substituteTypesForInferenceVars(subst, infTyp)).
-               asInstanceOf[T]
+    val resultTyp = analyzer.normalize(subst(infTyp)).asInstanceOf[T]
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
       case STypeArg(info, lifted, typ) =>
-        NF.makeTypeArg(info.getSpan,
-                       substituteTypesForInferenceVars(subst, typ),
-                       lifted)
+        NF.makeTypeArg(info.getSpan, subst(typ), lifted)
       case sarg => sarg
     }
 
@@ -1263,21 +1243,21 @@ object STypesUtil {
   }
   
   /**
-   * Given a partial function from types to types, return a new function that
-   * will recursively apply the former to each VarType or _InferenceVarType.
-   * Effectively, a substitution of the form {T -> U} will be lifted to
-   * recursively replace any occurrence of T with U inside another type, where
-   * T and U can be either VarTypes or _InferenceVarTypes.
+   * Given a partial function from type variables to types, return a new
+   * function that will recursively apply the former to each VarType or
+   * _InferenceVarType in the domain. Effectively, a substitution of the form
+   * {T -> U} will be lifted to recursively replace any occurrence of T with U
+   * inside another type, where T and U can be either VarTypes or
+   * _InferenceVarTypes.
    */
-  def liftTypeSubstitution(subst: PartialFunction[Type, Type]): Type => Type =
+  def liftTypeSubstitution[T <: TypeVariable](subst: PartialFunction[T, Type]): Type => Type =
     (t: Type) => {
       
       // Create a walker that replace any occurrence of the parameter found
       // within an AST.
       object replacer extends Walker {
         override def walk(node: Any): Any = node match {
-          case x:VarType if subst.isDefinedAt(x) => subst(x)
-          case x:_InferenceVarType if subst.isDefinedAt(x) => subst(x)
+          case x:T if subst.isDefinedAt(x) => subst(x)
           case _ => super.walk(node)
         }
       }
