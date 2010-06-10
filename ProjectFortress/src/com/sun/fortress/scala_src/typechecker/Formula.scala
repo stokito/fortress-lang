@@ -44,8 +44,9 @@ case class Equality(eq: Set[Set[Type]]) extends EFormula {}
 case class Disjuncts(es: Set[Equality]) extends EFormula {}
 
 case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
-  override def apply(t: Type): Type =
-    TU.substituteTypesForInferenceVars(m, t)
+  // Cache the lifted type substitution.
+  protected val liftedSubstitution: Type => Type = TU.liftTypeSubstitution(m)
+  override def apply(t: Type): Type = liftedSubstitution(t)
 }
 
 object Formula{
@@ -367,4 +368,29 @@ object Formula{
   def temp(c: ConstraintFormula): CFormula = null
   def temp2(c: ConstraintFormula): EFormula = null
   
+  /**
+   * Given a constraint formula, return the triples corresponding to each
+   * conjunct. Each triple is of the form `(lbs, x, ubs)`, where lbs is a set
+   * of disjuncts forming the lower bound of inference variable x and ubs is
+   * likewise a set of conjuncts forming the upper bound.
+   */
+  def toTriples(cf: CFormula)(implicit ta: TypeAnalyzer)
+      : Option[Set[(Set[Type], _InferenceVarType, Set[Type])]] =
+    reduce(cf) match {
+      case True => Some(Set.empty)
+      
+      // Flatten out the lowers and uppers maps.
+      case And(lowersMap, uppersMap) =>
+      
+        // Gather all inference vars and group with lowers and uppers.
+        val allVars = (lowersMap.keySet union uppersMap.keySet).toSet
+        val triples = allVars map { iv =>
+          (lowersMap.getOrElse(iv, Set.empty),
+           iv,
+           uppersMap.getOrElse(iv, Set.empty))
+        }
+        Some(triples)
+        
+      case _ => None
+    }
 }

@@ -25,7 +25,9 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
+import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.typechecker.ConstraintFormula
 import com.sun.fortress.scala_src.typechecker.CnFalse
 import com.sun.fortress.scala_src.typechecker.CnTrue
@@ -42,7 +44,6 @@ import com.sun.fortress.scala_src.useful.Pairs
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
-
 
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
 
@@ -66,7 +67,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         case _ => super.walk(y)
       }
     }
-    normalize(remover(x).asInstanceOf[Type])
+    remover(x).asInstanceOf[Type]
   }
 
   def subtype(x: Type, y: Type): ConstraintFormula =
@@ -492,9 +493,22 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     x.map(f).foldLeft(TRUE)(and)
   protected def mapOr[T](x: Iterable[T])(f: T=>ConstraintFormula): ConstraintFormula = 
     x.map(f).foldLeft(FALSE)(or)
-
+    
+  /**
+   * Extends this TypeAnalyzer with the assumption that the open types `t` and
+   * `u` do not exclude. This is used in, e.g., type checking a `typecase`
+   * wherein a branch brings new type information into account.
+   */
+  def extendWithNonExclusion(tvT: Type,
+                             tvU: Type,
+                             skolems: Option[WhereClause])
+                             : Option[TypeAnalyzer] =
+    RefinedTypeAnalyzer.maybeMake(this, tvT, tvU, skolems)
 }
 
 object TypeAnalyzer {
   def make(traits: TraitTable) = new TypeAnalyzer(traits, KindEnv.makeFresh)
+  
+  implicit def constraintFormulaConversion(cf: ConstraintFormula): CFormula =
+    NI.nyi("need to convert old constraint formulae to new kind")
 }

@@ -22,9 +22,11 @@ import com.sun.fortress.compiler.typechecker.ChildSubtypeCache
 import com.sun.fortress.compiler.typechecker.RootSubtypeCache
 import com.sun.fortress.compiler.typechecker.SubtypeCache
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
-// import scala.collection.immutable.EmptyMap
+import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.useful.NI
 
 /**
  * Represents a list of variable name to static parameter bindings for some
@@ -51,12 +53,20 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
     new NestedKindEnv(this, nodes.flatMap(KindEnv.extractNodeBindings))
 
   /** Extend me with the immediate bindings of the given node. */
-  def extend(node: Node, where: Option[WhereClause]): KindEnv =
-    new NestedKindEnv(this, KindEnv.extractNodeBindings(node))
+  def extend(node: Node, where: Option[WhereClause]): KindEnv = {
+    val whereBindings = where.map(KindEnv.extractNodeBindings)
+                             .getOrElse(Iterable.empty)
+    val nodeBindings = KindEnv.extractNodeBindings(node)
+    new NestedKindEnv(this, whereBindings ++ nodeBindings)
+  }
 
   /** Extend me with the immediate bindings of the given nodes. */
-  def extend[T<:Node](nodes: Iterable[T], where: Option[WhereClause]): KindEnv =
-    new NestedKindEnv(this, nodes.flatMap(KindEnv.extractNodeBindings))
+  def extend[T<:Node](nodes: Iterable[T], where: Option[WhereClause]): KindEnv = {
+    val whereBindings = where.map(KindEnv.extractNodeBindings)
+                             .getOrElse(Iterable.empty)
+    val nodesBindings = nodes.flatMap(KindEnv.extractNodeBindings)
+    new NestedKindEnv(this, whereBindings ++ nodesBindings)
+  }
 
   /**
    * Get the type of the given variable name, if it is bound. The resulting
@@ -113,10 +123,27 @@ object KindEnv extends StaticEnvCompanion[StaticParam] {
   /** Extract out the bindings in node. */
   protected def extractNodeBindings(node: Node) : Iterable[KindBinding] =
     node match {
-      case p:StaticParam => List(KindBinding(p.getName, p))
+      // Trivially add this param.
+      case p:StaticParam => Iterable(KindBinding(p.getName, p))
+      
+      // Extract bindings from generic declaration.
       case g:Generic =>
-        toListFromImmutable(g.getHeader.getStaticParams).map(p => KindBinding(p.getName, p))
-      case _ => Nil
+        toListFromImmutable(g.getHeader.getStaticParams)
+          .map(p => KindBinding(p.getName, p))
+      
+      // Extract where clause bindings.
+      case SWhereClause(info, bindings, _) => bindings.map {
+        
+        // If a type binding, create a new TypeParam.
+        case b:WhereBinding if b.getKind.isInstanceOf[KindType] =>
+          val sp = NF.makeTypeParam(info.getSpan, b.getName, b.getSupers, none[Type], false)
+          KindBinding(b.getName, sp)
+        
+        // Other kinds not supported yet.
+        case _ => NI.nyi("non-type where clause bindings")
+      }
+      
+      case _ => Iterable.empty
     }
 }
 
