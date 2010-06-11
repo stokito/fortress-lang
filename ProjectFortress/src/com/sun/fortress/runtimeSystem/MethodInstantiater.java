@@ -23,6 +23,8 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import com.sun.fortress.useful.MagicNumbers;
+
 public class MethodInstantiater implements MethodVisitor {
 
     MethodVisitor mv;
@@ -113,10 +115,25 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitMethodInsn(int opcode, String owner, String name,
             String desc) {
-        owner = xlation.getTypeName(owner);
-        name = xlation.getTypeName(name);
-        desc = xlation.getMethodDesc(desc);
-        mv.visitMethodInsn(opcode, owner, name, desc);
+        if (owner.equals(Naming.magicInterpClass)) {
+            String oname = name;
+            name = xlation.getTypeName(name);
+            String op = Naming.encodedOp(name);
+            String s = Naming.encodedConst(name);
+            if (op.equals(Naming.hashMethod)) {
+                long hash_sargs = MagicNumbers.hashStringLong(s);
+                mv.visitLdcInsn(Long.valueOf(hash_sargs));
+            } else if (op.equals(Naming.stringMethod)) {
+                mv.visitLdcInsn(s);
+            } else {
+                throw new Error("Invocation of magic class Method '"+oname+"' ('"+name+"') seen, but op is not recognized.");
+            }
+        } else {
+            owner = xlation.getTypeName(owner);
+            name = xlation.getTypeName(name);
+            desc = xlation.getMethodDesc(desc);
+            mv.visitMethodInsn(opcode, owner, name, desc);
+        }
     }
 
     public void visitMultiANewArrayInsn(String desc, int dims) {

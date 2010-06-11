@@ -63,6 +63,7 @@ import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.DeletedList;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.InsertedList;
 import com.sun.fortress.useful.MagicNumbers;
@@ -3315,6 +3316,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
     
     
+    private static final F<StaticArg, Boolean> isSymbolic = new F<StaticArg, Boolean>() {
+
+        @Override
+        public Boolean apply(StaticArg x) {
+            if (x instanceof TypeArg) {
+                Type t = ((TypeArg) x).getTypeArg();
+                if (t instanceof VarType) {
+                    return Boolean.TRUE;
+                }
+                if (t instanceof TraitType) {
+                    return Useful.orReduction(((TraitType)t).getArgs(), this);
+                }
+            }
+            return Boolean.FALSE;
+        }
+        
+    };
+
+    
     public void forMethodInvocation(MethodInvocation x) {
         debug("forMethodInvocation ", x,
               " obj = ", x.getObj(),
@@ -3381,6 +3401,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 StaticArg receiverStaticArg = NodeFactory.makeTypeArg(receiverType);
                 List<StaticArg> prepended_method_sargs = Useful.prepend(receiverStaticArg, method_sargs);
                 
+                boolean anySymbolic = Useful.orReduction(method_sargs, isSymbolic);
+                
                 Type prepended_domain = null;
                 /* I think we start to have a problem here in the future,
                  * when generics can be parametrized by tuples.
@@ -3396,9 +3418,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // DRC-WIP
                 
                 String string_sargs = NamingCzar.genericDecoration(prepended_method_sargs, thisApi());
-              
-                long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
-                
+                              
                 // assumption -- Schema had better be here.
                 Type overloading_schema = x.getOverloadingSchema().unwrap();
                 
@@ -3408,11 +3428,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // Need to dup this so we will not re-eval.
                 mv.visitInsn(Opcodes.DUP);
                 
-                // compute hashcode statically, push constant,
-                mv.visitLdcInsn(Long.valueOf(hash_sargs));
-                
-                // compute String, push constant
-                mv.visitLdcInsn(string_sargs);
+                if (anySymbolic) {
+                    String loadHash = Naming.opForString(Naming.hashMethod, string_sargs);
+                    String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadHash, "()J");
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
+                } else {
+                    // compute hashcode statically, push constant,
+                    long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
+                    mv.visitLdcInsn(Long.valueOf(hash_sargs));
+                    // compute String, push constant
+                    mv.visitLdcInsn(string_sargs);
+                }
                 
                 // invoke the oddly named method
                 methodCall(methodName, (TraitType)receiverType, genericMethodClosureFinderSig);

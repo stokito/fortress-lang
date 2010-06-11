@@ -88,6 +88,18 @@ public class Naming {
 
     // java.lang.Object correctly formatted for asm generation
     public static final String javaObject = "java/lang/Object";
+    
+    /* Sometimes a generated constant or string depends on a type parameter.
+     * In order to efficiently insert the substituted value, it is encoded
+     * into a (bogus) method invocation returning the appropriate type.
+     * For example, INTERP.hash"this is some string constant"() (returns long).
+     * When the Instantiating classloader encounters such a method invocation,
+     * it performs the appropriate calculation and replacement.
+     * Plan, likely, is to encode strings with a count and characters.
+     */
+    public static final String magicInterpClass = "CONST";
+    public static final String hashMethod = "hash";
+    public static final String stringMethod = "String";
 
     /**
      * Java descriptors for (boxed) Fortress types, INCLUDING leading L and trailing ;
@@ -121,8 +133,26 @@ public class Naming {
         bl("", INTERNAL_SNOWMAN, "FVoid");
     }
 
+    public static String opForString(String op, String s) {
+        return op + "." + s;
+    }
 
+    
+    private final static String magicDot = magicInterpClass + "." ;
+    public static boolean isEncodedConst(String s) {
+        return s.startsWith(magicDot);
+    }
 
+    public static String encodedOp(String s) {
+        int first = s.indexOf('.');
+        return s.substring(0, first);
+    }
+    
+    public static String encodedConst(String s) {
+        int first = s.indexOf('.');
+        return s.substring(first+1);      
+    }
+    
     /**
      * (Symbolic Freedom) Dangerous characters should not appear in JVM identifiers
      */
@@ -746,4 +776,5 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         return component_pkg_class + GEAR +"$" +
         simple_name + static_parameters + ENVELOPE + "$" + HEAVY_X + generic_arrow_schema;
     }
+    
 }
