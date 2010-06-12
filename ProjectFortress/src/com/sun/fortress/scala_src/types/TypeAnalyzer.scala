@@ -494,7 +494,4 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
 object TypeAnalyzer {
   def make(traits: TraitTable) = new TypeAnalyzer(traits, KindEnv.makeFresh)
-  
-  implicit def constraintFormulaConversion(cf: CFormula): CFormula =
-    NI.nyi("need to convert old constraint formulae to new kind")
 }

@@ -31,13 +31,30 @@ import com.sun.fortress.scala_src.useful.{STypesUtil => TU}
 sealed trait CFormula{}
 sealed trait EFormula{}
 
-case object True extends CFormula with EFormula {}
+case object True extends CFormula with EFormula {
+  override def toString = "True"
+}
 
-case object False extends CFormula with EFormula {}
+case object False extends CFormula with EFormula {
+  override def toString = "False"
+}
 
-case class And(lowers: Map[_InferenceVarType, Set[Type]], uppers: Map[_InferenceVarType, Set[Type]]) extends CFormula{}
+case class And(lowers: Map[_InferenceVarType, Set[Type]],
+               uppers: Map[_InferenceVarType, Set[Type]]) extends CFormula {
+  
+  /** Format as conjunction of triples. */
+  override def toString =
+    Formula.toTriples(this).get map { case (lbs, x, ubs) =>
+      val lbsStr = lbs.map(_.toString).mkString("{", ", ", "}")
+      val ubsStr = ubs.map(_.toString).mkString("{", ", ", "}")
+      "(%s <: %s <: %s)".format(lbsStr, x, ubsStr)
+    } mkString " /\\ "
+}
 
-case class Or(conjuncts: Set[And]) extends CFormula {}
+case class Or(conjuncts: Set[And]) extends CFormula {
+  override def toString =
+    conjuncts.map(s => "(%s)".format(s)).mkString(" \\/ ")
+}
 
 case class Conjuncts(eq: Set[Set[Type]]) extends EFormula {}
 
@@ -45,7 +62,7 @@ case class Disjuncts(es: Set[Conjuncts]) extends EFormula {}
 
 case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
   // Cache the lifted type substitution.
-  protected val liftedSubstitution: Type => Type = TU.liftIvarSubstitution(m)
+  protected val liftedSubstitution: Type => Type = TU.liftTypeSubstitution(m)
   override def apply(t: Type): Type = liftedSubstitution(t)
 }
 
@@ -435,9 +452,10 @@ object Formula{
    * of disjuncts forming the lower bound of inference variable x and ubs is
    * likewise a set of conjuncts forming the upper bound.
    */
-  def toTriples(cf: CFormula)(implicit ta: TypeAnalyzer)
-      : Option[Set[(Set[Type], _InferenceVarType, Set[Type])]] =
-    reduce(cf) match {
+  def toTriples(cf: CFormula): Option[Set[(Set[Type],
+                                           _InferenceVarType,
+                                           Set[Type])]] =
+    cf match {
       case True => Some(Set.empty)
       
       // Flatten out the lowers and uppers maps.
@@ -454,7 +472,7 @@ object Formula{
         
       case _ => None
     }
-  
+    
   def upperBound(i: _InferenceVarType, t: Type): CFormula =
     And(Map(), Map((i,Set(t))))
   

@@ -17,14 +17,14 @@
 
 package com.sun.fortress.scala_src.typechecker
 
+import _root_.junit.framework._
+import _root_.junit.framework.Assert._
 import com.sun.fortress.compiler.typechecker.TypeAnalyzerJUTest._
-import junit.framework._
-import com.sun.fortress.scala_src.types.TypeAnalyzer
-import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.nodes._
-import com.sun.fortress.scala_src.useful.TypeParser
+import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.scala_src.typechecker.Formula._
-import Assert._
+import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.useful.TypeParser
 
 class FormulaJUTest extends TestCase {
 
