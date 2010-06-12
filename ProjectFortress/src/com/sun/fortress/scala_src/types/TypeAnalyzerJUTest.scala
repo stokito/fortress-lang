@@ -18,10 +18,9 @@
 package com.sun.fortress.scala_src.types
 
 import _root_.junit.framework._
+import _root_.junit.framework.Assert._
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.useful.TypeParser
-
-import Assert._
 
 class TypeAnalyzerJUTest extends TestCase {
   

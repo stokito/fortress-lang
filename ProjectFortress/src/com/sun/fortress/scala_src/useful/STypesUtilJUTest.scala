@@ -18,6 +18,7 @@
 package com.sun.fortress.scala_src.useful
 
 import _root_.junit.framework._
+import _root_.junit.framework.Assert._
 import com.sun.fortress.compiler.Types._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -27,8 +28,6 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
 // import scala.collection.mutable.HashMap
-
-import Assert._
 
 class STypesUtilJUTest extends TestCase {
   
@@ -49,7 +48,7 @@ class STypesUtilJUTest extends TestCase {
     
     {
       val map = Map[_InferenceVarType, Type](iv1 -> ANY, iv2 -> OBJECT)
-      val subst = liftIvarSubstitution(map)
+      val subst = liftTypeSubstitution(map)
       assertEquals(ANY, subst(iv1))
       assertEquals(OBJECT, subst(iv2))
       assertEquals(makeTriple(OBJECT, tvT, makeTriple(ANY, BOTTOM, tvU)),
@@ -58,7 +57,7 @@ class STypesUtilJUTest extends TestCase {
     
     {
       val map = Map[VarType, Type](tvT -> ANY, tvU -> OBJECT)
-      val subst = liftVarTypeSubstitution(map)
+      val subst = liftTypeSubstitution(map)
       assertEquals(ANY, subst(tvT))
       assertEquals(OBJECT, subst(tvU))
       assertEquals(makeTriple(iv2, ANY, makeTriple(iv1, BOTTOM, OBJECT)),

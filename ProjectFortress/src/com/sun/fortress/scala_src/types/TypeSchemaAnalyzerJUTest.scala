@@ -17,14 +17,13 @@
 
 package com.sun.fortress.scala_src.types
 
-import junit.framework._
+import _root_.junit.framework._
+import _root_.junit.framework.Assert._
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.scala_src.useful.TypeParser
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
-
-import Assert._
 
 class TypeSchemaAnalyzerJUTest extends TestCase {
   

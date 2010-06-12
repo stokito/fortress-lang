@@ -1212,7 +1212,7 @@ object STypesUtil {
     // Add all VarTypes to the set.
     object varTypeFinder extends Walker {
       override def walk(node: Any) = node match {
-        case x:VarType => varTypes += x
+        case x:VarType => varTypes += x; x
         case _ => super.walk(node)
       }
     }
@@ -1231,7 +1231,7 @@ object STypesUtil {
     // Add all inference vars to the set.
     object infVarFinder extends Walker {
       override def walk(node: Any) = node match {
-        case x:_InferenceVarType => infVars += x
+        case x:_InferenceVarType => infVars += x; x
         case _ => super.walk(node)
       }
     }
@@ -1248,41 +1248,39 @@ object STypesUtil {
    * {T -> U} will be lifted to recursively replace any occurrence of T with U
    * inside another type, where T and U can be either VarTypes or
    * _InferenceVarTypes.
+   *
+   * The implicit Manifest object allows us to know the runtime representation
+   * of T, the type of the type variable on which `subst` is defined. From it
+   * we can get the Class object for T and check if a given type is an
+   * instance of that, and if so, we then check whether `subst` is defined at
+   * that type. Note that for any statically known class type, its Manifest
+   * exists and will be implicitly passed at the call site.
    */
-  def liftIvarSubstitution(subst: PartialFunction[_InferenceVarType, Type]): Type => Type =
-    (t: Type) => {
+  def liftTypeSubstitution[T <: TypeVariable]
+                          (subst: PartialFunction[T, Type])
+                          (implicit m: scala.reflect.Manifest[T])
+                          : Type => Type = {
+    
+    // Get the runtime Class object for T so that we can be sure whether subst
+    // is defined on it or not.
+    val tClass = m.erasure
       
-      // Create a walker that replace any occurrence of the parameter found
-      // within an AST.
-      object replacer extends Walker {
-        override def walk(node: Any): Any = node match {
-          case x:_InferenceVarType if subst.isDefinedAt(x) => subst(x)
-          case _ => super.walk(node)
-        }
+    // Create a walker that replace any occurrence of the parameter found
+    // within an AST.
+    object replacer extends Walker {
+      override def walk(node: Any): Any = node match {
+        case x:T if tClass.isInstance(x) && subst.isDefinedAt(x) => subst(x)
+        case _ => super.walk(node)
       }
-      
-      // Apply the walker to t.
-      replacer(t).asInstanceOf[Type]
     }
     
-   def liftVarTypeSubstitution(subst: PartialFunction[VarType, Type]): Type => Type =
-    (t: Type) => {
-      
-      // Create a walker that replace any occurrence of the parameter found
-      // within an AST.
-      object replacer extends Walker {
-        override def walk(node: Any): Any = node match {
-          case x: VarType if subst.isDefinedAt(x) => subst(x)
-          case _ => super.walk(node)
-        }
-      }
-      // Apply the walker to t.
-      replacer(t).asInstanceOf[Type]
-    }
+    // Create the resulting closure that simply applies the walker.
+    (t: Type) => replacer(t).asInstanceOf[Type]
+  }
     
-  def killIvars = liftIvarSubstitution(new PartialFunction[_InferenceVarType, Type]{
-    override def apply(y: _InferenceVarType) = BOTTOM
-    override def isDefinedAt(y: _InferenceVarType) = true
+  def killIvars = liftTypeSubstitution(new PartialFunction[_InferenceVarType, Type]{
+    def apply(y: _InferenceVarType) = BOTTOM
+    def isDefinedAt(y: _InferenceVarType) = true
   })
   
 }
