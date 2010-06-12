@@ -25,6 +25,7 @@ import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
@@ -75,11 +76,11 @@ class CoercionOracle(traits: TraitTable,
 
   /** The `moreSpecific` relation; no less specific and unequal. */
   def moreSpecific(t: Type, u: Type): Boolean =
-    noLessSpecific(t, u) && !analyzer.equivalent(t, u).isTrue
+    noLessSpecific(t, u) && !isTrue(analyzer.equivalent(t, u))
 
   /** The `noLessSpecific` relation. */
   def noLessSpecific(t: Type, u: Type): Boolean =
-    analyzer.subtype(t, u).isTrue ||
+    isTrue(analyzer.subtype(t, u)) ||
       (analyzer.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
 
   /** Determines if T rejects U. */
@@ -121,7 +122,7 @@ class CoercionOracle(traits: TraitTable,
 
   /** Determines if T is substitutable for U. */
   def substitutableFor(t: Type, u: Type): Boolean =
-    analyzer.subtype(t, u).isTrue || coercesTo(t, u)
+    isTrue(analyzer.subtype(t, u)) || coercesTo(t, u)
 
   /**
    * Determine if T is substitutable for U. If T <: U, then return Some(None).
@@ -133,7 +134,7 @@ class CoercionOracle(traits: TraitTable,
                          u: Type,
                          expr: Option[Expr])
                          : Option[Option[CoercionInvocation]] = {
-    if (analyzer.subtype(t, u).isTrue)
+    if (isTrue(analyzer.subtype(t, u)))
       Some(None)
     else
       checkCoercion(t, u, expr)
@@ -260,7 +261,7 @@ class CoercionOracle(traits: TraitTable,
     val (x@STupleType(_, xelts, xvar, _), y@STupleType(_, yelts, yvar, _)) = (t, u)
 
     // 1. X is not a subtype of Y.
-    if (analyzer.subtype(x, y).isTrue) return None
+    if (isTrue(analyzer.subtype(x, y))) return None
 
     // 2. If X has more elts, then create the coercions for them.
     if (xelts.length > yelts.length) return None
@@ -326,7 +327,7 @@ class CoercionOracle(traits: TraitTable,
     val f = toOption(ueff.getThrowsClause).map(toList[Type]).getOrElse(List[Type]())
 
     // 1. A -> B throws C is not a subtype of D -> E throws F
-    if (analyzer.subtype(t, u).isTrue) return None
+    if (isTrue(analyzer.subtype(t, u))) return None
 
     // 2. D substitutable for A
     val dummyD = maybeArg.map(_ => makeDummyFor(d))

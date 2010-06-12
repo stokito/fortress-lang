@@ -28,11 +28,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker._
-import com.sun.fortress.scala_src.typechecker.ConstraintFormula
-import com.sun.fortress.scala_src.typechecker.CnFalse
-import com.sun.fortress.scala_src.typechecker.CnTrue
-import com.sun.fortress.scala_src.typechecker.CnAnd
-import com.sun.fortress.scala_src.typechecker.CnOr
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._
@@ -46,11 +42,13 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
-
+  
+  implicit val ta: TypeAnalyzer = this
+  
   def top = ANY
   def bottom = BOTTOM
 
-  def lteq(x: Type, y: Type): Boolean =  subtype(x, y).isTrue
+  def lteq(x: Type, y: Type): Boolean =  isTrue(subtype(x, y))
   def meet(x: Type, y: Type): Type = meet(List(x, y))
   def meet(x: Iterable[Type]): Type = normalize(makeIntersectionType(x))
   def join(x: Type, y: Type): Type = meet(List(x, y))
@@ -70,15 +68,27 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     remover(x).asInstanceOf[Type]
   }
 
-  def subtype(x: Type, y: Type): ConstraintFormula =
+  def subtype(x: Type, y: Type): CFormula =
     sub(normalize(x), normalize(y))
   
-  def notSubtype(x: Type, y: Type): ConstraintFormula = nsub(normalize(x), normalize(y))
+  def notSubtype(x: Type, y: Type): CFormula = nsub(normalize(x), normalize(y))
     
-  protected def sub(x: Type, y: Type): ConstraintFormula = (x, y) match {
-    case (s,t) if (s==t) => TRUE
-    case (s: BottomType, _) => TRUE
-    case (s, t: AnyType) => TRUE
+  protected def sub(x: Type, y: Type): CFormula = (x, y) match {
+    case (s,t) if (s==t) => True
+    case (s: BottomType, _) => True
+    case (s, t: AnyType) => True
+    // Intersection types
+    case (s, SIntersectionType(_,ts)) =>
+      mapAnd(ts)(sub(s, _))
+    // If we can generate interesting constraints for when two types exclude
+    // we can add a special case for when an intersection is a subtype of bottom
+    case (SIntersectionType(_,ss), t) =>
+      mapOr(ss)(sub(_, t))
+    // Union types
+    case (SUnionType(_,ss), t) =>
+     mapAnd(ss)(sub(_, t))
+    case (s, SUnionType(_, ts)) =>
+      mapOr(ts)(sub(s, _))
     // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       and(upperBound(s, t), lowerBound(t,s))
@@ -88,16 +98,16 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
       val supers = toListFromImmutable(sParam.getExtendsClause)
-      supers.map(sub(_, t)).foldLeft(FALSE)(or)
+      or(supers.map(sub(_, t)))
     // Trait types
-    case (s: TraitType, t: TraitType) if (t==OBJECT) => TRUE
+    case (s: TraitType, t: TraitType) if (t==OBJECT) => True
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
-      (a1, a2).zipped.map((a, b) => eqv(a, b)).foldLeft(TRUE)(and)
+      and((a1, a2).zipped.map((a, b) => eqv(a, b)))
     case (s@STraitType(_, n, a, _) , t: TraitType) =>
       val index = typeCons(n).asInstanceOf[TraitIndex]
       val supers = toListFromImmutable(index.extendsTypes).
       map(tw => substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType))
-      supers.map(sub(_, t)).foldLeft(FALSE)(or)
+      or(supers.map(sub(_, t)))
     case (s: TraitSelfType, t) => sub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => sub(t,named)
     case (s: ObjectExprType, t) => sub(removeSelf(s), t)
@@ -113,67 +123,55 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       sub(s, disjunctFromTuple(t, e1.size))
     case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2))
       if (e1.size == e2.size) =>
-        (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(sub(k1, k2))(and)
+        and(and((e1, e2).zipped.map((a, b) => sub(a, b))), sub(k1, k2))
     case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2))
       if (e1.size == e2.size) =>
-        (e1, e2).zipped.map((a, b) => sub(a, b)).foldLeft(and(sub(v1, v2), sub(k1, k2)))(and)
-    // Intersection types
-    case (s, SIntersectionType(_,ts)) =>
-      mapAnd(ts)(sub(s, _))
-    // If we can generate interesting constraints for when two types exclude
-    // we can add a special case for when an intersection is a subtype of bottom
-    case (SIntersectionType(_,ss), t) =>
-      mapOr(ss)(sub(_, t))
-    // Union types
-    case (SUnionType(_,ss), t) =>
-     mapAnd(ss)(sub(_, t))
-    case (s, SUnionType(_, ts)) =>
-      mapOr(ts)(sub(s, _))
+        and(and((e1, e2).zipped.map((a, b) => sub(a, b))), and(sub(v1, v2), sub(k1, k2)))
     // Otherwise
-    case _ => FALSE
+    case _ => False
   }
   
-  protected def sub(x: List[KeywordType], y: List[KeywordType]): ConstraintFormula = {
+  protected def sub(x: List[KeywordType], y: List[KeywordType]): CFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
     val xmap = Map(x.map(toPair):_*)
     val ymap = Map(y.map(toPair):_*)
     def compare(id: Id) = (xmap.get(id), ymap.get(id)) match {
-      case (None, _) => TRUE
+      case (None, _) => True
       case (Some(s), Some(t)) => sub(s, t)
-      case _ => FALSE
+      case _ => False
     }
-    xmap.keysIterator.map(compare).foldLeft(TRUE)(and)
+    and(xmap.keys.map(compare))
   }
 
-  protected def sub(x: Effect, y: Effect): ConstraintFormula = {
+  protected def sub(x: Effect, y: Effect): CFormula = {
     val (SEffect(_, tc1, io1), SEffect(_, tc2, io2)) = (x,y)
     if (!io1 || io2)
       sub(makeUnionType(tc1.getOrElse(Nil)), makeUnionType(tc2.getOrElse(Nil)))
     else
-      FALSE
+      False
   }
 
   // The current algorithm conservatively approximates not subtype
-  protected def nsub(x: Type, y: Type): ConstraintFormula = fromBoolean(sub(x,y).isFalse)
+  protected def nsub(x: Type, y: Type): CFormula = fromBoolean(isFalse(sub(x,y)))
   
-  def equivalent(x: Type, y: Type): ConstraintFormula = {
+  def equivalent(x: Type, y: Type): CFormula = {
     val s = normalize(x)
     val t = normalize(y)
     eqv(s,t)
   }
 
-  protected def eqv(x: Type, y:Type): ConstraintFormula  = {
+  protected def eqv(x: Type, y:Type): CFormula  = {
     and(sub(x, y), sub(y, x))
   }
 
-  protected def eqv(x: StaticArg, y: StaticArg): ConstraintFormula = (x,y) match {
+  protected def eqv(x: StaticArg, y: StaticArg): CFormula = (x,y) match {
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => eqv(s, t)
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
     case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
     case (SOpArg(_, _, a), SOpArg(_, _, b)) => fromBoolean(a==b)
     case (SDimArg(_, _, a), SDimArg(_, _, b)) => fromBoolean(a==b)
     case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b)
-    case _ => FALSE
+    case _ => False
   }
 
 
@@ -199,18 +197,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
       //Todo: Handle int, nat, bool args
       (a1, a2).zipped.exists{
-        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => equivalent(t1, t2).isFalse
+        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => isFalse(equivalent(t1, t2))
         case _ => false
       }
     case (s: TraitType, t: TraitType) =>
       def helper(s: TraitType, t: TraitType): Boolean = {
-        if (excludesClause(s).exists(sub(t, _).isTrue))
+        if (excludesClause(s).exists(x => isTrue(sub(t, x))))
           return true
         typeCons(s.getName) match {
           case index: ProperTraitIndex =>
             val comprises = comprisesClause(s)
             !comprises.isEmpty && comprises.forall(exc(t, _))
-          case _ => sub(s, t).isFalse
+          case _ => isFalse(sub(s, t))
         }
       }
       helper(s, t) || helper(t, s)
@@ -246,14 +244,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
    * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
    * unless $i=$j. Note that this method only generates equality constraints.
    */
-  def notExclude(x: Type , y: Type): ConstraintFormula = 
+  def notExclude(x: Type , y: Type): CFormula = 
     nexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
     
-  protected def nexc(x: Type, y: Type): ConstraintFormula = (x, y) match {
-    case (s: BottomType, _) => FALSE
-    case (_, t: BottomType) => FALSE
-    case (s: AnyType, _) => TRUE
-    case (_, t: AnyType) => TRUE
+  protected def nexc(x: Type, y: Type): CFormula = (x, y) match {
+    case (s: BottomType, _) => False
+    case (_, t: BottomType) => False
+    case (s: AnyType, _) => True
+    case (_, t: AnyType) => True
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
       val supers = toListFromImmutable(sParam.getExtendsClause)
@@ -264,10 +262,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      */
     case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
       //Todo: Handle int, nat, bool args
-      (a1, a2).zipped.flatMap{
+      and((a1, a2).zipped.flatMap{
         case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => Some(eqv(t1, t2))
         case _ => None
-      }.foldLeft(TRUE)(and)
+      })
     case (a:TraitType, b:TraitType) =>
       def helper(s: TraitType, t: TraitType) = {
         val notExcludesClause = mapAnd(excludesClause(s))(nsub(t, _))
@@ -280,30 +278,30 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         and(notExcludesClause, notComprises)
       }
       and(helper(a, b), helper(b, a))
-    case (s: ArrowType, t: ArrowType) => TRUE
-    case (s: ArrowType, _) => FALSE
-    case (_, t: ArrowType) => FALSE
+    case (s: ArrowType, t: ArrowType) => True
+    case (s: ArrowType, _) => False
+    case (_, t: ArrowType) => False
     // ToDo: Handle keywords
     case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val notElements = (e1,e2).zipped.map((a, b) => nexc(a,b)).foldLeft(TRUE)(and)
+      val notElements = and((e1,e2).zipped.map((a, b) => nexc(a,b)))
       val notDifferent = (mv1, mv2) match {
         case (Some(v1), _) if (e1.size < e2.size) =>
           mapAnd(e2.drop(e1.size))(nexc(_, v1))
         case (_, Some(v2)) if (e2.size < e1.size)=>
           mapAnd(e1.drop(e2.size))(nexc(_, v2))
-        case _ if (e1.size == e2.size) => TRUE
-        case _ => FALSE
+        case _ if (e1.size == e2.size) => True
+        case _ => False
       }
       and(notElements, notDifferent)
-    case (s: TupleType, _) => FALSE
-    case (_, t: TupleType) => FALSE
+    case (s: TupleType, _) => False
+    case (_, t: TupleType) => False
     case (s@SIntersectionType(_, elts), t) =>
       mapAnd(elts)(nexc(_, t))
     case (s, t: IntersectionType) => nexc(t, s)
     case (s@SUnionType(_, elts), t) =>
       mapOr(elts)(nexc(_, t))
     case (s, t: UnionType) => nexc(t, s)
-    case _ => TRUE
+    case _ => True
   }
 
   def normalize(x: Type): Type = {
@@ -341,8 +339,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       List(BOTTOM)
     else {
       val ds = x.foldLeft(List[Type]())((l, a) => {
-        val l2 = l.filter(!sub(a,_).isTrue)
-        l2 ++ (if (l2.exists(sub(_, a).isTrue)) Nil else List(a))
+        val l2 = l.filter(x => !isTrue(sub(a, x)))
+        l2 ++ (if (l2.exists(x => isTrue(sub(x, a)))) Nil else List(a))
       })
       val es = ds.map(_ match {
         case t:TupleType => Left(t)
@@ -375,8 +373,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   protected def normDisjunct(x: Iterable[Type]): List[Type] = {
       x.foldLeft(List[Type]())((l, a) => {
-        val l2 = l.filter(!sub(_,a).isTrue)
-        l2 ++ (if (l2.exists(sub(a,_).isTrue)) Nil else List(a))
+        val l2 = l.filter(x => !isTrue(sub(x,a)))
+        l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
       })
   }
 
@@ -476,23 +474,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeAnalyzer(traits, env.extend(params, where))
-
-  private val TRUE: ConstraintFormula = CnTrue
-  private val FALSE: ConstraintFormula = CnFalse
-  protected def and(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
-    x.and(y, this)
-  protected def or(x: ConstraintFormula, y: ConstraintFormula): ConstraintFormula =
-    x.or(y, this)
-  protected def upperBound(i: _InferenceVarType, t: Type): ConstraintFormula =
-    CnAnd(Map((i,t)), Map(), this)
-  protected def lowerBound(i: _InferenceVarType, t: Type): ConstraintFormula =
-    CnAnd(Map(), Map((i,t)), this)
-  protected def fromBoolean(x: Boolean) = if (x) TRUE else FALSE
   
-  protected def mapAnd[T](x: Iterable[T])(f: T=>ConstraintFormula): ConstraintFormula = 
-    x.map(f).foldLeft(TRUE)(and)
-  protected def mapOr[T](x: Iterable[T])(f: T=>ConstraintFormula): ConstraintFormula = 
-    x.map(f).foldLeft(FALSE)(or)
+  protected def mapAnd[T](x: Iterable[T])(f: T=>CFormula): CFormula = 
+    x.map(f).foldLeft(True.asInstanceOf[CFormula])(and)
+  protected def mapOr[T](x: Iterable[T])(f: T=>CFormula): CFormula = 
+    x.map(f).foldLeft(False.asInstanceOf[CFormula])(or)
     
   /**
    * Extends this TypeAnalyzer with the assumption that the open types `t` and
@@ -509,6 +495,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 object TypeAnalyzer {
   def make(traits: TraitTable) = new TypeAnalyzer(traits, KindEnv.makeFresh)
   
-  implicit def constraintFormulaConversion(cf: ConstraintFormula): CFormula =
+  implicit def constraintFormulaConversion(cf: CFormula): CFormula =
     NI.nyi("need to convert old constraint formulae to new kind")
 }

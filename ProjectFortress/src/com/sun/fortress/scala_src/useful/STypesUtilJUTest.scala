@@ -49,7 +49,7 @@ class STypesUtilJUTest extends TestCase {
     
     {
       val map = Map[_InferenceVarType, Type](iv1 -> ANY, iv2 -> OBJECT)
-      val subst = liftTypeSubstitution(map)
+      val subst = liftIvarSubstitution(map)
       assertEquals(ANY, subst(iv1))
       assertEquals(OBJECT, subst(iv2))
       assertEquals(makeTriple(OBJECT, tvT, makeTriple(ANY, BOTTOM, tvU)),
@@ -58,19 +58,10 @@ class STypesUtilJUTest extends TestCase {
     
     {
       val map = Map[VarType, Type](tvT -> ANY, tvU -> OBJECT)
-      val subst = liftTypeSubstitution(map)
+      val subst = liftVarTypeSubstitution(map)
       assertEquals(ANY, subst(tvT))
       assertEquals(OBJECT, subst(tvU))
       assertEquals(makeTriple(iv2, ANY, makeTriple(iv1, BOTTOM, OBJECT)),
-                   subst(t2))
-    }
-    
-    {
-      val map = Map[TypeVariable, Type](tvT -> ANY, tvU -> makeTriple(tvU, iv1, iv2))
-      val subst = liftTypeSubstitution(map)
-      assertEquals(ANY, subst(tvT))
-      assertEquals(makeTriple(tvU, iv1, iv2), subst(tvU))
-      assertEquals(makeTriple(iv2, ANY, makeTriple(iv1, BOTTOM, makeTriple(tvU, iv1, iv2))),
                    subst(t2))
     }
   }

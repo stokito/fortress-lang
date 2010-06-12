@@ -76,8 +76,8 @@ object RefinedTypeAnalyzer {
     }
     
     // Make full substitutions whose domains are all types.
-    val tv2iv = liftTypeSubstitution(tv2ivMap)
-    val iv2tv = liftTypeSubstitution(tv2ivMap)
+    val tv2iv = liftVarTypeSubstitution(tv2ivMap)
+    val iv2tv = liftIvarSubstitution(iv2tvMap)
     
     // Create constraint formula for these inference vars and their bounds.
     val ivBoundsConstraints = (tv2ivMap foldLeft (True:CFormula)) {

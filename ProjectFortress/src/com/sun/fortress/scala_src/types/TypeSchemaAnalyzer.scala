@@ -27,11 +27,7 @@ import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ConstraintFormula
-import com.sun.fortress.scala_src.typechecker.CnFalse
-import com.sun.fortress.scala_src.typechecker.CnTrue
-import com.sun.fortress.scala_src.typechecker.CnAnd
-import com.sun.fortress.scala_src.typechecker.CnOr
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._

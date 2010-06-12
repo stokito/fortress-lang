@@ -39,6 +39,7 @@ import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil
 import com.sun.fortress.scala_src.useful.Iterators._
@@ -180,17 +181,17 @@ class AbstractMethodChecker(component: ComponentIndex,
 
     val result = decl match {
       case fd:FnDecl =>
-        ( typeAnalyzer.equivalent(subst(NU.getParamType(d)),
-                                  NU.getParamType(fd)).isTrue ||
+        (isTrue(typeAnalyzer.equivalent(subst(NU.getParamType(d)),
+                                  NU.getParamType(fd))) ||
           implement(toListFromImmutable(NU.getParams(d)),
                     toListFromImmutable(NU.getParams(fd)),
                     subst _) ) &&
-        typeAnalyzer.subtype(NU.getReturnType(fd).unwrap,
-                             subst(NU.getReturnType(d).unwrap)).isTrue
+        isTrue(typeAnalyzer.subtype(NU.getReturnType(fd).unwrap,
+                             subst(NU.getReturnType(d).unwrap)))
       case vd:VarDecl if vd.getLhs.size == 1 =>
         NU.isVoidType(NU.getParamType(d)) &&
-        typeAnalyzer.subtype(NU.optTypeOrPatternToType(vd.getLhs.get(0).getIdType).unwrap,
-                             subst(NU.getReturnType(d).unwrap)).isTrue
+        isTrue(typeAnalyzer.subtype(NU.optTypeOrPatternToType(vd.getLhs.get(0).getIdType).unwrap,
+                                    subst(NU.getReturnType(d).unwrap)))
       case _ => false
     }
     result
@@ -205,8 +206,8 @@ class AbstractMethodChecker(component: ComponentIndex,
                         params: List[Param],
                         subst: Type => Type): Boolean =
     !(ps, params).zipped.exists { (p1, p2) =>
-      typeAnalyzer.equivalent(subst(NU.getParamType(p1)),
-                              NU.getParamType(p2)).isFalse &&
+      isFalse(typeAnalyzer.equivalent(subst(NU.getParamType(p1)),
+                                            NU.getParamType(p2))) &&
       !p1.getName.getText.equals("self")
     }
 }

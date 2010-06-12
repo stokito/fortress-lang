@@ -33,6 +33,7 @@ import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._
 import com.sun.fortress.scala_src.useful.Errors._
@@ -275,7 +276,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 				analyzer: TypeAnalyzer): Boolean = {
     for (ty <- comprises) {
       ty match {
-	case _:TraitType => if (analyzer.subtype(decl, ty).isTrue) return true
+	case _:TraitType => if (isTrue(analyzer.subtype(decl, ty))(analyzer)) return true
 	case _ =>
       }
     }
@@ -290,7 +291,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
                               analyzer: TypeAnalyzer,
                               errors:JavaList[StaticError]): Boolean = {
     for (ty <- extendsC )
-      if (analyzer.subtype(ty, comprises).isTrue) return true
+      if (isTrue(analyzer.subtype(ty, comprises))(analyzer)) return true
     extendsC.map(tty => 
       tty match {
         case STraitType(_, name, args, _) =>

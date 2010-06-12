@@ -37,6 +37,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.impls._
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv
 import com.sun.fortress.scala_src.types.TypeAnalyzer
@@ -281,17 +282,17 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    * Determine if subtype <: supertype.
    */
   protected def isSubtype(subtype: Type, supertype: Type): Boolean =
-    analyzer.subtype(subtype, supertype).isTrue
+    isTrue(analyzer.subtype(subtype, supertype))
 
   /**
    * Return the conditions for subtype <: supertype to hold.
    */
-  protected def checkSubtype(subtype: Type, supertype: Type): ConstraintFormula = {
+  protected def checkSubtype(subtype: Type, supertype: Type): CFormula = {
     analyzer.subtype(subtype, supertype)
   }
 
   protected def equivalentTypes(t1: Type, t2: Type): Boolean =
-    analyzer.equivalent(t1, t2).isTrue
+    isTrue(analyzer.equivalent(t1, t2))
 
   protected def normalize(ty: Type): Type =
     TypeNormalizer.normalize(ty)
