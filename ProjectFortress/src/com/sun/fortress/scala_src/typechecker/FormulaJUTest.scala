@@ -74,10 +74,10 @@ class FormulaJUTest extends TestCase {
   def testOr() = {
     implicit val analyzer = typeAnalyzer("{}")
     //Test basic formulas
-    assertTrue(False==or(False, False))
-    assertTrue(True==or(False, True))
-    assertTrue(True==or(True, False))
-    assertTrue(True==or(True, True))
+    assertTrue(False==or(False.asInstanceOf[CFormula], False.asInstanceOf[CFormula]))
+    assertTrue(True==or(False.asInstanceOf[CFormula], True.asInstanceOf[CFormula]))
+    assertTrue(True==or(True.asInstanceOf[CFormula], False.asInstanceOf[CFormula]))
+    assertTrue(True==or(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]))
     //Test that And(Empty,Empty) acts like True
     val alternateTrue = And(Map(),Map())
     assertTrue(or(alternateTrue, True)==True)

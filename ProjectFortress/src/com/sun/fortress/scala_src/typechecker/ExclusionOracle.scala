@@ -37,6 +37,7 @@ import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.repository.FortressRepository
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.ErrorLog
@@ -50,7 +51,7 @@ import com.sun.fortress.scala_src.nodes._
  * exclusion checking and meet and join operations are not cached.
  * We'll cache the results of those questions later.
  */
-class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
+class ExclusionOracle(errors: ErrorLog)(implicit typeAnalyzer: TypeAnalyzer) {
   /* Checks the overloading rule: exclusion
    * Invariant: firstParam is not equal to secondParam
    * The following types are not yet supported:
@@ -156,8 +157,8 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
           case (Some(fi), Some(si)) =>
             ( NodeUtil.isTraitOrObject(fi), NodeUtil.isTraitOrObject(si) ) match {
               case (true, true) =>
-                if ( ! (typeAnalyzer.subtype(f, s).isTrue ||
-                        typeAnalyzer.subtype(s, f).isTrue ) &&
+                if ( ! (isTrue(typeAnalyzer.subtype(f, s)) ||
+                        isTrue(typeAnalyzer.subtype(s, f))) &&
                      ( isClosedType(fi) || isClosedType(si) ) )
                   return true
                 else if ( fi.isInstanceOf[ProperTraitIndex] &&
@@ -243,7 +244,7 @@ class ExclusionOracle(typeAnalyzer: TypeAnalyzer, errors: ErrorLog) {
     var result = false
     // Exists "tau" in "[X |-> ty ...]S" such that "s" is a subtype of "tau"
     for ( tau <- excludes ; if ! result ) {
-        if ( typeAnalyzer.subtype(s, tau).isTrue ) result = true
+        if (isTrue(typeAnalyzer.subtype(s, tau))) result = true
     }
     result
   }

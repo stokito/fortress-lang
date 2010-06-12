@@ -27,6 +27,7 @@ import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -112,8 +113,8 @@ class TypeWellFormedChecker(compilation_unit: CompilationUnitIndex,
             for ( bound <- toListFromImmutable(pair._2.getExtendsClause);
             if pair._1.isInstanceOf[TypeArg] ) {
               val new_bound = replacer.replaceIn(bound)
-              if ( ! analyzer.subtype(pair._1.asInstanceOf[TypeArg].getTypeArg,
-                  new_bound).isTrue )
+              if ( ! isTrue(analyzer.subtype(pair._1.asInstanceOf[TypeArg].getTypeArg,
+                  new_bound))(analyzer))
                 error("Ill-formed type: " + t +
                     "\n    The static argument " + pair._1 +
                     " does not satisfy the corresponding bound " + new_bound + ".", t)

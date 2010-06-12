@@ -46,6 +46,7 @@ import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.CoercionOracle
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.{TypeAnalyzer => JTypeAnalyzer}
 // TODO: above import is temporary.
@@ -223,8 +224,7 @@ object STypesUtil {
 
     // Get the substitution resulting from params :> expectedDomain
     val paramsDomain = makeDomainType(params).get
-    analyzer.subtype(expectedDomain, paramsDomain).solve(Map.empty) map { s =>
-      val subst = liftTypeSubstitution(s)
+    solve(analyzer.subtype(expectedDomain, paramsDomain)) map { subst =>
       params.map {
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
           idType match {
@@ -471,20 +471,20 @@ object STypesUtil {
 
   /** Return the [Scala-based] conditions for subtype <: supertype to hold. */
   def checkSubtype(subtype: Type, supertype: Type)
-                  (implicit analyzer: TypeAnalyzer): ConstraintFormula = {
+                  (implicit analyzer: TypeAnalyzer): CFormula = {
 
     val constraint = analyzer.subtype(subtype, supertype)
 
-    if (!constraint.isInstanceOf[ConstraintFormula]) {
-      bug("Not a ConstraintFormula.")
+    if (!constraint.isInstanceOf[CFormula]) {
+      bug("Not a CFormula.")
     }
-    constraint.asInstanceOf[ConstraintFormula]
+    constraint.asInstanceOf[CFormula]
   }
 
   /** Determine if subtype <: supertype. */
   def isSubtype(subtype: Type, supertype: Type)
                (implicit analyzer: TypeAnalyzer): Boolean =
-    checkSubtype(subtype, supertype).isTrue
+    isTrue(checkSubtype(subtype, supertype))
 
   /**
    * Replaces occurrences of static parameters with corresponding static
@@ -719,15 +719,15 @@ object STypesUtil {
                         : Option[(ArrowType, List[StaticArg])] = {
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
+    def makeConstraint(infArrow: ArrowType): CFormula = {
 
       // argType <:? dom(infArrow) yields a constraint, C1
       val domainConstraint = checkSubtype(argType, infArrow.getDomain)
 
       // if context given, C := C1 AND range(infArrow) <:? context
       val rangeConstraint = context.map(t =>
-        checkSubtype(infArrow.getRange, t)).getOrElse(CnTrue)
-      domainConstraint.and(rangeConstraint, analyzer)
+        checkSubtype(infArrow.getRange, t)).getOrElse(True)
+      and(domainConstraint, rangeConstraint)
     }
 
     // Do the inference.
@@ -752,7 +752,7 @@ object STypesUtil {
    */
   def inferStaticParamsHelper[T <: Type]
         (typ: T,
-         constraintMaker: T => ConstraintFormula,
+         constraintMaker: T => CFormula,
          inferLifted: Boolean = true,
          inferUnlifted: Boolean = true)
         (implicit analyzer: TypeAnalyzer)
@@ -786,12 +786,11 @@ object STypesUtil {
                           insertStaticParams(t, sparams),
                           applyLifted = inferLifted,
                           applyUnlifted = inferUnlifted)
-    }
-    val boundsMap = Map(infVars.zip(sparamBounds): _*)
+    }.map(Set(_))
+    val bounds = And(Map(), Map(infVars.zip(sparamBounds): _*))
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
-    val mapping = constraint.solve(boundsMap).getOrElse(return None)
-    val subst = liftTypeSubstitution(mapping)
+    val subst = solve(and(constraint, bounds)).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val resultTyp = analyzer.normalize(subst(infTyp)).asInstanceOf[T]
@@ -815,13 +814,13 @@ object STypesUtil {
     if (sparams.isEmpty || fnType.getMethodInfo.isNone) return Some((fnType, Nil))
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): ConstraintFormula = {
+    def makeConstraint(infArrow: ArrowType): CFormula = {
 
       // Get the type of the `self` arg and form selfArg <:? selfType
       val SMethodInfo(selfType, selfPosition) = infArrow.getMethodInfo.unwrap
       getTypeAt(argType, selfPosition) match {
         case Some(selfArgType) => checkSubtype(selfArgType, selfType)
-        case None => CnFalse
+        case None => False
       }
     }
 
@@ -1180,8 +1179,8 @@ object STypesUtil {
         // type is a strict subtype of c1's self type, and if c1
         // and c2 domains aren't disjoint, then they overlap -- prune c2.
         if ((c2 ne sma)
-            && !analyzer.equivalent(st1, st2).isTrue
-            && analyzer.subtype(st2, st1).isTrue
+            && !isTrue(analyzer.equivalent(st1, st2))
+            && isTrue(analyzer.subtype(st2, st1))
             && !analyzer.excludes(c1.arrow.getDomain, c2.arrow.getDomain)) {
           pruned += c2
         }
@@ -1250,14 +1249,14 @@ object STypesUtil {
    * inside another type, where T and U can be either VarTypes or
    * _InferenceVarTypes.
    */
-  def liftTypeSubstitution[T <: TypeVariable](subst: PartialFunction[T, Type]): Type => Type =
+  def liftIvarSubstitution(subst: PartialFunction[_InferenceVarType, Type]): Type => Type =
     (t: Type) => {
       
       // Create a walker that replace any occurrence of the parameter found
       // within an AST.
       object replacer extends Walker {
         override def walk(node: Any): Any = node match {
-          case x:T if subst.isDefinedAt(x) => subst(x)
+          case x:_InferenceVarType if subst.isDefinedAt(x) => subst(x)
           case _ => super.walk(node)
         }
       }
@@ -1265,4 +1264,25 @@ object STypesUtil {
       // Apply the walker to t.
       replacer(t).asInstanceOf[Type]
     }
+    
+   def liftVarTypeSubstitution(subst: PartialFunction[VarType, Type]): Type => Type =
+    (t: Type) => {
+      
+      // Create a walker that replace any occurrence of the parameter found
+      // within an AST.
+      object replacer extends Walker {
+        override def walk(node: Any): Any = node match {
+          case x: VarType if subst.isDefinedAt(x) => subst(x)
+          case _ => super.walk(node)
+        }
+      }
+      // Apply the walker to t.
+      replacer(t).asInstanceOf[Type]
+    }
+    
+  def killIvars = liftIvarSubstitution(new PartialFunction[_InferenceVarType, Type]{
+    override def apply(y: _InferenceVarType) = BOTTOM
+    override def isDefinedAt(y: _InferenceVarType) = true
+  })
+  
 }

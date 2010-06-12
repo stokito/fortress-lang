@@ -47,6 +47,7 @@ import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -223,8 +224,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                     val param = traitOrObject.setters.get(f).parameters.get(0)
                     val span = getter.getSpan
                     if ( param.getIdType.isSome ) {
-                        if (! typeAnalyzer.equivalent(NodeUtil.optTypeOrPatternToType(param.getIdType).unwrap,
-                                                      getter.getReturnType.unwrap).isTrue )
+                        if (! isTrue(typeAnalyzer.equivalent(NodeUtil.optTypeOrPatternToType(param.getIdType).unwrap,
+                                                      getter.getReturnType.unwrap))(typeAnalyzer) )
                             error(span,
                                   "The parameter type of a setter must be " +
                                   "the same as\n    the return type of a getter " +
@@ -349,7 +350,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
     /* Checks the overloading rule: subtype */
     private def subtype(sub_type: Type, super_type: Type): Boolean =
-        typeAnalyzer.subtype(sub_type, super_type).isTrue
+        isTrue(typeAnalyzer.subtype(sub_type, super_type))(typeAnalyzer)
 
     private def subtype(sub_type: ((JavaList[StaticParam],Type,Type,Option[Int]),Span),
                         super_type: ((JavaList[StaticParam],Type,Type,Option[Int]),Span)): Boolean = {
@@ -383,8 +384,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         staticParameters.addAll(first._1._1)
         staticParameters.addAll(second._1._1)
         typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
-        val result = new ExclusionOracle(typeAnalyzer,
-                                         new ErrorLog()).excludes(first._1._2,
+        val result = new ExclusionOracle(new ErrorLog())(typeAnalyzer).excludes(first._1._2,
                                                                   second._1._2)
         typeAnalyzer = oldTypeAnalyzer
         result
@@ -405,7 +405,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
           staticParameters.addAll(second._1._1)
           typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
           var result = false
-          val exclusionOracle = new ExclusionOracle(typeAnalyzer, new ErrorLog())
+          val exclusionOracle = new ExclusionOracle(new ErrorLog())(typeAnalyzer)
           val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2), exclusionOracle),
                       reduce(typeAnalyzer.meet(first._1._3, second._1._3), exclusionOracle))
           for ( f <- set ; if ! result )
@@ -490,7 +490,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         def nonExclusive(pair: (List[TraitType], List[TraitType])): Boolean = {
           for ( first <- pair._1.filterNot(_ == meet) ) {
             for ( second <- pair._2.filterNot(_ == meet) ) {
-              if ( typeAnalyzer.equivalent(first, second).isFalse &&
+              if ( isFalse(typeAnalyzer.equivalent(first, second))(typeAnalyzer) &&
                    ! exclusionOracle.excludes(first, second) )
                 return true
             }

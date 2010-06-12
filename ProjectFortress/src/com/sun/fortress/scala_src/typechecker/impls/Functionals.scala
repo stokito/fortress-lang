@@ -142,8 +142,9 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Infer lifted static params.
     val argType = getArgType(args)
+    val temp =  inferLiftedStaticParams(arrow, argType)
     val (liftedArrow, liftedSargs) =
-      inferLiftedStaticParams(arrow, argType).getOrElse {
+     temp.getOrElse {
         return Right(errorFactory.makeNotApplicableError(arrow, args))
       }
 

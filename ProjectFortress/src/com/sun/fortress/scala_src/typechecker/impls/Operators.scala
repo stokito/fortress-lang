@@ -27,6 +27,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.nodes_util.OprUtil
 import com.sun.fortress.scala_src.typechecker._
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -163,7 +164,7 @@ trait Operators { self: STypeChecker with Common =>
       val types = if ( haveTypes(associatedChunks) )
                     associatedChunks.map((e: Expr) => getType(e).get)
                   else List()
-      def isStringType(t: Type) = analyzer.subtype(t, Types.STRING).isTrue
+      def isStringType(t: Type) = isTrue(analyzer.subtype(t, Types.STRING))
       if ( types.exists(isStringType) ) {
         def stringCheck(e: Type, f: Type) =
           if ( ! (isStringType(e) || isStringType(f)) ) {
