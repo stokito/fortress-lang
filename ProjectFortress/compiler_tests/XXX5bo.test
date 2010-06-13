@@ -23,10 +23,10 @@ ${STATIC_TESTS_DIR}/Compiled5.bo.fss:22:6-27:\n\
 \ Could not determine all parameter types of function expression.\n\
 ${STATIC_TESTS_DIR}/Compiled5.bo.fss:23:30:\n\
 \ Function body has type ZZ32, but declared return type is String.\n\
-${STATIC_TESTS_DIR}/Compiled5.bo.fss:24:1-29:2:\n\
-\ Attempt to define variable f4:ZZ32->String with an expression of type String->String\n\
-${STATIC_TESTS_DIR}/Compiled5.bo.fss:25:1-29:2:\n\
-\ Attempt to define variable f5:ZZ32->String with an expression of type ZZ32->ZZ32\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:24:22-40:\n\
+\ Right-hand side has type String->String, but declared type is ZZ32->String.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:25:22-29:2:\n\
+\ Right-hand side has type ZZ32->ZZ32, but declared type is ZZ32->String.\n\
 File Compiled5.bo.fss has 5 errors.\n
 
 compile_out_equals=
