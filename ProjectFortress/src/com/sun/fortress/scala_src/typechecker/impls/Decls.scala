@@ -236,49 +236,34 @@ trait Decls { self: STypeChecker with Common =>
               unambiguousName, Some(newBody), implementsUnambiguousName)
     }
 
-    case v@SVarDecl(info, lhs, rhsOpt) => {
-      val rhs = rhsOpt.getOrElse(return node)
-      makeLhsType(lhs) match {
-        // If all of LHS has types, check RHS with that context.
-        case Some(typ) =>
+    case v@SVarDecl(info, lhses, None) => v
 
-          // Check here that the declared type matches the actual type in
-          // order to have a nice error message.
-          val left = lhs match {
-            case hd::Nil => hd
-            case _ => lhs
-          }
-
-          val checkedRhs = checkExpr(rhs, typ, "Attempt to define variable "+left+" with an expression of type %s", v)
-          SVarDecl(info, lhs, Some(checkedRhs))
-
-        // If none of the LHS have types, check RHS without context.
-        case None if lhs.forall(_.getIdType.isNone) =>
-          val checkedRhs = checkExpr(rhs)
-          getType(checkedRhs) match {
-            case Some(typ) =>
-              SVarDecl(info,
-                       addLhsTypes(lhs, typ).getOrElse(return node),
-                       Some(checkedRhs))
-
-            case None => node
-          }
-
-        case None =>
-          signal(v, "Variable declaration requires types on either all or none of the variables.")
-          node
-      }
+    case d@SVarDecl(info, lhses, Some(rhs))
+      if (lhses.length > 1 && rhs.isInstanceOf[TupleExpr] &&
+          rhs.asInstanceOf[TupleExpr].getExprs.size == lhses.length) => {
+        val pairs =
+          (lhses, toListFromImmutable(rhs.asInstanceOf[TupleExpr].getExprs)).zipped.map((lv, r) => toOption(lv.getIdType) match {
+            case Some(pt) => pt match {
+              case p@SPattern(_,_,_) =>
+                bug("Pattern should be desugared away: " + p)
+              case t@SType(_) =>
+                (lv, checkExpr(r, t, errorString("Right-hand side", "declared")))
+            }
+            case None => lv match {
+              case SLValue(info, name, mods, None, mut) =>
+                val newR = checkExpr(r, None)
+                (SLValue(info, name, mods,
+                         Some(getType(newR).getOrElse(return node)), mut),
+                 newR)
+              case _ => return node
+            }
+          })
+        val (newLhses, newRhses) = (pairs.map(_._1), pairs.map(_._2))
+        SVarDecl(info, newLhses,
+                 Some(EF.makeTupleExpr(NU.getSpan(rhs), toJavaList(newRhses))))
     }
 
-    case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
-  }
-
-  // ---------------------------------------------------------------------------
-  // CHECKEXPR IMPLEMENTATION --------------------------------------------------
-
-  def checkExprDecls(expr: Expr, expected: Option[Type]): Expr = expr match {
-
-    case d@SLocalVarDecl(SExprInfo(span, paren,_), body, lhses, maybeRhs) => {
+    case d@SVarDecl(info, lhses, Some(rhs)) => {
       // Gather declared types of LHS as a big tuple type.
       val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType) match {
                                         case Some(pt) => pt match {
@@ -293,54 +278,134 @@ trait Decls { self: STypeChecker with Common =>
           Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))
         else
           None
-
       // Type check the RHS, expecting the declared type.
-      val (newLhses, newMaybeRhs) = declaredType match {
-
+      val (newLhses, newRhs) = declaredType match {
         // If there is a declared type, just check the RHS expecting that.
         case Some(typ) =>
-          (lhses, maybeRhs.map(checkExpr(_, typ, errorString("Right-hand side", "declared"))))
-
+          (lhses, checkExpr(rhs, typ, errorString("Right-hand side", "declared")))
         // If there is not a declared type, check the RHS and assign LHS types
         // from that.
-        case None => maybeRhs match {
-          case Some(rhs) =>
-            // Check the RHS.
-            val newRhs = checkExpr(rhs, None)
-            if (getType(newRhs).isNone) return expr
-            val rhsType = getType(newRhs).getOrElse(return expr)
-
-            // Get all the LHSes and their corresponding RHS type.
-            val lhsAndRhsTypes = lhses match {
-              case List(lhs) => List((lhs, rhsType))
-              case _ =>
-                if (!enoughElementsForType(lhses, rhsType)) {
-                  signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
-                  return expr
-                }
-                zipWithRhsType(lhses, rhsType)
-            }
-
-            // Map over the LHS/RHS pairs to create the new list of LHSes.
-            val newLhses = lhsAndRhsTypes.map {
-              // No type on LHS -- just insert it.
-              case (SLValue(info, name, mods, None, mut), rhsType) =>
-                SLValue(info, name, mods, Some(rhsType), mut)
-              case (lhs, _) => lhs
-            }
-            (newLhses, Some(newRhs))
-
-          case None => return expr
+        case None =>
+          // Check the RHS.
+          val newRhs = checkExpr(rhs, None)
+          val rhsType = getType(newRhs).getOrElse(return node)
+          // Get all the LHSes and their corresponding RHS type.
+          val lhsAndRhsTypes = lhses match {
+            case List(lhs) => List((lhs, rhsType))
+            case _ =>
+              if (!enoughElementsForType(lhses, rhsType)) {
+                signal(node, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                return node
+              }
+              zipWithRhsType(lhses, rhsType)
+          }
+          // Map over the LHS/RHS pairs to create the new list of LHSes.
+          val newLhses = lhsAndRhsTypes.map {
+            // No type on LHS -- just insert it.
+            case (SLValue(info, name, mods, None, mut), rhsType) =>
+              SLValue(info, name, mods, Some(rhsType), mut)
+            case (lhs, _) => lhs
+          }
+          (newLhses, newRhs)
         }
-      }
+      SVarDecl(info, newLhses, Some(newRhs))
+    }
 
+    case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
+  }
+
+  // ---------------------------------------------------------------------------
+  // CHECKEXPR IMPLEMENTATION --------------------------------------------------
+
+  def checkExprDecls(expr: Expr, expected: Option[Type]): Expr = expr match {
+
+    case d@SLocalVarDecl(SExprInfo(span, paren,_), body, lhses, None) => {
       // Extend typechecker with new bindings from the RHS types
-      val newChecker = this.extend(newLhses)
-
+      val newChecker = this.extend(lhses)
       // Check the LetExpr body.
       val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
+      SLocalVarDecl(SExprInfo(span, paren, newType), newBody, lhses, None)
+    }
 
-      SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, newMaybeRhs)
+    case d@SLocalVarDecl(SExprInfo(span, paren,_), body, lhses, Some(rhs))
+      if (lhses.length > 1 && rhs.isInstanceOf[TupleExpr] &&
+          rhs.asInstanceOf[TupleExpr].getExprs.size == lhses.length) => {
+        val pairs =
+          (lhses, toListFromImmutable(rhs.asInstanceOf[TupleExpr].getExprs)).zipped.map((lv, r) => toOption(lv.getIdType) match {
+            case Some(pt) => pt match {
+              case p@SPattern(_,_,_) =>
+                bug("Pattern should be desugared away: " + p)
+              case t@SType(_) =>
+                (lv, checkExpr(r, t, errorString("Right-hand side", "declared")))
+            }
+            case None => lv match {
+              case SLValue(info, name, mods, None, mut) =>
+                val newR = checkExpr(r, None)
+                (SLValue(info, name, mods,
+                         Some(getType(newR).getOrElse(return expr)), mut),
+                 newR)
+              case _ => return expr
+            }
+          })
+        val (newLhses, newRhses) = (pairs.map(_._1), pairs.map(_._2))
+        val newRhs = EF.makeTupleExpr(span, toJavaList(newRhses))
+        // Extend typechecker with new bindings from the RHS types
+        val newChecker = this.extend(newLhses)
+        // Check the LetExpr body
+        val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
+      SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, Some(newRhs))
+    }
+
+    case d@SLocalVarDecl(SExprInfo(span, paren, _), body, lhses, Some(rhs)) => {
+      // Gather declared types of LHS as a big tuple type.
+      val declaredTypes = lhses.flatMap(lv => toOption(lv.getIdType) match {
+                                        case Some(pt) => pt match {
+                                          case p@SPattern(_,_,_) =>
+                                            bug("Pattern should be desugared away: " + p)
+                                          case t@SType(_) => Some(t)
+                                        }
+                                        case None => None
+                                        })
+      val declaredType =
+        if (declaredTypes.length == lhses.length)
+          Some(NF.makeMaybeTupleType(NU.getSpan(d), toJavaList(declaredTypes)))
+        else
+          None
+      // Type check the RHS, expecting the declared type.
+      val (newLhses, newRhs) = declaredType match {
+        // If there is a declared type, just check the RHS expecting that.
+        case Some(typ) =>
+          (lhses, checkExpr(rhs, typ, errorString("Right-hand side", "declared")))
+        // If there is not a declared type, check the RHS and assign LHS types
+        // from that.
+        case None =>
+          // Check the RHS.
+          val newRhs = checkExpr(rhs, None)
+          val rhsType = getType(newRhs).getOrElse(return expr)
+          // Get all the LHSes and their corresponding RHS type.
+          val lhsAndRhsTypes = lhses match {
+            case List(lhs) => List((lhs, rhsType))
+            case _ =>
+              if (!enoughElementsForType(lhses, rhsType)) {
+                signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                return expr
+              }
+              zipWithRhsType(lhses, rhsType)
+          }
+          // Map over the LHS/RHS pairs to create the new list of LHSes.
+          val newLhses = lhsAndRhsTypes.map {
+            // No type on LHS -- just insert it.
+            case (SLValue(info, name, mods, None, mut), rhsType) =>
+              SLValue(info, name, mods, Some(rhsType), mut)
+            case (lhs, _) => lhs
+          }
+          (newLhses, newRhs)
+        }
+      // Extend typechecker with new bindings from the RHS types
+      val newChecker = this.extend(newLhses)
+      // Check the LetExpr body.
+      val (newBody, newType) = checkLetBody(newChecker, body).getOrElse(return expr)
+      SLocalVarDecl(SExprInfo(span, paren, newType), newBody, newLhses, Some(newRhs))
     }
 
     case SLetFn(SExprInfo(span, paren, _), body, fns) => {

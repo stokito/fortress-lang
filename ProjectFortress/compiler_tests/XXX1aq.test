@@ -17,7 +17,7 @@ tests=Compiled1.aq
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.aq.fss:21:1-13:\n\
-\ Attempt to define variable x:Foo with an expression of type Bar\n\
+${STATIC_TESTS_DIR}/Compiled1.aq.fss:21:10-11:\n\
+\ Right-hand side has type Bar, but declared type is Foo.\n\
 File Compiled1.aq.fss has 1 error.\n
 compile_out_equals=
