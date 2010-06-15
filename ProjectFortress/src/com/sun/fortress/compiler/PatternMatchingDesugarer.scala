@@ -47,13 +47,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       SComponent(info, name, imports, new_decls, comprises, is_native, exports)
 
     // Desugars trait value parameters as abstract fields
-    case t @ STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7, params, decls),
+    case t @ STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, decls),
                         t3, t4, t5, t6) =>
       val new_decls = params match {
         case Some(ps) => ps.map(paramToDecl) ::: decls
         case _ => decls
       }
-      STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, h6, h7,
+      STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, walk(contract).asInstanceOf[Option[Contract]], h7,
                                       None, new_decls.map(walk(_).asInstanceOf[Decl])), t3, t4, t5, t6)
 
     // Desugars patterns in local variable declarations
@@ -110,7 +110,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val left = ps.map(patternBindingToLValue(_, mods))
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
-        case None => (lv, Nil, Nil)
+        case None => // Need to handle: tuple of patterns
+          (lv, Nil, Nil)
       }
     case _ => (lv, Nil, Nil)
   }
@@ -181,7 +182,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       case SPlainPattern(_, _, name, _, None) =>
         NF.makeLValue(span, name, mods, toJavaOption(None), false)
       case STypePattern(_, _, typ) =>
-        NF.makeLValue(NF.makeId(span, "_"))
+        NF.makeLValue(span, NF.makeId(span, "_"), mods, toJavaOption(Some(typ)), false)
       case SNestedPattern(_, _, pat) =>
         NF.makeLValue(span, NF.makeId(span, DU.gensym("temp")), mods,
                       toJavaOption(Some(pat)), false)
@@ -192,7 +193,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                            recv: VarRef, ty: Type) = {
     val (pb, i) = pbi
     pb match {
-      case t:TypePattern => EF.makeVoidLiteralExpr(NU.getSpan(pb))
+      case t:TypePattern => pbTe(None, i, recv, ty)
       case SPlainPattern(_, field, _, _, _) => pbTe(field, i, recv, ty)
       case SNestedPattern(_, field, _) => pbTe(field, i, recv, ty)
     }
@@ -203,7 +204,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case None => ty match {
       case t:TraitType if typeConses.keySet.contains(t.getName) =>
         toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
-          case Some(ps) =>
+          case Some(ps) if ps.size > i =>
             EF.makeFieldRef(recv, toList(ps).apply(i).getName)
           case _ =>
             bug("A trait is expected to have value parameters for patterns.")

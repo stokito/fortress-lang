@@ -1,3 +1,8 @@
+(*******************************************************************************
+    Copyright 2010 Joonhyung Hwang and Chulwoo Lee, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
 export Executable
 import File.{...}
 import List.{...}
