@@ -1,8 +1,12 @@
 (*******************************************************************************
+    Copyright 2010 Joonsoo Jeon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+(*******************************************************************************
     NAS Parallel Benchmark FT
  ******************************************************************************)
 
-component npbft3
 export Executable
 
 (*) NAS Parallel Benchmark Pseudo-Random Number Generator
@@ -142,6 +146,7 @@ end
 run() = do
   println "Class T Problem"
   dobenchmark(2, 4, 4, 1)
+(*
   println "Class S Problem"
   dobenchmark(64, 64, 64, 6)
   println "Class W Problem"
@@ -154,7 +159,5 @@ run() = do
   (*) dobenchmark(512, 512, 512, 20)
   (*) println "Class D Problem"
   (*) dobenchmark(2048, 1024, 1024, 25)
+*)
 end
-
-end npbft3
-

@@ -1,7 +1,12 @@
+(*******************************************************************************
+    Copyright 2010 Changdae Kim, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
 (*
     NAS PARALLEL BENCHMARK - MG
     programmer: Changdae Kim (KAIST)
-    contack: holypsycho@gmail.com
+    contact: holypsycho@gmail.com
 *)
 
 component mg
