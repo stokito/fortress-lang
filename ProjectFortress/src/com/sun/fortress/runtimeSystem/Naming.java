@@ -83,6 +83,9 @@ public class Naming {
 
     public final static String APPLY_METHOD = "apply";
     public final static String APPLIED_METHOD = "the_function";
+    
+    // By default, the static and instance methods would have the same name, which does not work.
+    public final static String GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT = "_static";
 
     public static final String runtimeValues = "com/sun/fortress/compiler/runtimeValues/";
 

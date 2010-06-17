@@ -45,6 +45,7 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
+import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
@@ -500,29 +501,48 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         HasSelfType st = (HasSelfType)fnl;
         List<Param> params = fnl.parameters();
         int arity = params.size();
-        Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
-        Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil.getSpan(name)));
-        String sig = NamingCzar.jvmSignatureFor(
-                         paramType,
-                         NamingCzar.jvmTypeDesc(returnType, component.getName()),
-                         0,
-                         toTrait,
-                         component.getName());
-        String mname;
-        int selfIndex = st.selfPosition();
-        if (selfIndex != NO_SELF) {
-            sig = Naming.removeNthSigParameter(sig, selfIndex+1);
-            mname = fmDottedName(singleName(name), selfIndex);
-        } else {
-            mname = nonCollidingSingleName(name, sig,""); // What about static params?
-            arity++;
-        }
+
+
         String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
-                               NamingCzar.springBoard;
+        NamingCzar.springBoard;
         if (toTrait.equals(fromTrait)) receiverClass = springBoardClass;
-        InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
-                                                  receiverClass, mname, INVOKESTATIC,
-                                                  sig, sig, arity, true, null);
+
+        List<StaticParam> static_parameters = fnl.staticParameters();
+        String mname;
+        String sig;
+        if ((fnl instanceof Method) && static_parameters.size() > 0) {
+            List<Param> lp = fnl.parameters();
+            Option<Type> ot = fnl.getReturnType();
+            
+            mname = genericMethodName(name, typeAndParamsToArrow(name, ot.unwrap(), lp));
+            sig = genericMethodClosureFinderSig;
+            arity = 3; // Magic number
+            InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+                    receiverClass, mname + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT, INVOKESTATIC,
+                    sig, sig, arity, false, null);
+        } else {
+            Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
+            Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil.getSpan(name)));
+            sig = NamingCzar.jvmSignatureFor(
+                    paramType,
+                    NamingCzar.jvmTypeDesc(returnType, component.getName()),
+                    0,
+                    toTrait,
+                    component.getName());
+
+            int selfIndex = st.selfPosition();
+            if (selfIndex != NO_SELF) {
+                sig = Naming.removeNthSigParameter(sig, selfIndex+1);
+                mname = fmDottedName(singleName(name), selfIndex);
+            } else {
+                mname = nonCollidingSingleName(name, sig,""); // What about static params?
+                arity++;
+            }
+            InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+                    receiverClass, mname, INVOKESTATIC,
+                    sig, sig, arity, true, null);
+        }
+        
     }
 
 
@@ -617,6 +637,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             /* Skip non-definitions. */
             if (!fnl.body().isSome()) continue;
 
+            List<StaticParam> static_parameters = fnl.staticParameters();
+            if (static_parameters.size() > 0) {
+                static_parameters = static_parameters;
+            }
+            
             /* If defined in the current trait. */
             if (tupTrait.equals(currentTraitObjectType)) {
                 if (includeCurrent) {
@@ -1210,6 +1235,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param x
      * @param name
      * @param selfIndex
+     * @param savedInATrait 
      */
     private String generateGenericFunctionClass(FnDecl x, IdOrOp name,
                                             int selfIndex, String forceCastParam0InApply) {
@@ -1393,7 +1419,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         String method_name = genericMethodName(x);
         
-        generateGenericMethodClosureFinder(method_name, template_class_name, selfType);
+        generateGenericMethodClosureFinder(method_name, template_class_name, selfType, savedInATrait);
         
         
     }
@@ -1448,8 +1474,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      *  </pre>
      *  
      * @param template_class_name
+     * @param savedInATrait 
      */
-    private void generateGenericMethodClosureFinder(final String method_name, String template_class_name, final String class_file) {
+    private void generateGenericMethodClosureFinder(String method_name, String template_class_name, final String class_file, boolean savedInATrait) {
 
         // DRC-WIP
         // final String class_file = traitOrObjectName;
@@ -1478,41 +1505,52 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
         });
         
-        CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
+        int hashOff = savedInATrait ? 0 : 1;
+        int stringOff = hashOff + 2;
+        int tmpOff = stringOff + 1;
+        
+        int access = savedInATrait ? ACC_PUBLIC + ACC_STATIC : ACC_PUBLIC;
+        if (savedInATrait)
+            method_name = method_name + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT;
+        
+        CodeGenMethodVisitor mv = cw.visitCGMethod(access, method_name, genericMethodClosureFinderSig, null, null);
         mv.visitCode();
         Label l0 = new Label();
         mv.visitLabel(l0);
         //mv.visitLineNumber(1331, l0);
         mv.visitFieldInsn(GETSTATIC, class_file, table_name, "L"+table_type+";");
-        mv.visitVarInsn(LLOAD, 1);
+        mv.visitVarInsn(LLOAD, hashOff);
         mv.visitMethodInsn(INVOKEVIRTUAL, table_type, "get", "(J)Ljava/lang/Object;");
-        mv.visitVarInsn(ASTORE, 4);
+        mv.visitVarInsn(ASTORE, tmpOff);
         Label l1 = new Label();
         mv.visitLabel(l1);
         //mv.visitLineNumber(1332, l1);
-        mv.visitVarInsn(ALOAD, 4);
+        mv.visitVarInsn(ALOAD, tmpOff);
         Label l2 = new Label();
         mv.visitJumpInsn(IFNONNULL, l2);
         Label l3 = new Label();
         mv.visitLabel(l3);
         //mv.visitLineNumber(1333, l3);
-        mv.visitVarInsn(LLOAD, 1);
+        mv.visitVarInsn(LLOAD, hashOff);
         mv.visitFieldInsn(GETSTATIC, class_file, table_name,"L"+table_type+";");
         mv.visitLdcInsn(template_class_name);
-        mv.visitVarInsn(ALOAD, 3);
+        mv.visitVarInsn(ALOAD, stringOff);
         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
-        mv.visitVarInsn(ASTORE, 4);
+        mv.visitVarInsn(ASTORE, tmpOff);
         mv.visitLabel(l2);
         //mv.visitLineNumber(1335, l2);
         mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {"java/lang/Object"}, 0, null);
-        mv.visitVarInsn(ALOAD, 4);
+        mv.visitVarInsn(ALOAD, tmpOff);
         mv.visitInsn(ARETURN);
         Label l4 = new Label();
         mv.visitLabel(l4);
-        mv.visitLocalVariable("this", "L"+class_file+";", null, l0, l4, 0);
-        mv.visitLocalVariable("hashcode", "J", null, l0, l4, 1);
-        mv.visitLocalVariable("signature", "Ljava/lang/String;", null, l0, l4, 3);
-        mv.visitLocalVariable("o", "Ljava/lang/Object;", null, l1, l4, 4);
+        
+        if (!savedInATrait)
+            mv.visitLocalVariable("this", "L"+class_file+";", null, l0, l4, 0);
+        
+        mv.visitLocalVariable("hashcode", "J", null, l0, l4, hashOff);
+        mv.visitLocalVariable("signature", "Ljava/lang/String;", null, l0, l4, stringOff);
+        mv.visitLocalVariable("o", "Ljava/lang/Object;", null, l1, l4, tmpOff);
         mv.visitMaxs(5, 5);
         mv.visitEnd();  
     }
@@ -1869,7 +1907,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param lp
      * @return
      */
-    private ArrowType typeAndParamsToArrow(Decl x, Type rt, List<Param> lp) {
+    private ArrowType typeAndParamsToArrow(AbstractNode x, Type rt, List<Param> lp) {
         Type dt = null;
         switch (lp.size()) {
         case 0:

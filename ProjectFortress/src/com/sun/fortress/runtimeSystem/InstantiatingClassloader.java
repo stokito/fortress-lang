@@ -36,6 +36,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
+import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VersionMismatch;
@@ -525,17 +526,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //                    "  to       "+fwdClass+"."+fwdName+":"+fwdSig);
         MethodVisitor mv = cw.visitMethod(thisModifiers, thisName, thisSig, null, null);
         mv.visitCode();
+        
+        SignatureParser sp = new SignatureParser(fwdSig);
+        
+        List<String> parsed_args = sp.getJVMArguments();
+        int parsed_arg_cursor = 0;
+        
         if (pushSelf) {
             mv.visitVarInsn(ALOAD, selfIndex);
             mv.visitTypeInsn(CHECKCAST, selfSig);
+            if (fwdOp == INVOKESTATIC)
+                parsed_arg_cursor++;
         }
+        int i_bump = 0;
         for (int i = 0; i < nparamsIncludingSelf; i++) {
             if (i==selfIndex) continue;
-            mv.visitVarInsn(ALOAD, i);
+            String one_param = parsed_args.get(parsed_arg_cursor++);
+            int load_op = sp.asm_loadop(one_param);
+            mv.visitVarInsn(load_op, i + i_bump);
             // TODO Need to get counting right here.  P0 is "really" P1
             if (i == 1 && forceCastParam0 != null) {
                 mv.visitTypeInsn(CHECKCAST, forceCastParam0);
             }
+            // if one_param is long or double, increment i_bump to account for the extra slot.
+            i_bump += sp.width(one_param) - 1;
         }
         mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
         mv.visitInsn(ARETURN);
