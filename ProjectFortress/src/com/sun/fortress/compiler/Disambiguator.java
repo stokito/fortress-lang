@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -329,6 +330,12 @@ public class Disambiguator {
             }
 
             comp = (Component) new PatternMatchingDesugarer(index, globalEnv).desugar();
+
+/* For testing ...
+			try {
+				ASTIO.writeJavaAst(comp, "aaa.tfs");
+				} catch (IOException e) {}
+*/
 
             // Filter env based on what this component imports
 //       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
