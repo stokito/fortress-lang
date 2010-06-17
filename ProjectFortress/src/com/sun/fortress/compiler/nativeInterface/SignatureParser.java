@@ -18,13 +18,16 @@ package com.sun.fortress.compiler.nativeInterface;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.runtimeSystem.Naming;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class SignatureParser {
+import org.objectweb.asm.Opcodes;
+
+public class SignatureParser implements Opcodes {
     /**
      * Tokenization of input signature into its single Java type elements.
      */
@@ -89,9 +92,11 @@ public class SignatureParser {
      * Converts s, the signature of an existing Java method, into
      * the 
      */
-    SignatureParser(String s) {
+    public SignatureParser(String s) {
         arguments = new ArrayList<String>();
         signature = s;
+        
+        s = Naming.mangleMethodSignature(s);
 
         if (s.charAt(0) != '(') error(s);
         int index = 1;
@@ -121,7 +126,7 @@ public class SignatureParser {
             {
                 int end = s.indexOf(';', index) + 1;
                 String javaType = s.substring(index, end);
-                arguments.add(javaType);
+                arguments.add(Naming.demangleFortressDescriptor(javaType));
                     
                 index = end;
             } break;
@@ -158,7 +163,7 @@ public class SignatureParser {
             {
                 int end = s.indexOf(';', index) + 1;
                 String javaType = s.substring(index, end);
-                result = javaType;
+                result = Naming.demangleFortressDescriptor(javaType);
             } 
             
             break;
@@ -168,8 +173,8 @@ public class SignatureParser {
 
   
 
-    List<String> getJVMArguments() { return arguments;}
-    String getJVMResult() {return result;}
+    public List<String> getJVMArguments() { return arguments;}
+    public String getJVMResult() {return result;}
 
    
         
@@ -178,5 +183,33 @@ public class SignatureParser {
     }
 
     static void error(String s) {throw new RuntimeException("Bad Signature " + s);}
+
+    public static int width(String oneParam) {
+        char ch = oneParam.charAt(0);
+        if (ch == 'D' || ch == 'J')
+            return 2;
+        return 1;
+    }
+    
+    public static int asm_loadop(String oneParam) {
+        char ch = oneParam.charAt(0);
+        switch (ch) {
+        case 'J' :
+            return LLOAD;
+            
+        case 'F' :
+            return FLOAD;
+
+        case 'L' :
+            return ALOAD;
+       
+        case 'D' :
+            return DLOAD;
+           
+        default:
+            return ILOAD;
+        }
+        
+    }
 
 }
