@@ -686,6 +686,10 @@ public class NodeUtil {
         return (! t.getStaticParams().isEmpty());
     }
 
+    public static boolean isVoidExpr(Expr e) {
+        return ( e instanceof VoidLiteralExpr );
+    }
+
     public static boolean isVoidType(Type t) {
         if ( t instanceof TupleType ) {
             TupleType _t = (TupleType)t;

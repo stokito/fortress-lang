@@ -75,21 +75,21 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                 walk(params).asInstanceOf[List[Param]], returnType),
                 new_body)
       else {
-	    val span = NU.getSpan(body)
-		val right = desugaredParams.map(_._3)
-		val new_decl =
-		(left zip right).foldRight(new_body)((pair, current_expr) => {
-											       val inner_body = SBlock(info, None, false, false,
-												                           List(current_expr))
-                                                   SLocalVarDecl(info, inner_body, pair._1,
-											                     Some(EF.makeMaybeTupleExpr(span,
-																      toJavaList(pair._2))))
-		                                           })
-		val result = SFnExpr(info, SFnHeader(sps, mods, name, where, throwsC,
+        val span = NU.getSpan(body)
+        val right = desugaredParams.map(_._3)
+        val new_decl =
+            (left zip right).foldRight(new_body)((pair, current_expr) => {
+                                                 val inner_body = SBlock(info, None, false, false,
+                                                                         List(current_expr))
+                                                 SLocalVarDecl(info, inner_body, pair._1,
+                                                               Some(EF.makeMaybeTupleExpr(span,
+                                                                                          toJavaList(pair._2))))
+                                                 })
+        val result = SFnExpr(info, SFnHeader(sps, mods, name, where, throwsC,
                                              walk(contract).asInstanceOf[Option[Contract]],
                                              desugaredParams.map(_._1), returnType),
-							 EF.makeDo(span,
-							 	       Useful.list(SBlock(info, None, false, true, List(new_decl)))))
+                             EF.makeDo(span,
+                                       Useful.list(SBlock(info, None, false, true, List(new_decl)))))
         if (left.flatten.exists(p => isPattern(p.getIdType))) walk(result).asInstanceOf[FnExpr]
         else result
       }
@@ -111,8 +111,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       val pattern = tp.get.asInstanceOf[Pattern]
       val ps = toList(pattern.getPatterns.getPatterns)
 	  val new_name = if (name.getText.equals("_"))
-					   NF.makeId(span, DU.gensym("temp"))
-	  				 else name
+                           NF.makeId(span, DU.gensym("temp"))
+                         else name
       toOption(pattern.getName) match {
         case Some(ty) =>
           val new_lv = SLValue(i, new_name, mods, Some(ty), isMutable)
@@ -123,8 +123,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         case None => /* pattern.patterns: tuple of patterns */
 		  val tylist = ps.map(patternBindingToType)
 		  val new_lv = SLValue(i, new_name, mods,
-		  					   Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
-							   isMutable)
+                                       Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
+                                       isMutable)
 		  val left = ps.map(patternBindingToLValue(_, mods))
 		  val right = List(EF.makeVarRef(new_name))
 		  (new_lv, left, right)
@@ -138,8 +138,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       val pattern = tp.get.asInstanceOf[Pattern]
       val ps = toList(pattern.getPatterns.getPatterns)
 	  val new_name = if (name.getText.equals("_"))
-					   NF.makeId(span, DU.gensym("temp"))
-	  				 else name
+                           NF.makeId(span, DU.gensym("temp"))
+                         else name
       toOption(pattern.getName) match {
         case Some(ty) =>
           val new_p = SParam(i, new_name, mods, Some(ty),
@@ -151,8 +151,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         case None =>
 		  val tylist = ps.map(patternBindingToType)
 		  val new_p = SParam(i, new_name, mods,
-		  					 Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
-                             walk(e).asInstanceOf[Option[Expr]], varargs)
+                                     Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
+                                     walk(e).asInstanceOf[Option[Expr]], varargs)
 		  val left = ps.map(patternBindingToLValue(_, mods))
 		  val right = List(EF.makeVarRef(new_name))
 		  (new_p, left, right)
@@ -172,11 +172,11 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           SVarDecl(info, le, Some(EF.makeMaybeTupleExpr(NU.getSpan(decl), toJavaList(re))))
 		val right = desugaredLValues.map(_._3)
 		new_decl :: ((left zip right).map(pair => {
-							   	   	      val added = makeNewVD(pair._1, pair._2)
-						  			      if (pair._1.exists(p => isPattern(p.getIdType)))
-						  			        desugarVar(added)
-						  			      else List(added)
-									     }).flatten)
+                                                  val added = makeNewVD(pair._1, pair._2)
+                                                  if (pair._1.exists(p => isPattern(p.getIdType)))
+                                                    desugarVar(added)
+                                                  else List(added)
+                                                  }).flatten)
       }
     case _ => List(walk(decl).asInstanceOf[Decl])
   }
@@ -184,21 +184,21 @@ class PatternMatchingDesugarer(component: ComponentIndex,
   def desugarLocal(exp: Expr): Expr = exp match {
     case v @ SLocalVarDecl(info, body, lhs, rhs) =>
       val desugaredLValues = lhs.map(desugarLValue)
-	  val left = desugaredLValues.map(_._2)
+      val left = desugaredLValues.map(_._2)
       val new_rhs = walk(rhs).asInstanceOf[Option[Expr]]
-	  val new_body = walk(body).asInstanceOf[Block]
+      val new_body = walk(body).asInstanceOf[Block]
       if (left.flatten.isEmpty) {
         SLocalVarDecl(info, new_body, lhs, new_rhs)
       } else {
         val right = desugaredLValues.map(_._3)
-		val final_body =
-		(left zip right).foldRight(new_body)((pair:(List[LValue], List[Expr]), current_body:Block) => {
-								   		     val decl = SLocalVarDecl(info, current_body, pair._1,
-								   					     			  Some(EF.makeMaybeTupleExpr(NU.getSpan(exp),
-																					   			 toJavaList(pair._2))))
-								   			 SBlock(info, None, false, false, List(decl))
-								             })
-		val result = SLocalVarDecl(info, final_body, desugaredLValues.map(_._1), new_rhs)
+        val final_body =
+            (left zip right).foldRight(new_body)((pair:(List[LValue], List[Expr]), current_body:Block) => {
+                                                 val decl = SLocalVarDecl(info, current_body, pair._1,
+                                                                          Some(EF.makeMaybeTupleExpr(NU.getSpan(exp),
+                                                                                                     toJavaList(pair._2))))
+                                                 SBlock(info, None, false, false, List(decl))
+                                                 })
+        val result = SLocalVarDecl(info, final_body, desugaredLValues.map(_._1), new_rhs)
         if (left.flatten.exists(p => isPattern(p.getIdType))) desugarLocal(result)
         else result
       }
@@ -212,26 +212,24 @@ class PatternMatchingDesugarer(component: ComponentIndex,
 
   /* get a type information from a pattern */
   def patternBindingToType(pb : PatternBinding) = {
-     pb match {
-       case SPlainPattern(_, _, _, _, Some(idType)) =>
-         if(idType.isInstanceOf[Pattern]){
-            val pattern = idType.asInstanceOf[Pattern]
-			toOption(pattern.getName) match {
-               case Some(ty) => ty
-			   case None => bug("A tuple pattern is expected to have types for all elements")
-			}
-		 }
-		 else{
-		    idType.asInstanceOf[Type]
-		 }
-       case SPlainPattern(_, _, _, _, None) =>
-          bug("A tuple pattern is expected to have types for all elements")
-       case STypePattern(_, _, typ) => typ
-       case SNestedPattern(_, _, pat) =>
-    	  toOption(pat.getName) match {
+    pb match {
+      case SPlainPattern(_, _, _, _, Some(idType)) =>
+        if(idType.isInstanceOf[Pattern]){
+          val pattern = idType.asInstanceOf[Pattern]
+          toOption(pattern.getName) match {
             case Some(ty) => ty
             case None => bug("A tuple pattern is expected to have types for all elements")
           }
+        }
+        else idType.asInstanceOf[Type]
+      case SPlainPattern(_, _, _, _, None) =>
+        bug("A tuple pattern is expected to have types for all elements")
+      case STypePattern(_, _, typ) => typ
+      case SNestedPattern(_, _, pat) =>
+        toOption(pat.getName) match {
+          case Some(ty) => ty
+          case None => bug("A tuple pattern is expected to have types for all elements")
+        }
      }
   }
 
