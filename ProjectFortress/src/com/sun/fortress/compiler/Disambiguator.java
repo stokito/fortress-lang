@@ -330,9 +330,10 @@ public class Disambiguator {
             }
 
             comp = (Component) new PatternMatchingDesugarer(index, globalEnv).desugar();
+            comp = (Component) new PatternMatchingDesugaredSimplifier(comp).simplifier();
+
 
 /* For testing ...
-
 			try {
 				ASTIO.writeJavaAst(comp, "aaa.tfs");
 				} catch (IOException e) {}
