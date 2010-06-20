@@ -686,6 +686,10 @@ public class NodeUtil {
         return (! t.getStaticParams().isEmpty());
     }
 
+    public static boolean isUnderscore(Id id) {
+        return (id.getText().equals("_"));
+    }
+
     public static boolean isVoidExpr(Expr e) {
         return ( e instanceof VoidLiteralExpr );
     }

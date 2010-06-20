@@ -44,7 +44,16 @@ class PatternMatchingDesugaredSimplifier(component: Component) extends Walker {
       val new_decls = decls.foldRight(Nil.asInstanceOf[List[Decl]])((d,r) => desugarVar(d) ::: r)
       SComponent(info, name, imports, new_decls, comprises, is_native, exports)
 
-    // Desugars patterns in local variable declarations
+    case t @ STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, decls),
+                        t3, t4, t5, t6) =>
+      val new_decls = decls.foldRight(Nil.asInstanceOf[List[Decl]])((d,r) => desugarVar(d) ::: r)
+      STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, new_decls),
+                 t3, t4, t5, t6)
+
+    case o @ SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, decls), o3) =>
+      val new_decls = decls.foldRight(Nil.asInstanceOf[List[Decl]])((d,r) => desugarVar(d) ::: r)
+      SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, new_decls), o3)
+
     case b @ SBlock(info, loc, isAtomicBlock, isWithinDo, exprs) =>
       val new_exprs = exprs.foldRight(Nil.asInstanceOf[List[Expr]])((e,r) => desugarLocal(e) ::: r)
       SBlock(info, walk(loc).asInstanceOf[Option[Expr]], isAtomicBlock, isWithinDo, new_exprs)

@@ -706,8 +706,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    */
   private def checkForShadowingFunction(v: Id, allowedShadowings: Set[String]) =
     if (!env.explicitVariableNames(v).isEmpty &&
-        !allowedShadowings.contains(v.getText))
-      error("Variable " + v + " is already declared.", v)
+        !allowedShadowings.contains(v.getText) &&
+        !NU.isUnderscore(v))
+      error("Function " + v + " is already declared.", v)
 
   private def checkForShadowingFunctions(definedNames: Set[IdOrOpOrAnonymousName],
                                          allowedShadowings: Set[String]) =
@@ -728,8 +729,9 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
     val text = v.getText
     if (!text.equals("self") && !text.equals("_") && !text.equals("outcome") &&
         !uninitializedNames.contains(v)) {
-      if (!env.explicitVariableNames(v).isEmpty ||
-          !env.explicitFunctionNames(v).isEmpty)
+      if ((!env.explicitVariableNames(v).isEmpty ||
+           !env.explicitFunctionNames(v).isEmpty) &&
+          !NU.isUnderscore(v))
           {
               /* for debugging
               for (id <- toSet(env.explicitVariableNames(v)) ) {
@@ -756,7 +758,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       val _vars = vars.toArray
       for {i <- 0 until vars.size - 2
            j <- i + 1 until vars.size -1} {
-        if (_vars(i).equals(_vars(j)))
+        if (_vars(i).equals(_vars(j)) && !NU.isUnderscore(_vars(i)))
           error("Variable " + _vars(i) + " is already declared at " +
                 NU.getSpan(_vars(j).asInstanceOf[Id]),
                 _vars(i).asInstanceOf[Id])
@@ -769,16 +771,17 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * in scope.
    */
   private def checkForShadowingType(ty: Id) =
-    if (types.contains(ty.getText))
+    if (types.contains(ty.getText) && !NU.isUnderscore(ty))
       error("Type " + ty + " is already declared.", ty)
 
   private def checkForShadowingTopVariable(v: Id) =
-    if (topVars.contains(v.getText) ||
-        topFns.contains(v.getText))
+    if ((topVars.contains(v.getText) ||
+         topFns.contains(v.getText)) &&
+        !NU.isUnderscore(v))
       error("Top-level variable " + v + " is already declared.", v)
 
   private def checkForShadowingTopFunction(f: IdOrOp) =
-    if (topVars.contains(f.getText))
+    if (topVars.contains(f.getText) && !NU.isUnderscore(f.asInstanceOf[Id]))
       error("Top-level variable " + f + " is already declared.", f)
 
   /**
@@ -786,7 +789,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * in scope.
    */
   private def checkForShadowingLabel(label: Id) =
-    if (labels.exists(_.getText.equals(label.getText)))
+    if (labels.exists(_.getText.equals(label.getText)) &&
+        !NU.isUnderscore(label))
       error("Label " + label + " is already declared.", label)
 
   /**
@@ -923,7 +927,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       case Nil => vars ++ new_vars
       case list =>
         val elem = list.head
-        error("Field " + elem + " is already declared.", elem)
+        if (!NU.isUnderscore(elem))
+          error("Field " + elem + " is already declared.", elem)
         vars
     }
 

@@ -35,8 +35,9 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
         super(b, traitDecl);
 
         // If the Binding has a declared type, use it for the thunk.
-        if (_ast.getIdType().isSome())
-            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.optTypeOrPatternToType(_ast.getIdType())));
+        Option<TypeOrPattern> tp = _ast.getIdType();
+        if (tp.isSome() && tp.unwrap() instanceof Type)
+            _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.optTypeOrPatternToType(tp)));
     }
     
     /** Create an explicit getter from a function. */
