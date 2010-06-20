@@ -53,8 +53,14 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         case Some(ps) => ps.map(paramToDecl) ::: decls
         case _ => decls
       }
+      val desugared_decls = new_decls.foldRight(Nil.asInstanceOf[List[Decl]])((d,r) => desugarVar(d) ::: r)
       STraitDecl(t1, STraitTypeHeader(h1, h2, h3, h4, h5, walk(contract).asInstanceOf[Option[Contract]], h7,
-                                      None, new_decls.map(walk(_).asInstanceOf[Decl])), t3, t4, t5, t6)
+                                      None, desugared_decls), t3, t4, t5, t6)
+
+    case o @ SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, contract, h7, params, decls), o3) =>
+      val desugared_decls = decls.foldRight(Nil.asInstanceOf[List[Decl]])((d,r) => desugarVar(d) ::: r)
+      SObjectDecl(o1, STraitTypeHeader(h1, h2, h3, h4, h5, walk(contract).asInstanceOf[Option[Contract]], h7,
+                                       walk(params).asInstanceOf[Option[List[Param]]], desugared_decls), o3)
 
     // Desugars patterns in local variable declarations
     case b @ SBlock(info, loc, isAtomicBlock, isWithinDo, exprs) =>
@@ -107,12 +113,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
 
   def desugarLValue(lv: LValue) = lv match {
     case SLValue(i, name, mods, tp, isMutable) if isPattern(tp) =>
-	  val span = NU.getSpan(lv)
+      val span = NU.getSpan(lv)
       val pattern = tp.get.asInstanceOf[Pattern]
       val ps = toList(pattern.getPatterns.getPatterns)
-	  val new_name = if (name.getText.equals("_"))
-                           NF.makeId(span, DU.gensym("temp"))
-                         else name
+      val new_name = if (NU.isUnderscore(name))
+                       NF.makeId(span, DU.gensym("temp"))
+                     else name
       toOption(pattern.getName) match {
         case Some(ty) =>
           val new_lv = SLValue(i, new_name, mods, Some(ty), isMutable)
