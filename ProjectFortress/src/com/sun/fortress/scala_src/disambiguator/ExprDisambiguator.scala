@@ -309,13 +309,11 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         env = old_env
         result
 
-      case SVarDecl(info, lhs, init) =>
-        if (!inTraitOrObject) {
-          lhs.foreach(l => l match {
-                      case SLValue(_,name,_,_,_) =>
-                        checkForShadowingTopVariable(name); topVars += name.getText
-                     })
-        }
+      case SVarDecl(info, lhs, init) if (!inTraitOrObject) =>
+        lhs.foreach(l => l match {
+                    case SLValue(_,name,_,_,_) =>
+                      checkForShadowingTopVariable(name); topVars += name.getText
+                   })
         super.walk(node)
 
       /**
@@ -450,11 +448,11 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   // Turn off error message on this branch until we can ensure
                   // that the VarRef doesn't resolve to an inherited method.
                   // For now, assume it does refer to an inherited method.
-                  if (fields.isEmpty) {
+                  if (fields.isEmpty && !topVars.contains(name.getText)) {
                     // no change -- no need to recreate the VarRef
                     error("Variable " + name + " is not defined.", name)
                     return vref
-                  } else Some(SVarRef(info, name, sargs, depth))
+                  } else result = Some(SVarRef(info, name, sargs, depth))
                 case _ =>
                   return vref
               }
