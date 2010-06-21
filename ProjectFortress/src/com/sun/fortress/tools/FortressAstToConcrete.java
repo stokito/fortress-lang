@@ -562,7 +562,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         showMods(s, that.getMods());
         s.append(name_result);
-        if ((!locals.contains(that.getName().getText())) && type_result.isSome()) {
+        if (//(!locals.contains(that.getName().getText())) && 
+            type_result.isSome()) {
             s.append(handleType(type_result.unwrap()));
         }
 
@@ -2874,27 +2875,29 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override
     public String forPatternOnly(Pattern that, String info, Option<String> name, String patterns) {
-        return "Pattern @ " + NodeUtil.getSpan((TypeOrPattern)that);
+        return "Pattern @ " + NodeUtil.getSpan((TypeOrPattern)that) +
+               "\n    name=" + name + " patterns=" + patterns;
     }
 
     @Override
     public String forPatternArgsOnly(PatternArgs that, String info, List<String> patterns) {
-        return "PatternArgs @ " + NodeUtil.getSpan(that);
+        return "PatternArgs @ " + NodeUtil.getSpan(that) +
+               "\n    patterns=" + patterns;
     }
 
     @Override
     public String forPlainPatternOnly(PlainPattern that, String info, Option<String> field,
                                       String name, Option<String> type) {
-        return "PlainPattern @ " + NodeUtil.getSpan(that);
+        return "PlainPattern name=" + name + " idType=" + type;
     }
 
     @Override
     public String forTypePatternOnly(TypePattern that, String info, Option<String> field, String type) {
-        return "TypePattern @ " + NodeUtil.getSpan(that);
+        return "TypePattern " + type;
     }
 
     @Override
     public String forNestedPatternOnly(NestedPattern that, String info, Option<String> field, String pat) {
-        return "NestedPattern @ " + NodeUtil.getSpan(that);
+        return "NestedPattern " + pat;
     }
 }

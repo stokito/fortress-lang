@@ -127,25 +127,25 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
         case None => /* pattern.patterns: tuple of patterns */
-		  val tylist = ps.map(patternBindingToType)
-		  val new_lv = SLValue(i, new_name, mods,
-                                       Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
-                                       isMutable)
-		  val left = ps.map(patternBindingToLValue(_, mods))
-		  val right = List(EF.makeVarRef(new_name))
-		  (new_lv, left, right)
+          val tylist = ps.map(patternBindingToType)
+	  val new_lv = SLValue(i, new_name, mods,
+                               Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
+                               isMutable)
+          val left = ps.map(patternBindingToLValue(_, mods))
+          val right = List(EF.makeVarRef(new_name))
+          (new_lv, left, right)
       }
     case _ => (lv, Nil, Nil)
   }
 
   def desugarParam(p: Param) = p match {
     case SParam(i, name, mods, tp, e, varargs) if isPattern(tp) =>
-	  val span = NU.getSpan(p)
+      val span = NU.getSpan(p)
       val pattern = tp.get.asInstanceOf[Pattern]
       val ps = toList(pattern.getPatterns.getPatterns)
-	  val new_name = if (name.getText.equals("_"))
-                           NF.makeId(span, DU.gensym("temp"))
-                         else name
+      val new_name = if (NU.isUnderscore(name))
+                       NF.makeId(span, DU.gensym("temp"))
+                     else name
       toOption(pattern.getName) match {
         case Some(ty) =>
           val new_p = SParam(i, new_name, mods, Some(ty),
@@ -155,13 +155,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
         case None =>
-		  val tylist = ps.map(patternBindingToType)
-		  val new_p = SParam(i, new_name, mods,
-                                     Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
-                                     walk(e).asInstanceOf[Option[Expr]], varargs)
-		  val left = ps.map(patternBindingToLValue(_, mods))
-		  val right = List(EF.makeVarRef(new_name))
-		  (new_p, left, right)
+          val tylist = ps.map(patternBindingToType)
+          val new_p = SParam(i, new_name, mods,
+                             Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
+                             walk(e).asInstanceOf[Option[Expr]], varargs)
+          val left = ps.map(patternBindingToLValue(_, mods))
+          val right = List(EF.makeVarRef(new_name))
+          (new_p, left, right)
       }
     case _ => (p, Nil, Nil)
   }
@@ -170,14 +170,14 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case v @ SVarDecl(info, lhs, init) =>
       val desugaredLValues = lhs.map(desugarLValue)
       val left = desugaredLValues.map(_._2)
-	  val new_decl = SVarDecl(info, desugaredLValues.map(_._1),
+      val new_decl = SVarDecl(info, desugaredLValues.map(_._1),
                               walk(init).asInstanceOf[Option[Expr]])
       if (left.flatten.isEmpty) List(new_decl)
       else {
         def makeNewVD(le: List[LValue], re: List[Expr]) =
           SVarDecl(info, le, Some(EF.makeMaybeTupleExpr(NU.getSpan(decl), toJavaList(re))))
-		val right = desugaredLValues.map(_._3)
-		new_decl :: ((left zip right).map(pair => {
+        val right = desugaredLValues.map(_._3)
+        new_decl :: ((left zip right).map(pair => {
                                                   val added = makeNewVD(pair._1, pair._2)
                                                   if (pair._1.exists(p => isPattern(p.getIdType)))
                                                     desugarVar(added)
@@ -238,7 +238,6 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         }
      }
   }
-
 
   def patternBindingToLValue(pb: PatternBinding, mods: Modifiers) = {
     val span = NU.getSpan(pb)
