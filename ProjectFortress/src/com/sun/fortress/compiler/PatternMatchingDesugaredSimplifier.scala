@@ -69,7 +69,7 @@ class PatternMatchingDesugaredSimplifier(component: Component) extends Walker {
 
   def desugarLocal(exp: Expr): List[Expr] = exp match {
     case v @ SLocalVarDecl(info, body, lhs, Some(rhs)) if (lhs.isEmpty && NU.isVoidExpr(rhs) ) =>
-      List()
+      toList(body.getExprs)
     case _ => List(walk(exp).asInstanceOf[Expr])
   }
 

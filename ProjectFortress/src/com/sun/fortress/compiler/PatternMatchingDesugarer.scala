@@ -124,11 +124,21 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val new_lv = SLValue(i, new_name, mods, Some(ty), isMutable)
           val recv = EF.makeVarRef(new_name)
           val left = ps.map(patternBindingToLValue(_, mods))
+          val numParams = ty match {
+            case t:TraitType if typeConses.keySet.contains(t.getName) =>
+              toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
+                case Some(ps) => ps.size
+                case _ => 0
+              }
+            case _ => bug("Type " + ty + " not found.")
+          }
+          if (ps.filter(! _.getField.isDefined).size != numParams)
+            bug("The number of patterns to bind should be greater than or equal to " + numParams)
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
         case None => /* pattern.patterns: tuple of patterns */
           val tylist = ps.map(patternBindingToType)
-	  val new_lv = SLValue(i, new_name, mods,
+	      val new_lv = SLValue(i, new_name, mods,
                                Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
                                isMutable)
           val left = ps.map(patternBindingToLValue(_, mods))
@@ -152,6 +162,16 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                              walk(e).asInstanceOf[Option[Expr]], varargs)
           val recv = EF.makeVarRef(new_name)
           val left = ps.map(patternBindingToLValue(_, mods))
+          val numParams = ty match {
+            case t:TraitType if typeConses.keySet.contains(t.getName) =>
+              toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
+                case Some(ps) => ps.size
+                case _ => 0
+              }
+            case _ => bug("Type " + ty + " not found.")
+          }
+          if (ps.filter(! _.getField.isDefined).size != numParams)
+            bug("The number of patterns to bind should be greater than or equal to " + numParams)
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
         case None =>
@@ -269,7 +289,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case None => ty match {
       case t:TraitType if typeConses.keySet.contains(t.getName) =>
         toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
-          case Some(ps) if ps.size > i =>
+          case Some(ps) =>
             EF.makeFieldRef(recv, toList(ps).apply(i).getName)
           case _ =>
             bug("A trait is expected to have value parameters for patterns.")
