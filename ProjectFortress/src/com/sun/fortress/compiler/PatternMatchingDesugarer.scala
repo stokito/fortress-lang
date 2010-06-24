@@ -124,16 +124,30 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val new_lv = SLValue(i, new_name, mods, Some(ty), isMutable)
           val recv = EF.makeVarRef(new_name)
           val left = ps.map(patternBindingToLValue(_, mods))
-          val numParams = ty match {
-            case t:TraitType if typeConses.keySet.contains(t.getName) =>
-              toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
-                case Some(ps) => ps.size
-                case _ => 0
-              }
+          
+          /* error handling in case that a pattern has an incorrect structure. */
+          ty match {
+            case t: TraitType if typeConses.keySet.contains(t.getName) =>
+               val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
+               val numParams = toOption(params) match {
+                                 case Some(ps) => ps.size
+                                 case _ => 0
+                               }
+               val paramIdlist = toOption(params) match {
+                                   case Some(ps) => toList(ps).map(_.getName)
+                                   case _ => List()
+                                 }
+               /* check whether a given pattern is a keyword pattern or not */                
+               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
+                 toOption(pattern.getField) match {
+                   case Some(kw) => !(paramIdlist.contains(kw))
+                   case _ => false
+                 }
+               }
+               if(ps.filter(! isKeywordPattern(_)).size != numParams)
+                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
             case _ => bug("Type " + ty + " not found.")
           }
-          if (ps.filter(! _.getField.isDefined).size != numParams)
-            bug("The number of patterns to bind should be greater than or equal to " + numParams)
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
         case None => /* pattern.patterns: tuple of patterns */
@@ -162,16 +176,30 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                              walk(e).asInstanceOf[Option[Expr]], varargs)
           val recv = EF.makeVarRef(new_name)
           val left = ps.map(patternBindingToLValue(_, mods))
-          val numParams = ty match {
-            case t:TraitType if typeConses.keySet.contains(t.getName) =>
-              toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
-                case Some(ps) => ps.size
-                case _ => 0
-              }
+          /* error handling in case that a pattern has an incorrect structure. */
+          ty match {
+            case t: TraitType if typeConses.keySet.contains(t.getName) =>
+               val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
+               val numParams = toOption(params) match {
+                                 case Some(ps) => ps.size
+                                 case _ => 0
+                               }
+               val paramIdlist = toOption(params) match {
+                                   case Some(ps) => toList(ps).map(_.getName)
+                                   case _ => List()
+                                 }
+               /* check whether a given pattern is a keyword pattern or not */                
+               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
+                 toOption(pattern.getField) match {
+                   case Some(kw) => !(paramIdlist.contains(kw))
+                   case _ => false
+                 }
+               }
+               if(ps.filter(! isKeywordPattern(_)).size != numParams)
+                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
             case _ => bug("Type " + ty + " not found.")
           }
-          if (ps.filter(! _.getField.isDefined).size != numParams)
-            bug("The number of patterns to bind should be greater than or equal to " + numParams)
+
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
         case None =>
