@@ -484,7 +484,7 @@ end
     writeOn(stream: WriteStream): () = do
         pieces = baseString.splitWithOffsets()
         if pieces.nonEmpty  then
-            for (start, str) ← pieces do
+            for (start, str) ← seq(pieces) do
                     baseSubrange = (start#|str|) ∩ range
                     baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
             end
