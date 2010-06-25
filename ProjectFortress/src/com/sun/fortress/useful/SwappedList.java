@@ -25,29 +25,32 @@ import java.util.AbstractList;
 import java.util.List;
 
 /**
- * A copy of list l, except that e has been Deleted at index i.
- * Thus, new DeletedList(l,0) inserts e at the beginning of the list.
+ * A copy of list l, except the element at index i has been swapped to front
  * @author dr2chase
  */
-public class DeletedList<T> extends AbstractList<T> {
+public class SwappedList<T> extends AbstractList<T> {
     List<T> l;
     int i;
 
-    public DeletedList(List<T> l, int i) {
+    public SwappedList(List<T> l, int i) {
         this.l = l;
         this.i = i;
     }
 
     @Override
     public T get(int arg0) {
-        if (arg0 < i)
+        if (arg0 == 0)
+            return l.get(i);
+        else if (arg0 <= i) {
+            return l.get(arg0-1);
+        } else {
             return l.get(arg0);
-        return l.get(arg0+1);
+        }
     }
 
     @Override
     public int size() {
-        return l.size() - 1;
+        return l.size();
     }
 
 }

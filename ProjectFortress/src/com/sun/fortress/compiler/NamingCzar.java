@@ -1544,6 +1544,18 @@ public class NamingCzar {
             return Naming.ATOM;
         }
 
+        @Override
+        public String forTraitSelfType(TraitSelfType that) {
+            // TODO Auto-generated method stub
+            return that.getNamed().accept(this);
+        }
+
+        @Override
+        public String forTraitType(TraitType that) {
+            String s =  makeArrowDescriptor(that, ifMissing);
+            return s;
+        }
+
     };
     }
 
@@ -1553,7 +1565,13 @@ public class NamingCzar {
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
-            Map<String, String> xlation,
+            List<String> splist,
+            APIName ifMissing
+            ) {
+        return genericDecoration(null, sparams, splist, ifMissing);
+    }
+    
+    public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
             List<String> splist,
             APIName ifMissing
             ) {
@@ -1565,18 +1583,19 @@ public class NamingCzar {
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
-        int index = 1;
+        if (receiverType != null) {
+            String s = receiverType.accept(spkTagger);
+            if (splist != null)
+                splist.add(s);
+            buf.append(s + ";");
+        }
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
-
             IdOrOp spn = sp.getName();
-            String tag = spk.accept(spkTagger) + index;
-            if (xlation != null)
-                xlation.put(spn.getText(), tag);
+            String s = spn.getText();
             if (splist != null)
-                splist.add(spn.getText());
-            buf.append(spn.getText() + ";");
-            index++;
+                splist.add(s);
+            buf.append(s + ";");
         }
         frag = buf.toString();
         // TODO Auto-generated method stub

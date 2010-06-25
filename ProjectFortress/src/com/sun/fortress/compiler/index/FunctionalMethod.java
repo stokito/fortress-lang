@@ -132,8 +132,8 @@ public class FunctionalMethod extends Function implements HasSelfType {
     }
 
     /**
-     * Get the static parameters of this method prepended with the declaring
-     * trait's static parameters.
+     * Returns a list containing first the trait static parameters (if any),
+     * followed by the method static parameters.
      */
     @Override
     public List<StaticParam> staticParameters() {

@@ -529,7 +529,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         SignatureParser sp = new SignatureParser(fwdSig);
         
-        List<String> parsed_args = sp.getJVMArguments();
         int parsed_arg_cursor = 0;
         
         if (pushSelf) {
@@ -538,7 +537,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (fwdOp == INVOKESTATIC)
                 parsed_arg_cursor++;
         }
+        
+        pushParamsNotSelf(selfIndex, nparamsIncludingSelf, forceCastParam0, mv,
+                sp, parsed_arg_cursor);
+        
+        mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
+        mv.visitInsn(ARETURN);
+
+        mv.visitMaxs(2, 3);
+        mv.visitEnd();
+    }
+
+    /**
+     * @param selfIndex
+     * @param nparamsIncludingSelf
+     * @param forceCastParam0
+     * @param mv
+     * @param sp
+     * @param parsed_arg_cursor
+     */
+    public static void pushParamsNotSelf(int selfIndex,
+            int nparamsIncludingSelf, String forceCastParam0, MethodVisitor mv,
+            SignatureParser sp, int parsed_arg_cursor) {
         int i_bump = 0;
+        List<String> parsed_args = sp.getJVMArguments();
         for (int i = 0; i < nparamsIncludingSelf; i++) {
             if (i==selfIndex) continue;
             String one_param = parsed_args.get(parsed_arg_cursor++);
@@ -551,11 +573,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // if one_param is long or double, increment i_bump to account for the extra slot.
             i_bump += sp.width(one_param) - 1;
         }
-        mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
-        mv.visitInsn(ARETURN);
-
-        mv.visitMaxs(2, 3);
-        mv.visitEnd();
     }
 
     /**

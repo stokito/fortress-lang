@@ -1,4 +1,4 @@
-#Fri Mar 19 11:45:00 EDT 2010
+#Wed Jun 23 14:41:31 EDT 2010
 eclipse.preferences.version=1
 org.eclipse.jdt.core.builder.cleanOutputFolder=ignore
 org.eclipse.jdt.core.builder.duplicateResourceTask=warning
@@ -72,8 +72,8 @@ org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionIncludeDocCom
 org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionWhenOverriding=disabled
 org.eclipse.jdt.core.compiler.problem.unusedImport=ignore
 org.eclipse.jdt.core.compiler.problem.unusedLabel=warning
-org.eclipse.jdt.core.compiler.problem.unusedLocal=ignore
-org.eclipse.jdt.core.compiler.problem.unusedParameter=ignore
+org.eclipse.jdt.core.compiler.problem.unusedLocal=warning
+org.eclipse.jdt.core.compiler.problem.unusedParameter=warning
 org.eclipse.jdt.core.compiler.problem.unusedParameterIncludeDocCommentReference=enabled
 org.eclipse.jdt.core.compiler.problem.unusedParameterWhenImplementingAbstract=disabled
 org.eclipse.jdt.core.compiler.problem.unusedParameterWhenOverridingConcrete=disabled
