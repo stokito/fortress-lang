@@ -90,7 +90,7 @@ export String
     getter asDebugString(): String = asDebugStringIndented(0)
 
     generate⟦R⟧(r: Reduction⟦R⟧, body: Char→R): R =
-            r.join(left.generate(r, body), right.generate(r, body))
+            r.join(left.generate⟦R⟧(r, body), right.generate⟦R⟧(r, body))
 
     opr ∈ (c:Char, self): Boolean = (c IN left) OR (c IN right)
 
