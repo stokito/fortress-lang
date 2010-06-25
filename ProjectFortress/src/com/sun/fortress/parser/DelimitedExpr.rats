@@ -264,11 +264,11 @@ TypecaseClause TypecaseClause =
     };
 
 /* TypecaseTypes ::=
-    ( w TypeList w )
+    &( ( w TypeList w ) w match) ( w TypeList w )
   | Type
 */
 List<Type> TypecaseTypes =
-    openparen w TypeList w closeparen
+    &(openparen w TypeList w closeparen w match) openparen w TypeList w closeparen
   / a1:Type { yyValue = Useful.list(a1); };
 
 /* Catch ::= catch w BindId w CatchClauses */
