@@ -47,6 +47,7 @@ import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
@@ -70,6 +71,7 @@ import com.sun.fortress.useful.InsertedList;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.StringHashComparer;
+import com.sun.fortress.useful.SwappedList;
 import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
@@ -507,10 +509,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         NamingCzar.springBoard;
         if (toTrait.equals(fromTrait)) receiverClass = springBoardClass;
 
-        List<StaticParam> static_parameters = fnl.staticParameters();
+        List<StaticParam> static_parameters;
+        if (fnl instanceof FunctionalMethod) {
+            FunctionalMethod fm = (FunctionalMethod) fnl;
+            List<StaticParam> trait_and_method_sparams = fnl.staticParameters();
+            static_parameters = fm.declaredStaticParameters();
+            // This may be exposed, eventually
+            List<StaticParam> trait_static_parameters =
+                trait_and_method_sparams.subList(0,
+                  trait_and_method_sparams.size() - static_parameters.size());
+        } else {
+            static_parameters = fnl.staticParameters();
+        }
         String mname;
         String sig;
-        if ((fnl instanceof Method) && static_parameters.size() > 0) {
+        if (static_parameters.size() > 0) {
             List<Param> lp = fnl.parameters();
             Option<Type> ot = fnl.getReturnType();
             
@@ -1231,11 +1244,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     /**
-     * Generate the closure class (instea
+     * Generate the closure class for a generic function.  Also used to create
+     * a closure implementing a generic method (in which case a downcast is
+     * required in the closure's apply method).
+     * 
+     * 
      * @param x
      * @param name
      * @param selfIndex
      * @param savedInATrait 
+     * @param forceCastParam0InApply
      */
     private String generateGenericFunctionClass(FnDecl x, IdOrOp name,
                                             int selfIndex, String forceCastParam0InApply) {
@@ -1271,7 +1289,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
 
         List<String> splist = new ArrayList<String>(); // necessary for metadata
-        String sparams_part = genericDecoration(x, null, splist);
+        String sparams_part = genericDecoration(x, splist);
 
         FnHeader header = x.getHeader();
         Type returnType = header.getReturnType().unwrap();
@@ -1367,8 +1385,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * @param x
      * @param name
-     * @param sparams 
-     * @param params
      * @param selfIndex
      * @param savedInATrait 
      * @param returnType
@@ -1376,9 +1392,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param body
      */
     private void generateGenericMethod(FnDecl x, IdOrOp name,
-            List<StaticParam> sparams, List<Param> params, int self_index,
-            boolean savedInATrait, Type returnType,
-            boolean inAMethod, Expr body) {
+            int self_index,
+            boolean savedInATrait,
+            boolean inAMethod) {
 
         /*
          * First, create a modified FnDecl that looks like a top-level generic
@@ -1394,19 +1410,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * that works yet).
          * 
          */
+        
         Span sp_span = x.getInfo().getSpan();
-        Id sp_name = NodeFactory.makeId(sp_span, Naming.UP_INDEX);
-        Id p_name = NamingCzar.selfName(sp_span);
-        StaticParam new_sp = NodeFactory.makeTypeParam(sp_span, Naming.UP_INDEX);
-        List<StaticParam> new_sparams = new InsertedList(sparams, 0, new_sp);
-        Param new_param = NodeFactory.makeParam(p_name, NodeFactory.makeVarType(sp_span, sp_name));
-        List<Param> new_params = new InsertedList((self_index != NO_SELF ? new DeletedList(params, self_index) : params), 0, new_param);
         
-        FnHeader xh = x.getHeader();
+        FnDecl new_fndecl = convertGenericMethodToClosureDecl(x, self_index,
+                sp_span);
         
-        FnDecl new_fndecl = NodeFactory.makeFnDecl(sp_span, xh.getMods(), xh.getName(),
-                new_sparams, new_params, xh.getReturnType(), xh.getThrowsClause(),
-                xh.getWhereClause(), xh.getContract(), x.getUnambiguousName(), Option.some(body), x.getImplementsUnambiguousName());
                 
         // This is not right yet -- the name is wrong.
         String TO_method_name = currentTraitObjectDecl.getHeader().getName().stringName() + Naming.UP_INDEX + name.getText();
@@ -1417,11 +1426,37 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String template_class_name = 
             generateGenericFunctionClass(new_fndecl, gfid, NO_SELF, traitOrObjectName);
         
-        String method_name = genericMethodName(x);
+        String method_name = genericMethodName(x, self_index);
         
         generateGenericMethodClosureFinder(method_name, template_class_name, selfType, savedInATrait);
         
         
+    }
+
+    /**
+     * @param x
+     * @param self_index
+     * @param sp_span
+     * @return
+     */
+    private FnDecl convertGenericMethodToClosureDecl(FnDecl x, int self_index,
+            Span sp_span) {
+        FnHeader xh = x.getHeader();
+        List<StaticParam> sparams = xh.getStaticParams();
+        List<Param> params = xh.getParams();
+        Type returnType = xh.getReturnType().unwrap();
+        Id sp_name = NodeFactory.makeId(sp_span, Naming.UP_INDEX);
+        Id p_name = NamingCzar.selfName(sp_span);
+        StaticParam new_sp = NodeFactory.makeTypeParam(sp_span, Naming.UP_INDEX);
+        List<StaticParam> new_sparams = new InsertedList(sparams, 0, new_sp);
+        Param new_param = NodeFactory.makeParam(p_name, NodeFactory.makeVarType(sp_span, sp_name));
+        List<Param> new_params = new InsertedList((self_index != NO_SELF ? new DeletedList(params, self_index) : params), 0, new_param);
+        Option<Expr> body = x.getBody();
+        
+        FnDecl new_fndecl = NodeFactory.makeFnDecl(sp_span, xh.getMods(), xh.getName(),
+                new_sparams, new_params, xh.getReturnType(), xh.getThrowsClause(),
+                xh.getWhereClause(), xh.getContract(), x.getUnambiguousName(), body, x.getImplementsUnambiguousName());
+        return new_fndecl;
     }
     
     private static BAlongTree sampleLookupTable = new BAlongTree();
@@ -1431,12 +1466,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param name
      * @param sparams
      */
-    private String genericMethodName(FnDecl x) {
+    private String genericMethodName(FnDecl x, int selfIndex) {
 
         IdOrOp name = (IdOrOp) (x.getHeader().getName());
-        ArrowType at = fndeclToType(x);
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = fmDottedName(singleName(name), selfIndex);
         
-        return genericMethodName(name, at);    
+        return genericMethodName(possiblyDottedName, at);    
     }
     
     // DRC-WIP
@@ -1450,7 +1486,28 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
            parameters from parent trait/object.
            (HEAVY_X stops substitution in instantiator).
            */
-        return name.getText() + Naming.UP_INDEX + generic_arrow_type;
+        return genericMethodName(name.getText(), generic_arrow_type);
+    }
+
+    private String genericMethodName(String name, ArrowType at) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        
+        /* Just append the schema. 
+           Do not separate with HEAVY_X, because schema may depend on 
+           parameters from parent trait/object.
+           (HEAVY_X stops substitution in instantiator).
+           */
+        return genericMethodName(name, generic_arrow_type);
+    }
+
+    /**
+     * @param name
+     * @param generic_arrow_type
+     * @return
+     */
+    private String genericMethodName(String name, String generic_arrow_type) {
+        return name + Naming.UP_INDEX + generic_arrow_type;
     }
     
     private final static String genericMethodClosureFinderSig = "(JLjava/lang/String;)Ljava/lang/Object;";
@@ -1845,9 +1902,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (emittingFunctionalMethodWrappers) {
                 if (! sparams.isEmpty()) {
-                    throw sayWhat(x, "Generic functional methods not yet implemented.");
+                    functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait, sparams);
                 } else {
-                    functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait);
+                    functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait, sparams);
                 }
             } else {
 
@@ -1869,7 +1926,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // A generic method in a trait or object.
 
                         generateGenericMethod(x, (IdOrOp)name,
-                                sparams, params, selfIndex, savedInATrait, returnType, inAMethod, body);
+                                selfIndex, savedInATrait, inAMethod);
                         // throw sayWhat(x, "Generic methods not yet implemented.");
 
                     } else {
@@ -1894,9 +1951,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private ArrowType fndeclToType(FnDecl x) {
+        return fndeclToType(x, NO_SELF);
+    }
+    private ArrowType fndeclToType(FnDecl x, int selfIndex) {
         FnHeader fh = x.getHeader();
         Type rt = fh.getReturnType().unwrap();
         List<Param> lp = fh.getParams();
+        if (selfIndex != NO_SELF)
+            lp = new DeletedList(lp, selfIndex);
         return typeAndParamsToArrow(x, rt, lp);
     }
 
@@ -1928,9 +1990,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    private String genericDecoration(FnDecl x, Map<String, String> xlation, List<String> splist) {
+    private String genericDecoration(FnDecl x, List<String> splist) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return NamingCzar.genericDecoration(sparams, xlation, splist, thisApi());
+        return NamingCzar.genericDecoration(sparams, splist, thisApi());
     }
 
 
@@ -1964,7 +2026,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void functionalMethodWrapper(FnDecl x, IdOrOp name,
                                          int selfIndex,
-                                         boolean savedInATrait) {
+                                         boolean savedInATrait,
+                                         List<StaticParam> f_method_static_params) {
         // FnHeader header = x.getHeader();
         TraitTypeHeader trait_header = currentTraitObjectDecl.getHeader();
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
@@ -1972,18 +2035,145 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         String dottedName = fmDottedName(singleName(name), selfIndex);
 
+        FnHeader header = x.getHeader();
+        List<Param> params = header.getParams();
+        com.sun.fortress.nodes.Type returnType = header.getReturnType()
+                .unwrap();
+        com.sun.fortress.nodes.Type paramType = NodeUtil.getParamType(x);
+        
+        String sig = NamingCzar.jvmSignatureFor(paramType,
+                returnType, component.getName());
+        
+        int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
+
         int invocation = savedInATrait ? INVOKEINTERFACE : INVOKEVIRTUAL;
 
+        
+        if (f_method_static_params.size() > 0) {
+            /*
+             * This is the generic method case, could also be of a generic class.
+             * Note that the caller does not know the difference between this
+             * generic function, and any other; however, that is apparent here
+             * in the wrapper, and so the generic invocation must be open-coded.
+             * 
+             * The name has to look right for a generic function invocation.
+             * 
+             * Step 1: mangle name to generic form.
+             * 
+             * Step 2: emit a generic forwarding method with a body that
+             * invokes the appropriate dotted method.  This is not a standard
+             * forwarding wrapper, at least not yet.
+             * 
+             * Step 3: call the appropriate, returned, closure.
+             */
+            
+            ArrayList<String> splist = new ArrayList<String>();
+            String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
+                    splist, thisApi());
+
+            ArrowType at = fndeclToType(x); // type schema from old
+            String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                       false);
+
+            /* What's going on here, is that the method name needs to ignore the
+               self parameter (it has to override from trait to object, etc.)
+               But the class name for the closure has to be qualified to avoid
+               collisions. */
+            
+            ArrowType method_at = fndeclToType(x, selfIndex); // type schema from old
+            String method_generic_arrow_type = NamingCzar.jvmTypeDesc(method_at, thisApi(),
+                       false);
+
+            String mname = nonCollidingSingleName(name, sig, method_generic_arrow_type);
+
+            // This is not quite general enough, yet -- need to be clear on
+            // where the static parameters go in the generic-generic case.
+            
+            String PCN =
+                Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                                                   sparams_part, generic_arrow_type);
+            String PCNOuter =
+                Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                            makeTemplateSParams(sparams_part) , generic_arrow_type);
+            // System.err.println(PCN);
+
+            CodeGen cg = new CodeGen(this);
+            cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
+
+            // This creates the closure bits
+            String forwarding_method_name =
+                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
+
+            // Need to invoke a generic method
+            cg.mv = cg.cw.visitCGMethod(modifiers, forwarding_method_name, sig, null, null);
+            cg.mv.visitCode();
+            
+            // DRC WIP
+            
+            // Create a modified fndecl (same as done for the generic method
+            // itself) in order to obtain the proper schema for the call.
+            FnDecl new_fndecl = convertGenericMethodToClosureDecl(x, selfIndex,
+                    x.getInfo().getSpan());
+            
+            // Next need to perform a generic method invocation.
+
+            ArrowType invoked_at = fndeclToType(new_fndecl, selfIndex);
+            String method_name = genericMethodName(dottedName, invoked_at);
+
+            Param self_param = params.get(selfIndex);
+            Type self_type = (Type) self_param.getIdType().unwrap(); // better not be a pattern
+            
+            String string_sargs = NamingCzar.genericDecoration(self_type, f_method_static_params, null, thisApi());
+            
+            // Obtain self
+            cg.mv.visitVarInsn(ALOAD, selfIndex);
+
+            Type prepended_domain = null;
+            if (! (paramType instanceof TupleType) || selfIndex == 0) {
+                prepended_domain = paramType;
+            } else {
+                TupleType tpt = (TupleType) paramType;
+                List<Type> lt = tpt.getElements();
+                // need to fix the list call
+                prepended_domain = NodeFactory.makeTupleType(paramType.getInfo().getSpan(), new SwappedList(lt, selfIndex));
+            }
+            
+            // find closure
+            String castToArrowType = cg.emitFindGenericMethodClosure(
+                    method_name, self_type, prepended_domain, returnType,
+                    string_sargs, true);
+            
+            // generic method closure (gmc) signature
+            String gmc_sig = NamingCzar.jvmSignatureFor(prepended_domain, returnType, thisApi());
+            
+            SignatureParser sp = new SignatureParser(gmc_sig);
+
+            int parsed_arg_cursor = 1;
+            
+            // Push params
+            InstantiatingClassloader.pushParamsNotSelf(selfIndex, params.size(), null, cg.mv,
+                    sp, parsed_arg_cursor);
+            
+            // invoke closure
+            cg.emitInvokeGenericMethodClosure(gmc_sig,
+                    castToArrowType);            
+            
+            cg.mv.visitInsn(ARETURN);
+            
+            cg.mv.visitMaxs(2, 3);
+            cg.mv.visitEnd();
+            
+            cg.cw.dumpClass(PCNOuter, splist);
+
+
+
+        } else {
+        
         if (trait_sparams.size() == 0) {
-            int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
 
-            FnHeader header = x.getHeader();
-            List<Param> params = header.getParams();
-            com.sun.fortress.nodes.Type returnType = header.getReturnType()
-                    .unwrap();
-            String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
-                    returnType, component.getName());
-
+            // Check for sparams on the function itself; if so, emit a generic
+            // function performing a generic dispatch.
+            
             // TODO different collision rules for top-level and for methods.
             String mname = nonCollidingSingleName(name, sig, "");
 
@@ -1992,25 +2182,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     params.size(), true, null);
 
         } else {
-            int modifiers = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC;
 
-            // Generic case -- rewrite declaration.
-            Map<String, String> xlation = new HashMap<String, String>();
             ArrayList<String> splist = new ArrayList<String>();
             String sparams_part = NamingCzar.genericDecoration(trait_sparams,
-                    xlation, splist, thisApi());
-            FnDecl y = x;
-            // NO // x = (FnDecl) x.accept(new GenericNumberer(xlation));
+                    splist, thisApi());
 
-            // Get translated bits.
-            FnHeader header = x.getHeader();
-            List<Param> params = header.getParams();
-            com.sun.fortress.nodes.Type returnType = header.getReturnType()
-                    .unwrap();
-            String sig = NamingCzar.jvmSignatureFor(NodeUtil.getParamType(x),
-                    returnType, component.getName());
-
-            ArrowType at = fndeclToType(y); // type schema from old
+            ArrowType at = fndeclToType(x); // type schema from old
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                        false);
 
@@ -2020,6 +2197,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
                     params, modifiers, splist);
 
+        }
         }
 
     }
@@ -2064,6 +2242,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.cw.dumpClass(PCNOuter, splist);
     }
+
 
     /**
      * @param cg
@@ -2184,7 +2363,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //            name = makeBoring(name);
 //        }
         //
-        name = name + Naming.INDEX + selfIndex;
+        if (selfIndex != NO_SELF)
+            name = name + Naming.INDEX + selfIndex;
         return name;
     }
 
@@ -2282,7 +2462,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (self_t instanceof TraitSelfType)
                     self_t = ((TraitSelfType)self_t).getNamed();
                 if (self_t instanceof TraitType) {
-                    sargs = ((TraitType) self_t).getArgs();
+                    /* Trait static args, followed by method static args */
+                    sargs = Useful.concat(((TraitType) self_t).getArgs(), sargs);
                 }
             }
         } else {
@@ -2554,11 +2735,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         emittingFunctionalMethodWrappers = true;
 
         // TODO trim and/or consolidate this boilerplate around sparams_part
-        Map<String, String> xlation = new HashMap<String, String>();
+        // Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         //Option<List<Param>> original_params = NodeUtil.getParams(x);
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
 
         Id classId = NodeUtil.getName(x);
         String classFile =
@@ -2597,11 +2778,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if ( !canCompile ) throw sayWhat(x);
 
-        Map<String, String> xlation = new HashMap<String, String>();
+        // Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = NodeUtil.getParams(x);
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
 
 
         boolean savedInAnObject = inAnObject;
@@ -3159,10 +3340,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     " decls = ", header.getDecls(), " extends = ", extendsC);
         if ( !canCompile ) throw sayWhat(x);
 
-        Map<String, String> xlation = new HashMap<String, String>();
+        // Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xlation, splist, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
 
         //TraitDecl y = x;
 
@@ -3462,45 +3643,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 String methodName = genericMethodName(method, (ArrowType) overloading_schema);
                 
+                // Evaluate the object
                 obj.accept(this);
-                // Need to dup this so we will not re-eval.
-                mv.visitInsn(Opcodes.DUP);
                 
-                if (anySymbolic) {
-                    String loadHash = Naming.opForString(Naming.hashMethod, string_sargs);
-                    String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadHash, "()J");
-                    mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
-                } else {
-                    // compute hashcode statically, push constant,
-                    long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
-                    mv.visitLdcInsn(Long.valueOf(hash_sargs));
-                    // compute String, push constant
-                    mv.visitLdcInsn(string_sargs);
-                }
-                
-                // invoke the oddly named method
-                methodCall(methodName, (TraitType)receiverType, genericMethodClosureFinderSig);
-                
-                // cast the result
-                // Cast-to-type is Arrow[\ receiverType; domain; range \]
-                
-                
-                String castToArrowType = NamingCzar.makeArrowDescriptor(prepended_domain, range_type, thisApi()); 
-                mv.visitTypeInsn(Opcodes.CHECKCAST, castToArrowType);
-
-                // swap w/ TOS
-                mv.visitInsn(Opcodes.SWAP);
+                String castToArrowType = emitFindGenericMethodClosure(
+                        methodName, receiverType, prepended_domain, range_type,
+                        string_sargs, anySymbolic);
 
                 // evaluate args
                 evalArg(arg);
-
-                // method call (calling a closure, really) 
-                String sig = NamingCzar.jvmSignatureFor(prepended_domain, range_type, thisApi());
                 
-                // System.err.println(desc+".apply"+sig+" call");
-                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, castToArrowType,
-                                   Naming.APPLY_METHOD, sig);
+                String sig = NamingCzar.jvmSignatureFor(prepended_domain, range_type, thisApi());
+
+                emitInvokeGenericMethodClosure(sig, castToArrowType);
 
                 
             } else {
@@ -3514,6 +3669,65 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             paramCount = savedParamCount;
         }
 
+    }
+
+    /**
+     * @param prepended_domain
+     * @param range_type
+     * @param castToArrowType
+     */
+    private void emitInvokeGenericMethodClosure(String sig, String castToArrowType) {
+        // System.err.println(desc+".apply"+sig+" call");
+        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, castToArrowType,
+                           Naming.APPLY_METHOD, sig);
+    }
+
+    /**
+     * @param methodName
+     * @param receiverType
+     * @param prepended_domain
+     * @param range_type
+     * @param string_sargs
+     * @param anySymbolic
+     * @return
+     */
+    private String emitFindGenericMethodClosure(String methodName,
+            Type receiverType, Type prepended_domain, Type range_type,
+            String string_sargs, boolean anySymbolic) {
+        
+        if (receiverType instanceof TraitSelfType) {
+            receiverType = ((TraitSelfType) receiverType).getNamed();
+        }
+        
+        // Need to dup this so we will not re-eval.
+        mv.visitInsn(Opcodes.DUP);
+        
+        if (anySymbolic) {
+            String loadHash = Naming.opForString(Naming.hashMethod, string_sargs);
+            String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadHash, "()J");
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
+        } else {
+            // compute hashcode statically, push constant,
+            long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
+            mv.visitLdcInsn(Long.valueOf(hash_sargs));
+            // compute String, push constant
+            mv.visitLdcInsn(string_sargs);
+        }
+        
+        // invoke the oddly named method
+        methodCall(methodName, (TraitType)receiverType, genericMethodClosureFinderSig);
+        
+        // cast the result
+        // Cast-to-type is Arrow[\ receiverType; domain; range \]
+        
+        
+        String castToArrowType = NamingCzar.makeArrowDescriptor(prepended_domain, range_type, thisApi()); 
+        mv.visitTypeInsn(Opcodes.CHECKCAST, castToArrowType);
+
+        // swap w/ TOS
+        mv.visitInsn(Opcodes.SWAP);
+        return castToArrowType;
     }
 
     /**
@@ -3812,16 +4026,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             FnHeader h = f.getHeader();
             List<StaticParam> sparams = h.getStaticParams();
 
+            List<Param> params = h.getParams();
+            int selfIndex = selfParameterIndex(params);
+            boolean  functionalMethod = selfIndex != NO_SELF;
+
             if (sparams.size() > 0) {
-                String method_name = genericMethodName(f);
+                
+                String method_name = genericMethodName(f, selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
                 mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
                 mv.visitEnd();
             } else {
             
-                List<Param> params = h.getParams();
-                int selfIndex = selfParameterIndex(params);
-                boolean  functionalMethod = selfIndex != NO_SELF;
 
                 IdOrOpOrAnonymousName xname = h.getName();
                 IdOrOp name = (IdOrOp) xname;

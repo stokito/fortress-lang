@@ -1042,9 +1042,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String overloaded_name = oMangle(name);
         
         if (sargs != null) {
-            Map<String, String> xlation = new HashMap<String, String>();
+            // Map<String, String> xlation = new HashMap<String, String>();
             splist = new ArrayList<String>();
-            String sparamsType = NamingCzar.genericDecoration(sargs, xlation, splist, ifNone);
+            String sparamsType = NamingCzar.genericDecoration(sargs, splist, ifNone);
             // TODO: which signature is which?  One needs to not have generics info in it.
             String genericArrowType =
                 NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
@@ -1148,7 +1148,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (sargs != null) {
                  genericArrowType =
                     NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
-                sparamsType = NamingCzar.genericDecoration(sargs, null, null, ifNone);
+                sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
                 ownerName =
                     Naming.genericFunctionPkgClass(ownerName, mname,
                                                        sparamsType, genericArrowType);

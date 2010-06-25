@@ -1,0 +1,1 @@
+jar -J-Dfile.encoding=UTF-8 tvf "$@"
