@@ -35,7 +35,8 @@ public class AbstractInterpretationContext {
     Object stack[];
     Object locals[];
     int stackIndex;
-    int pc;  
+    int pc;
+    private final static boolean noisy = false;
 
     void pushStack(Object o) {stack[stackIndex++] = o;}
     Object popStack() {return stack[--stackIndex];}
@@ -75,7 +76,7 @@ public class AbstractInterpretationContext {
     }
 
     public void interpretMethod() {
-        System.out.println("interpretMethod: pc = " + pc);
+        if (noisy) System.out.println("interpretMethod: pc = " + pc);
         while (pc < bcmv.insns.size()) {
             interpretInsn(bcmv.insns.get(pc++));
         }
@@ -84,7 +85,7 @@ public class AbstractInterpretationContext {
     public void interpretInsn(Insn i) {
         i.setStack(stack);
         i.setLocals(locals);
-        System.out.println("InterpretInsn: " + i + getStackString() + getLocalsString());
+        if (noisy) System.out.println("InterpretInsn: " + i + getStackString() + getLocalsString());
 
         if (i instanceof FieldInsn) { interpretFieldInsn((FieldInsn) i); }
         else if (i instanceof IincInsn)  { interpretIincInsn((IincInsn) i);}
@@ -163,7 +164,7 @@ public class AbstractInterpretationContext {
                 popStack();
             popStack(); // owner
             String result = NamingCzar.parseResult(i.desc);
-            System.out.println("result = " + result);
+            if (noisy) System.out.println("result = " + result);
             if (result.compareTo("V") != 0)
                 pushStack(result);
         } else if (opcode == Opcodes.INVOKESTATIC ) {
@@ -171,10 +172,10 @@ public class AbstractInterpretationContext {
             for (int j = 0; j < args.size(); j++)
                 popStack();
             String result = NamingCzar.parseResult(i.desc);
-            System.out.println("result = " + result);
+            if (noisy) System.out.println("result = " + result);
             if (result.compareTo("V") != 0)
                 pushStack(result);
-        } else { System.out.println("Don't know how to interpret methodInsn " + i.toString()); }
+        } else { if (noisy) System.out.println("Don't know how to interpret methodInsn " + i.toString()); }
     }
 
     void interpretIincInsn(IincInsn i) {}

@@ -33,6 +33,7 @@ public class AbstractInterpretation {
     AbstractInterpretationContext context;
 
     static List<AbstractInterpretationContext> instructions;
+    private final static boolean noisy = false;
 
     AbstractInterpretation(String className, ByteCodeMethodVisitor bcmv) {
         context = new AbstractInterpretationContext(this, bcmv, 
@@ -49,7 +50,7 @@ public class AbstractInterpretation {
             Map.Entry pairs = (Map.Entry) it.next();
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
-            System.out.println("optimize for key = " + key + " pairs.getName() " + pairs.getKey());
+            if (noisy) System.out.println("optimize for key = " + key + " pairs.getName() " + pairs.getKey());
             int localsIndex = 0;
 
             if (!bcmv.isAbstractMethod()) {
@@ -67,7 +68,7 @@ public class AbstractInterpretation {
     }
 
     public void interpretMethod() {
-        System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
+        if (noisy) System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
 
         context.interpretMethod();
         while (!instructions.isEmpty()) {
