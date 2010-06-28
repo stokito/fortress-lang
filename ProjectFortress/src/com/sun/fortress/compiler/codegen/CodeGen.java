@@ -501,6 +501,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (!(fnl instanceof HasSelfType))
             throw sayWhat(name, " method "+fnl+" doesn't appear to have self type.");
         HasSelfType st = (HasSelfType)fnl;
+        int selfIndex = st.selfPosition();
         List<Param> params = fnl.parameters();
         int arity = params.size();
 
@@ -527,7 +528,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             List<Param> lp = fnl.parameters();
             Option<Type> ot = fnl.getReturnType();
             
-            mname = genericMethodName(name, typeAndParamsToArrow(name, ot.unwrap(), lp));
+            // mname = genericMethodName(name, typeAndParamsToArrow(NodeUtil.getSpan(name), ot.unwrap(), lp));
+            mname = genericMethodName(fnl, selfIndex);
             sig = genericMethodClosureFinderSig;
             arity = 3; // Magic number
             InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
@@ -543,7 +545,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     toTrait,
                     component.getName());
 
-            int selfIndex = st.selfPosition();
             if (selfIndex != NO_SELF) {
                 sig = Naming.removeNthSigParameter(sig, selfIndex+1);
                 mname = fmDottedName(singleName(name), selfIndex);
@@ -1434,6 +1435,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     /**
+     * Creates a new FnDecl for the generic closure created to implement a generic method.
+     * 
      * @param x
      * @param self_index
      * @param sp_span
@@ -1469,6 +1472,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private String genericMethodName(FnDecl x, int selfIndex) {
 
         IdOrOp name = (IdOrOp) (x.getHeader().getName());
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = fmDottedName(singleName(name), selfIndex);
+        
+        return genericMethodName(possiblyDottedName, at);    
+    }
+    
+    private String genericMethodName(Functional x, int selfIndex) {
+
+        IdOrOp name = x.name();
         ArrowType at = fndeclToType(x, selfIndex);
         String possiblyDottedName = fmDottedName(singleName(name), selfIndex);
         
@@ -1611,7 +1623,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitMaxs(5, 5);
         mv.visitEnd();  
     }
-
 
     private void generateTraitDefaultMethod(FnDecl x, IdOrOp name,
                                             List<Param> params,
@@ -1959,7 +1970,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Param> lp = fh.getParams();
         if (selfIndex != NO_SELF)
             lp = new DeletedList(lp, selfIndex);
-        return typeAndParamsToArrow(x, rt, lp);
+        return typeAndParamsToArrow(x.getInfo().getSpan(), rt, lp);
+    }
+    private ArrowType fndeclToType(Functional x, int selfIndex) {
+        Type rt = x.getReturnType().unwrap();
+        List<Param> lp = x.parameters();
+        if (selfIndex != NO_SELF)
+            lp = new DeletedList(lp, selfIndex);
+        return typeAndParamsToArrow(x.getSpan(), rt, lp);
     }
 
 
@@ -1969,11 +1987,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param lp
      * @return
      */
-    private ArrowType typeAndParamsToArrow(AbstractNode x, Type rt, List<Param> lp) {
+    private ArrowType typeAndParamsToArrow(Span span, Type rt, List<Param> lp) {
         Type dt = null;
         switch (lp.size()) {
         case 0:
-            dt = NodeFactory.makeVoidType(x.getInfo().getSpan());
+            dt = NodeFactory.makeVoidType(span);
             break;
         case 1:
             dt = (Type)lp.get(0).getIdType().unwrap(); // TODO varargs
@@ -2829,7 +2847,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (sparams_part.length() > 0) {
                 ArrowType at =
-                    typeAndParamsToArrow(x,
+                    typeAndParamsToArrow(NodeUtil.getSpan(x),
                             NodeFactory.makeTraitType(classId,
                                     STypesUtil.staticParamsToArgs(original_static_params)),
                                     original_params.unwrap());
