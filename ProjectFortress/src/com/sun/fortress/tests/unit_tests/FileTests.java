@@ -366,8 +366,10 @@ public class FileTests {
             String outs = wt_out.getString();
             String errs = wt_err.getString();
 
-            boolean anyFails = outs.contains("fail") || outs.contains("FAIL") || errs.contains("fail") || errs.contains(
-                    "FAIL") || rc != 0;
+            boolean anyFails = ! f.contains("QuickCheckTest") &&
+                               (outs.contains("fail") || outs.contains("FAIL") ||
+                                errs.contains("fail") || errs.contains("FAIL") ||
+                                rc != 0);
 
             String trueFailure = testFailed(outs, errs, "");
 

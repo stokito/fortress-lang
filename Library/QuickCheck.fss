@@ -933,7 +933,7 @@ opr OR(p:Testable[\()\], q:TestResult): Testable[\()\] = Disjunction(p, Tested(q
 opr OR(p:Testable[\()\], q:Testable[\()\]): Testable[\()\] = Disjunction(p, q)
 opr OR(p:Testable[\()\], q:()->Any): Testable[\()\] = Disjunction(p, Property[\()\](q))
 
-trait PrefixJuxt excludes Testable[\()\]
+trait PrefixJuxt excludes {Testable[\()\], AnyMatrix, AnyVector, AnyMultiplicativeRing, String}
     opr juxtaposition(self, prop:Boolean): Testable[\()\] = self Tested(prop)
     opr juxtaposition(self, prop:TestResult): Testable[\()\] = self Tested(prop)
     abstract opr juxtaposition(self, prop:Testable[\()\]): Testable[\()\]
