@@ -169,7 +169,7 @@ end
 (**********************************************************)
 
 (** System-provided random number generator, based on `random` built-in
-    function. Period: $2^{53}$. **)
+    function. Note that only 53 random bits are available (not 64 bits). **)
 object SystemRandomGen extends RandomGen[\ZZ64\]
     getter min(): Just[\ZZ64\]
     getter max(): Just[\ZZ64\]
