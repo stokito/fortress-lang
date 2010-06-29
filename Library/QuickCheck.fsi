@@ -420,7 +420,7 @@ opr OR(p:Testable[\()\], q:TestResult): Testable[\()\]
 opr OR(p:Testable[\()\], q:Testable[\()\]): Testable[\()\]
 opr OR(p:Testable[\()\], q:()->Any): Testable[\()\]
 
-trait PrefixJuxt excludes Testable[\()\]
+trait PrefixJuxt excludes {Testable[\()\], AnyMatrix, AnyVector, AnyMultiplicativeRing, String}
     opr juxtaposition(self, prop:Boolean): Testable[\()\]
     opr juxtaposition(self, prop:TestResult): Testable[\()\]
     abstract opr juxtaposition(self, prop:Testable[\()\]): Testable[\()\]
