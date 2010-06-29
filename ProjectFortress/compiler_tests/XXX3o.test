@@ -1,4 +1,4 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
+#    Copyright 2010 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -17,10 +17,10 @@ tests=Compiled3.o
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled3.o.fss:25:1-16:\n\
-${STATIC_TESTS_DIR}/Compiled3.o.fss:26:1-27:1:\n\
+${STATIC_TESTS_DIR}/Compiled3.o.fss:25:1-21:\n\
+${STATIC_TESTS_DIR}/Compiled3.o.fss:26:1-26:\n\
 \ Invalid overloading of f:\n\
-\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.o.fss:26:1-27:1\n\
-\ and T[\\()\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.o.fss:25:1-16\n\
+\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.o.fss:26:1-26\n\
+\ and T[\\()\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.o.fss:25:1-21\n\
 File Compiled3.o.fss has 1 error.\n
 compile_out_equals=
