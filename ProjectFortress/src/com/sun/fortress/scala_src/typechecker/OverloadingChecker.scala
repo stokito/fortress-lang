@@ -69,10 +69,22 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     var typeAnalyzer = TypeAnalyzer.make(new TraitTable(compilation_unit, globalEnv))
     var errors = List[StaticError]()
 
+    private def getFunctionsFromCompilationUnit(index: CompilationUnitIndex,
+                                                f: IdOrOpOrAnonymousName)
+        : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
+      getFunctions(index, f, compilation_unit.isInstanceOf[ComponentIndex])
+
     private def getFunctions(index: CompilationUnitIndex,
                              f: IdOrOpOrAnonymousName)
+        : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
+      getFunctions(index, f, false)
+
+    private def getFunctions(index: CompilationUnitIndex,
+                             f: IdOrOpOrAnonymousName,
+                             onlyConcrete: Boolean)
         : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] = {
-      val fns = toFunctionSig(toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]])
+      val fns = toFunctionSig(toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]],
+                              onlyConcrete)
       if ( index.variables.keySet.contains(f) )
         index.variables.get(f) match {
           case DeclaredVariable(lvalue)
@@ -86,9 +98,10 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     // for functions
-    private def toFunctionSig(set: Set[JavaFunctional])
+    private def toFunctionSig(set: Set[JavaFunctional], onlyConcrete: Boolean)
                              : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
-      set.filter(isFunction(_))
+      set.filter(s => isFunction(s) &&
+                      (!onlyConcrete || s.asInstanceOf[JavaFunctional].body.isSome))
          .map(f => ((f.staticParameters,
                      paramsToType(f.parameters, f.getSpan),
                      f.getReturnType.unwrap,
@@ -100,7 +113,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     // for functional methods
     private def toFunctionalMethodSig(set: Set[(JavaFunction, StaticTypeReplacer)])
                                      : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
-      set.filter(p => isFunctionalMethod(p._1))
+      set.filter(p => isFunctionalMethod(p._1) && p._1.asInstanceOf[JavaFunction].body.isSome)
          .map(p => {
               val (f, replacer) = p
               ((f.staticParameters,
@@ -132,7 +145,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val importNames = toListFromImmutable(ast.getImports).filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
         for ( f <- toSet(functions) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
-          var set = getFunctions(compilation_unit, f)
+          var set = getFunctionsFromCompilationUnit(compilation_unit, f)
           for ( i <- importNames ) {
             for ( n <- toListFromImmutable(i.getAliasedNames) ) {
               if ( n.getAlias.isSome &&
