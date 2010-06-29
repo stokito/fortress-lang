@@ -125,30 +125,25 @@ end
 
 object genZZ64 extends Gen[\ZZ64\]
     getter asString(): String
-
     generate(c:TestContext): ZZ64
     perturb(obj:ZZ64, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genZZ extends Gen[\ZZ\]
     getter asString(): String
-
     generate(c:TestContext): ZZ
     perturb(obj:ZZ, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genQQ extends Gen[\QQ\]
     getter asString(): String
-
     generate(c:TestContext): QQ
     perturb(obj:QQ, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genRR32 extends Gen[\RR32\]
     getter asString(): String
-
     generate(c:TestContext): RR32
-
     perturb(obj:RR32, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
@@ -160,14 +155,12 @@ end
 
 object genRR64 extends Gen[\RR64\]
     getter asString(): String
-
     generate(c:TestContext): RR64
     perturb(obj:RR64, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genRR64small extends Gen[\RR64\]
     getter asString(): String
-
     generate(c:TestContext): RR64
     perturb(obj:RR64, g:AnySeededRandomGen): AnySeededRandomGen
 end
@@ -180,16 +173,13 @@ end
 
 object genString extends GenGenerator[\Char,String\]
     getter asString(): String
-
     genE: Gen[\Char\]
     fromGenerator(obj:Generator[\Char\]): String
-
     perturb(obj:String, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genMaybe[\T\](genT:Gen[\T\]) extends Gen[\Maybe[\T\]\]
     getter asString(): String
-
     generate(c:TestContext): Maybe[\T\]
     perturb(_:Nothing[\T\], g:AnySeededRandomGen): AnySeededRandomGen
     perturb(obj:Just[\T\], g:AnySeededRandomGen): AnySeededRandomGen
@@ -199,44 +189,34 @@ end
 
 object genList[\E\](genE0:Gen[\E\]) extends GenGenerator[\E,List[\E\]\]
     getter asString(): String
-
     genE: Gen[\E\]
     fromGenerator(obj:Generator[\E\]): List[\E\]
-
     perturb(obj:List[\E\], g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genSet[\E\](genE0:Gen[\E\]) extends GenGenerator[\E,Set[\E\]\]
     getter asString(): String
-
     genE: Gen[\E\]
     fromGenerator(obj:Generator[\E\]): Set[\E\]
-
     perturb(obj:Set[\E\], g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genMap[\K,V\](genK:Gen[\K\], genV:Gen[\V\]) extends GenGenerator[\(K,V),Map[\K,V\]\]
     getter asString(): String
-
     genE: Gen[\(K,V)\]
     fromGenerator(obj:Generator[\(K,V)\]): Map[\K,V\]
-
     perturb(obj:Map[\K,V\], g:AnySeededRandomGen): AnySeededRandomGen
 end
 
-(*) Mostly for the testing of subscripts. (XXX not tested)
 object genRange[\I\](genI:Gen[\I\]) extends Gen[\Range[\I\]\]
     getter asString(): String
-
     generate(c:TestContext): Range[\I\]
     perturb(obj:Range[\I\], g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genTuple2[\T1,T2\](genT1:Gen[\T1\], genT2:Gen[\T2\]) extends Gen[\(T1,T2)\]
     getter asString(): String
-
     generate(c:TestContext): (T1,T2)
-
     perturb(obj:(T1,T2), g:AnySeededRandomGen): AnySeededRandomGen
     shrink(obj:(T1,T2)): Generator[\(T1,T2)\]
 end
@@ -245,7 +225,6 @@ object genTuple3[\T1,T2,T3\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\T3\])
     extends Gen[\(T1,T2,T3)\]
 
     getter asString(): String
-
     generate(c:TestContext): (T1,T2,T3)
     perturb(obj:(T1,T2,T3), g:AnySeededRandomGen): AnySeededRandomGen
     shrink(obj:(T1,T2,T3)): Generator[\(T1,T2,T3)\]
@@ -256,9 +235,7 @@ object genTuple4[\T1,T2,T3,T4\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\T3\
     extends Gen[\(T1,T2,T3,T4)\]
 
     getter asString(): String
-
     generate(c:TestContext): (T1,T2,T3,T4)
-
     perturb(obj:(T1,T2,T3,T4), g:AnySeededRandomGen): AnySeededRandomGen
     shrink(obj:(T1,T2,T3,T4)): Generator[\(T1,T2,T3,T4)\]
 end
@@ -268,7 +245,6 @@ object genTuple5[\T1,T2,T3,T4,T5\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\
     extends Gen[\(T1,T2,T3,T4,T5)\]
 
     getter asString(): String
-
     generate(c:TestContext): (T1,T2,T3,T4,T5)
     perturb(obj:(T1,T2,T3,T4,T5), g:AnySeededRandomGen): AnySeededRandomGen
     shrink(obj:(T1,T2,T3,T4,T5)): Generator[\(T1,T2,T3,T4,T5)\]
@@ -286,14 +262,12 @@ end
 
 object genArrow[\T,U\](genT:Gen[\T\], genU:Gen[\U\]) extends Gen[\T->U\]
     getter asString(): String
-
     generate(c:TestContext): T->U
     perturb(obj:T->U, g:AnySeededRandomGen): AnySeededRandomGen
 end
 
 object genTestContext extends Gen[\TestContext\]
     getter asString(): String
-
     generate(c:TestContext): TestContext
 end
 
@@ -425,7 +399,6 @@ opr |(tag:String, f:()->Any): Testable[\()\]
 (* `prop... AND prop...` *)
 opr AND(p:Boolean, q:TestResult): Testable[\()\]
 opr AND(p:Boolean, q:Testable[\()\]): Testable[\()\]
-opr AND(p:Boolean, q:()->Any): Testable[\()\]
 opr AND(p:TestResult, q:Boolean): Testable[\()\]
 opr AND(p:TestResult, q:TestResult): Testable[\()\]
 opr AND(p:TestResult, q:Testable[\()\]): Testable[\()\]
@@ -438,7 +411,6 @@ opr AND(p:Testable[\()\], q:()->Any): Testable[\()\]
 (* `prop... OR prop...` *)
 opr OR(p:Boolean, q:TestResult): Testable[\()\]
 opr OR(p:Boolean, q:Testable[\()\]): Testable[\()\]
-opr OR(p:Boolean, q:()->Any): Testable[\()\]
 opr OR(p:TestResult, q:Boolean): Testable[\()\]
 opr OR(p:TestResult, q:TestResult): Testable[\()\]
 opr OR(p:TestResult, q:Testable[\()\]): Testable[\()\]
