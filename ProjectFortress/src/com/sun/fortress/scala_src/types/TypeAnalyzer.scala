@@ -109,7 +109,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       map(tw => substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType))
       or(supers.map(sub(_, t)))
     case (s: TraitSelfType, t) => sub(removeSelf(s), t)
-    case (t, STraitSelfType(_, named, _)) => sub(t,named)
+    case (t, STraitSelfType(_, named, _)) => sub(t,removeSelf(named))
     case (s: ObjectExprType, t) => sub(removeSelf(s), t)
     // Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
