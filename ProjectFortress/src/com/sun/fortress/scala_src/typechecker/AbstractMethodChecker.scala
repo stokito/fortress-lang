@@ -179,14 +179,18 @@ class AbstractMethodChecker(component: ComponentIndex,
     // static args applied to the trait in the concrete instantiation.
     def subst(ty: Type) = TypeAnalyzerUtil.substitute(sargs, sparams, ty)
 
-    val result = decl match {
+    decl match {
       case fd:FnDecl =>
-        (isTrue(typeAnalyzer.equivalent(subst(NU.getParamType(d)),
+        //Todo: This is not quite right as we might need to alpha rename
+        //Todo: The bounds for the static params may mention the parameters of the trait so we may need to substitute
+        val extended = typeAnalyzer.extend(toList(fd.getHeader.getStaticParams),
+          fd.getHeader.getWhereClause)
+        (isTrue(extended.equivalent(subst(NU.getParamType(d)),
                                   NU.getParamType(fd))) ||
           implement(toListFromImmutable(NU.getParams(d)),
                     toListFromImmutable(NU.getParams(fd)),
                     subst _) ) &&
-        isTrue(typeAnalyzer.subtype(NU.getReturnType(fd).unwrap,
+        isTrue(extended.subtype(NU.getReturnType(fd).unwrap,
                              subst(NU.getReturnType(d).unwrap)))
       case vd:VarDecl if vd.getLhs.size == 1 =>
         NU.isVoidType(NU.getParamType(d)) &&
@@ -194,7 +198,6 @@ class AbstractMethodChecker(component: ComponentIndex,
                                     subst(NU.getReturnType(d).unwrap)))
       case _ => false
     }
-    result
   }
 
   /**
