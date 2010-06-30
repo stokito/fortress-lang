@@ -448,7 +448,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                   // Turn off error message on this branch until we can ensure
                   // that the VarRef doesn't resolve to an inherited method.
                   // For now, assume it does refer to an inherited method.
-                  if (fields.isEmpty && !topVars.contains(name.getText)) {
+                  if (fields.isEmpty && !topVars.contains(name.getText)
+                      && !topFns.contains(name.getText)) {
                     // no change -- no need to recreate the VarRef
                     error("Variable " + name + " is not defined.", name)
                     return vref
@@ -474,7 +475,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
         if (fns.isEmpty)
           fn_name match {
             case id:Id => // Could be a singleton object with static arguments.
-              if (env.explicitTypeConsNames(id).isEmpty) {
+            if (env.explicitTypeConsNames(id).isEmpty && !topFns.contains(id.getText)) {
                 error("Function " + id + " is not defined.", fnref); fnref
               } else // create _RewriteObjectRef
                 walk(SVarRef(info, id, sargs, depth)).asInstanceOf[VarRef]
