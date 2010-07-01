@@ -19,7 +19,7 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:33:5-9:\n\
 \ Could not check call to function k\n\
-\ - Q->() is not applicable to an argument of type T[\\U\\].\n\
+\ - Q->() is not applicable to an argument of type (T[\\U\\] & {U}).\n\
 ${STATIC_TESTS_DIR}/Compiled10.k.fss:36:5-7:\n\
 \ Could not check call to function j\n\
 \ - U->() is not applicable to an argument of type T[\\U\\].\n\
