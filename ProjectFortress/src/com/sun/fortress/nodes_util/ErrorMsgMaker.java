@@ -323,8 +323,21 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTraitSelfType(TraitSelfType node) {
-        //return "SelfType " + node.getNamed().accept(this);
-        return node.getNamed().accept(this);
+       StringBuilder result = new StringBuilder();
+       if (! node.getComprised().isEmpty()) {
+           result.append("(");
+           result.append(node.getNamed().accept(this));
+           result.append(" & {");
+           boolean first = true;
+           for (Type t : node.getComprised()) {
+               if (first) { first = false; }
+               else { result.append(", "); }
+               result.append(t.accept(this));
+           }
+           result.append("})");
+       } else
+           result.append(node.getNamed().accept(this));
+       return result.toString();
     }
 
     public String forObjectExprType(ObjectExprType node) {

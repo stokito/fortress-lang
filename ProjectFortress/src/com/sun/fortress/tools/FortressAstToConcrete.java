@@ -2136,7 +2136,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                        String info,
                                        String named_result,
                                        List<String> comprised_result) {
-        return named_result;
+        return named_result + " & " + inParentheses(comprised_result);
     }
 
     @Override
