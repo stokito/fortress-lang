@@ -33,7 +33,8 @@ trait Avl[\K extends StandardTotalOrder[\K\],V\]
     lookup(kk:K): Maybe[\V\] = label done
         t : Avl[\K,V\] = self
         while true do
-            typecase tt = t of
+            tt = t
+            typecase _ = t of
                 AvlNode[\K,V\] =>
                     typecase _ = kk CMP tt.key() of
                         LessThan => t := tt.left
@@ -129,22 +130,26 @@ trait AvlNode[\K extends StandardTotalOrder[\K\],V\] extends Avl[\K,V\]
     d2ld(d:ZZ32): ZZ32
     d2rd(d:ZZ32): ZZ32
     replaceValue(vv:V): AvlNode[\K,V\]
-    extractLargest():(AvlWithDepth[\K,V\],K,V,ZZ32) =
-        typecase r = self.right of
+    extractLargest():(AvlWithDepth[\K,V\],K,V,ZZ32) = do
+        r = self.right
+        typecase _ = r of
             AvlNode[\K,V\] =>
                 (rr,kk,vv,rd) = r.extractLargest()
                 (nodeWithDepth[\K,V\](AvlWithDepth[\K,V\](self.left,rd2ld(rd)),key(),val(),rr),
                  kk,vv,rd2d(rd))
             else => (AvlWithDepth[\K,V\](self.left,rd2ld(0)),key(),val(),rd2d(0))
         end
-    remove(): (AvlWithDepth[\K,V\],ZZ32) =
-        typecase (l,r) = (self.left,self.right) of
+    end
+    remove(): (AvlWithDepth[\K,V\],ZZ32) = do
+        (l,r) = (self.left,self.right)
+        typecase _ = (l,r) of
             (AvlNode[\K,V\],AvlNode[\K,V\]) =>
                 (ll,k,v,ld) = l.extractLargest()
                 (nodeWithDepth[\K,V\](ll,k,v,AvlWithDepth[\K,V\](r,ld2rd(ld))),ld2d(ld))
             (AvlNode[\K,V\],Avl[\K,V\]) => (AvlWithDepth[\K,V\](l,rd2ld(0)),rd2d(0))
             else => (AvlWithDepth[\K,V\](r,ld2rd(0)),ld2d(0))
         end
+    end
     splitAt(kk:K):(AvlWithDepth[\K,V\],Maybe[\V\],AvlWithDepth[\K,V\],ZZ32) =
         typecase _ = kk CMP key() of
             LessThan =>
@@ -317,7 +322,8 @@ append[\K,V\](l0:AvlWithDepth[\K,V\], r0:AvlWithDepth[\K,V\]): AvlWithDepth[\K,V
         (ll,k,v,_) = l.extractLargest()
         nodeWithDepth[\K,V\](ll,k,v,r0)
     elif ld < rd then
-        typecase r = r0.tree() of
+        r = r0.tree()
+        typecase _ = r of
             AvlNode[\K,V\] =>
                 nodeWithDepth[\K,V\](
                     append[\K,V\](l0,AvlWithDepth[\K,V\](r.left,r.d2ld(rd))),
@@ -325,7 +331,8 @@ append[\K,V\](l0:AvlWithDepth[\K,V\], r0:AvlWithDepth[\K,V\]): AvlWithDepth[\K,V
                     AvlWithDepth[\K,V\](r.right,r.d2rd(rd)))
         end
     else
-        typecase l = l0.tree() of
+        l = l0.tree()
+        typecase _ = l of
             AvlNode[\K,V\] =>
                 nodeWithDepth[\K,V\](
                     AvlWithDepth[\K,V\](l.left,l.d2ld(ld)),

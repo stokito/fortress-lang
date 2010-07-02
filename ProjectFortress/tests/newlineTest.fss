@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,7 +20,8 @@ component newlineTest
 export Executable
 
 run() : () = do
-      x = typecase (a, b) = (1, 2.0) of
+    (a, b) = (1, 2.0)
+    x = typecase _ = (a,b) of
     (Number, Number) => true
     (ZZ32, RR64) => false ; (RR64, ZZ32) => true
     end
