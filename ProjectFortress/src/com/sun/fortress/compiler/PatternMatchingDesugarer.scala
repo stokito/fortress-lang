@@ -199,7 +199,6 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                   bug("The number of patterns to bind should be greater than or equal to " + numParams)
             case _ => bug("Type " + ty + " not found.")
           }
-
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
         case None =>
@@ -213,6 +212,63 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       }
     case _ => (p, Nil, Nil)
   }
+
+  def desugarFnParam(p : Param) = p match {
+    case SParam(i, name, mods, tp, e, varargs) if isPattern(tp) =>
+      val span = NU.getSpan(p)
+      val pattern = tp.get.asInstanceOf[Pattern]
+      val ps = toList(pattern.getPatterns.getPatterns)
+      val new_name = if (NU.isUnderscore(name))
+                       NF.makeId(span, DU.gensym("temp"))
+                     else name
+      val recv = EF.makeVarRef(new_name)
+      toOption(pattern.getName) match {
+        case Some(ty) =>
+          val new_p = SParam(i, new_name, mods, Some(ty),
+                             walk(e).asInstanceOf[Option[Expr]], varargs)
+          val expr_list = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
+          val ty_list = expr_list.map(p => fieldToType(p.getField, ty))
+          val param_list = (ps zip ty_list).map(patternBindingToParam(_, mods))
+          /* error handling in case that a pattern has an incorrect structure. */
+          ty match {
+            case t: TraitType if typeConses.keySet.contains(t.getName) =>
+               val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
+               val numParams = toOption(params) match {
+                                 case Some(ps) => ps.size
+                                 case _ => 0
+                               }
+               val paramIdlist = toOption(params) match {
+                                   case Some(ps) => toList(ps).map(_.getName)
+                                   case _ => List()
+                                 }
+               /* check whether a given pattern is a keyword pattern or not */                
+               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
+                 toOption(pattern.getField) match {
+                   case Some(kw) => !(paramIdlist.contains(kw))
+                   case _ => false
+                 }
+               }
+               if(ps.filter(! isKeywordPattern(_)).size != numParams)
+                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
+            case _ => bug("Type " + ty + " not found.")
+          }
+          (new_p, param_list, expr_list, (Nil, Nil))
+        case None =>
+          /* (tuple pattern parameter) */
+          val tylist = ps.map(patternBindingToType)
+          val new_p = SParam(i, new_name, mods,
+                             Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
+                             walk(e).asInstanceOf[Option[Expr]], varargs)
+          val ty_list = tylist.map(Some(_))
+          val param_list = (ps zip ty_list).map(patternBindingToParam(_, mods))
+          val expr_list = param_list.map(p => EF.makeVarRef(p.getName))
+          val left = (param_list.map(_.getName) zip tylist).map(pair => 
+                                                                NF.makeLValue(pair._1, pair._2, mods))
+          val right = List(recv)
+          (new_p, param_list, expr_list, (left, right)) 
+      }
+    case _ => (p, Nil, Nil, (Nil, Nil))
+   }
 
   def desugarVar(decl: Decl) : List[Decl] = decl match {
     case v @ SVarDecl(info, lhs, init) =>
@@ -232,6 +288,73 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                                   else List(added)
                                                   }).flatten)
       }
+    /* desugar a function declaration with patterns */
+    case f@SFnDecl(info,
+                   SFnHeader(sps, mods, name, where, throwsC, contract, params, returnType),
+                   unambiguousname, body, implement) =>
+      val desugaredParams = params.map(desugarFnParam)
+      // original parameters
+      val param_list = desugaredParams.map(_._1)
+      // new parameters
+      val pattern_params = desugaredParams.map(_._2)
+      val new_body = walk(body).asInstanceOf[Option[Expr]]
+      val new_contract =  walk(contract).asInstanceOf[Option[Contract]]
+      if(pattern_params.flatten.isEmpty)
+        List(SFnDecl(info,
+                     SFnHeader(sps, mods, name, where, throwsC, new_contract,
+                               walk(params).asInstanceOf[List[Param]], returnType),
+                     unambiguousname, new_body, implement))
+
+      else{
+        val new_params = (param_list zip pattern_params).map(pair =>
+                                                             pair._1::pair._2).flatten
+        val span = NU.getSpan(f)
+        val expr_info = NF.makeExprInfo(span, false, None)
+        val new_FnName =  NF.makeId(span, DU.gensymFn(name.toString))
+        // argument list for new function call
+        val arg_list = desugaredParams.map(_._3)
+        val args = (param_list zip 
+                    arg_list).map(pair =>
+                                  EF.makeVarRef(pair._1.getName)::pair._2).flatten
+        // new declarations to be added in case of a tuple pattern 
+        val bindings = desugaredParams.map(_._4)
+        val call_expr = EF.make_RewriteFnApp(span, EF.makeFnRef(span, new_FnName), 
+                                             EF.makeMaybeTupleExpr(span, toJavaList(args)))
+        // make a temporary unambiguousname to identify a desugared FnDecl later
+        val ds_unambiname = NF.makeId(span, "Desugared")
+        // a new function declaration for the original function
+        val new_Fndecl = 
+          if(bindings.map(_._1).flatten.isEmpty)  // No tuple patterns
+             SFnDecl(info, SFnHeader(sps, mods, name, where, throwsC, new_contract,
+                                     param_list, returnType),
+                                     ds_unambiname, Some(call_expr), implement)
+          else {
+            val new_decls = 
+              bindings.foldRight(call_expr:Expr)((pair, current_expr) => {
+                                                  val inner_body = 
+                                                    SBlock(expr_info, None, false, false,
+                                                           List(current_expr))
+                                                  SLocalVarDecl(expr_info, inner_body, pair._1,
+                                                                Some(EF.makeMaybeTupleExpr(span,
+                                                                toJavaList(pair._2))))
+                                                  })
+            val final_body = EF.makeDo(span, Useful.list(SBlock(expr_info, None, false,
+                                                                true, List(new_decls))))
+            SFnDecl(info, SFnHeader(sps, mods, name, where, throwsC, new_contract,
+                                    param_list, returnType),
+                    ds_unambiname, Some(final_body), implement)
+   
+          }
+        // a new function declaration
+        val added_Fndecl = SFnDecl(info,
+                                   SFnHeader(sps, mods, new_FnName, where, throwsC,
+                                             new_contract, new_params, returnType),
+                                   ds_unambiname, new_body, implement)
+        if(pattern_params.flatten.exists(p => isPattern(p.getIdType))) 
+          desugarVar(added_Fndecl) ::: List(new_Fndecl)
+        else List(added_Fndecl, new_Fndecl) 
+      }
+    
     case _ => List(walk(decl).asInstanceOf[Decl])
   }
 
@@ -247,15 +370,19 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         val right = desugaredLValues.map(_._3)
         val final_body =
             (left zip right).foldRight(new_body)((pair:(List[LValue], List[Expr]), current_body:Block) => {
-                                                 val decl = SLocalVarDecl(info, current_body, pair._1,
-                                                                          Some(EF.makeMaybeTupleExpr(NU.getSpan(exp),
-                                                                                                     toJavaList(pair._2))))
+                                                 val decl = 
+                                                   SLocalVarDecl(info, current_body, pair._1,
+                                                                 Some(EF.makeMaybeTupleExpr(NU.getSpan(exp),
+                                                                 toJavaList(pair._2))))
                                                  SBlock(info, None, false, false, List(decl))
                                                  })
         val result = SLocalVarDecl(info, final_body, desugaredLValues.map(_._1), new_rhs)
         if (left.flatten.exists(p => isPattern(p.getIdType))) desugarLocal(result)
         else result
       }
+    case f @ SLetFn(info, body, fndecl_list) =>
+      val new_decls = fndecl_list.foldRight(Nil.asInstanceOf[List[Decl]])((d, r) => desugarVar(d) ::: r)
+      SLetFn(info, walk(body).asInstanceOf[Block], new_decls.asInstanceOf[List[FnDecl]])
     case _ => walk(exp).asInstanceOf[Expr]
   }
 
@@ -302,6 +429,21 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     }
   }
 
+  def patternBindingToParam(pbi : (PatternBinding, Option[TypeOrPattern]), mods : Modifiers) = {
+    val (pb, ty) = pbi
+    val span = NU.getSpan(pb)
+    pb match {
+      case SPlainPattern(_, _, name, _, Some(idType)) =>
+        NF.makeParam(span, mods, name, idType)
+      case SPlainPattern(_, _, name, _, None) =>
+        NF.makeParam(span, mods, name, toJavaOption(ty)) 
+      case STypePattern(_, _, typ) =>
+        NF.makeParam(span, mods, NF.makeId(span, DU.gensym("temp")), typ)
+      case SNestedPattern(_, _, pat) =>
+        NF.makeParam(span, mods, NF.makeId(span, DU.gensym("temp")), pat)
+    }
+  }
+
   def patternBindingToExpr(pbi: (PatternBinding, Int),
                            recv: VarRef, ty: Type) = {
     val (pb, i) = pbi
@@ -324,5 +466,28 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         }
       case _ => bug("A trait type is expected in a pattern.")
     }
+  }
+  
+  /* get a type infomation from a field of a trait or an object */
+  def fieldToType(field : Id, ty : Type) = ty match {
+    case t:TraitType if typeConses.keySet.contains(t.getName) =>
+      val header = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader
+      val pair_list = (toOption(header.getParams) match {
+                         case Some(ps) => toList(ps).map(p=>(p.getName.toString, toOption(p.getIdType)))
+                         case _ => List((Nil.asInstanceOf[String], Nil.asInstanceOf[Option[TypeOrPattern]]))
+                       }) ::: toList(header.getDecls).foldRight(Nil.asInstanceOf[List[(String, Option[TypeOrPattern])]])((d, r) => declToIdType(d) ::: r)
+      pair_list.find(pair => pair._1 == field.toString) match {
+        case Some(pa) => pa._2
+        case _ => bug(field + " : Not defined")
+      }
+    case _ => bug("A trait type is expected in a pattern.")
+  }
+
+  def declToIdType(decl : Decl) = decl match {
+    case SVarDecl(_, lhs, _) if(lhs.size >= 1)=>
+      lhs.map(p => (p.getName.toString, toOption(p.getIdType)))
+    case SFnDecl(_, SFnHeader(_, mods, name, _, _, _, _, returnType), _, _, _) if mods.isGetter =>
+      List((name.toString, toOption(returnType)))
+    case _ => List(("", None))
   }
 }
