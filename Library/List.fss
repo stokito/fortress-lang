@@ -97,7 +97,7 @@ trait AnyList excludes { Number, HasRank, String }
 end
 
 private app[\T,E extends T,F extends T\](a:List[\E\], b:List[\F\]): List[\T\] =
-    typecase (a,b) of
+    typecase _ = (a,b) of
         (List[\T\],List[\T\]) => a || b
         (List[\T\],List[\F\]) => a.appendRC[\F\](b)
         (List[\E\],List[\T\]) => b.appendLC[\E\](a)

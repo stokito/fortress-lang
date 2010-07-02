@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -517,7 +517,7 @@ private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEm
       end
     (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
     intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\] =
-        typecase other of
+        typecase _ = other of
             SingletonIM[\V\] => self.seek(other.key) INTERSECTION other
             NodeIM[\V\] =>
                 (l1,l2,k,r1,r2) = self.nodeNode[\V\](other)
@@ -527,7 +527,7 @@ private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEm
     (** The %intersection% method takes a function %f% used to combine the values
         of keys that overlap.  **)
     intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\] =
-        typecase other of
+        typecase _ = other of
             SingletonIM[\R\] =>
                 self.seek(other.key).intersection[\V,R\](f,other)
             NodeIM[\R\] =>
@@ -537,7 +537,7 @@ private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEm
         end
     (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
     differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\] =
-        typecase other of
+        typecase _ = other of
             SingletonIM[\V\] => self.delete(other.key)
             NodeIM[\V\] =>
                 (l1,l2,k,r1,r2) = self.nodeNode[\V\](other)

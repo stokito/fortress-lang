@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -51,7 +51,7 @@ end
 value object AvlDump[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\])
     getter asString(): String = d(t)
     d(s:Avl[\K,V\]): String =
-        typecase s of
+        typecase _ = s of
             AvlEmpty[\K,V\] => "."
             LeftHigh[\K,V\] =>
                "(" d(s.left) "<" s.key() "," s.val() "<" d(s.right) ")"

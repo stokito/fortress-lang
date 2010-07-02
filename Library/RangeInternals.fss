@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -515,7 +515,7 @@ end
 trait BoundedScalarRange[\I extends Integral[\I\]\]
         extends { ScalarRange[\I\], BoundedRange[\I\] }
     opr INTERSECTION(self, other: ScalarRange[\I\]): BoundedScalarRange[\I\] =
-        typecase other of
+        typecase _ = other of
             BoundedScalarRange[\I\] =>
                 if self.stride < 0 OR other.stride < 0 then
                     s = if self.stride < 0 then self.flip() else self end
@@ -539,7 +539,7 @@ trait BoundedScalarRange[\I extends Integral[\I\]\]
             self.flip().intersectWithExtent(e.flip())
         end
     forwardIntersection(other: BoundedScalarRange[\I\]): BoundedScalarRange[\I\] =
-        typecase other of
+        typecase _ = other of
             FullScalarRange[\I\] => other.forwardIntersection(self)
             else =>
                 resultStride = self.stride LCM other.stride

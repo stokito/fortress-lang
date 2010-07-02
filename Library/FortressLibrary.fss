@@ -37,13 +37,13 @@ export FortressLibrary
 (** Casting *)
 
 cast[\T extends Any\](x:Any):T =
-  typecase x of
+  typecase _ = x of
     T => x
     else => throw CastError
   end
 
 instanceOf[\T extends Any\](x:Any):Boolean =
-  typecase x of
+  typecase _ = x of
     T => true
     else => false
   end
@@ -913,7 +913,7 @@ trait Contains[\T\]
         match clause is a %Contains[\T\]%.  We must choose either %=%, %SEQV%, or
         %IN% as appropriate, depending on the type of the LHS. **)
     opr MATCH(x:Any, self): Boolean =
-        typecase x of
+        typecase _ = x of
             T => (x IN self)
             Contains[\T\] => (x = self)
             else => fail("Type error in MATCH of Contains")
@@ -1090,7 +1090,7 @@ __whileCond[\E\](c:Condition[\E\], b:E->()): () =
     we should *not* create an intermediate collection if we're passed
     a collection. **)
 __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
-    typecase g of
+    typecase _ = g of
         SomeMappedGenerator[\E\] => g.map[\R\](f)
         SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g,f)
         else => SimpleMappedGenerator[\E,R\](g,f)
@@ -1103,7 +1103,7 @@ __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
     perform the filtering lazily on demand. **)
 __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
 do
-    typecase g of
+    typecase _ = g of
         SomeGenerator2 => g.filter(p)
         FilterGenerator[\E\] => g.filter(p)
         SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g,p)
@@ -1155,7 +1155,7 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
     o = outer.reduction
     i = inner.reduction
     resolvedouterBody=__resolveBottomArgumentType[\O1, I0, R0\](outer.body)
-    typecase (gg,outer,inner) of
+    typecase _ = (gg,outer,inner) of
         (Generator2[\E\],BigOperator[\I0,I0,I0,L0\],BigOperator[\I1,I0,I0,L1\]) =>
         (* Assumes that outer.body COMPOSE inner.unwrap is id
          * Often the assumption is satisfied,
@@ -1174,7 +1174,7 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
  *
  *)
 __resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 =
-typecase f of O1 -> R0 => fn (x:O1) : R0  => f(x)
+typecase _ = f of O1 -> R0 => fn (x:O1) : R0  => f(x)
 else => throw CastError
 end
 
@@ -1186,14 +1186,14 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
         SimpleMappedSeqGenerator[\E,G\](self,f)
     (* TODO: make overloaded *)
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
-        typecase f of
+        typecase _ = f of
             E -> SequentialGenerator[\G\] =>
                 SimpleNestedSeqGenerator[\E,G\](self,f)
             else => SimpleNestedGenerator[\E,G\](self,f)
         end
     (* TODO: make overloaded *)
     cross[\F\](g:Generator[\F\]): Generator[\(E,F)\] =
-        typecase g of
+        typecase _ = g of
             SequentialGenerator[\F\] =>
                     SimplePairSeqGenerator[\E,F\](self,g)
             else => SimplePairGenerator[\E,F\](self,g)
@@ -1865,7 +1865,7 @@ trait ReadableArray[\E,I\]
     replica[\U\]():ReadableArray[\U,I\]
 
     opr =(self, other:HasRank): Boolean =
-        typecase other of
+        typecase _ = other of
             ReadableArray[\E,I\] => self.indices.generate[\Boolean\](AndReduction,
                                            fn (i:I):Boolean => (self[i]=other[i]))
             else => false
