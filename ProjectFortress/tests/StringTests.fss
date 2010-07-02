@@ -62,7 +62,7 @@ test testSubStringSimplification():() = do
   testString = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
   testString.verify()
   sub1 = testString[34:36]
-  typecase sub1 of
+  typecase _ = sub1 of
       FlatString => assert(true)
       String => do
                           println sub1.asDebugString

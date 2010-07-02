@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,7 +23,8 @@ chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
     (* println("Comparing " a " and " b " expect " expect) *)
     i = a INTERSECTION b
     (* First cross-check the lattice property!  That tells us what we *should* say. *)
-    typecase (ca,cb,_) = (i CMP a, i CMP b, expect) of
+    (ca,cb,cc) = (i CMP a, i CMP b, expect)
+    typecase _ = (ca,cb,cc) of
         (EqualTo, LessThan, LessThan) => ()
         (LessThan, EqualTo, GreaterThan) => ()
         (EqualTo, EqualTo, EqualTo) => ()
@@ -36,7 +37,7 @@ chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
     assert(a CMP b, expect, "Comparing ", a, " and ", b)
 
     assert(b CMP a, INVERSE expect, "InvComp ", a, " and ", b)
-    typecase expect of
+    typecase _ = expect of
         LessThan =>
             assert(a < b, "Not <")
             assert(a <= b, "Not <=")
