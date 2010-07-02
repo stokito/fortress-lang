@@ -251,7 +251,8 @@ trait NonEmptyIntMap[\Val\] extends IntMap[\Val\]
     private seek(k:ZZ64): SingletonIM[\Val\] = label done
         n : NonEmptyIntMap[\Val\] := self
         while true do
-            typecase curr = n of
+            curr = n
+            typecase _ = curr of
                 NodeIM[\Val\] =>
                     n := if k < curr.key then curr.left else curr.right end
                 SingletonIM[\Val\] => exit done with curr

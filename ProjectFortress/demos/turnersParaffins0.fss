@@ -289,11 +289,13 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
         (r4 CMP other.r4)
     rotate (self):Paraffin = Paraffin (r2, r3, r4, r1)
     swap   (self):Paraffin = Paraffin (r2, r1, r3, r4)
-    invert (self):Paraffin =
-        typecase r=r1 of
+    invert (self):Paraffin = do
+        r=r1
+        typecase _ = r of
             H   => self
             Rad => Paraffin (r.r1, r.r2, r.r3, Rad(r2, r3, r4))
         end
+    end
     generators (self):Set[\Paraffin\] =
         {[\Paraffin\] rotate self, swap self, invert self}
     equivClass (self) = closure ({[\Paraffin\] self}, generators)

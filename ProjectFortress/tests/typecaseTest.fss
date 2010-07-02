@@ -19,35 +19,40 @@ component typecaseTest
 export Executable
 
 run():()=do
-   typecase x = "One Two Three " of
+   x = "One Two Three "
+   typecase _ = x of
       String => print("pass " x)
       ZZ32 => print("FAIL ")
       else => print("FAIL ")
    end
 
-   typecase x = 3.1415 of
+   y = 3.1415
+   typecase _ = y of
       String => print("FAIL ")
       ZZ32 => print("FAIL ")
-      Number => print("pass " x)
+      Number => print("pass " y)
    end
 
-   typecase (a, b, c) = (1, 3.1415, "Hurrah") of
+   (a, b, c) = (1, 3.1415, "Hurrah")
+   typecase _ = (a, b, c) of
     (Number, Number, Number) => print("FAIL ")
     (Number, Number, String) => print("pass " a "," b "," c)
    end
 
    (* Check that typecase returns a value! *)
-   q = typecase x = 3.1415 of
+   z = 3.1415
+   q = typecase _ = z of
          String => "FAIL "
          ZZ32 => "FAIL "
-         else => "pass " x
+         else => "pass " z
        end
    print(q)
 
    (* From a clause, too. *)
-   p = typecase x = 5 of
+   w = 5
+   p = typecase w of
           String => "FAIL"
-          ZZ32 => "pass" x
+          ZZ32 => "pass" w
           else => "FAIL"
        end
    println(p)

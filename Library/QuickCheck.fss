@@ -692,9 +692,10 @@ private __genMatchElse[\T,U\](arb:Arbitrary, _:(T->U)->(T->U)): Gen[\T->U\] =
 trait DefaultArbitrary extends Arbitrary
     (* XXX should be usable with (self asif DefaultArbitrary).gen, but the current
        interpreter seems to reject this... *)
-    gen0[\T\](arb:Arbitrary): Gen[\T\] =
+    gen0[\T\](arb:Arbitrary): Gen[\T\] = do
         (* Exact match first; see the rationale in `Gen` for details. *)
-        typecase f = fn (_:T):T => throw ForbiddenException of
+        f = fn (_:T):T => throw ForbiddenException
+        typecase _ = f of
             ()->() => genVoid
             Boolean->Boolean => genBoolean
             ZZ32->ZZ32 => genZZ32
@@ -716,6 +717,7 @@ trait DefaultArbitrary extends Arbitrary
                 else => __genMatchElse(arb, f)
             end
         end
+    end
 
     gen[\T\](): Gen[\T\] = gen0[\T\](self)
 end
@@ -814,12 +816,14 @@ Tested(ret:Boolean): TestResult = Tested(TestResult(ret))
     This is an internal representation: the public interface is `forAll`
     function. **)
 private object Property[\P\](f:P->Any) extends Testable[\P\]
-    run(arg:P): TestResult =
-        typecase ret = f(arg) of
+    run(arg:P): TestResult = do
+        ret = f(arg)
+        typecase _ = ret of
             Boolean => TestResult(ret)
             Testable[\()\] => ret.run()
             TestResult => ret
         end
+    end
 end
 
 (** Encodes an implication: `q` is tested if and only if `p` passes, and

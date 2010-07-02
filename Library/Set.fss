@@ -287,7 +287,8 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         notDone : Boolean := true
         t : NodeSet[\E\] := self
         while notDone do
-            typecase l = t.getLeftChild() of
+            l = t.getLeftChild()
+            typecase _ = l of
                 NodeSet[\E\] => t := l
                 else => notDone := false
             end
@@ -299,7 +300,8 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         notDone : Boolean := true
         t : NodeSet[\E\] := self
         while notDone do
-            typecase l = t.getRightChild() of
+            l = t.getRightChild()
+            typecase _ = l of
                 NodeSet[\E\] => t := l
                 else => notDone := false
             end

@@ -3404,14 +3404,16 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
     getter g() = g0
     getter f() = f0
     getter asString() = self.g ".nest(f)"
-    seq(self): SequentialGenerator[\E\] =
-        typecase ff = self.f of
+    seq(self): SequentialGenerator[\E\] = do
+        ff = self.f
+        typecase _ = ff of
             (E -> SequentialGenerator[\F\]) =>
                 SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff)
             else =>
                 SimpleNestedSeqGenerator[\E,F\](seq(self.g),
                      fn (e:E): SequentialGenerator[\F\] => seq(ff(e)))
         end
+    end
 end
 
 object SimpleNestedSeqGenerator[\E,F\]
@@ -3698,11 +3700,13 @@ end
 trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWithExtent[\I\], Indexed[\I,I\] }
     getter extent(): Just[\I\]
     narrowToRange(other:OpenRange[\I\]): FullRange[\I\] = self INTERSECTION other
-    narrowToRange(other:Range[\I\]): FullRange[\I\] =
-        typecase r = self INTERSECTION other of
+    narrowToRange(other:Range[\I\]): FullRange[\I\] = do
+        r = self INTERSECTION other
+        typecase _ = r of
             FullRange[\I\] => checkSelection[\FullRange[\I\], I\](self, other, r)
             else => fail("Library error: FullRange INTERSECTION didn't yield FullRange")
         end
+    end
     opr FORWARD_CMP(self, other: Range[\I\]): Comparison = INVERSE (other FORWARD_CMP self)
     opr FORWARD_CMP(self, other: FullRange[\I\]): Comparison =
         ((other.left.get PCMP self.left.get) SYMMETRIC_PARTIAL:
@@ -3714,7 +3718,7 @@ trait CompactFullRange[\I\] extends FullRange[\I\]
     getter upper(): I = self.right.get
     opr |self| : ZZ32 = do
       (l, u) = (self.lower, self.upper)
-      typecase l of
+      typecase _ = l of
         ZZ32 => 0 MAX ((u - l) + 1)
         (ZZ32, ZZ32) => do (l1, l2) = l; (u1, u2) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) end
         (ZZ32, ZZ32, ZZ32) => do (l1, l2, l3) = l; (u1, u2, u3) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) (0 MAX ((u3 - l3) + 1)) end
