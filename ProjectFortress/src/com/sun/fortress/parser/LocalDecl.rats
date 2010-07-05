@@ -216,9 +216,9 @@ List<LValue> VarMayTypes =
    / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
      { yyValue = Useful.cons(a1, a2s.list()); };
 
-/* VarMayType ::= BindId (s : s (Pattern | NoNewlineType))? */
+/* VarMayType ::= BindId (s : s (NoNewlinePattern | NoNewlineType))? */
 LValue VarMayType =
-     a1:BindId s void:colon s a2:Pattern
+     a1:BindId s void:colon s a2:NoNewlinePattern
      { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
    / a1:BindId s void:colon s a2:NoNewlineType
      { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
