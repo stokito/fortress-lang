@@ -106,7 +106,7 @@ end
  *)
 opr VDASH(sigma: Map[\String, RuntimeValue\], expr: If) = do
   c = (sigma VDASH expr.cond).getValue()
-  typecase _ = f of
+  typecase _ = c of
     True  => sigma VDASH expr.thenB
     False => sigma VDASH expr.elseB
     else  => throw FailCalled("Type error: " c)
