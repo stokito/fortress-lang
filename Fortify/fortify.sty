@@ -175,7 +175,7 @@
   \fortressbeginfield}
 \newcommand\fortressendline{\unskip\fortressendfield
   \ifdim \wd\fortresscodeline > \fortresscurindent
-    \box\fortresscodeline
+    \noindent\box\fortresscodeline\par
   \else
     \iffortresscommentalignblock
       \noalign{\vskip\fortressblanklineskip}\relax

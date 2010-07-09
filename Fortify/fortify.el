@@ -1335,8 +1335,13 @@
 
 (defun fortress-render-operator-word (str)
   (or (gethash str *fortress-operator-word-hashtable*)
-      (fortress-render-operator-word-having-prefix str "PREFIX_" "\\overrightarrow{" "}")
-      (fortress-render-operator-word-having-prefix str "SUFFIX_" "\\overleftarrow{" "}")
+      (gethash str *fortress-honorary-letter-word-hashtable*)
+      (fortress-render-operator-word-having-prefix str "COMPREHENSIVE_PREFIX_" "\\comprehensiveprefix{" "}")
+      (fortress-render-operator-word-having-prefix str "COMPREHENSIVE_SUFFIX_" "\\comprehensivesuffix{" "}")
+      (fortress-render-operator-word-having-prefix str "EXCLUSIVE_PREFIX_" "\\exclusiveprefix{" "}")
+      (fortress-render-operator-word-having-prefix str "EXCLUSIVE_SUFFIX_" "\\exclusivesuffix{" "}")
+      (fortress-render-operator-word-having-prefix str "PREFIX_" "\\inclusiveprefix{" "}")
+      (fortress-render-operator-word-having-prefix str "SUFFIX_" "\\inclusivesuffix{" "}")
       (concat "\\OPR{" (fortress-render-string-contents str) "}")))
 
 (defun fortress-render-operator-word-having-prefix (str prefix before after)
@@ -3514,7 +3519,7 @@
   (and tokens
        (do ((z tokens (cdr z))
 	    (prev1 '(WHITESPACE " " " ") (car z))
-	    (prev2 '(WHITESPACE " " " ") prev1)
+	    (prev2 '(SEMICOLON ";" ";") prev1)
 	    (result '() (cons (fortress-adjust-one-intertoken-spacing
 			       prev2
 			       prev1
@@ -3637,8 +3642,8 @@
 	  (cond ((and (not prevwhite) nextwhite)
 		 ;; We have a postfix operator.
 		 (cond ((eq (car tok0) 'OPERATOR-WORD)
-			`(,(car tok0) ,(cadr tok0) "\\:\\mathord{" ,@(cddr tok0) "}\\;"))
-		       (t `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) "}\\:"))))
+			`(,(car tok0) ,(cadr tok0) "\\:\\mathord{" ,@(cddr tok0) ,(if (eq (car tok1) 'NEWLINE) "}" "}\\;")))
+		       (t `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) ,(if (eq (car tok1) 'NEWLINE) "}" "}\\:")))))
 		(t tok0)))
 	 ((RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COMMA SEMICOLON COMMENT-LINE
 			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMENT-ALIGN-START COMMENT-ALIGN-END
@@ -3652,7 +3657,7 @@
 			     LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET KEYWORD)
 	  (cond ((and (not prevwhite) nextwhite)
 		 ;; We have a postfix operator.
-		 `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) "}\\:"))
+		 `(,(car tok0) ,(cadr tok0) "\\mathord{" ,@(cddr tok0) ,(if (eq (car tok1) 'NEWLINE) "}" "}\\:")))
 		(t tok0)))
 	 ((RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COMMA SEMICOLON COMMENT-LINE
 			 WHITESPACE NOSPACE NEWLINE DIGIT-GROUP-SEPARATOR COMMENT-ALIGN-START COMMENT-ALIGN-END
@@ -3662,10 +3667,10 @@
 	      AMPERSAND OPERATOR OPERATOR-WORD BIGOP COLON)
        (ecase (car nexttok)
 	 ((IDENTIFIER NUMBER)
-	  (if (eq (car tok0) 'OPERATOR-WORD) `(,@tok0 "\\:") tok0))
+	  (if (and (eq (car tok0) 'OPERATOR-WORD) (not (eq (car tok1) 'NEWLINE))) `(,@tok0 "\\:") tok0))
 	 ((COMMENT COMMENT-START COMMENT-LINE COMMENT-MIDDLE COMMENT-END
 		DOT STRING-END STRING-MIDDLE UNKNOWN KEYWORD)
-	   `(,@tok0 "\\:"))
+	  (if (eq (car tok1) 'NEWLINE) tok0 `(,@tok0 "\\:")))
 	 ((CHARACTER-LITERAL STRING STRING-START LEFT-BRACKET LEFT-ENCLOSER LEFT-PARENTHESIS LEFT-WHITE-BRACKET
 			     OPERATOR OPERATOR-WORD RELATION BIGOP AMPERSAND
 			     RIGHT-BRACKET RIGHT-ENCLOSER RIGHT-PARENTHESIS RIGHT-WHITE-BRACKET COLON
@@ -4577,8 +4582,8 @@
    (?\u22FD "\\overline{\\ni}" RELATION "CONTAINS_WITH_OVERBAR")
    (?\u22FE "\\hbox{\\footnotesize$\\overline{\\ni}$}" RELATION "SMALL_CONTAINS_WITH_OVERBAR")
    (?\u22FF "\\FortressUnknownCharacter{Z NOTATION BAG MEMBERSHIP}" RELATION "Z_NOTATION_BAG_MEMBERSHIP")
-   (?\u22CF "\\curlywedge" OPERATOR "CURLY_LOGICAL_AND" "CURLYAND")
-   (?\u22CE "\\curlyvee" OPERATOR "CURLY_LOGICAL_OR" "CURLYOR")
+   (?\u22CF "\\mathbin{\\curlywedge}" OPERATOR "CURLY_LOGICAL_AND" "CURLYAND")
+   (?\u22CE "\\mathbin{\\curlyvee}" OPERATOR "CURLY_LOGICAL_OR" "CURLYOR")
    (?\u2227 "\\wedge" OPERATOR "LOGICAL_AND" "AND")
    (?\u27D1 "\\FortressUnknownCharacter{AND WITH DOT}" OPERATOR "AND_WITH_DOT")
    (?\u2A51 "\\dot{\\wedge}" OPERATOR "LOGICAL_AND_WITH_DOT_ABOVE")
@@ -5177,7 +5182,7 @@
  '((("{" "\\lbrace") ("}" "\\rbrace"))
    (("<|" "\\langle") ("|>" "\\rangle"))
    ((?\u27E8 "\\langle") (?\u27E9 "\\rangle"))
-   (("<<|" "\\langle\\!\\langle") ("|>>" "\\rangle\\!\\rangle"))
+   (("<||" "\\langle\\mskip-5mu\\langle") ("||>" "\\rangle\\mskip-5mu\\rangle"))
    ((?\u27EA "\\langle\\!\\langle") (?\u27EB "\\rangle\\!\\rangle"))
    (("</" "\\ulcorner") ("\\>" "\\urcorner"))
    (("<\\" "\\llcorner") ("/>" "\\lrcorner"))
@@ -7689,7 +7694,8 @@ extension '.tex'."
     (while (equal (char-after (point)) ?\`)
       (forward-char))
     (let* ((next-opening (- after-next-opening 1))
-	   (len (- (point) next-opening)))
+	   (len (- (point) next-opening))
+	   (leading-newline (equal (char-after (point)) ?\n)))
       (cond ((oddp len)
 	     ;; An odd number of ticks begins Fortress code to be rendered;
 	     ;; the end is marked by an equal number of ticks.
@@ -7698,11 +7704,14 @@ extension '.tex'."
 	       (cond ((or (null after-matching-close) (equal (char-after (point)) ?\`))
 		      (goto-char (+ next-opening len))
 		      (signal-error (concat "Mismatched tick(s) " close-str)))
-		     (t (let ((rendered-code (newfortify-region (+ next-opening len)
+		     (t (let ((rendered-code (newfortify-region (+ next-opening len (if leading-newline 1 0))
 								(- after-matching-close len))))
 			  (delete-region next-opening after-matching-close)
 			  (goto-char next-opening)
-			  (insert rendered-code))))))
+			  (insert rendered-code)
+			  (when (and (equal (char-before (point)) ?\n)
+				     (equal (char-after (point)) ?\n))
+			    (delete-char -1)))))))
 	    (t 
 	     ;; An even number of ticks gets cut in half
 	     (delete-char (- (/ len 2)))))))
