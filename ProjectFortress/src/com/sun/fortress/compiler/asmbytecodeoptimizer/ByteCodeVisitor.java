@@ -125,11 +125,9 @@ class ByteCodeVisitor implements ClassVisitor {
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc, String sig, String[] exceptions) {
-        System.out.println("visitMethod: className = " + this.name + " name = " + name + " desc = " + desc);
         ByteCodeMethodVisitor bcmv = new ByteCodeMethodVisitor(access, name, desc, sig, exceptions);
         methodVisitors.put(name + desc, bcmv);
         bcmv.print();
-        System.out.println("VisitMethod " + name + " with bcmv " + bcmv);
         return bcmv;
     }
 

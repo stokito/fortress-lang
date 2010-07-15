@@ -34,6 +34,8 @@ import org.objectweb.asm.util.*;
 
 class ByteCodeOptimizer {
 
+    private static boolean noisy = false;
+
     HashMap classes = new HashMap();
     HashMap files = new HashMap();
 
@@ -76,7 +78,6 @@ class ByteCodeOptimizer {
                 if (entry.getName().endsWith(".class")) {
                     ClassReader cr = new ClassReader(buf);
                     ByteCodeVisitor bcv = new ByteCodeVisitor();
-                    System.out.println("entry = " + entry);
                     cr.accept(bcv, 0);
                     classes.put(entry.getName(), bcv);
                 } else {
@@ -135,6 +136,12 @@ class ByteCodeOptimizer {
             AddString.optimize(bcv);
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
             RemoveLiteralCoercions.optimize(bcv);
+            Inlining.optimize(bcv);
+            // For Debugging
+            if (noisy) {
+                System.out.println("Debugging output starts here");
+                AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
+            }
         }
     }
         
