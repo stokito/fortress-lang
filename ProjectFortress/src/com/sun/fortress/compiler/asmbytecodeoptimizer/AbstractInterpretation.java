@@ -49,28 +49,33 @@ public class AbstractInterpretation {
          while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
-            AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
-            if (noisy) System.out.println("optimize for key = " + key + " pairs.getName() " + pairs.getKey());
-            int localsIndex = 0;
-
-            if (!bcmv.isAbstractMethod()) {
-
-                if (!bcmv.isStaticMethod())
-                    ai.context.locals[localsIndex++] = "L" + key.replace(".class", ";");
-        
-                for (int i = 0; i < bcmv.args.size(); i++) {
-                    ai.context.locals[localsIndex+i] = bcmv.args.get(i);
-                }
-
-                ai.interpretMethod();
-            }
+            optimizeMethod(key, bcmv);
          }
+    }
+
+    public static void optimizeMethod(String key, ByteCodeMethodVisitor bcmv) {
+        AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
+        if (noisy) System.out.println("optimize for key = " + key);
+        int localsIndex = 0;
+
+        if (!bcmv.isAbstractMethod()) {
+
+            if (!bcmv.isStaticMethod())
+                ai.context.locals[localsIndex++] = "L" + key.replace(".class", ";");
+        
+            for (int i = 0; i < bcmv.args.size(); i++) {
+                ai.context.locals[localsIndex+i] = bcmv.args.get(i);
+            }
+
+            ai.interpretMethod();
+        }
     }
 
     public void interpretMethod() {
         if (noisy) System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
 
         context.interpretMethod();
+     
         while (!instructions.isEmpty()) {
             context = instructions.remove(0);
             context.interpretMethod();

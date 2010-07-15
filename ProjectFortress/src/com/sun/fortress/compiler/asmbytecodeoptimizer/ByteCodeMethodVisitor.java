@@ -45,6 +45,8 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     // Is useful for debugging
 
+    static boolean noisy = false;
+
     void addInsn(Insn i) {
         insns.add(i);
     }
@@ -74,39 +76,36 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void print() {
-        System.out.println("Method " + name + " desc = " + desc + " sig = " + sig);
-        System.out.println("BCMV = " + this);
-        System.out.println("Args = " + args);
-        System.out.println("result = " + result);
+        if (noisy) {
+            System.out.println("Method " + name + " desc = " + desc + " sig = " + sig);
+            System.out.println("BCMV = " + this);
+            System.out.println("Args = " + args);
+            System.out.println("result = " + result);
 
-        for (Insn i : insns) {
-            System.out.println(i.toString());
+            for (Insn i : insns) {
+                System.out.println(i.toString());
+            }
         }
         
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
-        System.out.println("visitAnnotationDefault");
         return new ByteCodeAnnotationVisitor(0);        
     }
 
     public AnnotationVisitor visitAnnotation(String s, boolean b) {
-        System.out.println("visitAnnotation");
         return new ByteCodeAnnotationVisitor(0);        
     }
 
 
     public void visitAttribute(Attribute attr) {
-        System.out.println("visitAttribute");
     }
 
     public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-        System.out.println("visitParameterAnnotation");
         return new ByteCodeAnnotationVisitor(0);
     }
 
     public void visitCode() {
-
     }
         
     public void visitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
@@ -159,7 +158,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitMultiNewArrayInsn(String desc, int dims) {
-        System.out.println("visitMultiNewArrayInsn");
     }
 
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
@@ -167,7 +165,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int index) {
-        addInsn(new LocalVariable("visitLocalVariable", name, desc, sig, start, end, index));
+        addInsn(new LocalVariableInsn("visitLocalVariable", name, desc, sig, start, end, index));
     }
 
     public void visitMultiANewArrayInsn(String name, int i) {
@@ -175,7 +173,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        System.out.println("Visit method instruction method = " + name + " method visitor = " + this.name);
         addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc));
     }
 

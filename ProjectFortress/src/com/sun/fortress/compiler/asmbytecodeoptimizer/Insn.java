@@ -40,4 +40,24 @@ abstract public class Insn {
     public boolean matches(Insn i) {
         return false;
     }
+
+    public String getStackString() {
+        String result = "[";
+        if (stack != null) {
+            for (Object o : stack)
+                result = result + o + " ";
+        }
+        result = result + "]";
+        return result;
+    }
+
+    public String getLocals() {
+        String result = "{";
+        if (locals != null) {
+            for (Object o : locals)
+                result = result + o + " ";
+        }
+        result = result +"}";
+        return result;
+    }
 }

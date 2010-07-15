@@ -41,9 +41,6 @@ public class AbstractInterpretationContext {
     void pushStack(Object o) {stack[stackIndex++] = o;}
     Object popStack() {return stack[--stackIndex];}
 
-    
-
-
     AbstractInterpretationContext(AbstractInterpretation ai,
                                   ByteCodeMethodVisitor bcmv, Object stack[], 
                                   Object locals[], int stackIndex, int pc) {
@@ -78,14 +75,14 @@ public class AbstractInterpretationContext {
     public void interpretMethod() {
         if (noisy) System.out.println("interpretMethod: pc = " + pc);
         while (pc < bcmv.insns.size()) {
-            interpretInsn(bcmv.insns.get(pc++));
+            interpretInsn(bcmv.insns.get(pc), pc++);
         }
     }
 
-    public void interpretInsn(Insn i) {
+    public void interpretInsn(Insn i, int pc) {
         i.setStack(stack);
         i.setLocals(locals);
-        if (noisy) System.out.println("InterpretInsn: " + i + getStackString() + getLocalsString());
+        if (noisy) System.out.println("InterpretInsn: pc= " + pc + " insn = " + i + getStackString() + getLocalsString());
 
         if (i instanceof FieldInsn) { interpretFieldInsn((FieldInsn) i); }
         else if (i instanceof IincInsn)  { interpretIincInsn((IincInsn) i);}
@@ -107,7 +104,7 @@ public class AbstractInterpretationContext {
         else if (i instanceof VisitMaxs) {}
         else if (i instanceof VisitEnd) {}
         else if (i instanceof VisitFrame) {}
-        else if (i instanceof LocalVariable) {}
+        else if (i instanceof LocalVariableInsn) {}
         else NYI(i);
         
     }
@@ -160,6 +157,7 @@ public class AbstractInterpretationContext {
             opcode == Opcodes.INVOKEINTERFACE ||
             opcode == Opcodes.INVOKESPECIAL) {
             List<String> args = NamingCzar.parseArgs(i.desc);
+            if (noisy) System.out.println("interpretMethodInsn " + i + " with " + args.size() + " args:" + args);
             for (int j = 0; j < args.size(); j++)
                 popStack();
             popStack(); // owner
@@ -169,6 +167,7 @@ public class AbstractInterpretationContext {
                 pushStack(result);
         } else if (opcode == Opcodes.INVOKESTATIC ) {
             List<String> args = NamingCzar.parseArgs(i.desc);
+            if (noisy) System.out.println("interpretMethodInsn " + i + " with " + args.size() + " args:" + args);
             for (int j = 0; j < args.size(); j++)
                 popStack();
             String result = NamingCzar.parseResult(i.desc);

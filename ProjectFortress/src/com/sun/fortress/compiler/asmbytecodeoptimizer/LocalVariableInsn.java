@@ -19,20 +19,29 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-public class VarInsn extends Insn {
-    int opcode;
-    int var;
+public class LocalVariableInsn extends Insn {
+    String _name;
+    String desc;
+    String sig;
+    Label start;
+    Label end;
+    int index;
 
-    VarInsn(String name, int opcode, int var) {
+    LocalVariableInsn(String name, String _name, String desc, String sig, Label start, Label end, int index) {
         this.name = name;
-        this.opcode = opcode;
-        this.var = var;
+        this._name = _name;
+        this.desc = desc;
+        this.sig = sig;
+        this.start = start;
+        this.end = end;
+        this.index = index;
     }
+
     public String toString() { 
-        return "VarInsn:" +  name + " variable = " + var;
+        return "LocalVariableInsn" +  _name;
     }
     
     public void toAsm(MethodVisitor mv) { 
-        mv.visitVarInsn(opcode, var);
+        mv.visitLocalVariable(_name, desc, sig, start, end, index);
     }
 }

@@ -73,7 +73,7 @@ public class Substitution {
         for (int i = 0; i < bcmv.insns.size() - match.size(); i++) {
             if (isAMatch(bcmv, i)) {
                 makeReplacements(bcmv, i);
-                System.out.println("Optimization starting at " + bcmv.insns.get(i));
+                //                System.out.println("Optimization starting at " + bcmv.insns.get(i));
             }
         }
     }
