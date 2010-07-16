@@ -86,7 +86,13 @@ public class Inlining {
     }
 
     // We need to convert 
-    public static Insn convertInsn(Insn i, int[] args) {
+    public static List<Insn> convertInsn(Insn i, int[] args) {
+        if (noisy) {
+            System.out.println("convert INSN insn = = " + i);
+            for (int j = 0; j < args.length; j++)
+                System.out.println(" args " + j + " = " + args[j]);
+        }
+        List<Insn> result = new ArrayList<Insn>();
         if (i instanceof SingleInsn) {
             SingleInsn si = (SingleInsn) i;
             switch(si.opcode) {
@@ -95,8 +101,8 @@ public class Inlining {
             case Opcodes.FRETURN:
             case Opcodes.DRETURN:
             case Opcodes.ARETURN:
-            case Opcodes.RETURN: return new SingleInsn("NOP", Opcodes.NOP); 
-            default: return i;
+            case Opcodes.RETURN:  break;
+            default: result.add(i);
             }
         } else if (i instanceof VarInsn) {
             VarInsn vi = (VarInsn) i;
@@ -110,13 +116,17 @@ public class Inlining {
             case Opcodes.LSTORE:
             case Opcodes.FSTORE:
             case Opcodes.DSTORE:
-            case Opcodes.ASTORE: return new VarInsn(vi.name, vi.opcode, args[vi.var]);
-            default: return i;
+            case Opcodes.ASTORE: result.add(new VarInsn(vi.name, vi.opcode, args[vi.var])); break;
+            default: result.add(i);
             }
         } else if (i instanceof VisitMaxs) {
-            return new SingleInsn("NOP", Opcodes.NOP);
+            //     result.add(new SingleInsn("NOP", Opcodes.NOP));
+        } else {
+            result.add(i);
         }
-        return i;
+
+        if (noisy) System.out.println("convert INSN result = " + result);
+        return result;
     }
 
 
@@ -160,18 +170,23 @@ public class Inlining {
 
         insns.add(new LabelInsn("start", start));
         String[] args = new String[methodToInline.args.size()];
-        int[] offsets = new int[methodToInline.args.size()];
+        int[] offsets = new int[methodToInline.maxLocals];
 
         int locals = method.maxLocals;
+        method.maxStack = method.maxStack + methodToInline.maxStack;
 
         for (int i = methodToInline.args.size()-1; i >=0; i--) {
             insns.add(new VarInsn("ASTORE", Opcodes.ASTORE, method.maxLocals));
             offsets[i] = method.maxLocals++;
         }
-                      
+         
+
+        
         for (int i = 0; i < methodToInline.insns.size() - 1; i++) {
-            insns.add(convertInsn(methodToInline.insns.get(i), offsets));
+            insns.addAll(convertInsn(methodToInline.insns.get(i), offsets));
         }
+
+        System.out.println("insns = " + insns);
 
         insns.add(new LabelInsn("end", end));
         for (int i = 0; i < methodToInline.args.size(); i++) {
@@ -196,31 +211,31 @@ public class Inlining {
         int maxLocals = bcmv.maxLocals;
 
         boolean changed = true;
-        //        while (changed == true) {
-        changed = false;
-        for (int i = 0; i < bcmv.insns.size(); i++) {
-            Insn insn = bcmv.insns.get(i);
-            if (insn instanceof MethodInsn) {
-                MethodInsn mi = (MethodInsn) insn;
-                if (isBuiltinInterfaceMethod(bcmv, i)) {
+        while (changed == true) {
+            changed = false;
+            for (int i = 0; i < bcmv.insns.size(); i++) {
+                Insn insn = bcmv.insns.get(i);
+                if (insn instanceof MethodInsn) {
+                    MethodInsn mi = (MethodInsn) insn;
+                    if (isBuiltinInterfaceMethod(bcmv, i)) {
 
-                } else if (isCompilerBuiltin(mi.owner)) {
-                    if (isBuiltinStaticMethod(bcmv, i)) {
-                        ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
-                        ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                              mi.desc); 
-                        if (methodToInline != null) {
-                            inlineInsn(className, bcmv, mi, methodToInline, i);
-                            changed = true;
+                    } else if (isCompilerBuiltin(mi.owner)) {
+                        if (isBuiltinStaticMethod(bcmv, i)) {
+                            ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
+                            ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                                  mi.desc); 
+                            if (methodToInline != null) {
+                                inlineInsn(className, bcmv, mi, methodToInline, i);
+                                changed = true;
+                            }
+                        } else if (isBuiltinInstanceMethod(bcmv, i)) {
                         }
-                    } else if (isBuiltinInstanceMethod(bcmv, i)) {
+                    } else if (isNativeInterface(mi.owner)) {
+
+
                     }
-                } else if (isNativeInterface(mi.owner)) {
-
-
                 }
             }
         }
-        //        }
     }
 }
