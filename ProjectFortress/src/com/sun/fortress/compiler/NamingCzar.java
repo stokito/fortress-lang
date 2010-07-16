@@ -1100,7 +1100,7 @@ public class NamingCzar {
             public String forVarType (VarType t) {
                 //
                 String s = t.getName().getText();
-                s = internalToDesc(s);
+                if (withLSemi) s = internalToDesc(s);
                 return s;
             }
             @Override
