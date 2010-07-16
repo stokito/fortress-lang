@@ -194,7 +194,13 @@ public class AbstractInterpretationContext {
         case Opcodes.IFLT: 
         case Opcodes.IFGE: 
         case Opcodes.IFGT: 
-        case Opcodes.IFLE: popStack(); addNext(i); break;
+        case Opcodes.IFLE: {
+            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
+            popStack();
+            addNext(i);
+            pc = next.intValue();
+            break;
+        }
         case Opcodes.IF_ICMPEQ:
         case Opcodes.IF_ICMPNE:
         case Opcodes.IF_ICMPLT:
@@ -202,15 +208,29 @@ public class AbstractInterpretationContext {
         case Opcodes.IF_ICMPGT:
         case Opcodes.IF_ICMPLE:
         case Opcodes.IF_ACMPEQ:
-        case Opcodes.IF_ACMPNE: NYI(i); break;
+        case Opcodes.IF_ACMPNE: {
+            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
+            popStack();
+            popStack();
+            addNext(i);
+            pc = next.intValue();
+            break;
+        }
         case Opcodes.GOTO: {
             Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
             pc = next.intValue();
             break;
         }
         case Opcodes.JSR: NYI(i); break;
-        case Opcodes.IFNULL: NYI(i); break;
-        case Opcodes.IFNONNULL: NYI(i); break;
+        case Opcodes.IFNULL: 
+        case Opcodes.IFNONNULL:  {
+            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
+            popStack();
+            addNext(i);
+            pc = next.intValue();
+            break;
+        }
+
         default: NYI(i); 
         }
     }
@@ -256,13 +276,13 @@ public class AbstractInterpretationContext {
         case Opcodes.SASTORE: NYI(i); break; 
         case Opcodes.POP: popStack(); break; 
         case Opcodes.POP2: NYI(i); break; 
-        case Opcodes.DUP: Object x = popStack(); pushStack(x); pushStack(x); break;
+        case Opcodes.DUP: Object dup_x = popStack(); pushStack(dup_x); pushStack(dup_x); break;
         case Opcodes.DUP_X1: NYI(i); break; 
         case Opcodes.DUP_X2: NYI(i); break; 
         case Opcodes.DUP2: NYI(i); break; 
         case Opcodes.DUP2_X1: NYI(i); break; 
         case Opcodes.DUP2_X2: NYI(i); break; 
-        case Opcodes.SWAP: NYI(i); break; 
+        case Opcodes.SWAP: Object swap_x = popStack(); Object swap_y = popStack(); pushStack(swap_y); pushStack(swap_x); break;
         case Opcodes.IADD: NYI(i); break; 
         case Opcodes.LADD: NYI(i); break; 
         case Opcodes.FADD: NYI(i); break; 
