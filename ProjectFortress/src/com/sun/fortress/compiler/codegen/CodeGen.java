@@ -307,7 +307,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     /** Factor out method call path so that we do it right
         everywhere we invoke a dotted method of any kind. */
     private void methodCall(IdOrOp method,
-                            TraitType receiverType,
+                            NamedType receiverType,
                             Type domainType, Type rangeType) {       
         String sig = NamingCzar.jvmSignatureFor(domainType, rangeType, thisApi());
         String methodName = method.getText();
@@ -320,10 +320,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         or they could not easily be encoded into AST anyway.
     */
     private void methodCall(String methodName,
-            TraitType receiverType,
+            NamedType receiverType,
             String sig) {
         int opcode;
-        if (ta.typeCons(receiverType).unwrap().ast() instanceof TraitDecl &&
+        // TODO BUG
+        /*
+         * BUG HERE.  When receiverType is a VarType, we are forced to guess
+         * what the receiverType will be.  I think we have an opportunity
+         * to figure this out at template rewriting time.
+         * 
+         * FOR NOW, guess INVOKEINTERFACE.
+         */
+        if (receiverType instanceof VarType || ta.typeCons((TraitType)receiverType).unwrap().ast() instanceof TraitDecl &&
                 !NamingCzar.fortressTypeIsSpecial(receiverType)) {
             opcode = INVOKEINTERFACE;
         } else {
@@ -3599,9 +3607,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         Type receiverType = exprType(obj);
-        if (!(receiverType instanceof TraitType)) {
-            throw sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
-        }
+//        if (!(receiverType instanceof TraitType)) {
+//            throw sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
+//        }
 
         int savedParamCount = paramCount;
         try {
@@ -3681,7 +3689,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 obj.accept(this);
                 // put args on stack
                 evalArg(arg);
-                methodCall(method, (TraitType)receiverType, domain_type, range_type);
+                methodCall(method, (NamedType)receiverType, domain_type, range_type);
             }
         } finally {
             paramCount = savedParamCount;
