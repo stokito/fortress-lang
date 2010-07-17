@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler
 
 import com.sun.fortress.compiler.index.ComponentIndex
-import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{DesugarerUtil => DU}
 import com.sun.fortress.nodes_util.{ExprFactory => EF}

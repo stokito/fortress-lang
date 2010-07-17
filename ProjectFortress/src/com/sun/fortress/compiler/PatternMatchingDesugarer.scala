@@ -17,8 +17,10 @@
 
 package com.sun.fortress.compiler
 
+import _root_.java.util.ArrayList
 import com.sun.fortress.compiler.index.ComponentIndex
-import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{DesugarerUtil => DU}
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
@@ -26,8 +28,10 @@ import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful
 
 /**
@@ -38,6 +42,10 @@ class PatternMatchingDesugarer(component: ComponentIndex,
 
   val typeConses = component.typeConses
   def desugar() = walk(component.ast)
+
+  val errors = new ArrayList[StaticError]()
+  def getErrors() = errors
+  private def signal(hasAt:HasAt, msg:String) = errors.add(TypeError.make(msg,hasAt))
 
   /** Walk the AST, recursively desugaring any patterns. */
   override def walk(node: Any) = node match {
@@ -108,7 +116,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       NF.makeVarDecl(NU.getSpan(param),
                      Useful.list(NF.makeLValue(param.getName, ty, param.getMods)), None)
     case _ =>
-      bug("Trait value parameters should be declared with their types.")
+      signal(param, "Trait value parameters should be declared with their types.")
+      NF.makeVarDecl(NU.getSpan(param), toJavaList(List[LValue]()), None)
   }
 
   def desugarLValue(lv: LValue) = lv match {
@@ -124,7 +133,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val new_lv = SLValue(i, new_name, mods, Some(ty), isMutable)
           val recv = EF.makeVarRef(new_name)
           val left = ps.map(patternBindingToLValue(_, mods))
-          
+
           /* error handling in case that a pattern has an incorrect structure. */
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
@@ -137,7 +146,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                    case Some(ps) => toList(ps).map(_.getName)
                                    case _ => List()
                                  }
-               /* check whether a given pattern is a keyword pattern or not */                
+               /* check whether a given pattern is a keyword pattern or not */
                def isKeywordPattern(pattern : PatternBinding) : Boolean = {
                  toOption(pattern.getField) match {
                    case Some(kw) => !(paramIdlist.contains(kw))
@@ -145,8 +154,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                  }
                }
                if(ps.filter(! isKeywordPattern(_)).size != numParams)
-                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
-            case _ => bug("Type " + ty + " not found.")
+                 signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
+             case _ => signal(ty, "Type " + ty + " not found.")
           }
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
@@ -188,7 +197,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                    case Some(ps) => toList(ps).map(_.getName)
                                    case _ => List()
                                  }
-               /* check whether a given pattern is a keyword pattern or not */                
+               /* check whether a given pattern is a keyword pattern or not */
                def isKeywordPattern(pattern : PatternBinding) : Boolean = {
                  toOption(pattern.getField) match {
                    case Some(kw) => !(paramIdlist.contains(kw))
@@ -196,8 +205,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                  }
                }
                if(ps.filter(! isKeywordPattern(_)).size != numParams)
-                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
-            case _ => bug("Type " + ty + " not found.")
+                 signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
+            case _ => signal(ty, "Type " + ty + " not found.")
           }
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
@@ -241,16 +250,16 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                    case Some(ps) => toList(ps).map(_.getName)
                                    case _ => List()
                                  }
-               /* check whether a given pattern is a keyword pattern or not */                
+               /* check whether a given pattern is a keyword pattern or not */
                def isKeywordPattern(pattern : PatternBinding) : Boolean = {
                  toOption(pattern.getField) match {
                    case Some(kw) => !(paramIdlist.contains(kw))
                    case _ => false
                  }
                }
-               if(ps.filter(! isKeywordPattern(_)).size != numParams)
-                  bug("The number of patterns to bind should be greater than or equal to " + numParams)
-            case _ => bug("Type " + ty + " not found.")
+              if(ps.filter(! isKeywordPattern(_)).size != numParams)
+                   signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
+            case _ => signal(ty, "Type " + ty + " not found.")
           }
           (new_p, param_list, expr_list, (Nil, Nil))
         case None =>
@@ -262,10 +271,10 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val ty_list = tylist.map(Some(_))
           val param_list = (ps zip ty_list).map(patternBindingToParam(_, mods))
           val expr_list = param_list.map(p => EF.makeVarRef(p.getName))
-          val left = (param_list.map(_.getName) zip tylist).map(pair => 
+          val left = (param_list.map(_.getName) zip tylist).map(pair =>
                                                                 NF.makeLValue(pair._1, pair._2, mods))
           val right = List(recv)
-          (new_p, param_list, expr_list, (left, right)) 
+          (new_p, param_list, expr_list, (left, right))
       }
     case _ => (p, Nil, Nil, (Nil, Nil))
    }
@@ -399,17 +408,22 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           val pattern = idType.asInstanceOf[Pattern]
           toOption(pattern.getName) match {
             case Some(ty) => ty
-            case None => bug("A tuple pattern is expected to have types for all elements")
+            case None =>
+              signal(pattern, "A tuple pattern is expected to have types for all elements")
+              NF.makeVoidType(NU.getSpan(pb))
           }
         }
         else idType.asInstanceOf[Type]
       case SPlainPattern(_, _, _, _, None) =>
-        bug("A tuple pattern is expected to have types for all elements")
+        signal(pb, "A tuple pattern is expected to have types for all elements")
+        NF.makeVoidType(NU.getSpan(pb))
       case STypePattern(_, _, typ) => typ
       case SNestedPattern(_, _, pat) =>
         toOption(pat.getName) match {
           case Some(ty) => ty
-          case None => bug("A tuple pattern is expected to have types for all elements")
+          case None =>
+            signal(pb, "A tuple pattern is expected to have types for all elements")
+            NF.makeVoidType(NU.getSpan(pb))
         }
      }
   }
@@ -462,12 +476,15 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           case Some(ps) =>
             EF.makeFieldRef(recv, toList(ps).apply(i).getName)
           case _ =>
-            bug("A trait is expected to have value parameters for patterns.")
+            signal(ty, "A trait is expected to have value parameters for patterns.")
+            EF.makeFieldRef(recv, NF.makeId(NU.getSpan(recv), "_"))
         }
-      case _ => bug("A trait type is expected in a pattern.")
+      case _ =>
+        signal(ty, "A trait type is expected in a pattern.")
+        EF.makeFieldRef(recv, NF.makeId(NU.getSpan(recv), "_"))
     }
   }
-  
+
   /* get a type infomation from a field of a trait or an object */
   def fieldToType(field : Id, ty : Type) = ty match {
     case t:TraitType if typeConses.keySet.contains(t.getName) =>
@@ -478,9 +495,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                        }) ::: toList(header.getDecls).foldRight(Nil.asInstanceOf[List[(String, Option[TypeOrPattern])]])((d, r) => declToIdType(d) ::: r)
       pair_list.find(pair => pair._1 == field.toString) match {
         case Some(pa) => pa._2
-        case _ => bug(field + " : Not defined")
+        case _ =>
+          signal(field, field + " : Not defined")
+          None
       }
-    case _ => bug("A trait type is expected in a pattern.")
+    case _ =>
+      signal(field, "A trait type is expected in a pattern.")
+      Some(ty)
   }
 
   def declToIdType(decl : Decl) = decl match {
