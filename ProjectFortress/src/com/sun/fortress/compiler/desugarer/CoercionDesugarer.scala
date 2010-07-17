@@ -22,12 +22,14 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{ExprFactory => EF}
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
+import com.sun.fortress.useful.Useful
 
 /**
  * Desugars all CoercionInvocation nodes into function applications or
@@ -167,6 +169,10 @@ class CoercionDesugarer extends Walker {
 
     // A fresh Id for the bound name of the typecase.
     val boundVarName = naming.makeId
+    def boundPattern(t: Type) = {
+      val pb = NF.makePlainPattern(span, boundVarName, Modifiers.None, Some(t))
+      NF.makePattern(span, None, NF.makePatternArgs(span, Useful.list(pb)))
+    }
 
     // Create the clauses, one for each constituent type of the union.
     val clauses = (fromTypes, fromCoercions).zipped.map {
@@ -174,17 +180,16 @@ class CoercionDesugarer extends Walker {
       // Subtype, so no coercion.
       case (t, None) =>
         val typedBoundVar = EF.makeVarRef(span, Some(t), boundVarName)
-        STypecaseClause(SSpanInfo(span), List(t), EF.makeBlock(typedBoundVar))
+        STypecaseClause(SSpanInfo(span), None, boundPattern(t), EF.makeBlock(typedBoundVar))
 
       // Coerce the bound variable to this type.
       case (t, Some(c)) =>
         val typedBoundVar = EF.makeVarRef(span, Some(t), boundVarName)
         val coercedVar = desugarCoercion(copyCoercion(c, typedBoundVar))
-        STypecaseClause(SSpanInfo(span), List(t), EF.makeBlock(coercedVar))
+        STypecaseClause(SSpanInfo(span), None, boundPattern(t), EF.makeBlock(coercedVar))
     }
     STypecase(SExprInfo(span, true, Some(toType)),
-              List(boundVarName),
-              Some(e),
+              e,
               clauses,
               None)
   }

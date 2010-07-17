@@ -2408,9 +2408,10 @@ public class NodeFactory {
     }
 
     public static TypecaseClause makeTypecaseClause(Span span,
-                                                    List<Type> matchType,
+                                                    Option<Id> name,
+                                                    TypeOrPattern matchType,
                                                     Block body) {
-        return new TypecaseClause(makeSpanInfo(span), matchType, body);
+        return new TypecaseClause(makeSpanInfo(span), name, matchType, body);
     }
 
     public static Link makeLink(Span span,

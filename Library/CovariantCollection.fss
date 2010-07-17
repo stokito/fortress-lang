@@ -33,12 +33,12 @@ private upward[\R, I extends R, T extends R, A extends T, B extends T\]
 opr APPCOV[\T, A extends T, B extends T\]
           (a: CovariantCollection[\A\], b: CovariantCollection[\B\]):
           CovariantCollection[\T\] =
-    typecase _ = (a,b) of
-        (Empty[\A\], CovariantCollection[\T\]) => b
-        (Empty[\A\], CovariantCollection[\B\]) => upward(Empty[\T\], b)
-        (NonEmpty[\T\], Empty[\B\]) => a
-        (NonEmpty[\A\], Empty[\B\]) => upward(Empty[\T\], a)
-        (NonEmpty[\A\], NonEmpty[\B\]) => Append[\T,A,B\](a,b)
+    typecase (a,b) of
+        (a':Empty[\A\], b':CovariantCollection[\T\]) => b'
+        (a':Empty[\A\], b':CovariantCollection[\B\]) => upward(Empty[\T\], b')
+        (a':NonEmpty[\T\], b':Empty[\B\]) => a'
+        (a':NonEmpty[\A\], b':Empty[\B\]) => upward(Empty[\T\], a')
+        (a':NonEmpty[\A\], b':NonEmpty[\B\]) => Append[\T,A,B\](a',b')
     end
 
 
@@ -48,9 +48,9 @@ opr APPCOV(a: AnyCovColl, b: AnyCovColl): AnyCovColl =
 
 private initArrayFrom[\R, T extends R\]
                  (a: ReadableArray[\R,ZZ32\], i:ZZ32, c:CovariantCollection[\T\]): () =
-    typecase _ = c of
+    typecase c of
         Empty[\T\] => ()
-        Singleton[\T\] => a.init(i,c.x)
+        c':Singleton[\T\] => a.init(i,c'.x)
         else => iaf(a,i,c)
     end
 private iaf[\R, T extends R, A extends T, B extends T\]
@@ -62,9 +62,9 @@ private iaf[\R, T extends R, A extends T, B extends T\]
 
 private assignArrayFrom[\R, T extends R\]
                    (a: Array[\R,ZZ32\], i:ZZ32, c:CovariantCollection[\T\]): () =
-    typecase _ = c of
+    typecase c of
         Empty[\T\] => ()
-        Singleton[\T\] => a[i] := c.x
+        c':Singleton[\T\] => a[i] := c'.x
         else => aaf(a,i,c)
   end
 private aaf[\R, T extends R, A extends T, B extends T\]

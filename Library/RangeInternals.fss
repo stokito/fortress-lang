@@ -515,17 +515,17 @@ end
 trait BoundedScalarRange[\I extends Integral[\I\]\]
         extends { ScalarRange[\I\], BoundedRange[\I\] }
     opr INTERSECTION(self, other: ScalarRange[\I\]): BoundedScalarRange[\I\] =
-        typecase _ = other of
-            BoundedScalarRange[\I\] =>
-                if self.stride < 0 OR other.stride < 0 then
+        typecase other of
+            other':BoundedScalarRange[\I\] =>
+                if self.stride < 0 OR other'.stride < 0 then
                     s = if self.stride < 0 then self.flip() else self end
-                    o = if other.stride < 0 then other.flip() else other end
+                    o = if other'.stride < 0 then other'.flip() else other' end
                     s.forwardIntersection(o).flip()
                 else
-                    self.forwardIntersection(other)
+                    self.forwardIntersection(other')
                 end
-            ExtentScalarRange[\I\] => self.intersectWithExtent(other)
-            OpenScalarRange[\I\] => self.every(other.openEveryParam(self))
+            other':ExtentScalarRange[\I\] => self.intersectWithExtent(other')
+            other':OpenScalarRange[\I\] => self.every(other'.openEveryParam(self))
         end
     intersectWithExtent(e:ExtentScalarRange[\I\]): FullScalarRange[\I\] =
         if e.fromLeft then
@@ -539,8 +539,8 @@ trait BoundedScalarRange[\I extends Integral[\I\]\]
             self.flip().intersectWithExtent(e.flip())
         end
     forwardIntersection(other: BoundedScalarRange[\I\]): BoundedScalarRange[\I\] =
-        typecase _ = other of
-            FullScalarRange[\I\] => other.forwardIntersection(self)
+        typecase other of
+            other':FullScalarRange[\I\] => other'.forwardIntersection(self)
             else =>
                 resultStride = self.stride LCM other.stride
                 self.nonemptyUpwardIntersection(other, resultStride)

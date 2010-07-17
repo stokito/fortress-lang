@@ -17,8 +17,7 @@ tests=Compiled6.bm
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.bm.fss:23:29:\n\
-\ A typecase expression has multiple identifiers\n\
-\ but the binding expression does not have a tuple type.\n\
+${STATIC_TESTS_DIR}/Compiled6.bm.fss:24:7-27:\n\
+\ A typecase clause is unreachable.\n\
 File Compiled6.bm.fss has 1 error.\n
 compile_out_equals=

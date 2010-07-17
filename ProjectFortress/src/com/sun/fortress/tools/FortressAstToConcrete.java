@@ -1388,18 +1388,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override
     public String forTypecaseOnly(Typecase that,
                                   String info,
-                                  List<String> bindIds_result,
-                                  Option<String> bindExpr_result,
+                                  String bindExpr_result,
                                   List<String> clauses_result,
                                   Option<String> elseClause_result) {
         StringBuilder s = new StringBuilder();
 
         s.append("typecase ");
-        s.append(inParentheses(bindIds_result));
-        if (bindExpr_result.isSome()) {
-            s.append(" = ");
-            s.append(bindExpr_result.unwrap());
-        }
+        s.append(bindExpr_result);
         s.append(" of\n");
         increaseIndent();
         s.append(indent(join(clauses_result, "\n")));
@@ -2719,10 +2714,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override
     public String forTypecaseClauseOnly(TypecaseClause that,
                                         String info,
-                                        List<String> match_result,
+                                        Option<String> name,
+                                        String match_result,
                                         String body_result) {
         StringBuilder s = new StringBuilder();
-        s.append(inParentheses(match_result));
+        if (name.isSome()) s.append(name.unwrap()).append(":");
+        s.append(match_result);
         s.append(" => ");
         s.append(body_result);
         return s.toString();

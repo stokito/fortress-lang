@@ -40,8 +40,8 @@ chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do
   end
 
 chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
-  typecase _ = l of
-    List[\ZZ32\] => chkPopZ(l,fro,sz,by)
+  typecase l of
+    l':List[\ZZ32\] => chkPopZ(l',fro,sz,by)
     else =>
       assertStr(sz = 0 AND: |l| = 0," special case for empty comprehension",l)
   end

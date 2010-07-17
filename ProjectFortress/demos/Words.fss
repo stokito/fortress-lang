@@ -67,9 +67,9 @@ processChar(c: String): WordState =
 
 words(s: String) = do
   g = BIG OPLUS[k<-0#s.size] processChar(s[k#1])
-  typecase _ = g of
-    Chunk => maybeWord(g.s)
-    Segment => maybeWord(g.l) || g.A || maybeWord(g.r)
+  typecase g of
+    g':Chunk => maybeWord(g'.s)
+    g':Segment => maybeWord(g'.l) || g'.A || maybeWord(g'.r)
   end
 end
 

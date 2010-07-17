@@ -19,9 +19,8 @@ component typecaseVarTest
 export Executable
 
 run():()=do
-   x = "One Two Three "
-   typecase _ = x of
-      String => println "pass: " x
+   typecase "One Two Three " of
+      x:String => println "pass: " x
       ZZ32 => println "FAIL "
       else => println "FAIL "
    end

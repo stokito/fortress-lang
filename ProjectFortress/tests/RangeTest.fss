@@ -24,7 +24,7 @@ chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
     i = a INTERSECTION b
     (* First cross-check the lattice property!  That tells us what we *should* say. *)
     (ca,cb,cc) = (i CMP a, i CMP b, expect)
-    typecase _ = (ca,cb,cc) of
+    typecase (ca,cb,cc) of
         (EqualTo, LessThan, LessThan) => ()
         (LessThan, EqualTo, GreaterThan) => ()
         (EqualTo, EqualTo, EqualTo) => ()
@@ -37,7 +37,7 @@ chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
     assert(a CMP b, expect, "Comparing ", a, " and ", b)
 
     assert(b CMP a, INVERSE expect, "InvComp ", a, " and ", b)
-    typecase _ = expect of
+    typecase expect of
         LessThan =>
             assert(a < b, "Not <")
             assert(a <= b, "Not <=")

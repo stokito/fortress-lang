@@ -54,9 +54,9 @@ trait Map[\Key,Val\]
         n : Map[\Key,Val\] := self
         notDone : Boolean := true
         while notDone do
-            typecase ni = n of
-                NodeMap[\Key,Val\] =>
-                    typecase _ = k CMP ni.getKey() of
+            typecase n of
+                ni:NodeMap[\Key,Val\] =>
+                    typecase k CMP ni.getKey() of
                         LessThan => n := ni.getLeftChild()
                         EqualTo  => notDone := false
                         else     => n := ni.getRightChild()
@@ -67,15 +67,15 @@ trait Map[\Key,Val\]
         n
       end
     member(x:Key): Maybe[\Val\] =
-        typecase t = mem(x) of
-            NodeMap[\Key,Val\] => Just[\Val\](t.getVal())
+        typecase mem(x) of
+            t:NodeMap[\Key,Val\] => Just[\Val\](t.getVal())
             else => Nothing[\Val\]
         end
     (** The two-argument version of member returns the default value v
         if the key is absent from the map. **)
     member(x:Key, v:Val): Val =
-        typecase t = mem(x) of
-            NodeMap[\Key,Val\] => t.getVal()
+        typecase mem(x) of
+            t:NodeMap[\Key,Val\] => t.getVal()
             else => v
         end
     (** minimum and maximum refer to the key **)
@@ -314,8 +314,8 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
         while notDone do
-            typecase l = t.getLeftChild() of
-                NodeMap[\Key,Val\] => t := l
+            typecase t.getLeftChild() of
+                l:NodeMap[\Key,Val\] => t := l
                 else => notDone := false
             end
         end
@@ -331,8 +331,8 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
         while notDone do
-            typecase r = t.getRightChild() of
-                NodeMap[\Key,Val\] => t := r
+            typecase t.getRightChild() of
+                r:NodeMap[\Key,Val\] => t := r
                 else => notDone := false
             end
         end
@@ -346,28 +346,28 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         end
 
     add(k:Key, v:Val):Map[\Key,Val\] =
-      typecase _ = k CMP key of
+      typecase k CMP key of
           EqualTo  => self
           LessThan => balancedAdd(key,val,left.add(k,v),right)
           else     => balancedAdd(key,val,left,right.add(k,v))
       end
 
     update(k:Key, v:Val):Map[\Key,Val\] =
-      typecase _ = k CMP key of
+      typecase k CMP key of
           EqualTo  => NodeMap[\Key,Val\](k,v, left, right)
           LessThan => NodeMap[\Key,Val\](key, val, left.update(k,v), right)
           else     => NodeMap[\Key,Val\](key, val, left, right.update(k,v))
       end
 
     delete(k:Key):Map[\Key,Val\] =
-      typecase _ = k CMP key of
+      typecase k CMP key of
           LessThan    => balancedAdd(key,val,left.delete(k),right)
           GreaterThan => balancedAdd(key,val,left,right.delete(k))
           else        => left.balancedDelete(right)
       end
 
     updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:Key): Map[\Key,Val\] =
-      typecase _ = k CMP key of
+      typecase k CMP key of
           LessThan    => balancedAdd(key,val, left.updateWith(f,k), right)
           GreaterThan => balancedAdd(key,val, left, right.updateWith(f,k))
           else =>
@@ -396,7 +396,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         left.union(f,newl).concat3(key,val',right.union(f,newr))
       end
     splitAt(k:Key):(Map[\Key,Val\],Maybe[\Val\],Map[\Key,Val\]) =
-        typecase _ = k CMP key of
+        typecase k CMP key of
             LessThan =>
                 (ll, v, rl) = left.splitAt(k)
                 (ll, v, rl.concat3(key,val,right))
@@ -415,7 +415,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         end
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\] = add(k,v)
     concat3(k:Key, v:Val, t2:NodeMap[\Key,Val\]): Map[\Key,Val\] =
-        typecase _ = sz CMP |t2| of
+        typecase sz CMP |t2| of
             LessThan =>
                 balancedAdd(t2.key,t2.val,concat3(k,v,t2.left),t2.right)
             GreaterThan =>

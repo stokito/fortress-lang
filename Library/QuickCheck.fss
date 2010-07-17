@@ -695,7 +695,7 @@ trait DefaultArbitrary extends Arbitrary
     gen0[\T\](arb:Arbitrary): Gen[\T\] = do
         (* Exact match first; see the rationale in `Gen` for details. *)
         f = fn (_:T):T => throw ForbiddenException
-        typecase _ = f of
+        typecase f of
             ()->() => genVoid
             Boolean->Boolean => genBoolean
             ZZ32->ZZ32 => genZZ32
@@ -708,7 +708,7 @@ trait DefaultArbitrary extends Arbitrary
             String->String => genString
             (* Try covariant match then; we require this for every parametric types.
                Note that we still have to match exactly in the individual cases. *)
-            else => typecase _ = fn ():T => throw ForbiddenException of
+            else => typecase fn ():T => throw ForbiddenException of
                 ()->AnyMaybe => __genMatchMaybe(arb, f)
                 ()->AnyList => __genMatchList(arb, f)
                 ()->(Any,Any) => __genMatchTuple2(arb, f)
@@ -817,11 +817,10 @@ Tested(ret:Boolean): TestResult = Tested(TestResult(ret))
     function. **)
 private object Property[\P\](f:P->Any) extends Testable[\P\]
     run(arg:P): TestResult = do
-        ret = f(arg)
-        typecase _ = ret of
-            Boolean => TestResult(ret)
-            Testable[\()\] => ret.run()
-            TestResult => ret
+        typecase f(arg) of
+            ret:Boolean => TestResult(ret)
+            ret:Testable[\()\] => ret.run()
+            ret:TestResult => ret
         end
     end
 end

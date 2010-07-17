@@ -25,9 +25,9 @@
   run():() = ()
 
   quux(obj: A):() = typecase obj of
-    B => do
-      obj.foo()
-      obj.bar()
+    obj':B => do
+      obj'.foo()
+      obj'.bar()
     end
     else => ()
   end

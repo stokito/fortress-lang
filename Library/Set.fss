@@ -229,7 +229,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         lside'
       end
     indexOfI(i:ZZ32, e:E): Maybe[\ZZ32\] =
-        typecase _ = e CMP val of
+        typecase e CMP val of
             LessThan => left.indexOfI(i,e)
             EqualTo => Just[\ZZ32\](i + |left|)
             GreaterThan => right.indexOfI(i + |left| + 1,e)
@@ -257,7 +257,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
        "(" left.showTree() " " val " " right.showTree() ")"
 
     opr IN(z:E, self):Boolean =
-        typecase _ = z CMP val of
+        typecase z CMP val of
             LessThan => z IN left
             EqualTo => true
             GreaterThan => z IN right
@@ -288,8 +288,8 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         t : NodeSet[\E\] := self
         while notDone do
             l = t.getLeftChild()
-            typecase _ = l of
-                NodeSet[\E\] => t := l
+            typecase l of
+                l':NodeSet[\E\] => t := l'
                 else => notDone := false
             end
         end
@@ -301,8 +301,8 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         t : NodeSet[\E\] := self
         while notDone do
             l = t.getRightChild()
-            typecase _ = l of
-                NodeSet[\E\] => t := l
+            typecase l of
+                l':NodeSet[\E\] => t := l'
                 else => notDone := false
             end
         end
@@ -374,7 +374,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         elif other.isEmpty then GreaterThan
         else
             (l,m,r) = other.splitAt(val)
-            typecase _ = left SETCMP l of
+            typecase left SETCMP l of
                 Unordered => Unordered
                 LessThan =>
                     if m AND: right SUBSETEQ r then
