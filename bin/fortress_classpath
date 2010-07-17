@@ -28,7 +28,8 @@ else
   SEP=":"
 fi
 TP="$FORTRESS_HOME/ProjectFortress/third_party"
-SV=2.8.0.r21304
+SV=2.8.0
+# SV=2.8.0.r21304
 # SV=2.8.0.r21209
 # SV=2.8.0.RC1
 
