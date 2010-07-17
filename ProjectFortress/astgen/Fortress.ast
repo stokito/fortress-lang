@@ -599,19 +599,16 @@ interface Node() extends HasAt;
                           List<KeywordExpr> keywords, boolean inApp);
                 /**
                  * typecase expression
-                 * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
+                 * DelimitedExpr ::= typecase Expr of TypecaseClauses
                  *                     CaseElse? end
-                 * TypecaseBindings ::= TypecaseVars (= Expr)?
-                 * TypecaseVars ::= BindId
-                 *              |   ( BindId(, BindId)+ )
-                 * e.g.) typecase x = myLoser .myField of
-                 *         String => x.append("foo")
+                 * e.g.) typecase myLoser.myField of
+                 *         x:String => x.append("foo")
                  *         Number => x + 3
                  *         Object => yogiBerraAutograph
                  *       end
                  * Names in bind must be unqualified.
                  */
-                Typecase(List<Id> bindIds, Option<Expr> bindExpr,
+                Typecase(Expr bindExpr,
                          List<TypecaseClause> clauses,
                          Option<Block> elseClause);
                 /**
@@ -1654,12 +1651,10 @@ interface Node() extends HasAt;
             IfClause(GeneratorClause testClause, Block body);
             /**
              * typecase clause used in typecase expressions
-             * TypecaseClause ::= TypecaseTypes => BlockElems
-             * TypecaseTypes ::= ( TypeList )
-             *                 | Type
-             * e.g.) String => x.append("foo")
+             * TypecaseClause ::= (Id : )? TypeOrPattern => BlockElems
+             * e.g.) x:String => x.append("foo")
              */
-            TypecaseClause(List<Type> matchType, Block body);
+            TypecaseClause(Option<Id> name, TypeOrPattern matchType, Block body);
             /**
              * array and matrix size
              * ExtentRange ::= StaticArg? # StaticArg?

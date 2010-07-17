@@ -37,13 +37,13 @@ export FortressLibrary
 (** Casting *)
 
 cast[\T extends Any\](x:Any):T =
-  typecase _ = x of
-    T => x
+  typecase x of
+    x':T => x'
     else => throw CastError
   end
 
 instanceOf[\T extends Any\](x:Any):Boolean =
-  typecase _ = x of
+  typecase x of
     T => true
     else => false
   end
@@ -480,7 +480,7 @@ simplestRationalBetween(a:QQ, b:QQ): QQ = label done
     n1 : ZZ := numerator(b)
     d1 : ZZ := denominator(b)
     neg : Boolean := false
-    typecase _ = a CMP b of
+    typecase a CMP b of
         Unordered => exit done with 0/0
         EqualTo => a
         GreaterThan =>
@@ -913,9 +913,9 @@ trait Contains[\T\]
         match clause is a %Contains[\T\]%.  We must choose either %=%, %SEQV%, or
         %IN% as appropriate, depending on the type of the LHS. **)
     opr MATCH(x:Any, self): Boolean =
-        typecase _ = x of
-            T => (x IN self)
-            Contains[\T\] => (x = self)
+        typecase x of
+            x':T => (x' IN self)
+            x':Contains[\T\] => (x' = self)
             else => fail("Type error in MATCH of Contains")
         end
 end
@@ -1090,9 +1090,9 @@ __whileCond[\E\](c:Condition[\E\], b:E->()): () =
     we should *not* create an intermediate collection if we're passed
     a collection. **)
 __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
-    typecase _ = g of
-        SomeMappedGenerator[\E\] => g.map[\R\](f)
-        SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g,f)
+    typecase g of
+        g':SomeMappedGenerator[\E\] => g'.map[\R\](f)
+        g':SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g',f)
         else => SimpleMappedGenerator[\E,R\](g,f)
     end
 
@@ -1103,10 +1103,10 @@ __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
     perform the filtering lazily on demand. **)
 __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
 do
-    typecase _ = g of
-        SomeGenerator2 => g.filter(p)
-        FilterGenerator[\E\] => g.filter(p)
-        SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g,p)
+    typecase g of
+        g':SomeGenerator2 => g'.filter(p)
+        g':FilterGenerator[\E\] => g'.filter(p)
+        g':SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g',p)
         else => SimpleFilterGenerator[\E\](g,p)
     end
 end
@@ -1155,13 +1155,13 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
     o = outer.reduction
     i = inner.reduction
     resolvedouterBody=__resolveBottomArgumentType[\O1, I0, R0\](outer.body)
-    typecase _ = (gg,outer,inner) of
-        (Generator2[\E\],BigOperator[\I0,I0,I0,L0\],BigOperator[\I1,I0,I0,L1\]) =>
+    typecase (gg,outer,inner) of
+        (gg':Generator2[\E\],outer':BigOperator[\I0,I0,I0,L0\],inner':BigOperator[\I1,I0,I0,L1\]) =>
         (* Assumes that outer.body COMPOSE inner.unwrap is id
          * Often the assumption is satisfied,
          * but some types are necesary to guarantee it.
          *)
-        (outer.unwrap)(gg.generate2[\I0,L0,L1\](o, i, fn x => (inner.body)(innerBody(x))))
+        (outer'.unwrap)(gg'.generate2[\I0,L0,L1\](o, i, fn x => (inner'.body)(innerBody(x))))
         else =>
           ((outer.unwrap)(o.unlift(
             gg.generate[\L0\](o,fn (xs) =>
@@ -1174,7 +1174,7 @@ __bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
  *
  *)
 __resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 =
-typecase _ = f of O1 -> R0 => fn (x:O1) : R0  => f(x)
+typecase f of f':O1 -> R0 => fn (x:O1) : R0  => f'(x)
 else => throw CastError
 end
 
@@ -1186,16 +1186,16 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
         SimpleMappedSeqGenerator[\E,G\](self,f)
     (* TODO: make overloaded *)
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
-        typecase _ = f of
-            E -> SequentialGenerator[\G\] =>
-                SimpleNestedSeqGenerator[\E,G\](self,f)
+        typecase f of
+            f':E -> SequentialGenerator[\G\] =>
+                SimpleNestedSeqGenerator[\E,G\](self,f')
             else => SimpleNestedGenerator[\E,G\](self,f)
         end
     (* TODO: make overloaded *)
     cross[\F\](g:Generator[\F\]): Generator[\(E,F)\] =
-        typecase _ = g of
-            SequentialGenerator[\F\] =>
-                    SimplePairSeqGenerator[\E,F\](self,g)
+        typecase g of
+            g':SequentialGenerator[\F\] =>
+                    SimplePairSeqGenerator[\E,F\](self,g')
             else => SimplePairGenerator[\E,F\](self,g)
         end
 end SequentialGenerator
@@ -1865,9 +1865,9 @@ trait ReadableArray[\E,I\]
     replica[\U\]():ReadableArray[\U,I\]
 
     opr =(self, other:HasRank): Boolean =
-        typecase _ = other of
-            ReadableArray[\E,I\] => self.indices.generate[\Boolean\](AndReduction,
-                                           fn (i:I):Boolean => (self[i]=other[i]))
+        typecase other of
+            other':ReadableArray[\E,I\] => self.indices.generate[\Boolean\](AndReduction,
+                                           fn (i:I):Boolean => (self[i]=other'[i]))
             else => false
         end
 
@@ -2223,7 +2223,7 @@ end
    K-dimensional array types. *)
 __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
     r = array1[\T,s0\]()
-    typecase _ = N[\b0\] of
+    typecase N[\b0\] of
         N[\0\] => r
         else => r.subarray[\b0,s0,0\](1)
     end
@@ -2234,7 +2234,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
    is used to allocate storage for varargs. *)
 __immutableFactory1[\T, nat b0, nat s0\]():ReadableArray1[\T,b0,s0\] = do
     r = immutableArray1[\T,s0\]()
-    typecase _ = N[\b0\] of
+    typecase N[\b0\] of
         N[\0\] => r
         else => r.subarray[\b0,s0,0\](1)
     end
@@ -2244,7 +2244,7 @@ __thrower[\T\](): T = throw ForbiddenException
 
 (* TODO: fix when Number is covariant. *)
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
-    typecase _ = __thrower[\T\] of
+    typecase __thrower[\T\] of
         () -> Number => vector[\T,s0\]()
         else => PrimitiveArray[\T,s0\]()
     end
@@ -2603,7 +2603,7 @@ __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
 (* array2 is a factory for 0-based 2-D arrays. *)
 (* TODO: fix when Number is covariant. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-    typecase _ = __thrower[\T\] of
+    typecase __thrower[\T\] of
         ()->Number => matrix[\T,s0,s1\]()
         else => __DefaultArray2[\T,0,s0,0,s1\]()
     end
@@ -3406,9 +3406,9 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
     getter asString() = self.g ".nest(f)"
     seq(self): SequentialGenerator[\E\] = do
         ff = self.f
-        typecase _ = ff of
-            (E -> SequentialGenerator[\F\]) =>
-                SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff)
+        typecase ff of
+            ff':(E -> SequentialGenerator[\F\]) =>
+                SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff')
             else =>
                 SimpleNestedSeqGenerator[\E,F\](seq(self.g),
                      fn (e:E): SequentialGenerator[\F\] => seq(ff(e)))
@@ -3659,7 +3659,7 @@ trait LeftRange[\I\] extends { RangeWithLeft[\I\], PartialRange[\I\] }
     opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
         if l <- other.left then
             sl = self.left.get
-            typecase _ = sl PCMP l of
+            typecase sl PCMP l of
                 Unordered => Unordered
                 LessThan => GreaterThan
                 EqualTo => if other.right.holds then GreaterThan else EqualTo end
@@ -3684,7 +3684,7 @@ trait RightRange[\I\] extends { RangeWithRight[\I\], PartialRange[\I\] }
     opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
         if r <- other.right then
             sr = self.right.get
-            typecase _ = sr PCMP r of
+            typecase sr PCMP r of
                 Unordered => Unordered
                 LessThan => if other.left.holds then Unordered else LessThan end
                 EqualTo => if other.left.holds then GreaterThan else EqualTo end
@@ -3702,8 +3702,8 @@ trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWit
     narrowToRange(other:OpenRange[\I\]): FullRange[\I\] = self INTERSECTION other
     narrowToRange(other:Range[\I\]): FullRange[\I\] = do
         r = self INTERSECTION other
-        typecase _ = r of
-            FullRange[\I\] => checkSelection[\FullRange[\I\], I\](self, other, r)
+        typecase r of
+            r':FullRange[\I\] => checkSelection[\FullRange[\I\], I\](self, other, r')
             else => fail("Library error: FullRange INTERSECTION didn't yield FullRange")
         end
     end
@@ -3718,10 +3718,10 @@ trait CompactFullRange[\I\] extends FullRange[\I\]
     getter upper(): I = self.right.get
     opr |self| : ZZ32 = do
       (l, u) = (self.lower, self.upper)
-      typecase _ = l of
-        ZZ32 => 0 MAX ((u - l) + 1)
-        (ZZ32, ZZ32) => do (l1, l2) = l; (u1, u2) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) end
-        (ZZ32, ZZ32, ZZ32) => do (l1, l2, l3) = l; (u1, u2, u3) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) (0 MAX ((u3 - l3) + 1)) end
+      typecase l of
+        l':ZZ32 => 0 MAX ((u - l') + 1)
+        l':(ZZ32, ZZ32) => do (l1, l2) = l'; (u1, u2) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) end
+        l':(ZZ32, ZZ32, ZZ32) => do (l1, l2, l3) = l'; (u1, u2, u3) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) (0 MAX ((u3 - l3) + 1)) end
       end
     end
     forward(): CompactFullRange[\I\] = self
@@ -4170,7 +4170,7 @@ opr =[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
 opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    typecase _ = a1 CMP a2 of
+    typecase a1 CMP a2 of
         LessThan => true
         EqualTo => b1 < b2
         GreaterThan => false
@@ -4180,7 +4180,7 @@ opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
 opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    typecase _ = a1 CMP a2 of
+    typecase a1 CMP a2 of
         LessThan => true
         EqualTo => b1 <= b2
         GreaterThan => false
@@ -4190,7 +4190,7 @@ opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
 opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    typecase _ = a1 CMP a2 of
+    typecase a1 CMP a2 of
         LessThan => false
         EqualTo => b1 > b2
         GreaterThan => true
@@ -4200,7 +4200,7 @@ opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
 opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
-    typecase _ = a1 CMP a2 of
+    typecase a1 CMP a2 of
         LessThan => false
         EqualTo => b1 >= b2
         GreaterThan => true
@@ -4222,7 +4222,7 @@ opr =[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
 opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
         LessThan => true
         EqualTo => c1 < c2
         GreaterThan => false
@@ -4232,7 +4232,7 @@ opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
 opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
         LessThan => true
         EqualTo => c1 <= c2
         GreaterThan => false
@@ -4242,7 +4242,7 @@ opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
 opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
         LessThan => false
         EqualTo => c1 > c2
         GreaterThan => true
@@ -4252,7 +4252,7 @@ opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
 opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
     (a1,b1,c1) = t1
     (a2,b2,c2) = t2
-    typecase _ = (a1 CMP a2) LEXICO: (b1 CMP b2) of
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
         LessThan => false
         EqualTo => c1 >= c2
         GreaterThan => true

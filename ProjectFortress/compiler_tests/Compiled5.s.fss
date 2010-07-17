@@ -18,7 +18,7 @@
 component Compiled5.s
 export Executable
 
-run(): () = typecase (x, y) = (1, 2, 3) of
+run(): () = typecase (1, 2, 3) of
   (String, ZZ32) => println "Fail"
   (ZZ32, String) => println "OK"
   else => println "Fail"

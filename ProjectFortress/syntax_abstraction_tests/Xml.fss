@@ -37,8 +37,8 @@ component Xml
         end
         var s:String = "<" info.startTag (BIG || [x<-info.attributes] x) ">"
         for x <- seq(content_) do
-          s := s (typecase _ = x of
-                   Element => // x.toXml()
+          s := s (typecase x of
+                   x':Element => // x'.toXml()
                    else => x.asString
                   end)
         end
@@ -56,7 +56,7 @@ component Xml
     *)
 
     isElement(e):Boolean =
-        typecase _ = e of
+        typecase e of
             Element => true
             else => false
         end

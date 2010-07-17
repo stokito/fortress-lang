@@ -595,23 +595,45 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       /**
        * Typecase can bind new variables in the clauses.
        */
-      case STypecase(info, bindIds, bindExpr, clauses, elseClause) =>
+      case STypecase(info, bindExpr, clauses, elseClause) =>
         val old_env = env
-        val new_expr = bindExpr match {
-          case Some(expr) => Some(walk(expr).asInstanceOf[Expr])
-          case None => None
-        }
-        bindExpr match {
-          case Some(_) => extendWithVars(listToSet(bindIds))
-          case None => extendWithVarsNoCheck(listToSet(bindIds))
-        }
+        val new_expr = walk(bindExpr).asInstanceOf[Expr]
         val new_else = elseClause match {
           case Some(block) => Some(walk(block).asInstanceOf[Block])
           case None => None
         }
-        val result = STypecase(info, bindIds, new_expr,
+        val result = STypecase(info, new_expr,
                                walk(clauses).asInstanceOf[List[TypecaseClause]],
                                new_else)
+        env = old_env
+        result
+
+      case STypecaseClause(info, nameOpt, matchType, body) =>
+        val old_env = env
+        if (nameOpt.isDefined) extendWithVars(Set(nameOpt.get))
+
+        def extendWithPattern(tp : TypeOrPattern) : Unit = {
+          def extendWithId(pb : PatternBinding) = pb match {
+            case SPlainPattern(_, _, name, _, Some(idType)) =>
+              extendWithVars(Set(name))
+              extendWithPattern(idType)
+            case SPlainPattern(_, _, name, _, None) =>
+              extendWithVars(Set(name))
+            case t:TypePattern => ()
+            case SNestedPattern(_, _, pat) =>
+              extendWithPattern(pat)
+          }
+          if(tp.isInstanceOf[Pattern]){
+            val pattern = tp.asInstanceOf[Pattern]
+            val ps = toList(pattern.getPatterns.getPatterns)
+            ps.map(extendWithId)
+          }
+          else ()
+        }
+
+        extendWithPattern(matchType)
+        val new_body = walk(body).asInstanceOf[Block]
+        val result = STypecaseClause(info, nameOpt, matchType, new_body)
         env = old_env
         result
 

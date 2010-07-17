@@ -86,14 +86,14 @@ distributes2(q, r) : Boolean = r.distribute(q).holds
 
 (* checking relational predicates *)
 relational[\E\](p : Generator[\E\] -> Condition[\()\]) : Boolean =
-  typecase _ = p of
+  typecase p of
     (Generator[\E\] -> RelationalPredicateCondition[\E\]) => true
     else => false
   end
 
 (* checking commutativity *)
 commutative[\R\](r : R) : Boolean =
-  typecase _ = r of
+  typecase r of
     (SomeCommutativeReduction) => true
     else => false
   end
@@ -118,12 +118,12 @@ end
 (* actual generation of prefixes *)
 initsImpl[\ E \]( x : Generator[\ E \]) : Generator[\ Generator[\ E \] \] = do
 (*   <| <| x[i] | i <- (0#s) |> | s <- (1#(|x|)) |> *)
-  typecase _ = x of
-  Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
-    bs = x.bounds
+  typecase x of
+  x':Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
+    bs = x'.bounds
     u = bs.upper
     l = bs.lower
-    x.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x[l:i])
+    x'.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x'[l:i])
     end
   else => (* uses List for intemediate structure (reduction with Lists) *)
     initsImplByList[\ E \](x)
@@ -212,8 +212,8 @@ object Inits[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
       (i1,s1,h1,l1) = x
       (i2,s2,h2,l2) = y
 
-      px = typecase _ = (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
+      px = typecase (l1,h2) of
+      (l1':Just[\E\], h2':Just[\E\]) => rel(l1'.get, h2'.get)
       else => true
       end
       if px then
@@ -254,12 +254,12 @@ end
 
 (* actual generation of suffixes *)
 tailsImpl[\ E \]( x : Generator[\ E \]) : Generator[\ Generator[\ E \] \] = do
-  typecase _ = x of
-  Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
-    bs = x.bounds
+  typecase x of
+  x':Indexed[\E, ZZ32\] => do (* respects the underlying structure *)
+    bs = x'.bounds
     u = bs.upper
     l = bs.lower
-    x.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x[i:u])
+    x'.ivmap[\ Generator[\ E \] \](fn (i : ZZ32, _ : E) => x'[i:u])
     end
   else => (* uses List for intemediate structure (reduction with Lists) *)
     tailsImplByList[\ E \](x)
@@ -342,8 +342,8 @@ object Tails[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
       (t1,s1,h1,l1) = x
       (t2,s2,h2,l2) = y
 
-      px = typecase _ = (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
+      px = typecase (l1,h2) of
+      (l1':Just[\E\], h2':Just[\E\]) => rel(l1'.get, h2'.get)
       else => true
       end
       if px then
@@ -463,8 +463,8 @@ object Segs[\ E \](g : Generator[\ E \]) extends Generator2[\ E \]
       (m1,t1,i1,s1,h1,l1) = x
       (m2,t2,i2,s2,h2,l2) = y
 
-      px = typecase _ = (l1,h2) of
-      (Just[\E\], Just[\E\]) => rel(l1.get, h2.get)
+      px = typecase (l1,h2) of
+      (l1':Just[\E\], h2':Just[\E\]) => rel(l1'.get, h2'.get)
       else => true
       end
       if px then

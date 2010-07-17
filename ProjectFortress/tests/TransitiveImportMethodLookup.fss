@@ -25,8 +25,7 @@ export Executable
         println ch
     end
 
-    ch="Hell"
-    typecase _ = ch of
+    typecase "Hell" of
         Generator[\Char\] => println "Generator[[Char]]"
         else => println "Something else"
     end

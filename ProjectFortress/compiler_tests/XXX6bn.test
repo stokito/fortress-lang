@@ -17,7 +17,7 @@ tests=Compiled6.bn
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.bn.fss:24:7-26:6:\n\
-\ A typecase expression has a different number of cases in a clause.\n\
+${STATIC_TESTS_DIR}/Compiled6.bn.fss:24:7-27:\n\
+\ A typecase clause is unreachable.\n\
 File Compiled6.bn.fss has 1 error.\n
 compile_out_equals=

@@ -19,8 +19,7 @@ component typecaseBlockTest
 export Executable
 
 run():()=do
-   x = "One Two Three "
-   typecase _ = x of
+   typecase "One Two Three " of
       String => y = "block test"
                 print("pass: " y)
       ZZ32 => print("FAIL ")

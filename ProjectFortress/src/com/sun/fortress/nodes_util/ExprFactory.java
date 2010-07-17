@@ -890,22 +890,21 @@ public class ExprFactory {
      * @param expr
      * @return
      */
-    public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
+    public static Typecase makeTypecase(Typecase tc, Expr expr) {
         return makeTypecase(NodeUtil.getSpan(tc), NodeUtil.isParenthesized(tc),
                             NodeUtil.getExprType(tc),
-                            lid, Option.wrap(expr), tc.getClauses(),
+                            expr, tc.getClauses(),
                             tc.getElseClause());
     }
 
     public static Typecase makeTypecase(Span span,
                                         boolean parenthesized,
                                         Option<Type> ty,
-                                        List<Id> bindIds,
-                                        Option<Expr> bindExpr,
+                                        Expr bindExpr,
                                         List<TypecaseClause> clauses,
                                         Option<Block> elseClause) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
-        return new Typecase(info, bindIds, bindExpr, clauses, elseClause);
+        return new Typecase(info, bindExpr, clauses, elseClause);
     }
 
     public static TupleExpr makeTupleExpr(Span span, List<Expr> exprs) {
@@ -1742,7 +1741,7 @@ public class ExprFactory {
                                  e.isInApp());
         }
         public Expr forTypecase(Typecase e) {
-            return makeTypecase(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e), e.getBindIds(),
+            return makeTypecase(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),
                                 e.getBindExpr(), e.getClauses(),
                                 e.getElseClause());
         }

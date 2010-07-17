@@ -33,7 +33,7 @@ run() = do
   println foo
   println bar
   yelp(x: Number) =
-    typecase _ = x of
+    typecase x of
       IntLiteral => println "IntLiteral"
       BigNum => println "BigNum"
       ZZ32 => println "ZZ32"

@@ -20,9 +20,8 @@ component ImplicitBlocks
 export Executable
 
 run():()= do
-    x = "test"
-    typecase _ = x of
-      String => row(i: ZZ32):() = "PASS"
+    typecase "test" of
+      x:String => row(i: ZZ32):() = "PASS"
                 println(x ": String (" row(17) ")")
       else => println("FAIL")
     end

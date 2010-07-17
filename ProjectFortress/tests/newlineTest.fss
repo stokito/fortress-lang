@@ -20,8 +20,7 @@ component newlineTest
 export Executable
 
 run() : () = do
-    (a, b) = (1, 2.0)
-    x = typecase _ = (a,b) of
+    x = typecase (1, 2.0) of
     (Number, Number) => true
     (ZZ32, RR64) => false ; (RR64, ZZ32) => true
     end

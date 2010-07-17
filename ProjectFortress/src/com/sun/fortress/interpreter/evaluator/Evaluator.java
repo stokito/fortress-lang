@@ -493,110 +493,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public List<FType> evalTypeCaseBinding(Evaluator ev, Typecase x) {
-        List<Id> bindIds = x.getBindIds();
-        Option<Expr> exprOpt = x.getBindExpr();
-        Expr expr;
-        List<FType> res = new ArrayList<FType>();
-
-        if (exprOpt.isNone()) {
-            // HACK/BUG: Looks like problem looking up bind ID within an object context
-            // This might always be wrong, if we ever execute this.
-            // The missing lexical depth information is the problem.
-            for (Id id : bindIds) {
-                FValue val = ExprFactory.makeVarRef(id).accept(ev);
-                /* Avoid shadow error when we bind the same var name */
-                ev.e.putValueRaw(id.getText(), val);
-                res.add(val.type());
-            }
-            throw new Error("maybe this is never executed");
-        } else { // exprOpt.isSome()
-            expr = exprOpt.unwrap();
-            if (bindIds.size() == 1) {
-                FValue val = expr.accept(ev);
-                String name = bindIds.get(0).getText();
-                if (isShadow(expr, name)) {
-                    /* Avoid shadow error when we bind the same var name */
-                    ev.e.putValueRaw(name, val);
-                } else {
-                    /* But warn about shadowing in all other cases */
-                    ev.e.putValue(name, val);
-                }
-                res.add(val.type());
-            } else { // bindIds.size() > 1
-                List<Pair<FValue, Option<String>>> vals = new ArrayList<Pair<FValue, Option<String>>>();
-                if (expr instanceof TupleExpr) {
-                    for (Expr e : ((TupleExpr) expr).getExprs()) {
-                        vals.add(new Pair<FValue, Option<String>>(e.accept(ev), getName(e)));
-                    }
-                } else { // !(expr instanceof TupleExpr)
-                    FValue val = expr.accept(ev);
-                    if (!(val instanceof FTuple)) {
-                        error(expr, "RHS does not yield a tuple.");
-                    }
-                    for (FValue v : ((FTuple) val).getVals()) {
-                        vals.add(new Pair<FValue, Option<String>>(v, Option.<String>none()));
-                    }
-                }
-                int index = 0;
-                for (Id id : bindIds) {
-                    String name = id.getText();
-                    Pair<FValue, Option<String>> pair = vals.get(index);
-                    FValue val = pair.getA();
-                    if (isShadow(pair.getB(), name)) {
-                        /* Avoid shadow error when we bind the same var name */
-                        ev.e.putValueRaw(name, val);
-                    } else {
-                        /* But warn about shadowing in all other cases */
-                        ev.e.putValue(name, val);
-                    }
-                    res.add(val.type());
-                    index++;
-                }
-            }
-        }
-        return res;
-    }
-
-    private boolean moreSpecificHelper(TypecaseClause candidate, TypecaseClause current, Evaluator ev) {
-        List<Type> candType = candidate.getMatchType();
-        List<Type> curType = current.getMatchType();
-        List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
-        List<FType> curMatch = EvalType.getFTypeListFromList(curType, ev.e);
-        boolean res = FTypeTuple.moreSpecificThan(candMatch, curMatch);
-        return res;
-    }
-
-    // This takes a candidate type clause and list of the best matches so far.
-    // It walks down the list comparing the candidate with each match. The
-    // winner
-    // gets added to the result list. If the candidate beats more than one of
-    // the
-    // best matches so far, it should only get added to the result list once.
-
-    public List<TypecaseClause> bestMatches(TypecaseClause candidate, List<TypecaseClause> bestSoFar, Evaluator ev) {
-        List<TypecaseClause> result = new ArrayList<TypecaseClause>();
-        boolean addedCandidate = false;
-
-        for (TypecaseClause current : bestSoFar) {
-            if (moreSpecificHelper(candidate, current, ev)) {
-                if (!addedCandidate) {
-                    result.add(candidate);
-                    addedCandidate = true;
-                }
-            } else if (moreSpecificHelper(current, candidate, ev)) {
-                result.add(current);
-            } else {
-                result.add(current);
-                if (!addedCandidate) {
-                    result.add(candidate);
-                    addedCandidate = true;
-                }
-            }
-        }
-        return result;
-    }
-
     public FValue forAPIName(APIName x) {
         String result = "";
         for (Iterator<Id> i = x.getIds().iterator(); i.hasNext();) {
@@ -1452,20 +1348,90 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
+    private List<Id> collectIds(TypeOrPattern t) {
+        List<Id> ids = new ArrayList<Id>();
+        if (t instanceof Pattern) {
+            for (PatternBinding pb : ((Pattern)t).getPatterns().getPatterns()) {
+                if (pb instanceof PlainPattern) {
+                    PlainPattern that = (PlainPattern)pb;
+                    ids.add(that.getName());
+                    if (that.getIdType().isSome())
+                        ids.addAll(collectIds(that.getIdType().unwrap()));
+                } else if (pb instanceof NestedPattern) {
+                    ids.addAll(collectIds(((NestedPattern)pb).getPat()));
+                }
+            }
+        }
+        return ids;
+    }
+
+    private Type getType(TypeOrPattern t) {
+        if (t instanceof Type) return (Type)t;
+        else {
+            Pattern p = (Pattern)t;
+            if (p.getName().isSome()) return p.getName().unwrap();
+            else {
+                List<Type> types = new ArrayList<Type>();
+                for (PatternBinding pb : p.getPatterns().getPatterns()) {
+                    if (pb instanceof PlainPattern &&
+                        ((PlainPattern)pb).getIdType().isSome()) {
+                        types.add(getType(((PlainPattern)pb).getIdType().unwrap()));
+                    } else if (pb instanceof TypePattern) {
+                        types.add(((TypePattern)pb).getTyp());
+                    } else return error("typecase match failure!");
+                }
+                return NodeFactory.makeTupleType(types);
+            }
+        }
+    }
+
     public FValue forTypecase(Typecase x) {
         Evaluator ev = new Evaluator(this, x);
-        List<FType> res = evalTypeCaseBinding(ev, x);
+        Expr expr = x.getBindExpr();
+        FValue val = expr.accept(ev);
+        FType resTy = val.type();
         FValue result = FVoid.V;
-        List<TypecaseClause> clauses = x.getClauses();
-        FType resTuple = FTypeTuple.make(res);
 
-        for (TypecaseClause c : clauses) {
-            List<Type> match = c.getMatchType();
+        for (TypecaseClause c : x.getClauses()) {
+            TypeOrPattern match = c.getMatchType();
+            Type typ = getType(match);
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
-            FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
-
-            if (resTuple.subtypeOf(matchTuple)) {
+            FType matchTy = EvalType.getFType(typ, ev.e);
+            List<Id> ids = collectIds(match);
+            if (resTy.subtypeOf(matchTy)) {
+                if (c.getName().isSome() || ids.size() == 1) {
+                    String name;
+                    if (c.getName().isSome()) name = c.getName().unwrap().getText();
+                    else name = ids.get(0).getText();
+                    if (isShadow(expr, name))
+                        /* Avoid shadow error when we bind the same var name */
+                        ev.e.putValueRaw(name, val);
+                    else
+                        /* But warn about shadowing in all other cases */
+                        ev.e.putValue(name, val);
+                } else {
+                    List<Pair<FValue, Option<String>>> vals = new ArrayList<Pair<FValue, Option<String>>>();
+                    if (val instanceof FTuple) {
+                        for (FValue v : ((FTuple) val).getVals()) {
+                            vals.add(new Pair<FValue, Option<String>>(v, Option.<String>none()));
+                        }
+                        int index = 0;
+                        for (Id id : ids) {
+                            String name = id.getText();
+                            Pair<FValue, Option<String>> pair = vals.get(index);
+                            FValue v = pair.getA();
+                            if (isShadow(pair.getB(), name)) {
+                                /* Avoid shadow error when we bind the same var name */
+                                ev.e.putValueRaw(name, v);
+                            } else {
+                                /* But warn about shadowing in all other cases */
+                                ev.e.putValue(name, v);
+                            }
+                            index++;
+                        }
+                    }
+                }
                 Block body = c.getBody();
                 result = ev.evalExprList(body.getExprs(), body);
                 return result;
@@ -1479,7 +1445,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return result;
         } else {
             // throw new MatchFailure();
-            return error(x, e, errorMsg("typecase match failure given ", resTuple));
+            return error(x, e, errorMsg("typecase match failure given ", resTy));
         }
     }
 

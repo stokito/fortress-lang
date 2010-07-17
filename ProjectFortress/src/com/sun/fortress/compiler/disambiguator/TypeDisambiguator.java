@@ -196,6 +196,20 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
+    public Node forTypecaseClause(final TypecaseClause that) {
+        Option<Id> name_result = that.getName();
+        TypeOrPattern tp = that.getMatchType();
+        TypeOrPattern matchType_result = (TypeOrPattern) recur(tp);
+        if (name_result.isNone() && matchType_result instanceof VarType &&
+            _env.hasTypeParam(((VarType)matchType_result).getName()).isNone()) {
+            name_result = Option.<Id>some(((VarType)matchType_result).getName());
+            matchType_result = NodeFactory.makeAnyType(NodeUtil.getSpan(that));
+        }
+        Block body_result = (Block) recur(that.getBody());
+        return forTypecaseClauseOnly(that, that.getInfo(), name_result, matchType_result, body_result);
+    }
+
+    @Override
     public Node forPlainPattern(final PlainPattern that) {
         Id id = that.getName();
         Boolean isTypeName = true;

@@ -92,7 +92,7 @@ end Radical
 object H extends Radical
     getter asString():String = "H"
     opr CMP(self, other:Radical):TotalComparison =
-        typecase _ = other of
+        typecase other of
             H   => EqualTo
             Rad => LessThan
         end
@@ -111,11 +111,11 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
             else => "[R " r1 " " r2 " " r3 " ]"
         end
     opr CMP(self, other:Radical):TotalComparison =
-        typecase _ = other of
+        typecase other of
             H   => GreaterThan
-            Rad => (r1 CMP other.r1) LEXICO:
-                   (r2 CMP other.r2) LEXICO:
-                   (r3 CMP other.r3)
+            other':Rad => (r1 CMP other'.r1) LEXICO:
+                          (r2 CMP other'.r2) LEXICO:
+                          (r3 CMP other'.r3)
         end
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
@@ -289,13 +289,11 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
         (r4 CMP other.r4)
     rotate (self):Paraffin = Paraffin (r2, r3, r4, r1)
     swap   (self):Paraffin = Paraffin (r2, r1, r3, r4)
-    invert (self):Paraffin = do
-        r=r1
-        typecase _ = r of
+    invert (self):Paraffin =
+        typecase r1 of
             H   => self
-            Rad => Paraffin (r.r1, r.r2, r.r3, Rad(r2, r3, r4))
+            r:Rad => Paraffin (r.r1, r.r2, r.r3, Rad(r2, r3, r4))
         end
-    end
     generators (self):Set[\Paraffin\] =
         {[\Paraffin\] rotate self, swap self, invert self}
     equivClass (self) = closure ({[\Paraffin\] self}, generators)

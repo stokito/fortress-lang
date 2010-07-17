@@ -25,37 +25,37 @@ export Executable
     so it was pulled out so that ExtentScalarRange[\I\] could be added sensibly.
 **)
 intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:ScalarRange[\I\], resultStride:I): ScalarRange[\I\] = label intersection
-    typecase _ = (this,other) of
-        (OpenScalarRange[\I\], ScalarRange[\I\]) =>
-            other.every(resultStride DIV other.stride)
-        (ScalarRange[\I\], OpenScalarRange[\I\]) =>
-            intersectUnbounded(other,this,resultStride)
-        (ExtentScalarRange[\I\], ExtentScalarRange[\I\]) =>
-            x = this.extent.get MIN other.extent.get
-            s = if (this.stride < 0 OR other.stride < 0) AND resultStride > 0
+    typecase (this,other) of
+        (this':OpenScalarRange[\I\], other':ScalarRange[\I\]) =>
+            other'.every(resultStride DIV other'.stride)
+        (this':ScalarRange[\I\], other':OpenScalarRange[\I\]) =>
+            intersectUnbounded(other',this',resultStride)
+        (this':ExtentScalarRange[\I\], other':ExtentScalarRange[\I\]) =>
+            x = this'.extent.get MIN other'.extent.get
+            s = if (this'.stride < 0 OR other'.stride < 0) AND resultStride > 0
                 then -resultStride
                 else resultStride end
-            if this.fromLeft AND other.fromLeft then
+            if this'.fromLeft AND other'.fromLeft then
                 extentScalarRange[\I\](x,s)
             else
                 extentScalarRange[\I\](-x,s)
             end
-        (ExtentScalarRange[\I\], ScalarRange[\I\]) =>
-            if NOT this.fromLeft then
+        (this':ExtentScalarRange[\I\], other':ScalarRange[\I\]) =>
+            if NOT this'.fromLeft then
                 exit intersection with
-                    intersectUnbounded(extentScalarRange[\I\](this.extent.get, this.stride),
-                                       other.flip(), resultStride).flip()
+                    intersectUnbounded(extentScalarRange[\I\](this'.extent.get, this'.stride),
+                                       other'.flip(), resultStride).flip()
             end
-            everyStride = resultStride DIV other.stride
+            everyStride = resultStride DIV other'.stride
             res =
                 if everyStride > 0 then
-                    other.every(everyStride).atMost(this.extent.get)
+                    other'.every(everyStride).atMost(this'.extent.get)
                 else
-                    other.flip().every(everyStride).atMost(this.extent.get)
+                    other'.flip().every(everyStride).atMost(this'.extent.get)
                 end
-            if this.stride < 0 then res.flip() else res end
-        (ScalarRange[\I\], ExtentScalarRange[\I\]) =>
-            intersectUnbounded(other,this,resultStride)
+            if this'.stride < 0 then res.flip() else res end
+        (this':ScalarRange[\I\], other':ExtentScalarRange[\I\]) =>
+            intersectUnbounded(other',this',resultStride)
     end
   end intersection
 
@@ -96,56 +96,55 @@ opr INTERSECTOLD[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
     trimLeft(l:I,r:I): I =
         if l <= r then atOrAboveGoingDown(r,l,resultStride)
         else atOrAboveGoingUp(r,l,resultStride) end
-    (l0,l1,r0,r1) = (this.left,other.left,this.right,other.right)
-    typecase _ = (l0,l1,r0,r1) of
-        (Just[\I\],Just[\I\],Just[\I\],Just[\I\]) =>
+    typecase (this.left,other.left,this.right,other.right) of
+        (l0:Just[\I\],l1:Just[\I\],r0:Just[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             l = firstMeetingPointAbove(l0.get,l1.get)
             r = trimRight(l,r0.get MIN r1.get)
             fullScalarRange[\I\](l,r,resultStride)
-        (Just[\I\],Just[\I\],Just[\I\],Nothing[\I\]) =>
+        (l0:Just[\I\],l1:Just[\I\],r0:Just[\I\],r1:Nothing[\I\]) =>
             checkEmpty()
             adjustDirection()
             l = firstMeetingPointAbove(l0.get,l1.get)
             r = trimRight(l,r0.get)
             fullScalarRange[\I\](l,r,resultStride)
-        (Just[\I\],Just[\I\],Nothing[\I\],Just[\I\]) =>
+        (l0:Just[\I\],l1:Just[\I\],r0:Nothing[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             l = firstMeetingPointAbove(l0.get,l1.get)
             r = trimRight(l,r1.get)
             fullScalarRange[\I\](l,r,resultStride)
-        (Just[\I\],Just[\I\],Nothing[\I\],Nothing[\I\]) =>
+        (l0:Just[\I\],l1:Just[\I\],r0:Nothing[\I\],r1:Nothing[\I\]) =>
             checkEmpty()
             adjustDirection()
             l = firstMeetingPointAbove(l0.get,l1.get)
             leftScalarRange[\I\](l,resultStride)
-        (Nothing[\I\],Nothing[\I\],Just[\I\],Just[\I\]) =>
+        (l0:Nothing[\I\],l1:Nothing[\I\],r0:Just[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             r = firstMeetingPointBelow(r0.get,r1.get)
             rightScalarRange[\I\](r,resultStride)
-        (Just[\I\],Nothing[\I\],Just[\I\],Just[\I\]) =>
+        (l0:Just[\I\],l1:Nothing[\I\],r0:Just[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             r = firstMeetingPointBelow(r0.get,r1.get)
             l = trimLeft(l0.get,r)
             fullScalarRange[\I\](l,r,resultStride)
-        (Nothing[\I\],Just[\I\],Just[\I\],Just[\I\]) =>
+        (l0:Nothing[\I\],l1:Just[\I\],r0:Just[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             r = firstMeetingPointBelow(r0.get,r1.get)
             l = trimLeft(l1.get,r)
             fullScalarRange[\I\](l,r,resultStride)
-        (Just[\I\],Nothing[\I\],Nothing[\I\],Just[\I\]) =>
+        (l0:Just[\I\],l1:Nothing[\I\],r0:Nothing[\I\],r1:Just[\I\]) =>
             checkEmpty()
             adjustDirection()
             actual_l1 = atOrAboveGoingDown(r1.get,l0.get,other.stride)
             l = firstMeetingPointAbove(l0.get,actual_l1)
             r = trimRight(l,r1.get)
             fullScalarRange[\I\](l,r,resultStride)
-        (Nothing[\I\],Just[\I\],Just[\I\],Nothing[\I\]) =>
+        (l0:Nothing[\I\],l1:Just[\I\],r0:Just[\I\],r1:Nothing[\I\]) =>
             checkEmpty()
             adjustDirection()
             actual_l0 = atOrAboveGoingDown(r0.get,l1.get,this.stride)
@@ -178,9 +177,8 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
     resultStride = this.stride LCM other.stride
     commute():() =
         exit intersection with other INTERSECTNEW this
-    (t,o) = (this,other)
-    typecase _ = (t,o) of
-        (FullScalarRange[\I\], BoundedScalarRange[\I\]) =>
+    typecase (this,other) of
+        (t:FullScalarRange[\I\], o:BoundedScalarRange[\I\]) =>
             adjustDirection()
             checkEmpty()
             p = meetingPt(t.left.get,t.stride,o.leftOrRight,o.stride,resultStride)
@@ -189,12 +187,12 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
             fullScalarRange[\I\](l,r,resultStride)
         (BoundedScalarRange[\I\], FullScalarRange[\I\]) =>
             commute()
-        (LeftScalarRange[\I\], LeftScalarRange[\I\]) =>
+        (t:LeftScalarRange[\I\], o:LeftScalarRange[\I\]) =>
             adjustDirection()
             p = meetingPt(t.left.get,t.stride,o.left.get,o.stride,resultStride)
             l = atOrAbove(p,t.left.get MAX o.left.get,resultStride)
             leftScalarRange[\I\](l,resultStride)
-        (LeftScalarRange[\I\], RightScalarRange[\I\]) =>
+        (t:LeftScalarRange[\I\], o:RightScalarRange[\I\]) =>
             adjustDirection()
             p = meetingPt(t.left.get,t.stride,o.right.get,o.stride,resultStride)
             l = atOrAbove(p,t.left.get,resultStride)
@@ -202,7 +200,7 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
             fullScalarRange[\I\](l,r,resultStride)
         (RightScalarRange[\I\],LeftScalarRange[\I\]) =>
             commute()
-        (RightScalarRange[\I\], RightScalarRange[\I\]) =>
+        (t:RightScalarRange[\I\], o:RightScalarRange[\I\]) =>
             adjustDirection()
             p = meetingPt(t.right.get,t.stride,o.right.get,o.stride,resultStride)
             r = atOrBelow(p,t.right.get MIN o.right.get,resultStride)

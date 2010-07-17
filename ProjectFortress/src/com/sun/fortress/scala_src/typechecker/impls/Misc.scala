@@ -64,6 +64,8 @@ import scala.collection.mutable.{Map => MMap}
  */
 trait Misc { self: STypeChecker with Common =>
 
+  val typeConses = current.typeConses
+
   // ---------------------------------------------------------------------------
   // HELPER METHODS ------------------------------------------------------------
 
@@ -200,7 +202,7 @@ trait Misc { self: STypeChecker with Common =>
       SContract(info, newRequires, newEnsures, invariants.map(_.map(checkExpr)))
     }
 
-    case _ => throw new Error(errorMsg("not yet implemented: ", node.getClass))
+    case _ => throw new Error(errorMsg("Not yet implemented: ", node.getClass))
   }
 
   // ---------------------------------------------------------------------------
@@ -500,92 +502,209 @@ trait Misc { self: STypeChecker with Common =>
     }
 
     case STypecase(SExprInfo(span, paren, _),
-                   bindIds, bindExpr, clauses, elseClause) => {
-      val (checkedExpr, checkedType) = bindExpr.map(checkExpr) match {
+                   bindExpr, clauses, elseClause) => {
+      val checkedExpr = checkExpr(bindExpr)
+      val checkedType = getType(checkedExpr).getOrElse(return expr)
 
-        // If expr exists and was checked properly, make sure the bindIds are
-        // not shadowing.
-        case Some(checkedE) =>
-          bindIds.foreach(i =>
-            if (getTypeFromName(i).isDefined) {
-              signal(i, "Cannot shadow name: %s".format(i))
-              return expr
-            })
-          (Some(checkedE), getType(checkedE).getOrElse(return expr))
+      def checkClause(c: TypecaseClause): TypecaseClause = {
+        val STypecaseClause(info, nameOpt, matchType, body) = c
+        // Construct the types that correspond to each id.
+        var idty_list : List[(Id, Type)] = List()
+        val dummy_id = NF.makeId(span, "_")
 
-        // If expr does not exist, make sure thr bindIds are not mutable.
-        case _ =>
-          bindIds.foreach(id =>
-            if (getModsFromName(id).getOrElse(Modifiers.None).isMutable)
-              signal(id, ("Identifier for a typecase expression without a " +
-                         "binding expression cannot be a mutable variable: %s").
-                           format(id)))
+        def pbTi(field: Option[Id], i: Int, ty: Type) = field match {
+          case Some(id) => id
+          case None => ty match {
+            case t:TraitType if typeConses.keySet.contains(t.getName) =>
+              toOption(typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) match {
+                case Some(ps) => toList(ps).apply(i).getName
+                case _ =>
+                  signal(t, "A trait is expected to have value parameters for patterns.")
+                  dummy_id
+              }
+            case _ =>
+              signal(ty, "A trait type is expected in a pattern.")
+              dummy_id
+          }
+        }
 
-          val idTypes = bindIds.map(getTypeFromName(_).getOrElse(return expr))
-          (None, NF.makeMaybeTupleType(NU.getSpan(expr), toJavaList(idTypes)))
-      }
+        def patternBindingToId(pbi: (PatternBinding, Int), ty: Type) = {
+          val (pb, i) = pbi
+          pb match {
+            case t:TypePattern => pbTi(None, i, ty)
+            case SPlainPattern(_, field, _, _, _) => pbTi(field, i, ty)
+            case SNestedPattern(_, field, _) => pbTi(field, i, ty)
+          }
+        }
 
-      // Check that the number of bindIds matches the size of the bindExpr.
-      val isMultipleIds = bindIds.size > 1
-      if (isMultipleIds && bindExpr.isDefined) {
-        checkedType match {
-          case STupleType(_, elts, _, _) =>
-            if (elts.size != bindIds.size) {
-              signal(bindExpr.get,
-                     errorMsg("A typecase expression has multiple identifiers\n    but ",
-                              "the sizes of the identifiers and the binding ",
-                              "expression do not match."))
-              return expr
+        def declToIdType(decl : Decl) = decl match {
+          case SVarDecl(_, lhs, _) if(lhs.size >= 1)=>
+            lhs.map(p => (p.getName.toString, toOption(p.getIdType)))
+          case SFnDecl(_, SFnHeader(_, mods, name, _, _, _, _, returnType), _, _, _) if mods.isGetter =>
+            List((name.toString, toOption(returnType)))
+          case _ => List(("", None))
+        }
+
+        /* get a type infomation from a field of a trait or an object */
+        def fieldToType(field : Id, ty : Type) = ty match {
+          case t:TraitType if typeConses.keySet.contains(t.getName) =>
+            val header = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader
+            val pair_list = (toOption(header.getParams) match {
+                             case Some(ps) => toList(ps).map(p=>(p.getName.toString, toOption(p.getIdType)))
+                             case _ => List((Nil.asInstanceOf[String], Nil.asInstanceOf[Option[TypeOrPattern]]))
+                           }) ::: toList(header.getDecls).foldRight(Nil.asInstanceOf[List[(String, Option[TypeOrPattern])]])((d, r) => declToIdType(d) ::: r)
+            pair_list.find(pair => pair._1 == field.toString) match {
+              case Some(pa) => pa._2
+              case _ =>
+                signal(field, errorMsg(field, " : Not defined"))
+                None
             }
           case _ =>
-            signal(bindExpr.get,
-                   errorMsg("A typecase expression has multiple identifiers\n    but ",
-                            "the binding expression does not have a tuple type."))
-            return expr
-        }
-      }
-      // Check each clause with the bound ids having types of
-      // intersection of the static types of the guard and the checkedType
-      def checkClause(c: TypecaseClause): TypecaseClause = {
-        val STypecaseClause(info, matchType, body) = c
-        if (matchType.size != bindIds.size) {
-          signal(c, "A typecase expression has a different number of cases in a clause.")
-          return c
+            signal(field, "A trait type is expected in a pattern.")
+            None
         }
 
-        // Construct the types that correspond to each id.
-        val newType =
-          if (isMultipleIds) {
-            val STupleType(_, eltTypes, _, _) = checkedType
-            eltTypes.zip(matchType).map((p:(Type, Type)) =>
-                normalize(NF.makeIntersectionType(p._1, p._2)))
-          } else {
-            List[Type](normalize(NF.makeIntersectionType(checkedType, matchType.head)))
+        def getBoundIdWithType(p : (PatternBinding, Option[TypeOrPattern])) = {
+          val (pb, ty) = p
+          ty match {
+            case Some(tty) if tty.isInstanceOf[Type] =>
+              val typ = tty.asInstanceOf[Type]
+              pb match {
+                case SPlainPattern(_, _, name, _, Some(idType)) =>
+                  val t = getTypefromTypeOrPattern(idType, typ)
+                  // caution :: 't' can be a tuple type.
+                  if (isSubtype(t, typ)) {
+                    idty_list = (name, t) :: idty_list
+                    t
+                  }
+                  else {
+                    signal(expr, "type unmatched")
+                    None
+                  }
+                case SPlainPattern(_, _, name, _, None) =>
+                  idty_list = (name, typ) :: idty_list
+                  typ
+                case STypePattern(_, _, tt) =>
+                  if (isSubtype(tt, typ)) tt
+                  else {
+                    signal(expr, "type unmatched")
+                    None
+                  }
+                case SNestedPattern(_, _, pat) =>
+                  val t=getTypefromTypeOrPattern(pat, typ)
+                  if (isSubtype(t, typ)) t
+                  else {
+                    signal(expr, "type unmatched")
+                    None
+                  }
+              }
+            case _ =>
+              signal(expr, "type unmatched")
+              None
           }
+        }
 
-        val checkedBody =
-          this.extend(bindIds, newType).
-          checkExpr(body).asInstanceOf[Block]
+        def getBoundIdWithType_tuple(p : (PatternBinding, Type)) = {
+          val (pb, typ) = p
+          pb match {
+            case SPlainPattern(_, _, name, _, Some(idType)) =>
+              val t = getTypefromTypeOrPattern(idType, typ)
+              /* intersection type between "typ" and "t" */
+              val tylist = t match {
+                case tu:TupleType =>
+                  toList(tu.getElements).zip(toList(typ.asInstanceOf[TupleType].getElements)).map{p:(Type, Type) => p._1 match {
+                      case tu1:TupleType => tu1
+                      case _ => normalize(NF.makeIntersectionType(p._1, p._2))
+                        }}
+                case _ =>
+                  List(normalize(NF.makeIntersectionType(t, typ)))
+              }
+              val new_t = NF.makeMaybeTupleType(NU.getSpan(pb), toJavaList(tylist))
+              idty_list = (name, new_t) :: idty_list
+              new_t
+            case SPlainPattern(_, _, name, _, None) =>
+              idty_list = (name, typ) :: idty_list
+              typ
+            case STypePattern(_, _, tt) =>
+              normalize(NF.makeIntersectionType(tt, typ))
+            case SNestedPattern(_, _, pat) =>
+              val t=getTypefromTypeOrPattern(pat, typ)
+              normalize(NF.makeIntersectionType(t, typ))
+          }
+        }
 
-        STypecaseClause(info, matchType, checkedBody)
+        def getTypefromTypeOrPattern(tp : TypeOrPattern, expr_type : Type): Type = {
+          val (isTupleType, expr_size) = expr_type match {
+            case t:TupleType => (true, t.getElements.size)
+            case _ => (false, 1)
+          }
+          if(tp.isInstanceOf[Pattern]){
+            val pattern = tp.asInstanceOf[Pattern]
+            val ps = toList(pattern.getPatterns.getPatterns)
+            toOption(pattern.getName) match {
+              case Some(ty) =>
+                if(isTupleType)
+                  signal(pattern, "A typecase clause is unreachable.")
+                /* A structure of a pattern shoud be checked in comparison with the structure of 'ty'.*/
+                /* get types of all fields of the type "ty" corresponding to each pattern."*/
+                val id_list = ps.zipWithIndex.map(patternBindingToId(_, ty))
+                val tylist = id_list.map(fieldToType(_, ty))
+                (ps zip tylist).map(getBoundIdWithType)
+                ty
+              case None => // tuple pattern
+                if (ps.length != expr_size) {
+                  signal(tp, "A typecase clause is unreachable.")
+                  expr_type
+                }
+                else {
+                  if(!isTupleType)
+                    signal(pattern, "A typecase clause is unreachable.")
+                  val eltTypes = toList(expr_type.asInstanceOf[TupleType].getElements)
+                  val tylist = (ps zip eltTypes).map(getBoundIdWithType_tuple)
+                  NF.makeMaybeTupleType(NU.getSpan(tp), toJavaList(tylist))
+                }
+            }
+          }
+          else {
+            val ty = tp.asInstanceOf[Type]
+            if (( isTupleType && !NU.isTupleType(ty)) ||
+                (!isTupleType &&  NU.isTupleType(ty)) ||
+                ( isTupleType &&  NU.isTupleType(ty) &&
+                  ty.asInstanceOf[TupleType].getElements.size !=
+                  expr_type.asInstanceOf[TupleType].getElements.size)) {
+              signal(tp, "A typecase clause is unreachable.")
+              ty
+            }
+            else ty
+          }
+        }
+
+        val outer_type = getTypefromTypeOrPattern(matchType, checkedType)
+        idty_list = if (nameOpt.isDefined)
+                      (nameOpt.get, normalize(NF.makeIntersectionType(outer_type, checkedType))) :: idty_list
+                    else idty_list
+
+        val bindIds = idty_list.map(_._1)
+        val newType = idty_list.map(_._2)
+
+                             //(bindIds zip newType).foreach(pair => System.out.println(pair._1 +", " + pair._2))
+
+        val newChecker = this.extend(bindIds, newType)
+        val checkedBody = newChecker.checkExpr(body).asInstanceOf[Block]
+
+        STypecaseClause(info, nameOpt, matchType, checkedBody)
       }
+
       val checkedClauses = clauses.map(checkClause)
+
       val clauseTypes =
         checkedClauses.map(c => getType(c.getBody).getOrElse(return expr))
 
-      // Check the else clause with the new binding.
-      val newType =
-        if (isMultipleIds)
-          toListFromImmutable(checkedType.asInstanceOf[TupleType].getElements)
-        else
-          List[Type](checkedType)
-      val checkedElse =
-        elseClause.map(e =>
-          this.extend(bindIds, newType).
-            checkExpr(e).asInstanceOf[Block])
+      // Check the else clause
+      val checkedElse = elseClause.map(checkExpr(_).asInstanceOf[Block])
       val elseType = checkedElse.map(getType(_).getOrElse(return expr))
 
-      // Build union type of all clauses and else.
+      // Build a union type of all clauses and else.
       val allTypes = elseType match {
         case Some(t) => Set(clauseTypes:_*) + t
         case _ => Set(clauseTypes:_*)
@@ -593,7 +712,6 @@ trait Misc { self: STypeChecker with Common =>
       val unionType = NF.makeUnionType(toJavaSet(allTypes))
       // TODO: A nonexhaustive typecase is an error.
       STypecase(SExprInfo(span, paren, Some(unionType)),
-                bindIds,
                 checkedExpr,
                 checkedClauses,
                 checkedElse)
@@ -894,5 +1012,4 @@ trait Misc { self: STypeChecker with Common =>
       case _ => super.checkExpr(e)
     }
   }
-
 }

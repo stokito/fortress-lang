@@ -47,8 +47,8 @@ trait WriteStream extends { Closeable }
     (** %write(Any)% converts its argument to a String using %asString%
         and appends the result to the stream. **)
     write(x: Any):() =
-            typecase _ = x of
-                Object ⇒ write x.asString
+            typecase x of
+                x':Object ⇒ write x'.asString
                 else   ⇒ write ("" || x)                   (* handles tuples *)
             end
 
@@ -61,9 +61,9 @@ trait WriteStream extends { Closeable }
     writes(x:Generator[\Any\]):() = writes(x,"")
     writes(x: Generator[\Any\], rest: String):() =
         write((BIG ||[e ← x]
-                   typecase _ = e of
-                        String ⇒ e
-                        Object ⇒ e.asString
+                   typecase e of
+                        e':String ⇒ e'
+                        e':Object ⇒ e'.asString
                         else   ⇒ ("" || e)                 (* handles tuples *)
                    end) || rest)
 

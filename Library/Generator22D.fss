@@ -369,7 +369,7 @@ r : Array2[\T, 0, s0, 0, s0\]
 trait AbideWith[\T\] end
 
 abiding[\R, Q\]( r : R, q : Q ) =
-typecase _ = (r, q) of
+typecase (r, q) of
   (R, AbideWith[\R\]) => true
   else => false
 end

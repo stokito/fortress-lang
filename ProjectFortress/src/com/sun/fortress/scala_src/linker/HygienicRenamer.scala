@@ -229,10 +229,10 @@ class HygienicRenamer(constituent: APIName,
              STypeArg(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(isLifted).asInstanceOf[Boolean], walk(getTypeArg).asInstanceOf[com.sun.fortress.nodes.Type])
          case STypeInfo(getSpan, isParenthesized, getStaticParams, getWhereClause) =>
              STypeInfo(walk(getSpan).asInstanceOf[com.sun.fortress.nodes_util.Span], walk(isParenthesized).asInstanceOf[Boolean], walk(getStaticParams).asInstanceOf[List[com.sun.fortress.nodes.StaticParam]], walk(getWhereClause).asInstanceOf[Option[com.sun.fortress.nodes.WhereClause]])
-         case STypecase(getInfo, getBindIds, getBindExpr, getClauses, getElseClause) =>
-             STypecase(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getBindIds).asInstanceOf[List[com.sun.fortress.nodes.Id]], walk(getBindExpr).asInstanceOf[Option[com.sun.fortress.nodes.Expr]], walk(getClauses).asInstanceOf[List[com.sun.fortress.nodes.TypecaseClause]], walk(getElseClause).asInstanceOf[Option[com.sun.fortress.nodes.Block]])
-         case STypecaseClause(getInfo, getMatchType, getBody) =>
-             STypecaseClause(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getMatchType).asInstanceOf[List[com.sun.fortress.nodes.Type]], walk(getBody).asInstanceOf[com.sun.fortress.nodes.Block])
+         case STypecase(getInfo, getBindExpr, getClauses, getElseClause) =>
+             STypecase(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getBindExpr).asInstanceOf[com.sun.fortress.nodes.Expr], walk(getClauses).asInstanceOf[List[com.sun.fortress.nodes.TypecaseClause]], walk(getElseClause).asInstanceOf[Option[com.sun.fortress.nodes.Block]])
+         case STypecaseClause(getInfo, getName, getMatchType, getBody) =>
+             STypecaseClause(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[Option[com.sun.fortress.nodes.Id]], walk(getMatchType).asInstanceOf[com.sun.fortress.nodes.TypeOrPattern], walk(getBody).asInstanceOf[com.sun.fortress.nodes.Block])
          case SUnionType(getInfo, getElements) =>
              SUnionType(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.TypeInfo], walk(getElements).asInstanceOf[List[com.sun.fortress.nodes.Type]])
          case SUnitArg(getInfo, isLifted, getUnitArg) =>

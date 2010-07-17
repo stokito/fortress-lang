@@ -21,7 +21,7 @@ export Executable
 (* We used to get shadowing errors when a was rebound in typecase. *)
 run():() = do
   a : RR64 = 3.0 (4.0)
-  typecase _ = a of
+  typecase a of
     RR64 => ()
     else => println("FAIL: typecase didn't match!")
   end

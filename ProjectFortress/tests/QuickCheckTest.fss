@@ -36,7 +36,7 @@ end
     `DefaultArbitrary`. **)
 object arb extends DefaultArbitrary
     gen[\T\](): Gen[\T\] =
-        typecase _ = fn (_:T):T => throw ForbiddenException of
+        typecase fn (_:T):T => throw ForbiddenException of
             TestStatus->TestStatus => genTestStatus
             (*)else => (self asif DefaultArbitrary).gen[\T\]()
             else => gen0[\T\](self)

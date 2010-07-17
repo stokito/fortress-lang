@@ -56,7 +56,7 @@ value object I[\nat k\]()
 end
 
 hgVal[\nat k\]():RR64[2 k,2 k] =
-  typecase _ = I[\k\]() of
+  typecase I[\k\]() of
     I[\1\]=> [ (7.07106781186547462 10^(-1)) (7.07106781186547462 10^(-1))
                (7.07106781186547462 10^(-1)) (-7.07106781186547462 10^(-1)) ]
     I[\2\]=> [ (7.07106781186547462 10^(-1)) (0.00000000000000000 10^(00)) (7.07106781186547462 10^(-1)) (0.00000000000000000 10^(00))
@@ -230,7 +230,7 @@ twoScaleCoeffs[\nat k\]():RR64[2 k, 2 k] = hgVal[\k\]()
     Both ought to be computable using recurrences; I think
     numerical recipes actually gives the algorithm. *)
 gaussLegendre[\nat k\]():(RR64[k],RR64[k]) =
-  typecase _ = I[\k\]() of
+  typecase I[\k\]() of
 (*
     I[\1\]=>([ 0.50000000000000000],
              [ 1.00000000000000000])

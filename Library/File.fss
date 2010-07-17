@@ -86,9 +86,9 @@ object FileWriteStream(fileName:FlatString) extends { FileStream }
     write(x:Any): () = write("" x)
     writes(x:Generator[\Any\], r:String):() =
         write((BIG ||[e <- x]
-                   typecase _ = e of
-                        FlatString => e
-                        String => e.asFlatString
+                   typecase e of
+                        e':FlatString => e'
+                        e':String => e'.asFlatString
                         else   => ("" e).asFlatString
                    end) r)
     writes(x:Generator[\Any\]):() = writes(x,"")

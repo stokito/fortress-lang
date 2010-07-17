@@ -1043,18 +1043,31 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
         return node;
     }
 
-    @Override
-    public Node forTypecase(Typecase tc) {
-        List<Id> lid = tc.getBindIds();
-        Option<Expr> oe = tc.getBindExpr();
-        // Not quite right because this will remove them from arrows,
-        // but perhaps they ARE arrows, depending on the typecase.
-        IdsToLocals(lid);
-
-        if (oe.isNone()) {
-            tc = ExprFactory.makeTypecase(tc, lid, (Expr) tupleForIdList(lid));
+    private List<Id> collectIds(TypeOrPattern t) {
+        List<Id> ids = new ArrayList<Id>();
+        if (t instanceof Pattern) {
+            for (PatternBinding pb : ((Pattern)t).getPatterns().getPatterns()) {
+                if (pb instanceof PlainPattern) {
+                    PlainPattern that = (PlainPattern)pb;
+                    ids.add(that.getName());
+                    if (that.getIdType().isSome())
+                        ids.addAll(collectIds(that.getIdType().unwrap()));
+                } else if (pb instanceof NestedPattern) {
+                    ids.addAll(collectIds(((NestedPattern)pb).getPat()));
+                }
+            }
         }
-        return visitNode(tc);
+        return ids;
+    }
+
+    @Override
+    public Node forTypecaseClause(TypecaseClause that) {
+        if (that.getName().isSome()) {
+            IdsToLocals(Useful.list(that.getName().unwrap()));
+        }
+        TypeOrPattern matchType = that.getMatchType();
+        IdsToLocals(collectIds(matchType));
+        return visitNode(that);
     }
 
     /**

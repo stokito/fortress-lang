@@ -66,14 +66,13 @@ export String
 
     concatAndBalanceIfNecessary(s1: CatString, s2: FlatString):String = do
         (* This handles the case where s1.right is a short FlatString *)
-        r = s1.right
-        typecase _ = r of
-            FlatString ⇒ if |r| + |s2| ≤ maxLeafSize then
+        typecase s1.right of
+            r:FlatString ⇒ if |r| + |s2| ≤ maxLeafSize then
                                         s1.left || flatConcat(r, s2)
                                     else
                                         concatAndBalanceIfNecessary(s1 asif String, s2)
                                     end
-            String  ⇒ concatAndBalanceIfNecessary(s1 asif String, s2)
+            r:String  ⇒ concatAndBalanceIfNecessary(s1 asif String, s2)
         end
       end
 
@@ -437,9 +436,8 @@ end
         deny(range = baseString.bounds, true, "SubString ", baseString, range, " has range equal to that of baseString ", baseString.bounds)
         assert(range < baseString.bounds, true,
                 "SubString ", baseString,  range, " has range greater than that of baseString ", baseString.bounds )
-        s = baseString
-        typecase _ = s of
-            CatString ⇒ do
+        typecase baseString of
+            s:CatString ⇒ do
                             deny((s.left.indices ∩ range).isEmpty,
                                         "SubString of CatString not pushed right")
                             deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty,

@@ -298,31 +298,25 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     @Override
-    public Node forTypecase(Typecase that) {
+        public Node forTypecaseClause(TypecaseClause that) {
         if (rename) {
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-            List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id, Id>() {
-                public Id apply(Id value) {
-                    Id gen = generateId(value);
-                    extendSyntaxEnvironment(value, gen);
-                    return gen;
+            if (that.getName().isSome()) {
+                Id id = that.getName().unwrap();
+                extendSyntaxEnvironment(id, generateId(id));
+            }
+            TypeOrPattern matchType_result = (TypeOrPattern) recur(that.getMatchType());
+            matchType_result.accept(new NodeDepthFirstVisitor_void(){
+                @Override
+                public void forPlainPatternOnly(PlainPattern pp) {
+                    Id id = pp.getName();
+                    extendSyntaxEnvironment(id, generateId(id));
                 }
             });
-            Option<Expr> bindExpr_result = recurOnOptionOfExpr(that.getBindExpr());
-            List<TypecaseClause> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
-            Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+            Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return ExprFactory.makeTypecase(NodeFactory.makeSpan(that),
-                                            NodeUtil.isParenthesized(that),
-                                            exprType_result,
-                                            newIds,
-                                            bindExpr_result,
-                                            clauses_result,
-                                            elseClause_result);
-        } else {
-            return super.forTypecase(that);
         }
+        return super.forTypecaseClause(that);
     }
 
     @Override

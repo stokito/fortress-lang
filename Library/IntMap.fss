@@ -252,10 +252,10 @@ trait NonEmptyIntMap[\Val\] extends IntMap[\Val\]
         n : NonEmptyIntMap[\Val\] := self
         while true do
             curr = n
-            typecase _ = curr of
-                NodeIM[\Val\] =>
-                    n := if k < curr.key then curr.left else curr.right end
-                SingletonIM[\Val\] => exit done with curr
+            typecase curr of
+                curr':NodeIM[\Val\] =>
+                    n := if k < curr'.key then curr'.left else curr'.right end
+                curr':SingletonIM[\Val\] => exit done with curr'
                 else => fail("Should not happen!")
             end
         end
@@ -518,30 +518,30 @@ private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEm
       end
     (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
     intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\] =
-        typecase _ = other of
-            SingletonIM[\V\] => self.seek(other.key) INTERSECTION other
-            NodeIM[\V\] =>
-                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other)
+        typecase other of
+            other':SingletonIM[\V\] => self.seek(other'.key) INTERSECTION other'
+            other':NodeIM[\V\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other')
                 (l1 INTERSECTION l2).ordJoin(k, r1 INTERSECTION r2)
             else => EmptyIM[\(Val,V)\]
         end
     (** The %intersection% method takes a function %f% used to combine the values
         of keys that overlap.  **)
     intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\] =
-        typecase _ = other of
-            SingletonIM[\R\] =>
-                self.seek(other.key).intersection[\V,R\](f,other)
-            NodeIM[\R\] =>
-                (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other)
+        typecase other of
+            other':SingletonIM[\R\] =>
+                self.seek(other'.key).intersection[\V,R\](f,other')
+            other':NodeIM[\R\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other')
                 l1.intersection[\V,R\](f,l2).ordJoin(k, r1.intersection[\V,R\](f,r2))
             else => EmptyIM[\R\]
         end
     (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
     differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\] =
-        typecase _ = other of
-            SingletonIM[\V\] => self.delete(other.key)
-            NodeIM[\V\] =>
-                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other)
+        typecase other of
+            other':SingletonIM[\V\] => self.delete(other'.key)
+            other':NodeIM[\V\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other')
                 (l1 DIFFERENCE l2).ordJoin(k, r1 DIFFERENCE r2)
             else => self
         end

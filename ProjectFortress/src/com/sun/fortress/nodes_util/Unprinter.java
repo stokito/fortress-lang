@@ -31,33 +31,7 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.nodes.ASTNodeInfo;
-import com.sun.fortress.nodes.SpanInfo;
-import com.sun.fortress.nodes.ExprInfo;
-import com.sun.fortress.nodes.TypeInfo;
-import com.sun.fortress.nodes.ASTNode;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.DataNode;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.Lhs;
-import com.sun.fortress.nodes.Level;
-import com.sun.fortress.nodes.Fixity;
-import com.sun.fortress.nodes.InFixity;
-import com.sun.fortress.nodes.PreFixity;
-import com.sun.fortress.nodes.PostFixity;
-import com.sun.fortress.nodes.NoFixity;
-import com.sun.fortress.nodes.MultiFixity;
-import com.sun.fortress.nodes.EnclosingFixity;
-import com.sun.fortress.nodes.BigFixity;
-import com.sun.fortress.nodes.UnknownFixity;
-import com.sun.fortress.nodes.StaticParamKind;
-import com.sun.fortress.nodes.KindType;
-import com.sun.fortress.nodes.KindNat;
-import com.sun.fortress.nodes.KindInt;
-import com.sun.fortress.nodes.KindBool;
-import com.sun.fortress.nodes.KindDim;
-import com.sun.fortress.nodes.KindUnit;
-import com.sun.fortress.nodes.KindOp;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -309,6 +283,7 @@ public class Unprinter extends NodeReflection {
                 } else if (ASTNodeInfo.class.isAssignableFrom(f.getType())) {
                     f.set(node, readASTNodeInfo(NodeUtil.getSpan((ASTNode)node)));
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
+                           || TypeOrPattern.class.isAssignableFrom(f.getType())
                            || Lhs.class.isAssignableFrom(f.getType())
                            || DataNode.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");

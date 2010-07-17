@@ -157,11 +157,11 @@ object Csr[\N extends Number, nat n, nat m\]
       end
     *)
     mul[\nat p\](other: Matrix[\N,m,p\]):Matrix[\N,n,p\] =
-      typecase _ = other of
-        Csc[\N,m,p\] =>
+      typecase other of
+        other':Csc[\N,m,p\] =>
             (* Follow the structure of our rows, return Csr matrix. *)
             resultRows = rows.replica[\SparseVector[\N,p\]\]()
-            resultRows.init(i,sparse(row other)),  (i,row)<-rows.indexValuePairs
+            resultRows.init(i,sparse(row other')),  (i,row)<-rows.indexValuePairs
             Csr[\N,n,p\](resultRows)
         else => other.t().mul[\n\](self.t())
       end
