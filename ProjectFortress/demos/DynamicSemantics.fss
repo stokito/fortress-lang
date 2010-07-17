@@ -90,9 +90,9 @@ end
  *)
 opr VDASH(sigma: Map[\String, RuntimeValue\], expr: App) = do
   f = sigma VDASH expr.function
-  typecase _ = f of
-    FnValue => function = f.fun
-               sigma' = f.sigma.add(function.param, sigma VDASH expr.argument)
+  typecase f of
+    f':FnValue => function = f'.fun
+               sigma' = f'.sigma.add(function.param, sigma VDASH expr.argument)
                sigma' VDASH function.body
     else    => throw FailCalled("Type error: " f)
   end
@@ -106,7 +106,7 @@ end
  *)
 opr VDASH(sigma: Map[\String, RuntimeValue\], expr: If) = do
   c = (sigma VDASH expr.cond).getValue()
-  typecase _ = c of
+  typecase c of
     True  => sigma VDASH expr.thenB
     False => sigma VDASH expr.elseB
     else  => throw FailCalled("Type error: " c)
