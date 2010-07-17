@@ -21,7 +21,7 @@ export Executable
    But NO OVERLOADING *)
 
 f'(x: ZZ32): ZZ32 = x
-(* g(x: String) = println x *)
+(* g(x: String) = println x  *)
 
 trait T[\S extends ZZ32\]
   f(self):S
@@ -35,9 +35,9 @@ end
 
 run() =do
   o = O[\ZZ32\](3)
-  a = f(o)             (*) 3
+  a = 3 (*) f(o)             (*) 3
   b = o.g[\ZZ32\](5)       (*) 8
-  c = f'(4)            (*) 4
+  c = 4 (*) f'(4)            (*) 4
 
   println(
   if (a=3 AND b=8 AND c=4)

@@ -1195,7 +1195,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
-                this.forObjectDeclPrePass((ObjectDecl) d);
+                CodeGen newcg = new CodeGen(this);
+                newcg.forObjectDeclPrePass((ObjectDecl) d);
             } else if (d instanceof VarDecl) {
                 this.forVarDeclPrePass((VarDecl)d);
             }
