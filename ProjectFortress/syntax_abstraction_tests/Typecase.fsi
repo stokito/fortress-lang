@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,8 +27,8 @@ api Typecase
                 Cons(fs,bs) =>
                     <[
                     do
-                        typecase q = "One" of
-                            String => q " " fs
+                        typecase "One" of
+                            q:String => q " " fs
                             else => (foobar bs**)
                         end
                     end
