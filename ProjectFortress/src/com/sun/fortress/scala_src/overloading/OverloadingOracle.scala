@@ -45,9 +45,9 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
 
-class OverloadingOracle(implicit analyzer: TypeAnalyzer) extends PartialOrdering[Functional] {
+class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Functional] {
   
-  val schemaAnalyzer = new TypeSchemaAnalyzer()
+  val sa = new TypeSchemaAnalyzer()
   
   override def tryCompare(x: Functional, y: Functional): Option[Int] = {
     val xLEy = lteq(x,y)
@@ -60,21 +60,30 @@ class OverloadingOracle(implicit analyzer: TypeAnalyzer) extends PartialOrdering
   def lteq(f: Functional, g: Functional): Boolean = {
     val fa = makeArrowFromFunctional(f).get
     val ga = makeArrowFromFunctional(g).get
-    val fd = insertStaticParams(fa.getDomain, getStaticParams(fa))
-    val gd = insertStaticParams(ga.getDomain, getStaticParams(ga))
-    schemaAnalyzer.lteqExistential(fd, gd)
+    val fd = sa.makeDomainFromArrow(fa)
+    val gd = sa.makeDomainFromArrow(ga)
+    sa.subtypeED(fd, gd)
   }
   // Checks the return type rule
   def typeSafe(f: Functional, g: Functional): Boolean = {
     if(!lteq(f, g))
       true
     else {
-      val fa = schemaAnalyzer.alphaRenameTypeSchema(makeArrowFromFunctional(f).get)
-      val ga = schemaAnalyzer.alphaRenameTypeSchema(makeArrowFromFunctional(g).get)
-      val SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1) = fa
-      val SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2) = ga
-      val meet = SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), analyzer.meet(d1,d2), r2, analyzer.minimalEffect(e1,e2), i1 && i2, None)
-      schemaAnalyzer.lteq(fa, meet)
+      val fa = makeArrowFromFunctional(f).get
+      val ga = makeArrowFromFunctional(g).get
+      val ra = sa.returnUA(fa, ga)
+      sa.subtypeUA(fa, ra)
     }
+  }
+  //Checks whether f is the meet of g and h
+  def meet(f: Functional, g: Functional, h: Functional): Boolean = {
+    val fa = makeArrowFromFunctional(f).get
+    val ga = makeArrowFromFunctional(g).get
+    val ha = makeArrowFromFunctional(h).get
+    val fd = sa.makeDomainFromArrow(fa)
+    val gd = sa.makeDomainFromArrow(ga)
+    val hd = sa.makeDomainFromArrow(ha)
+    val md = sa.meetED(gd, hd)
+    sa.equivalentED(fd, md)
   }
 }

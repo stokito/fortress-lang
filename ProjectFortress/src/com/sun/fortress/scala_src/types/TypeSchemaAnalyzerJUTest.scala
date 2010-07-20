@@ -38,26 +38,26 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
     {
       val t1 = typeSchema("[T]T")
       val t2 = typeSchema("[U]U")
-      assertTrue(tsa.lteq(t1, t2))
-      assertTrue(tsa.lteq(t2, t1))
+      assertTrue(tsa.subtypeED(t1, t2))
+      assertTrue(tsa.subtypeED(t2, t1))
     }
     
     {
       val t1 = typeSchema("[T extends {Eq[T]}]T")
       val t2 = typeSchema("[U extends {Eq[U]}]U")
-      assertTrue(tsa.lteq(t1, t2))
-      assertTrue(tsa.lteq(t2, t1))
+      assertTrue(tsa.subtypeED(t1, t2))
+      assertTrue(tsa.subtypeED(t2, t1))
     }
     
     {
       val t1 = typeSchema("[T extends {Eq[U]}, U extends {Eq[T]}](T, U)")
       val t2 = typeSchema("[A extends {Eq[B]}, B extends {Eq[A]}](A, B)")
-      assertTrue(tsa.lteq(t1, t2))
-      assertTrue(tsa.lteq(t2, t1))
+      assertTrue(tsa.subtypeED(t1, t2))
+      assertTrue(tsa.subtypeED(t2, t1))
     }
   }
   
-  def testLteq() = {
+  def testSubtypeUA() = {
     val tsa = typeSchemaAnalyzer("""{
       trait Aa,
       trait Eq[T],
@@ -67,36 +67,36 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
       trait Zz extends {Eq[Zz]}}""")
     
     {
-      val t1 = typeSchema("[T]T")
-      val t2 = typeSchema("Object")
-      assertTrue(tsa.lteq(t1, t2))
-      assertFalse(tsa.lteq(t2, t1))
+      val t1 = typeSchema("[T]() -> T").asInstanceOf[ArrowType]
+      val t2 = typeSchema("() -> Object").asInstanceOf[ArrowType]
+      assertTrue(tsa.subtypeUA(t1, t2))
+      assertFalse(tsa.subtypeUA(t2, t1))
     }
     
     {
-      val t1 = typeSchema("[T] List[T] -> ()")
-      val t2 = typeSchema("[T] ArrayList[T] -> ()")
-      assertTrue(tsa.lteq(t1, t2))
-      assertFalse(tsa.lteq(t2, t1))
+      val t1 = typeSchema("[T] List[T] -> ()").asInstanceOf[ArrowType]
+      val t2 = typeSchema("[T] ArrayList[T] -> ()").asInstanceOf[ArrowType]
+      assertTrue(tsa.subtypeUA(t1, t2))
+      assertFalse(tsa.subtypeUA(t2, t1))
     }
     
     {
-      val t1 = typeSchema("[T extends {Eq[T]}] List[T]")
-      val t2 = typeSchema("[T extends {Zz}] List[T]")
-      val t3 = typeSchema("List[Zz]")
-      assertFalse(tsa.lteq(t1, t2))
-      assertFalse(tsa.lteq(t2, t1))
+      val t1 = typeSchema("[T extends {Eq[T]}]() -> List[T]").asInstanceOf[ArrowType]
+      val t2 = typeSchema("[T extends {Zz}]() -> List[T]").asInstanceOf[ArrowType]
+      val t3 = typeSchema("() -> List[Zz]").asInstanceOf[ArrowType]
+      assertFalse(tsa.subtypeUA(t1, t2))
+      assertFalse(tsa.subtypeUA(t2, t1))
       
-      assertTrue(tsa.lteq(t1, t3))
-      assertFalse(tsa.lteq(t3, t1))
+      assertTrue(tsa.subtypeUA(t1, t3))
+      assertFalse(tsa.subtypeUA(t3, t1))
       
-      assertTrue(tsa.lteq(t2, t3))
-      assertFalse(tsa.lteq(t3, t2))
+      assertTrue(tsa.subtypeUA(t2, t3))
+      assertFalse(tsa.subtypeUA(t3, t2))
     }
   }
   
   
-  def testLtEqExistential() = {
+  def testSubtypeED() = {
       val tsa = typeSchemaAnalyzer("""{
       trait Aa,
       trait Eq[T],
@@ -108,20 +108,20 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
       {
         val t1 = typeSchema("[T]T")
         val t2 = typeSchema("Object")
-        assertTrue(tsa.lteqExistential(t1, t2))
-        assertTrue(tsa.lteqExistential(t2, t1))
+        assertTrue(tsa.subtypeED(t1, t2))
+        assertTrue(tsa.subtypeED(t2, t1))
       }
       {
         val t1 = typeSchema("[T]ArrayList[T]")
         val t2 = typeSchema("[T]List[T]")
-        assertTrue(tsa.lteqExistential(t1, t2))
+        assertTrue(tsa.subtypeED(t1, t2))
       }
       {
         val t1 = typeSchema("[T extends {Zz}]Array[T]")
         val t2 = typeSchema("[T extends {Eq[T]}] Array[T]")
-        assertFalse(tsa.lteqExistential(t1, t2))
+        assertFalse(tsa.subtypeED(t1, t2))
         val t3 = typeSchema("Array[Zz]")
-        assertTrue(tsa.lteqExistential(t3, t2))
+        assertTrue(tsa.subtypeED(t3, t2))
       }
   }
   
