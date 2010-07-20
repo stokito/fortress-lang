@@ -23,6 +23,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -61,6 +62,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     private final TypeNameEnv _env;
     private final Set<IdOrOpOrAnonymousName> _onDemandImports;
     private final List<StaticError> _errors;
+    private Boolean forTypecaseClause = false;
+    private Boolean rewriteTypecaseClause = false;
 
     public TypeDisambiguator(TypeNameEnv env, Set<IdOrOpOrAnonymousName> onDemandImports, List<StaticError> errors) {
         _env = env;
@@ -195,17 +198,54 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         return handleTypeName(that, that.getName(), varHandler, typeConsHandler);
     }
 
+    private PatternBinding typeToPatternBinding(Type t) {
+        Span span = NodeUtil.getSpan(t);
+        if (t instanceof TupleType) {
+            TupleType ty = (TupleType)t;
+            List<PatternBinding> ps = new ArrayList<PatternBinding>();
+            for (Type tty : ty.getElements()) {
+                ps.add(typeToPatternBinding(tty));
+            }
+            return NodeFactory.makeNestedPattern(span,
+                                                 NodeFactory.makePattern(span, Option.<Type>none(),
+                                                                         NodeFactory.makePatternArgs(span, ps)));
+        } else if (t instanceof VarType) {
+            VarType ty = (VarType)t;
+            Id id = ty.getName();
+            if (_env.hasTypeParam(id).isNone())
+                return NodeFactory.makePlainPattern(span, Option.<Id>none(), id,
+                                                    Modifiers.None,
+                                                    Option.<TypeOrPattern>some(NodeFactory.makeAnyType(span)));
+            else return NodeFactory.makeTypePattern(span, Option.<Id>none(), ty);
+        } else {
+            return NodeFactory.makeTypePattern(span, Option.<Id>none(), t);
+        }
+    }
+
     @Override
     public Node forTypecaseClause(final TypecaseClause that) {
+        forTypecaseClause = true;
+        Span span = NodeUtil.getSpan(that);
         Option<Id> name_result = that.getName();
         TypeOrPattern tp = that.getMatchType();
-        TypeOrPattern matchType_result = (TypeOrPattern) recur(tp);
+        TypeOrPattern matchType_result;
+        matchType_result = (TypeOrPattern) recur(tp);
         if (name_result.isNone() && matchType_result instanceof VarType &&
             _env.hasTypeParam(((VarType)matchType_result).getName()).isNone()) {
             name_result = Option.<Id>some(((VarType)matchType_result).getName());
-            matchType_result = NodeFactory.makeAnyType(NodeUtil.getSpan(that));
+            matchType_result = NodeFactory.makeAnyType(span);
+        }
+        if (rewriteTypecaseClause && matchType_result instanceof TupleType) {
+            List<PatternBinding> ps = new ArrayList<PatternBinding>();
+            for (Type t : ((TupleType)matchType_result).getElements()) {
+                ps.add(typeToPatternBinding(t));
+            }
+            matchType_result = NodeFactory.makePattern(span, Option.<Type>none(),
+                                                       NodeFactory.makePatternArgs(span, ps));
         }
         Block body_result = (Block) recur(that.getBody());
+        forTypecaseClause = false;
+        rewriteTypecaseClause = false;
         return forTypecaseClauseOnly(that, that.getInfo(), name_result, matchType_result, body_result);
     }
 
@@ -331,7 +371,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     _onDemandImports.add(n);
                 }
                 if (typeConses.isEmpty()) {
-                    error(NodeUtil.nameString(n) + " is undefined.", n);
+                    if (forTypecaseClause)
+                        rewriteTypecaseClause = true;
+                    else
+                        error(NodeUtil.nameString(n) + " is undefined.", n);
                     return that;
                 }
                 if (typeConses.size() > 1) {

@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
-import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
