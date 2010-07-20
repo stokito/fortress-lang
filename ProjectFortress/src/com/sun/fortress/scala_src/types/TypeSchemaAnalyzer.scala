@@ -52,40 +52,27 @@ import com.sun.fortress.useful.NI
  * rewrite the front end fixing this would be a high priority. 
  */
 
-class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[Type] {
-  def top = ANY
-  def bottom = BOTTOM
+class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   
-  def meet(s: Type, t: Type): Type = s
-  def join(s: Type, t: Type): Type = s
+  def makeDomainFromArrow(a: ArrowType): Type = {
+    insertStaticParams(a.getDomain, getStaticParams(a))
+  }
   
-  /**
-   * Determine if the type schema `s` is a subtype of the type schema `t`,
-   * according to the full F-sub system extended with a couple rules for
-   * computing the subtype relation between a schema and a type.
-   *
-   * Note that this is not necessarily the same relation as "more specific."
-   * For example, `[T] List[T]->()   <:  [T] ArrayList[T]->()`.
-   */
-  def lteq(s: Type, t: Type): Boolean =
-    lteqHelper(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+  // Subtyping on universal arrows
+  def subtypeUA(s: ArrowType, t: ArrowType): Boolean =
+    subUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType],
+          alphaRenameTypeSchema(t).asInstanceOf[ArrowType])
   
-  
-  /**
-   * Same as `lteq()` but assumes `s` and `t` bind distinctly named static
-   * parameters; i.e. the static parameters bound by `s` and `t` have been
-   * alpha renamed.
-   */
-  protected def lteqHelper(s: Type, t: Type): Boolean = (s, t) match {
-    
+  // Subtyping on universal arrows with distinct parameters  
+  protected def subUA(s: ArrowType, t: ArrowType): Boolean = (s, t) match {
     // t has static parameters
     case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
       /* Extend the type analyzer with the static parameters
        * from t. Then strip t of it's type parameters to get t'
        * and call lteq(s,t') */
       val tsa = extend(getStaticParams(t), getWhere(t))
-      val tt = clearStaticParams(t)
-      tsa.lteqHelper(s, tt)
+      val tt = clearStaticParams(t).asInstanceOf[ArrowType]
+      tsa.subUA(s, tt)
     // s has static parameters and t does not
     case (s, t) if !s.getInfo.getStaticParams.isEmpty =>
       /* Try and infer an instantiation sigma of s such that 
@@ -98,13 +85,11 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
   }
   
 
-  /* This method implements subtyping for type schema with type parameters that
-   * are existentially quantified. Note that these rules are dual to those for
-   * universal quantification.
-   */
-  def lteqExistential(s: Type, t: Type) = lteqExistentialHelper(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+  // Subtyping for existential domains
+  def subtypeED(s: Type, t: Type) = 
+    subED(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
   
-  private def lteqExistentialHelper(s: Type, t: Type): Boolean = (s,t) match {
+  private def subED(s: Type, t: Type): Boolean = (s,t) match {
     // t has static parameters
     case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
       /* Extend the type analyzer with the static parameters
@@ -112,7 +97,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
        * and call lteq(s',t) */
       val tsa = extend(getStaticParams(s), getWhere(s))
       val ss = clearStaticParams(s)
-      tsa.lteqExistentialHelper(ss, t)
+      tsa.subED(ss, t)
     // s has static parameters and t does not
     case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
       /* Try and infer an instantiation sigma of t such that 
@@ -124,6 +109,12 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
     case (s,t) => ta.lteq(s, t)
   }
   
+  def equivalentED(s: Type, t: Type) =
+    eqED(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+    
+  private def eqED(s: Type, t: Type) = 
+    subED(s, t) && subED(t, s)
+    
   /**
    * Returns a type with all bound static parameters replaced with unique
    * identifiers for this static environment. Each call should generate
@@ -142,9 +133,25 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
     alphaRename(subst, t).asInstanceOf[Type]
   }
   
-  def normalizeExistential(x: Type): Type = x
+  // Normalizes existential domains using exclusion as in the paper
+  def normalizeED(x: Type): Type = x
+  // Normalizes universal arrows using exclusion as in the paper
+  def normalizeUA(x: ArrowType): Type = x
   
-  def normalizeUniversalArrow(x: ArrowType): Type = x
+  // The meet of two existential types
+  def meetED(x: Type, y: Type) = {
+    val ax = alphaRenameTypeSchema(x)
+    val ay = alphaRenameTypeSchema(y)
+    val xp = getStaticParams(ax)
+    val yp = getStaticParams(ay)
+    insertStaticParams(ta.meet(clearStaticParams(ax), clearStaticParams(ay)) , xp ++ yp)
+  }
+  // The special arrow that we use when checking the return type rule
+  def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
+    case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
+          SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
+       SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.minimalEffect(e1,e2), i1 && i2, None)
+  }
   
   /**
    * Checks if two types `s` and `t` are syntactically equivalent. If either
