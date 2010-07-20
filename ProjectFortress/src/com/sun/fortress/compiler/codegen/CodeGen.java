@@ -49,7 +49,8 @@ import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.OverloadSet;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+//import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
@@ -77,6 +78,7 @@ import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
 import com.sun.fortress.scala_src.useful.STypesUtil;
+import scala.collection.JavaConversions;
 
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
@@ -331,7 +333,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * 
          * FOR NOW, guess INVOKEINTERFACE.
          */
-        if (receiverType instanceof VarType || ta.typeCons((TraitType)receiverType).unwrap().ast() instanceof TraitDecl &&
+        if (receiverType instanceof VarType || ta.typeCons(((TraitType)receiverType).getName()).ast() instanceof TraitDecl &&
                 !NamingCzar.fortressTypeIsSpecial(receiverType)) {
             opcode = INVOKEINTERFACE;
         } else {

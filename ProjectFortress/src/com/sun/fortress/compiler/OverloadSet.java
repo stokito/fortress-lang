@@ -28,7 +28,9 @@ import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+//import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.scala_src.typechecker.Formula;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -43,6 +45,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import scala.collection.JavaConversions;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
 
@@ -618,7 +622,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * but that requires extending TypeAnalyzer.
      */
     private static Type join(TypeAnalyzer ta, Iterable<Type> tys) {
-        Type r = ta.joinNormal(tys);
+        Type r = ta.join(JavaConversions.asIterable(tys));
         if (r instanceof UnionType) {
             r = NodeFactory.makeAnyType(r.getInfo().getSpan());
         }
@@ -812,7 +816,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private static boolean tweakedSubtypeTest(TypeAnalyzer ta, com.sun.fortress.nodes.Type sub_type, Type super_type ) {
         sub_type = normalizeSelfType(sub_type);
         super_type = normalizeSelfType(super_type);
-        return ta.subtypeNormal(sub_type, super_type).isTrue();
+        return Formula.isTrue(ta.subtype(sub_type, super_type), ta);
     }
 
     /**

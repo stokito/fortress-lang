@@ -13,7 +13,9 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests=Gt0a Gt0b Gt0c Gt0d Gt0e Gt0f Gt0g
+# removed Gt0g
+
+tests=Gt0a Gt0b Gt0c Gt0d Gt0e Gt0f 
 link
 run
 run_out_WIcontains=PASS
