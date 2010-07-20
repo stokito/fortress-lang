@@ -1070,17 +1070,30 @@ object STypesUtil {
   }
 
   def inheritedMethods(extendedTraits: JList[TraitTypeWhere],
-                       analyzer: JTypeAnalyzer)
+                       analyzer: TypeAnalyzer)
                        : Relation[IdOrOpOrAnonymousName,
                                   (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(toListFromImmutable(extendedTraits),
-                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
+                     analyzer)
 
-  def allMethods(tt: TraitType, analyzer: JTypeAnalyzer)
+//  def inheritedMethods(extendedTraits: JList[TraitTypeWhere],
+//                       analyzer: JTypeAnalyzer)
+//                       : Relation[IdOrOpOrAnonymousName,
+//                                  (Functional, StaticTypeReplacer, TraitType)] =
+//    inheritedMethods(toListFromImmutable(extendedTraits),
+//                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
+
+  def allMethods(tt: TraitType, analyzer: TypeAnalyzer)
                        : Relation[IdOrOpOrAnonymousName,
                                   (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
-                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
+                     analyzer)
+
+//  def allMethods(tt: TraitType, analyzer: JTypeAnalyzer)
+//                       : Relation[IdOrOpOrAnonymousName,
+//                                  (Functional, StaticTypeReplacer, TraitType)] =
+//    inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
+//                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
   private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
                                  paramsToArgs: StaticTypeReplacer) = {

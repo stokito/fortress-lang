@@ -442,7 +442,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def typeCons(x: Id): TypeConsIndex =
     toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
 
-    def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
+  def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
     case ti: ProperTraitIndex =>
       val args = toListFromImmutable(t.getArgs)
       val params = toListFromImmutable(ti.staticParameters)

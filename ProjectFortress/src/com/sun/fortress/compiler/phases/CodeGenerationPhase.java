@@ -26,7 +26,8 @@ import com.sun.fortress.compiler.codegen.FreeVariables;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+// import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
@@ -70,7 +71,7 @@ public class CodeGenerationPhase extends Phase {
         for (APIName api : previous.apis().keySet()) {
             if (ForeignJava.only.foreignApiNeedingCompilation(api)) {
                 ApiIndex ai = previous.apis().get(api);
-                TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ai, apiEnv));
+                TypeAnalyzer ta = newTypeAnalyzer(new TraitTable(ai, apiEnv));
 
                 Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
                 Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
@@ -92,7 +93,9 @@ public class CodeGenerationPhase extends Phase {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
             Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
-            TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
+            //TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
+            TypeAnalyzer sta = newTypeAnalyzer(new TraitTable(ci, apiEnv));
+                 
 
             // Compute locally bound variables, necessary for closure conversion and
             // task creation.
@@ -104,7 +107,7 @@ public class CodeGenerationPhase extends Phase {
             component.accept(pa);
             pa.printTable();
 
-            CodeGen c = new CodeGen(component, ta, pa, lbv, ci, apiEnv);
+            CodeGen c = new CodeGen(component, sta, pa, lbv, ci, apiEnv);
             component.accept(c);
         }
 
@@ -113,6 +116,13 @@ public class CodeGenerationPhase extends Phase {
                                  IterUtil.<StaticError>empty(),
                                  previous.typeCheckerOutput());
 
+    }
+
+
+    private TypeAnalyzer newTypeAnalyzer(
+            TraitTable traitTable) {
+        // TODO Auto-generated method stub
+        return com.sun.fortress.scala_src.types.TypeAnalyzer$.MODULE$.make(traitTable);
     }
 
 

@@ -842,13 +842,6 @@ public class NamingCzar {
     }
 
     // OverloadSet.jvmSignatureFor
-    public static String jvmSignatureFor(Function f, APIName ifNone, TypeAnalyzer ta) {
-        com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
-        range = ta.groundBound(range);
-        return jvmSignatureFor(f.parameters(), range, ifNone);
-    }
-
-    // OverloadSet.jvmSignatureFor
     public static String jvmSignatureFor(Function f, APIName ifNone) {
         com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
         return jvmSignatureFor(f.parameters(), range, ifNone);
