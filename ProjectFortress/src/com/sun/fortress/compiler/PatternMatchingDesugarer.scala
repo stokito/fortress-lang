@@ -120,7 +120,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       NF.makeVarDecl(NU.getSpan(param), toJavaList(List[LValue]()), None)
   }
 
-  def desugarLValue(lv: LValue) = lv match {
+  def desugarLValue(lv: LValue) : (LValue, List[LValue], List[Expr]) = lv match {
     case SLValue(i, name, mods, tp, isMutable) if isPattern(tp) =>
       val span = NU.getSpan(lv)
       val pattern = tp.get.asInstanceOf[Pattern]
@@ -153,9 +153,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                    case _ => false
                  }
                }
-               if(ps.filter(! isKeywordPattern(_)).size != numParams)
+               if(ps.filter(! isKeywordPattern(_)).size != numParams){
                  signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
-             case _ => signal(ty, "Type " + ty + " not found.")
+                 return (lv, Nil, Nil)
+               }
+             case _ => 
+               signal(ty, "Type " + ty + " not found.")
+               return (lv, Nil, Nil)
           }
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_lv, left, right)
@@ -171,7 +175,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case _ => (lv, Nil, Nil)
   }
 
-  def desugarParam(p: Param) = p match {
+  def desugarParam(p: Param) : (Param, List[LValue], List[Expr]) = p match {
     case SParam(i, name, mods, tp, e, varargs) if isPattern(tp) =>
       val span = NU.getSpan(p)
       val pattern = tp.get.asInstanceOf[Pattern]
@@ -181,10 +185,6 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                      else name
       toOption(pattern.getName) match {
         case Some(ty) =>
-          val new_p = SParam(i, new_name, mods, Some(ty),
-                             walk(e).asInstanceOf[Option[Expr]], varargs)
-          val recv = EF.makeVarRef(new_name)
-          val left = ps.map(patternBindingToLValue(_, mods))
           /* error handling in case that a pattern has an incorrect structure. */
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
@@ -204,10 +204,18 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                    case _ => false
                  }
                }
-               if(ps.filter(! isKeywordPattern(_)).size != numParams)
+               if(ps.filter(! isKeywordPattern(_)).size != numParams) { // error
                  signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
-            case _ => signal(ty, "Type " + ty + " not found.")
+                 return (p, Nil, Nil)
+               }
+            case _ => // error
+              signal(ty, "Type " + ty + " not found.")
+              return (p, Nil, Nil)
           }
+          val new_p = SParam(i, new_name, mods, Some(ty),
+                             walk(e).asInstanceOf[Option[Expr]], varargs)
+          val recv = EF.makeVarRef(new_name)
+          val left = ps.map(patternBindingToLValue(_, mods))
           val right = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
           (new_p, left, right)
         case None =>
@@ -222,7 +230,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case _ => (p, Nil, Nil)
   }
 
-  def desugarFnParam(p : Param) = p match {
+  def desugarFnParam(p : Param) : (Param, List[Param], List[Expr], (List[LValue], List[Expr])) = p match {
     case SParam(i, name, mods, tp, e, varargs) if isPattern(tp) =>
       val span = NU.getSpan(p)
       val pattern = tp.get.asInstanceOf[Pattern]
@@ -233,11 +241,6 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       val recv = EF.makeVarRef(new_name)
       toOption(pattern.getName) match {
         case Some(ty) =>
-          val new_p = SParam(i, new_name, mods, Some(ty),
-                             walk(e).asInstanceOf[Option[Expr]], varargs)
-          val expr_list = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
-          val ty_list = expr_list.map(p => fieldToType(p.getField, ty))
-          val param_list = (ps zip ty_list).map(patternBindingToParam(_, mods))
           /* error handling in case that a pattern has an incorrect structure. */
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
@@ -257,11 +260,21 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                    case _ => false
                  }
                }
-              if(ps.filter(! isKeywordPattern(_)).size != numParams)
+              if(ps.filter(! isKeywordPattern(_)).size != numParams){ // error
                    signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
-            case _ => signal(ty, "Type " + ty + " not found.")
+                   return (p, Nil, Nil, (Nil, Nil))
+              }
+            case _ => 
+              signal(ty, "Type " + ty + " not found.")
+              return (p, Nil, Nil, (Nil, Nil))
           }
-          (new_p, param_list, expr_list, (Nil, Nil))
+
+          val new_p = SParam(i, new_name, mods, Some(ty),
+                             walk(e).asInstanceOf[Option[Expr]], varargs)
+          val expr_list = ps.zipWithIndex.map(patternBindingToExpr(_, recv, ty))
+          val ty_list = expr_list.map(p => fieldToType(p.getField, ty))
+          val param_list = (ps zip ty_list).map(patternBindingToParam(_, mods))
+                    (new_p, param_list, expr_list, (Nil, Nil))
         case None =>
           /* (tuple pattern parameter) */
           val tylist = ps.map(patternBindingToType)

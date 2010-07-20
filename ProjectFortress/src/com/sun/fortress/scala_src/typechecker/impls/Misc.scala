@@ -643,9 +643,39 @@ trait Misc { self: STypeChecker with Common =>
             val ps = toList(pattern.getPatterns.getPatterns)
             toOption(pattern.getName) match {
               case Some(ty) =>
-                if(isTupleType)
+                if(isTupleType){ // error
                   signal(pattern, "A typecase clause is unreachable.")
+                  ty
+                }
                 /* A structure of a pattern shoud be checked in comparison with the structure of 'ty'.*/
+                /* error handling in case that a pattern has an incorrect structure. */
+                ty match {
+                  case t:TraitType if typeConses.keySet.contains(t.getName) =>
+                    val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
+                    val numParams = toOption(params) match {
+                                      case Some(ps) => ps.size
+                                      case _ => 0
+                                    }
+                    val paramIdlist = toOption(params) match {
+                                        case Some(ps) => toList(ps).map(_.getName)
+                                        case _ => List()
+                                      }
+                   /* check whether a given pattern is a keyword pattern or not */
+                   def isKeywordPattern(pattern : PatternBinding) : Boolean = {
+                     toOption(pattern.getField) match {
+                       case Some(kw) => !(paramIdlist.contains(kw))
+                       case _ => false
+                     }
+                   }
+                   if(ps.filter(! isKeywordPattern(_)).size != numParams) {  // error 
+                     signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
+                     return ty
+                   }
+                 case _ => // error
+                   signal(ty, "Type " + ty + " not found.")
+                   return ty
+               }
+
                 /* get types of all fields of the type "ty" corresponding to each pattern."*/
                 val id_list = ps.zipWithIndex.map(patternBindingToId(_, ty))
                 val tylist = id_list.map(fieldToType(_, ty))
@@ -657,8 +687,10 @@ trait Misc { self: STypeChecker with Common =>
                   expr_type
                 }
                 else {
-                  if(!isTupleType)
+                  if(!isTupleType){
                     signal(pattern, "A typecase clause is unreachable.")
+                    return expr_type
+                  }
                   val eltTypes = toList(expr_type.asInstanceOf[TupleType].getElements)
                   val tylist = (ps zip eltTypes).map(getBoundIdWithType_tuple)
                   NF.makeMaybeTupleType(NU.getSpan(tp), toJavaList(tylist))
