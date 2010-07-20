@@ -142,6 +142,10 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) extends BoundedLattice[T
     alphaRename(subst, t).asInstanceOf[Type]
   }
   
+  def normalizeExistential(x: Type): Type = x
+  
+  def normalizeUniversalArrow(x: ArrowType): Type = x
+  
   /**
    * Checks if two types `s` and `t` are syntactically equivalent. If either
    * type has static parameters, then the `syntacticEqGeneric` method is called.

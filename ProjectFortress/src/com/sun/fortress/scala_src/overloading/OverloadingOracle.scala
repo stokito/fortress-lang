@@ -17,6 +17,7 @@
 
 package com.sun.fortress.scala_src.overloading
 
+
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.Types.ANY
@@ -44,22 +45,36 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
 
-class OverloadingOracle(implicit analyzer: TypeAnalyzer) {
+class OverloadingOracle(implicit analyzer: TypeAnalyzer) extends PartialOrdering[Functional] {
+  
   val schemaAnalyzer = new TypeSchemaAnalyzer()
   
-  //ToDo: handle where clauses
-  def moreSpecific(s: ArrowType, t: ArrowType): Boolean = {
-    val edom1 = insertStaticParams(s.getDomain, getStaticParams(s))
-    val edom2 = insertStaticParams(t.getDomain, getStaticParams(t))
-    schemaAnalyzer.lteqExistential(edom1, edom2)
+  override def tryCompare(x: Functional, y: Functional): Option[Int] = {
+    val xLEy = lteq(x,y)
+    val yLEx = lteq(y,x)
+    if (xLEy) Some(if (yLEx) 0 else -1)
+    else if (yLEx) Some(1) else None
   }
   
-  //ToDo: handle where clauses
-  def typeSafe(s: ArrowType, t: ArrowType) = (schemaAnalyzer.alphaRenameTypeSchema(s),schemaAnalyzer.alphaRenameTypeSchema(t)) match {
-    case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1),SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) => {
+  // Checks when f is more specific than g
+  def lteq(f: Functional, g: Functional): Boolean = {
+    val fa = makeArrowFromFunctional(f).get
+    val ga = makeArrowFromFunctional(g).get
+    val fd = insertStaticParams(fa.getDomain, getStaticParams(fa))
+    val gd = insertStaticParams(ga.getDomain, getStaticParams(ga))
+    schemaAnalyzer.lteqExistential(fd, gd)
+  }
+  // Checks the return type rule
+  def typeSafe(f: Functional, g: Functional): Boolean = {
+    if(!lteq(f, g))
+      true
+    else {
+      val fa = schemaAnalyzer.alphaRenameTypeSchema(makeArrowFromFunctional(f).get)
+      val ga = schemaAnalyzer.alphaRenameTypeSchema(makeArrowFromFunctional(g).get)
+      val SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1) = fa
+      val SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2) = ga
       val meet = SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), analyzer.meet(d1,d2), r2, analyzer.minimalEffect(e1,e2), i1 && i2, None)
-      schemaAnalyzer.lteq(s, meet)
+      schemaAnalyzer.lteq(fa, meet)
     }
   }
-  
 }
