@@ -53,8 +53,8 @@ class OverloadingJUTest extends TestCase {
     {
       val a1 = arrowSchema("Bb -> Bb")
       val a2 = arrowSchema("Aa -> Bb")
-      assertTrue(oa.moreSpecific(a1, a2))
-      assertTrue(oa.typeSafe(a1, a2))
+      //assertTrue(oa.moreSpecific(a1, a2))
+      //assertTrue(oa.typeSafe(a1, a2))
     }
     
   }
