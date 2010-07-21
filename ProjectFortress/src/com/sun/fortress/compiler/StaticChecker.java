@@ -32,7 +32,6 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
-import com.sun.fortress.compiler.typechecker.TypeChecker;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
