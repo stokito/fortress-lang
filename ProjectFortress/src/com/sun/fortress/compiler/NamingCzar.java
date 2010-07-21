@@ -29,7 +29,6 @@ import java.util.Map;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.optimization.Unbox.Contains;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BoolBase;

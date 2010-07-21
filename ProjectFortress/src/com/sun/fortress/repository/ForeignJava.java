@@ -22,7 +22,6 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
 import com.sun.fortress.compiler.OverloadSet;
-//import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;

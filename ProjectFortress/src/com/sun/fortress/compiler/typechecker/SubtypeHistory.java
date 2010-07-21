@@ -17,12 +17,14 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.typechecker.Formula;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
+import scala.collection.JavaConversions; 
 import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 /** An immutable record of all subtyping invocations in the call stack. */
@@ -69,16 +71,16 @@ public class SubtypeHistory {
         return _analyzer.normalize(t);
     }
 
-    public ConstraintFormula subtypeNormal(Type s, Type t) {
-        return _analyzer.sub(s, t, this);
+    public Boolean subtypeNormal(Type s, Type t) {
+        return Formula.isTrue(_analyzer.sub(s, t), _analyzer);
     }
 
     public Type meetNormal(Type... ts) {
-        return _analyzer.mt(IterUtil.asIterable(ts), this);
+        return _analyzer.meet(JavaConversions.asIterable(IterUtil.asIterable(ts)));
     }
 
     public Type joinNormal(Type... ts) {
-        return _analyzer.jn(IterUtil.asIterable(ts), this);
+        return _analyzer.join(JavaConversions.asIterable(IterUtil.asIterable(ts)));
     }
 
     public String toString() {

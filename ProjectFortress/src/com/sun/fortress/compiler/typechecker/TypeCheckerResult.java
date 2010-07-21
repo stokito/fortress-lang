@@ -37,6 +37,7 @@ import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -56,6 +57,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
     private final ConstraintFormula nodeConstraints;
     private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
 
+    /*
     private static Pair<ConstraintFormula, Option<StaticError>>
     collectConstraints(Iterable<? extends TypeCheckerResult> results,
             TypeAnalyzer checker, Node ast) {
@@ -71,6 +73,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
         return Pair.make(and, Option.<StaticError>none());
     }
+    */
 
     private static Map<Pair<Node,Span>, TypeEnv> collectEnvMaps(Iterable<? extends TypeCheckerResult> results) {
         // Take the union of each map from every TypeCheckerResult
@@ -90,6 +93,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
 
 
+    /*
     public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
             TypeAnalyzer type_analyzer,
             TypeCheckerResult... results) {
@@ -212,31 +216,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
                 constraints_.first(),
                 collectEnvMaps(results));
     }
-
-    public static TypeCheckerResult compose(Node _ast,
-            TypeAnalyzer type_analyzer,
-            Option<List<TypeCheckerResult>> results_) {
-        if (results_.isSome()) {
-            List<TypeCheckerResult> results = results_.unwrap();
-
-            Pair<ConstraintFormula,Option<StaticError>> constraints_ =
-                collectConstraints(results,type_analyzer,_ast);
-
-            List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
-
-            if( constraints_.second().isSome() ) {
-                errors = Useful.prepend(constraints_.second().unwrap(), errors);
-            }
-
-            return new TypeCheckerResult(_ast,
-                    Option.<Type>none(),
-                    errors,
-                    constraints_.first(),
-                    collectEnvMaps(results));
-        } else {
-            return new TypeCheckerResult(_ast);
-        }
-    }
+    */
 
     /**
      * Generally compose should be called instead of this method. This method is
