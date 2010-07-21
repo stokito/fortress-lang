@@ -611,9 +611,9 @@ trait Misc { self: STypeChecker with Common =>
               val t = getTypefromTypeOrPattern(idType, typ)
               /* intersection type between "typ" and "t" */
               val tylist = t match {
-                case tu:TupleType =>
+                case tu:TupleType if !NU.isVoidType(t) =>
                   toList(tu.getElements).zip(toList(typ.asInstanceOf[TupleType].getElements)).map{p:(Type, Type) => p._1 match {
-                      case tu1:TupleType => tu1
+                      case tu1:TupleType if !NU.isVoidType(p._1) => tu1
                       case _ => normalize(NF.makeIntersectionType(p._1, p._2))
                         }}
                 case _ =>
@@ -635,7 +635,7 @@ trait Misc { self: STypeChecker with Common =>
 
         def getTypefromTypeOrPattern(tp : TypeOrPattern, expr_type : Type): Type = {
           val (isTupleType, expr_size) = expr_type match {
-            case t:TupleType => (true, t.getElements.size)
+            case t:TupleType if !NU.isVoidType(expr_type) => (true, t.getElements.size)
             case _ => (false, 1)
           }
           if(tp.isInstanceOf[Pattern]){
