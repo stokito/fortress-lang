@@ -17,7 +17,6 @@
 
 package com.sun.fortress.scala_src.typechecker
 
-import com.sun.fortress.compiler.typechecker.TypeAnalyzerJUTest._
 import _root_.junit.framework.TestCase
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.nodes_util.NodeFactory._
