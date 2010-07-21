@@ -113,103 +113,6 @@ public class TypesUtil {
     }
 
     /**
-     * Given the type of a regular function, which is presumed to be an
-     * arrow type, its arguments and its static arguments, return the
-     * resulting type of the function application.
-     * @param checker Needed to check compatibility of arguments.
-     * @param fn_type The type of the function.
-     * @param args Type of arguments provided by the programmer.
-     * @param staticArgs Static arguments provided by the programmer.
-     * @param existingConstraint Any existing constraints that should be taken into account when
-     *        choosing an overloading.
-     * @return
-     */
-    public static Option<Pair<Type,ConstraintFormula>> applicationType(final TypeAnalyzer checker,
-            final Type fn_type,
-            final ArgList args,
-            final List<StaticArg> staticArgs,
-            final ConstraintFormula existingConstraint) {
-        // List of arrow types that statically match
-        List<ArrowType> matching_types = new ArrayList<ArrowType>();
-        // The constraint formed from all matching arrows
-        ConstraintFormula result_constraint = trueFormula();
-        for( Type arrow : conjuncts(fn_type) ) {
-            // create instantiated arrow types using visitor
-            Pair<Option<ArrowType>,ConstraintFormula> pair =
-                arrow.accept(new NodeDepthFirstVisitor<Pair<Option<ArrowType>,ConstraintFormula>>() {
-                    @Override
-                    public Pair<Option<ArrowType>, ConstraintFormula> defaultCase(
-                            Node that) {
-                        return Pair.make(Option.<ArrowType>none(), falseFormula());
-                    }
-
-                    // apply (inferring if necessary) static arguments and checking sub-typing
-                    private Pair<Option<ArrowType>,ConstraintFormula>
-                    arrowTypeHelper(ArrowType that, List<StaticParam> static_params) {
-                        int num_static_params = static_params.size();
-                        int num_static_args = staticArgs.size();
-
-                        List<StaticArg> static_args_to_apply = staticArgs;
-                        if( num_static_params > 0 && num_static_args == 0 ) {
-                            // inference must be done
-
-                            // TODO if parameters are anything but TypeParam, we don't know
-                            // how to infer it yet.
-                            for( StaticParam p : static_params )
-                                if( !(NodeUtil.isTypeParam(p)) )
-                                    return Pair.make(Option.<ArrowType>none(), falseFormula());
-
-                            static_args_to_apply =
-                                CollectUtil.makeList(IterUtil.map(static_params,
-                                        new Lambda<StaticParam,StaticArg>() {
-                                    public StaticArg value(StaticParam arg0) {
-                                        // This is only legal if StaticParam is a TypeParam!!!
-                                        Type t = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(arg0));
-                                        return NodeFactory.makeTypeArg(NodeFactory.makeSpan(t), t);
-                                    }}));
-                        }
-                        else if( num_static_params != num_static_args ) {
-                            // just not the right method
-                            return Pair.make(Option.<ArrowType>none(), falseFormula());
-                        }
-                        // now apply the static arguments,
-                        that = (ArrowType)
-                        that.accept(new StaticTypeReplacer(static_params,static_args_to_apply));
-                        // and then check parameter sub-typing
-                        ConstraintFormula valid = checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()));
-                        return Pair.make(Option.some(that), valid);
-                    }
-                    @Override
-                    public Pair<Option<ArrowType>, ConstraintFormula> forArrowType(
-                            ArrowType that) {
-                        return this.arrowTypeHelper(that, NodeUtil.getStaticParams(that));
-                    }
-                });
-            ConstraintFormula temp =  pair.second().and(existingConstraint, new SubtypeHistory(checker));
-            if(temp.isSatisfiable() ) {
-                matching_types.add(pair.first().unwrap());
-                result_constraint = result_constraint.and(pair.second(), new SubtypeHistory(checker));
-            }
-        }
-
-        // For better error messages, since we could always return bottom
-        if( matching_types.isEmpty() ) {
-            return Option.none();
-        }
-        else {
-            // Now, take all the matching ones and join their ranges to be the result range type.
-            Iterable<Type> ranges =
-                IterUtil.map(matching_types, new Lambda<ArrowType, Type>(){
-                    public Type value(ArrowType arg0) {
-                        return arg0.getRange();
-                    }});
-            Type range_type = checker.meet(ranges);
-            range_type = checker.normalize(range_type);
-            return Option.some(Pair.make(range_type, result_constraint));
-        }
-    }
-
-    /**
      *
      * Checks whether a type is an arrow or a conjunct of arrows
      *
@@ -223,31 +126,6 @@ public class TypesUtil {
     		});
     	}
     	return valid;
-    }
-
-    /**
-     * Figure out the static type of a non-generic function application. This
-     * method is a rewrite of the old method with the same name but using a
-     * {@code TypeAnalyzer} rather than a Subtype checker. Accordingly,
-     * we may have to (in the future)
-     * return a ConstraintFormula instead of a type.
-     * @param checker the TypeAnalyzer to use for any type comparisons
-     * @param fn the type of the function, which can be some ArrowType,
-     *           or an intersection of such (in the case of an overloaded
-     *           function)
-     * @param existingConstraint Any additional constraints that should be taken into
-     *        account when choosing an overloading.
-     * @param arg the argument to apply to this function
-     * @return the return type of the most applicable arrow type in {@code fn},
-     *         or {@code Option.none()} if no arrow type matched the args
-     */
-    public static Option<Pair<Type,ConstraintFormula>> applicationType(final TypeAnalyzer checker,
-            final Type fn,
-            final ArgList args,
-            final ConstraintFormula existingConstraint) {
-        // Just a convenience method
-        return applicationType(checker,fn,args,
-                               Collections.<StaticArg>emptyList(), existingConstraint);
     }
 
     /** Treat the given type as an intersection and get its elements. */
@@ -344,70 +222,6 @@ public class TypesUtil {
     }
 
     /**
-     * Attempts to apply the given static args to the given type, checking if the given type is
-     * even a arrow type, and if so, if the number of args given is the number expected by the
-     * arrow type. This method was written to be useful for FnRef, where the static arguments
-     * are provided at a subexpression of where the function itself is actually applied. If no
-     * arguments are provided, the original type will be returned no matter what it's type.
-     * Intersection types will also be handled correctly.
-     * @param type
-     * @param static_args
-     * @return
-     */
-    public static Option<Pair<Type,ConstraintFormula>> applyStaticArgsIfPossible(Type type, final List<StaticArg> static_args, final TypeAnalyzer subtype_checker) {
-    	if( static_args.size() == 0 ) {
-    		return Option.some(Pair.make(type, trueFormula()));
-    	}
-    	else {
-    		return type.accept(new NodeDepthFirstVisitor<Option<Pair<Type,ConstraintFormula>>>() {
-    			@Override
-    			public Option<Pair<Type,ConstraintFormula>> defaultCase(Node that) {
-    				return Option.none();
-    			}
-
-    			@Override
-    			public Option<Pair<Type,ConstraintFormula>> forIntersectionType(IntersectionType that) {
-    				List<Option<Pair<Type,ConstraintFormula>>> results = this.recurOnListOfType(that.getElements());
-    				List<Type> conjuncts = new ArrayList<Type>(results.size());
-    				ConstraintFormula accumulated_constraint=trueFormula();
-    				for( Option<Pair<Type,ConstraintFormula>> t : results ) {
-    					if( t.isNone() ) {
-    						return Option.none();
-    					}
-    					else {
-    						conjuncts.add(t.unwrap().first());
-    						accumulated_constraint.and(t.unwrap().second(), new SubtypeHistory(subtype_checker));
-    					}
-    				}
-    				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(NodeUtil.getSpan(that),
-                                                                                                     NodeUtil.isParenthesized(that),
-                                                                                                     conjuncts),accumulated_constraint));
-    			}
-
-    			@Override
-    			public Option<Pair<Type,ConstraintFormula>> forArrowType(ArrowType that) {
-
-    				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,
-                                                                                                           NodeUtil.getStaticParams(that),
-                                                                                                           subtype_checker);
-
-    				if(constraints.isSome()) {
-    					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(NodeUtil.getStaticParams(that),static_args));
-    					Type new_type = NodeFactory.makeArrowType(NodeUtil.getSpan(temp),NodeUtil.isParenthesized(temp),
-                                                                      temp.getDomain(),temp.getRange(), temp.getEffect(),
-                                                                      Collections.<StaticParam>emptyList(),
-                                                                      Option.<WhereClause>none());
-    					return Option.some(Pair.make(new_type,constraints.unwrap()));
-    				}
-    				else {
-    					return Option.none();
-    				}
-    			}
-    		});
-    	}
-    }
-
-    /**
      * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
      * constraints on those inference vars, solve, and replace the inference vars
      * in the node.
@@ -417,17 +231,6 @@ public class TypesUtil {
         InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
         Node new_node = node.accept(rep);
         return Pair.make(result.getNodeConstraints().isSatisfiable(), new_node);
-    }
-
-    /**
-     * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
-     * constraints on those inference vars, solve, and replace the inference vars
-     * in the node.
-     */
-    public static Pair<Boolean,Node> closeConstraints(Node node,
-            TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
-        TypeCheckerResult result = TypeCheckerResult.compose(node, subtypeChecker, results);
-        return closeConstraints(node, result);
     }
 
     /** Given a list of Types, produce a list of static arguments, each one a TypeArg. */

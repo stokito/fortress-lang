@@ -28,7 +28,6 @@ import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
-//import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;

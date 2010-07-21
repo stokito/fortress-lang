@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -127,7 +128,6 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
      * @param static_args
      * @param staticParams
      * @return
-     */
     public static Option<ConstraintFormula> argsMatchParams(List<StaticArg> static_args,
                                                             List<StaticParam> static_params, final TypeAnalyzer subtype_checker) {
         if( static_args.size() != static_params.size() ) {
@@ -217,7 +217,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
                 Option<ConstraintFormula> result = param.accept(outer);
                 if(result.isSome()){
-                    valid = valid.and(result.unwrap(),new SubtypeHistory(subtype_checker));
+                    valid = valid.and(result.unwrap());
                 }
                 else{
                     return Option.none();
@@ -226,4 +226,5 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
             return Option.some(valid);
             }
     }
+     */
 }

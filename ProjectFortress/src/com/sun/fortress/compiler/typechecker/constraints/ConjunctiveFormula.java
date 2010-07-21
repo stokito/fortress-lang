@@ -369,7 +369,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
             }
             Type lub = lubs.get(ivar);
             Type glb = glbs.get(ivar);
-            if( this._history.subtypeNormal(glb, lub).isFalse() ){
+            if( ! this._history.subtypeNormal(glb, lub) ){
                 solvable = false;
                 //return FALSE;
             }

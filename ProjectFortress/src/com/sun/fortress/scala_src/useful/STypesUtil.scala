@@ -48,8 +48,6 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.CoercionOracle
 import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
-import com.sun.fortress.compiler.typechecker.{TypeAnalyzer => JTypeAnalyzer}
-// TODO: above import is temporary.
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -1076,24 +1074,11 @@ object STypesUtil {
     inheritedMethods(toListFromImmutable(extendedTraits),
                      analyzer)
 
-//  def inheritedMethods(extendedTraits: JList[TraitTypeWhere],
-//                       analyzer: JTypeAnalyzer)
-//                       : Relation[IdOrOpOrAnonymousName,
-//                                  (Functional, StaticTypeReplacer, TraitType)] =
-//    inheritedMethods(toListFromImmutable(extendedTraits),
-//                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
-
   def allMethods(tt: TraitType, analyzer: TypeAnalyzer)
                        : Relation[IdOrOpOrAnonymousName,
                                   (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
                      analyzer)
-
-//  def allMethods(tt: TraitType, analyzer: JTypeAnalyzer)
-//                       : Relation[IdOrOpOrAnonymousName,
-//                                  (Functional, StaticTypeReplacer, TraitType)] =
-//    inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
-//                     new TypeAnalyzer(analyzer.traitTable, analyzer.kindEnv))
 
   private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
                                  paramsToArgs: StaticTypeReplacer) = {

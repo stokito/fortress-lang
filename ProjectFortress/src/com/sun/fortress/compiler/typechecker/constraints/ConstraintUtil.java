@@ -85,7 +85,7 @@ public class ConstraintUtil {
 
 	public static ConstraintFormula lowerBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
 		debug.logStart(new String[]{"var","lowerBound"}, var, bound);
-		if (history.subtypeNormal(bound, BOTTOM).isTrue()) {
+		if (history.subtypeNormal(bound, BOTTOM)) {
 			debug.logEnd("result", trueFormula());
 			return trueFormula();
 		}
@@ -102,7 +102,7 @@ public class ConstraintUtil {
 
 	public static ConstraintFormula upperBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
 		debug.logStart(new String[]{"var","upperBound"}, var, bound);
-		if (history.subtypeNormal(ANY, bound).isTrue()) {
+		if (history.subtypeNormal(ANY, bound)) {
 			debug.logEnd("result", trueFormula());
 			return trueFormula();
 		}

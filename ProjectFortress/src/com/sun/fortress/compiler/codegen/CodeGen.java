@@ -49,7 +49,6 @@ import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.OverloadSet;
-//import com.sun.fortress.compiler.typechecker.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
