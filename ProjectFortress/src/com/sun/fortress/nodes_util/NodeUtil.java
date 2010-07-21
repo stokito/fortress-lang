@@ -705,7 +705,7 @@ public class NodeUtil {
     }
 
     public static boolean isTupleType(Type t) {
-        return ( t instanceof TupleType );
+        return ( (t instanceof TupleType) && (!isVoidType(t)) );
     }
 
     public static int getTupleTypeSize(Type t) {
