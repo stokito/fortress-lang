@@ -36,7 +36,6 @@ import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
-import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -66,6 +65,7 @@ import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -277,8 +277,8 @@ public class StaticChecker {
             }
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
-            if( TypesUtil.assertAfterTypeChecking(result.ast()) )
-                bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
+            if( errors.isEmpty() && STypesUtil.assertAfterTypeChecking(result.ast()) )
+                bug("Result of typechecking still contains intermediate nodes.\n" +
                     result.ast());
 
             errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());

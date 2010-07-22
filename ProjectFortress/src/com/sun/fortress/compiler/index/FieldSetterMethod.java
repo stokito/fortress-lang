@@ -19,7 +19,6 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
-import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
