@@ -139,12 +139,20 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   def normalizeUA(x: ArrowType): Type = x
   
   // The meet of two existential types
-  def meetED(x: Type, y: Type) = {
+  def meetED(x: Type, y: Type): Type = {
     val ax = alphaRenameTypeSchema(x)
     val ay = alphaRenameTypeSchema(y)
     val xp = getStaticParams(ax)
     val yp = getStaticParams(ay)
-    insertStaticParams(ta.meet(clearStaticParams(ax), clearStaticParams(ay)) , xp ++ yp)
+    assert((xp intersect yp).isEmpty)
+    
+    // Create the ugly meet.
+    val meet = insertStaticParams(ta.meet(clearStaticParams(ax),
+                                          clearStaticParams(ay)),
+                                  xp ++ yp)
+    
+    // Try to reduce this existential type.
+    reduceExistential(meet).getOrElse(meet)
   }
   // The special arrow that we use when checking the return type rule
   def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
@@ -234,5 +242,81 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       return t.toString
     val sparams = getStaticParams(t)
     "[" + sparams.mkString(", ") + "]" + t.toString
+  }
+  
+  
+  
+  /**
+   * Reduce the existential type `exType` to another existential type. For
+   * more details, see Section 5.3 of our paper and the "Existential
+   * reduction" definition.
+   */
+  def reduceExistential(exType: Type): Option[Type] = {
+    assert(ta.env.isEmpty, "reduction must be done in an empty kind env")
+    
+    // Get the constituent type.
+    val exTypeT = clearStaticParams(exType)
+    
+    // Create a type analyzer from exType's static parameters.
+    val exTypeSparams = getStaticParams(exType)
+    val exTypeEnvTa = ta.extend(exTypeSparams, None)
+    
+    // Under what constraints is T not equivalent to Bottom?
+    // TODO: hook in the right not-equivalent method
+    import com.sun.fortress.scala_src.typechecker.False
+    val notBottomC = False // exTypeEnvTa.notEquivalent(exTypeT, BOTTOM)
+    
+    // Solve these constraints to get a substitution.
+    val notBottomPhi = solve(notBottomC)(exTypeEnvTa).getOrElse{return None}
+    
+    // Map exTypeSparams into a new, possibly simplified environment.
+    val newSparams = boundsSubstitution(notBottomPhi, exTypeSparams)
+                       .getOrElse{return None}
+    
+    // Make a new existential type.
+    Some(insertStaticParams(notBottomPhi(exTypeT), newSparams))
+  }
+  
+  /**
+   * Map phi onto the given static params to produce a new set of static
+   * params. For more details, see the "Bounds substitution" definition
+   * on pg. 10 of our paper.
+   */
+  protected def boundsSubstitution(phi: Type => Type,
+                                   sparams: List[StaticParam])
+                                   : Option[List[StaticParam]] = {
+    import scala.collection.mutable.HashMap
+    
+    // Create a mapping from type variables in the static params to their
+    // corresponding bounds.
+    val varsMap = new HashMap[VarType, List[Type]]
+    for (SStaticParam(info, x:Id, exts, _, _, _:KindType, _) <- sparams)
+      varsMap(NF.makeVarType(info.getSpan, x)) = exts
+    
+    // Get the unique vars in the image under phi.
+    val imageVars = varsMap.keys.map(phi).filter(_.isInstanceOf[VarType])
+                           .toList.distinct.map(_.asInstanceOf[VarType])
+    
+    // Transfer bounds from the image vars onto the preimage vars to produce
+    // a new set of static params.
+    val imageSparams = imageVars map { y =>
+      
+      // For each x that maps to y under phi, collect the image of its bound.
+      val ybds = (for ((x, xbds) <- varsMap ; if phi(x) == y) yield xbds)
+                   .toList.flatten.map(_.asInstanceOf[BaseType])
+      
+      // Create the static param for Y <: YBDS.
+      NF.makeTypeParam(NU.getSpan(y), y.getName, toJavaList(ybds), none[Type], false)
+    }
+    
+    // Create a type analyzer with only the image variables and their bounds.
+    val imageTa = ta.extend(imageSparams, None)
+    
+    // Verify that the image environment can prove that each variable's image
+    // is a subtype of all its bounds' images.
+    if (varsMap.forall { case (x, xbds) =>
+      imageTa.lteq(phi(x), phi(imageTa.meet(xbds)))
+    }) Some(imageSparams) // Success -- return the image's static params.
+    else None             // Failure
   }
 }

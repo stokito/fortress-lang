@@ -370,7 +370,15 @@ case class TypeBinding(name: Name,
 class ConcealingSTypeEnv(protected val parent: STypeEnv,
                          protected val concealedNames: Iterable[Name])
     extends STypeEnv {
-
+  
+  /** Approximately correct? */
+  def isEmpty: Boolean = parent match {
+    case parent:NestedSTypeEnv => 
+      parent.bindings.map(_._2.name)
+            .filterNot(concealedNames.toList.contains).isEmpty
+    case EmptySTypeEnv => true
+  }
+  
   /** Fail when looking up any of the hidden names. */
   override def lookup(x: Name): Option[TypeBinding] = {
     val stripped = stripApi(x)

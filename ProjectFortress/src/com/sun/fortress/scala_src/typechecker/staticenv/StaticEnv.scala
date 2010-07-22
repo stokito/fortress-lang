@@ -71,6 +71,9 @@ trait StaticEnv[T] {
   /** Does the environment contain a binding for the given name? */
   def contains(x: Name): Boolean = lookup(x).isDefined
   
+  /** Does the environment contain any bindings? */
+  def isEmpty: Boolean
+  
   /**
    * Gets the type stored for the given variable name, if that binding exists.
    * 
@@ -104,6 +107,7 @@ trait EmptyStaticEnv[T] extends StaticEnv[T] {
   override def getType(x: Name): Option[Type] = None
   
   override def toString: String = "[]"
+  override def isEmpty: Boolean = true
 }
 
 /**
@@ -128,6 +132,7 @@ trait NestedStaticEnv[T] extends StaticEnv[T] {
   }
   
   override def toString: String = bindings.mkString("[", ", ", "]")
+  override def isEmpty: Boolean = bindings.isEmpty
 }
 
 /**
