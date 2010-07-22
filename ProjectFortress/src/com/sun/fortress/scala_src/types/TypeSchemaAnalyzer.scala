@@ -261,10 +261,14 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val exTypeSparams = getStaticParams(exType)
     val exTypeEnvTa = ta.extend(exTypeSparams, None)
     
+    // Is T equivalent to Bottom?
+    if (isTrue(exTypeEnvTa.equivalent(exTypeT, BOTTOM)))
+      return Some(BOTTOM)
+    
     // Under what constraints is T not equivalent to Bottom?
     // TODO: hook in the right not-equivalent method
-    import com.sun.fortress.scala_src.typechecker.False
-    val notBottomC = False // exTypeEnvTa.notEquivalent(exTypeT, BOTTOM)
+    // val notBottomC = exTypeEnvTa.notEquivalent(exTypeT, BOTTOM)
+    val notBottomC = com.sun.fortress.scala_src.typechecker.False
     
     // Solve these constraints to get a substitution.
     val notBottomPhi = solve(notBottomC)(exTypeEnvTa).getOrElse{return None}
