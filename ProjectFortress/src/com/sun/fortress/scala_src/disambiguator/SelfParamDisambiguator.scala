@@ -21,7 +21,6 @@ import _root_.java.util.List
 import edu.rice.cs.plt.tuple.Option
 import com.sun.fortress.compiler.NamingCzar
 import com.sun.fortress.compiler.typechecker.TypeEnv
-import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}

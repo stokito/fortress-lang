@@ -36,7 +36,6 @@ import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
-import com.sun.fortress.compiler.typechecker.TypesUtil
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
@@ -379,8 +378,19 @@ object STypesUtil {
   /**
    * Determine if the given type is an arrow or intersection of arrow types.
    */
-  def isArrows(ty: Type): Boolean =
-    TypesUtil.isArrows(ty).asInstanceOf[Boolean]
+  def isArrows(ty: Type): Boolean = {
+    var valid = true
+    object checkArrows extends Walker {
+      override def walk(node: Any): Any = node match {
+        case n:ArrowType => true
+        case _ => false
+      }
+    }
+    for (t <- conjuncts(ty)) {
+      valid &= checkArrows(t).asInstanceOf[Boolean]
+    }
+    valid
+  }
 
   /**
    * Determine if the type previously inferred by the type checker from the
@@ -1280,5 +1290,29 @@ object STypesUtil {
     def apply(y: _InferenceVarType) = BOTTOM
     def isDefinedAt(y: _InferenceVarType) = true
   })
-  
+
+  /**
+   * Does the given ast contain any AST nodes
+   * that should be removed after type checking?
+   *
+   * After type checking, the following nodes should be removed:
+   *     AmbiguousMultifixOpExpr
+   *     ArrayType
+   *     Juxt
+   *     MathItem
+   *     MathPrimary
+   *     MatrixType
+   *     _InferenceVarType
+   */
+  def assertAfterTypeChecking(ast: Node): Boolean = {
+    var result = false
+    object outFinder extends Walker {
+      override def walk(node: Any) =
+        if (node.isInstanceOf[OutAfterTypeChecking])
+          result = true
+        else super.walk(node)
+    }
+    outFinder(ast)
+    result
+  }
 }
