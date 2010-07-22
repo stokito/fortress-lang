@@ -32,6 +32,17 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
   def typeSchema(str: String) = TypeParser.parse(TypeParser.typeSchema, str).get
   def typeSchemaAnalyzer(str: String) = new TypeSchemaAnalyzer()(typeAnalyzer(str))
   
+  val basicTsa = typeSchemaAnalyzer("""{
+    trait Aa,
+    trait Bb extends {Aa},
+    trait Eq[T],
+    trait List[T],
+    trait Array[T],
+    trait ArrayList[T] extends {List[T], Array[T]},
+    trait Zz extends {Eq[Zz]},
+    trait String extends {Eq[String]} excludes {Zz}
+  }""")
+  
   def testRenaming() = {
     val tsa = typeSchemaAnalyzer("{trait Eq[T]}")
     
@@ -58,13 +69,7 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
   }
   
   def testSubtypeUA() = {
-    val tsa = typeSchemaAnalyzer("""{
-      trait Aa,
-      trait Eq[T],
-      trait List[T],
-      trait Array[T],
-      trait ArrayList[T] extends {List[T], Array[T]},
-      trait Zz extends {Eq[Zz]}}""")
+    val tsa = basicTsa
     
     {
       val t1 = typeSchema("[T]() -> T").asInstanceOf[ArrowType]
@@ -97,32 +102,97 @@ class TypeSchemaAnalyzerJUTest extends TestCase {
   
   
   def testSubtypeED() = {
-      val tsa = typeSchemaAnalyzer("""{
-      trait Aa,
-      trait Eq[T],
-      trait List[T],
-      trait Array[T],
-      trait ArrayList[T] extends {List[T], Array[T]},
-      trait Zz extends {Eq[Zz]}}""")
-      
-      {
-        val t1 = typeSchema("[T]T")
-        val t2 = typeSchema("Object")
-        assertTrue(tsa.subtypeED(t1, t2))
-        assertTrue(tsa.subtypeED(t2, t1))
-      }
-      {
-        val t1 = typeSchema("[T]ArrayList[T]")
-        val t2 = typeSchema("[T]List[T]")
-        assertTrue(tsa.subtypeED(t1, t2))
-      }
-      {
-        val t1 = typeSchema("[T extends {Zz}]Array[T]")
-        val t2 = typeSchema("[T extends {Eq[T]}] Array[T]")
-        assertFalse(tsa.subtypeED(t1, t2))
-        val t3 = typeSchema("Array[Zz]")
-        assertTrue(tsa.subtypeED(t3, t2))
-      }
+    val tsa = basicTsa
+    
+    {
+      val t1 = typeSchema("[T]T")
+      val t2 = typeSchema("Object")
+      assertTrue(tsa.subtypeED(t1, t2))
+      assertTrue(tsa.subtypeED(t2, t1))
+    }
+    {
+      val t1 = typeSchema("[T]ArrayList[T]")
+      val t2 = typeSchema("[T]List[T]")
+      assertTrue(tsa.subtypeED(t1, t2))
+    }
+    {
+      val t1 = typeSchema("[T extends {Zz}]Array[T]")
+      val t2 = typeSchema("[T extends {Eq[T]}] Array[T]")
+      assertFalse(tsa.subtypeED(t1, t2))
+      val t3 = typeSchema("Array[Zz]")
+      assertTrue(tsa.subtypeED(t3, t2))
+    }
   }
   
+  /** MAGIC! WHOOOOOSSSHHHHH! */
+  private def ln: String = "test on line %d"
+    .format(Thread.currentThread().getStackTrace()(2).getLineNumber())
+  
+  def RENAME_ME_TO_ENABLE__testExistentialReduction() = {
+    val tsa = basicTsa
+    val testCases = List[(String, String, String, Option[String])](
+      // (unique message for debugging, t1, t2, expected reduced meet)
+      // - the expected reduced meet is Some/None according to result of
+      //   existentialReduction
+      
+      // Between two type variables
+      (ln, "[T]T", "[T]T", Some("[T]T")),
+      (ln, "[T extends {Aa}]T", "[T extends {Bb}]T",
+          Some("[T extends {Bb}]T")),
+      (ln, "[T, U extends {List[T]}]U",
+          "[T extends {List[U]}, U extends {Zz}]T",
+          Some("[T extends {Zz}, U extends {List[T]}]U")),
+      (ln, "[T extends {Bb}, U extends {List[T]}]U",
+          "[T extends {ArrayList[U]}, U extends {Aa}]T",
+          Some("[T extends {Zz}, U extends {List[T]}]U")),
+      
+      // Between two base types, using polymorphic exclusion.
+      (ln, "[T]ArrayList[T]", "[S]List[S]",
+          Some("[T]ArrayList[T]")),
+      (ln, "[T]ArrayList[T]", "[T]List[T]",
+          Some("[T]ArrayList[T]")),
+      (ln, "[T extends {Aa}]ArrayList[T]", "[S]List[S]",
+          Some("[T extends {Aa}]ArrayList[T]")),
+      (ln, "[T]ArrayList[T]", "[S extends {Aa}]List[S]",
+          Some("[T extends {Aa}]ArrayList[T]")),
+      (ln, "[T extends {Aa}]ArrayList[T]", "[S extends {Bb}]List[S]",
+          Some("[T extends {Bb}]ArrayList[T]")),
+      (ln, "[T extends {Aa}]ArrayList[T]", "[S extends {Bb}]List[S]",
+          Some("[T extends {Bb}]ArrayList[T]")),
+      
+      // Same but with tuple types.
+      (ln, "[T](ArrayList[T], Aa)", "[T](List[T], Bb)",
+          Some("[T](ArrayList[T], Bb)")),
+      (ln, "[T,U](ArrayList[T], List[U])", "[T,U](List[T], ArrayList[U])",
+          Some("[T,U](ArrayList[T], ArrayList[U])")),
+      (ln, "[T extends {Aa}](ArrayList[T], Aa)", "[T extends {Bb}](List[T], Bb)",
+          Some("[T extends {Bb}](ArrayList[T], Bb)")),
+      
+      // Reduces to Bottom because type params exclude
+      (ln, "[T extends {Zz}]T", "[T extends {String}]T", Some("BOTTOM")),
+      (ln, "[T extends {Zz}]List[T]", "[T extends {String}]List[T]",
+          Some("BOTTOM")),
+      (ln, "[T extends {Zz}]List[T]", "[T extends {String}]ArrayList[T]",
+          Some("BOTTOM"))
+      
+      // Make sure the last entry doesn't have a comma after it.
+    )
+    
+    // Test each one.
+    for ((msg, sT1, sT2, sMeetOpt) <- testCases) sMeetOpt match {
+      case Some(sMeet) =>
+        val computedMeet = tsa.meetED(typeSchema(sT1), typeSchema(sT2))
+        val reducedMeet = tsa.reduceExistential(computedMeet)
+        val expectedMeet = typeSchema(sMeet)
+        assertTrue("%s (reduced meet is none but expected some)".format(msg),
+                   reducedMeet.isDefined)
+        assertTrue("%s (reduced meet is not equal to expected)".format(msg),
+                   tsa.equivalentED(reducedMeet.get, expectedMeet))
+      case None =>
+        val computedMeet = tsa.meetED(typeSchema(sT1), typeSchema(sT2))
+        val reducedMeet = tsa.reduceExistential(computedMeet)
+        assertTrue("%s (reduced meet is some but expected none)".format(msg),
+                   reducedMeet.isEmpty)
+    }
+  }
 }
