@@ -45,12 +45,9 @@ lokal(x:Object, y:Object) = local(x,y)
 run(): () = do
   print2("PA","SS")
 
-  (* Sorta-bug:
-        Set breakpoint in com.sun.fortress.compiler.OverloadRewriteVisitor
-        forFnRefOnly, if fns.size > 1
-        Problem is that overload disambiguate identifies a single function,
-        but the inferred type is insufficiently precise.
-  *)
+  (* NOTE: if you use IntegerLiterals 5 and 6 in the calls,
+     the coercion does not happen, because "Object" is good
+     enough, you get FAILs. *)
 
   five:ZZ32=5
   six:ZZ32=6
