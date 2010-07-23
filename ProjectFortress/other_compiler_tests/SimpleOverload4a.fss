@@ -34,10 +34,13 @@ end
    "catdog"
 end *)
 
-local(x:String, y:String):String = "baz"
+local(x:String, y:String):String = "10"
 local(x:ZZ32, y:ZZ32):String = "11"
 local(x:Object, y:ZZ32):String = "12"
 local(x:ZZ32, y:Object):String = "13"
+local(x:Object, y:Object):String = "FAIL"
+
+lokal(x:Object, y:Object) = local(x,y)
 
 run(): () = do
   print2("PA","SS")
@@ -49,10 +52,18 @@ run(): () = do
         but the inferred type is insufficiently precise.
   *)
 
+  five:ZZ32=5
+  six:ZZ32=6
+
   jPrintln(local("b", "az"))
-  jPrintln(local(5,6))
-  jPrintln(local("5",6))
-  jPrintln(local(5,"6"))
+  jPrintln(local(five,six))
+  jPrintln(local("5",six))
+  jPrintln(local(five,"6"))
+  
+  jPrintln(lokal("b", "az"))
+  jPrintln(lokal(five,six))
+  jPrintln(lokal("5",six))
+  jPrintln(lokal(five,"6"))
 
 end
 
