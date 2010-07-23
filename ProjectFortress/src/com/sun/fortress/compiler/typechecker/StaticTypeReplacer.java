@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -37,7 +36,7 @@ import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
+
 /**
  * This class will replace all occurrences of a static parameter in a given
  * type with its instantiated static argument. A StaticTypeReplacer is created with

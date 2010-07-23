@@ -18,9 +18,6 @@
 package com.sun.fortress.scala_src.typechecker.staticenv
 
 import com.sun.fortress.compiler.Types
-import com.sun.fortress.compiler.typechecker.ChildSubtypeCache
-import com.sun.fortress.compiler.typechecker.RootSubtypeCache
-import com.sun.fortress.compiler.typechecker.SubtypeCache
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.scala_src.nodes._
@@ -40,9 +37,6 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
 
   /** My binding type. */
   type EnvBinding = KindBinding
-
-  val subtypeCache: SubtypeCache
-  def getSubtypeCache(): SubtypeCache = subtypeCache
 
   /** Extend me with the immediate bindings of the given node. */
   def extend(node: Node): KindEnv =
@@ -86,8 +80,6 @@ abstract sealed class KindEnv extends StaticEnv[StaticParam] {
 
 /** The single empty kind environment. */
 protected object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam] {
-
-  val subtypeCache: SubtypeCache = RootSubtypeCache.INSTANCE
 }
 
 /**
@@ -99,9 +91,6 @@ protected object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam] {
 class NestedKindEnv protected (protected val parent: KindEnv,
                                _bindings: Iterable[KindBinding])
     extends KindEnv with NestedStaticEnv[StaticParam] {
-
-  /** Subtype cache used by the type analyzer for this kind env. */
-  val subtypeCache: SubtypeCache = new ChildSubtypeCache(parent.subtypeCache)
 
   /** Internal representation of `bindings` is a map. */
   val bindings: Map[Name, KindBinding] =
