@@ -22,7 +22,6 @@ import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
-import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.Maps._

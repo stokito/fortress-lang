@@ -30,8 +30,6 @@ import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
-import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.exceptions.StaticError;
@@ -194,17 +192,12 @@ public class StaticChecker {
             }
 
             if (!isApi) { // if component
-                // Replace implicit types with explicit ones.
-                if (!Shell.getScala()) {
-                    ast = (Component)ast.accept(new InferenceVarInserter());
-                } else {
-                    ApiTypeExtractor typeExtractor =
-                        new ApiTypeExtractor((ComponentIndex)index, env);
-                    ast = (Component)typeExtractor.check();
-                    errors.addAll(typeExtractor.getErrors());
-                    if(!errors.isEmpty())
-                        return new TypeCheckerResult(ast,errors);
-                }
+                ApiTypeExtractor typeExtractor =
+                    new ApiTypeExtractor((ComponentIndex)index, env);
+                ast = (Component)typeExtractor.check();
+                errors.addAll(typeExtractor.getErrors());
+                if(!errors.isEmpty())
+                    return new TypeCheckerResult(ast,errors);
             }
 
             ast = (CompilationUnit)ast.accept(new TypeNormalizer());
