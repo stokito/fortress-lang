@@ -181,7 +181,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	      for (second <- extended) {
 		second match {
 		  case STraitTypeWhere(_,other@STraitType(_,_,_,_),_) =>
-		    if ( new_analyzer.excludes(st, other) )
+		    if ( new_analyzer.definitelyExcludes(st, other) )
 		      error(errors, "Types " + st + " and " + other +
 			    " exclude each other.  " + decl +
 			    " must not extend them.", st)
@@ -190,7 +190,7 @@ class TypeHierarchyChecker(compilation_unit: CompilationUnitIndex,
 	      }
 	      getTypes(name, errors) match {
 		case si:ProperTraitIndex =>
-		  if ( new_analyzer.excludes(tt, st) ) {
+		  if ( new_analyzer.definitelyExcludes(tt, st) ) {
 		      error(errors, "Type " + tt + " excludes " + name +
 			    " but it extends " + name + ".", extension)
 		  }

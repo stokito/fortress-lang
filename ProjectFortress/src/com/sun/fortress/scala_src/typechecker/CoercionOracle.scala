@@ -81,11 +81,11 @@ class CoercionOracle(traits: TraitTable,
   /** The `noLessSpecific` relation. */
   def noLessSpecific(t: Type, u: Type): Boolean =
     isTrue(analyzer.subtype(t, u)) ||
-      (analyzer.excludes(t, u) && coercesTo(t, u) && rejects(t, u))
+      (analyzer.definitelyExcludes(t, u) && coercesTo(t, u) && rejects(t, u))
 
   /** Determines if T rejects U. */
   def rejects(t: Type, u: Type): Boolean =
-    getCoercionsTo(t).forall(ca => analyzer.excludes(ca._2.getDomain, u))
+    getCoercionsTo(t).forall(ca => analyzer.definitelyExcludes(ca._2.getDomain, u))
 
   /** The set of all arrow types for coercions from types T to U. */
   def getCoercionsTo(uu: Type): Set[LiftedCoercion] = {
@@ -174,7 +174,7 @@ class CoercionOracle(traits: TraitTable,
     val SUnionType(_, telts) = t
 
     // Check that all of the T_i exclude.
-    if (!analyzer.excludes(telts)) return None
+    if (!isTrue(analyzer.allExclude(telts))) return None
 
     // Get all the possible coercions from T_i to U.
     val tiCoercions = telts.map(checkSubstitutable(_, u, maybeArg))

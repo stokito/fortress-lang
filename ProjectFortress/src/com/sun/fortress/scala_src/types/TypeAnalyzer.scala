@@ -54,24 +54,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = meet(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
-  protected def removeSelf(x: Type) = {
-    object remover extends Walker {
-      override def walk(y: Any): Any = y match {
-        case t:TraitSelfType =>
-          if (t.getComprised.isEmpty) t.getNamed
-          else NF.makeIntersectionType(t.getNamed,
-                                       NF.makeMaybeUnionType(t.getComprised))
-        case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
-        case _ => super.walk(y)
-      }
-    }
-    remover(x).asInstanceOf[Type]
-  }
-
   def subtype(x: Type, y: Type): CFormula =
     sub(normalize(x), normalize(y))
   
-  def notSubtype(x: Type, y: Type): CFormula = nsub(normalize(x), normalize(y))
+  def notSubtype(x: Type, y: Type): CFormula = 
+    nsub(normalize(x), normalize(y))
     
   protected def sub(x: Type, y: Type): CFormula = (x, y) match {
     case (s,t) if (s==t) => True
@@ -80,10 +67,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       mapAnd(ts)(sub(s, _))
-    // If we can generate interesting constraints for when two types exclude
-    // we can add a special case for when an intersection is a subtype of bottom
     case (SIntersectionType(_,ss), t) =>
-      mapOr(ss)(sub(_, t))
+      or(anyExclude(ss), mapOr(ss)(sub(_, t)))
     // Union types
     case (SUnionType(_,ss), t) =>
      mapAnd(ss)(sub(_, t))
@@ -103,11 +88,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s: TraitType, t: TraitType) if (t==OBJECT) => True
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
       and((a1, a2).zipped.map((a, b) => eqv(a, b)))
-    case (s@STraitType(_, n, a, _) , t: TraitType) =>
-      val index = typeCons(n).asInstanceOf[TraitIndex]
-      val supers = toListFromImmutable(index.extendsTypes).
-      map(tw => substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType))
-      or(supers.map(sub(_, t)))
+    case (s:TraitType , t: TraitType) =>
+      val par = parents(s)
+      or(par.map(sub(_, t)))
     case (s: TraitSelfType, t) => sub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => sub(t,removeSelf(named))
     case (s: ObjectExprType, t) => sub(removeSelf(s), t)
@@ -115,19 +98,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
       and(and(sub(d2, d1), sub(r1, r2)), sub(e1, e2))
     // Tuple types
-    case (s: AnyType, t@STupleType(_, e, Some(v), _)) =>
-      sub(s, disjunctFromTuple(t,1))
-    case (s: TraitType, t@STupleType(_, e, Some(v), _)) =>
-      sub(s, disjunctFromTuple(t,1))
-    case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, Some(v), _)) =>
+    // TODO: Handle keywords
+    case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, Some(mv2), _)) =>
       sub(s, disjunctFromTuple(t, e1.size))
-    case (STupleType(_, e1, None, k1), STupleType(_, e2, None, k2))
-      if (e1.size == e2.size) =>
-        and(and((e1, e2).zipped.map((a, b) => sub(a, b))), sub(k1, k2))
-    case (STupleType(_, e1, Some(v1), k1), STupleType(_, e2, Some(v2), k2))
-      if (e1.size == e2.size) =>
-        and(and((e1, e2).zipped.map((a, b) => sub(a, b))), and(sub(v1, v2), sub(k1, k2)))
-    // Otherwise
+    case (s@STupleType(_, e1, Some(v1), _), t@STupleType(_, e2, _, _)) =>
+      and(sub(disjunctFromTuple(s, e1.size), disjunctFromTuple(t, e1.size)),
+          sub(disjunctFromTuple(s, e2.size + 1), disjunctFromTuple(t, e2.size + 1)))
+    case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, None, _)) if e1.size == e2.size =>
+      or(mapOr(e1)(eqv(_, BOTTOM)), mapAnd((e1,e2).zipped.map((a, b) => sub(a, b)))(x => x))
+    case (s@STupleType(_, e1, _, _), t) =>
+      mapOr(e1)(eqv(_, BOTTOM))
+    case (s, t:TupleType) => 
+      sub(s, disjunctFromTuple(t,1))
     case _ => False
   }
   
@@ -150,20 +132,24 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     else
       False
   }
-
-  // The current algorithm conservatively approximates not subtype
-  protected def nsub(x: Type, y: Type): CFormula = fromBoolean(isFalse(sub(x,y)))
+  
+  protected def nsub(s: Type, t: Type): CFormula = 
+    fromBoolean(isFalse(sub(s, t)))
   
   def equivalent(x: Type, y: Type): CFormula = {
     val s = normalize(x)
     val t = normalize(y)
     eqv(s,t)
   }
+  
+  def notEquivalent(x: Type, y: Type): CFormula = {
+    fromBoolean(isFalse(equivalent(x, y)))
+  }
 
   protected def eqv(x: Type, y:Type): CFormula  = {
     and(sub(x, y), sub(y, x))
   }
-
+  
   protected def eqv(x: StaticArg, y: StaticArg): CFormula = (x,y) match {
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => eqv(s, t)
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
@@ -173,137 +159,113 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b)
     case _ => False
   }
-
-
-  def excludes(x: Type, y: Type): Boolean =
+  
+  def excludes(x: Type, y: Type): CFormula =
     exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
+    
+  def definitelyExcludes(x: Type, y: Type): Boolean =
+    dexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
 
   /** Determine if a collection of types all exclude each other. */
-  def excludes(ts: Iterable[Type]): Boolean =
-    Pairs.distinctPairsFrom(ts).forall(tt => excludes(tt._1, tt._2))
+  def allExclude(ts: Iterable[Type]): CFormula =
+    mapOr(Pairs.distinctPairsFrom(ts))(tt => excludes(tt._1, tt._2))
   
-  protected def exc(x: Type, y: Type): Boolean = (x, y) match {
-    case (s: BottomType, _) => true
-    case (_, t: BottomType) => true
-    case (s: AnyType, _) => false
-    case (_, t: AnyType) => false
+  def anyExclude(ts: Iterable[Type]):CFormula =
+    mapAnd(Pairs.distinctPairsFrom(ts))(tt => excludes(tt._1, tt._2))
+  
+  protected def exc(x: Type, y: Type): CFormula = (x, y) match {
+    case (s: BottomType, _) => True
+    case (_, t: BottomType) => True
+    case (s: AnyType, t) => sub(t, BOTTOM)
+    case (s, t: AnyType) => sub(s, BOTTOM)
     case (s@SVarType(_, id, _), t) =>
       val sParam = staticParam(id)
       val supers = toListFromImmutable(sParam.getExtendsClause)
-      supers.exists(exc(_, t))
+      mapOr(supers)(exc(_, t))
     case (s, t:VarType) => exc(t, s)
-    // Make sure that two traits with the same exclude each other
-    // if their parameters are definitely different
-    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
-      //Todo: Handle int, nat, bool args
-      (a1, a2).zipped.exists{
-        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => isFalse(equivalent(t1, t2))
-        case _ => false
-      }
     case (s: TraitType, t: TraitType) =>
-      def helper(s: TraitType, t: TraitType): Boolean = {
-        if (excludesClause(s).exists(x => isTrue(sub(t, x))))
-          return true
-        typeCons(s.getName) match {
-          case index: ProperTraitIndex =>
-            val comprises = comprisesClause(s)
-            !comprises.isEmpty && comprises.forall(exc(t, _))
-          case _ => isFalse(sub(s, t))
+      def checkEC(s: TraitType, t: TraitType): CFormula = {
+        def cEC(s: TraitType, t: TraitType) = mapOr(excludesClause(s))(sub(t, _))
+        or(cEC(s, t), cEC(t, s))
+      }
+      def checkCC(s: TraitType, t: TraitType): CFormula = {
+        def cCC(s: TraitType, t: TraitType): CFormula = {
+          val scc = comprisesClause(s)
+          if(scc.isEmpty) False else mapAnd(scc)(exc(t,_))
         }
+        or(cCC(s, t), cCC(t, s))
       }
-      helper(s, t) || helper(t, s)
-    case (s: ArrowType, t: ArrowType) => false
-    case (s: ArrowType, _) => true
-    case (_, t: ArrowType) => true
-    // ToDo: Handle keywords
-    case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val excludes = (e1, e2).zipped.exists((a, b) => exc(a, b))
-      val different = (mv1, mv2) match {
-        case (Some(v1), _) if (e1.size < e2.size) =>
-          e2.drop(e1.size).exists(exc(_, v1))
-        case (_, Some(v2)) if (e1.size > e2.size) =>
-          e1.drop(e2.size).exists(exc(_, v2))
-        case _ if (e1.size!=e2.size) => true
-        case _ => false
+      def checkO(s: TraitType, t: TraitType): CFormula = {
+        def cO(s: TraitType, t: TraitType): CFormula = typeCons(s.getName) match {
+          case _:ObjectTraitIndex => nsub(s, t)
+          case _ => False
+        }
+        or(cO(s,t), cO(t,s))
       }
-      different || excludes
-    case (s: TupleType, _) => true
-    case (_, t: TupleType) => true
+      def checkP(s: TraitType, t: TraitType): CFormula = {
+        val sas = ancestors(s) ++ Set(s)
+        val tas = ancestors(t) ++ Set(t)
+        def cP(s: BaseType, t: BaseType): CFormula = (s, t) match {
+          case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
+            //Todo: Handle int, nat, bool args
+            mapOr((a1, a2).zipped.map{
+              case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => notEquivalent(t1, t2)
+              case _ => False
+            })(x => x)
+          case _ => False
+        }
+        mapOr(for(sa <- sas; ta <- tas) yield (sa, ta))(tt => cP(tt._1, tt._2))
+      }
+      mapOr(List(checkEC(s,t), checkCC(s,t), checkO(s,t), checkP(s,t)))(x => x)
     case (s@SIntersectionType(_, elts), t) =>
-      elts.exists(exc(_, t))
+      or(sub(s, BOTTOM), mapOr(elts)(exc(_, t)))
     case (s, t: IntersectionType) => exc(t, s)
     case (s@SUnionType(_, elts), t) =>
-      elts.forall(exc(_, t))
+      or(sub(s, BOTTOM), mapAnd(elts)(exc(_, t)))
     case (s, t: UnionType) => exc(t, s)
-    case _ => false
+    case (s: ArrowType, t: ArrowType) => False
+    case (s: ArrowType, t) => True
+    case (s, t: ArrowType) => True
+    // ToDo: Handle keywords
+    case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
+      val excludes = mapOr((e1, e2).zipped.map((a, b) => exc(a, b)))(x => x)
+      val different = (mv1, mv2) match {
+        case (Some(v1), _) if (e1.size < e2.size) =>
+          mapOr(e2.drop(e1.size))(exc(_, v1))
+        case (_, Some(v2)) if (e1.size > e2.size) =>
+          mapOr(e1.drop(e2.size))(exc(_, v2))
+        case _ if (e1.size!=e2.size) => True
+        case _ => False
+      }
+      or(different, excludes)
+    case (s: TupleType, _) => True
+    case (_, t: TupleType) => True
   }
-    
+  
+  def dexc(s: Type, t: Type) = isTrue(exc(s, t))
+  
   /*
    * Given two types x and y this method computes the constraints
    * under which x and y do not exclude on another. For example if
    * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
    * unless $i=$j. Note that this method only generates equality constraints.
    */
-  def notExclude(x: Type , y: Type): CFormula = 
-    nexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
-    
-  protected def nexc(x: Type, y: Type): CFormula = (x, y) match {
-    case (s: BottomType, _) => False
-    case (_, t: BottomType) => False
-    case (s: AnyType, _) => True
-    case (_, t: AnyType) => True
-    case (s@SVarType(_, id, _), t) =>
-      val sParam = staticParam(id)
-      val supers = toListFromImmutable(sParam.getExtendsClause)
-      mapAnd(supers)(nexc(_,t))
-    case (s, t:VarType) => nexc(t, s)
-    /* If a trait A[T] does not have variance annotations then 
-     * A[B] excludes A[C] unless B=C.
-     */
-    case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
-      //Todo: Handle int, nat, bool args
-      and((a1, a2).zipped.flatMap{
-        case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => Some(eqv(t1, t2))
-        case _ => None
-      })
-    case (a:TraitType, b:TraitType) =>
-      def helper(s: TraitType, t: TraitType) = {
-        val notExcludesClause = mapAnd(excludesClause(s))(nsub(t, _))
-        val notComprises = typeCons(s.getName) match {
-          case i: ProperTraitIndex => 
-            val comprises = comprisesClause(s)
-            or(fromBoolean(comprises.isEmpty), mapOr(comprises)(nexc(t,_)))
-          case _ => nsub(s, t)
-        }
-        and(notExcludesClause, notComprises)
+  def notExcludes(x: Type , y: Type): CFormula = False 
+  
+  protected def removeSelf(x: Type) = {
+    object remover extends Walker {
+      override def walk(y: Any): Any = y match {
+        case t:TraitSelfType =>
+          if (t.getComprised.isEmpty) t.getNamed
+          else NF.makeIntersectionType(t.getNamed,
+                                       NF.makeMaybeUnionType(t.getComprised))
+        case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
+        case _ => super.walk(y)
       }
-      and(helper(a, b), helper(b, a))
-    case (s: ArrowType, t: ArrowType) => True
-    case (s: ArrowType, _) => False
-    case (_, t: ArrowType) => False
-    // ToDo: Handle keywords
-    case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val notElements = and((e1,e2).zipped.map((a, b) => nexc(a,b)))
-      val notDifferent = (mv1, mv2) match {
-        case (Some(v1), _) if (e1.size < e2.size) =>
-          mapAnd(e2.drop(e1.size))(nexc(_, v1))
-        case (_, Some(v2)) if (e2.size < e1.size)=>
-          mapAnd(e1.drop(e2.size))(nexc(_, v2))
-        case _ if (e1.size == e2.size) => True
-        case _ => False
-      }
-      and(notElements, notDifferent)
-    case (s: TupleType, _) => False
-    case (_, t: TupleType) => False
-    case (s@SIntersectionType(_, elts), t) =>
-      mapAnd(elts)(nexc(_, t))
-    case (s, t: IntersectionType) => nexc(t, s)
-    case (s@SUnionType(_, elts), t) =>
-      mapOr(elts)(nexc(_, t))
-    case (s, t: UnionType) => nexc(t, s)
-    case _ => True
+    }
+    remover(x).asInstanceOf[Type]
   }
-
+  
   def normalize(x: Type): Type = {
     object normalizer extends Walker {
       override def walk(y: Any): Any = y match {
@@ -335,7 +297,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
   protected def normConjunct(x: Iterable[Type]): List[Type] = {
-    if(x.exists(y => x.exists(z => exc(y, z))))
+    if(x.exists(y => x.exists(z => dexc(y, z))))
       List(BOTTOM)
     else {
       val ds = x.foldLeft(List[Type]())((l, a) => {
@@ -381,50 +343,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
     x.foldLeft(List(List[T]()))((l, a) => l.flatMap(b => a.map(b ++ List(_))))
   }
-
-  def coveringEquivalent(x: Type, y: Type) = (lteq(minimalCovering(y), x) && lteq(minimalCovering(x), y))
-
-  def minimalCovering(x: Type): Type = normalize(x) match {
-    case SIntersectionType(_, e) =>
-      val es = e.map(_ match {
-        case a:ArrowType => Left(a)
-        case t => Right(minimalCovering(t))
-      })
-      val (as, ts) = (for (Left(x) <- es) yield x, for (Right(x) <- es) yield x)
-      meet(minimalArrows(as) ++ ts)
-    case SUnionType(_, e) => join(e.map(minimalCovering))
-    case t:TraitType => join(comprisesLeaves(t))
-    //ToDo: Handle keywords
-    case STupleType(i, e, mv, _) => STupleType(i, e.map(minimalCovering), mv.map(minimalCovering), Nil)
-    case SArrowType(i, d, r, e, io, m) =>
-      // ToDo: Go into domain but flip to only decrease contravariant positions
-      SArrowType(i, d, minimalCovering(r), e, io, m)
-    case _ => x
-  }
-
-  protected def minimalArrows(x: ArrowType, y: ArrowType): ArrowType = {
-    val SArrowType(i1, d1, r1, e1, io1, mi1) = x
-    val SArrowType(i2, d2, r2, e2, io2, mi2) = y
-    //merge methodInfo?
-    SArrowType(minimalTypeInfo(i1, i2),
-               join(d1, d2),
-               minimalCovering(meet(r1, r2)),
-               minimalEffect(e1, e2),
-               io1 || io2,
-               mi1)
-  }
-
-  protected def minimalArrows(x: List[ArrowType]): List[ArrowType] = x match {
-    case Nil => Nil
-    case _ => List(x.reduceLeft(minimalArrows))
-  }
-
-  protected def minimalTypeInfo(x: TypeInfo, y: TypeInfo) = x
-
-  def minimalEffect(x: Effect, y: Effect) = {
+  
+  def mergeEffect(x: Effect, y: Effect) = {
     val SEffect(i1, t1, io1) = x
     val SEffect(i2, t2, io2) = y
-    val tc = minimalCovering(meet(join(t1.getOrElse(Nil)), join(t2.getOrElse(Nil)))) match {
+    val tc = meet(join(t1.getOrElse(Nil)), join(t2.getOrElse(Nil))) match {
       case t:BottomType => None
       case SUnionType(_, elts) => Some(elts)
       case t => Some(List(t))
@@ -432,12 +355,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     //merge ASTNodeInfo?
     SEffect(i1, tc, io1 && io2)
   }
-
-  protected def comprisesLeaves(x: TraitType): Set[TraitType] = comprisesClause(x) match {
-    case ts if ts.isEmpty => Set(x)
-    case ts => ts.flatMap(comprisesLeaves)
-  }
-
+  
   // Accessor methods for trait table
   def typeCons(x: Id): TypeConsIndex =
     toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
@@ -450,14 +368,30 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
                                          else substitute(args, params, nt).asInstanceOf[TraitType])
     case _ => Set()
   }
-
+  
+  // For the purposes of this method Any is not the Parent of Object as it is not a TraitType
+  def parents(t: TraitType): Set[BaseType] = {
+    val STraitType(_, n, a, _) = t
+    val index = typeCons(n).asInstanceOf[TraitIndex]
+    toListFromImmutable(index.extendsTypes).
+      map(tw =>
+        substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType).asInstanceOf[BaseType]).
+          toSet
+  }
+  
+  def ancestors(t: TraitType): Set[BaseType] =
+    parents(t).flatMap{
+      case s:TraitType => Set(s) ++ parents(s)
+      case x => Set(x)
+    }
+  
   def excludesClause(t: TraitType): Set[TraitType] = {
     val ti = typeCons(t.getName).asInstanceOf[TraitIndex]
     val args = toListFromImmutable(t.getArgs)
     val params = toListFromImmutable(ti.staticParameters)
     val excludes = ti match{
       case ti : ProperTraitIndex =>
-      toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
+        toSet(ti.excludesTypes).map(substitute(args, params, _).asInstanceOf[TraitType])
       case _ => Set[TraitType]()
     }
     val supers = toListFromImmutable(ti.extendsTypes).map(tw => substitute(args, params, tw.getBaseType))
@@ -480,16 +414,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def mapOr[T](x: Iterable[T])(f: T=>CFormula): CFormula = 
     x.map(f).foldLeft(False.asInstanceOf[CFormula])(or)
     
-  /**
-   * Extends this TypeAnalyzer with the assumption that the open types `t` and
-   * `u` do not exclude. This is used in, e.g., type checking a `typecase`
-   * wherein a branch brings new type information into account.
-   */
-  def extendWithNonExclusion(tvT: Type,
-                             tvU: Type,
-                             skolems: Option[WhereClause])
-                             : Option[TypeAnalyzer] =
-    RefinedTypeAnalyzer.maybeMake(this, tvT, tvU, skolems)
 }
 
 object TypeAnalyzer {
