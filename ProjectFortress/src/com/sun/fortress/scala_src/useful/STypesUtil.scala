@@ -1189,7 +1189,7 @@ object STypesUtil {
         if ((c2 ne sma)
             && !isTrue(analyzer.equivalent(st1, st2))
             && isTrue(analyzer.subtype(st2, st1))
-            && !analyzer.excludes(c1.arrow.getDomain, c2.arrow.getDomain)) {
+            && !analyzer.definitelyExcludes(c1.arrow.getDomain, c2.arrow.getDomain)) {
           pruned += c2
         }
       }

@@ -158,7 +158,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
     case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
           SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
-       SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.minimalEffect(e1,e2), i1 && i2, None)
+       SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.mergeEffect(e1,e2), i1 && i2, None)
   }
   
   /**
