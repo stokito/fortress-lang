@@ -32,9 +32,7 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
-import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
@@ -90,45 +88,31 @@ public class StaticChecker {
     public static class ApiResult extends StaticPhaseResult {
         private final Map<APIName, ApiIndex> _apis;
         private final List<APIName> _failedApis;
-        private final TypeCheckerOutput _typeCheckerOutput;
 
         public ApiResult(Map<APIName, ApiIndex> apis,
                          List<APIName> failedApis,
-                         Iterable<? extends StaticError> errors,
-                         TypeCheckerOutput typeCheckerOutput) {
+                         Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
             _failedApis = failedApis;
-            _typeCheckerOutput = typeCheckerOutput;
         }
         public Map<APIName, ApiIndex> apis() { return _apis; }
         public List<APIName> failed() { return _failedApis; }
-
-        public TypeCheckerOutput typeCheckerOutput() {
-            return this._typeCheckerOutput;
-        }
     }
 
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
         private final List<APIName> _failedComponents;
-        private final TypeCheckerOutput _typeCheckerOutput;
 
         public ComponentResult(Map<APIName, ComponentIndex> components,
                                List<APIName> failedComponents,
-                               Iterable<? extends StaticError> errors,
-                               TypeCheckerOutput typeCheckerOutput) {
+                               Iterable<? extends StaticError> errors) {
             super(errors);
             _components = components;
             _failedComponents = failedComponents;
-            _typeCheckerOutput = typeCheckerOutput;
         }
         public Map<APIName, ComponentIndex> components() { return _components; }
         public List<APIName> failed() { return _failedComponents; }
-
-        public TypeCheckerOutput typeCheckerOutput() {
-            return this._typeCheckerOutput;
-        }
     }
 
     /**
@@ -140,23 +124,19 @@ public class StaticChecker {
         HashSet<Api> checkedApis = new HashSet<Api>();
         List<APIName> failedApis = new ArrayList<APIName>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
-        TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
         for (Map.Entry<APIName, ApiIndex> api : apis.entrySet()) {
             TypeCheckerResult checked = checkCompilationUnit(api.getValue(), env, true);
             checkedApis.add((Api)checked.ast());
             if (!checked.isSuccessful()) failedApis.add(api.getKey());
             errors = IterUtil.compose(checked.errors(), errors);
-            type_checker_output = new TypeCheckerOutput( type_checker_output,
-                                                         checked.getTypeCheckerOutput() );
         }
         return new ApiResult
             (IndexBuilder.buildApis(checkedApis,
                                     env,
                                     System.currentTimeMillis()).apis(),
              failedApis,
-             errors,
-             type_checker_output);
+             errors);
     }
 
     /** Statically check the given components. */
@@ -166,7 +146,6 @@ public class StaticChecker {
         HashSet<Component> checkedComponents = new HashSet<Component>();
         List<APIName> failedComponents = new ArrayList<APIName>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
-        TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
 
         for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
             TypeCheckerResult checked = checkCompilationUnit(component.getValue(),
@@ -174,15 +153,12 @@ public class StaticChecker {
             checkedComponents.add((Component)checked.ast());
             if (!checked.isSuccessful()) failedComponents.add(component.getKey());
             errors = IterUtil.compose(checked.errors(), errors);
-            type_checker_output = new TypeCheckerOutput( type_checker_output,
-                                                         checked.getTypeCheckerOutput() );
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(checkedComponents,
                                           System.currentTimeMillis()).components(),
              failedComponents,
-             errors,
-             type_checker_output);
+             errors);
     }
 
     public static TypeCheckerResult checkCompilationUnit(CompilationUnitIndex index,
@@ -304,19 +280,6 @@ public class StaticChecker {
         } else {
             return new TypeCheckerResult(index.ast(), IterUtil.<StaticError>empty());
         }
-    }
-
-    private static TypeEnv typeCheckEnv(ComponentIndex component,
-                                        GlobalEnvironment env) {
-        TypeEnv typeEnv = TypeEnv.make(component);
-        // Add all top-level function names to the component-level environment.
-        typeEnv = typeEnv.extendWithFunctions(component.functions());
-        // Iterate over top-level variables,
-        // adding each to the component-level environment.
-        typeEnv = typeEnv.extend(component.variables());
-        // Add all top-level object names to the component-level environment.
-        typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
-        return typeEnv;
     }
 
     private static CompilationUnitIndex buildIndex(CompilationUnit ast, boolean isApi) {

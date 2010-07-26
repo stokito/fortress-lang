@@ -63,7 +63,6 @@ import com.sun.fortress.compiler.index.ProperTraitIndex
 import com.sun.fortress.compiler.index.TraitIndex
 import com.sun.fortress.compiler.index.TypeConsIndex
 import com.sun.fortress.compiler.index.Variable
-import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.nodes_util.Modifiers

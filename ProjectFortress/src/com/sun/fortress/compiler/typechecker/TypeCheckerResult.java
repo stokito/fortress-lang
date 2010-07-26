@@ -52,19 +52,6 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 public class TypeCheckerResult extends StaticPhaseResult {
     private Node ast;
     private final Option<Type> type;
-    private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
-
-    private static Map<Pair<Node,Span>, TypeEnv> collectEnvMaps(Iterable<? extends TypeCheckerResult> results) {
-        // Take the union of each map from every TypeCheckerResult
-        return IterUtil.fold(results,
-                             Collections.<Pair<Node,Span>, TypeEnv>emptyMap(),
-                             new Lambda2<Map<Pair<Node,Span>, TypeEnv>,TypeCheckerResult,Map<Pair<Node,Span>, TypeEnv>>() {
-                                public Map<Pair<Node,Span>, TypeEnv> value(
-                                        Map<Pair<Node,Span>, TypeEnv> arg0,
-                                        TypeCheckerResult arg1) {
-                                    return CollectUtil.union(arg0, arg1.nodeTypeEnvs);
-                                }});
-    }
 
     /**
      * Generally compose should be called instead of this method. This method is
@@ -80,48 +67,6 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
          return new TypeCheckerResult(result.ast, result.type(), errs);
      }
-
-    /** Takes a TypeCheckerResult and returns a copy with the new AST **/
-    public static TypeCheckerResult replaceAST(TypeCheckerResult result, Node _ast, Map<Pair<Node, Span>,TypeEnv> _nodeTypeEnvs){
-        return new TypeCheckerResult(_ast, result.type(),result.errors(), _nodeTypeEnvs);
-    }
-
-    /**
-     * Convenience method that calls {@code addNodeTypeEnvEntry} on 'this'
-     */
-    public TypeCheckerResult addNodeTypeEnvEntry(Node node, TypeEnv env) {
-        return addNodeTypeEnvEntry(this, node, env);
-    }
-
-    /**
-     * Add a mapping from a variable-declaring node to the type environment that is in scope at its location.
-     * This method extends {@code result} with the new entry.
-     * @param result The TypeCheckerResult to be extended.
-     * @param node The AST node that declares variables.
-     * @param env The TypeEnv in scope at {@code node}.
-     * @return A newly extended TypeCheckerResult.
-     */
-    public static TypeCheckerResult addNodeTypeEnvEntry(TypeCheckerResult result,
-                                                            Node node, TypeEnv env) {
-            if ( ! ( node instanceof ASTNode ) )
-                bug(node, "Only ASTNodes are supported.");
-            return addNodeTypeEnvEntries(result, Collections.singletonMap(Pair.make(node, NodeUtil.getSpan((ASTNode)node)), env));
-    }
-
-    /**
-     * Add new entries that link variable-declaring nodes to the type environments that are in scope when
-     * the nodes are reached. This new TypeCheckerResult will be the same as {@code result} except that its
-     * map of entries will be extended with the given one.
-     * @param result TypeCheckerResult to extend.
-     * @param entries The entries that should be added.
-     * @return {@code result} extended with {@code entries}.
-     */
-    public static TypeCheckerResult addNodeTypeEnvEntries(TypeCheckerResult result,
-                                                          Map<Pair<Node,Span>,TypeEnv> entries) {
-        return new TypeCheckerResult(result.ast, result.type,
-                                     result.errors(),
-                                     CollectUtil.union(result.nodeTypeEnvs,entries));
-    }
 
     public static Option<? extends Node> astFromResult(Option<TypeCheckerResult> result) {
         if( result.isSome() )
@@ -152,16 +97,13 @@ public class TypeCheckerResult extends StaticPhaseResult {
         super(_errors);
         ast = _ast;
         type = Option.wrap(_type);
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast, Option<Type> _type,
-                             Iterable<? extends StaticError> _errors,
-                             Map<Pair<Node,Span>, TypeEnv> map) {
+                             Iterable<? extends StaticError> _errors) {
         super(_errors);
         ast = _ast;
         type = _type;
-        nodeTypeEnvs = map;
     }
 
     public TypeCheckerResult(Node _ast,
@@ -169,65 +111,40 @@ public class TypeCheckerResult extends StaticPhaseResult {
         super(_errors);
         ast = _ast;
         type = Option.none();
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast) {
         super();
         ast = _ast;
         type = Option.none();
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast, Type _type) {
         super();
         ast = _ast;
         type = Option.wrap(_type);
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast, Option<Type> _type) {
         super();
         ast = _ast;
         type = _type;
-        nodeTypeEnvs = Collections.emptyMap();
-    }
-
-    public TypeCheckerResult(Node _ast, Option<Type> _type, Iterable<? extends StaticError> _errors) {
-        super(_errors);
-        ast = _ast;
-        type = _type;
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast, StaticError _error) {
         super(IterUtil.make(_error));
         ast = _ast;
         type = Option.none();
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public TypeCheckerResult(Node _ast, Type _type, StaticError _error) {
         super(IterUtil.make(_error));
         ast = _ast;
         type = Option.wrap(_type);
-        nodeTypeEnvs = Collections.emptyMap();
     }
 
     public Node ast() { return ast; }
     public Option<Type> type() { return type; }
-
-    /**
-     * @return The mapping from type-declaring nodes to the TypeEnv in scope at
-     * that expression.
-     */
-    private Map<Pair<Node, Span>, TypeEnv> getNodeTypeEnvs() {
-        return nodeTypeEnvs;
-    }
-
-    public TypeCheckerOutput getTypeCheckerOutput() {
-        return new TypeCheckerOutput(this.getNodeTypeEnvs());
-    }
 
     //Provide a setter so that we can Normalize the AST and keep all of the other state in TypeCheckerResult
     public void setAst(Node _ast){
@@ -243,7 +160,6 @@ public class TypeCheckerResult extends StaticPhaseResult {
         }
         return new TypeCheckerResult(this.ast,
                                      this.type,
-                                     this.errors(),
-                                     this.nodeTypeEnvs);
+                                     this.errors());
     }
 }

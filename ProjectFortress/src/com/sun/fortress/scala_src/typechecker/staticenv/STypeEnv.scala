@@ -17,7 +17,10 @@
 
 package com.sun.fortress.scala_src.typechecker.staticenv
 
+import _root_.java.util.ArrayList
+import _root_.java.util.{List => JList}
 import _root_.java.util.{Map => JMap}
+import _root_.edu.rice.cs.plt.tuple.{Option => JOption}
 import _root_.java.util.{Set => JSet}
 // import collection.jcl.Hashtable
 import com.sun.fortress.compiler.index._

@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 
 import edu.rice.cs.plt.iter.IterUtil;

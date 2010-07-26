@@ -112,8 +112,7 @@ public class CodeGenerationPhase extends Phase {
 
         return new AnalyzeResult(previous.apis(),
                                  previous.components(),
-                                 IterUtil.<StaticError>empty(),
-                                 previous.typeCheckerOutput());
+                                 IterUtil.<StaticError>empty());
 
     }
 

@@ -21,7 +21,6 @@ import _root_.java.util.ArrayList
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.index.TraitIndex
-import com.sun.fortress.compiler.typechecker.StaticParamTypeEnv
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError

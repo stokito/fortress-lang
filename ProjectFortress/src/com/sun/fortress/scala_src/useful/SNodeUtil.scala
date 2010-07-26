@@ -20,7 +20,6 @@ package com.sun.fortress.scala_src.useful
 import _root_.java.util.{List => JList}
 import _root_.java.util.{Set => JSet}
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
-import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.Span

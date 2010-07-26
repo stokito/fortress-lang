@@ -1690,4 +1690,48 @@ public class NodeUtil {
       utf8out.flush();
       return fout.toString();
     }
+
+    public static ArrowType genericArrowFromDecl(FnDecl decl) {
+        return NodeFactory.makeArrowType(getSpan(decl), false,
+                             domainFromParams(getParams(decl)),
+                             // all types have been filled in at this point
+                             getReturnType(decl).unwrap(),
+                             NodeFactory.makeEffect(getSpan(decl).getEnd(),
+                                        getThrowsClause(decl)),
+                             getStaticParams(decl),
+                             getWhereClause(decl));
+    }
+
+    /**
+     * Get a domain from a list of params.
+     */
+    static Type domainFromParams(List<Param> params) {
+        List<Type> paramTypes = new ArrayList<Type>();
+        List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
+        Option<Type> varargsType = Option.<Type>none();
+
+        for (Param param: params) {
+            if ( ! isVarargsParam(param) ) {
+                Option<Type> maybeType = optTypeOrPatternToType(param.getIdType());
+
+                if (maybeType.isSome()) { // An explicit type is declared.
+                    if (param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(NodeFactory.makeKeywordType(param.getName(), maybeType.unwrap()));
+                    } else { // We have an ordinary param.
+                        paramTypes.add(maybeType.unwrap());
+                    }
+                } else { // No type is explicitly declared for this parameter.
+                    if (param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(NodeFactory.makeKeywordType(param.getName(), NodeFactory.make_InferenceVarType(getSpan(param))));
+                    } else { // We have an ordinary param.
+                        paramTypes.add(NodeFactory.make_InferenceVarType(getSpan(param)));
+                    }
+                }
+            } else { // We have a varargs param.
+                varargsType = Option.<Type>some(param.getVarargsType().unwrap());
+            }
+        }
+
+        return NodeFactory.makeDomain(NodeFactory.makeSpan("TypeEnv_bogus_span_for_empty_list", params), paramTypes, varargsType, keywordTypes);
+    }
 }

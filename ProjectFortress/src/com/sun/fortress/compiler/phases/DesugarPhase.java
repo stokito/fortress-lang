@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2009 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
@@ -20,7 +20,6 @@ package com.sun.fortress.compiler.phases;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.Desugarer;
 import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.useful.Debug;
@@ -47,9 +46,7 @@ public class DesugarPhase extends Phase {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        Option<TypeCheckerOutput> typeEnvs = previous.typeCheckerOutput();
-
-        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previous.components(), apiEnv, typeEnvs);
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previous.components(), apiEnv);
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());
@@ -57,8 +54,7 @@ public class DesugarPhase extends Phase {
 
         return new AnalyzeResult(apiDSR.apis(),
                                  componentDSR.components(),
-                                 IterUtil.<StaticError>empty(),
-                                 previous.typeCheckerOutput());
+                                 IterUtil.<StaticError>empty());
     }
 
 }

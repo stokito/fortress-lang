@@ -55,7 +55,7 @@ public class BindingLookup {
 
     public BindingLookup(IdOrOpOrAnonymousName _var, FnDecl decl) {
         var = _var;
-        type = Option.<Type>wrap(TypeEnv.genericArrowFromDecl(decl));
+        type = Option.<Type>wrap(NodeUtil.genericArrowFromDecl(decl));
         mods = NodeUtil.getMods(decl);
         mutable = false;
     }
@@ -65,7 +65,7 @@ public class BindingLookup {
         List<Type> overloads = new ArrayList<Type>();
         Modifiers mods = Modifiers.None;
         for (FnDecl decl : decls) {
-            overloads.add(TypeEnv.genericArrowFromDecl(decl));
+            overloads.add(NodeUtil.genericArrowFromDecl(decl));
         }
         this.mods = mods;
         type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
