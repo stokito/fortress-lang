@@ -17,7 +17,6 @@
 
 package com.sun.fortress.scala_src.typechecker.impls
 
-import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.StaticError.errorMsg

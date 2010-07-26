@@ -55,8 +55,7 @@ public class PreTypeCheckDesugarPhase extends Phase {
 
         return new AnalyzeResult(apis.apis(),
                                  components.components(),
-                                 IterUtil.<StaticError>empty(),
-                                 previous.typeCheckerOutput());
+                                 IterUtil.<StaticError>empty());
     }
 
 }

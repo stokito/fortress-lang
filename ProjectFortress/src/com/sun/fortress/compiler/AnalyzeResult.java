@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2010 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,8 +22,6 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
@@ -35,28 +33,24 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 
-public final class AnalyzeResult extends StaticPhaseResult {	
+public final class AnalyzeResult extends StaticPhaseResult {
 
     private final Map<APIName, ApiIndex> _apis;
     private final Map<APIName, ComponentIndex> _components;
-    
-    // Fields that will not exist after every phase of compilation
-    private final Option<TypeCheckerOutput> _typeCheckerOutput;
-    
+
     public AnalyzeResult(Iterable<? extends StaticError> errors) {
-        this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(), 
-                errors, Option.<TypeCheckerOutput>none());
+        this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(),
+                errors);
     }
-    
+
     public AnalyzeResult(Map<APIName, ApiIndex> apis,
             Map<APIName, ComponentIndex> components,
-            Iterable<? extends StaticError> errors, Option<TypeCheckerOutput> typeCheckerOutput) {
+            Iterable<? extends StaticError> errors) {
         super(errors);
         _apis = apis;
         _components = components;
-        _typeCheckerOutput = typeCheckerOutput;
     }
-    
+
     /**
      * A copying constructor, where every other field of the given result will be
      * copied, except apis, components, and errors, which will be replaced by the
@@ -71,7 +65,6 @@ public final class AnalyzeResult extends StaticPhaseResult {
     	super(errors);
     	_apis = apis;
         _components = components;
-        _typeCheckerOutput = result.typeCheckerOutput();
     }
     
     public Iterable<Api> apiIterator() { 
@@ -84,9 +77,4 @@ public final class AnalyzeResult extends StaticPhaseResult {
     
     public Map<APIName, ApiIndex> apis() { return _apis; }
     public Map<APIName, ComponentIndex> components() { return _components; }
-    
-    /**
-     * @return The output of the typechecking phase.
-     */
-    public Option<TypeCheckerOutput> typeCheckerOutput() { return this._typeCheckerOutput; }
 }

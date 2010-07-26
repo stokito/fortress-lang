@@ -30,7 +30,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 
@@ -102,14 +101,13 @@ public class Desugarer {
     /** Statically check the given components. */
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
-                          GlobalEnvironment env,
-                          Option<TypeCheckerOutput> typeCheckerOutputOp) {
+                          GlobalEnvironment env) {
 
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
-            desugaredComponents.add(desugarComponent(component.getValue(), env, typeCheckerOutputOp));
+            desugaredComponents.add(desugarComponent(component.getValue(), env));
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(desugaredComponents,
@@ -119,31 +117,12 @@ public class Desugarer {
 
     public static Component
         desugarComponent(ComponentIndex component,
-                         GlobalEnvironment env,
-                         Option<TypeCheckerOutput> typeCheckerOutputOp) {
+                         GlobalEnvironment env) {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
 Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
-        
-        /**
-         * When Shell.getObjExprDesugaring is true,
-         * the closure conversion pass for object expressions is called.
-         * The closure conversion comes before the getter/setter desugaring pass.
-         */
-        if( Shell.getObjExprDesugaring() ) {
-            if(typeCheckerOutputOp.isNone()) {
-                throw new DesugarerError("Expected TypeCheckerOutput from " +
-                                         "type checking phase is not found.");
-            }
-            TypeCheckerOutput typeCheckerOutput = typeCheckerOutputOp.unwrap();
-
-            ObjectExpressionVisitor objExprVisitor =
-                new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
-            comp = (Component) comp.accept(objExprVisitor);
-            boxedRefMap = objExprVisitor.getBoxedRefMap();
-        }
 
         // Desugar [compound] assignments into multiple ordinary assignments.
         if (Shell.getAssignmentDesugaring()) {
