@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+export Executable
+import Reflect.{...}
+import List.{...}
+
+trait A end
+trait B extends A end
+trait C extends A end
+trait D extends {B,C} end
+
+run(): () = do
+    (* for now, we don't have ReflectBottom yet *)
+    bottom = meet(Reflect[\ZZ32\](), Reflect[\String\]())
+
+    zz32 = Reflect[\ZZ32\]()
+    rr64 = Reflect[\RR64\]()
+    assert(join(zz32, rr64) = rr64, "incorrect join(" zz32 "," rr64 ")")
+    assert(meet(zz32, rr64) = zz32, "incorrect meet(" zz32 "," rr64 ")")
+
+    string = Reflect[\String\]()
+    charlist = Reflect[\List[\Char\]\]()
+    assert(join(string, charlist) = Reflect[\ZeroIndexed[\Char\]\](), "incorrect join(" string "," charlist ")")
+    assert(meet(string, charlist) = bottom, "incorrect meet(" string "," charlist ")")
+
+    b = Reflect[\B\]()
+    c = Reflect[\C\]()
+    assert(join(b, c) = Reflect[\A\](), "incorrect join(" b "," c ")")
+    (* not working correctly for now *)
+    (*assert(meet(b, c) = Reflect[\D\](), "incorrect meet(" b "," c ")")*)
+end
+
