@@ -22,9 +22,11 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
+import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
+import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
@@ -39,7 +41,7 @@ public class Reflect extends NativeConstructor {
 
     public Reflect(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
-        gcon = (GenericConstructor) env.getLeafValue("Reflect");
+        gcon = (GenericConstructor) env.getTopLevel().getRootValue("Reflect");
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
@@ -77,23 +79,17 @@ public class Reflect extends NativeConstructor {
 
     public static final ReflectedType makeReflectedType(FType t) {
         if (gcon == null) {
-            return error("Cannot make Reflect[\\" + t + "\\]; constructor not invoked from Fortress yet.");
+            return error("Cannot make Reflect[\\" + t + "\\](); constructor not invoked from Fortress yet.");
         }
         Simple_fcn con = gcon.typeApply(Useful.list(t));
         return (ReflectedType) con.applyToArgs();
     }
 
-    public static final class Join extends NativeApp {
-        public final int getArity() {
-            return 2;
-        }
-
-        public FValue applyToArgs(List<FValue> reflecteds) {
-            List<FType> tys = new ArrayList<FType>(reflecteds.size());
-            for (FValue v : reflecteds) {
-                tys.add(((ReflectedType) v).getTy());
-            }
-            Set<FType> join = FType.joinTypes(tys);
+    public static final class Join extends NativeMeth1 {
+        public final FValue applyMethod(FObject x, FValue y) {
+            FType xty = ((ReflectedType) x).getTy();
+            FType yty = ((ReflectedType) y).getTy();
+            Set<FType> join = xty.join(yty);
             /* For now, just choose a type at random. */
             for (FType ty : join) {
                 return makeReflectedType(ty);
@@ -103,10 +99,25 @@ public class Reflect extends NativeConstructor {
         }
     }
 
+    /* XXX Not working correctly; see a comment in FType.meet() */
+    public static final class Meet extends NativeMeth1 {
+        public final FValue applyMethod(FObject x, FValue y) {
+            FType xty = ((ReflectedType) x).getTy();
+            FType yty = ((ReflectedType) y).getTy();
+            Set<FType> meet = xty.meet(yty);
+            /* For now, just choose a type at random. */
+            for (FType ty : meet) {
+                return makeReflectedType(ty);
+            }
+            /* Empty meet means bottom. */
+            return makeReflectedType(BottomType.ONLY);
+        }
+    }
+
     public static final class ToString extends NativeMeth0 {
         public final FValue applyMethod(FObject selfValue) {
             FType ty = ((ReflectedType) selfValue).getTy();
-            return FString.make("Reflect[\\" + ty.toString() + "\\]");
+            return FString.make("Reflect[\\" + ty.toString() + "\\]()");
         }
     }
 
