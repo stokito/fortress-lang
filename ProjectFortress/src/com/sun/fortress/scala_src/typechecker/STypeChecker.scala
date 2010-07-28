@@ -215,6 +215,10 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
     extend(ids.zip(types).map((p:(Id, Type)) =>
         NodeFactory.makeLValue(p._1,p._2)))
 
+  def extend(id_types: List[(Id, Type)]): STypeChecker =
+    extend(id_types.map((p:(Id, Type)) =>
+        NodeFactory.makeLValue(p._1,p._2)))
+
   def extend(decl: LocalVarDecl): STypeChecker =
     constructor(current,
                 traits,
