@@ -62,6 +62,7 @@ import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.ConcatenatedList;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.DeletedList;
@@ -399,7 +400,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO need to spot for "final" fields.  Right now we assume final.
             String pn = p.getName().getText();
             Type pt = (Type)p.getIdType().unwrap();
-            cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, pn,
+            // Field must be public?  Or is accessor wrong from generic methods?
+            // Converting ACC_PUBLIC to ACC_PRIVATE breaks Compiled17a
+            // with an IllegalAccessError (at about r4668)
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, pn,
                     NamingCzar.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
         }
 
@@ -1424,8 +1428,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         Span sp_span = x.getInfo().getSpan();
         
-        FnDecl new_fndecl = convertGenericMethodToClosureDecl(x, self_index,
-                sp_span);
+        FnDecl new_fndecl = convertGenericMethodToClosureDecl(x, self_index, sp_span);
         
                 
         // This is not right yet -- the name is wrong.
@@ -1461,7 +1464,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Id sp_name = NodeFactory.makeId(sp_span, Naming.UP_INDEX);
         Id p_name = NamingCzar.selfName(sp_span);
         StaticParam new_sp = NodeFactory.makeTypeParam(sp_span, Naming.UP_INDEX);
-        List<StaticParam> new_sparams = new InsertedList(sparams, 0, new_sp);
+        
+        // also splice in trait/object sparams, if any.
+        List<StaticParam> new_sparams = new ConcatenatedList(new InsertedList(sparams, 0, new_sp),
+                this.currentTraitObjectDecl.getHeader().getStaticParams());
+        
         Param new_param = NodeFactory.makeParam(p_name, NodeFactory.makeVarType(sp_span, sp_name));
         List<Param> new_params = new InsertedList((self_index != NO_SELF ? new DeletedList(params, self_index) : params), 0, new_param);
         Option<Expr> body = x.getBody();
@@ -1592,6 +1599,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (savedInATrait)
             method_name = method_name + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT;
         
+        List<StaticParam> to_sparams = this.currentTraitObjectDecl.getHeader().getStaticParams();
+        
         CodeGenMethodVisitor mv = cw.visitCGMethod(access, method_name, genericMethodClosureFinderSig, null, null);
         mv.visitCode();
         Label l0 = new Label();
@@ -1614,7 +1623,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(GETSTATIC, class_file, table_name,"L"+table_type+";");
         mv.visitLdcInsn(template_class_name);
         mv.visitVarInsn(ALOAD, stringOff);
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+        // if in a generic trait/object, need to call different method and include one more parameter.
+        if (to_sparams.size() == 0) {
+            mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+        } else {
+            // Need to use the substitute-at-load string operation.
+            String string_sargs = NamingCzar.genericDecoration(null, to_sparams, null, thisApi());
+            String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
+            mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+        }
         mv.visitVarInsn(ASTORE, tmpOff);
         mv.visitLabel(l2);
         //mv.visitLineNumber(1335, l2);
@@ -1630,6 +1648,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLocalVariable("hashcode", "J", null, l0, l4, hashOff);
         mv.visitLocalVariable("signature", "Ljava/lang/String;", null, l0, l4, stringOff);
         mv.visitLocalVariable("o", "Ljava/lang/Object;", null, l1, l4, tmpOff);
+        // 6,6 if in a generic trait.
         mv.visitMaxs(5, 5);
         mv.visitEnd();  
     }

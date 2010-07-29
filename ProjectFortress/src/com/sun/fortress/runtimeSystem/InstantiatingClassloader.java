@@ -275,7 +275,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
         if (LOG_LOADS)
             System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
-        
 
         int up_index = tcn.indexOf(Naming.UP_INDEX);
         int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
@@ -286,6 +285,35 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
             sig.substring(1) + tcn.substring(envelope);
         class_we_want = Naming.mangleFortressIdentifier(class_we_want);
+        return loadClosureClass(l, t, class_we_want);
+    }
+
+    static public Object findGenericMethodClosure(long l, BAlongTree t,
+            String tcn, String sig, String trait_sig) {
+        if (LOG_LOADS)
+            System.err.println("findGenericMethodClosure("+l+", t, " + tcn +
+                    ", " + sig +", " + trait_sig + ")");
+
+        int up_index = tcn.indexOf(Naming.UP_INDEX);
+        int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
+        int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
+        int gear_index = tcn.indexOf(Naming.GEAR);
+        String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
+        
+        String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
+            Useful.substring(sig,1,-1) + ";" + trait_sig.substring(1) + tcn.substring(envelope);
+        class_we_want = Naming.mangleFortressIdentifier(class_we_want);
+        return loadClosureClass(l, t, class_we_want);
+    } 
+
+    /**
+     * @param l
+     * @param t
+     * @param class_we_want
+     * @throws Error
+     */
+    private static Object loadClosureClass(long l, BAlongTree t,
+            String class_we_want) throws Error {
         Class cl;
         try {
             cl = Class.forName(class_we_want);
