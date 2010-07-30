@@ -160,6 +160,7 @@ public class Driver {
                                                        pile,
                                                        NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
                                                                                fortressLibrary()));
+
         lib = libraryComponentWrapper.getExportedCW(fortressLibrary());
 
         ComponentWrapper nativescomp = ensureApiImplemented(fr,
@@ -182,7 +183,6 @@ public class Driver {
 
                 CompilationUnit c = cw.getCompilationUnit();
                 List<Import> imports = c.getImports();
-
                 ensureImportsImplemented(fr, linker, pile, imports);
             } else {
                 foreigns.add((ForeignComponentWrapper) naw);
