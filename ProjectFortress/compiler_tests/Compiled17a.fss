@@ -32,7 +32,6 @@ run() =do
   o = O[\String\]("cat")
   b = o.g[\ZZ32\](5)       (*) 8
 
-  println(b)
   println(
   if (b="cat5")
      then "pass" else "fail" end

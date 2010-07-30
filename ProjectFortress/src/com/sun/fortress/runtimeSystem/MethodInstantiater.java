@@ -22,17 +22,21 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import com.sun.fortress.useful.MagicNumbers;
+import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 
 public class MethodInstantiater implements MethodVisitor {
 
     MethodVisitor mv;
     InstantiationMap xlation;
+    ClassLoader icl;
     
-    public MethodInstantiater(MethodVisitor mv, InstantiationMap xlation) {
+    public MethodInstantiater(MethodVisitor mv, InstantiationMap xlation, ClassLoader icl) {
         this.mv = mv;
         this.xlation = xlation;
+        this.icl = icl;
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
@@ -129,10 +133,30 @@ public class MethodInstantiater implements MethodVisitor {
                 throw new Error("Invocation of magic class Method '"+oname+"' ('"+name+"') seen, but op is not recognized.");
             }
         } else {
-            owner = xlation.getTypeName(owner);
+            String new_owner = xlation.getTypeName(owner);
+            if (opcode == Opcodes.INVOKEINTERFACE && !new_owner.equals(owner) ) {
+                if (new_owner.contains(Naming.LEFT_OXFORD)) {
+                    
+                } else {
+                    String new_owner_class_name = Naming.mangleFortressIdentifier(new_owner);
+                    new_owner_class_name = new_owner_class_name.replaceAll("[/]", ".");
+                    try {
+                        Class cl = Class.forName(new_owner_class_name, true, icl);
+                        if (cl.isInterface()) {
+                            // Do nothing
+                            opcode = opcode;
+                        } else {
+                            opcode = Opcodes.INVOKEVIRTUAL;
+                        }
+                    } catch (ClassNotFoundException e) {
+                        // Do nothing, not our problem
+                        e = e;
+                    }
+                }
+            }
             name = xlation.getTypeName(name);
             desc = xlation.getMethodDesc(desc);
-            mv.visitMethodInsn(opcode, owner, name, desc);
+            mv.visitMethodInsn(opcode, new_owner, name, desc);
         }
     }
 

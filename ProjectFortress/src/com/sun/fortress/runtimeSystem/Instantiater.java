@@ -33,11 +33,13 @@ public class Instantiater extends ClassAdapter {
     
     InstantiationMap types;
     String instanceName;
+    ClassLoader icl;
     
-    public Instantiater(ClassVisitor cv, Map xlation, String instanceName) {
+    public Instantiater(ClassVisitor cv, Map xlation, String instanceName, ClassLoader icl) {
         super(cv);
         this.types = new InstantiationMap(xlation);
         this.instanceName = instanceName;
+        this.icl = icl;
     }
 
     public String getInstanceName() {
@@ -101,7 +103,7 @@ public class Instantiater extends ClassAdapter {
         desc = types.getMethodDesc(desc);
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
 
-        return new MethodInstantiater(mv, types);
+        return new MethodInstantiater(mv, types, icl);
     }
 
     @Override
