@@ -229,26 +229,28 @@ trait Misc { self: STypeChecker with Common =>
     val optionTy = ty match {
       case t:TraitType if typeConses.keySet.contains(t.getName) =>
         val header = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader
-        toOption(header.getParams) match {
-          case Some(ps) => toOption(toList(ps).apply(i).getIdType)
-          case _ =>
-            val empty = Nil.asInstanceOf[List[(String, Option[TypeOrPattern])]]
-            val pair_list =
-              toList(header.getDecls).foldRight(empty)((d, r) => declToIdType(d) ::: r)
-            pb match {
-              case SPlainPattern(_, Some(field), _, _, _) => getOptionTy(field, pair_list)
-              case SNestedPattern(_, Some(field), _) => getOptionTy(field, pair_list)
-              case _ =>
-                signal(t, "A trait is expected to have value parameters for patterns.")
-                None
-            }
+        val empty = Nil.asInstanceOf[List[(String, Option[TypeOrPattern])]]
+        if (pb.getField.isDefined) {
+          val pair_list =
+            (toOption(header.getParams) match {
+               case Some(ps) => toList(ps).map(p=>(p.getName.toString, toOption(p.getIdType)))
+               case _ => List((Nil.asInstanceOf[String], Nil.asInstanceOf[Option[TypeOrPattern]]))
+            }) ::: toList(header.getDecls).foldRight(empty)((d, r) => declToIdType(d) ::: r)
+          getOptionTy(pb.getField.get, pair_list)
+        } else {
+          toOption(header.getParams) match {
+            case Some(ps) => toOption(toList(ps).apply(i).getIdType)
+            case _ =>
+              signal(t, "A trait is expected to have value parameters for patterns.")
+              None
+          }
         }
       case _ =>
         signal(ty, "A trait type is expected in a pattern.")
         None
     }
     optionTy match {
-      case Some(ty) if ty.isInstanceOf[Type] => (pb, ty.asInstanceOf[Type])
+      case Some(tty) if tty.isInstanceOf[Type] => (pb, tty.asInstanceOf[Type])
       case _ =>
         signal(pb, "type unmatched")
         (pb, NF.makeVoidType(NU.getSpan(pb)))
