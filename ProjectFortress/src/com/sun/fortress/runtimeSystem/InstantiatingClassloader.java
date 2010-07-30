@@ -168,7 +168,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
                         new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
                             cw;
-                    Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
+                    Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
                     } catch (VersionMismatch ex) {
@@ -202,7 +202,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
                             new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
                                 cw;
-                        Instantiater instantiater = new Instantiater(cvcw, xlation, dename);
+                        Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
                         cr.accept(instantiater, 0);
                         classData = cw.toByteArray();
                         } catch (VersionMismatch ex) {
