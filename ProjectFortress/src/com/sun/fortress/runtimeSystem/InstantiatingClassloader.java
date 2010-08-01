@@ -38,6 +38,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.ProjectedList;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VersionMismatch;
 
@@ -161,7 +163,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, xlation, sargs);
                     byte[] templateClassData = readResource(template_name);
-                    List<String> xl = Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                    Pair<String, List<Pair<String, String>>> pslpss =
+                        Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                    
+                    List<String> xl = extractStaticParameterNames(pslpss);
+                    
                     xlation = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
@@ -195,7 +201,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, xlation, sargs);
                         byte[] templateClassData = readResource(template_name);
-                        List<String> xl = Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                        Pair<String, List<Pair<String, String>>> pslpss =
+                            Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                        
+                        List<String> xl = extractStaticParameterNames(pslpss);
                         xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                         ClassReader cr = new ClassReader(templateClassData);
@@ -250,6 +259,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
 
         return clazz;
+    }
+
+    /**
+     * @param pslpss
+     * @return
+     */
+    public static List<String> extractStaticParameterNames(
+            Pair<String, List<Pair<String, String>>> pslpss) {
+        List<String> xl =
+            new ProjectedList<Pair<String, String>, String>(
+                    pslpss.getB(),
+                    new Pair.GetB<String, String>());
+        return xl;
     }
 
     private String functionTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {

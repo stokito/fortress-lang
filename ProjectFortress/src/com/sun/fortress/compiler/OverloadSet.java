@@ -22,6 +22,7 @@ import java.util.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
@@ -39,6 +40,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.*;
+
 import edu.rice.cs.plt.tuple.Option;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -1040,14 +1042,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             System.err.println("Emitting overload " + name + signature);
 
         String PCNOuter = null;
-        List<String> splist = null;
-        
+        Pair<String, List<Pair<String, String>>> pslpss = null; 
         String overloaded_name = oMangle(name);
         
         if (sargs != null) {
             // Map<String, String> xlation = new HashMap<String, String>();
-            splist = new ArrayList<String>();
-            String sparamsType = NamingCzar.genericDecoration(sargs, splist, ifNone);
+            pslpss = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
+                        
+            String sparamsType = NamingCzar.genericDecoration(sargs, pslpss, ifNone);
             // TODO: which signature is which?  One needs to not have generics info in it.
             String genericArrowType =
                 NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
@@ -1090,7 +1092,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     exceptions); // exceptions);
         generateBody(mv);
         if (PCNOuter != null) {
-            cv.dumpClass(PCNOuter, splist);
+            cv.dumpClass(PCNOuter, pslpss);
         }
     }
 
