@@ -373,6 +373,47 @@ abstract public class CheapSerializer<T> {
         }
     }
 
+    static public class PAIR<A, B> extends CheapSerializer<Pair<A, B>> {
+        private CheapSerializer<A> a;
+        private CheapSerializer<B> b;
+
+        public PAIR(CheapSerializer<A> a, CheapSerializer<B> b) {
+            this.a = a;
+            this.b = b;
+        }
+        
+        @Override
+        public Pair<A, B> read(InputStream i) throws IOException {
+            A aa = a.read(i);
+            B bb = b.read(i);
+            return new Pair<A,B>(aa, bb);
+        }
+
+        public void write(OutputStream o, Pair<A, B> data) throws IOException {
+            a.write(o, data.getA());
+            b.write(o, data.getB());
+        }
+        
+        byte[] V = {'P', 'A', 'I', 'R', '_', '1', '.', '0', ' '};
+
+        @Override
+        public void version(OutputStream o) throws IOException {
+            o.write(V);
+            a.version(o);
+            b.version(o);
+
+        }
+
+        @Override
+        public void version(InputStream o) throws IOException, VersionMismatch {
+            check(o, V);
+            a.version(o);
+            b.version(o);
+
+        }
+        
+    }
+    
     static public class MAP<K, V> extends CheapSerializer<Map<K, V>> {
 
         private CheapSerializer<K> keys;

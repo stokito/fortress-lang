@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Pair;
 
 public class CodeGenClassWriter extends ManglingClassWriter {
 
@@ -98,7 +99,7 @@ public class CodeGenClassWriter extends ManglingClassWriter {
         dumpClass1();
     }
 
-    public void dumpClass( String unmangledFileName, List<String> splist) {
+    public void dumpClass( String unmangledFileName, Pair<String,List<Pair<String, String>>> splist) {
         String file = dumpClass0( unmangledFileName );
         ByteCodeWriter.writeJarredFile(jos, file, "xlation", Naming.xlationSerializer.toBytes(splist));
         Debug.debug(Debug.Type.CODEGEN,1,"Wrote generic class ", file);

@@ -33,7 +33,7 @@ import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
+// import edu.rice.cs.plt.tuple.Pair;
 
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -71,6 +71,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.InsertedList;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.MultiMap;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.SwappedList;
 import com.sun.fortress.useful.TopSort;
@@ -654,7 +655,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.allMethods(currentTraitObjectType, ta);
         // System.err.println("Considering chains for "+tt);
-        for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+        for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
             TraitType tupTrait = tup._3();
@@ -780,7 +781,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             toConsider = STypesUtil.allMethods(tt, ta);
         // System.err.println("Considering chains for "+tt);
 
-        for (Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+        for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
 
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
@@ -859,7 +860,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private boolean isAlreadyErased(
             Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>> alreadyErased,
-            Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             assoc, TraitType fnl_Trait) {
         IdOrOpOrAnonymousName fnl_name = assoc.first();
         boolean alreadyThere = false;
@@ -1303,8 +1304,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        List<String> splist = new ArrayList<String>(); // necessary for metadata
-        String sparams_part = genericDecoration(x, splist);
+        Pair<String, List<Pair<String, String>>> pslpss = 
+            xlationData(Naming.FUNCTION_GENERIC_TAG);
+
+        String sparams_part = genericDecoration(x, pslpss);
 
         FnHeader header = x.getHeader();
         Type returnType = header.getReturnType().unwrap();
@@ -1372,7 +1375,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
 
-        cg.cw.dumpClass(PCN_for_file, splist);
+        cg.cw.dumpClass(PCN_for_file, pslpss);
         
         return PCN_for_class;
     }
@@ -2037,9 +2040,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    private String genericDecoration(FnDecl x, List<String> splist) {
+    private String genericDecoration(FnDecl x, Pair<String, List<Pair<String, String>>> pslpss) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return NamingCzar.genericDecoration(sparams, splist, thisApi());
+        return NamingCzar.genericDecoration(sparams, pslpss, thisApi());
     }
 
 
@@ -2114,9 +2117,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * Step 3: call the appropriate, returned, closure.
              */
             
-            ArrayList<String> splist = new ArrayList<String>();
+            Pair<String, List<Pair<String, String>>> pslpss = 
+                xlationData(Naming.FUNCTION_GENERIC_TAG);
+            
             String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
-                    splist, thisApi());
+                    pslpss, thisApi());
 
             ArrowType at = fndeclToType(x); // type schema from old
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
@@ -2210,7 +2215,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             cg.mv.visitMaxs(2, 3);
             cg.mv.visitEnd();
             
-            cg.cw.dumpClass(PCNOuter, splist);
+            cg.cw.dumpClass(PCNOuter, pslpss);
 
 
 
@@ -2230,9 +2235,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         } else {
 
-            ArrayList<String> splist = new ArrayList<String>();
+            Pair<String, List<Pair<String, String>>> pslpss = 
+                xlationData(Naming.FUNCTION_GENERIC_TAG);
+            
             String sparams_part = NamingCzar.genericDecoration(trait_sparams,
-                    splist, thisApi());
+                    pslpss, thisApi());
 
             ArrowType at = fndeclToType(x); // type schema from old
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
@@ -2242,7 +2249,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers, splist);
+                    params, modifiers, pslpss);
 
         }
         }
@@ -2264,7 +2271,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void functionalMethodOfGenericTraitObjectWrapper(String mname,
             String sparams_part, String sig, String generic_arrow_type,
             int invocation, String dottedName, int selfIndex,
-            List<Param> params, int modifiers, List<String> splist) {
+            List<Param> params, int modifiers, Pair<String, List<Pair<String, String>>> pslpss) {
         String PCN =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
@@ -2287,7 +2294,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 dottedName, invocation, sig, sig,
                 params.size(), true, null);
 
-        cg.cw.dumpClass(PCNOuter, splist);
+        cg.cw.dumpClass(PCNOuter, pslpss);
     }
 
 
@@ -2782,11 +2789,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         emittingFunctionalMethodWrappers = true;
 
         // TODO trim and/or consolidate this boilerplate around sparams_part
-        // Map<String, String> xlation = new HashMap<String, String>();
-        List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        //Option<List<Param>> original_params = NodeUtil.getParams(x);
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
+        
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, null, thisApi());
 
         Id classId = NodeUtil.getName(x);
         String classFile =
@@ -2829,7 +2834,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = NodeUtil.getParams(x);
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
+        
+        Pair<String, List<Pair<String, String>>> pslpss = 
+            xlationData(Naming.FUNCTION_GENERIC_TAG);
+        
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
 
 
         boolean savedInAnObject = inAnObject;
@@ -2926,7 +2935,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
-                cg.cw.dumpClass(PCNOuter, splist);
+                cg.cw.dumpClass(PCNOuter, pslpss.setA(Naming.FUNCTION_GENERIC_TAG));
             }
 
 
@@ -2993,7 +3002,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         if (sparams_part.length() > 0) {
-            cw.dumpClass( cnb.fileName, splist );
+            cw.dumpClass( cnb.fileName, pslpss );
         } else {
             cw.dumpClass( cnb.className );
         }
@@ -3390,7 +3399,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, splist, thisApi());
+        
+        Pair<String, List<Pair<String, String>>> pslpss = 
+            xlationData(Naming.TRAIT_GENERIC_TAG);
+
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
 
         //TraitDecl y = x;
 
@@ -3443,7 +3456,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
         if (sparams_part.length() > 0 ) {
-            cw.dumpClass( cnb.fileName, splist );
+            cw.dumpClass( cnb.fileName, pslpss );
         } else {
             cw.dumpClass( cnb.fileName );
         }
@@ -3474,7 +3487,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
  
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
-            cw.dumpClass( springBoardClassOuter, splist );
+            /* Not dead sure this is right
+             * Reasoning is that if the springboard IS ever referenced in a
+             * generic context (how????) it is in fact a class, so it needs
+             * INVOKEVIRTUAL.
+             */
+            cw.dumpClass( springBoardClassOuter, pslpss.setA(Naming.OBJECT_GENERIC_TAG) );
         } else {
             cw.dumpClass( springBoardClassOuter );
         }
@@ -4108,5 +4126,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         }
     }
-
+    
+    public static Pair<String, List<Pair<String, String>>> xlationData(String tag) {
+        return
+            new Pair<String, List<Pair<String, String>>>(tag,
+                    new ArrayList<Pair<String, String>>());
+    }   
+    
 }

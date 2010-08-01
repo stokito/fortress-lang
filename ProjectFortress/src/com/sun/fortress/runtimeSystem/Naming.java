@@ -17,17 +17,32 @@
 package com.sun.fortress.runtimeSystem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.CheapSerializer;
+import com.sun.fortress.useful.Pair;
 
 
 public class Naming {
     
-    public final static CheapSerializer.LIST<String> xlationSerializer = 
-        new CheapSerializer.LIST<String>(CheapSerializer.STRING);
+    public final static
+    
+    CheapSerializer.PAIR<
+        String,
+        List<Pair<String, String>>> xlationSerializer = 
+            
+            new CheapSerializer.PAIR<String,List<Pair<String, String>>>(
+                    CheapSerializer.STRING,
+                    new CheapSerializer.LIST<Pair<String, String>>(
+                            new CheapSerializer.PAIR<String, String>(
+                                    CheapSerializer.STRING,
+                                    CheapSerializer.STRING)
+                            )
+                    )
+        ;
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -174,6 +189,10 @@ public class Naming {
     private static final String SF_TRANSLATES = "/.;$<>][:\\";
 
     private static final String SF_FIRST_ESCAPES = SF_ESCAPES + "=";
+
+    public static final String FUNCTION_GENERIC_TAG = "function";
+    public static final String TRAIT_GENERIC_TAG = "trait";
+    public static final String OBJECT_GENERIC_TAG = "object";
 
     public static String javaDescForTaggedFortressType(String ft) {
 

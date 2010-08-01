@@ -95,10 +95,11 @@ import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.F;
+import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
+// import edu.rice.cs.plt.tuple.Pair;
 
 import org.objectweb.asm.Type;
 
@@ -1413,139 +1414,155 @@ public class NamingCzar {
         return calleeInfo;
     }
 
-    public static NodeAbstractVisitor<String> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<String> () {
+    public static Pair<String, String> p(String s1) {
+        return new Pair<String, String>(s1, null);
+    }
+    
+    public static Pair<String, String> p(String s1, String s2) {
+        return new Pair<String, String>(s1, s2);
+    }
+    
+    public static Pair<String, String> p(String s1, Pair<String,String> ps2) {
+        return new Pair<String, String>(s1, ps2.getB());
+    }
+    
+    public static Pair<String, String> p(Pair<String,String> ps1, Pair<String,String> ps2) {
+        return new Pair<String, String>(ps1.getA(), ps2.getB());
+    }
+    
+    public static NodeAbstractVisitor<Pair<String,String>> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<Pair<String,String>> () {
 
         @Override
-        public String forKindBool(KindBool that) {
-            return Naming.BALLOT_BOX_WITH_CHECK;
+        public Pair<String,String> forKindBool(KindBool that) {
+            return p("bool");
         }
 
         @Override
-        public String forKindDim(KindDim that) {
-            return Naming.SCALES;
+        public Pair<String,String> forKindDim(KindDim that) {
+            return p("dim");
         }
 
         @Override
-        public String forKindInt(KindInt that) {
-            return Naming.MUSIC_SHARP;
+        public Pair<String,String> forKindInt(KindInt that) {
+            return p("intnat");
         }
 
         @Override
-        public String forKindNat(KindNat that) {
+        public Pair<String,String> forKindNat(KindNat that) {
             // nats and ints go with same encoding; no distinction in args
-            return Naming.MUSIC_SHARP;
+            return p("intnat");
         }
 
         @Override
-        public String forKindOp(KindOp that) {
-            return Naming.HAMMER_AND_PICK;
+        public Pair<String,String> forKindOp(KindOp that) {
+            return p("op");
         }
 
         @Override
-        public String forKindType(KindType that) {
-            return Naming.YINYANG;
+        public Pair<String,String> forKindType(KindType that) {
+            return p("type");
         }
 
         @Override
-        public String forKindUnit(KindUnit that) {
-            return Naming.ATOM;
+        public Pair<String,String> forKindUnit(KindUnit that) {
+            return p("unit"); 
         }
 
         @Override
-        public String forBoolBase(BoolBase b) {
-            return b.isBoolVal() ? "T" : "F";
+        public Pair<String,String> forBoolBase(BoolBase b) {
+            // need these to be manifest constants for any evaluation
+            return p("bool", b.isBoolVal() ? "true" : "false");
         }
 
         @Override
-        public String forBoolRef(BoolRef b) {
-            return b.getName().getText();
+        public Pair<String,String> forBoolRef(BoolRef b) {
+            return p("bool", b.getName().getText());
         }
 
         @Override
-        public String forBoolBinaryOp(BoolBinaryOp b) {
+        public Pair<String,String> forBoolBinaryOp(BoolBinaryOp b) {
             BoolExpr l = b.getLeft();
             BoolExpr r = b.getRight();
             Op op = b.getOp();
-            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+            return p("bool", l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
         @Override
-        public String forBoolUnaryOp(BoolUnaryOp b) {
+        public Pair<String,String> forBoolUnaryOp(BoolUnaryOp b) {
             BoolExpr v = b.getBoolVal();
             Op op = b.getOp();
-            return v.accept(this) + Naming.ENTER + op.getText();
+            return p("bool", v.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
         /* These need to return encodings of Fortress types. */
         @Override
-        public String forBoolArg(BoolArg that) {
+        public Pair<String,String> forBoolArg(BoolArg that) {
             BoolExpr arg = that.getBoolArg();
 
-            return Naming.BALLOT_BOX_WITH_CHECK + arg.accept(this);
+            return  p("bool", arg.accept(this));
         }
 
         @Override
-        public String forDimArg(DimArg that) {
-            //DimExpr arg = that.getDimArg();
-            return Naming.SCALES;
+        public Pair<String,String> forDimArg(DimArg that) {
+            return p("dim", that.getDimArg().accept(this));
         }
 
         @Override
-        public String forIntBase(IntBase b) {
-            return String.valueOf(b.getIntVal());
+        public Pair<String,String> forIntBase(IntBase b) {
+            return p("intnat", String.valueOf(b.getIntVal()));
         }
 
         @Override
-        public String forIntRef(IntRef b) {
-            return b.getName().getText();
+        public Pair<String,String> forIntRef(IntRef b) {
+            return p("intnat", b.getName().getText());
         }
 
         @Override
-        public String forIntBinaryOp(IntBinaryOp b) {
+        public Pair<String,String> forIntBinaryOp(IntBinaryOp b) {
             IntExpr l = b.getLeft();
             IntExpr r = b.getRight();
             Op op = b.getOp();
-            return l.accept(this) + Naming.ENTER + r.accept(this) + Naming.ENTER + op.getText();
+            return p("intnat",l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
        @Override
-        public String forIntArg(IntArg that) {
+        public Pair<String,String> forIntArg(IntArg that) {
             IntExpr arg = that.getIntVal();
-            return Naming.MUSIC_SHARP + arg.accept(this);
+            return p("intnat",  arg.accept(this));
         }
 
         @Override
-        public String forOpArg(OpArg that) {
+        public Pair<String,String> forOpArg(OpArg that) {
             FunctionalRef arg = that.getName();
             // TODO what about static args here?
             IdOrOp name = arg.getNames().get(0);
-            return Naming.HAMMER_AND_PICK + name.getText();
+            return p("op", name.getText());
         }
 
         @Override
-        public String forTypeArg(TypeArg that) {
+        public Pair<String,String> forTypeArg(TypeArg that) {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
             // Pretagged with type information
             String s =  makeArrowDescriptor(arg, ifMissing);
-            return s;
+            return p("type", s);
         }
 
         @Override
-        public String forUnitArg(UnitArg that) {
+        public Pair<String,String> forUnitArg(UnitArg that) {
             //UnitExpr arg = that.getUnitArg();
-            return Naming.ATOM;
+            return p("unit", that.getUnitArg().accept(this).getB());
         }
 
         @Override
-        public String forTraitSelfType(TraitSelfType that) {
+        public Pair<String,String> forTraitSelfType(TraitSelfType that) {
             // TODO Auto-generated method stub
             return that.getNamed().accept(this);
         }
 
         @Override
-        public String forTraitType(TraitType that) {
+        public Pair<String,String> forTraitType(TraitType that) {
             String s =  makeArrowDescriptor(that, ifMissing);
-            return s;
+            return p("type", s);
         }
 
     };
@@ -1557,36 +1574,40 @@ public class NamingCzar {
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
-            List<String> splist,
+            Pair<String, List<Pair<String, String>>> pslpss,
             APIName ifMissing
             ) {
-        return genericDecoration(null, sparams, splist, ifMissing);
+        return genericDecoration(null, sparams, pslpss, ifMissing);
     }
     
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
-            List<String> splist,
+            Pair<String, List<Pair<String, String>>> pslpss,
             APIName ifMissing
             ) {
         if (sparams.size() == 0)
             return "";
 
-        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+        NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
 
+        List<Pair<String, String>> splist = pslpss == null ? null : pslpss.getB();
+        
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         if (receiverType != null) {
-            String s = receiverType.accept(spkTagger);
+            Pair<String, String> s = receiverType.accept(spkTagger);
             if (splist != null)
                 splist.add(s);
-            buf.append(s + ";");
+            buf.append(s.getB() + ";");
         }
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
+            String k = spk.accept(spkTagger).getA();
+            
             IdOrOp spn = sp.getName();
             String s = spn.getText();
             if (splist != null)
-                splist.add(s);
+                splist.add(p(k,s));
             buf.append(s + ";");
         }
         frag = buf.toString();
@@ -1600,15 +1621,15 @@ public class NamingCzar {
         if (sargs.size() == 0)
             return "";
 
-        NodeAbstractVisitor<String> spkTagger = spkTagger(ifMissing);
+        NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         int index = 1;
         for (StaticArg sp : sargs) {
-            String tag = sp.accept(spkTagger);
-            buf.append(tag);
+            Pair<String,String> tag = sp.accept(spkTagger);
+            buf.append(tag.getB());
             buf.append(";");
             index++;
         }
