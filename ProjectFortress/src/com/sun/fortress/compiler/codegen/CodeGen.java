@@ -2836,7 +2836,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         
         Pair<String, List<Pair<String, String>>> pslpss = 
-            xlationData(Naming.FUNCTION_GENERIC_TAG);
+            xlationData(Naming.OBJECT_GENERIC_TAG);
         
         String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
 
