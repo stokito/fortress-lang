@@ -33,9 +33,9 @@ public class Instantiater extends ClassAdapter {
     
     InstantiationMap types;
     String instanceName;
-    ClassLoader icl;
+    InstantiatingClassloader icl;
     
-    public Instantiater(ClassVisitor cv, Map xlation, String instanceName, ClassLoader icl) {
+    public Instantiater(ClassVisitor cv, Map xlation, String instanceName, InstantiatingClassloader icl) {
         super(cv);
         this.types = new InstantiationMap(xlation);
         this.instanceName = instanceName;

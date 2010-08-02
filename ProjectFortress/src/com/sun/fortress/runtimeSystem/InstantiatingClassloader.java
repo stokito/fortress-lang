@@ -61,6 +61,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final Vector<String> history = new Vector<String>();
 
+    private final Hashtable<String, Pair<String, List<Pair<String, String>>>>
+       stemToXlation = new Hashtable<String, Pair<String, List<Pair<String, String>>>>();
+    
     private InstantiatingClassloader() {
         throw new Error(); // Really do not call this.
     }
@@ -157,18 +160,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 if (isGenericFunction) {
                     // also a closure
                     try {
-                    Map<String, String> xlation = new HashMap<String, String>();
                     String dename = Naming.dotToSep(name);
                     dename = Naming.demangleFortressIdentifier(dename);
                     ArrayList<String> sargs = new ArrayList<String>();
-                    String template_name = functionTemplateName(dename, xlation, sargs);
+                    String template_name = functionTemplateName(dename, sargs);
                     byte[] templateClassData = readResource(template_name);
                     Pair<String, List<Pair<String, String>>> pslpss =
                         Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
                     
                     List<String> xl = extractStaticParameterNames(pslpss);
                     
-                    xlation = Useful.map(xl, sargs);
+                    Map<String, String> xlation  = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
                     ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
@@ -197,15 +199,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else {
                         try {
-                        Map<String, String> xlation = new HashMap<String, String>();
                         ArrayList<String> sargs = new ArrayList<String>();
-                        String template_name = genericTemplateName(dename, xlation, sargs);
+                        String template_name = genericTemplateName(dename, sargs);
                         byte[] templateClassData = readResource(template_name);
                         Pair<String, List<Pair<String, String>>> pslpss =
                             Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
                         
                         List<String> xl = extractStaticParameterNames(pslpss);
-                        xlation = Useful.map(xl, sargs);
+                        Map<String, String> xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                         ClassReader cr = new ClassReader(templateClassData);
                         ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
@@ -274,22 +275,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return xl;
     }
 
-    private String functionTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
+    private String functionTemplateName(String name, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
 
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
-                right_oxford, xlation, sargs);
+                right_oxford, sargs);
 
         return Naming.mangleFortressIdentifier(s);
     }
 
-    private String genericTemplateName(String name, Map<String, String> xlation, ArrayList<String> sargs) {
+    private String genericTemplateName(String name, ArrayList<String> sargs) {
         int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
         int right_oxford = name.lastIndexOf(Naming.RIGHT_OXFORD);
 
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
-                right_oxford, xlation, sargs);
+                right_oxford, sargs);
 
         return Naming.mangleFortressIdentifier(s);
     }
@@ -749,6 +750,34 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int right = className.indexOf(Naming.RIGHT_OXFORD);
         return (left != -1 && right != -1 && left < right);
     }
+    
+    Pair<String, List<Pair<String, String>>> xlationForGeneric(String t) {
+        String template_name = genericTemplateName(t, null);
+
+        Pair<String, List<Pair<String, String>>> pslpss = stemToXlation.get(template_name);
+        
+        if (pslpss != null) return pslpss;
+        
+        try {
+            pslpss =
+                Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+        } catch (VersionMismatch e) {
+            throw new Error("Read stale serialized data for " + template_name + ", recommend you delete the Fortress bytecode cache and relink", e);
+        } catch (IOException e) {
+            throw new Error("Unable to read serialized data for " + template_name + ", recommend you delete the Fortress bytecode cache and relink", e);
+        }
+        
+        synchronized(stemToXlation) {
+            if (stemToXlation.get(template_name) == null) {
+                stemToXlation.put(template_name, pslpss);
+            }
+        }
+        
+        return pslpss;
+
+    }
+    
+
 }
 
 /** Figures out whether a class can be loaded by a custom class loader or not. */

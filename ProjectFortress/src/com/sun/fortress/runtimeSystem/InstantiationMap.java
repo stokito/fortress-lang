@@ -366,17 +366,14 @@ public class InstantiationMap  {
 
     /**
      * 
-     * 
-     * 
      * @param name
      * @param left_oxford
      * @param right_oxford
-     * @param xlation
      * @return
      * @throws Error
      */
     public static String canonicalizeStaticParameters(String name, int left_oxford,
-            int right_oxford, Map<String, String> xlation, ArrayList<String> sargs) throws Error {
+            int right_oxford, ArrayList<String> sargs) throws Error {
         String template_start = name.substring(0,left_oxford+1);
         String template_end = name.substring(right_oxford);
         // Note include trailing oxford to simplify loop termination.
@@ -389,27 +386,11 @@ public class InstantiationMap  {
                 end = generics.length();
             String tok =
                 generics.substring(0, end);
-//            char ch = tok.charAt(0);
-//            String tag;
-//            if (ch == Naming.FOREIGN_TAG_CHAR ||
-//                ch == Naming.NORMAL_TAG_CHAR ||
-//                ch == Naming.INTERNAL_TAG_CHAR) {
-//                tag = Naming.YINYANG;
-//            } else if (ch == Naming.MUSIC_SHARP_CHAR) {
-//                tag = Naming.MUSIC_SHARP;
-//            } else if (ch == Naming.HAMMER_AND_PICK_CHAR) {
-//                tag = Naming.MUSIC_SHARP;
-//            } else {
-//                throw new Error("Unimplemented generic kind " + ch + " seen in instantiating classloader");
-//            }
-//            template_middle += tag+i;
-//            xlation.put(tag+i, tok);
-            sargs.add(tok);
-    
+            if (sargs != null)
+                sargs.add(tok);
     
             if (end == generics.length())
                 break;
-//            template_middle += ";";
             generics = generics.substring(end+1);
             i++;
         }

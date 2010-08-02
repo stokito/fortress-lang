@@ -60,10 +60,10 @@ run() =do
   q = O[\ O[\ou\] \]( p )
   d = q.g[\ O[\ O[\ou\] \] \](q)
   
-  println(d)
+  (*) println(d)
   
   println(
-  if (b="OUOV" AND c="OUOV")
+  if (b="OUOV" AND c="OUOV" AND d="OUOV")
      then "pass" else "fail" end
   )
   

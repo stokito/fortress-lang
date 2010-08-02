@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.sun.fortress.runtimeSystem;
 
+import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -25,15 +26,16 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.Pair;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 
 public class MethodInstantiater implements MethodVisitor {
 
     MethodVisitor mv;
     InstantiationMap xlation;
-    ClassLoader icl;
+    InstantiatingClassloader icl;
     
-    public MethodInstantiater(MethodVisitor mv, InstantiationMap xlation, ClassLoader icl) {
+    public MethodInstantiater(MethodVisitor mv, InstantiationMap xlation, InstantiatingClassloader icl) {
         this.mv = mv;
         this.xlation = xlation;
         this.icl = icl;
@@ -133,10 +135,21 @@ public class MethodInstantiater implements MethodVisitor {
                 throw new Error("Invocation of magic class Method '"+oname+"' ('"+name+"') seen, but op is not recognized.");
             }
         } else {
-            String new_owner = xlation.getTypeName(owner);
+            String new_owner = xlation.getTypeName(owner);  // demangled.
             if (opcode == Opcodes.INVOKEINTERFACE && !new_owner.equals(owner) ) {
                 if (new_owner.contains(Naming.LEFT_OXFORD)) {
-                    
+                    if (! new_owner.startsWith("Arrow\u27e6")) {
+                        Pair<String, List<Pair<String, String>>> pslpss =
+                            icl.xlationForGeneric(new_owner);
+                        String stem_sort = pslpss.first();
+                        if (stem_sort.equals(Naming.OBJECT_GENERIC_TAG))
+                            opcode = Opcodes.INVOKEVIRTUAL;
+                        else
+                            opcode = opcode; // do nothing
+                    } else {
+                        opcode = opcode; // do nothing
+                    }
+
                 } else {
                     String new_owner_class_name = Naming.mangleFortressIdentifier(new_owner);
                     new_owner_class_name = new_owner_class_name.replaceAll("[/]", ".");

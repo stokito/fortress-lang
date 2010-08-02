@@ -185,14 +185,13 @@ public abstract class VarCodeGen {
 
             if (static_args.length() > 0) {
                 // need to rewrite the classDesc given static args.
-                Map<String, String> xlation = new HashMap<String, String>();
                 ArrayList<String> sargs = new ArrayList<String>();
                 InstantiationMap.canonicalizeStaticParameters(static_args,
                                                               static_args.indexOf(Naming.LEFT_OXFORD),
                                                               static_args.indexOf(Naming.RIGHT_OXFORD),
-                                                              xlation, sargs);
+                                                              sargs);
 
-                xlation = Useful.map(sparams, sargs);
+                Map<String, String> xlation  = Useful.map(sparams, sargs);
 
                 InstantiationMap im = new InstantiationMap(xlation);
 
