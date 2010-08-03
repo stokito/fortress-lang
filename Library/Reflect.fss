@@ -10,13 +10,96 @@ export Reflect
 private language = "java"
 private package = "com.sun.fortress.interpreter.glue.prim"
 
-trait AnyReflect (* %comprises Reflect[\T\] where [\T\]% *)
+trait Type comprises {ObjectOrTraitType, ArrowType, TupleType, BottomType}
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
+    join(self, other:Type): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Join")
+    meet(self, other:Type): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Meet")
+    opr SUBTYPEOF(self, other:Type): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$SubtypeOf")
+    opr SUPERTYPEOF(self, other:Type): Boolean =
+        other SUBTYPEOF self
 end
 
-object Reflect[\T\]() extends AnyReflect
-    getter asString():String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
-    join(self, other:AnyReflect):AnyReflect = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Join")
-    meet(self, other:AnyReflect):AnyReflect = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Meet")
+trait ObjectOrTraitType extends Type comprises {ObjectType, TraitType}
+                        excludes {ArrowType, TupleType, BottomType}
 end
+
+trait ObjectType extends ObjectOrTraitType (* %comprises ReflectObject[\T\] where [\T\]% *)
+                 excludes TraitType
+end
+
+trait TraitType extends ObjectOrTraitType (* %comprises ReflectTrait[\T\] where [\T\]% *)
+                excludes ObjectType
+end
+
+trait ArrowType extends Type (* %comprises ReflectArrow[\T\] where [\T\]% *)
+                excludes {ObjectOrTraitType, TupleType, BottomType}
+    getter domain(): Type
+    getter range(): Type
+end
+
+trait TupleType extends {Type, ZeroIndexed[\Type\], DelegatedIndexed[\Type,ZZ32\]}
+                (* %comprises ReflectTuple[\T\] where [\T\]% *)
+                excludes {ObjectOrTraitType, ArrowType, BottomType}
+end
+
+(* Ideally it has to be a subtype of all other XxxTypes, but it violates
+   exclusion property. *)
+trait BottomType extends Type (* %comprises ReflectBottom[\T\] where [\T\]% *)
+                 excludes {ObjectOrTraitType, ArrowType, TupleType}
+end
+
+object Reflect[\T\]() extends Type
+    copy(): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Copy")
+end
+
+object ReflectObject[\T\]() extends ObjectType
+end
+
+object ReflectTrait[\T\]() extends TraitType
+end
+
+object ReflectArrow[\T\]() extends ArrowType
+    getter domain(): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Domain")
+    getter range(): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Range")
+end
+
+object ReflectTuple[\T\]() extends TupleType
+    getter size(): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Size")
+    getter indices(): CompactFullRange[\ZZ32\] = self.bounds
+    getter generator(): Generator[\Type\] =
+        self.indices.map[\Type\](fn (i:ZZ32):Type => self.get0(i))
+
+    opr |self|: ZZ32 = self.size
+    get0(i:ZZ32): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Get")
+    opr [i:ZZ32]: Type =
+        if 0 <= i < |self| then
+            get0(i)
+        else
+            fail("Out of bounds in ReflectTuple (" i " outside 0#" |self| ")")
+        end
+end
+
+object ReflectBottom[\T\]() extends BottomType
+end
+
+(* While these define some definitions of important types, they also serve as
+   a way to populate generic constructors from the top-level environment.
+   See also the constructor of Reflect. *)
+anyType: Type = ReflectTrait[\Any\]()
+objectType: Type = ReflectTrait[\Object\]()
+voidType: Type = ReflectTuple[\()\]()
+bottomType: Type = meet(objectType, voidType)
+
+theType[\T\](): Type = Reflect[\T\]().copy()
+typeOf(obj:Any): Type = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
 
 end
