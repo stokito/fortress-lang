@@ -11,25 +11,80 @@ trait A end
 trait B extends A end
 trait C extends A end
 trait D extends {B,C} end
+object E end
 
-run(): () = do
-    (* for now, we don't have ReflectBottom yet *)
-    bottom = meet(Reflect[\ZZ32\](), Reflect[\String\]())
-
-    zz32 = Reflect[\ZZ32\]()
-    rr64 = Reflect[\RR64\]()
+testType(): () = do
+    zz32 = theType[\ZZ32\]()
+    rr64 = theType[\RR64\]()
     assert(join(zz32, rr64) = rr64, "incorrect join(" zz32 "," rr64 ")")
     assert(meet(zz32, rr64) = zz32, "incorrect meet(" zz32 "," rr64 ")")
+    assert(zz32 SUBTYPEOF zz32, zz32 " <: " zz32 " doesn't hold")
+    assert(zz32 SUBTYPEOF rr64, zz32 " <: " rr64 " doesn't hold")
+    assert(NOT (rr64 SUBTYPEOF zz32), rr64 " <: " zz32 " (wrongly) hold")
 
-    string = Reflect[\String\]()
-    charlist = Reflect[\List[\Char\]\]()
-    assert(join(string, charlist) = Reflect[\ZeroIndexed[\Char\]\](), "incorrect join(" string "," charlist ")")
-    assert(meet(string, charlist) = bottom, "incorrect meet(" string "," charlist ")")
+    string = theType[\String\]()
+    charlist = theType[\List[\Char\]\]()
+    assert(join(string, charlist) = theType[\ZeroIndexed[\Char\]\](),
+           "incorrect join(" string "," charlist ")")
+    assert(meet(string, charlist) = bottomType,
+           "incorrect meet(" string "," charlist ")")
+    assert(NOT (string SUBTYPEOF charlist), string " <: " charlist " (wrongly) hold")
+    assert(NOT (charlist SUBTYPEOF string), charlist " <: " string " (wrongly) hold")
 
-    b = Reflect[\B\]()
-    c = Reflect[\C\]()
-    assert(join(b, c) = Reflect[\A\](), "incorrect join(" b "," c ")")
+    a = theType[\A\]()
+    b = theType[\B\]()
+    c = theType[\C\]()
+    d = theType[\D\]()
+    e = theType[\E\]()
+    assert(join(b, c) = theType[\A\](), "incorrect join(" b "," c ")")
     (* not working correctly for now *)
-    (*assert(meet(b, c) = Reflect[\D\](), "incorrect meet(" b "," c ")")*)
+    (*assert(meet(b, c) = theType[\D\](), "incorrect meet(" b "," c ")")*)
+    assert(instanceOf[\TraitType\](a), a " is not a trait type?")
+    assert(instanceOf[\ObjectType\](e), e " is not an object type?")
+
+    arrow = theType[\ZZ32->String\]()
+    assert(arrow.domain = theType[\ZZ32\](), "incorrect domain for " arrow)
+    assert(arrow.range = theType[\String\](), "incorrect range for " arrow)
+    assert(instanceOf[\ArrowType\](arrow), arrow " is not an arrow type?")
+
+    tuple = theType[\(Char,Boolean,ZZ32)\]()
+    assert(|tuple| = 3, "incorrect length for " tuple)
+    assert(tuple[0] = theType[\Char\](), "incorrect value for " tuple)
+    assert(tuple[1] = theType[\Boolean\](), "incorrect value for " tuple)
+    assert(tuple[2] = theType[\ZZ32\](), "incorrect value for " tuple)
+    assert("/".join[\Type\](tuple) = "Char/Boolean/ZZ32", "generator for " tuple " doesn't work")
+end
+
+checkTypeOf[\T\](obj:Any): () = do
+    objstr = typecase obj of
+        ZZ32->ZZ32 => "(function ZZ32->ZZ32)"
+        ()->() => "(function ()->())"
+        else => "" obj
+    end
+    assert(typeOf obj SUBTYPEOF theType[\T\](),
+           objstr " is not a subtype of " theType[\T\]() " but " typeOf obj)
+end
+
+testTypeOf(): () = do
+    checkTypeOf[\()\]()
+    checkTypeOf[\ZZ32\](42)
+    checkTypeOf[\RR64\](3.14)
+    checkTypeOf[\Boolean\](true)
+    checkTypeOf[\Char\]('c')
+    checkTypeOf[\String\]("car")
+    checkTypeOf[\((ZZ32,ZZ32),ZZ32)\]((3,4), 5)
+    checkTypeOf[\ZZ32->ZZ32\]((fn (x:ZZ32):ZZ32 => 42))
+    checkTypeOf[\()->()\](testTypeOf)
+    checkTypeOf[\List[\ZZ32\]\](<|[\ZZ32\] 1, 2, 3 |>)
+    checkTypeOf[\TraitType\](theType[\A\]())
+    checkTypeOf[\ObjectType\](typeOf E)
+    checkTypeOf[\ArrowType\](typeOf (fn (x:ZZ32):ZZ32 => 42))
+    checkTypeOf[\TupleType\](typeOf (0,1))
+    checkTypeOf[\BottomType\](bottomType)
+end
+
+run(): () = do
+    testType()
+    testTypeOf()
 end
 
