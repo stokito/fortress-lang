@@ -794,8 +794,8 @@ object STypesUtil {
                           insertStaticParams(t, sparams),
                           applyLifted = inferLifted,
                           applyUnlifted = inferUnlifted)
-    }.map(Set(_))
-    val bounds = And(Map(), Map(infVars.zip(sparamBounds): _*))
+    }.map(t => Primitive(Set(), Set(), Set(t), Set(), Set(), Set()))
+    val bounds = And(Map(infVars.zip(sparamBounds): _*))
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
     val subst = solve(and(constraint, bounds)).getOrElse(return None)
