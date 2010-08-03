@@ -408,11 +408,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeAnalyzer(traits, env.extend(params, where))
-  
-  protected def mapAnd[T](x: Iterable[T])(f: T=>CFormula): CFormula = 
-    x.map(f).foldLeft(True.asInstanceOf[CFormula])(and)
-  protected def mapOr[T](x: Iterable[T])(f: T=>CFormula): CFormula = 
-    x.map(f).foldLeft(False.asInstanceOf[CFormula])(or)
     
 }
 
