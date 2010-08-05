@@ -6,27 +6,29 @@
 export Executable
 import Reflect.{...}
 import List.{...}
+import Set.{...}
 
 trait A end
 trait B extends A end
-trait C extends A end
-trait D extends {B,C} end
-object E end
+trait C extends A excludes B end
+trait D extends {B,C} comprises {E,F} end
+object E extends D end
+object F extends D end
 
 testType(): () = do
     zz32 = theType[\ZZ32\]()
     rr64 = theType[\RR64\]()
-    assert(join(zz32, rr64) = rr64, "incorrect join(" zz32 "," rr64 ")")
-    assert(meet(zz32, rr64) = zz32, "incorrect meet(" zz32 "," rr64 ")")
+    assert(set join(zz32, rr64) = {[\Type\] rr64}, "incorrect join(" zz32 "," rr64 ")")
+    assert(set meet(zz32, rr64) = {[\Type\] zz32}, "incorrect meet(" zz32 "," rr64 ")")
     assert(zz32 SUBTYPEOF zz32, zz32 " <: " zz32 " doesn't hold")
     assert(zz32 SUBTYPEOF rr64, zz32 " <: " rr64 " doesn't hold")
     assert(NOT (rr64 SUBTYPEOF zz32), rr64 " <: " zz32 " (wrongly) hold")
 
     string = theType[\String\]()
     charlist = theType[\List[\Char\]\]()
-    assert(join(string, charlist) = theType[\ZeroIndexed[\Char\]\](),
+    assert(set join(string, charlist) = {[\Type\] theType[\ZeroIndexed[\Char\]\]()},
            "incorrect join(" string "," charlist ")")
-    assert(meet(string, charlist) = bottomType,
+    assert(set meet(string, charlist) = {[\Type\] bottomType},
            "incorrect meet(" string "," charlist ")")
     assert(NOT (string SUBTYPEOF charlist), string " <: " charlist " (wrongly) hold")
     assert(NOT (charlist SUBTYPEOF string), charlist " <: " string " (wrongly) hold")
@@ -36,11 +38,26 @@ testType(): () = do
     c = theType[\C\]()
     d = theType[\D\]()
     e = theType[\E\]()
-    assert(join(b, c) = theType[\A\](), "incorrect join(" b "," c ")")
-    (* not working correctly for now *)
-    (*assert(meet(b, c) = theType[\D\](), "incorrect meet(" b "," c ")")*)
+    f = theType[\F\]()
     assert(instanceOf[\TraitType\](a), a " is not a trait type?")
     assert(instanceOf[\ObjectType\](e), e " is not an object type?")
+    assert(set a.typeExtends = {[\Type\] objectType}, "incorrect " a ".typeExtends")
+    assert(set b.typeExtends = {[\Type\] a}, "incorrect " b ".typeExtends")
+    assert(set c.typeExtends = {[\Type\] a}, "incorrect " c ".typeExtends")
+    assert(set d.typeExtends = {[\Type\] b, c}, "incorrect " d ".typeExtends")
+    assert(set e.typeExtends = {[\Type\] d}, "incorrect " e ".typeExtends")
+    assert(set b.typeExcludes INTERSECTION {[\Type\] a,b,c,d,e,f} = {[\Type\] c},
+           "incorrect " b ".typeExcludes")
+    assert(set c.typeExcludes INTERSECTION {[\Type\] a,b,c,d,e,f} = {[\Type\] b},
+           "incorrect " c ".typeExcludes")
+    assert(NOT a.typeComprises.holds, "incorrect " a ".typeComprises")
+    assert(d.typeComprises.holds AND set d.typeComprises.get = {[\Type\] e, f},
+           "incorrect " b ".typeComprises")
+    assert(f.typeComprises.holds AND f.typeComprises.get.isEmpty,
+           "incorrect " f ".typeComprises")
+    assert(set join(b, c) = {[\Type\] theType[\A\]()}, "incorrect join(" b "," c ")")
+    (* not working correctly for now *)
+    (*assert(set meet(b, c) = {[\Type\] theType[\D\]()}, "incorrect meet(" b "," c ")")*)
 
     arrow = theType[\ZZ32->String\]()
     assert(arrow.domain = theType[\ZZ32\](), "incorrect domain for " arrow)
@@ -86,5 +103,6 @@ end
 run(): () = do
     testType()
     testTypeOf()
+    (*)dumpType(typeOf ("Blah", 42, false, fn () => throw ForbiddenException))
 end
 

@@ -7,32 +7,55 @@ native component Reflect
 
 export Reflect
 
+import Set.{...}
+
 private language = "java"
 private package = "com.sun.fortress.interpreter.glue.prim"
 
-trait Type comprises {ObjectOrTraitType, ArrowType, TupleType, BottomType}
+trait Type extends StandardTotalOrder[\Type\]
+           comprises {ObjectOrTraitType, ArrowType, TupleType, BottomType}
     getter asString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
-    join(self, other:Type): Type =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Join")
-    meet(self, other:Type): Type =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Meet")
+    opr =(self, other:Type): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Eq")
+    opr <(self, other:Type): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Less")
     opr SUBTYPEOF(self, other:Type): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$SubtypeOf")
     opr SUPERTYPEOF(self, other:Type): Boolean =
         other SUBTYPEOF self
+    join(self, other:Type): Generator[\Type\] =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Join")
+    meet(self, other:Type): Generator[\Type\] =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Meet")
 end
 
 trait ObjectOrTraitType extends Type comprises {ObjectType, TraitType}
                         excludes {ArrowType, TupleType, BottomType}
+    getter typeExtends(): Generator[\Type\] =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Extends")
+    getter typeExcludes(): Generator[\Type\] =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Excludes")
 end
 
 trait ObjectType extends ObjectOrTraitType (* %comprises ReflectObject[\T\] where [\T\]% *)
                  excludes TraitType
+    getter typeComprises(): Just[\Generator[\Type\]\] =
+        Just[\Generator[\Type\]\](Nothing[\Type\])
 end
 
 trait TraitType extends ObjectOrTraitType (* %comprises ReflectTrait[\T\] where [\T\]% *)
                 excludes ObjectType
+    getter typeComprises0(): Generator[\Type\] =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Comprises")
+    getter typeComprises(): Maybe[\Generator[\Type\]\] = do
+        types = self.typeComprises0
+        if types.isEmpty then
+            Nothing[\Generator[\Type\]\]
+        else
+            Just[\Generator[\Type\]\](types)
+        end
+    end
 end
 
 trait ArrowType extends Type (* %comprises ReflectArrow[\T\] where [\T\]% *)
@@ -41,15 +64,27 @@ trait ArrowType extends Type (* %comprises ReflectArrow[\T\] where [\T\]% *)
     getter range(): Type
 end
 
-trait TupleType extends {Type, ZeroIndexed[\Type\], DelegatedIndexed[\Type,ZZ32\]}
-                (* %comprises ReflectTuple[\T\] where [\T\]% *)
+trait TupleType extends {Type, ZeroIndexed[\Type\]} (* %comprises ReflectTuple[\T\] where [\T\]% *)
                 excludes {ObjectOrTraitType, ArrowType, BottomType}
 end
 
 (* Ideally it has to be a subtype of all other XxxTypes, but it violates
-   exclusion property. *)
+   the exclusion property. *)
 trait BottomType extends Type (* %comprises ReflectBottom[\T\] where [\T\]% *)
                  excludes {ObjectOrTraitType, ArrowType, TupleType}
+end
+
+object ReflectCollection() extends ZeroIndexed[\Type\]
+    getter size(): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectCollection$Size")
+    getter indices(): CompactFullRange[\ZZ32\] = self.bounds
+
+    opr [i:ZZ32]: Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectCollection$Get")
+    generate0[\R\](empty:()->R, join0:(R,R)->R, body:Type->R): R =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectCollection$Generate")
+    generate[\R\](r:Reduction[\R\], body:Type->R): R =
+        generate0[\R\](fn ():R => r.empty(), fn (a:R,b:R):R => r.join(a,b), body)
 end
 
 object Reflect[\T\]() extends Type
@@ -70,36 +105,84 @@ object ReflectArrow[\T\]() extends ArrowType
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Range")
 end
 
-object ReflectTuple[\T\]() extends TupleType
-    getter size(): ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Size")
+object ReflectTuple[\T\]() extends {TupleType, DelegatedIndexed[\Type,ZZ32\]}
+    getter types(): ReflectCollection =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Types")
+
+    getter size(): ZZ32 = self.types.size
     getter indices(): CompactFullRange[\ZZ32\] = self.bounds
-    getter generator(): Generator[\Type\] =
-        self.indices.map[\Type\](fn (i:ZZ32):Type => self.get0(i))
+    getter generator(): Generator[\Type\] = self.types
 
     opr |self|: ZZ32 = self.size
-    get0(i:ZZ32): Type =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Get")
-    opr [i:ZZ32]: Type =
-        if 0 <= i < |self| then
-            get0(i)
-        else
-            fail("Out of bounds in ReflectTuple (" i " outside 0#" |self| ")")
-        end
+    opr [i:ZZ32]: Type = self.types[i]
 end
 
 object ReflectBottom[\T\]() extends BottomType
 end
 
-(* While these define some definitions of important types, they also serve as
-   a way to populate generic constructors from the top-level environment.
-   See also the constructor of Reflect. *)
-anyType: Type = ReflectTrait[\Any\]()
-objectType: Type = ReflectTrait[\Object\]()
-voidType: Type = ReflectTuple[\()\]()
-bottomType: Type = meet(objectType, voidType)
+(* This dummy declaration initializes the constructor of ReflectCollection. *)
+emptyTypeCollection: ReflectCollection = ReflectCollection()
 
 theType[\T\](): Type = Reflect[\T\]().copy()
 typeOf(obj:Any): Type = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
+
+(* While these define some definitions of important types, they also serve as
+   a way to populate generic constructors from the top-level environment,
+   just like emptyTypeCollection. See also the constructor of Reflect. *)
+anyType: Type = ReflectTrait[\Any\]()
+objectType: Type = ReflectTrait[\Object\]()
+voidType: Type = ReflectTuple[\()\]()
+bottomType: Type = typeOf(fn () => throw ForbiddenException).range
+
+dumpType(t0:Type, indent:String, seen0:Set[\Type\]) = do
+    tag = typecase t0 of
+        ObjectType => "object "
+        TraitType => "trait "
+        else => ""
+    end
+    println(indent tag t0)
+    seen: Set[\Type\] := seen0
+    if t0 NOTIN seen then
+        seen := seen.add(t0)
+        typecase t0 of
+            t:ObjectOrTraitType => do
+                e = t.typeExtends
+                if NOT e.isEmpty then
+                    println(indent "- extends:")
+                    for t' <- seq(e) do seen := dumpType(t', indent "  ", seen) end
+                end
+                (*
+                x = t.typeExcludes
+                if NOT x.isEmpty then
+                    println(indent "- excludes:")
+                    for t' <- seq(x) do seen := dumpType(t', indent "  ", seen) end
+                end
+                *)
+                if c <- t.typeComprises then
+                    if NOT c.isEmpty then
+                        println(indent "- comprises:")
+                        for t' <- seq(c) do seen := dumpType(t', indent "  ", seen) end
+                    end
+                end
+            end
+            t:ArrowType => do
+                println(indent "- domain:")
+                seen := dumpType(t.domain, indent "  ", seen)
+                println(indent "- range:")
+                seen := dumpType(t.range, indent "  ", seen)
+            end
+            t:TupleType => do
+                for (i, t') <- seq(t.indexValuePairs) do
+                    println(indent "- element " i ":")
+                    seen := dumpType(t', indent "  ", seen)
+                end
+            end
+            else => ()
+        end
+    end
+    seen
+end
+
+dumpType(t:Type) = dumpType(t, "", set[\Type\]())
 
 end
