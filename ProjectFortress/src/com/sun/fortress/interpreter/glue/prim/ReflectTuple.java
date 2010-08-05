@@ -27,9 +27,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.ObjectConstructor;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class ReflectTuple extends Reflect {
     public ReflectTuple(Environment env, FTypeObject selfType, ObjectConstructor def) {
@@ -41,21 +40,9 @@ public class ReflectTuple extends Reflect {
         if (!(ty instanceof FTypeTuple)) error(ty + " is not a tuple type.");
     }
 
-    public static final class Size extends T2I {
-        public final int f(FType x) {
-            return ((FTypeTuple) x).getTypes().size();
-        }
-    }
-
-    public static final class Get extends TI2T {
-        public FType f(FType x, int i) {
-            List<FType> types = ((FTypeTuple) x).getTypes();
-            try {
-                return types.get(i);
-            }
-            catch (IndexOutOfBoundsException e) {
-                return bug(errorMsg("Tuple element index ", i, " out of bounds, length=", types.size()), e);
-            }
+    public static final class Types extends T2Tc {
+        public final List<FType> f(FType x) {
+            return ((FTypeTuple) x).getTypes();
         }
     }
 }

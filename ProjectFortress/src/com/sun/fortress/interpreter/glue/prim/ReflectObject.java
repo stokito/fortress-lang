@@ -24,10 +24,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.ObjectConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 public class ReflectObject extends Reflect {
     public ReflectObject(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);

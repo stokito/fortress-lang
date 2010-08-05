@@ -28,6 +28,8 @@ import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -44,12 +46,18 @@ public class Reflect extends NativeConstructor {
     public Reflect(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
 
-        Environment toplevel = env.getTopLevel();
-        gconobject = (GenericConstructor) toplevel.getRootValue("ReflectObject");
-        gcontrait = (GenericConstructor) toplevel.getRootValue("ReflectTrait");
-        gconarrow = (GenericConstructor) toplevel.getRootValue("ReflectArrow");
-        gcontuple = (GenericConstructor) toplevel.getRootValue("ReflectTuple");
-        gconbottom = (GenericConstructor) toplevel.getRootValue("ReflectBottom");
+        if (gconobject == null) {
+            synchronized (this) {
+                if (gconobject == null) {
+                    Environment toplevel = env.getTopLevel();
+                    gconobject = (GenericConstructor) toplevel.getRootValue("ReflectObject");
+                    gcontrait = (GenericConstructor) toplevel.getRootValue("ReflectTrait");
+                    gconarrow = (GenericConstructor) toplevel.getRootValue("ReflectArrow");
+                    gcontuple = (GenericConstructor) toplevel.getRootValue("ReflectTuple");
+                    gconbottom = (GenericConstructor) toplevel.getRootValue("ReflectBottom");
+                }
+            }
+        }
     }
 
     protected void checkType(FType ty) {
@@ -122,15 +130,6 @@ public class Reflect extends NativeConstructor {
         }
     }
 
-    protected static abstract class T2I extends NativeMeth0 {
-        protected abstract int f(FType x);
-
-        public FInt applyMethod(FObject self) {
-            FType x = ((ReflectedType) self).getTy();
-            return FInt.make(f(x));
-        }
-    }
-
     protected static abstract class T2T extends NativeMeth0 {
         protected abstract FType f(FType x);
 
@@ -140,13 +139,12 @@ public class Reflect extends NativeConstructor {
         }
     }
 
-    protected static abstract class TI2T extends NativeMeth1 {
-        protected abstract FType f(FType x, int y);
+    protected static abstract class T2Tc extends NativeMeth0 {
+        protected abstract Collection<FType> f(FType x);
 
-        public ReflectedType applyMethod(FObject self, FValue y0) {
+        public ReflectCollection.ReflectedTypeCollection applyMethod(FObject self) {
             FType x = ((ReflectedType) self).getTy();
-            int y = ((FInt) y0).getInt();
-            return make(f(x, y));
+            return ReflectCollection.make(f(x));
         }
     }
 
@@ -157,6 +155,16 @@ public class Reflect extends NativeConstructor {
             FType x = ((ReflectedType) self).getTy();
             FType y = ((ReflectedType) other).getTy();
             return make(f(x, y));
+        }
+    }
+
+    protected static abstract class TT2Tc extends NativeMeth1 {
+        protected abstract Collection<FType> f(FType x, FType y);
+
+        public ReflectCollection.ReflectedTypeCollection applyMethod(FObject self, FValue other) {
+            FType x = ((ReflectedType) self).getTy();
+            FType y = ((ReflectedType) other).getTy();
+            return ReflectCollection.make(f(x, y));
         }
     }
 
@@ -171,7 +179,7 @@ public class Reflect extends NativeConstructor {
     }
 
     public static final class TypeOf extends NativeFn1 {
-        public FValue applyToArgs(FValue arg) {
+        public final FValue applyToArgs(FValue arg) {
             return make(arg.type());
         }
     }
@@ -185,28 +193,63 @@ public class Reflect extends NativeConstructor {
         }
     }
 
-    public static final class Join extends TT2T {
-        public final FType f(FType x, FType y) {
+    public static final class Join extends TT2Tc {
+        public final Collection<FType> f(FType x, FType y) {
             Set<FType> join = x.join(y);
-            /* For now, just choose a type at random. */
-            for (FType ty : join) {
-                return ty;
+            if (join.isEmpty()) {
+                /* Empty join means top. */
+                return Collections.<FType>singleton(FTypeTop.ONLY);
+            } else {
+                return join;
             }
-            /* Empty join means top. */
-            return FTypeTop.ONLY;
         }
     }
 
     /* XXX Not working correctly; see a comment in FType.meet() */
-    public static final class Meet extends TT2T {
-        public final FType f(FType x, FType y) {
+    public static final class Meet extends TT2Tc {
+        public final Collection<FType> f(FType x, FType y) {
             Set<FType> meet = x.meet(y);
-            /* For now, just choose a type at random. */
-            for (FType ty : meet) {
-                return ty;
+            if (meet.isEmpty()) {
+                /* Empty meet means bottom. */
+                return Collections.<FType>singleton(BottomType.ONLY);
+            } else {
+                return meet;
             }
-            /* Empty meet means bottom. */
-            return BottomType.ONLY;
+        }
+    }
+
+    public static final class Extends extends T2Tc {
+        public final List<FType> f(FType x) {
+            return x.getExtends();
+        }
+    }
+
+    public static final class Excludes extends T2Tc {
+        public final Set<FType> f(FType x) {
+            return x.getExcludes();
+        }
+    }
+
+    public static final class Comprises extends T2Tc {
+        public final Set<FType> f(FType x) {
+            Set<FType> comprises = x.getComprises();
+            if (comprises == null) {
+                return Collections.<FType>emptySet();
+            } else {
+                return comprises;
+            }
+        }
+    }
+
+    public static final class Eq extends TT2B {
+        public final boolean f(FType x, FType y) {
+            return x == y;
+        }
+    }
+
+    public static final class Less extends TT2B {
+        public final boolean f(FType x, FType y) {
+            return x.compareTo(y) < 0;
         }
     }
 
@@ -224,6 +267,8 @@ public class Reflect extends NativeConstructor {
 
     @Override
     protected void unregister() {
-        gconobject = gcontrait = gconarrow = gcontuple = gconbottom = null;
+        synchronized (this) {
+            gconobject = gcontrait = gconarrow = gcontuple = gconbottom = null;
+        }
     }
 }
