@@ -12,42 +12,77 @@ import Set.{...}
 private language = "java"
 private package = "com.sun.fortress.interpreter.glue.prim"
 
+(** A reflected type object. **)
 trait Type extends StandardTotalOrder[\Type\]
            comprises {ObjectOrTraitType, ArrowType, TupleType, BottomType}
     getter asString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$ToString")
+
+    (** Two type objects are same if types represented by them are same;
+        the comparison is nominal and correctly distinguishes different
+        types with a same name but in the different APIs. **)
     opr =(self, other:Type): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Eq")
+
+    (** An arbitrary comparison operator to allow the construction of a set of
+        types. **)
     opr <(self, other:Type): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Less")
+
+    (** Returns true if it is a subtype of given type. **)
     opr SUBTYPEOF(self, other:Type): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$SubtypeOf")
+
+    (** Returns true if it is a supertype of given type. **)
     opr SUPERTYPEOF(self, other:Type): Boolean =
         other SUBTYPEOF self
+
+    (** Calculates a join of two types, that is, a minimal set of common
+        supertypes. It is "minimal" in the sense that it will transitively
+        generate all other supertypes, including %Any%. **)
     join(self, other:Type): Generator[\Type\] =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Join")
+
+    (** Calculates a meet of two types, that is, a minimal set of common
+        subtypes. It is "minimal" in the sense that it will transitively
+        generate all other subtypes, including %BOTTOM%. **)
     meet(self, other:Type): Generator[\Type\] =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Meet")
 end
 
+(** A type object which represents an object or a trait. **)
 trait ObjectOrTraitType extends Type comprises {ObjectType, TraitType}
                         excludes {ArrowType, TupleType, BottomType}
+    (** Returns a set of types in %extends% clause. If it is not given,
+        it defaults to %Object%. **)
     getter typeExtends(): Generator[\Type\] =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Extends")
+
+    (** Returns a set of types in %excludes% clause and types that define
+        the given type in their %excludes% clause. This is because the exclusion
+        is symmetric. **)
     getter typeExcludes(): Generator[\Type\] =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Excludes")
+
+    (** Returns a set of types in %comprises% clause. If the clauses is not
+        known, the type is open to subtyping and returns %Nothing%.
+        Note that it is an empty set (and not %Nothing%) for %ObjectType%s. **)
+    getter typeComprises(): Maybe[\Generator[\Type\]\]
 end
 
+(** A type object which represents an object. **)
 trait ObjectType extends ObjectOrTraitType (* %comprises ReflectObject[\T\] where [\T\]% *)
                  excludes TraitType
     getter typeComprises(): Just[\Generator[\Type\]\] =
         Just[\Generator[\Type\]\](Nothing[\Type\])
 end
 
+(** A type object which represents a trait. **)
 trait TraitType extends ObjectOrTraitType (* %comprises ReflectTrait[\T\] where [\T\]% *)
                 excludes ObjectType
     getter typeComprises0(): Generator[\Type\] =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Comprises")
+
     getter typeComprises(): Maybe[\Generator[\Type\]\] = do
         types = self.typeComprises0
         if types.isEmpty then
@@ -58,22 +93,39 @@ trait TraitType extends ObjectOrTraitType (* %comprises ReflectTrait[\T\] where 
     end
 end
 
+(** A type object which represents an arrow type, i.e. A->B. **)
 trait ArrowType extends Type (* %comprises ReflectArrow[\T\] where [\T\]% *)
                 excludes {ObjectOrTraitType, TupleType, BottomType}
+    (** Returns an arity of given arrow type. **)
+    getter arity(): ZZ32 =
+        typecase self.domain of
+            domain:TupleType => |domain|
+            else => 1
+        end
+
+    (** Returns a domain of given arrow type. It can be a tuple type. **)
     getter domain(): Type
+
+    (** Returns a range of given arrow type. **)
     getter range(): Type
 end
 
+(** A type object which represents a tuple type, i.e. (A,B,C). It can be used
+    as a generator for types contained in. **)
 trait TupleType extends {Type, ZeroIndexed[\Type\]} (* %comprises ReflectTuple[\T\] where [\T\]% *)
                 excludes {ObjectOrTraitType, ArrowType, BottomType}
 end
 
-(* Ideally it has to be a subtype of all other XxxTypes, but it violates
-   the exclusion property. *)
+(** A type object which represents a bottom type, i.e. an uninhabited type
+    that is a subtype of every other types. It commonly appears in the range of
+    arrow types. **)
 trait BottomType extends Type (* %comprises ReflectBottom[\T\] where [\T\]% *)
                  excludes {ObjectOrTraitType, ArrowType, TupleType}
+    (* Ideally it has to be a subtype of all other XxxTypes, but it violates
+       the exclusion property. *)
 end
 
+(** An internal object for a set of type objects. **)
 object ReflectCollection() extends ZeroIndexed[\Type\]
     getter size(): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectCollection$Size")
@@ -87,17 +139,23 @@ object ReflectCollection() extends ZeroIndexed[\Type\]
         generate0[\R\](fn ():R => r.empty(), fn (a:R,b:R):R => r.join(a,b), body)
 end
 
+(** An internal object for arbitrary types. It is only used in the definition of
+    %theType% and should not be used for other purposes. **)
 object Reflect[\T\]() extends Type
+    (** Converts a generic %Reflect% object to appropriate %ReflectXxx% object. **)
     copy(): Type =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$Copy")
 end
 
+(** An internal object for object types. **)
 object ReflectObject[\T\]() extends ObjectType
 end
 
+(** An internal object for trait types. **)
 object ReflectTrait[\T\]() extends TraitType
 end
 
+(** An internal object for arrow types. **)
 object ReflectArrow[\T\]() extends ArrowType
     getter domain(): Type =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Domain")
@@ -105,6 +163,7 @@ object ReflectArrow[\T\]() extends ArrowType
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Range")
 end
 
+(** An internal object for tuple types. **)
 object ReflectTuple[\T\]() extends {TupleType, DelegatedIndexed[\Type,ZZ32\]}
     getter types(): ReflectCollection =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Types")
@@ -117,14 +176,12 @@ object ReflectTuple[\T\]() extends {TupleType, DelegatedIndexed[\Type,ZZ32\]}
     opr [i:ZZ32]: Type = self.types[i]
 end
 
+(** An internal object for the bottom type. **)
 object ReflectBottom[\T\]() extends BottomType
 end
 
 (* This dummy declaration initializes the constructor of ReflectCollection. *)
-emptyTypeCollection: ReflectCollection = ReflectCollection()
-
-theType[\T\](): Type = Reflect[\T\]().copy()
-typeOf(obj:Any): Type = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
+private emptyTypeCollection: ReflectCollection = ReflectCollection()
 
 (* While these define some definitions of important types, they also serve as
    a way to populate generic constructors from the top-level environment,
@@ -134,6 +191,14 @@ objectType: Type = ReflectTrait[\Object\]()
 voidType: Type = ReflectTuple[\()\]()
 bottomType: Type = typeOf(fn () => throw ForbiddenException).range
 
+(** Returns a type object that represents a type in the static parameter. **)
+theType[\T\](): Type = Reflect[\T\]().copy()
+
+(** Returns a type object that represents a (dynamic) type of given argument. **)
+typeOf(obj:Any): Type = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
+
+(** Prints a type information recursively. **)
+dumpType(t:Type) = dumpType(t, "", set[\Type\]())
 dumpType(t0:Type, indent:String, seen0:Set[\Type\]) = do
     tag = typecase t0 of
         ObjectType => "object "
@@ -182,7 +247,5 @@ dumpType(t0:Type, indent:String, seen0:Set[\Type\]) = do
     end
     seen
 end
-
-dumpType(t:Type) = dumpType(t, "", set[\Type\]())
 
 end

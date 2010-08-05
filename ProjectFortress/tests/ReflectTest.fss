@@ -55,9 +55,9 @@ testType(): () = do
            "incorrect " b ".typeComprises")
     assert(f.typeComprises.holds AND f.typeComprises.get.isEmpty,
            "incorrect " f ".typeComprises")
-    assert(set join(b, c) = {[\Type\] theType[\A\]()}, "incorrect join(" b "," c ")")
+    assert(set join(b, c) = {[\Type\] a}, "incorrect join(" b "," c ")")
     (* not working correctly for now *)
-    (*assert(set meet(b, c) = {[\Type\] theType[\D\]()}, "incorrect meet(" b "," c ")")*)
+    (*assert(set meet(b, c) = {[\Type\] d}, "incorrect meet(" b "," c ")")*)
 
     arrow = theType[\ZZ32->String\]()
     assert(arrow.domain = theType[\ZZ32\](), "incorrect domain for " arrow)
