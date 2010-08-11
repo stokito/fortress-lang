@@ -42,7 +42,6 @@ case class And(cnjcts: Map[_InferenceVarType, Primitive]) extends CFormula {}
 
 case class Primitive(pl: Set[Type], nl: Set[Type], pu: Set[Type], nu: Set[Type], pe: Set[Type], ne: Set[Type]){}
                     
-                    
 case class Or(conjuncts: Set[And]) extends CFormula {}
 
 case class Conjuncts(eq: Set[Set[Type]]) extends EFormula {}
@@ -238,11 +237,14 @@ object Formula{
         val Primitive(pl,nl,pu,nu,pe,ne) = ip._2
         pl.isEmpty && nl.isEmpty && pu.isEmpty && nu.isEmpty && pe.isEmpty && ne.isEmpty
       }
-      val nps = ps.map(c => simplify(c).flatMap(contradiction).flatMap(redundant).getOrElse(return False)).filterNot(trivial)
+      val sps = ps.map(c => simplify(c))
+      val cps = sps.map(_.flatMap(contradiction))
+      val rps = cps.map(_.flatMap(redundant))
+      val nps = rps.map(_.getOrElse(return False)).filterNot(trivial)
       if (nps.isEmpty)
         return True
       else
-        And(nps) 
+        And(Map(nps.toSeq: _*)) 
     case Or(cs) =>
       val rcs = cs.map(reduce(_))
       if(rcs.contains(True))
@@ -265,7 +267,6 @@ object Formula{
       TU.disjuncts(ta.join(s))
   
   def reduce(e: EFormula)(implicit ta: TypeAnalyzer): EFormula = e match {
-    // Should also merge connected components
     case Conjuncts(eq) => 
       def isContradictory(eq: Set[Set[Type]])(implicit ta: TypeAnalyzer) =
         eq.forall{e =>  !e.isEmpty && e.tail.foldLeft((e.head, false)){ case ((s, b), t) =>
@@ -449,11 +450,11 @@ object Formula{
         case (k, Primitive(pl,nl,pu,nu,pe,ne)) =>
           val sk = s(k)
           and(ta.subtype(s(ta.join(pl)), sk), and(
-              mapAnd(nl)(t => ta.notSubtype(s(t),sk)), and(
+              and(nl.map(t => ta.notSubtype(s(t),sk))), and(
               ta.subtype(sk, s(ta.meet(pu))), and(
-              mapAnd(nu)(t => ta.notSubtype(sk, s(t))), and(
-              mapAnd(pe)(t => ta.excludes(sk,s(t))),
-              mapAnd(ne)(t => ta.notExcludes(sk, s(t))))))))})
+              and(nu.map(t => ta.notSubtype(sk, s(t)))), and(
+              and(pe.map(t => ta.excludes(sk,s(t)))),
+              and(ne.map(t => ta.notExcludes(sk, s(t)))))))))})
     case Or(cs) => dis(cs.map(map(_, s)))
     case _ => c
   }
@@ -463,22 +464,44 @@ object Formula{
     case Disjuncts(es) => dis(es.map(map(_, s)))
     case _ => e
   }
+  
+  def negate(c: CFormula)(implicit ta: TypeAnalyzer): CFormula = neg(reduce(c))
+  
+  def neg(c: CFormula)(implicit ta: TypeAnalyzer): CFormula = c match {
+    case True => False
+    case False => True
+    case Or(cs) => and(cs.map(negate))
+    case And(ps) =>
+      def neg(ip: (_InferenceVarType, Primitive))(implicit ta: TypeAnalyzer): CFormula = ip match {
+        case (i, Primitive(pl, nl, pu, nu, pe, ne)) =>
+          or(or(pl.map(t => notLowerBound(i, t))), or(
+             or(nl.map(t => lowerBound(i, t))), or(
+             or(pu.map(t => notUpperBound(i, t))), or(
+             or(nu.map(t => upperBound(i, t))), or(
+             or(pe.map(t => notExclusion(i, t))),
+             or(ne.map(t => exclusion(i, t))))))))
+      }
+      or(ps.map(neg))
+  }
     
   def upperBound(i: _InferenceVarType, t: Type): CFormula =
     And(Map(i -> Primitive(Set(), Set(), Set(t), Set(), Set(), Set())))
   
+  def notUpperBound(i: _InferenceVarType, t: Type): CFormula = 
+    And(Map(i -> Primitive(Set(), Set(), Set(), Set(t), Set(), Set())))
+  
   def lowerBound(i: _InferenceVarType, t: Type): CFormula =
     And(Map(i -> Primitive(Set(t), Set(), Set(), Set(), Set(), Set())))
+    
+  def notLowerBound(i: _InferenceVarType, t: Type): CFormula =
+    And(Map(i -> Primitive(Set(), Set(t), Set(), Set(), Set(), Set())))
     
   def exclusion(i: _InferenceVarType, t: Type): CFormula = 
     And(Map(i -> Primitive(Set(), Set(), Set(), Set(), Set(t), Set())))
   
+  def notExclusion(i: _InferenceVarType, t: Type): CFormula = 
+    And(Map(i -> Primitive(Set(), Set(), Set(), Set(), Set(), Set(t))))
+    
   def fromBoolean(x: Boolean) = if (x) True else False
-  
-  def mapAnd[T](x: Iterable[T])(f: T=>CFormula)(implicit ta: TypeAnalyzer): CFormula = 
-    x.map(f).foldLeft(True.asInstanceOf[CFormula])(and)
-  
-  def mapOr[T](x: Iterable[T])(f: T=>CFormula)(implicit ta: TypeAnalyzer): CFormula = 
-    x.map(f).foldLeft(False.asInstanceOf[CFormula])(or)
   
 }

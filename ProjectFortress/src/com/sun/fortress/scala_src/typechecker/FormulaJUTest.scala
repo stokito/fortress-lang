@@ -21,6 +21,7 @@ import _root_.junit.framework._
 import _root_.junit.framework.Assert._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory._
+import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful.TypeParser
@@ -29,6 +30,7 @@ class FormulaJUTest extends TestCase {
 
   def typeAnalyzer(str:String) = TypeParser.parse(TypeParser.typeAnalyzer, str).get
   def typ(str: String) = TypeParser.parse(TypeParser.typ, str).get
+  def nTyp(str: String) = TypeParser.parse(TypeParser.namedType, str).get
   
   def testAnd() = {
     implicit val analyzer = typeAnalyzer("{}")
@@ -210,6 +212,16 @@ class FormulaJUTest extends TestCase {
       assertTrue(solve(and(b1a, And(Map(ivar1 -> Primitive(Set(), Set(), Set(typec), Set(), Set(), Set()))))) == None)
       //Check that if the solution to a constraint is in bounds it succeeds
       assertTrue(solve(and(b1a, And(Map(ivar1 -> Primitive(Set(), Set(), Set(typea), Set(), Set(), Set()))))).getOrElse(id)(ivar1) == typeb)
+    }
+    {
+      val ivar1 = make_InferenceVarType(typeSpan)
+      val typea = nTyp("Zz")
+      val typeb = nTyp("T")
+      val typec = nTyp("Eq[T]")
+      val sp = SStaticParam(typeb.getInfo, typeb.getName, List(typec), None, false, SKindType(), false)
+      implicit val analyzer = typeAnalyzer("{trait Eq[T extends {Eq[T]}], trait Zz extends {Eq[Zz]}}").extend(List(sp), None)
+      val c = and(analyzer.equivalent(ivar1, typeb), analyzer.subtype(ivar1, typea))
+      assertTrue(solve(c) == None)
     }
   } 
 }

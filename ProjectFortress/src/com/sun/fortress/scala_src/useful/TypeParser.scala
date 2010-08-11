@@ -41,8 +41,9 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import scala.util.parsing.combinator._
 
 object TypeParser extends RegexParsers {
-  val TRAIT = """[A-Z]([a-zA-Z0-9]|_[a-zA-Z0-9])+"""r
+  val TRAIT = """[A-Z][a-zA-Z0-9]+"""r
   val VAR = """[A-Z]"""r
+  val IVAR = """$[a-z]"""r
 
   def typeSchema: Parser[Type] = opt(staticParams) ~ typ ^^
     {case ps~t => insertStaticParams(t, ps.getOrElse(Nil))}
@@ -63,7 +64,7 @@ object TypeParser extends RegexParsers {
   def arrowType: Parser[ArrowType] = nonArrowType ~ "->" ~ typ ^^
     {case dom~_~ran => makeArrowType(typeSpan,dom, ran)}
 
-  def nonArrowType: Parser[Type] = baseType | tupleType | intersectionType | unionType
+  def nonArrowType: Parser[Type] = baseType | tupleType | intersectionType | unionType | ivarType
 
   def tupleType: Parser[Type] = "(" ~> repsep(typ, ",") <~ ")" ^^
     {typs => makeMaybeTupleType(typeSpan, toJavaList(typs))}
@@ -87,6 +88,9 @@ object TypeParser extends RegexParsers {
   def varType: Parser[VarType] = regex(VAR) ^^
     {id => makeVarType(typeSpan, id)}
 
+  def ivarType: Parser[_InferenceVarType] = regex(IVAR) ^^
+    {id => make_InferenceVarType(typeSpan, false, id)}
+  
   def traitType: Parser[TraitType] = regex(TRAIT) ~ opt(staticArgs) ^^
     {case id~args => makeTraitType(typeSpan, id, toJavaList(args.getOrElse(Nil)))}
   def staticArgs: Parser[List[StaticArg]] = "[" ~> repsep(staticArg, ",") <~ "]"

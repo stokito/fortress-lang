@@ -1942,7 +1942,7 @@ public class NodeFactory {
                                Option.<Type>none(), false,
                                new KindType());
     }
-
+    
     public static StaticParam makeOpParam(Span s, String name) {
         return makeStaticParam(s, makeOp(s, name),
                                Collections.<BaseType>emptyList(),

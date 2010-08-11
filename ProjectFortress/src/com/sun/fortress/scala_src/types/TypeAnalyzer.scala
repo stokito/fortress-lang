@@ -43,6 +43,7 @@ import com.sun.fortress.useful.NI
 
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
   
+  type hType = (Boolean, Boolean, Type, Type)
   implicit val ta: TypeAnalyzer = this
   
   def top = ANY
@@ -55,64 +56,78 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
   def subtype(x: Type, y: Type): CFormula =
-    sub(normalize(x), normalize(y))
+    sub(normalize(x), normalize(y))(Set())
   
-  def notSubtype(x: Type, y: Type): CFormula = 
-    nsub(normalize(x), normalize(y))
+  protected def sub(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pSub(x, y)(false, history)
     
-  protected def sub(x: Type, y: Type): CFormula = (x, y) match {
-    case (s,t) if (s==t) => True
-    case (s: BottomType, _) => True
-    case (s, t: AnyType) => True
+  def notSubtype(x: Type, y: Type): CFormula = 
+    nsub(normalize(x), normalize(y))(Set())
+  
+  protected def nsub(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pSub(x, y)(true, history)
+    
+  protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+    case (s,t) if (s==t) => pTrue()
+    case (s: BottomType, _) => pTrue()
+    case (s, t: AnyType) => pTrue()
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
-      mapAnd(ts)(sub(s, _))
+      pAnd(ts.map(pSub(s, _)))
     case (SIntersectionType(_,ss), t) =>
-      or(anyExclude(ss), mapOr(ss)(sub(_, t)))
+      pOr(pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2))),
+          pOr(ss.map(pSub(_, t))))
     // Union types
     case (SUnionType(_,ss), t) =>
-     mapAnd(ss)(sub(_, t))
+      pAnd(ss.map(pSub(_, t)))
     case (s, SUnionType(_, ts)) =>
-      mapOr(ts)(sub(s, _))
+      pOr(ts.map(pSub(s, _)))
     // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
-      and(upperBound(s, t), lowerBound(t,s))
-    case (s: _InferenceVarType, t) => upperBound(s,t)
-    case (s, t: _InferenceVarType) => lowerBound(t,s)
+      pAnd(pUpperBound(s, t), pLowerBound(t,s))
+    case (s: _InferenceVarType, t) => pUpperBound(s,t)
+    case (s, t: _InferenceVarType) => pLowerBound(t,s)
     // Type variables
     case (s@SVarType(_, id, _), t) =>
-      val sParam = staticParam(id)
-      val supers = toListFromImmutable(sParam.getExtendsClause)
-      or(supers.map(sub(_, t)))
+      val hEntry = (negate, true, s, t)
+      if (history.contains(hEntry))
+        False
+      else {
+        val nHistory = history + hEntry
+        val sParam = staticParam(id)
+        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+        if (negate) pExc(supers, t)(!negate, nHistory) else pSub(supers, t)(negate, nHistory)
+      }
     // Trait types
-    case (s: TraitType, t: TraitType) if (t==OBJECT) => True
+    case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
-      and((a1, a2).zipped.map((a, b) => eqv(a, b)))
+      pAnd((a1, a2).zipped.map((a, b) => pEqv(a, b)))
     case (s:TraitType , t: TraitType) =>
       val par = parents(s)
-      or(par.map(sub(_, t)))
-    case (s: TraitSelfType, t) => sub(removeSelf(s), t)
-    case (t, STraitSelfType(_, named, _)) => sub(t,removeSelf(named))
-    case (s: ObjectExprType, t) => sub(removeSelf(s), t)
+      pOr(par.map(pSub(_, t)))
+    case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
+    case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
+    case (s: ObjectExprType, t) => pSub(removeSelf(s), t)
     // Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
-      and(and(sub(d2, d1), sub(r1, r2)), sub(e1, e2))
+      pAnd(pAnd(pSub(d2, d1), pSub(r1, r2)), pSub(e1, e2))
     // Tuple types
     // TODO: Handle keywords
     case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, Some(mv2), _)) =>
-      sub(s, disjunctFromTuple(t, e1.size))
+      pSub(s, disjunctFromTuple(t, e1.size))
     case (s@STupleType(_, e1, Some(v1), _), t@STupleType(_, e2, _, _)) =>
-      and(sub(disjunctFromTuple(s, e1.size), disjunctFromTuple(t, e1.size)),
-          sub(disjunctFromTuple(s, e2.size + 1), disjunctFromTuple(t, e2.size + 1)))
+      pAnd(pSub(disjunctFromTuple(s, e1.size), disjunctFromTuple(t, e1.size)),
+           pSub(disjunctFromTuple(s, e2.size + 1), disjunctFromTuple(t, e2.size + 1)))
     case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, None, _)) if e1.size == e2.size =>
-      or(mapOr(e1)(eqv(_, BOTTOM)), mapAnd((e1,e2).zipped.map((a, b) => sub(a, b)))(x => x))
+      pOr(pOr(e1.map(pEqv(_, BOTTOM))), pAnd((e1,e2).zipped.map((a, b) => pSub(a, b))))
     case (s@STupleType(_, e1, _, _), t) =>
-      mapOr(e1)(eqv(_, BOTTOM))
+      pOr(e1.map(pEqv(_, BOTTOM)))
     case (s, t:TupleType) => 
-      sub(s, disjunctFromTuple(t,1))
-    case _ => False
+      pSub(s, disjunctFromTuple(t,1))
+    case _ => pFalse()
   }
   
+  /* This is not yet hooked into pSub
   protected def sub(x: List[KeywordType], y: List[KeywordType]): CFormula = {
     def toPair(k: KeywordType) = (k.getName, k.getKeywordType)
     val xmap = Map(x.map(toPair):_*)
@@ -124,83 +139,101 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     }
     and(xmap.keys.map(compare))
   }
+ */
 
-  protected def sub(x: Effect, y: Effect): CFormula = {
+  protected def pSub(x: Effect, y: Effect)(implicit negate: Boolean, history: Set[hType]): CFormula = {
     val (SEffect(_, tc1, io1), SEffect(_, tc2, io2)) = (x,y)
-    if (!io1 || io2)
-      sub(makeUnionType(tc1.getOrElse(Nil)), makeUnionType(tc2.getOrElse(Nil)))
-    else
-      False
+    pAnd(pFromBoolean(!io1 || io2),
+         pSub(makeUnionType(tc1.getOrElse(Nil)), makeUnionType(tc2.getOrElse(Nil))))
   }
   
-  protected def nsub(s: Type, t: Type): CFormula = 
-    fromBoolean(isFalse(sub(s, t)))
+  def equivalent(x: Type, y: Type): CFormula = eqv(normalize(x), normalize(y))(Set())
   
-  def equivalent(x: Type, y: Type): CFormula = {
-    val s = normalize(x)
-    val t = normalize(y)
-    eqv(s,t)
-  }
+  protected def eqv(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pEqv(x, y)(false, history)
   
-  def notEquivalent(x: Type, y: Type): CFormula = {
-    fromBoolean(isFalse(equivalent(x, y)))
-  }
-
-  protected def eqv(x: Type, y:Type): CFormula  = {
-    and(sub(x, y), sub(y, x))
-  }
+  protected def pEqv(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]) = 
+    pAnd(pSub(x,y), pSub(y,x))
   
-  protected def eqv(x: StaticArg, y: StaticArg): CFormula = (x,y) match {
-    case (STypeArg(_, _, s), STypeArg(_, _, t)) => eqv(s, t)
+  def notEquivalent(x: Type, y: Type): CFormula = nEqv(normalize(x), normalize(y))(Set())
+  
+  protected def nEqv(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pEqv(x, y)(true, history)
+  
+  protected def pEqv(x: StaticArg, y: StaticArg)(implicit negate: Boolean, history: Set[hType]): CFormula = (x,y) match {
+    case (STypeArg(_, _, s), STypeArg(_, _, t)) => pEqv(s, t)
+    /* Not handling all static params yet
     case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
     case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
     case (SOpArg(_, _, a), SOpArg(_, _, b)) => fromBoolean(a==b)
     case (SDimArg(_, _, a), SDimArg(_, _, b)) => fromBoolean(a==b)
-    case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b)
-    case _ => False
+    case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b) */
+    case _ => pTrue()
   }
   
   def excludes(x: Type, y: Type): CFormula =
-    exc(normalize(removeSelf(x)), normalize(removeSelf(y)))
+    exc(normalize(removeSelf(x)), normalize(removeSelf(y)))(Set())
+    
+  protected def exc(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pExc(x,y)(false, history)
     
   def definitelyExcludes(x: Type, y: Type): Boolean =
-    dexc(normalize(removeSelf(x)), normalize(removeSelf(y)))
+    isTrue(excludes(x,y))
 
+  def dExc(x: Type, y: Type)(implicit history: Set[hType]): Boolean = isTrue(exc(x,y))
+
+  /*
+   * Given two types x and y this method computes the constraints
+   * under which x and y do not exclude on another. For example if
+   * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
+   * unless $i=$j. Note that this method only generates equality constraints.
+   */
+  def notExcludes(x: Type , y: Type): CFormula = nExc(normalize(x), normalize(y))(Set())
+    
+  protected def nExc(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
+    pExc(x,y)(true, history)
+  
   /** Determine if a collection of types all exclude each other. */
   def allExclude(ts: Iterable[Type]): CFormula =
-    mapOr(Pairs.distinctPairsFrom(ts))(tt => excludes(tt._1, tt._2))
+    and(Pairs.distinctPairsFrom(ts).map(tt => excludes(tt._1, tt._2)))
   
   def anyExclude(ts: Iterable[Type]):CFormula =
-    mapAnd(Pairs.distinctPairsFrom(ts))(tt => excludes(tt._1, tt._2))
+    or(Pairs.distinctPairsFrom(ts).map(tt => excludes(tt._1, tt._2)))
   
-  protected def exc(x: Type, y: Type): CFormula = (x, y) match {
-    case (s: BottomType, _) => True
-    case (_, t: BottomType) => True
-    case (s: AnyType, t) => sub(t, BOTTOM)
-    case (s, t: AnyType) => sub(s, BOTTOM)
+  protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+    case (s: BottomType, _) => pTrue()
+    case (_, t: BottomType) => pTrue()
+    case (s: AnyType, t) => pSub(t, BOTTOM)
+    case (s, t: AnyType) => pSub(s, BOTTOM)
     case (s@SVarType(_, id, _), t) =>
-      val sParam = staticParam(id)
-      val supers = toListFromImmutable(sParam.getExtendsClause)
-      mapOr(supers)(exc(_, t))
+      val hEntry = (negate, false, s, t)
+      if (history.contains(hEntry))
+        False
+      else {
+        val nHistory = history + hEntry
+        val sParam = staticParam(id)
+        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+        if (negate) pFalse()(!negate) else pExc(supers, t)(negate, nHistory)
+      }
     case (s, t:VarType) => exc(t, s)
     case (s: TraitType, t: TraitType) =>
       def checkEC(s: TraitType, t: TraitType): CFormula = {
-        def cEC(s: TraitType, t: TraitType) = mapOr(excludesClause(s))(sub(t, _))
-        or(cEC(s, t), cEC(t, s))
+        def cEC(s: TraitType, t: TraitType) = pOr(excludesClause(s).map(pSub(t, _)))
+        pOr(cEC(s, t), cEC(t, s))
       }
       def checkCC(s: TraitType, t: TraitType): CFormula = {
         def cCC(s: TraitType, t: TraitType): CFormula = {
           val scc = comprisesClause(s)
-          if(scc.isEmpty) False else mapAnd(scc)(exc(t,_))
+          pAnd(pFromBoolean(!scc.isEmpty), pAnd(scc.map(pExc(t,_))))
         }
-        or(cCC(s, t), cCC(t, s))
+        pOr(cCC(s, t), cCC(t, s))
       }
       def checkO(s: TraitType, t: TraitType): CFormula = {
         def cO(s: TraitType, t: TraitType): CFormula = typeCons(s.getName) match {
-          case _:ObjectTraitIndex => nsub(s, t)
-          case _ => False
+          case _:ObjectTraitIndex => pSub(s, t)(!negate, history)
+          case _ => pFalse()
         }
-        or(cO(s,t), cO(t,s))
+        pOr(cO(s,t), cO(t,s))
       }
       def checkP(s: TraitType, t: TraitType): CFormula = {
         val sas = ancestors(s) ++ Set(s)
@@ -208,49 +241,39 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         def cP(s: BaseType, t: BaseType): CFormula = (s, t) match {
           case (s@STraitType(_, n1, a1, _), t@STraitType(_, n2, a2, _)) if (n1 == n2) =>
             //Todo: Handle int, nat, bool args
-            mapOr((a1, a2).zipped.map{
-              case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => notEquivalent(t1, t2)
-              case _ => False
-            })(x => x)
-          case _ => False
+            pOr((a1, a2).zipped.map{
+              case (STypeArg(_, _, t1), STypeArg(_, _, t2)) => pEqv(t1, t2)(!negate, history)
+              case _ => pFalse()
+            })
+          case _ => pFalse()
         }
-        mapOr(for(sa <- sas; ta <- tas) yield (sa, ta))(tt => cP(tt._1, tt._2))
+        pOr(for(sa <- sas; ta <- tas) yield cP(sa, ta))
       }
-      mapOr(List(checkEC(s,t), checkCC(s,t), checkO(s,t), checkP(s,t)))(x => x)
+      pOr(List(checkEC(s,t), checkCC(s,t), checkO(s,t), checkP(s,t)))
     case (s@SIntersectionType(_, elts), t) =>
-      or(sub(s, BOTTOM), mapOr(elts)(exc(_, t)))
+      pOr(pSub(s, BOTTOM), pOr(elts.map(pExc(_, t))))
     case (s, t: IntersectionType) => exc(t, s)
     case (s@SUnionType(_, elts), t) =>
-      or(sub(s, BOTTOM), mapAnd(elts)(exc(_, t)))
+      pOr(pSub(s, BOTTOM), pAnd(elts.map(pExc(_, t))))
     case (s, t: UnionType) => exc(t, s)
-    case (s: ArrowType, t: ArrowType) => False
-    case (s: ArrowType, t) => True
-    case (s, t: ArrowType) => True
+    case (s: ArrowType, t: ArrowType) => pFalse()
+    case (s: ArrowType, t) => pTrue()
+    case (s, t: ArrowType) => pTrue()
     // ToDo: Handle keywords
     case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val excludes = mapOr((e1, e2).zipped.map((a, b) => exc(a, b)))(x => x)
+      val excludes = pOr((e1, e2).zipped.map((a, b) => pExc(a, b)))
       val different = (mv1, mv2) match {
         case (Some(v1), _) if (e1.size < e2.size) =>
-          mapOr(e2.drop(e1.size))(exc(_, v1))
+          pOr(e2.drop(e1.size).map(pExc(_, v1)))
         case (_, Some(v2)) if (e1.size > e2.size) =>
-          mapOr(e1.drop(e2.size))(exc(_, v2))
-        case _ if (e1.size!=e2.size) => True
-        case _ => False
+          pOr(e1.drop(e2.size).map(pExc(_, v2)))
+        case _ if (e1.size!=e2.size) => pTrue()
+        case _ => pFalse()
       }
-      or(different, excludes)
-    case (s: TupleType, _) => True
-    case (_, t: TupleType) => True
+      pOr(different, excludes)
+    case (s: TupleType, _) => pTrue()
+    case (_, t: TupleType) => pTrue()
   }
-  
-  def dexc(s: Type, t: Type) = isTrue(exc(s, t))
-  
-  /*
-   * Given two types x and y this method computes the constraints
-   * under which x and y do not exclude on another. For example if
-   * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
-   * unless $i=$j. Note that this method only generates equality constraints.
-   */
-  def notExcludes(x: Type , y: Type): CFormula = False 
   
   protected def removeSelf(x: Type) = {
     object remover extends Walker {
@@ -297,7 +320,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
   protected def normConjunct(x: Iterable[Type]): List[Type] = {
-    if(x.exists(y => x.exists(z => dexc(y, z))))
+    implicit val h = Set[hType]()
+    if(x.exists(y => x.exists(z => dExc(y, z))))
       List(BOTTOM)
     else {
       val ds = x.foldLeft(List[Type]())((l, a) => {
@@ -334,6 +358,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
   protected def normDisjunct(x: Iterable[Type]): List[Type] = {
+      implicit val h = Set[hType]()
       x.foldLeft(List[Type]())((l, a) => {
         val l2 = l.filter(x => !isTrue(sub(x,a)))
         l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
@@ -408,7 +433,27 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeAnalyzer(traits, env.extend(params, where))
-    
+  
+  
+  def pTrue()(implicit negate: Boolean) = 
+    if (negate) False else True
+  def pFalse()(implicit negate: Boolean) = 
+    if (negate) True else False
+  def pAnd(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer, negate: Boolean) = 
+    if (negate) or(c1, c2) else and(c1, c2)
+  def pAnd(cs: Iterable[CFormula])(implicit ta: TypeAnalyzer, negate: Boolean): CFormula = 
+    if (negate) or(cs) else and(cs)
+  def pOr(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer, negate: Boolean) = 
+    if (negate) and(c1, c2) else or(c1, c2)
+  def pOr(cs: Iterable[CFormula])(implicit ta: TypeAnalyzer, negate: Boolean) = 
+    if (negate) and(cs) else or(cs)
+  def pUpperBound(i: _InferenceVarType, t: Type)(implicit negate: Boolean) = 
+    if (negate) notUpperBound(i, t) else upperBound(i, t)
+  def pLowerBound(i: _InferenceVarType, t: Type)(implicit negate: Boolean) = 
+    if (negate) notLowerBound(i, t) else lowerBound(i, t)
+  def pExclusion(i: _InferenceVarType, t: Type)(implicit negate: Boolean) = 
+    if (negate) notExclusion(i, t) else exclusion(i, t)
+  def pFromBoolean(b: Boolean)(implicit negate: Boolean) = fromBoolean(negate != b)
 }
 
 object TypeAnalyzer {

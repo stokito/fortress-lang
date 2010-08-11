@@ -20,13 +20,16 @@ package com.sun.fortress.scala_src.types
 import _root_.junit.framework._
 import _root_.junit.framework.Assert._
 import com.sun.fortress.nodes._
+import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.TypeParser
+import com.sun.fortress.scala_src.typechecker.Formula._
 
 class TypeAnalyzerJUTest extends TestCase {
   
   def typeAnalyzer(str:String) = TypeParser.parse(TypeParser.typeAnalyzer, str).get
   def overloadingSet(str: String) = TypeParser.parse(TypeParser.overloadingSet, str).get
   def typ(str: String) = TypeParser.parse(TypeParser.typ, str).get
+  def nTyp(str: String) = TypeParser.parse(TypeParser.namedType, str).get
   
   def testNormalize() = {
     val ta = typeAnalyzer("{trait Tt comprises {Oo, Pp}, object Oo extends {Tt}, object Pp extends {Tt}}")
@@ -63,6 +66,18 @@ class TypeAnalyzerJUTest extends TestCase {
       object Gg extends {Ee}}""")
     
     //assertTrue(ta.minimalCovering(typ("&&{Aa, Ee}")) == typ("Dd"))
+  }
+  
+  def testSubtype() = {
+    {
+      val typea = nTyp("Zz")
+      val typeb = nTyp("T")
+      val typec = nTyp("Eq[T]")
+      val sp = SStaticParam(typeb.getInfo, typeb.getName, List(typec), None, false, SKindType(), false)
+      implicit val analyzer = typeAnalyzer("{trait Eq[T extends {Eq[T]}], trait Zz extends {Eq[Zz]}}").extend(List(sp), None)
+      assertTrue(isFalse(analyzer.subtype(typea, typeb)))
+      assertTrue(isFalse(analyzer.subtype(typeb, typea)))
+    }
   }
   
 }
