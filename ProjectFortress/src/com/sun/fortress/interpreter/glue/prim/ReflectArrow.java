@@ -22,7 +22,6 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class ReflectArrow extends Reflect {

@@ -7,7 +7,8 @@ api Reflect
 
 (** A reflected type object. **)
 trait Type extends StandardTotalOrder[\Type\]
-           comprises {ObjectOrTraitType, ArrowType, TupleType, BottomType}
+           comprises {GenericType, ObjectOrTraitType, ArrowType, TupleType,
+                      RestType, BottomType}
     getter asString(): String
 
     (** Two type objects are same if types represented by them are same;
@@ -36,22 +37,55 @@ trait Type extends StandardTotalOrder[\Type\]
     meet(self, other:Type): Generator[\Type\]
 end
 
+(** A type object which represents a generic type, which can be instantiated
+    (via `apply` method) to a concrete object or trait type. **)
+trait GenericType extends Type comprises {...}
+                  excludes {ObjectOrTraitType, ArrowType, TupleType, RestType, BottomType}
+    (** Returns a list of name of static parameters and their type restrictions.
+        For now, the second element of tuple gives types in extends clause of
+        each static parameters. **)
+    getter staticParams(): Generator[\(String,Generator[\Type\])\]
+
+    (** Instantiates a concrete type from given static arguments. **)
+    apply(args:Type...): Type
+end
+
 (** A type object which represents an object or a trait. **)
 trait ObjectOrTraitType extends Type comprises {ObjectType, TraitType}
-                        excludes {ArrowType, TupleType, BottomType}
+                        excludes {GenericType, ArrowType, TupleType, RestType, BottomType}
     (** Returns a set of types in %extends% clause. If it is not given,
         it defaults to %Object%. **)
-    getter typeExtends(): Generator[\Type\]
+    getter typeExtends(): Generator[\TraitType\]
 
     (** Returns a set of types in %excludes% clause and types that define
         the given type in their %excludes% clause. This is because the exclusion
         is symmetric. **)
-    getter typeExcludes(): Generator[\Type\]
+    getter typeExcludes(): Generator[\ObjectOrTraitType\]
 
     (** Returns a set of types in %comprises% clause. If the clauses is not
         known, the type is open to subtyping and returns %Nothing%.
         Note that it is an empty set (and not %Nothing%) for %ObjectType%s. **)
-    getter typeComprises(): Maybe[\Generator[\Type\]\]
+    getter typeComprises(): Maybe[\Generator[\ObjectOrTraitType\]\]
+
+    (** Returns a list of static arguments if any, or an empty list otherwise. **)
+    getter staticArgs(): Generator[\Type\]
+
+    (** Returns the generic type from which the type is instantiated if any,
+        or the type itself otherwise. **)
+    getter generic(): Type
+
+    (** Returns a list of every members declared in the object or trait.
+        It doesn't cover inherited members, but it may include constructor
+        arguments which are desugared into method-like forms.
+
+        More specifically, for every members it returns a name, a type (which
+        would be a function for methods and a non-function for variables), and
+        a function value which actually calls the method when it called with
+        an actual object and arguments.
+
+        Names are not unique (but name-type pairs *are* unique); there may be
+        no function value if the method doesn't have a body. **)
+    getter members(): Generator[\(String,Type,Maybe[\(Object,Any...)->Any\])\]
 end
 
 (** A type object which represents an object. **)
@@ -64,9 +98,13 @@ end
 
 (** A type object which represents an arrow type, i.e. A->B. **)
 trait ArrowType extends Type comprises {...}
-                excludes {ObjectOrTraitType, TupleType, BottomType}
-    (** Returns an arity of given arrow type. **)
+                excludes {GenericType, ObjectOrTraitType, TupleType, RestType, BottomType}
+    (** Returns an arity of given arrow type. If `isVararg` method returns
+        true, it represents a minimal arity instead. **)
     getter arity(): ZZ32
+
+    (** Returns true if an arrow type receives varadic arguments. **)
+    getter isVararg(): Boolean
 
     (** Returns a domain of given arrow type. It can be a tuple type. **)
     getter domain(): Type
@@ -78,14 +116,22 @@ end
 (** A type object which represents a tuple type, i.e. (A,B,C). It can be used
     as a generator for types contained in. **)
 trait TupleType extends {Type, ZeroIndexed[\Type\]} comprises {...}
-                excludes {ObjectOrTraitType, ArrowType, BottomType}
+                excludes {GenericType, ObjectOrTraitType, ArrowType, RestType, BottomType}
+end
+
+(** A type object which represents a rest type, which appears as the last
+    element of the domain of varadic-argument functions. **)
+trait RestType extends Type comprises {...}
+               excludes {GenericType, ObjectOrTraitType, ArrowType, TupleType, BottomType}
+    (** Returns the type of varadic arguments. **)
+    getter base(): Type
 end
 
 (** A type object which represents a bottom type, i.e. an uninhabited type
     that is a subtype of every other types. It commonly appears in the range of
     arrow types. **)
 trait BottomType extends Type comprises {...}
-                 excludes {ObjectOrTraitType, ArrowType, TupleType}
+                 excludes {GenericType, ObjectOrTraitType, ArrowType, TupleType, RestType}
 end
 
 anyType: Type

@@ -21,7 +21,6 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class ReflectObject extends Reflect {

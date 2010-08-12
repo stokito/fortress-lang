@@ -17,8 +17,10 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeFn0;
@@ -26,6 +28,16 @@ import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.ObjectConstructor;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnHeader;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.Binding;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.Modifiers;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
 
 import java.util.Collection;
@@ -37,10 +49,12 @@ import java.util.Set;
 public class Reflect extends NativeConstructor {
     ReflectedType it;
 
+    static GenericConstructor gcongeneric = null;
     static GenericConstructor gconobject = null;
     static GenericConstructor gcontrait = null;
     static GenericConstructor gconarrow = null;
     static GenericConstructor gcontuple = null;
+    static GenericConstructor gconrest = null;
     static GenericConstructor gconbottom = null;
 
     public Reflect(Environment env, FTypeObject selfType, ObjectConstructor def) {
@@ -50,10 +64,12 @@ public class Reflect extends NativeConstructor {
             synchronized (this) {
                 if (gconobject == null) {
                     Environment toplevel = env.getTopLevel();
+                    gcongeneric = (GenericConstructor) toplevel.getRootValue("ReflectGeneric");
                     gconobject = (GenericConstructor) toplevel.getRootValue("ReflectObject");
                     gcontrait = (GenericConstructor) toplevel.getRootValue("ReflectTrait");
                     gconarrow = (GenericConstructor) toplevel.getRootValue("ReflectArrow");
                     gcontuple = (GenericConstructor) toplevel.getRootValue("ReflectTuple");
+                    gconrest = (GenericConstructor) toplevel.getRootValue("ReflectRest");
                     gconbottom = (GenericConstructor) toplevel.getRootValue("ReflectBottom");
                 }
             }
@@ -75,8 +91,8 @@ public class Reflect extends NativeConstructor {
     }
 
     protected static class ReflectedType extends FNativeObject {
-        private NativeConstructor con;
-        private FType ty;
+        private final NativeConstructor con;
+        private final FType ty;
 
         private ReflectedType(NativeConstructor con, FType ty) {
             super(con);
@@ -104,7 +120,9 @@ public class Reflect extends NativeConstructor {
         }
 
         GenericConstructor gcon = null;
-        if (t instanceof FTypeObject) {
+        if (t instanceof FTypeGeneric) {
+            gcon = gcongeneric;
+        } else if (t instanceof FTypeObject) {
             gcon = gconobject;
         } else if (t instanceof FTypeTrait) {
             gcon = gcontrait;
@@ -112,6 +130,8 @@ public class Reflect extends NativeConstructor {
             gcon = gconarrow;
         } else if (t instanceof FTypeTuple) {
             gcon = gcontuple;
+        } else if (t instanceof FTypeRest) {
+            gcon = gconrest;
         } else if (t instanceof BottomType) {
             gcon = gconbottom;
         } else {
@@ -119,6 +139,14 @@ public class Reflect extends NativeConstructor {
         }
         Simple_fcn con = gcon.typeApply(Useful.list(t));
         return (ReflectedType) con.applyToArgs();
+    }
+
+    protected static final class ReflectAdapter implements ReflectCollection.CollectionAdapter<FType> {
+        public static final ReflectAdapter SINGLETON = new ReflectAdapter();
+
+        public FValue adapt(FType ty) {
+            return Reflect.make(ty);
+        }
     }
 
     protected static abstract class T2S extends NativeMeth0 {
@@ -142,9 +170,9 @@ public class Reflect extends NativeConstructor {
     protected static abstract class T2Tc extends NativeMeth0 {
         protected abstract Collection<FType> f(FType x);
 
-        public ReflectCollection.ReflectedTypeCollection applyMethod(FObject self) {
+        public ReflectCollection.CollectionObject<FType> applyMethod(FObject self) {
             FType x = ((ReflectedType) self).getTy();
-            return ReflectCollection.make(f(x));
+            return ReflectCollection.<FType>make(f(x), ReflectAdapter.SINGLETON);
         }
     }
 
@@ -161,10 +189,10 @@ public class Reflect extends NativeConstructor {
     protected static abstract class TT2Tc extends NativeMeth1 {
         protected abstract Collection<FType> f(FType x, FType y);
 
-        public ReflectCollection.ReflectedTypeCollection applyMethod(FObject self, FValue other) {
+        public ReflectCollection.CollectionObject<FType> applyMethod(FObject self, FValue other) {
             FType x = ((ReflectedType) self).getTy();
             FType y = ((ReflectedType) other).getTy();
-            return ReflectCollection.make(f(x, y));
+            return ReflectCollection.<FType>make(f(x, y), ReflectAdapter.SINGLETON);
         }
     }
 
@@ -259,6 +287,94 @@ public class Reflect extends NativeConstructor {
         }
     }
 
+    protected static final class DeclAdapter implements ReflectCollection.CollectionAdapter<Decl> {
+        private final FType ty;
+        private final Environment env;
+
+        public DeclAdapter(FType ty) {
+            this.ty = ty;
+            if (ty instanceof FTypeTrait) {
+                this.env = ((FTypeTrait) ty).getMethodExecutionEnv();
+            } else if (ty instanceof FTypeObject) {
+                this.env = ((FTypeObject) ty).getMethodExecutionEnv();
+            } else {
+                this.env = null;
+            }
+        }
+
+        public FValue adapt(Decl decl) {
+            if (decl instanceof FnDecl) {
+                FnDecl fndecl = (FnDecl) decl;
+                FnHeader header = fndecl.getHeader();
+
+                ReflectMethod.MethodWrapper method;
+                if (fndecl.getBody().isSome()) {
+                    MethodClosure closure;
+                    if (ty instanceof FTypeTrait) {
+                        closure = new TraitMethod(env, env, fndecl, ty);
+                    } else {
+                        closure = new MethodClosure(env, fndecl, ty);
+                    }
+                    closure.finishInitializing();
+                    method = ReflectMethod.make(ty, closure);
+                } else {
+                    method = ReflectMethod.NO_BODY;
+                }
+
+                FString mname = FString.make(((IdOrOp) header.getName()).getText());
+                //Modifiers mods = header.getMods();
+                Reflect.ReflectedType mtype = Reflect.make(
+                            EvalType.getFType(NodeUtil.genericArrowFromDecl(fndecl), env));
+                return FTuple.make(Useful.<FValue>list(mname, mtype, method));
+            } else if (decl instanceof VarDecl) {
+                VarDecl vardecl = (VarDecl) decl;
+                List<LValue> lhs = vardecl.getLhs();
+                if (lhs.size() != 1) {
+                    return bug("multiple lvalues (" + lhs.size() + ") in VarDecl node");
+                }
+                Binding lvalue = lhs.get(0);
+                if (lvalue.getIdType().isNone() || !(lvalue.getIdType().unwrap() instanceof Type)) {
+                    return bug("type information in VarDecl node is missing");
+                }
+
+                FString vname = FString.make(lvalue.getName().getText());
+                Reflect.ReflectedType vtype = Reflect.make(
+                            EvalType.getFType((Type) lvalue.getIdType().unwrap(), env));
+                return FTuple.make(Useful.<FValue>list(vname, vtype, ReflectMethod.NO_BODY));
+            } else {
+                return error("Not supported Decl node " + decl.getClass());
+            }
+        }
+    }
+
+    public static final class Members extends NativeMeth0 {
+        public final ReflectCollection.CollectionObject<Decl> applyMethod(FObject self0) {
+            FTraitOrObjectOrGeneric self = (FTraitOrObjectOrGeneric) ((ReflectedType) self0).getTy();
+            DeclAdapter adapter = new DeclAdapter(self);
+            return ReflectCollection.<Decl>make(self.getASTmembers(), adapter);
+        }
+    }
+
+    public static final class StaticArgs extends T2Tc {
+        public final List<FType> f(FType x) {
+            if (x instanceof GenericTypeInstance) {
+                return ((GenericTypeInstance) x).getTypeParams();
+            } else {
+                return Collections.<FType>emptyList();
+            }
+        }
+    }
+
+    public static final class Generic extends T2T {
+        public final FType f(FType x) {
+            if (x instanceof GenericTypeInstance) {
+                return ((GenericTypeInstance) x).getGeneric();
+            } else {
+                return x;
+            }
+        }
+    }
+
     public static final class ToString extends T2S {
         public final String f(FType ty) {
             return ty.toString();
@@ -268,7 +384,8 @@ public class Reflect extends NativeConstructor {
     @Override
     protected void unregister() {
         synchronized (this) {
-            gconobject = gcontrait = gconarrow = gcontuple = gconbottom = null;
+            gcongeneric = gconobject = gcontrait = gconarrow = gcontuple =
+                gconrest = gconbottom = null;
         }
     }
 }

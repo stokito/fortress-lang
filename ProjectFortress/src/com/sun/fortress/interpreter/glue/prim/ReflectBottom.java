@@ -22,12 +22,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.ObjectConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 public class ReflectBottom extends Reflect {
     public ReflectBottom(Environment env, FTypeObject selfType, ObjectConstructor def) {
