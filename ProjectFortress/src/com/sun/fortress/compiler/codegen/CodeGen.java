@@ -3706,6 +3706,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // assumption -- Schema had better be here.
                 Type overloading_schema = x.getOverloadingSchema().unwrap();
                 
+                TraitType rt_tt = ((TraitType)receiverType);
+                List<StaticArg> rt_args = rt_tt.getArgs();
+                if (rt_args.size() > 0) {
+                    /* 
+                     * Must check overloading schema for enclosing trait args.
+                     */
+                    Map<Id, TypeConsIndex> citc = ci.typeConses();
+                    TypeConsIndex tci = citc.get(rt_tt.getName());
+                    TraitObjectDecl tod = (TraitObjectDecl) tci.ast();
+                    List<StaticParam> rt_params = tod.getHeader().getStaticParams();
+                    StaticTypeReplacer str = new StaticTypeReplacer(rt_params, rt_args);
+                    overloading_schema = str.replaceIn(overloading_schema);
+                }
+                
                 String methodName = genericMethodName(method, (ArrowType) overloading_schema);
                 
                 // Evaluate the object
