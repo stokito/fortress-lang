@@ -197,6 +197,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         resolve = true;
                     } else if (stem.equals("AbstractArrow")) {
                         classData = instantiateAbstractArrow(dename, parameters);
+                    } else if (stem.equals("Tuple")) {
+                        classData = instantiateTuple(dename, parameters);
                     } else {
                         try {
                         ArrayList<String> sargs = new ArrayList<String>();
@@ -721,6 +723,45 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
     }
 
+    private static byte[] instantiateTuple(String dename, ArrayList<String> parameters) {
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+
+        // String name = Naming.mangleIdentifier(dename);
+        String name = (dename);
+        String if_name =
+        (dename.substring("Abstract".length()));
+
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
+                 "java/lang/Object", null);
+
+        String sig = tupleParamsToJvmInitSig(parameters);
+
+        {
+            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+            mv.visitInsn(RETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
+
+
+        {
+            if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
+            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+                                sig,
+                                null, null);
+            mv.visitEnd();
+        }
+        cw.visitEnd();
+
+        return cw.toByteArray();
+    }
+
     /**
      * @param parameters
      * @return
@@ -733,6 +774,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         StringBuilder buf = new StringBuilder();
         buf.append(sig);
         for (int i = 0; i < l-1; i++) {
+            String s = parameters.get(i);
+            if (! s.equals(Naming.INTERNAL_SNOWMAN))
+                buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
+        }
+        sig = buf.toString();
+        sig += ")";
+        // nothing special here, yet, but AbstractArrow will be different.
+        String rt = parameters.get(l-1);
+        sig += Naming.javaDescForTaggedFortressType(rt);
+        return sig;
+    }
+
+    /**
+     * @param parameters
+     * @return
+     */
+    private static String tupleParamsToJvmInitSig(ArrayList<String> parameters) {
+        String sig = "(";
+
+        int l = parameters.size();
+
+        StringBuilder buf = new StringBuilder();
+        buf.append(sig);
+        for (int i = 0; i < l; i++) {
             String s = parameters.get(i);
             if (! s.equals(Naming.INTERNAL_SNOWMAN))
                 buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
