@@ -21,16 +21,22 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
+import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.nodes.ObjectConstructor;
 
-public class ReflectTrait extends Reflect {
-    public ReflectTrait(Environment env, FTypeObject selfType, ObjectConstructor def) {
+public class ReflectRest extends Reflect {
+    public ReflectRest(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
     }
 
     @Override
     protected void checkType(FType ty) {
-        if (!(ty instanceof FTypeTrait)) error(ty + " is not a trait type.");
+        if (!(ty instanceof FTypeRest)) error(ty + " is not a rest type.");
+    }
+
+    public static final class Base extends T2T {
+        public final FType f(FType x) {
+            return ((FTypeRest) x).getType();
+        }
     }
 }

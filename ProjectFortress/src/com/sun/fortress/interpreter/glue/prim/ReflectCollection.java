@@ -40,30 +40,42 @@ public class ReflectCollection extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        ReflectedTypeCollection.setConstructor(this);
-        return new ReflectedTypeCollection(Collections.<FType>emptyList());
+        CollectionObject.setConstructor(this);
+        return new CollectionObject(Collections.<FValue>emptyList(), new CollectionAdapter<FValue>() {
+            public FValue adapt(FValue obj) { return obj; }
+        });
     }
 
-    protected static class ReflectedTypeCollection extends FNativeObject {
-        private static volatile NativeConstructor con;
-        private final Collection<FType> types;
+    public static interface CollectionAdapter<T> {
+        public abstract FValue adapt(T obj);
+    }
 
-        private ReflectedTypeCollection(Collection<FType> types) {
+    public static class CollectionObject<T> extends FNativeObject {
+        private static volatile NativeConstructor con;
+        private final Collection<T> collection;
+        private final CollectionAdapter<T> adapter;
+
+        private CollectionObject(Collection<T> collection, CollectionAdapter<T> adapter) {
             super(null);
-            this.types = types;
+            this.collection = collection;
+            this.adapter = adapter;
         }
 
         public NativeConstructor getConstructor() {
             return con;
         }
 
-        Collection<FType> getTypes() {
-            return types;
+        public Collection<T> getCollection() {
+            return collection;
+        }
+
+        public FValue adapt(T obj) {
+            return adapter.adapt(obj);
         }
 
         public boolean seqv(FValue other) {
-            if (!(other instanceof ReflectedTypeCollection)) return false;
-            return getTypes().equals(((ReflectedTypeCollection) other).getTypes());
+            if (!(other instanceof CollectionObject)) return false;
+            return getCollection().equals(((CollectionObject) other).getCollection());
         }
 
         public static void setConstructor(NativeConstructor con) {
@@ -71,38 +83,39 @@ public class ReflectCollection extends NativeConstructor {
             // each new test, so it's not OK to ignore setConstructor
             // attempts after the first one.
             if (con == null) return;
-            ReflectedTypeCollection.con = con;
+            CollectionObject.con = con;
         }
 
         public static void resetConstructor() {
-            ReflectedTypeCollection.con = null;
+            CollectionObject.con = null;
         }
     }
 
-    public static final ReflectedTypeCollection make(Collection<FType> types) {
-        return new ReflectedTypeCollection(types);
+    public static final <T> CollectionObject<T> make(Collection<T> collection, CollectionAdapter<T> adapter) {
+        return new CollectionObject<T>(collection, adapter);
     }
 
     public static final class Size extends NativeMeth0 {
         public final FInt applyMethod(FObject self) {
-            Collection<FType> types = ((ReflectedTypeCollection) self).getTypes();
-            return FInt.make(types.size());
+            Collection<Object> collection = ((CollectionObject<Object>) self).getCollection();
+            return FInt.make(collection.size());
         }
     }
 
     public static final class Get extends NativeMeth1 {
-        public final FValue applyMethod(FObject self, FValue i0) {
-            Collection<FType> types = ((ReflectedTypeCollection) self).getTypes();
-            if (!(types instanceof List)) {
+        public final FValue applyMethod(FObject self0, FValue i0) {
+            CollectionObject<Object> self = (CollectionObject<Object>) self0;
+            Collection<Object> collection = self.getCollection();
+            if (!(collection instanceof List)) {
                 return error(errorMsg("This collection doesn't support a direct indexing."));
             }
 
             int i = ((FInt) i0).getInt();
             try {
-                return Reflect.make(((List<FType>) types).get(i));
+                return self.adapt(((List<Object>) collection).get(i));
             }
             catch (IndexOutOfBoundsException e) {
-                return error(errorMsg("Tuple element index ", i, " out of bounds, length=", types.size()), e);
+                return error(errorMsg("Collection element index ", i, " out of bounds, length=", collection.size()), e);
             }
         }
     }
@@ -112,17 +125,18 @@ public class ReflectCollection extends NativeConstructor {
             return 3;
         }
 
-        public final FValue applyMethod(FObject self, List<FValue> args) {
-            Collection<FType> types = ((ReflectedTypeCollection) self).getTypes();
-            if (types.isEmpty()) {
+        public final FValue applyMethod(FObject self0, List<FValue> args) {
+            CollectionObject<Object> self = (CollectionObject<Object>) self0;
+            Collection<Object> collection = self.getCollection();
+            if (collection.isEmpty()) {
                 Fcn empty = (Fcn) args.get(0);
                 return empty.applyToArgs();
             } else {
                 Fcn join = (Fcn) args.get(1), body = (Fcn) args.get(2);
-                Iterator<FType> it = types.iterator();
-                FValue reduced = body.applyToArgs(Reflect.make(it.next()));
+                Iterator<Object> it = collection.iterator();
+                FValue reduced = body.applyToArgs(self.adapt(it.next()));
                 while (it.hasNext()) {
-                    FValue current = body.applyToArgs(Reflect.make(it.next()));
+                    FValue current = body.applyToArgs(self.adapt(it.next()));
                     reduced = join.applyToArgs(reduced, current);
                 }
                 return reduced;
@@ -132,6 +146,6 @@ public class ReflectCollection extends NativeConstructor {
 
     @Override
     protected void unregister() {
-        ReflectedTypeCollection.resetConstructor();
+        CollectionObject.resetConstructor();
     }
 }
