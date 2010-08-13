@@ -223,5 +223,15 @@ class FormulaJUTest extends TestCase {
       val c = and(analyzer.equivalent(ivar1, typeb), analyzer.subtype(ivar1, typea))
       assertTrue(solve(c) == None)
     }
+    {
+      val typea = typ("i")
+      val typeb = typ("j")
+      implicit val analyzer = typeAnalyzer("{}")
+      val c = analyzer.equivalent(typea, typeb)
+      val sc = solve(c)
+      assertTrue(!sc.isEmpty)
+      val s = sc.get
+      assertTrue(s(typea) == s(typeb))
+    }
   } 
 }

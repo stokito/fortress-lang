@@ -422,7 +422,7 @@ object Formula{
       val subs = ivars.filter{_.size > 1}.map{x => Substitution(Map(x.tail.map((x.head, _)).toSeq:_*))}
       // If there were any inference variables to be unified, then recurse
       if(!subs.isEmpty) {
-        val sub = subs.tail.foldRight((x: Type) => x)((a, b) => a compose b)
+        val sub = subs.tail.foldRight(subs.head.asInstanceOf[Type => Type])((a, b) => a compose b)
         return un(map(e, sub)).map(_ compose sub)
       }
       /* Gets all equivalence classes with more than two non inference variables and computes the 

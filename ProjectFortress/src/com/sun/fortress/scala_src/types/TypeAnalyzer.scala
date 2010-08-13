@@ -201,10 +201,20 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     or(Pairs.distinctPairsFrom(ts).map(tt => excludes(tt._1, tt._2)))
   
   protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+    case (s, t) if (s==t) => pFalse()
     case (s: BottomType, _) => pTrue()
     case (_, t: BottomType) => pTrue()
     case (s: AnyType, t) => pSub(t, BOTTOM)
     case (s, t: AnyType) => pSub(s, BOTTOM)
+    case (s@SIntersectionType(_, elts), t) =>
+      pOr(pSub(s, BOTTOM), pOr(elts.map(pExc(_, t))))
+    case (s, t: IntersectionType) => exc(t, s)
+    case (s@SUnionType(_, elts), t) =>
+      pOr(pSub(s, BOTTOM), pAnd(elts.map(pExc(_, t))))
+    case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j, i))
+    case (i: _InferenceVarType, t) => pExclusion(i, t)
+    case (s, j: _InferenceVarType) => pExc(j, s)
+    case (s, t: UnionType) => exc(t, s)
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, false, s, t)
       if (history.contains(hEntry))
@@ -250,12 +260,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         pOr(for(sa <- sas; ta <- tas) yield cP(sa, ta))
       }
       pOr(List(checkEC(s,t), checkCC(s,t), checkO(s,t), checkP(s,t)))
-    case (s@SIntersectionType(_, elts), t) =>
-      pOr(pSub(s, BOTTOM), pOr(elts.map(pExc(_, t))))
-    case (s, t: IntersectionType) => exc(t, s)
-    case (s@SUnionType(_, elts), t) =>
-      pOr(pSub(s, BOTTOM), pAnd(elts.map(pExc(_, t))))
-    case (s, t: UnionType) => exc(t, s)
     case (s: ArrowType, t: ArrowType) => pFalse()
     case (s: ArrowType, t) => pTrue()
     case (s, t: ArrowType) => pTrue()

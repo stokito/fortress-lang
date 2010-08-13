@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
@@ -167,6 +168,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * Used to answer subtype questions.
      */
     final TypeAnalyzer ta;
+    final OverloadingOracle oa;
+
     /**
      * All the indices that have been tested already.
      * Dispatch begins at the "most profitable" index, which
@@ -198,12 +201,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     OverloadSet[] children;
     boolean splitDone;
 
-    protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+    protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa,
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.ifNone = ifNone;
         this.name = name;
         this.ta = ta;
+        this.oa = oa;
         this.lessSpecificThanSoFar = lessSpecificThanSoFar;
         this.testedIndices = testedIndices;
         this.parent = parent;
@@ -211,16 +215,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         this.paramCount = paramCount;
     }
 
-    protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+    protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa,
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           int paramCount, APIName ifNone) {
-        this(ifNone, name, ta, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
+        this(ifNone, name, ta, oa, lessSpecificThanSoFar, new BASet<Integer>(DefaultComparator.<Integer>normal()),
                 null, null, paramCount);
     }
 
-    protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
+    protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa, Set<Function> defs, int n) {
 
-        this(name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
+        this(name, ta, oa, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
 
             @Override
             public TaggedFunctionName apply(Function f) {
@@ -565,22 +569,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (msf_parameters.size() != cand_parameters.size()) {
             InterpreterBug.bug("Diff length parameter lists, should not be possible");
         }
-        boolean cand_better = true;
-        for (int i = 0; i < msf_parameters.size(); i++) {
-            // Not handling varargs yet!
-            TypeOrPattern msf_t = msf_parameters.get(i).getIdType().unwrap();
-            TypeOrPattern cand_t = cand_parameters.get(i).getIdType().unwrap();
-            if (! (msf_t instanceof Type && cand_t instanceof Type))
-                bug("Types are expected.");
-            // if any type of the candidate is not a subtype(or eq)
-            // of the corresponding type of the msf, then the candidate
-            // is NOT better.
-            if (!tweakedSubtypeTest(ta, (Type)cand_t, (Type)msf_t)) {
-                cand_better = false;
-                break;
-            }
-        }
-        return cand_better;
+                
+        return oa.lteq(g.tagF, f.tagF);
     }
 
     @Override
@@ -1169,18 +1159,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         /* Boilerplate follows, because this is a subtype. */
 
-        protected AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta,
+        protected AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa, 
                             Set<TaggedFunctionName> lessSpecificThanSoFar,
                             BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
-            super(ifNone, name, ta, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
+            super(ifNone, name, ta, oa, lessSpecificThanSoFar, testedIndices, parent, selectedParameterType, paramCount);
         }
 
         public AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
-            super(name, ta, defs, n, ifNone);
+            super(name, ta, new OverloadingOracle(ta), defs, n, ifNone);
         }
 
         protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
-            return new AmongApis(ifNone, name, ta, childLSTSF,
+            return new AmongApis(ifNone, name, ta, oa, childLSTSF,
                     childTestedIndices, this, t, paramCount);
         }
 
