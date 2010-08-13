@@ -32,7 +32,7 @@ import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil._
 import com.sun.fortress.scala_src.useful.ErrorLog
-import com.sun.fortress.scala_src.useful.Lists._
+import com.sun.fortress.scala_src.useful.Lists.toJavaList
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -60,8 +60,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   
   // Subtyping on universal arrows
   def subtypeUA(s: ArrowType, t: ArrowType): Boolean =
-    subUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType],
-          alphaRenameTypeSchema(t).asInstanceOf[ArrowType])
+    subUA(normalizeUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType]),
+          normalizeUA(alphaRenameTypeSchema(t).asInstanceOf[ArrowType]))
   
   // Subtyping on universal arrows with distinct parameters  
   protected def subUA(s: ArrowType, t: ArrowType): Boolean = (s, t) match {
@@ -87,7 +87,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
 
   // Subtyping for existential domains
   def subtypeED(s: Type, t: Type) = 
-    subED(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+    subED(normalizeED(alphaRenameTypeSchema(s)), normalizeED(alphaRenameTypeSchema(t)))
   
   private def subED(s: Type, t: Type): Boolean = (s,t) match {
     // t has static parameters
@@ -134,9 +134,17 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
   
   // Normalizes existential domains using exclusion as in the paper
-  def normalizeED(x: Type): Type = x
+  def normalizeED(e: Type): Type = {
+    reduceED(e).getOrElse(return e)._1
+  }
+  
   // Normalizes universal arrows using exclusion as in the paper
-  def normalizeUA(x: ArrowType): Type = x
+  def normalizeUA(u: ArrowType): ArrowType = {
+    val e = makeDomainFromArrow(u)
+    val (ne, s) = reduceED(e).getOrElse(return u)
+    val sp = getStaticParams(ne)
+    insertStaticParams(ta.extend(sp, None).normalize(s(clearStaticParams(u))), sp).asInstanceOf[ArrowType]
+  }
   
   // The meet of two existential types
   def meetED(x: Type, y: Type): Type = {
@@ -147,18 +155,17 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     assert((xp intersect yp).isEmpty)
     
     // Create the ugly meet.
-    val meet = insertStaticParams(ta.meet(clearStaticParams(ax),
-                                          clearStaticParams(ay)),
+    val meet = insertStaticParams(makeIntersectionType(Set(clearStaticParams(ax), clearStaticParams(ay))),
                                   xp ++ yp)
     
     // Try to reduce this existential type.
-    reduceExistential(meet).getOrElse(meet)
+    normalizeED(meet)
   }
   // The special arrow that we use when checking the return type rule
   def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
     case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
           SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
-       SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.mergeEffect(e1,e2), i1 && i2, None)
+       normalizeUA(SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.mergeEffect(e1,e2), i1 && i2, None))
   }
   
   /**
@@ -251,34 +258,40 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
    * more details, see Section 5.3 of our paper and the "Existential
    * reduction" definition.
    */
-  def reduceExistential(exType: Type): Option[Type] = {
-    assert(ta.env.isEmpty, "reduction must be done in an empty kind env")
-    
-    // Get the constituent type.
-    val exTypeT = clearStaticParams(exType)
-    
-    // Create a type analyzer from exType's static parameters.
-    val exTypeSparams = getStaticParams(exType)
-    val exTypeEnvTa = ta.extend(exTypeSparams, None)
-    
-    // Is T equivalent to Bottom?
-    if (isTrue(exTypeEnvTa.equivalent(exTypeT, BOTTOM)))
-      return Some(BOTTOM)
-    
-    // Under what constraints is T not equivalent to Bottom?
-    // TODO: hook in the right not-equivalent method
-    // val notBottomC = exTypeEnvTa.notEquivalent(exTypeT, BOTTOM)
-    val notBottomC = com.sun.fortress.scala_src.typechecker.False
-    
-    // Solve these constraints to get a substitution.
-    val notBottomPhi = solve(notBottomC)(exTypeEnvTa).getOrElse{return None}
-    
-    // Map exTypeSparams into a new, possibly simplified environment.
-    val newSparams = boundsSubstitution(notBottomPhi, exTypeSparams)
-                       .getOrElse{return None}
-    
-    // Make a new existential type.
-    Some(insertStaticParams(notBottomPhi(exTypeT), newSparams))
+  private def reduceED(ed: Type): Option[(Type, Type => Type)] = {
+    // Insert inference variables for type parameters
+    val spd = getStaticParams(ed)
+    val e = insertStaticParams(ta.extend(spd, None).normalize(clearStaticParams(ed)), spd)
+    val sp = getStaticParams(e)
+    val ia = sp.map(s => NF.make_InferenceVarType(NU.getSpan(s)))
+    val temp = (ia, sp).zip.flatMap{
+      case (i, SStaticParam(info, n, _, _, _, _, _)) =>
+        Some((i, NF.makeVarType(info.getSpan, n.asInstanceOf[Id])))
+      case _ => None
+    }
+    val iv = liftTypeSubstitution(Map(temp.toSeq:_*))
+    val vi = liftTypeSubstitution(Map(temp.map(x =>(x._2, x._1)).toSeq:_*))
+    val ie = vi(clearStaticParams(e))
+    // Check under what conditions ie is (possibly) not equivalent to Bottom
+    // Note that the notEquivalent method in ta is neccessarily not equivalent and is not the same
+    // Add bounds (even if we can't use them very well yet)
+    val ub = and((ia, sp).zip.flatMap{
+      case (i, SStaticParam(_, _, p, _, _, _:KindType, _)) =>
+        Some(upperBound(i, ta.meet(p.map(vi))))
+      case _ => None
+    })
+    val c = and(negate(ta.equivalent(ie, BOTTOM)), ub)
+    val (nc, s) = unify(c).getOrElse(return None)
+    val nub = map(ub, s)
+    if(implies(nub, nc)){
+      // Need conjugate s by the map that sends static args to inference variables
+      val sub = iv compose s compose vi
+      val nsp = boundsSubstitution(sub, sp).getOrElse{return None}
+      // Make a new existential type.
+      Some((insertStaticParams(ta.extend(nsp, None).normalize(sub(clearStaticParams(e))), nsp), sub))
+    }
+    else
+      None
   }
   
   /**
@@ -315,12 +328,18 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     
     // Create a type analyzer with only the image variables and their bounds.
     val imageTa = ta.extend(imageSparams, None)
-    
+    val rimageSparams = imageSparams.map{
+      case SStaticParam(i, x, e, d, a, k:KindType, l) =>
+        SStaticParam(i, x, conjuncts(imageTa.meet(e)).
+                             toList.map(_.asInstanceOf[BaseType]), d, a, k, l)
+      case x => x
+    }
+    val rimageTa = ta.extend(rimageSparams, None)
     // Verify that the image environment can prove that each variable's image
     // is a subtype of all its bounds' images.
     if (varsMap.forall { case (x, xbds) =>
-      imageTa.lteq(phi(x), phi(imageTa.meet(xbds)))
-    }) Some(imageSparams) // Success -- return the image's static params.
+      rimageTa.lteq(phi(x), phi(imageTa.meet(xbds)))
+    }) Some(rimageSparams) // Success -- return the image's static params.
     else None             // Failure
   }
 }

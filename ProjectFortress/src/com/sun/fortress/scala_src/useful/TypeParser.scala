@@ -43,7 +43,7 @@ import scala.util.parsing.combinator._
 object TypeParser extends RegexParsers {
   val TRAIT = """[A-Z][a-zA-Z0-9]+"""r
   val VAR = """[A-Z]"""r
-  val IVAR = """$[a-z]"""r
+  val IVAR = """[a-z]"""r
 
   def typeSchema: Parser[Type] = opt(staticParams) ~ typ ^^
     {case ps~t => insertStaticParams(t, ps.getOrElse(Nil))}

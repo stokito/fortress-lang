@@ -46,26 +46,24 @@ class TypeAnalyzerJUTest extends TestCase {
   }
   
   def testExcludes() = {
-    val ta = typeAnalyzer("""{
-      trait Tt excludes {Ss},
-      trait Ss,
-      trait Uu extends {Tt},
-      trait Vv extends {Uu, Ss}}""")
-    assertTrue(ta.definitelyExcludes(typ("Vv"), typ("Uu")))
-    assertTrue(ta.definitelyExcludes(typ("Vv"), typ("Ss")))
-  }
-  
-  def testCovering() = {
-    val ta = typeAnalyzer("""{
-      trait Aa comprises {Bb, Cc},
-      trait Bb extends {Aa} comprises {Dd},
-      object Cc extends {Aa},
-      object Dd extends {Bb, Ff},
-      trait Ee comprises {Ff, Gg},
-      trait Ff extends {Ee},
-      object Gg extends {Ee}}""")
-    
-    //assertTrue(ta.minimalCovering(typ("&&{Aa, Ee}")) == typ("Dd"))
+    {
+      val ta = typeAnalyzer("""{
+        trait Tt excludes {Ss},
+        trait Ss,
+        trait Uu extends {Tt},
+        trait Vv extends {Uu, Ss}}""")
+      assertTrue(ta.definitelyExcludes(typ("Vv"), typ("Uu")))
+      assertTrue(ta.definitelyExcludes(typ("Vv"), typ("Ss")))
+    }
+    {
+      val typea = typ("List[i]")
+      val typeb = typ("List[j]")
+      val typec = typ("i")
+      val typed = typ("j")
+      implicit val analyzer = typeAnalyzer("{trait List[T], trait ArrayList[T] extends {List[T]}}")
+      val c = negate(analyzer.excludes(typea, typeb))
+      assertTrue(c == analyzer.equivalent(typec, typed))
+    }
   }
   
   def testSubtype() = {

@@ -142,8 +142,8 @@ object STypesUtil {
     }
     Some(NF.makeArrowType(NF.typeSpan,
                           false,
-                          insertStaticParams(argType, sparams),
-                          insertStaticParams(returnType, sparams),
+                          argType,
+                          returnType,
                           effect,
                           sparamsJava,
                           where,
@@ -362,14 +362,16 @@ object STypesUtil {
    * ToDo: Handle where clauses
    */
   def insertStaticParams(typ: Type, sparams: List[StaticParam]): Type = {
-
-    // A walker that adds static params to TypeInfos.
+    var inserted = false
+    // A walker that adds static params to the outermost type info
     object paramWalker extends Walker {
       override def walk(node: Any): Any = node match {
-        case STypeInfo(a, b, Nil, c) => STypeInfo(a, b, sparams, c)
+        case STypeInfo(a, b, Nil, c) => 
+          inserted = true
+          STypeInfo(a, b, sparams, c)
         case STypeInfo(_, _, _, _) =>
           bug("cannot overwrite static parameters")
-        case _ => super.walk(node)
+        case _ => if (!inserted) super.walk(node) else node
       }
     }
     paramWalker(typ).asInstanceOf[Type]
