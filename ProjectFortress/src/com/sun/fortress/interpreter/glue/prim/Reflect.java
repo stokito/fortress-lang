@@ -36,6 +36,9 @@ import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Binding;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
@@ -53,6 +56,7 @@ public class Reflect extends NativeConstructor {
     static GenericConstructor gconobject = null;
     static GenericConstructor gcontrait = null;
     static GenericConstructor gconarrow = null;
+    static GenericConstructor gcongenarrow = null;
     static GenericConstructor gcontuple = null;
     static GenericConstructor gconrest = null;
     static GenericConstructor gconbottom = null;
@@ -68,6 +72,7 @@ public class Reflect extends NativeConstructor {
                     gconobject = (GenericConstructor) toplevel.getRootValue("ReflectObject");
                     gcontrait = (GenericConstructor) toplevel.getRootValue("ReflectTrait");
                     gconarrow = (GenericConstructor) toplevel.getRootValue("ReflectArrow");
+                    gcongenarrow = (GenericConstructor) toplevel.getRootValue("ReflectGenericArrow");
                     gcontuple = (GenericConstructor) toplevel.getRootValue("ReflectTuple");
                     gconrest = (GenericConstructor) toplevel.getRootValue("ReflectRest");
                     gconbottom = (GenericConstructor) toplevel.getRootValue("ReflectBottom");
@@ -128,6 +133,8 @@ public class Reflect extends NativeConstructor {
             gcon = gcontrait;
         } else if (t instanceof FTypeArrow) {
             gcon = gconarrow;
+        } else if (t instanceof ReflectGenericArrow.GenericArrowType) {
+            gcon = gcongenarrow;
         } else if (t instanceof FTypeTuple) {
             gcon = gcontuple;
         } else if (t instanceof FTypeRest) {
@@ -306,25 +313,37 @@ public class Reflect extends NativeConstructor {
             if (decl instanceof FnDecl) {
                 FnDecl fndecl = (FnDecl) decl;
                 FnHeader header = fndecl.getHeader();
+                ArrowType asttype = NodeUtil.genericArrowFromDecl(fndecl);
 
                 ReflectMethod.MethodWrapper method;
-                if (fndecl.getBody().isSome()) {
-                    MethodClosure closure;
-                    if (ty instanceof FTypeTrait) {
-                        closure = new TraitMethod(env, env, fndecl, ty);
+                Reflect.ReflectedType mtype;
+                List<StaticParam> params = header.getStaticParams();
+                if (params.isEmpty()) {
+                    if (fndecl.getBody().isSome()) {
+                        MethodClosure closure;
+                        if (ty instanceof FTypeTrait) {
+                            closure = new TraitMethod(env, env, fndecl, ty);
+                        } else {
+                            closure = new MethodClosure(env, fndecl, ty);
+                        }
+                        closure.finishInitializing();
+                        method = ReflectMethod.make(ty, closure);
                     } else {
-                        closure = new MethodClosure(env, fndecl, ty);
+                        method = ReflectMethod.NO_BODY;
                     }
-                    closure.finishInitializing();
-                    method = ReflectMethod.make(ty, closure);
+                    mtype = Reflect.make(EvalType.getFType(asttype, env));
                 } else {
-                    method = ReflectMethod.NO_BODY;
+                    GenericMethod closure = new GenericMethod(env, env, fndecl, ty, ty instanceof FTypeTrait);
+                    //closure.finishInitializing(); should be done later
+                    method = ReflectMethod.make(ty, closure);
+                    // rationale: we cannot evaluate generic function type directly as it would need
+                    // static arguments. instead we wrap AST type into the temporary FType instance
+                    // and unwrap when the method is called with relevant static arguments.
+                    mtype = Reflect.make(new ReflectGenericArrow.GenericArrowType(asttype, params, env));
                 }
 
                 FString mname = FString.make(((IdOrOp) header.getName()).getText());
                 //Modifiers mods = header.getMods();
-                Reflect.ReflectedType mtype = Reflect.make(
-                            EvalType.getFType(NodeUtil.genericArrowFromDecl(fndecl), env));
                 return FTuple.make(Useful.<FValue>list(mname, mtype, method));
             } else if (decl instanceof VarDecl) {
                 VarDecl vardecl = (VarDecl) decl;
@@ -365,6 +384,49 @@ public class Reflect extends NativeConstructor {
         }
     }
 
+    protected static final class BaseTypeAdapter implements ReflectCollection.CollectionAdapter<BaseType> {
+        private Environment env;
+
+        public BaseTypeAdapter(Environment env) {
+            this.env = env;
+        }
+
+        public FValue adapt(BaseType ty) {
+            return Reflect.make(EvalType.getFType(ty, env));
+        }
+    }
+
+    protected static final class StaticParamAdapter implements ReflectCollection.CollectionAdapter<StaticParam> {
+        private BaseTypeAdapter extendsAdapter;
+
+        public StaticParamAdapter(Environment env) {
+            extendsAdapter = new BaseTypeAdapter(env);
+        }
+
+        public FValue adapt(StaticParam param) {
+            FString id = FString.make(param.getName().getText());
+            ReflectCollection.CollectionObject<BaseType> extendsClause =
+                ReflectCollection.<BaseType>make(param.getExtendsClause(), extendsAdapter);
+            return FTuple.make(Useful.<FValue>list(id, extendsClause));
+        }
+    }
+
+    public static final class StaticParams extends NativeMeth0 {
+        public ReflectCollection.CollectionObject<StaticParam> applyMethod(FObject self0) {
+            FType self = ((ReflectedType) self0).getTy();
+            List<StaticParam> params;
+            if (self instanceof FTypeGeneric) {
+                params = ((FTypeGeneric) self).getParams();
+            } else if (self instanceof ReflectGenericArrow.GenericArrowType) {
+                params = ((ReflectGenericArrow.GenericArrowType) self).getStaticParams();
+            } else {
+                return bug("Unexpected receiver " + self + " to StaticParams");
+            }
+            StaticParamAdapter adapter = new StaticParamAdapter(self.getWithin());
+            return ReflectCollection.<StaticParam>make(params, adapter);
+        }
+    }
+
     public static final class Generic extends T2T {
         public final FType f(FType x) {
             if (x instanceof GenericTypeInstance) {
@@ -384,8 +446,8 @@ public class Reflect extends NativeConstructor {
     @Override
     protected void unregister() {
         synchronized (this) {
-            gcongeneric = gconobject = gcontrait = gconarrow = gcontuple =
-                gconrest = gconbottom = null;
+            gcongeneric = gconobject = gcontrait = gconarrow = gcongenarrow =
+                gcontuple = gconrest = gconbottom = null;
         }
     }
 }

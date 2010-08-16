@@ -8,6 +8,7 @@ native component Reflect
 export Reflect
 
 import Set.{...}
+import Tuple.{...}
 
 private language = "java"
 private package = "com.sun.fortress.interpreter.glue.prim"
@@ -58,15 +59,31 @@ end
 
 (** A type object which represents a generic type, which can be instantiated
     (via `apply` method) to a concrete object or trait type. **)
-trait GenericType extends Type (* %comprises ReflectGeneric[\T\] where [\T\]% *)
+trait GenericType extends Type comprises {GenericObjectOrTraitType, GenericArrowType}
                   excludes {ObjectOrTraitType, ArrowType, TupleType, RestType, BottomType}
     (** Returns a list of name of static parameters and their type restrictions.
         For now, the second element of tuple gives types in extends clause of
         each static parameters. **)
-    getter staticParams(): Generator[\(String,Generator[\Type\])\]
+    getter staticParams0(): ReflectCollection =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$StaticParams")
+    getter staticParams(): Generator[\(String,Generator[\Type\])\] = do
+        mapper(x:Any): (String,Generator[\Type\]) =
+            typecase x of
+                (id:String,ext:ReflectCollection) => (id, ext.specific[\Type\]())
+            end
+        self.staticParams0.map[\(String,Generator[\Type\])\](mapper)
+    end
 
     (** Instantiates a concrete type from given static arguments. **)
     apply(args:Type...): Type
+end
+
+trait GenericObjectOrTraitType extends GenericType (* %comprises ReflectGeneric[\T\] where [\T\]% *)
+                               excludes GenericArrowType
+end
+
+trait GenericArrowType extends GenericType (* %comprises ReflectGenericArrow[\T\] where [\T\]% *)
+                       excludes GenericObjectOrTraitType
 end
 
 (** A type object which represents an object or a trait. **)
@@ -119,12 +136,13 @@ trait ObjectOrTraitType extends Type comprises {ObjectType, TraitType}
         {[\(String,Type,Maybe[\(Object,Any...)->Any\])\]
             if meth = placeholderMethod then
                 (name, ty, Nothing[\(Object,Any...)->Any\])
+            elif instanceOf[\GenericType\](ty) then
+                (name, ty, Just[\(Object,Any...)->Any\](meth.wrapGenericMethod(ty)))
             else
-                (name, ty, Just[\(Object,Any...)->Any\](
-                    fn (selfobj:Object, args:Any...):Any => meth.applyArray(selfobj, args)))
+                (name, ty, Just[\(Object,Any...)->Any\](meth.wrapMethod(ty)))
             end
         | (name, ty, meth) <- self.members0.specific[\(String,Type,ReflectMethod)\](),
-          instanceOf[\ArrowType\](ty)}
+          instanceOf[\ArrowType\](ty) OR instanceOf[\GenericArrowType\](ty)}
 end
 
 (** A type object which represents an object. **)
@@ -163,13 +181,22 @@ trait ArrowType extends Type (* %comprises ReflectArrow[\T\] where [\T\]% *)
     (** Returns true if an arrow type receives varadic arguments. **)
     getter isVararg(): Boolean =
         typecase self.domain of
-            domain:TupleType => instanceOf[\RestType\](domain[|domain| - 1])
+            domain:TupleType =>
+                |domain| > 0 AND: instanceOf[\RestType\](domain[|domain| - 1])
             RestType => true
             else => false
         end
 
     (** Returns a domain of given arrow type. It can be a tuple type. **)
     getter domain(): Type
+
+    (** Returns a domain of given arrow type, which is guaranteed to be
+        a proper generator. **)
+    getter arguments(): Generator[\Type\] =
+        typecase self.domain of
+            domain:TupleType => domain
+            else => Just[\Type\](self.domain)
+        end
 
     (** Returns a range of given arrow type. **)
     getter range(): Type
@@ -227,26 +254,49 @@ end
 
 (** An internal object for methods. **)
 object ReflectMethod()
-    apply(selfobj:Object, args:Any): Any =
+    apply(selfobj:Object, sargs:Any, args:Any): Any =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectMethod$Apply")
-    applyArray(selfobj:Object, args:ReadableArray[\Any,ZZ32\]): Any =
-        case |args| of
-            0 => apply(selfobj, ())
-            1 => apply(selfobj, (args[0]))
-            2 => apply(selfobj, (args[0], args[1]))
-            3 => apply(selfobj, (args[0], args[1], args[2]))
-            4 => apply(selfobj, (args[0], args[1], args[2], args[3]))
-            5 => apply(selfobj, (args[0], args[1], args[2], args[3], args[4]))
-            6 => apply(selfobj, (args[0], args[1], args[2], args[3], args[4],
-                                 args[5]))
-            7 => apply(selfobj, (args[0], args[1], args[2], args[3], args[4],
-                                 args[5], args[6]))
-            8 => apply(selfobj, (args[0], args[1], args[2], args[3], args[4],
-                                 args[5], args[6], args[7]))
-            9 => apply(selfobj, (args[0], args[1], args[2], args[3], args[4],
-                                 args[5], args[6], args[7], args[8]))
-            else => fail("Too many arguments (" |args| " to applyArray.")
+
+    checkArity(ty:ArrowType, args:Generator[\Any\]): () =
+        if ty.isVararg then
+            assert(|args| >= ty.arity,
+                   "The number of arguments (" |args| ") is larger than "
+                   "the expected number (" ty.arity ").")
+        else
+            assert(|args| = ty.arity,
+                   "The number of arguments (" |args| ") is not equal to "
+                   "the expected number (" ty.arity ").")
         end
+
+    wrapMethod(ty:ArrowType): (Object,Any...)->Any = do
+        wrapper(selfobj:Object, args:Any...): Any = do
+            checkArity(ty, args)
+            apply(selfobj, (), tupleFromIndexed[\Any\](args))
+        end
+        wrapper
+    end
+
+    wrapGenericMethod(ty:GenericArrowType): (Object,Any...)->((Object,Any...)->Any) = do
+        (* While the domain of this function is (Object,Any...), it should be
+           reinterpreted as (Type,Type...). We choose to do so because of
+           type compatibility. *)
+        wrapper(sarg1:Object, sargs1:Any...): (Object,Any...)->Any = do
+            sargs0 = array[\Any\](|sargs1| + 1)
+            sargs0[0] := sarg1
+            sargs0[1#] := sargs1
+            assert(|sargs0| = |ty.staticParams|,
+                   "The number of static arguments (" |sargs0| ") is not equal to "
+                   "the expected number (" |ty.staticParams| ").")
+            sargs = tupleFromIndexed[\Any\](sargs0)
+            ty' = ty.apply(sargs)
+            wrapper'(selfobj:Object, args:Any...): Any = do
+                checkArity(ty', args)
+                apply(selfobj, sargs, tupleFromIndexed[\Any\](args))
+            end
+            wrapper'
+        end
+        wrapper
+    end
 end
 
 (** An internal object for arbitrary types. It is only used in the definition of
@@ -258,19 +308,15 @@ object Reflect[\T\]() extends Type
 end
 
 (** An internal object for generic types. **)
-object ReflectGeneric[\T\]() extends GenericType
-    getter staticParams0(): ReflectCollection =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectGeneric$StaticParams")
-    getter staticParams(): Generator[\(String,Generator[\Type\])\] = do
-        mapper(x:Any): (String,Generator[\Type\]) =
-            typecase x of
-                (id:String,ext:ReflectCollection) => (id, ext.specific[\Type\]())
-            end
-        self.staticParams0.map[\(String,Generator[\Type\])\](mapper)
-    end
-
+object ReflectGeneric[\T\]() extends GenericObjectOrTraitType
     apply(args:Type...): Type =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectGeneric$TypeApply")
+end
+
+(** An internal object for generic arrow types. **)
+object ReflectGenericArrow[\T\]() extends GenericArrowType
+    apply(args:Type...): Type =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectGenericArrow$TypeApply")
 end
 
 (** An internal object for object types. **)
@@ -301,6 +347,7 @@ object ReflectTuple[\T\]() extends {TupleType, DelegatedIndexed[\Type,ZZ32\]}
 
     opr |self|: ZZ32 = self.size
     opr [i:ZZ32]: Type = self.types[i]
+    opr [r:Range[\ZZ32\]]: ZeroIndexed[\Type\] = self.types[r]
 end
 
 (** An internal object for the rest type, which appears as the last element of
@@ -319,6 +366,7 @@ end
 private emptyCollection: ReflectCollection = ReflectCollection()
 private placeholderMethod: ReflectMethod = ReflectMethod()
 
+(** Objects for frequently used types and special types. **)
 (* While these define some definitions of important types, they also serve as
    a way to populate generic constructors from the top-level environment,
    just like emptyTypeCollection. See also the constructor of Reflect. *)
@@ -326,7 +374,23 @@ anyType: Type = ReflectTrait[\Any\]()
 objectType: Type = ReflectTrait[\Object\]()
 voidType: Type = ReflectTuple[\()\]()
 bottomType: Type = typeOf(fn () => throw ForbiddenException).range
+
+(* This constructor initialization takes place after the declaration of
+   other necessary type objects. *)
 private dummyRestType: Type = typeOf(fn (x:Any...) => throw ForbiddenException).domain
+
+(** Creates an arrow type with given domain and range. **)
+arrowType(domain:Type, range:Type): ArrowType =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectArrow$Make")
+
+(** Creates a tuple type with given types as elements. It may return a void type
+    or any other types if zero or one argument is given. **)
+tupleType(types:Type...): Type =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectTuple$Make")
+
+(** Creates a rest type with given argument. **)
+restType(ty:Type): RestType =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ReflectRest$Make")
 
 (******************************************************************************)
 (* Utility functions *)
@@ -335,7 +399,8 @@ private dummyRestType: Type = typeOf(fn (x:Any...) => throw ForbiddenException).
 theType[\T\](): Type = Reflect[\T\]().copy()
 
 (** Returns a type object that represents a (dynamic) type of given argument. **)
-typeOf(obj:Any): Type = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
+typeOf(obj:Any): Type =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Reflect$TypeOf")
 
 (** Prints a type information recursively. **)
 dumpType(t:Type) = dumpType(t, "", set[\Type\]())

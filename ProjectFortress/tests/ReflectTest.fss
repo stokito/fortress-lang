@@ -87,6 +87,8 @@ testType(): () = do
     assert(arrow.range = theType[\String\](), "incorrect range for " arrow)
     assert(arrow.arity = 1, "incorrect arity for " arrow)
     assert(NOT arrow.isVararg, arrow " should be not a vararg function!")
+    assert(arrow = arrowType(theType[\ZZ32\](), theType[\String\]()),
+           "arrowType constructor doesn't work")
     arrow1 = theType[\(Char...)->String\]()
     arrow2 = theType[\(ZZ32,Char...)->String\]()
     assert(arrow1.arity = 1, "incorrect arity for " arrow1)
@@ -98,6 +100,8 @@ testType(): () = do
     assert(arrow1.domain.base = arrow2.domain[1].base = theType[\Char\](),
            "incorrect base types for RestType")
     assert(arrow1.domain = arrow2.domain[1], "comparison of base types failed")
+    assert(arrow1 = arrowType(restType(theType[\Char\]()), theType[\String\]()),
+           "arrowType and restType constructors don't work")
 
     tuple = theType[\(Char,Boolean,ZZ32)\]()
     assert(|tuple| = 3, "incorrect length for " tuple)
@@ -105,6 +109,8 @@ testType(): () = do
     assert(tuple[1] = theType[\Boolean\](), "incorrect value for " tuple)
     assert(tuple[2] = theType[\ZZ32\](), "incorrect value for " tuple)
     assert("/".join[\Type\](tuple) = "Char/Boolean/ZZ32", "generator for " tuple " doesn't work")
+    assert(tuple = tupleType(theType[\Char\](), theType[\Boolean\](), theType[\ZZ32\]()),
+           "tupleType constructor doesn't work")
 end
 
 checkTypeOf[\T\](obj:Any): () = do

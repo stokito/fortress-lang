@@ -22,6 +22,8 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class ReflectRest extends Reflect {
@@ -32,6 +34,13 @@ public class ReflectRest extends Reflect {
     @Override
     protected void checkType(FType ty) {
         if (!(ty instanceof FTypeRest)) error(ty + " is not a rest type.");
+    }
+
+    public static final class Make extends NativeFn1 {
+        public final FValue applyToArgs(FValue type0) {
+            FType type = ((ReflectedType) type0).getTy();
+            return Reflect.make(FTypeRest.make(type));
+        }
     }
 
     public static final class Base extends T2T {
