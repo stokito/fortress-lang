@@ -39,7 +39,7 @@ end
 
 (** A type object which represents a generic type, which can be instantiated
     (via `apply` method) to a concrete object or trait type. **)
-trait GenericType extends Type comprises {...}
+trait GenericType extends Type comprises {GenericObjectOrTraitType, GenericArrowType}
                   excludes {ObjectOrTraitType, ArrowType, TupleType, RestType, BottomType}
     (** Returns a list of name of static parameters and their type restrictions.
         For now, the second element of tuple gives types in extends clause of
@@ -48,6 +48,14 @@ trait GenericType extends Type comprises {...}
 
     (** Instantiates a concrete type from given static arguments. **)
     apply(args:Type...): Type
+end
+
+trait GenericObjectOrTraitType extends GenericType comprises {...}
+                               excludes GenericArrowType
+end
+
+trait GenericArrowType extends GenericType comprises {...}
+                       excludes GenericObjectOrTraitType
 end
 
 (** A type object which represents an object or a trait. **)
@@ -109,6 +117,10 @@ trait ArrowType extends Type comprises {...}
     (** Returns a domain of given arrow type. It can be a tuple type. **)
     getter domain(): Type
 
+    (** Returns a domain of given arrow type, which is guaranteed to be
+        a proper generator. **)
+    getter arguments(): Generator[\Type\]
+
     (** Returns a range of given arrow type. **)
     getter range(): Type
 end
@@ -134,10 +146,21 @@ trait BottomType extends Type comprises {...}
                  excludes {GenericType, ObjectOrTraitType, ArrowType, TupleType, RestType}
 end
 
+(** Objects for frequently used types and special types. **)
 anyType: Type
 objectType: Type
 voidType: Type
 bottomType: Type
+
+(** Creates an arrow type with given domain and range. **)
+arrowType(domain:Type, range:Type): ArrowType
+
+(** Creates a tuple type with given types as elements. It may return a void type
+    or any other types if zero or one argument is given. **)
+tupleType(types:Type...): Type
+
+(** Creates a rest type with given argument. **)
+restType(ty:Type): RestType
 
 (** Returns a type object that represents a type in the static parameter. **)
 theType[\T\](): Type

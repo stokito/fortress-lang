@@ -30,4 +30,6 @@ second[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T2
 third[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T3
 fourth[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T4
 
+tupleFromIndexed[\T\](x:Indexed[\T,ZZ32\]): Any
+
 end

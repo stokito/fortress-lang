@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.interpreter.glue.NativeMeth;
+import com.sun.fortress.interpreter.glue.NativeMeth3;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 import java.util.Collection;
@@ -120,24 +120,19 @@ public class ReflectCollection extends NativeConstructor {
         }
     }
 
-    public static final class Generate extends NativeMeth {
-        public final int getArity() {
-            return 3;
-        }
-
-        public final FValue applyMethod(FObject self0, List<FValue> args) {
+    public static final class Generate extends NativeMeth3 {
+        public final FValue applyMethod(FObject self0, FValue empty, FValue join, FValue body) {
             CollectionObject<Object> self = (CollectionObject<Object>) self0;
             Collection<Object> collection = self.getCollection();
             if (collection.isEmpty()) {
-                Fcn empty = (Fcn) args.get(0);
-                return empty.applyToArgs();
+                return ((Fcn) empty).applyToArgs();
             } else {
-                Fcn join = (Fcn) args.get(1), body = (Fcn) args.get(2);
+                Fcn joinfn = (Fcn) join, bodyfn = (Fcn) body;
                 Iterator<Object> it = collection.iterator();
-                FValue reduced = body.applyToArgs(self.adapt(it.next()));
+                FValue reduced = bodyfn.applyToArgs(self.adapt(it.next()));
                 while (it.hasNext()) {
-                    FValue current = body.applyToArgs(self.adapt(it.next()));
-                    reduced = join.applyToArgs(reduced, current);
+                    FValue current = bodyfn.applyToArgs(self.adapt(it.next()));
+                    reduced = joinfn.applyToArgs(reduced, current);
                 }
                 return reduced;
             }

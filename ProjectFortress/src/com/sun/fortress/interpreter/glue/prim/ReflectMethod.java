@@ -24,9 +24,10 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.values.*;
-import com.sun.fortress.interpreter.glue.NativeMeth2;
+import com.sun.fortress.interpreter.glue.NativeMeth3;
 import com.sun.fortress.nodes.ObjectConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReflectMethod extends NativeConstructor {
@@ -91,13 +92,32 @@ public class ReflectMethod extends NativeConstructor {
         return new MethodWrapper(type, closure);
     }
 
-    public static final class Apply extends NativeMeth2 {
-        public final FValue applyMethod(FObject method0, FValue self, FValue args) {
+    public static final class Apply extends NativeMeth3 {
+        public final FValue applyMethod(FObject method0, FValue self, FValue sargs, FValue args) {
             MethodWrapper method = (MethodWrapper) method0;
             if (!self.type().subtypeOf(method.getType())) {
                 return error(errorMsg(self.type(), " is not a subtype of the expected receiver type ", method.getType(), "."));
             }
-            return method.getClosure().applyMethod((FObject) self, args);
+
+            MethodClosure closure = method.getClosure();
+            if (closure instanceof GenericMethod) {
+                List<FType> typeargs = new ArrayList<FType>();
+                if (sargs instanceof FTuple) {
+                    for (FValue v : ((FTuple) sargs).getVals()) {
+                        typeargs.add(((Reflect.ReflectedType) v).getTy());
+                    }
+                } else {
+                    typeargs.add(((Reflect.ReflectedType) sargs).getTy());
+                }
+                closure = ((GenericMethod) closure).make(typeargs, closure.getDef());
+            } else {
+                if (!(sargs instanceof FVoid)) {
+                    return error("Static arguments for non-generic method wrapper should be void.");
+                }
+            }
+
+            // applyMethod will unwrap the tuple argument automatically, so we don't have to.
+            return closure.applyMethod((FObject) self, args);
         }
     }
 

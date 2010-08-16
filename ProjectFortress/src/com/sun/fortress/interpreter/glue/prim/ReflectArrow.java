@@ -22,6 +22,8 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
+import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.glue.NativeFn2;
 import com.sun.fortress.nodes.ObjectConstructor;
 
 public class ReflectArrow extends Reflect {
@@ -32,6 +34,14 @@ public class ReflectArrow extends Reflect {
     @Override
     protected void checkType(FType ty) {
         if (!(ty instanceof FTypeArrow)) error(ty + " is not an arrow type.");
+    }
+
+    public static final class Make extends NativeFn2 {
+        public final FValue applyToArgs(FValue domain0, FValue range0) {
+            FType domain = ((ReflectedType) domain0).getTy();
+            FType range = ((ReflectedType) range0).getTy();
+            return Reflect.make(FTypeArrow.make(domain, range));
+        }
     }
 
     public static final class Domain extends T2T {
