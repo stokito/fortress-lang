@@ -13,23 +13,42 @@ import QuickSort.{...}
 import Random.{...}
 
 (** A test context. **)
-object TestContext(g:AnySeededRandomGen, numTests:ZZ32, maxTests:ZZ32, size:ZZ32)
+object TestContext(arbitrary:Arbitrary, g:AnySeededRandomGen,
+                   numTests:ZZ32, maxTests:ZZ32, size:ZZ32)
     (** Zero `size` means the generator should avoid recursion from now on. **)
     getter leaf(): Boolean = (size <= 0)
 
+    (* XXX for now we assume that every RandomGen instances are of this type.
+       there are several reasons for this; for example `Random.UniformDistribution`
+       cannot generate the full range of ZZ64 yet. *)
+    private getter g'(): SeededRandomGen[\ZZ64,ZZ64\] =
+        g typed SeededRandomGen[\ZZ64,ZZ64\]
+
+    (** Generates a test generator of given type, using specified `Arbitrary`
+        factory. **)
+    gen[\P\](): Gen[\P\] = arbitrary.gen[\P\]()
+
     (** Returns a copy of `TestContext` which is resized. **)
-    resized(newsize:ZZ32): TestContext = TestContext(g, numTests, maxTests, newsize)
+    resized(newsize:ZZ32): TestContext =
+        TestContext(arbitrary, g, numTests, maxTests, newsize)
+
+    (** Returns a copy of `TestContext` which random number generator is
+        replaced to given one. **)
+    withRandomGen(g':AnySeededRandomGen): TestContext =
+        TestContext(arbitrary, g', numTests, maxTests, size)
 
     (** Generates a `ZZ32` value uniformly from the current random number
         generator. It is most suitable for the implementation of `Gen[\ZZ32\]`. **)
     random(): ZZ32 =
-        (*) XXX `Random.UniformDistribution` cannot generate the full range yet.
-        narrow(((g typed SeededRandomGen[\ZZ64,ZZ64\]).random() BITAND
-            4294967295 (* 2^32-1 *)) - 2147483648 (* 2^31 *))
+        narrow((self.g'.random() BITAND 4294967295 (* 2^32-1 *)) - 2147483648 (* 2^31 *))
     (** Generates a random number from `0` to `n-1` (inclusive) uniformly. **)
-    random(n:ZZ32): ZZ32 = g.randomR(0#n)
+    random(n:ZZ32): ZZ32 = self.g'.randomR(0#n)
     (** Generates a random number from `lo` to `hi-1` (inclusive) uniformly. **)
-    random(lo:ZZ32, hi:ZZ32): ZZ32 = g.randomR(lo:hi)
+    random(lo:ZZ32, hi:ZZ32): ZZ32 = self.g'.randomR(lo:hi)
+
+    (** Generates a random choice from given choices. **)
+    oneOf[\T\](choices:Indexed[\T,ZZ32\]): T =
+        choices[self.g'.randomR(choices.bounds)]
 
     (** Generates a `ZZ32` value which range is determined by `level`.
         It will produce small numbers and large numbers fairly uniformly. **)
@@ -44,14 +63,14 @@ end
 
 (** Generates a random test context from given random number generator.
     See also `genTestContext`. **)
-TestContext(g:AnySeededRandomGen): TestContext =
-    genTestContext.generate(TestContext(g, 0, 0, 0))
+TestContext(arb:Arbitrary, g:AnySeededRandomGen): TestContext =
+    genTestContext.generate(TestContext(arb, g, 0, 0, 0))
 
 (** Generates a random test context from given random number generator and
     given number of maximum tests. **)
-TestContext(g:AnySeededRandomGen, numTests:ZZ32): TestContext = do
-    c = TestContext(g)
-    TestContext(c.g, numTests, numTests + (c.maxTests - c.numTests), c.size)
+TestContext(arb:Arbitrary, g:AnySeededRandomGen, numTests:ZZ32): TestContext = do
+    c = TestContext(arb, g)
+    TestContext(arb, c.g, numTests, numTests + (c.maxTests - c.numTests), c.size)
 end
 
 (**********************************************************)
@@ -112,14 +131,18 @@ trait GenGenerator[\E,T extends Generator[\E\]\] extends Gen[\T\]
     (** Transforms a resulting `Generator[\E\]` back to a desired type, `T`. **)
     abstract fromGenerator(obj:Generator[\E\]): T
 
-    generate(c:TestContext): Generator[\E\] = fromGenerator RandomGenerator[\E\](self.genE, c)
-    shrink(obj:T): Generator[\T\] = ShrinkingGenerator[\E,T\](obj, self.genE, fromGenerator)
+    generate(c:TestContext): Generator[\E\] =
+        fromGenerator RandomGenerator[\E\](self.genE, c.withRandomGen(c.g.perturbed(0)))
+    shrink(obj:T): Generator[\T\] =
+        ShrinkingGenerator[\E,T\](obj, self.genE, fromGenerator)
 end
 
 (** A generator of `E` which randomly chooses whether to call itself or not.
     This is a default implementation of `generate` method for `Generator[\E\]`. **)
 private object RandomGenerator[\E\](genE:Gen[\E\], c:TestContext) extends Generator[\E\]
     generate[\R\](r:Reduction[\R\], body:E->R): R = do
+        c' = c.withRandomGen(c.g.perturbed(0))
+
         (* The algorithm is especially tuned for `Generator[\Generator[\E\]\]`,
            the most visible case of "unnatural" test data distribution.
 
@@ -133,24 +156,24 @@ private object RandomGenerator[\E\](genE:Gen[\E\], c:TestContext) extends Genera
 
         recur(size:ZZ32, basesize:ZZ32): R =
             if size < 3 OR basesize < 2 then
-                if c.random(size+1) = 0 then
+                if c'.random(size+1) = 0 then
                     r.empty()
                 else
-                    body(genE.generate(c.resized(size)))
+                    body(genE.generate(c'.resized(size)))
                 end
             else
-                pivot = c.random(1, basesize-1)
+                pivot = c'.random(1, basesize-1)
                 if pivot < size then
                     basesize' = 3 (size MAX basesize) DIV 4
                     x = recur(pivot, basesize')
                     y = recur(size - pivot, basesize')
                     r.join(x, y)
                 else
-                    body(genE.generate(c.resized(size)))
+                    body(genE.generate(c'.resized(size)))
                 end
             end
 
-        recur(c.size, c.size)
+        recur(c'.size, c'.size)
     end
 end
 
@@ -380,6 +403,11 @@ object genString extends GenGenerator[\Char,String\]
         g.perturbed(|obj|).perturbed(obj.indices.map[\ZZ32\](fn i => obj[i].codePoint))
 end
 
+object genGenerator[\E\](genE:Gen[\E\]) extends GenGenerator[\E,Generator[\E\]\]
+    getter asString(): String = "genGenerator(" genE ")"
+    fromGenerator(obj:Generator[\E\]): Generator[\E\] = obj
+end
+
 object genMaybe[\T\](genT:Gen[\T\]) extends Gen[\Maybe[\T\]\]
     getter asString(): String = "genMaybe(" genT ")"
 
@@ -436,7 +464,15 @@ object genMap[\K,V\](genK:Gen[\K\], genV:Gen[\V\]) extends GenGenerator[\(K,V),M
     getter asString(): String = "genMap(" genK "," genV ")"
 
     genE: Gen[\(K,V)\] = genTuple2(genK, genV)
-    fromGenerator(obj:Generator[\(K,V)\]): Map[\K,V\] = mapping obj
+    fromGenerator(obj:Generator[\(K,V)\]): Map[\K,V\] =
+        (*) The parent generator may generate duplicate keys!
+        (*)BIG UNION[(k,v) <- obj] singleton[\K,V\](k,v)
+        obj.generate[\Map[\K,V\]\](
+            object extends MonoidReduction[\Map[\K,V\]\]
+                empty(): Map[\K,V\] = mapping[\K,V\]()
+                join(a:Map[\K,V\], b:Map[\K,V\]): Map[\K,V\] = a UNION b
+            end,
+            singleton[\K,V\])
 
     perturb(obj:Map[\K,V\], g:AnySeededRandomGen): AnySeededRandomGen =
         if obj.isEmpty then
@@ -481,9 +517,10 @@ object genTuple2[\T1,T2\](genT1:Gen[\T1\], genT2:Gen[\T2\]) extends Gen[\(T1,T2)
     end
 
     perturb(obj:(T1,T2), g:AnySeededRandomGen): AnySeededRandomGen = do
+        (v1, v2) = obj
         g': AnySeededRandomGen := g.perturbed(2)
-        g' := genT1.perturb(obj[0], g')
-        g' := genT2.perturb(obj[1], g')
+        g' := genT1.perturb(v1, g')
+        g' := genT2.perturb(v2, g')
         g'
     end
 
@@ -508,10 +545,11 @@ object genTuple3[\T1,T2,T3\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\T3\])
     end
 
     perturb(obj:(T1,T2,T3), g:AnySeededRandomGen): AnySeededRandomGen = do
+        (v1, v2, v3) = obj
         g': AnySeededRandomGen := g.perturbed(3)
-        g' := genT1.perturb(obj[0], g')
-        g' := genT2.perturb(obj[1], g')
-        g' := genT3.perturb(obj[2], g')
+        g' := genT1.perturb(v1, g')
+        g' := genT2.perturb(v2, g')
+        g' := genT3.perturb(v3, g')
         g'
     end
 
@@ -540,11 +578,12 @@ object genTuple4[\T1,T2,T3,T4\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\T3\
     end
 
     perturb(obj:(T1,T2,T3,T4), g:AnySeededRandomGen): AnySeededRandomGen = do
+        (v1, v2, v3, v4) = obj
         g': AnySeededRandomGen := g.perturbed(4)
-        g' := genT1.perturb(obj[0], g')
-        g' := genT2.perturb(obj[1], g')
-        g' := genT3.perturb(obj[2], g')
-        g' := genT4.perturb(obj[3], g')
+        g' := genT1.perturb(v1, g')
+        g' := genT2.perturb(v2, g')
+        g' := genT3.perturb(v3, g')
+        g' := genT4.perturb(v4, g')
         g'
     end
 
@@ -575,12 +614,13 @@ object genTuple5[\T1,T2,T3,T4,T5\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Gen[\
     end
 
     perturb(obj:(T1,T2,T3,T4,T5), g:AnySeededRandomGen): AnySeededRandomGen = do
+        (v1, v2, v3, v4, v5) = obj
         g': AnySeededRandomGen := g.perturbed(5)
-        g' := genT1.perturb(obj[0], g')
-        g' := genT2.perturb(obj[1], g')
-        g' := genT3.perturb(obj[2], g')
-        g' := genT4.perturb(obj[3], g')
-        g' := genT5.perturb(obj[4], g')
+        g' := genT1.perturb(v1, g')
+        g' := genT2.perturb(v2, g')
+        g' := genT3.perturb(v3, g')
+        g' := genT4.perturb(v4, g')
+        g' := genT5.perturb(v5, g')
         g'
     end
 
@@ -613,13 +653,14 @@ object genTuple6[\T1,T2,T3,T4,T5,T6\](genT1:Gen[\T1\], genT2:Gen[\T2\], genT3:Ge
     end
 
     perturb(obj:(T1,T2,T3,T4,T5,T6), g:AnySeededRandomGen): AnySeededRandomGen = do
+        (v1, v2, v3, v4, v5, v6) = obj
         g': AnySeededRandomGen := g.perturbed(6)
-        g' := genT1.perturb(obj[0], g')
-        g' := genT2.perturb(obj[1], g')
-        g' := genT3.perturb(obj[2], g')
-        g' := genT4.perturb(obj[3], g')
-        g' := genT5.perturb(obj[4], g')
-        g' := genT6.perturb(obj[5], g')
+        g' := genT1.perturb(v1, g')
+        g' := genT2.perturb(v2, g')
+        g' := genT3.perturb(v3, g')
+        g' := genT4.perturb(v4, g')
+        g' := genT5.perturb(v5, g')
+        g' := genT6.perturb(v6, g')
         g'
     end
 
@@ -640,11 +681,13 @@ object genArrow[\T,U\](genT:Gen[\T\], genU:Gen[\U\]) extends Gen[\T->U\]
 
     generate(c:TestContext): T->U = do
         g' = c.g.perturbed(0) (*) g' have to be independent to the future changes to c.
-        fn (obj:T):U => genU.generate(TestContext(genT.perturb(obj, g'), c.size))
+        fn (obj:T):U => genU.generate(TestContext(c.arbitrary, genT.perturb(obj, g'), c.size))
     end
 
     perturb(obj:T->U, g:AnySeededRandomGen): AnySeededRandomGen =
-        genU.perturb(genT.generate(TestContext(g)), g)
+        (* We can use `defaultArbitrary` here because we already know the relevant
+           generator, `genT`. *)
+        genU.perturb(genT.generate(TestContext(defaultArbitrary, g)), g)
 end
 
 object genTestContext extends Gen[\TestContext\]
@@ -654,7 +697,7 @@ object genTestContext extends Gen[\TestContext\]
         numTests = c.random(20,200)
         moreTests = c.random(50,500)
         size = c.random(500,2000)
-        TestContext(c.g.perturbed(1), numTests, numTests + moreTests, size)
+        TestContext(c.arbitrary, c.g.perturbed(1), numTests, numTests + moreTests, size)
     end
 end
 
@@ -793,6 +836,11 @@ TestResult(status:TestStatus): TestResult =
     for fail) only. **)
 TestResult(ret:Boolean): TestResult =
     if ret then TestResult(TestPass) else TestResult(TestFail) end
+
+(** A copy of test result from the other test result. (This function is
+    provided for convenience.) **)
+TestResult(result:TestResult): TestResult =
+    TestResult(result.status, list result.tags, list result.collected)
 
 (** A testable instance with arguments of type `P`. **)
 trait Testable[\P\] excludes String
@@ -994,8 +1042,14 @@ shrink[\P\](instance:P, t:Testable[\P\], g:Gen[\P\], n:ZZ32): (Boolean,ZZ32,P) =
     (done, tested, current)
 end
 
-(** Tests a property by running given test generator with given test context. **)
-check[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): () = do
+(** Tests a property by running given test generator with given test generator
+    and test context.
+
+    It returns a `TestResult` with `TestPass` status when every tests are passed,
+    even though it has to be properly pointed out that there are other possible
+    bugs which haven't caught. It returns `TestFail` when one or more tests are
+    failed, and `TestSkip` when it reached the maximum number of tests. **)
+checkResult[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): TestResult = do
     n = c.numTests
     m = c.maxTests
 
@@ -1045,12 +1099,15 @@ check[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): () = do
             println("Tag(s) of failing properties:")
             for tag <- result.tags do println("    " tag) end
         end
+
+        TestResult(TestFail)
     else
+        limitreached = (passed + skipped + failed >= m)
         print("Passed " passed " test(s)")
         if skipped > 0 then
             print(" (and skipped " skipped " test(s))")
         end
-        if passed + skipped + failed >= m then
+        if limitreached then
             print(" but reached the maximum of " m " tests")
         end
         println(".")
@@ -1062,14 +1119,26 @@ check[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): () = do
                 println("    " |\ 100 freq/n /| "%: " formated)
             end
         end
+
+        if limitreached then
+            TestResult(TestSkip)
+        else
+            TestResult(TestPass)
+        end
     end
 end
 
-(** Same as above but creates a test generator by `Arbitrary` factory. **)
+(** Same as `checkResult` but discards its result. Useful for actual testing. **)
+check[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): () =
+    do _ = checkResult[\P\](t, g, c); () end
+
+(** Same as above but creates a test generator using `Arbitrary` factory. **)
+check[\P\](t:Testable[\P\], c:TestContext): () =
+    check[\P\](t, c.gen[\P\](), c)
 check[\P\](t:Testable[\P\], arb:Arbitrary, numTests:ZZ32): () =
-    check[\P\](t, arb.gen[\P\](), TestContext(linearCongruential(), numTests))
+    check[\P\](t, TestContext(arb, linearCongruential(), numTests))
 check[\P\](t:Testable[\P\], arb:Arbitrary): () =
-    check[\P\](t, arb.gen[\P\](), TestContext(linearCongruential()))
+    check[\P\](t, TestContext(arb, linearCongruential()))
 
 (** Same as above but uses `defaultArbitrary` factory. **)
 check[\P\](t:Testable[\P\], numTests:ZZ32): () = check[\P\](t, defaultArbitrary, numTests)

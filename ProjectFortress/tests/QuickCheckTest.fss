@@ -45,7 +45,7 @@ end
 
 (** Tests various generators. **)
 testGen() = do
-    c = TestContext(linearCongruential(), 50)
+    c = TestContext(arb, linearCongruential(), 50)
     show(gen:AnyGen, n:ZZ32) =
         println(gen ": " (BIG ||| [_ <- seq(0#n)] gen.generate(c)))
 

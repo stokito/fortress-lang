@@ -12,12 +12,20 @@ import QuickSort.{...}
 import Random.{...}
 
 (** A test context. **)
-object TestContext(g:AnySeededRandomGen, numTests:ZZ32, maxTests:ZZ32, size:ZZ32)
+object TestContext(arbitrary:Arbitrary, g:AnySeededRandomGen,
+                   numTests:ZZ32, maxTests:ZZ32, size:ZZ32)
     (** Zero `size` means the generator should avoid recursion from now on. **)
     getter leaf(): Boolean
 
+    (** Generates a test generator of given type, using specified `Arbitrary`
+        factory. **)
+    gen[\P\](): Gen[\P\]
+
     (** Returns a copy of `TestContext` which is resized. **)
     resized(newsize:ZZ32): TestContext
+    (** Returns a copy of `TestContext` which random number generator is
+        replaced to given one. **)
+    withRandomGen(g':AnySeededRandomGen): TestContext
 
     (** Generates a `ZZ32` value uniformly from the current random number
         generator. It is most suitable for the implementation of `Gen[\ZZ32\]`. **)
@@ -27,6 +35,9 @@ object TestContext(g:AnySeededRandomGen, numTests:ZZ32, maxTests:ZZ32, size:ZZ32
     (** Generates a random number from `lo` to `hi-1` (inclusive) uniformly. **)
     random(lo:ZZ32, hi:ZZ32): ZZ32
 
+    (** Generates a random choice from given choices. **)
+    oneOf[\T\](choices:Indexed[\T,ZZ32\]): T
+
     (** Generates a `ZZ32` value which range is determined by `level`.
         It will produce small numbers and large numbers fairly uniformly. **)
     randomByLevel(level:ZZ32): ZZ32
@@ -34,11 +45,11 @@ end
 
 (** Generates a random test context from given random number generator.
     See also `genTestContext`. **)
-TestContext(g:AnySeededRandomGen): TestContext
+TestContext(arb:Arbitrary, g:AnySeededRandomGen): TestContext
 
 (** Generates a random test context from given random number generator and
     given number of maximum tests. **)
-TestContext(g:AnySeededRandomGen, numTests:ZZ32): TestContext
+TestContext(arb:Arbitrary, g:AnySeededRandomGen, numTests:ZZ32): TestContext
 
 (**********************************************************)
 (* `Gen` interface and utilities *)
@@ -176,6 +187,12 @@ object genString extends GenGenerator[\Char,String\]
     genE: Gen[\Char\]
     fromGenerator(obj:Generator[\Char\]): String
     perturb(obj:String, g:AnySeededRandomGen): AnySeededRandomGen
+end
+
+object genGenerator[\E\](genE:Gen[\E\]) extends GenGenerator[\E,Generator[\E\]\]
+    getter asString(): String
+    fromGenerator(obj:Generator[\E\]): Generator[\E\]
+    generate(c:TestContext): Generator[\E\]
 end
 
 object genMaybe[\T\](genT:Gen[\T\]) extends Gen[\Maybe[\T\]\]
@@ -361,6 +378,10 @@ TestResult(status:TestStatus): TestResult
     for fail) only. **)
 TestResult(ret:Boolean): TestResult
 
+(** A copy of test result from the other test result. (This function is
+    provided for convenience.) **)
+TestResult(result:TestResult): TestResult
+
 (** A testable instance with arguments of type `P`. **)
 trait Testable[\P\] excludes String
     (** Runs a test with given arguments and returns a result. The test should
@@ -450,10 +471,20 @@ classify(cond:Boolean, trueobj:Any): classify
     instance. **)
 shrink[\P\](instance:P, t:Testable[\P\], g:Gen[\P\], n:ZZ32): (Boolean,ZZ32,P)
 
-(** Tests a property by running given test generator with given test context. **)
+(** Tests a property by running given test generator with given test generator
+    and test context.
+
+    It returns a `TestResult` with `TestPass` status when every tests are passed,
+    even though it has to be properly pointed out that there are other possible
+    bugs which haven't caught. It returns `TestFail` when one or more tests are
+    failed, and `TestSkip` when it reached the maximum number of tests. **)
+checkResult[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): TestResult
+
+(** Same as `checkResult` but discards its result. Useful for actual testing. **)
 check[\P\](t:Testable[\P\], g:Gen[\P\], c:TestContext): ()
 
-(** Same as above but creates a test generator by `Arbitrary` factory. **)
+(** Same as above but creates a test generator using `Arbitrary` factory. **)
+check[\P\](t:Testable[\P\], c:TestContext): ()
 check[\P\](t:Testable[\P\], arb:Arbitrary, numTests:ZZ32): ()
 check[\P\](t:Testable[\P\], arb:Arbitrary): ()
 
