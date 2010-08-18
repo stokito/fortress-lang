@@ -388,6 +388,9 @@ trait Testable[\P\] excludes String
         be deterministic as much as possible: some routines like `shrink`, for
         example, rely on this behavior. **)
     abstract run(arg:P): TestResult
+
+    (** `Testable[\P\]` can be also used as an arrow type `P->TestResult`. **)
+    opr juxtaposition(self, arg:P): TestResult
 end
 
 (** Represents a test that has been finished already and returns a fixed
@@ -414,8 +417,12 @@ opr ==>(p:Testable[\()\], q:TestResult): Testable[\()\]
 opr ==>(p:Testable[\()\], q:Testable[\()\]): Testable[\()\]
 
 (* `"tag" |: prop...` or `prop... :| "tag"` *)
-opr |(tag:String, f:()->Any): Testable[\()\]
-(*)opr |(f:()->Any, tag:String): Testable[\()\]
+opr |(tag:String, p:()->Any): Testable[\()\]
+opr |(tag:String, p:Testable[\()\]): Testable[\()\]
+(* (*) Not supported by Fortress yet
+opr |(p:()->Any, tag:String): Testable[\()\]
+opr |(p:Testable[\()\], tag:String): Testable[\()\]
+*)
 
 (* `prop... AND prop...` *)
 opr AND(p:Boolean, q:TestResult): Testable[\()\]

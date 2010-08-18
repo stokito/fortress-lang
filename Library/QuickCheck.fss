@@ -848,6 +848,9 @@ trait Testable[\P\] excludes String
         be deterministic as much as possible: some routines like `shrink`, for
         example, rely on this behavior. **)
     abstract run(arg:P): TestResult
+
+    (** `Testable[\P\]` can be also used as an arrow type `P->TestResult`. **)
+    opr juxtaposition(self, arg:P): TestResult = run(arg)
 end
 
 (** Represents a test that has been finished already and returns a fixed
@@ -957,8 +960,12 @@ opr ==>(p:Testable[\()\], q:TestResult): Testable[\()\] = Implied(p, Tested(q))
 opr ==>(p:Testable[\()\], q:Testable[\()\]): Testable[\()\] = Implied(p, q)
 
 (* `"tag" |: prop...` or `prop... :| "tag"` *)
-opr |(tag:String, f:()->Any): Testable[\()\] = Tagged(Property[\()\](f), tag)
-(*)opr |(f:()->Any, tag:String): Testable[\()\] = Tagged(Property[\()\](f), tag)
+opr |(tag:String, p:()->Any): Testable[\()\] = Tagged(Property[\()\](p), tag)
+opr |(tag:String, p:Testable[\()\]): Testable[\()\] = Tagged(p, tag)
+(* (*) Not supported by Fortress yet
+opr |(p:()->Any, tag:String): Testable[\()\] = Tagged(Property[\()\](p), tag)
+opr |(p:Testable[\()\], tag:String): Testable[\()\] = Tagged(p, tag)
+*)
 
 (* `prop... AND prop...` *)
 opr AND(p:Boolean, q:TestResult): Testable[\()\] = Conjunction(Tested(p), Tested(q))
