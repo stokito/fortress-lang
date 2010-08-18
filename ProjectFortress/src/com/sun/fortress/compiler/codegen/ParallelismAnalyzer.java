@@ -30,7 +30,11 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
     private boolean isComputeIntensiveArg(Expr e) {
         // A FnRef should not be parallelized itself. But, as an argument,
         // it supports the case for parallelizing the enclosing application.
-        return (worthParallelizing(e) || (e instanceof _RewriteFnApp));
+
+        // We are parallelizing the evaluation of 2 and 3 in 2 + 3.  This needs
+        // some serious refinement.  Turning parallelism way down for now.
+        //        return (worthParallelizing(e) || (e instanceof _RewriteFnApp));
+        return worthParallelizing(e);
     }
 
     private void debug(ASTNode x) {

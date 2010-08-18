@@ -75,6 +75,10 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         }
     }
 
+    public String toString() {
+        return "Method " + name + " desc = " + desc + " sig = " + sig;
+    }
+
     public void print() {
         if (noisy) {
             System.out.println("Method " + name + " desc = " + desc + " sig = " + sig);
