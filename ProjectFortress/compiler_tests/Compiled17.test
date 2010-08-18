@@ -13,7 +13,7 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests= Compiled17 Compiled17a Compiled17b Compiled17c Compiled17d
+tests= Compiled17 Compiled17a Compiled17b Compiled17c
 compile
 link
 run
