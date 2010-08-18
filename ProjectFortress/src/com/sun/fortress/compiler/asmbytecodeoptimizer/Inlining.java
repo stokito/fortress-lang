@@ -120,7 +120,7 @@ public class Inlining {
             default: result.add(i);
             }
         } else if (i instanceof VisitMaxs) {
-            //     result.add(new SingleInsn("NOP", Opcodes.NOP));
+        } else if (i instanceof VisitEnd) {
         } else {
             result.add(i);
         }
@@ -139,7 +139,7 @@ public class Inlining {
     private static void printMethod(ByteCodeMethodVisitor method, String when) {
 
         if (noisy) {
-            System.out.println("Printing Method: " + method.name + "  " + when);
+            System.out.println("Printing Method: " + method.name + "  " + when + " with maxStack = " + method.maxStack + " and maxLocals = " + method.maxLocals);
 
             for (Insn inst : method.insns) {
                 System.out.println("Bytecode: " + inst + inst.getStackString() + inst.getLocals());
@@ -161,79 +161,105 @@ public class Inlining {
             }
     }
 
-    public static void inlineInsn(String className, ByteCodeMethodVisitor method, MethodInsn mi, ByteCodeMethodVisitor methodToInline, int index) {
-        printMethod(method, "BEFORE");
-
+    public static void inlineStaticMethodCall(String className, ByteCodeMethodVisitor method, MethodInsn mi, ByteCodeMethodVisitor methodToInline, int index, boolean isStatic) {
         List<Insn> insns = new ArrayList<Insn>();
         Label start = new Label();
         Label end = new Label();
 
         insns.add(new LabelInsn("start", start));
-        String[] args = new String[methodToInline.args.size()];
         int[] offsets = new int[methodToInline.maxLocals];
-
         int locals = method.maxLocals;
         method.maxStack = method.maxStack + methodToInline.maxStack;
 
-        for (int i = methodToInline.args.size()-1; i >=0; i--) {
-            insns.add(new VarInsn("ASTORE", Opcodes.ASTORE, method.maxLocals));
-            offsets[i] = method.maxLocals++;
+        for (int i = methodToInline.args.size() - 1; i >= 0; i--) {
+            insns.add(new VarInsn("ASTORE", Opcodes.ASTORE, method.maxLocals + i));
+            offsets[i] = method.maxLocals + i;
         }
-         
 
-        
-        for (int i = 0; i < methodToInline.insns.size() - 1; i++) {
+        method.maxLocals = method.maxLocals + methodToInline.args.size();
+        for (int i = 0; i < methodToInline.insns.size(); i++) {
             insns.addAll(convertInsn(methodToInline.insns.get(i), offsets));
         }
 
-        System.out.println("insns = " + insns);
-
         insns.add(new LabelInsn("end", end));
-        for (int i = 0; i < methodToInline.args.size(); i++) {
-            insns.add(new LocalVariableInsn("FRED", gensym(locals), methodToInline.args.get(i), "", start, end, locals));
-        }
 
         method.insns.remove(index);
         method.insns.addAll(index, insns);
         recalculateLabels(method);
 
-        AbstractInterpretation.optimizeMethod(className, method);
-        printMethod(method, "AFTER:");
+        if (noisy) {
+            System.out.println("Method:"+ method.name + " Replacing " + mi + " with");
+            for (Insn i : insns) {
+                System.out.println("\t" + i);
+            }
+        }
 
     }
+            
+    public static void inlineNonStaticMethodCall(String className, ByteCodeMethodVisitor method, MethodInsn mi, ByteCodeMethodVisitor methodToInline, int index, boolean isStatic) {
+        List<Insn> insns = new ArrayList<Insn>();
+        Label start = new Label();
+        Label end = new Label();
 
+        insns.add(new LabelInsn("start", start));
+        int[] offsets = new int[methodToInline.maxLocals];
+        int locals = method.maxLocals;
+        method.maxStack = method.maxStack + methodToInline.maxStack;
 
+        for (int i = methodToInline.args.size(); i >= 0; i--) {
+            insns.add(new VarInsn("ASTORE", Opcodes.ASTORE, method.maxLocals + i));
+            offsets[i] = method.maxLocals + i;
+        }
+
+        method.maxLocals = method.maxLocals + methodToInline.args.size();
+
+        for (int i = 0; i < methodToInline.insns.size(); i++) {
+            insns.addAll(convertInsn(methodToInline.insns.get(i), offsets));
+        }
+
+        insns.add(new LabelInsn("end", end));
+
+        method.insns.remove(index);
+        method.insns.addAll(index, insns);
+        recalculateLabels(method);
+        if (noisy) {
+            System.out.println("Method:"+ method.name + " Replacing " + mi + " with");
+            for (Insn i : insns) {
+                System.out.println("\t" + i);
+            }
+        }
+    }
 
     public static void Inline(ByteCodeMethodVisitor bcmv, String className) {
         ByteCodeOptimizer builtin = new ByteCodeOptimizer();
         builtin.readInJarFile("default_repository/caches/bytecode_cache/fortress.CompilerBuiltin.jar");
 
-        int maxLocals = bcmv.maxLocals;
-
-        boolean changed = true;
-        while (changed == true) {
-            changed = false;
-            for (int i = 0; i < bcmv.insns.size(); i++) {
-                Insn insn = bcmv.insns.get(i);
-                if (insn instanceof MethodInsn) {
-                    MethodInsn mi = (MethodInsn) insn;
-                    if (isBuiltinInterfaceMethod(bcmv, i)) {
-
-                    } else if (isCompilerBuiltin(mi.owner)) {
-                        if (isBuiltinStaticMethod(bcmv, i)) {
-                            ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
-                            ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                                  mi.desc); 
-                            if (methodToInline != null) {
-                                inlineInsn(className, bcmv, mi, methodToInline, i);
-                                changed = true;
-                            }
-                        } else if (isBuiltinInstanceMethod(bcmv, i)) {
+        for (int i = 0; i < bcmv.insns.size(); i++) {
+            Insn insn = bcmv.insns.get(i);
+            // Come back and fix this later.  Check for CompilerBuiltin first, and then check if static, interface, or instance.
+            if (insn instanceof MethodInsn) {
+                MethodInsn mi = (MethodInsn) insn;
+                if (isBuiltinInterfaceMethod(bcmv, i)) {
+                    ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + "$DefaultTraitMethods.class");
+                    // Revisit this to see how kosher it is. Encoding knowledge of how default methods work.
+                    ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                          mi.desc); 
+                    if (methodToInline != null) {
+                        inlineNonStaticMethodCall(className, bcmv, mi, methodToInline, i, false);
+                        i = i + methodToInline.insns.size();
+                    }  
+                } else if (isCompilerBuiltin(mi.owner)) {
+                    if (isBuiltinStaticMethod(bcmv, i)) {
+                        ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
+                        ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                              mi.desc); 
+                        if (methodToInline != null) {
+                            inlineStaticMethodCall(className, bcmv, mi, methodToInline, i, true);
+                            i = i + methodToInline.insns.size();
                         }
-                    } else if (isNativeInterface(mi.owner)) {
-
-
+                    } else if (isBuiltinInstanceMethod(bcmv, i)) {
                     }
+                } else if (isNativeInterface(mi.owner)) {
                 }
             }
         }
