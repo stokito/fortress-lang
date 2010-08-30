@@ -16,6 +16,12 @@ object Properties extends GenericProperties
     propAssociativeAddition(a:ZZ32, b:ZZ32, c:ZZ32): Boolean =
         (a + b) + c = a + (b + c)
 
+    (* Tests a polymorphic property and its desugared form. *)
+    propCommutativeAddition(a:ZZ64, b:ZZ64): Boolean =
+        a + b = b + a
+    propCommutativeAddition'[\A extends ZZ64, B extends ZZ64\](a:A, b:B): Boolean =
+        a + b = b + a
+
     (* Tests several variants of same property. *)
     propDoubleReversal[\T\](g:Generator[\T\]): Boolean =
         (list g.reverse.reverse = list g)
@@ -27,9 +33,9 @@ object Properties extends GenericProperties
         (list g.reverse.reverse = list g)
 
     (* Specific properties for `Map`. *)
-    propMapLengthInvariant1[\Key,Val\](map:Map[\Key,Val\], k:Key, v:Val): Boolean =
+    propMapSizeInvariant1[\Key,Val\](map:Map[\Key,Val\], k:Key, v:Val): Boolean =
         (0 <= |map.add(k,v)| - |map| <= 1)
-    propMapLengthInvariant2[\Key,Val,Res\](map:Map[\Key,Val\], f:(Key,Val)->Maybe[\Res\]): Boolean =
+    propMapSizeInvariant2[\Key,Val,Res\](map:Map[\Key,Val\], f:(Key,Val)->Maybe[\Res\]): Boolean =
         (|map.mapFilter[\Res\](f)| <= |map|)
 end
 

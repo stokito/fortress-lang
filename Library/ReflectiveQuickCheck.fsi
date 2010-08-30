@@ -36,6 +36,12 @@ object genAnyOf[\T\] extends Gen[\T\]
     generate(c:TestContext): T
 end
 
+(** Same as `genAnyOf` but accepts a type object. **)
+object genAnyOf'(top:Type) extends Gen[\Any\]
+    getter asString(): String
+    generate(c:TestContext): Any
+end
+
 (** A generator for `Any` type, which is actually a generator for the specific
     type in disguise. **)
 object genAnyLifted[\T\](gen:Gen[\T\]) extends Gen[\Any\]
@@ -54,12 +60,14 @@ trait ReflectiveArbitrary extends DefaultArbitrary
     (** Calls given constructor with `Gen` instances for given types via
         `genFromType`. If `genFromType` returns `Nothing` for any types given,
         it also returns `Nothing`. **)
-    genFromTypeList(types:Generator[\Type\], ctor:Any->AnyGen): Maybe[\AnyGen\]
+    genFromTypeList(def:Boolean, types:Generator[\Type\], ctor:Any->AnyGen):
+        Maybe[\AnyGen\]
 
     (** Returns a generator for given type object, or `Nothing` if there doesn't
-        exist an appropriate generator. It will try to find out the generator for
-        unknown types as supported by `genType` generator. **)
-    genFromType(t:Type): Maybe[\AnyGen\]
+        exist an appropriate generator. It will try to find out the generator
+        for unknown types as supported by `genAnyOf'` generator when `def` is
+        `true`. **)
+    genFromType(def:Boolean, t:Type): Maybe[\AnyGen\]
 
     (** A wrapper for `genFromType` above. **)
     gen[\T\](): Gen[\T\]

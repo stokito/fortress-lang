@@ -131,8 +131,10 @@ trait GenGenerator[\E,T extends Generator[\E\]\] extends Gen[\T\]
     (** Transforms a resulting `Generator[\E\]` back to a desired type, `T`. **)
     abstract fromGenerator(obj:Generator[\E\]): T
 
-    generate(c:TestContext): Generator[\E\] =
+    generate(c:TestContext): Generator[\E\] = do
+        c.random() (* Somehow permute the internal state to avoid duplicate results. *)
         fromGenerator RandomGenerator[\E\](self.genE, c.withRandomGen(c.g.perturbed(0)))
+    end
     shrink(obj:T): Generator[\T\] =
         ShrinkingGenerator[\E,T\](obj, self.genE, fromGenerator)
 end

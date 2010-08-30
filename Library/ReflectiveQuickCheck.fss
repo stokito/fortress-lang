@@ -68,7 +68,23 @@ object genAnyOf[\T\] extends Gen[\T\]
         arb = c.arbitrary asif ReflectiveArbitrary
         gentype = genType(theType[\T\]())
         t = gentype.generate(c)
-        if gent <- arb.genFromType(t) then
+        if gent <- arb.genFromType(true, t) then
+            gent.generate(c)
+        else
+            fail("can't find a generator for " t)
+        end
+    end
+end
+
+(** Same as `genAnyOf` but accepts a type object. **)
+object genAnyOf'(top:Type) extends Gen[\Any\]
+    getter asString(): String = "genAnyOf'(" top ")"
+
+    generate(c:TestContext): Any = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        gentype = genType(top)
+        t = gentype.generate(c)
+        if gent <- arb.genFromType(true, t) then
             gent.generate(c)
         else
             fail("can't find a generator for " t)
@@ -94,8 +110,10 @@ trait ReflectiveArbitrary extends DefaultArbitrary
     (** Calls given constructor with `Gen` instances for given types via
         `genFromType`. If `genFromType` returns `Nothing` for any types given,
         it also returns `Nothing`. **)
-    genFromTypeList(types:Generator[\Type\], ctor:Any->AnyGen): Maybe[\AnyGen\] = do
-        gens = types.map[\Maybe[\AnyGen\]\](genFromType)
+    genFromTypeList(def:Boolean, types:Generator[\Type\], ctor:Any->AnyGen):
+            Maybe[\AnyGen\] = do
+        gens = types.map[\Maybe[\AnyGen\]\](
+            fn (t:Type):Maybe[\AnyGen\] => genFromType(def,t))
         if BIG AND [gen' <- gens] gen'.holds then
             gens' = tupleFromIndexed[\AnyGen\](gens.map[\AnyGen\](
                 fn (x:Maybe[\AnyGen\]):AnyGen => x.get))
@@ -106,21 +124,22 @@ trait ReflectiveArbitrary extends DefaultArbitrary
     end
 
     (** Returns a generator for given type object, or `Nothing` if there doesn't
-        exist an appropriate generator. It will try to find out the generator for
-        unknown types as supported by `genType` generator. **)
-    genFromType(t:Type): Maybe[\AnyGen\] =
+        exist an appropriate generator. It will try to find out the generator
+        for unknown types as supported by `genAnyOf'` generator when `def` is
+        `true`. **)
+    genFromType(def:Boolean, t:Type): Maybe[\AnyGen\] =
         typecase t of
             t':TupleType => case |t'| of
                 0 => Just[\AnyGen\](genVoid)
-                2 => genFromTypeList(t', fn (x:Any):AnyGen => genTuple2(x))
-                3 => genFromTypeList(t', fn (x:Any):AnyGen => genTuple3(x))
-                4 => genFromTypeList(t', fn (x:Any):AnyGen => genTuple4(x))
-                5 => genFromTypeList(t', fn (x:Any):AnyGen => genTuple5(x))
-                6 => genFromTypeList(t', fn (x:Any):AnyGen => genTuple6(x))
+                2 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple2(x))
+                3 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple3(x))
+                4 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple4(x))
+                5 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple5(x))
+                6 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple6(x))
                 else => Nothing[\AnyGen\]
             end
             t':ArrowType =>
-                genFromTypeList(<| t'.domain, t'.range |>, fn (x:Any):AnyGen => genArrow(x))
+                genFromTypeList(def, <| t'.domain, t'.range |>, fn (x:Any):AnyGen => genArrow(x))
             t':ObjectOrTraitType => case t' SUBTYPEOF of
                 theType[\Boolean\]() => Just[\AnyGen\](genBoolean)
                 (*) The order does matter!
@@ -135,16 +154,21 @@ trait ReflectiveArbitrary extends DefaultArbitrary
                 theType[\String\]() => Just[\AnyGen\](genString)
                 else => case t'.generic of
                     theType[\Maybe[\ZZ32\]\]().generic =>
-                        genFromTypeList(t'.staticArgs, fn (x:Any):AnyGen => genMaybe(x))
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genMaybe(x))
                     theType[\List[\ZZ32\]\]().generic =>
-                        genFromTypeList(t'.staticArgs, fn (x:Any):AnyGen => genList(x))
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genList(x))
                     theType[\Set[\ZZ32\]\]().generic =>
-                        genFromTypeList(t'.staticArgs, fn (x:Any):AnyGen => genSet(x))
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genSet(x))
                     theType[\Map[\ZZ32,ZZ32\]\]().generic =>
-                        genFromTypeList(t'.staticArgs, fn (x:Any):AnyGen => genMap(x))
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genMap(x))
                     theType[\Generator[\ZZ32\]\]().generic =>
-                        genFromTypeList(t'.staticArgs, fn (x:Any):AnyGen => genGenerator(x))
-                    else => Nothing[\AnyGen\]
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genGenerator(x))
+                    else =>
+                        if def then
+                            Just[\AnyGen\](genAnyOf'(t))
+                        else
+                            Nothing[\AnyGen\]
+                        end
                 end
             end
         end
@@ -153,7 +177,7 @@ trait ReflectiveArbitrary extends DefaultArbitrary
     gen[\T\](): Gen[\T\] =
         typecase fn ():T => throw ForbiddenException of
             ()->Object =>
-                if gen' <- genFromType(theType[\T\]()) then
+                if gen' <- genFromType(false, theType[\T\]()) then
                     gen' asif Gen[\T\]
                 else
                     genAnyOf[\T\]
@@ -201,7 +225,7 @@ private findGenType(gent:ObjectOrTraitType): UniqueItem[\Type\] =
     Instead we have to convert every instances of `Float` to `RR64` at the first
     time --- this routine does so. **)
 private adaptType(arb:ReflectiveArbitrary, t:Type): Type =
-    if gen <- arb.genFromType(t) then
+    if gen <- arb.genFromType(false, t) then
         if t2 <- findGenType(typeOf(gen)) then
             t2
         else
@@ -260,7 +284,7 @@ trait GenericProperties (* extends Testable[\()\] *)
             end
             ty:ArrowType => (ty, p)
         end
-        if gen <- arb.genFromType(ty'.domain) then
+        if gen <- arb.genFromType(true, ty'.domain) then
             (BoundedProperty(self, p'), genAnyLifted(gen))
         else
             fail("unable to generate a test generator for " name " of type " ty0)
